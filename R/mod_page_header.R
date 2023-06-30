@@ -7,7 +7,7 @@
 #'
 #' @noRd 
 #'
-#' @importFrom shiny NS tagList 
+#' @importFrom shiny NS tagList
 mod_page_header_ui <- function(id = character(), i18n = character()){
   
   ns <- NS(id)
