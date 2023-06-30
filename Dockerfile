@@ -27,5 +27,4 @@ COPY LinkR /root/LinkR
 COPY Rprofile.site /usr/lib/R/etc/
 
 EXPOSE 3838
-
-CMD ["R", "-e", "linkr::linkr(language = 'fr', app_folder = '/root')"]
+CMD ["R", "-e", "options('shiny.port'=3838,shiny.host='0.0.0.0');linkr::linkr(language = 'fr', app_folder = '/root')"]
