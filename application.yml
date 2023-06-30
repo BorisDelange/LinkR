@@ -18,10 +18,10 @@ proxy:
     port-range-start: 20000
   specs:
   - id: linkr
-    display-name: LinkR
+    display-name: LinkR - v0.2.0.9010
     description: A web app for visualization and analysis of healthcare data using OMOP CDM
     container-cmd: ["R", "-e", "linkr::linkr(language = 'fr', app_folder = '/root')"]
-    container-image: linkr
+    container-image: linkr-v0.2.0.9010
     access-groups: admin
     max-instances: 2
 
