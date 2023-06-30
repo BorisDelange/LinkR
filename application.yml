@@ -14,13 +14,14 @@ proxy:
     groups: admin
     # Docker configuration
   docker:
+    cert-path: /home/none
     url: http://localhost:2375
     port-range-start: 20000
   specs:
   - id: linkr
     display-name: LinkR - v0.2.0.9010
     description: A web app for visualization and analysis of healthcare data using OMOP CDM
-    container-cmd: ["R", "-e", "linkr::linkr(language = 'fr', app_folder = '/root')"]
+    container-cmd: ["R", "-e", "options(shiny.port = 3838, shiny.host = '0.0.0.0'); linkr::linkr(language = 'fr', app_folder = '/root')"]
     container-image: linkr-v0.2.0.9010
     access-groups: admin
     max-instances: 2
