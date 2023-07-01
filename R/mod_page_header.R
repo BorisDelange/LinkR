@@ -23,7 +23,7 @@ mod_page_header_ui <- function(id = character(), i18n = character()){
     div(class = "header_left_bar", 
       shiny.fluent::CommandBar(
         items = list(
-          shiny.fluent::CommandBarItem("éé2", "Home", href = shiny.router::route_link("home")),
+          shiny.fluent::CommandBarItem("éé3", "Home", href = shiny.router::route_link("home")),
           shiny.fluent::CommandBarItem(i18n$t("home"), "Home", href = shiny.router::route_link("home")),
           shiny.fluent::CommandBarItem(i18n$t("data"), "OfflineStorage",
             subMenuProps = list(items = list(
