@@ -1,13 +1,12 @@
 proxy:
-  title: LinkR Shiny Proxy
-  logo-url: https://framagit.org/interhop/LinkR/-/raw/master/inst/app/www/logo.png
+  title: InterHop Shiny Proxy
   landing-page: /
+  my-apps-mode: inline
   heartbeat-rate: 10000
   heartbeat-timeout: 60000
   port: 3838
   authentication: simple
   admin-groups: admin
-  # Example: 'simple' authentication configuration
   users:
   - name: admin
     password: admin
@@ -23,9 +22,10 @@ proxy:
     description: A web app for visualization and analysis of healthcare data using OMOP CDM
     container-cmd: ["R", "-e", "options(shiny.port = 3838, shiny.host = '0.0.0.0'); linkr::linkr(language = 'fr', app_folder = '/root')"]
     container-image: linkr-v0.2.0.9010
+    # Update container-volumes with the folder you want to share between the containers
+    container-volumes: ["/home/docker-containers-files/linkr-v.0.2.0.9010:/root"]
     access-groups: admin
     max-instances: 2
-
 logging:
   file:
     shinyproxy.log

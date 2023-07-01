@@ -8,6 +8,7 @@ RUN apt-get update && apt-get install --no-install-recommends -y \
     pandoc-citeproc \
     libcurl4-gnutls-dev \
     libcairo2-dev \
+    libxml2 \
     libxt-dev \
     libssl-dev \
     libssh2-1-dev \
