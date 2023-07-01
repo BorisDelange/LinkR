@@ -39,7 +39,7 @@ golem_add_external_resources <- function(css){
   # if (require("marker")) marker_div <- marker::useMarker() else marker_div <- ""
  
   tags$head(
-    # tags$meta(charset = "UTF-8"),
+    tags$meta(charset = "UTF-8"),
     favicon(ext = "png"),
     bundle_resources(
       path = app_sys('app/www'),
