@@ -1033,9 +1033,19 @@ mod_plugins_server <- function(id = character(), r = shiny::reactiveValues(), d 
         add_log_entry(r = r, category = paste0("code", " - ", i18n$t("insert_new_data")), name = i18n$t("sql_query"), value = toString(new_code))
         r$code <- r$code %>% dplyr::bind_rows(new_code)
         
-        # update_r(r = r, table = "plugins")
-        # update_r(r = r, table = "options")
-        # update_r(r = r, table = "code")
+        # Copy files
+        # Create folder if doesn't exist
+        plugin_dir <- paste0(r$app_folder, "/plugins/", prefix, "/", plugin$unique_id)
+        if (!dir.exists(plugin_dir)) dir.create(plugin_dir, recursive = TRUE)
+        
+        # list_of_files <- list.files(paste0(temp_dir, "/plugins/", prefix, "/", plugin$unique_id))
+        
+        # Copy files to temp dir
+        # file.copy(
+        #   paste0(paste0(temp_dir, "/plugins/", prefix, "/", plugin$unique_id), "/", list_of_files),
+        #   paste0(plugin_dir, "/", list_of_files),
+        #   overwrite = TRUE
+        # )
         
         r$show_plugin_details <- Sys.time()
         # r[[paste0("reload_", prefix, "_plugin")]] <- Sys.time()

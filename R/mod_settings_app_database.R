@@ -756,6 +756,26 @@ mod_settings_app_database_server <- function(id = character(), r = shiny::reacti
         if (debug) print(paste0(Sys.time(), " - mod_settings_app_database - output$db_save"))
         
         tryCatch({
+          
+          # Tests for ShinyProxy
+          # Save the files in linkr temp dir
+          db_list <- c("main_db", "public_db")
+          for (db in db_list){
+            
+            tables <- input[[paste0(db, "_tables_to_export")]]
+            
+            if (db == "main_db") con <- r$db
+            if (db == "public_db") con <- m$db
+            
+            if (length(tables) > 0){
+              for (table in tables){
+                file_name <- paste0(r$app_folder, "/temp_files/", table, ".csv")
+                readr::write_csv(DBI::dbGetQuery(con, paste0("SELECT * FROM ", table)), file_name)
+                # files <- c(file_name, files)
+              }
+            }
+          }
+          
           owd <- setwd(tempdir())
           on.exit(setwd(owd))
           
