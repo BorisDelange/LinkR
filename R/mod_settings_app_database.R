@@ -755,38 +755,43 @@ mod_settings_app_database_server <- function(id = character(), r = shiny::reacti
         if (perf_monitoring) monitor_perf(r = r, action = "start")
         if (debug) print(paste0(Sys.time(), " - mod_settings_app_database - output$db_save"))
         
-        owd <- setwd(tempdir())
-        on.exit(setwd(owd))
-        
-        files <- NULL
-        
-        db_list <- c("main_db", "public_db")
-        
-        for (db in db_list){
+        tryCatch({
+          owd <- setwd(tempdir())
+          on.exit(setwd(owd))
           
-          tables <- input[[paste0(db, "_tables_to_export")]]
+          files <- NULL
           
-          if (db == "main_db") con <- r$db
-          if (db == "public_db") con <- m$db
-  
-          if (length(tables) > 0){
-            for (table in tables){
-              file_name <- paste0(table, ".csv")
-              readr::write_csv(DBI::dbGetQuery(con, paste0("SELECT * FROM ", table)), file_name)
-              files <- c(file_name, files)
+          db_list <- c("main_db", "public_db")
+          
+          for (db in db_list){
+            
+            tables <- input[[paste0(db, "_tables_to_export")]]
+            
+            if (db == "main_db") con <- r$db
+            if (db == "public_db") con <- m$db
+    
+            if (length(tables) > 0){
+              for (table in tables){
+                file_name <- paste0(table, ".csv")
+                readr::write_csv(DBI::dbGetQuery(con, paste0("SELECT * FROM ", table)), file_name)
+                files <- c(file_name, files)
+              }
             }
           }
-        }
-        
-        # XML file for app version
-        
-        xml <- XML::newXMLDoc()
-        db_node <- XML::newXMLNode("db", doc = xml)
-        XML::newXMLNode("app_version", r$app_version, parent = db_node)
-        XML::saveXML(xml, file = "db_info.xml")
-        files <- c("db_info.xml", files)
-        
-        zip::zipr(file, files, include_directories = FALSE)
+          
+          # XML file for app version
+          
+          xml <- XML::newXMLDoc()
+          db_node <- XML::newXMLNode("db", doc = xml)
+          XML::newXMLNode("app_version", r$app_version, parent = db_node)
+          XML::saveXML(xml, file = "db_info.xml")
+          files <- c("db_info.xml", files)
+          
+          zip::zipr(file, files, include_directories = FALSE)
+        },
+        error = function(e) if (nchar(e[1]) > 0) report_bug(r = r, output = output, error_message = "error_exporting_db", 
+          error_name = "export_db create zip file", category = "Error", error_report = toString(e), i18n = i18n, ns = ns)
+        )
         
         if (perf_monitoring) monitor_perf(r = r, action = "stop", task = paste0("mod_settings_app_database - output$db_save"))
       }

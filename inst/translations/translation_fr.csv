@@ -853,3 +853,4 @@ error_loading_script_description,Erreur lors du chargement de la description du 
 access_to_data,Accéder aux données
 scripts_and_plugins,Scripts & plugins
 comment,Commentaire
+error_exporting_db,Erreur lors de l'export de la BDD

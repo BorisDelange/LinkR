@@ -23,7 +23,7 @@ proxy:
     container-cmd: ["R", "-e", "options(shiny.port = 3838, shiny.host = '0.0.0.0'); linkr::linkr(language = 'fr', app_folder = '/root')"]
     container-image: linkr-v0.2.0.9010
     # Update container-volumes with the folder you want to share between the containers
-    container-volumes: ["/home/docker-containers-files/linkr-v.0.2.0.9010:/root"]
+    container-volumes: ["/home/docker-containers-files/linkr-v0.2.0.9010:/root"]
     access-groups: admin
     max-instances: 2
 logging:

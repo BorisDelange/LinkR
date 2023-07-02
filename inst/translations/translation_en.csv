@@ -853,3 +853,4 @@ error_loading_script_description,Error loading script description
 access_to_data,Access to data
 scripts_and_plugins,Scripts & plugins
 comment,Comment
+error_exporting_db,Error exporting database
