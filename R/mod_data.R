@@ -833,7 +833,10 @@ mod_data_server <- function(id = character(), r = shiny::reactiveValues(), d = s
         
         if (nrow(widgets) > 0){
           
-          # Get widget widget_id
+          # Load widgets concepts
+          widgets_concepts <- r[[paste0(prefix, "_widgets_concepts")]] %>% dplyr::inner_join(widgets %>% dplyr::select(widget_id), by = "widget_id")
+          
+          # Get widget ID
           distinct_widgets <- unique(widgets$widget_id)
           
           # Loop over distinct cards (tabs elements), for this tab
@@ -841,7 +844,9 @@ mod_data_server <- function(id = character(), r = shiny::reactiveValues(), d = s
           # Use sapply instead of for loop, cause with for loop, widget_id doesn't change
           sapply(distinct_widgets, function(widget_id){
             
-            # if (tab_id != r[[paste0(prefix, "_first_tab_shown")]]$id) all_groups <- c(all_groups, widget_id)
+            # Load selected concepts
+            selected_concepts <- widgets_concepts %>% dplyr::filter(widget_id == !!widget_id) %>%
+              dplyr::select(concept_id, concept_name, concept_display_name, domain_id, mapped_to_concept_id, merge_mapped_concepts)
             
             # Load UI code for this widget
             plugin_id <- widgets %>% dplyr::filter(widget_id == !!widget_id) %>% dplyr::slice(1) %>% dplyr::pull(plugin_id)
@@ -903,6 +908,7 @@ mod_data_server <- function(id = character(), r = shiny::reactiveValues(), d = s
             code_ui_card <- code_ui_card %>%
               stringr::str_replace_all("%tab_id%", as.character(tab_id)) %>%
               stringr::str_replace_all("%widget_id%", as.character(widget_id)) %>%
+              stringr::str_replace_all("%req%", "req(m[[session_code]] == session_num)\nreq(m$selected_study == %study_id%)") %>%
               stringr::str_replace_all("\r", "\n") %>%
               stringr::str_replace_all("''", "'")
             
@@ -1250,7 +1256,6 @@ mod_data_server <- function(id = character(), r = shiny::reactiveValues(), d = s
       sql <- glue::glue_sql("UPDATE {`table`} SET name = {new_data$name} WHERE id = {widget_id}", .con = r$db)
       query <- DBI::dbSendStatement(r$db, sql)
       DBI::dbClearResult(query)
-      
       
       # Get last_row nb
       last_row_widgets_concepts <- get_last_row(m$db, paste0(prefix, "_widgets_concepts"))
@@ -2495,6 +2500,7 @@ mod_data_server <- function(id = character(), r = shiny::reactiveValues(), d = s
       code_ui_card <- code_ui_card %>%
         stringr::str_replace_all("%tab_id%", as.character(tab_id)) %>%
         stringr::str_replace_all("%widget_id%", as.character(widget_id)) %>%
+        stringr::str_replace_all("%req%", "req(m[[session_code]] == session_num)\nreq(m$selected_study == %study_id%)") %>%
         stringr::str_replace_all("\r", "\n") %>%
         stringr::str_replace_all("''", "'") %>%
         stringr::str_replace_all("%study_id%", as.character(isolate(m$selected_study)))
@@ -2543,7 +2549,7 @@ mod_data_server <- function(id = character(), r = shiny::reactiveValues(), d = s
       # Reset opened cards
       r[[paste0(prefix, "_opened_cards")]] <- ""
       
-      # Loop over distinct cards (tabs elements), for this tab
+      # Loop over distinct cards (widgets), for this tab
       
       # Use sapply instead of for loop, cause with for loop, widget_id doesn't change
       sapply(distinct_widgets, function(widget_id){

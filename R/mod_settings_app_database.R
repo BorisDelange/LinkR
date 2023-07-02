@@ -759,6 +759,7 @@ mod_settings_app_database_server <- function(id = character(), r = shiny::reacti
           
           # Tests for ShinyProxy
           # Save the files in linkr temp dir
+          files <- NULL
           db_list <- c("main_db", "public_db")
           for (db in db_list){
             
@@ -771,10 +772,20 @@ mod_settings_app_database_server <- function(id = character(), r = shiny::reacti
               for (table in tables){
                 file_name <- paste0(r$app_folder, "/temp_files/", table, ".csv")
                 readr::write_csv(DBI::dbGetQuery(con, paste0("SELECT * FROM ", table)), file_name)
-                # files <- c(file_name, files)
+                files <- c(file_name, files)
               }
             }
           }
+          
+          xml <- XML::newXMLDoc()
+          db_node <- XML::newXMLNode("db", doc = xml)
+          XML::newXMLNode("app_version", r$app_version, parent = db_node)
+          db_info_file <- paste0(r$app_folder, "/temp_files/db_info.xml")
+          XML::saveXML(xml, file = db_info_file)
+          files <- c(db_info_file, files)
+          zip::zipr(paste0(r$app_folder, "/temp_files/my_zip.zip"), files, include_directories = FALSE)
+          
+          ############
           
           owd <- setwd(tempdir())
           on.exit(setwd(owd))
