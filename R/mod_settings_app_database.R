@@ -760,6 +760,9 @@ mod_settings_app_database_server <- function(id = character(), r = shiny::reacti
           
           db_list <- c("main_db", "public_db")
           
+          temp_dir <- paste0(r$app_folder, "/temp_files/", Sys.time() %>% stringr::str_replace_all(":| |-", ""), paste0(sample(c(0:9, letters[1:6]), 24, TRUE), collapse = ''))
+          dir.create(temp_dir)
+          
           for (db in db_list){
             
             tables <- input[[paste0(db, "_tables_to_export")]]
@@ -769,7 +772,7 @@ mod_settings_app_database_server <- function(id = character(), r = shiny::reacti
     
             if (length(tables) > 0){
               for (table in tables){
-                file_name <- paste0(r$app_folder, "/temp_files/", table, ".csv")
+                file_name <- paste0(temp_dir, "/", table, ".csv")
                 readr::write_csv(DBI::dbGetQuery(con, paste0("SELECT * FROM ", table)), file_name)
                 files <- c(file_name, files)
               }
@@ -781,7 +784,7 @@ mod_settings_app_database_server <- function(id = character(), r = shiny::reacti
           xml <- XML::newXMLDoc()
           db_node <- XML::newXMLNode("db", doc = xml)
           XML::newXMLNode("app_version", r$app_version, parent = db_node)
-          db_info_file <- paste0(r$app_folder, "/temp_files/db_info.xml")
+          db_info_file <- paste0(temp_dir, "/db_info.xml")
           XML::saveXML(xml, file = db_info_file)
           files <- c(db_info_file, files)
           
