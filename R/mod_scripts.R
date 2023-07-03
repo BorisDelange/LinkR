@@ -1380,8 +1380,12 @@ mod_scripts_server <- function(id = character(), r = shiny::reactiveValues(), d 
       
       options <- r$options %>% dplyr::filter(category == "script", link_id == !!link_id)
       
-      for (field in c("version", "author", "name_fr", "name_en", "category_fr", "category_en")) shiny.fluent::updateTextField.shinyInput(session,
-        paste0("script_", field), value = options %>% dplyr::filter(name == field) %>% dplyr::pull(value))
+      for (field in c("version", "author", "name_fr", "name_en", "category_fr", "category_en")){
+        value <- options %>% dplyr::filter(name == field) %>% dplyr::pull(value)
+        if (is.na(value)) value <- ""
+        
+        shiny.fluent::updateTextField.shinyInput(session, paste0("script_", field), value = value)
+      } 
       
       for (field in c("description_fr", "description_en")) shinyAce::updateAceEditor(session,
         paste0("script_", field), value = options %>% dplyr::filter(name == field) %>% dplyr::pull(value) %>% stringr::str_replace_all("''", "'"))

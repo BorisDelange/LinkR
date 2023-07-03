@@ -916,8 +916,11 @@ mod_my_studies_server <- function(id = character(), r = shiny::reactiveValues(),
       
       # Update other fields
       
-      for (field in c("version", "author", "name_fr", "name_en", "category_fr", "category_en")) shiny.fluent::updateTextField.shinyInput(session,
-        paste0("study_", field), value = options %>% dplyr::filter(name == field) %>% dplyr::pull(value))
+      for (field in c("version", "author", "name_fr", "name_en", "category_fr", "category_en")){
+        value <- options %>% dplyr::filter(name == field) %>% dplyr::pull(value)
+        if (is.na(value)) value <- ""
+        shiny.fluent::updateTextField.shinyInput(session, paste0("study_", field), value = value)
+      }
       
       for (field in c("description_fr", "description_en")) shinyAce::updateAceEditor(session,
         paste0("study_", field), value = options %>% dplyr::filter(name == field) %>% dplyr::pull(value))

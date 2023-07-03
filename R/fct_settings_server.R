@@ -1008,6 +1008,8 @@ save_settings_options <- function(output, r = shiny::reactiveValues(), id = char
       sql <- glue::glue_sql("UPDATE options SET value = {new_value} WHERE id = {option_id}", .con = r$db)
       query <- DBI::dbSendStatement(r$db, sql)
       DBI::dbClearResult(query)
+      print(field)
+      print(new_value)
       r$options <- r$options %>% dplyr::mutate(value = dplyr::case_when(id == option_id ~ new_value, TRUE ~ value))
     }
   }
