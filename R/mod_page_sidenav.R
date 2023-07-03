@@ -72,7 +72,7 @@ mod_page_sidenav_ui <- function(id = character(), i18n = character()){
   # My studies ----
   # --- --- --- ---
   
-  if (id == "my_studies") div(class = "sidenav", dropdowns(c("dataset", "study"))) -> result
+  if (id == "my_studies") div(class = "sidenav", dropdowns(c("dataset"))) -> result
   
   # --- --- --- ---
   # My subsets ----

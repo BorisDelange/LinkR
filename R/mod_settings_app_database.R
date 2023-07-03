@@ -756,6 +756,8 @@ mod_settings_app_database_server <- function(id = character(), r = shiny::reacti
         if (debug) print(paste0(Sys.time(), " - mod_settings_app_database - output$db_save"))
         
         tryCatch({
+          filename <- paste0("linkr_db_backup_", Sys.time() %>% as.character() %>% stringr::str_replace_all(" |:|-", "_"), ".zip")
+          
           files <- NULL
           
           db_list <- c("main_db", "public_db")
@@ -788,7 +790,13 @@ mod_settings_app_database_server <- function(id = character(), r = shiny::reacti
           XML::saveXML(xml, file = db_info_file)
           files <- c(db_info_file, files)
           
-          zip::zipr(file, files, include_directories = FALSE)
+          file_path <- paste0(temp_dir, "/", filename)
+          
+          zip::zipr(file_path, files)
+          
+          # zip::zipr(file, files, include_directories = FALSE)
+          
+          file.copy(file_path, file)
         },
         error = function(e) if (nchar(e[1]) > 0) report_bug(r = r, output = output, error_message = "error_exporting_db", 
           error_name = "export_db create zip file", category = "Error", error_report = toString(e), i18n = i18n, ns = ns)
