@@ -899,7 +899,7 @@ mod_data_server <- function(id = character(), r = shiny::reactiveValues(), d = s
             r[[paste0(prefix, "_cards")]] <- c(r[[paste0(prefix, "_cards")]], paste0(prefix, "_widget_", widget_id))
             
             toggles <<- tagList(toggles,
-              shiny.fluent::Toggle.shinyInput(ns(paste0(paste0(prefix, "_widget_", widget_id), "_toggle")), value = TRUE, style = "margin-top:10px;"),
+              shiny.fluent::Toggle.shinyInput(ns(paste0(prefix, "_widget_", widget_id, "_toggle")), value = TRUE, style = "margin-top:10px;"),
               div(class = "toggle_title", widget_name, style = "padding-top:10px;"))
             
             # Try to run plugin UI code
@@ -1369,7 +1369,7 @@ mod_data_server <- function(id = character(), r = shiny::reactiveValues(), d = s
         widget_name <- widgets %>% dplyr::filter(widget_id == !!widget_id) %>% dplyr::slice(1) %>% dplyr::pull(name)
         
         toggles <<- tagList(toggles,
-          shiny.fluent::Toggle.shinyInput(ns(paste0(paste0(prefix, "_widget_", widget_id), "_toggle")), value = TRUE, style = "margin-top:10px;"),
+          shiny.fluent::Toggle.shinyInput(ns(paste0(prefix, "_widget_", widget_id, "_toggle")), value = TRUE, style = "margin-top:10px;"),
           div(class = "toggle_title", widget_name, style = "padding-top:10px;"))
         
         # Add to the list of opened cards
@@ -1468,9 +1468,9 @@ mod_data_server <- function(id = character(), r = shiny::reactiveValues(), d = s
       sapply(distinct_widgets, function(widget_id){
         
         # If toggle is ON
-        if (length(input[[paste0(paste0(prefix, "_widget_", widget_id), "_toggle")]]) > 0){
+        if (length(input[[paste0(prefix, "_widget_", widget_id, "_toggle")]]) > 0){
           
-          if (input[[paste0(paste0(prefix, "_widget_", widget_id), "_toggle")]]){
+          if (input[[paste0(prefix, "_widget_", widget_id, "_toggle")]]){
             
             # Show card
             shinyjs::show(paste0(prefix, "_widget_", widget_id))
@@ -2558,7 +2558,7 @@ mod_data_server <- function(id = character(), r = shiny::reactiveValues(), d = s
         widget_name <- widgets %>% dplyr::filter(widget_id == !!widget_id) %>% dplyr::slice(1) %>% dplyr::pull(name)
         
         toggles <<- tagList(toggles,
-          shiny.fluent::Toggle.shinyInput(ns(paste0(paste0(prefix, "_widget_", widget_id), "_toggle")), value = TRUE, style = "margin-top:10px;"),
+          shiny.fluent::Toggle.shinyInput(ns(paste0(prefix, "_widget_", widget_id, "_toggle")), value = TRUE, style = "margin-top:10px;"),
           div(class = "toggle_title", widget_name, style = "padding-top:10px;"))
         
         # Add to the list of opened cards
@@ -2671,7 +2671,7 @@ mod_data_server <- function(id = character(), r = shiny::reactiveValues(), d = s
         widget_name <- widgets %>% dplyr::filter(widget_id == !!widget_id) %>% dplyr::slice(1) %>% dplyr::pull(name)
         
         toggles <<- tagList(toggles,
-          shiny.fluent::Toggle.shinyInput(ns(paste0(paste0(prefix, "_widget_", widget_id), "_toggle")), value = TRUE, style = "margin-top:10px;"),
+          shiny.fluent::Toggle.shinyInput(ns(paste0(prefix, "_widget_", widget_id, "_toggle")), value = TRUE, style = "margin-top:10px;"),
           div(class = "toggle_title", widget_name, style = "padding-top:10px;"))
         
         # Add to the list of opened cards
