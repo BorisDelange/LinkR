@@ -7,7 +7,7 @@ check_authentification <- function(db){
     
     password <- rlang::hash(password)
     
-    res <- DBI::dbGetQuery(db, paste0("SELECT * FROM users WHERE username = '", user, "' AND password = '", password, "'"))
+    res <- DBI::dbGetQuery(db, paste0("SELECT * FROM users WHERE username = '", user, "' AND password = '", password, "' AND deleted IS FALSE"))
     
     if (nrow(res) > 0) list(result = TRUE, user_info = list(user = user, id = res$id))
     else list(result = FALSE)

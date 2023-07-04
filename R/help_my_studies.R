@@ -6,9 +6,8 @@ help_my_studies <- function(output, r = shiny::reactiveValues(), id = character(
       headerText = i18n$t("help"),
       isOpen = r$help_my_studies_open_panel,
       br(),
-      shiny.fluent::Link(i18n$t("messages"), onClick = htmlwidgets::JS(paste0("function() { Shiny.setInputValue('", id, "-help_page_1', Math.random()); }"))), br(), br(),
-      shiny.fluent::Link(i18n$t("studies_management"), onClick = htmlwidgets::JS(paste0("function() { Shiny.setInputValue('", id, "-help_page_2', Math.random()); }"))), br(), br(),
-      shiny.fluent::Link(i18n$t("study_options"), onClick = htmlwidgets::JS(paste0("function() { Shiny.setInputValue('", id, "-help_page_3', Math.random()); }"))), br(), br(),
+      shiny.fluent::Link(i18n$t("studies_management"), onClick = htmlwidgets::JS(paste0("function() { Shiny.setInputValue('", id, "-help_page_1', Math.random()); }"))), br(), br(),
+      shiny.fluent::Link(i18n$t("study_options"), onClick = htmlwidgets::JS(paste0("function() { Shiny.setInputValue('", id, "-help_page_2', Math.random()); }"))), br(), br(),
       isLightDismiss = r$help_my_studies_open_panel_light_dismiss,
       isBlocking = r$help_my_studies_open_panel_light_dismiss,
       onDismiss = htmlwidgets::JS(paste0("function() { Shiny.setInputValue('", id, "-hide_panel', Math.random()); }")),
@@ -73,62 +72,9 @@ help_my_studies <- function(output, r = shiny::reactiveValues(), id = character(
     style = r$code_style
   )
   
-  # Study messages
-  
-  observeEvent(r$help_my_studies_page_1, {
-    
-    load_help_page(r)
-    
-    r$help_my_studies_modal_title <- i18n$t("messages")
-    
-    if (language == "fr"){
-      r$help_my_studies_modal_text <- div(
-        tags$h3(tags$i(class = "fa fa-plus", style = "color: steelblue;"), " ", strong("Nouvelle conversation")),
-        p(tags$i(class = "fa fa-check", style = "color: steelblue;"), " ",
-          "Créez une nouvelle conversation en renseignant ", strong("l'objet"), " et le ", strong("premier message"), " de la conversation."),
-        p("Tous les utilisateurs ayant accès à l'étude verront cette conversation."),
-        p(tags$i(class = "fa fa-check", style = "color: steelblue;"), " ",
-          "Vous pouvez écrire en RMarkdown en cochant la case ", tags$em("RMarkdown"), "."),
-        p("Le ", strong("RMarkdown"), " est du Markdown où l'on peut intégrer du code R."),
-        p(tags$i(class = "fa fa-check", style = "color: steelblue;"), " ",
-          "Vous pouvez ", strong("utiliser les données de l'étude actuellement chargée"), "."),
-        p("Voici un exemple de code en RMarkdown."),
-        div_code_1$fr,
-        p("Cliquez sur ", tags$em("Aperçu"), " pour afficher un aperçu du message, avec le code exécuté."),
-        tags$h3(tags$i(class = "fa fa-message", style = "color: steelblue;"), " ", strong("Tous les messages")),
-        p("Toutes les conversations s'affichent ici."),
-        p("Une conversation non lue s'affichera en gras."),
-        p("Répondez à une conversation en cliquant sur ", tags$em("Nouveau message"), "."),
-        br()
-      )
-    }
-    
-    if (language == "en"){
-      r$help_my_studies_modal_text <- div(
-        tags$h3(tags$i(class = "fa fa-plus", style = "color: steelblue;"), " ", strong("New conversation")),
-        p(tags$i(class = "fa fa-check", style = "color: steelblue;"), " ",
-          "Create a new conversation by filling in ", strong("the subject"), " and the ", strong("first message"), " of the conversation."),
-        p("All users with access to the study will see this conversation."),
-        p(tags$i(class = "fa fa-check", style = "color: steelblue;"), " ",
-          "You can write in RMarkdown by checking the ", tags$em("RMarkdown"), " box."),
-        p("RMarkdown is Markdown where you can embed R code."),
-        p(tags$i(class = "fa fa-check", style = "color: steelblue;"), " ",
-          "You can ", strong("use the data from the currently loaded study"), "."),
-        p("Here is an example of code in RMarkdown."),
-        div_code_1$en,
-        p("Click on ", tags$em("Preview"), " to display a preview of the message, with the code executed."),
-        tags$h3(tags$i(class = "fa fa-message", style = "color: steelblue;"), " ", strong("All messages")),
-        p("All conversations are displayed here."),
-        p("An unread conversation will be displayed in bold."),
-        p("Reply to a conversation by clicking on ", tags$em("New message"), "."),
-        br()
-      )
-    }
-  })
-  
   # Studies management
   
-  observeEvent(r$help_my_studies_page_2, {
+  observeEvent(r$help_my_studies_page_1, {
     
     load_help_page(r)
     
@@ -169,7 +115,7 @@ help_my_studies <- function(output, r = shiny::reactiveValues(), id = character(
   
   # Study options
   
-  observeEvent(r$help_my_studies_page_3, {
+  observeEvent(r$help_my_studies_page_2, {
     
     load_help_page(r)
     
@@ -180,7 +126,7 @@ help_my_studies <- function(output, r = shiny::reactiveValues(), id = character(
         tags$h3(tags$i(class = "fa fa-user", style = "color: steelblue;"), " ", strong("Auteur & version")),
         p("Le nom de l'auteur et la version de l'étude seront visibles depuis l'onglet ", tags$em("Toutes les études"), "."),
         p("Pensez à ", strong("modifier la version de l'étude"), " lorsque des modifications sont réalisées, afin de partager celle-ci."),
-        tags$h3(tags$i(class = "fa fa-grip-lines", style = "color: steelblue;"), " ", strong("Nom et catégorie")),
+        tags$h3(tags$i(class = "fa fa-pen-to-square", style = "color: steelblue;"), " ", strong("Nom et catégorie")),
         p("Nom et catégorie s'affichant dans l'onglet ", tags$em("Toutes les études"), ", selon la langue choisie au démarrage de l'application."),
         tags$h3(tags$i(class = "fa fa-lock", style = "color: steelblue;"), " ", strong("Accès")),
         p("Choisissez ici qui peut avoir accès à cette étude."),
@@ -203,7 +149,7 @@ help_my_studies <- function(output, r = shiny::reactiveValues(), id = character(
         tags$h3(tags$i(class = "fa fa-user", style = "color: steelblue;"), " ", strong("Author & version")),
         p("The name of the author and the version of the study will be visible from the tab ", tags$em("All Studies"), "."),
         p("Remember to ", strong("modify the study version"), " when changes are made, in order to share it."),
-        tags$h3(tags$i(class = "fa fa-grip-lines", style = "color: steelblue;"), " ", strong("Name and Category")),
+        tags$h3(tags$i(class = "fa fa-pen-to-square", style = "color: steelblue;"), " ", strong("Name and Category")),
         p("Name and category are displayed in the tab ", tags$em("All Studies"), ", according to the language chosen at the start of the application."),
         tags$h3(tags$i(class = "fa fa-lock", style = "color: steelblue;"), " ", strong("Access")),
         p("Choose here who can have access to this study."),

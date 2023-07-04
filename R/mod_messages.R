@@ -712,11 +712,19 @@ mod_messages_server <- function(id = character(), r = shiny::reactiveValues(), d
       # --- --- --- --- -
       ## New message ----
       # --- --- --- --- -
+      
+      observeEvent(input$messages_current_tab, {
+        if (debug) print(paste0(Sys.time(), " - mod_messages - observer input$messages_current_tab"))
+        if (input$messages_current_tab == "new_conversation") shinyjs::runjs(sprintf("document.getElementById('%s').focus();", session$ns("new_conversation_name")))
+      })
 
       observeEvent(input$conversation_new_message, {
         if (debug) print(paste0(Sys.time(), " - mod_messages - observer input$conversation_new_message"))
         sapply(c("new_message_text_div_1", "new_message_text_div_2", "conversation_hide_new_message_div"), function(name) shinyjs::show(name))
         shinyjs::hide("conversation_new_message")
+        
+        # Place cursor on aceEditor
+        shinyjs::runjs(sprintf('var editor = ace.edit("%s"); editor.focus();', session$ns("new_message_text")))
       })
 
       observeEvent(input$conversation_hide_new_message, {
@@ -751,8 +759,6 @@ mod_messages_server <- function(id = character(), r = shiny::reactiveValues(), d
         type <- r$study_preview_type
         if (type == "conversation") background_color <- "#E6F1F8"
         if (type == "message") background_color <- "#ECF8E7"
-        
-        print(input$new_message_text)
 
         if (input[[paste0("new_", type, "_text")]] == "") output[[paste0("new_", type, "_preview")]] <- renderUI("")
 
@@ -823,7 +829,7 @@ mod_messages_server <- function(id = character(), r = shiny::reactiveValues(), d
       })
 
       # --- --- --- --- --- --- --- --- --- --
-      ## Save new message or conversation ----
+      ## Send new message or conversation ----
       # --- --- --- --- --- --- --- --- --- --
 
       observeEvent(input$send_new_conversation, {
@@ -831,9 +837,21 @@ mod_messages_server <- function(id = character(), r = shiny::reactiveValues(), d
         r$study_save_message_conversation_trigger <- Sys.time()
         r$study_save_message_conversation_type <- "conversation"
       })
+      
+      observeEvent(input$new_conversation_text_run_all, {
+        if (debug) print(paste0(Sys.time(), " - mod_messages - observer input$new_conversation_text_run_all"))
+        r$study_save_message_conversation_trigger <- Sys.time()
+        r$study_save_message_conversation_type <- "conversation"
+      })
 
       observeEvent(input$send_new_message, {
         if (debug) print(paste0(Sys.time(), " - mod_messages - observer input$send_new_message"))
+        r$study_save_message_conversation_trigger <- Sys.time()
+        r$study_save_message_conversation_type <- "message"
+      })
+      
+      observeEvent(input$new_message_text_run_all, {
+        if (debug) print(paste0(Sys.time(), " - mod_messages - observer input$new_message_text_run_all"))
         r$study_save_message_conversation_trigger <- Sys.time()
         r$study_save_message_conversation_type <- "message"
       })

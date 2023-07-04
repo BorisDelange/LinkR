@@ -878,8 +878,21 @@ mod_data_server <- function(id = character(), r = shiny::reactiveValues(), d = s
                   new_dir <- paste0(r$app_folder, "/translations/", plugin_unique_id)
                   if (!dir.exists(new_dir)) dir.create(new_dir)
                   
-                  new_file <- paste0(new_dir, "/plugin_translations.csv")
-                  if (!file.exists(new_file)) writeLines(plugin_translations, new_file)
+                  # Create a csv with all languages
+                  data <- read.csv(text = plugin_translations, header = TRUE, stringsAsFactors = FALSE)
+                  
+                  # Create one csv by language
+                  for(lang in names(data)[-1]){
+                    file_name <- paste0(new_dir, "/translation_", lang, ".csv")
+                    
+                    if (!file.exists(file_name)){
+                      # Create a new dataframe with base & current language cols
+                      data_lang <- data[, c("base", lang)]
+                      
+                      # Create csv
+                      write.csv(data_lang, file_name, row.names = FALSE)
+                    }
+                  }
                 },
                   error = function(e) report_bug(r = r, output = output, error_message = "error_creating_translations_file",
                     error_name = paste0(id, " - create translations files - plugin_id ", plugin_id), category = "Error", error_report = toString(e), i18n = i18n, ns = ns))
@@ -1108,8 +1121,21 @@ mod_data_server <- function(id = character(), r = shiny::reactiveValues(), d = s
                   new_dir <- paste0(r$app_folder, "/translations/", plugin_unique_id)
                   if (!dir.exists(new_dir)) dir.create(new_dir)
                   
-                  new_file <- paste0(new_dir, "/plugin_translations.csv")
-                  if (!file.exists(new_file)) writeLines(plugin_translations, new_file)
+                  # Create a csv with all languages
+                  data <- read.csv(text = plugin_translations, header = TRUE, stringsAsFactors = FALSE)
+                  
+                  # Create one csv by language
+                  for(lang in names(data)[-1]){
+                    file_name <- paste0(new_dir, "/translation_", lang, ".csv")
+                    
+                    if (!file.exists(file_name)){
+                      # Create a new dataframe with base & current language cols
+                      data_lang <- data[, c("base", lang)]
+                      
+                      # Create csv
+                      write.csv(data_lang, file_name, row.names = FALSE)
+                    }
+                  }
                 },
                   error = function(e) report_bug(r = r, output = output, error_message = "error_creating_translations_file",
                     error_name = paste0(id, " - create translations files - plugin_id ", ids$plugin_id), category = "Error", error_report = toString(e), i18n = i18n, ns = ns))
@@ -1305,8 +1331,21 @@ mod_data_server <- function(id = character(), r = shiny::reactiveValues(), d = s
           new_dir <- paste0(r$app_folder, "/translations/", plugin_unique_id)
           if (!dir.exists(new_dir)) dir.create(new_dir)
           
-          new_file <- paste0(new_dir, "/plugin_translations.csv")
-          if (!file.exists(new_file)) writeLines(plugin_translations, new_file)
+          # Create a csv with all languages
+          data <- read.csv(text = plugin_translations, header = TRUE, stringsAsFactors = FALSE)
+          
+          # Create one csv by language
+          for(lang in names(data)[-1]){
+            file_name <- paste0(new_dir, "/translation_", lang, ".csv")
+            
+            if (!file.exists(file_name)){
+              # Create a new dataframe with base & current language cols
+              data_lang <- data[, c("base", lang)]
+              
+              # Create csv
+              write.csv(data_lang, file_name, row.names = FALSE)
+            }
+          }
         },
           error = function(e) report_bug(r = r, output = output, error_message = "error_creating_translations_file",
             error_name = paste0(id, " - create translations files - plugin_id ", ids$plugin_id), category = "Error", error_report = toString(e), i18n = i18n, ns = ns))
@@ -2399,8 +2438,21 @@ mod_data_server <- function(id = character(), r = shiny::reactiveValues(), d = s
           new_dir <- paste0(r$app_folder, "/translations/", plugin_unique_id)
           if (!dir.exists(new_dir)) dir.create(new_dir)
           
-          new_file <- paste0(new_dir, "/plugin_translations.csv")
-          if (!file.exists(new_file)) writeLines(plugin_translations, new_file)
+          # Create a csv with all languages
+          data <- read.csv(text = plugin_translations, header = TRUE, stringsAsFactors = FALSE)
+          
+          # Create one csv by language
+          for(lang in names(data)[-1]){
+            file_name <- paste0(new_dir, "/translation_", lang, ".csv")
+            
+            if (!file.exists(file_name)){
+              # Create a new dataframe with base & current language cols
+              data_lang <- data[, c("base", lang)]
+              
+              # Create csv
+              write.csv(data_lang, file_name, row.names = FALSE)
+            }
+          }
         },
           error = function(e) report_bug(r = r, output = output, error_message = "error_creating_translations_file",
             error_name = paste0(id, " - create translations files - plugin_id ", plugin_id), category = "Error", error_report = toString(e), i18n = i18n, ns = ns))

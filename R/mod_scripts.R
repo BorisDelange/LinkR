@@ -401,6 +401,13 @@ mod_scripts_server <- function(id = character(), r = shiny::reactiveValues(), d 
       # Close help pages when page changes
       r$help_scripts_open_panel <- FALSE
       r$help_scripts_open_modal <- FALSE
+      
+      # Load Export scripts page, to load DT (doesn't update with other DT if not already loaded once)
+      if (shiny.router::get_page() == "scripts" & length(r$scripts_page_loaded) == 0){
+        shinyjs::runjs(glue::glue("$('#{id}-scripts_pivot button[name=\"{i18n$t('export_scripts')}\"]').click();"))
+        shinyjs::delay(500, shinyjs::runjs(glue::glue("$('#{id}-scripts_pivot button[name=\"{i18n$t('choose_dataset_scripts')}\"]').click();")))
+        r$scripts_page_loaded <- TRUE
+      }
     })
     
     sapply(1:10, function(i){

@@ -470,6 +470,13 @@ mod_plugins_server <- function(id = character(), r = shiny::reactiveValues(), d 
       # Close help pages when page changes
       r[[paste0("help_plugins_", prefix, "_open_panel")]] <- FALSE
       r[[paste0("help_plugins_", prefix, "_open_modal")]] <- FALSE
+      
+      # Load Export plugins page, to load DT (doesn't update with other DT if not already loaded once)
+      if (shiny.router::get_page() == paste0("plugins_", prefix) & length(r[[paste0(prefix, "_plugins_page_loaded")]]) == 0){
+        shinyjs::runjs(glue::glue("$('#{id}-plugins_pivot button[name=\"{i18n$t('export_plugins')}\"]').click();"))
+        shinyjs::delay(500, shinyjs::runjs(glue::glue("$('#{id}-plugins_pivot button[name=\"{i18n$t('all_plugins')}\"]').click();")))
+        r[[paste0(prefix, "_plugins_page_loaded")]] <- TRUE
+      }
     })
     
     # --- --- --- --- --- -
@@ -1040,15 +1047,21 @@ mod_plugins_server <- function(id = character(), r = shiny::reactiveValues(), d 
         
         # list_of_files <- list.files(paste0(temp_dir, "/plugins/", prefix, "/", plugin$unique_id))
         
-        # Copy files to temp dir
-        # file.copy(
-        #   paste0(paste0(temp_dir, "/plugins/", prefix, "/", plugin$unique_id), "/", list_of_files),
-        #   paste0(plugin_dir, "/", list_of_files),
-        #   overwrite = TRUE
-        # )
+        # Copy images
+        tryCatch({
+          if (nchar(plugin$images) > 0){
+            images <- stringr::str_split(plugin$images, ";;;")
+            for (image in images){
+              url <- paste0(r$url_address, prefix, "/", plugin$unique_id, "/", image)
+              url <- gsub(" ", "%20", url)
+              destfile <- paste0(plugin_dir, "/", image)
+              download.file(url, destfile, quiet = TRUE)
+            }
+          }
+        }, error = function(e) if (nchar(e[1]) > 0) report_bug(r = r, output = output, error_message = "error_install_remote_git_plugin", 
+          error_name = paste0("install_remote_git_plugin - download_images - id = ", plugin$unique_id), category = "Error", error_report = toString(e), i18n = i18n, ns = ns))
         
         r$show_plugin_details <- Sys.time()
-        # r[[paste0("reload_", prefix, "_plugin")]] <- Sys.time()
         
         # Reload datatable
         r[[paste0(prefix, "_plugins_temp")]] <- r$plugins %>% dplyr::filter(tab_type_id == !!tab_type_id) %>% 
@@ -1450,10 +1463,6 @@ mod_plugins_server <- function(id = character(), r = shiny::reactiveValues(), d 
       for (field in c("description_fr", "description_en")) shinyAce::updateAceEditor(session,
         paste0("plugin_", field), value = options %>% dplyr::filter(name == field) %>% dplyr::pull(value) %>% stringr::str_replace_all("''", "'"))
       
-      # Update plugin name if open in options
-      # shiny.fluent::updateTextField.shinyInput(session, paste0("plugin_name_", language),
-      #   value = r[[paste0(prefix, "_plugins_temp")]] %>% dplyr::filter(id == link_id) %>% dplyr::pull(name))
-      
       if (perf_monitoring) monitor_perf(r = r, action = "stop", task = paste0("mod_plugins - observer input$options_selected_plugin"))
     })
     
@@ -1504,7 +1513,7 @@ mod_plugins_server <- function(id = character(), r = shiny::reactiveValues(), d 
       req(!is.na(plugin_name) & plugin_name != "")
       
       duplicate_names <- FALSE
-      current_names <- r$plugins_temp %>% dplyr::filter(tab_type_id == !!tab_type_id, id != link_id) %>% dplyr::pull(name)
+      current_names <- r$plugins %>% dplyr::filter(tab_type_id == !!tab_type_id, id != link_id) %>% dplyr::pull(name)
       if (plugin_name %in% current_names){
         duplicate_names <- TRUE
         shiny.fluent::updateTextField.shinyInput(session, paste0("plugin_name_", language), errorMessage = i18n$t("name_already_used"))
@@ -2183,8 +2192,6 @@ mod_plugins_server <- function(id = character(), r = shiny::reactiveValues(), d 
       
       # Create translations file
       
-      # i18np <- suppressWarnings(shiny.i18n::Translator$new(translation_csvs_path = "translations"))
-      
       if (input$ace_edit_code_translations != ""){
         
         tryCatch({
@@ -2195,17 +2202,28 @@ mod_plugins_server <- function(id = character(), r = shiny::reactiveValues(), d 
           new_dir <- paste0(r$app_folder, "/translations/", plugin_unique_id)
           if (!dir.exists(new_dir)) dir.create(new_dir)
           
-          # Erase old file if already exists
-          writeLines(input$ace_edit_code_translations, paste0(new_dir, "/plugin_translations.csv"))
+          # Create a csv with all languages
+          data <- read.csv(text = input$ace_edit_code_translations, header = TRUE, stringsAsFactors = FALSE)
+          
+          # Create one csv by language
+          for(lang in names(data)[-1]){
+            # Create a new dataframe with base & current language cols
+            data_lang <- data[, c("base", lang)]
+            
+            file_name <- paste0(new_dir, "/translation_", lang, ".csv")
+            
+            # Create csv
+            write.csv(data_lang, file_name, row.names = FALSE)
+          }
         },
-          error = function(e) report_bug(r = r, output = output, error_message = "error_creating_translations_file",
-            error_name = paste0(id, " - create translations files"), category = "Error", error_report = toString(e), i18n = i18n, ns = ns))
+        error = function(e) report_bug(r = r, output = output, error_message = "error_creating_translations_file",
+          error_name = paste0(id, " - create translations files"), category = "Error", error_report = toString(e), i18n = i18n, ns = ns))
         
         tryCatch({
           i18np <- suppressWarnings(shiny.i18n::Translator$new(translation_csvs_path = new_dir))
           i18np$set_translation_language(language)},
           error = function(e) report_bug(r = r, output = output, error_message = "error_creating_new_translator",
-            error_name = paste0(id, " - create i18n translator"), category = "Error", error_report = toString(e), i18n = i18n, ns = ns))
+            error_name = paste0(id, " - create i18np translator"), category = "Error", error_report = toString(e), i18n = i18n, ns = ns))
       }
       
       # New environment, to authorize access to selected variables from shinyAce editor
@@ -2579,7 +2597,7 @@ mod_plugins_server <- function(id = character(), r = shiny::reactiveValues(), d 
           # Create XML file
           xml <- XML::newXMLDoc()
           plugins_node <- XML::newXMLNode("plugins", doc = xml)
-          plugin_node <- XML::newXMLNode("plugin", parent = plugins_node, doc = xml)
+          plugin_node <- XML::newXMLNode("plugin", parent = plugins_node)
           XML::newXMLNode("app_version", r$app_version, parent = plugin_node)
           XML::newXMLNode("type", tab_type_id, parent = plugin_node)
           for(name in c("unique_id", "version", "author", "image", "name_fr", "name_en", "category_fr", "category_en")){
@@ -2588,9 +2606,15 @@ mod_plugins_server <- function(id = character(), r = shiny::reactiveValues(), d 
           for(name in c("description_fr", "description_en")) XML::newXMLNode(name, options %>% dplyr::filter(name == !!name) %>% 
               dplyr::pull(value) %>% stringr::str_replace_all("''", "'"), parent = plugin_node)
           for (name in c("creation_datetime", "update_datetime")) XML::newXMLNode(name, plugin %>% dplyr::pull(get(!!name)), parent = plugin_node)
-          XML::saveXML(xml, file = paste0(plugin_dir, "/plugin.xml"))
           
           list_of_files <- list.files(plugin_dir)
+          
+          # Add images filenames in the XML
+          images <- list_of_files[grepl("\\.png$|\\.jpg$", tolower(list_of_files))]
+          images_node <- XML::newXMLNode("images", paste(images, collapse = ";;;"), parent = plugin_node)
+
+          # Create XML file
+          XML::saveXML(xml, file = paste0(plugin_dir, "/plugin.xml"))
           
           # Copy files to temp dir
           temp_dir_copy <- paste0(temp_dir, "/plugins/", prefix, "/", options %>% dplyr::filter(name == "unique_id") %>% dplyr::pull(value))
@@ -2616,17 +2640,24 @@ mod_plugins_server <- function(id = character(), r = shiny::reactiveValues(), d 
           
           for (dir in dirs){
             if (dir != paste0(plugins_dir, "/", category)){
-              plugins_tibble <-
-                plugins_tibble %>%
-                dplyr::bind_rows(
-                  xml2::read_xml(paste0(dir, "/plugin.xml")) %>%
-                    XML::xmlParse() %>%
-                    XML::xmlToDataFrame(nodes = XML::getNodeSet(., "//plugin")) %>%
-                    tibble::as_tibble()
-                )
+              
+              xml_file <- xml2::read_xml(paste0(dir, "/plugin.xml"))
+              image_nodes <- xml2::xml_find_all(xml_file, "//images/image")
+              images <- character(0)
+              if (length(image_nodes) > 0) images <- xml2::xml_text(image_nodes)
+              
+              df <- xml_file %>%
+                XML::xmlParse() %>%
+                XML::xmlToDataFrame(nodes = XML::getNodeSet(., "//plugin")) %>%
+                tibble::as_tibble()
+              df$images <- paste(images, collapse = ";;;")
+              
+              plugins_tibble <- plugins_tibble %>% dplyr::bind_rows(df)
             }
           }
         }
+        
+        r$plugins_tibble <- plugins_tibble
         
         plugins_xml <- XML::newXMLDoc()
         plugins_node <- XML::newXMLNode("plugins", doc = plugins_xml)

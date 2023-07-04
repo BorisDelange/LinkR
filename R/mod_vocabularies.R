@@ -127,6 +127,7 @@ mod_vocabularies_ui <- function(id = character(), i18n = character()){
             shiny.fluent::reactOutput(ns("mappings_delete_confirm")),
             div(
               shiny.fluent::Pivot(
+                id = ns("vocabularies_mapping_pivot"),
                 onLinkClick = htmlwidgets::JS(paste0("item => Shiny.setInputValue('", id, "-mapping_current_tab', item.props.id)")),
                 shiny.fluent::PivotItem(id = "vocabularies_mapping_add", itemKey = "vocabularies_mapping_add", headerText = i18n$t("add")),
                 shiny.fluent::PivotItem(id = "vocabularies_mapping_management", itemKey = "vocabularies_mapping_management", headerText = i18n$t("evaluate_and_edit"))
@@ -272,6 +273,12 @@ mod_vocabularies_server <- function(id = character(), r = shiny::reactiveValues(
       # Close help pages when page changes
       r$help_vocabularies_open_panel <- FALSE
       r$help_vocabularies_open_modal <- FALSE
+      
+      # Load evaluate and edit page, to load DT (doesn't update with other DT if not already loaded once)
+      if (shiny.router::get_page() == "vocabularies" & length(r$vocabularies_page_loaded) == 0){
+        shinyjs::runjs(glue::glue("$('#{id}-vocabularies_mapping_pivot button[name=\"{i18n$t('evaluate_and_edit')}\"]').click();"))
+        r$vocabularies_page_loaded <- TRUE
+      }
     })
     
     sapply(1:10, function(i){
