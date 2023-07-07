@@ -185,7 +185,7 @@ dt_search ,Search :
 dt_entries,Show _MENU_ lines
 dt_empty,No data available
 no_data_available,No data available
-deleted_used,Deleted user
+deleted_user,Deleted user
 choose_dataset_scripts,Configure dataset
 unauthorized_access_page,Unauthorized access to this page
 change_password_card,Change password

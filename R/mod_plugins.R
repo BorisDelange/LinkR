@@ -473,8 +473,9 @@ mod_plugins_server <- function(id = character(), r = shiny::reactiveValues(), d 
       
       # Load Export plugins page, to load DT (doesn't update with other DT if not already loaded once)
       if (shiny.router::get_page() == paste0("plugins_", prefix) & length(r[[paste0(prefix, "_plugins_page_loaded")]]) == 0){
-        shinyjs::runjs(glue::glue("$('#{id}-plugins_pivot button[name=\"{i18n$t('export_plugins')}\"]').click();"))
-        shinyjs::delay(500, shinyjs::runjs(glue::glue("$('#{id}-plugins_pivot button[name=\"{i18n$t('all_plugins')}\"]').click();")))
+        shinyjs::runjs(glue::glue("$('#{id}-plugins_pivot button[name=\"{i18n$t('plugins_management')}\"]').click();"))
+        shinyjs::delay(500, shinyjs::runjs(glue::glue("$('#{id}-plugins_pivot button[name=\"{i18n$t('export_plugins')}\"]').click();")))
+        shinyjs::delay(1000, shinyjs::runjs(glue::glue("$('#{id}-plugins_pivot button[name=\"{i18n$t('all_plugins')}\"]').click();")))
         r[[paste0(prefix, "_plugins_page_loaded")]] <- TRUE
       }
     })

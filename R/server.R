@@ -52,8 +52,8 @@ app_server <- function(router, language = "en", app_folder = character(),
       "data_sources", "iccicl", "main",
       "datasets", "icciicl", "main",
       "studies", "iciiiiccl", "main",
-      "plugins", "icciccl", "main",
-      "scripts", "iciiccl", "main",
+      "plugins", "iciccl", "main",
+      "scripts", "icccl", "main",
       "patient_lvl_tabs_groups", "iccicl", "main",
       "patient_lvl_tabs", "icciiiicl", "main",
       "patient_lvl_widgets", "iciiiicl", "main",
@@ -80,7 +80,7 @@ app_server <- function(router, language = "en", app_folder = character(),
       "domain", "icci", "public",
       "concept_class", "icci", "public",
       "concept_relationship", "iiicccc", "public",
-      "concept_relationship_user", "iiic", "public",
+      "concept_relationship_user", "iicic", "public",
       "concept_relationship_evals", "iiicc", "public",
       "relationship", "iccccci", "public",
       "concept_synonym", "iici", "public",
@@ -286,6 +286,7 @@ app_server <- function(router, language = "en", app_folder = character(),
       
       mod_messages_server("messages", r, d, m, i18n, language, perf_monitoring, debug)
       mod_page_sidenav_server("messages", r, d, m, i18n, language, perf_monitoring, debug)
+      mod_page_header_server("messages", r, language, i18n)
       
       if (perf_monitoring) monitor_perf(r = r, action = "stop", task = "server - load server tabs - messages")
       if (debug) print(paste0(Sys.time(), " - server - load server tabs - plugins"))

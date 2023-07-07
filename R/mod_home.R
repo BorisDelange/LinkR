@@ -198,11 +198,10 @@ mod_home_server <- function(id = character(), r, language = "en", i18n = charact
             )
           )
           
-          # Show only first card, hide the other ones
           # If category in overview, news or versions, there is not a summary card
           if (category %not_in% c("overview", "news", "versions")){
             if (i == 1) ui_result <- tagList(ui_result, summary_card)
-            else ui_result <- tagList(ui_result, shinyjs::hidden(summary_card)) 
+            else ui_result <- tagList(ui_result, shinyjs::hidden(summary_card))
           }
         }
       }

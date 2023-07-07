@@ -780,7 +780,7 @@ prepare_data_datatable <- function(output, r = shiny::reactiveValues(), ns = cha
             dplyr::mutate(creator = paste0(firstname, " ", lastname)) %>%
             dplyr::pull(creator)
         }
-        else data_output[i, "creator_id"] <- i18n$t("deleted_used")
+        else data_output[i, "creator_id"] <- i18n$t("deleted_user")
       }
       
       # Get names for other columns if there are not dropdowns

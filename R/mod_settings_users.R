@@ -228,6 +228,13 @@ mod_settings_users_server <- function(id = character(), r = shiny::reactiveValue
       # Close help pages when page changes
       r$help_settings_users_open_panel <- FALSE
       r$help_settings_users_open_modal <- FALSE
+      
+      # Load users_management_card, to load DT (doesn't update with other DT if not already loaded once)
+      if (shiny.router::get_page() == "settings/users" & length(r$settings_users_page_loaded) == 0){
+        shinyjs::runjs(glue::glue("$('#{id}-users_pivot button[name=\"{i18n$t('users_management_card')}\"]').click();"))
+        shinyjs::delay(500, shinyjs::runjs(glue::glue("$('#{id}-users_pivot button[name=\"{i18n$t('users_creation_card')}\"]').click();")))
+        r$settings_users_page_loaded <- TRUE
+      }
     })
     
     sapply(1:10, function(i){
