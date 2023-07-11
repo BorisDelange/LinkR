@@ -10,6 +10,9 @@
 
 mod_settings_general_ui <- function(id = character(), i18n = character()){
   ns <- NS(id)
+  
+  forbidden_cards <- forbidden_card(ns = ns, name = "change_password_card", i18n = i18n)
+  
   div(class = "main",
     render_settings_default_elements(ns = ns),
     shiny.fluent::reactOutput(ns("help_panel")),
@@ -21,15 +24,23 @@ mod_settings_general_ui <- function(id = character(), i18n = character()){
       onLinkClick = htmlwidgets::JS(paste0("item => Shiny.setInputValue('", id, "-current_tab', item.props.id)")),
       shiny.fluent::PivotItem(id = "change_password_card", itemKey = "change_password", headerText = i18n$t("change_password"))
     ),
-    div(id = ns("change_password_card"),
-      make_card(i18n$t("change_password"),
-        div(
-          shiny.fluent::Stack(horizontal = TRUE, tokens = list(childrenGap = 50),
-            make_textfield(i18n = i18n, ns = ns, label = "old_password", type = "password", canRevealPassword = TRUE, width = "300px"),
-            make_textfield(i18n = i18n, ns = ns, label = "new_password", type = "password", canRevealPassword = TRUE, width = "300px"),
-            make_textfield(i18n = i18n, ns = ns, label = "new_password", id = "new_password_bis", type = "password", canRevealPassword = TRUE, width = "300px")
-          ), br(),
-          shiny.fluent::PrimaryButton.shinyInput(ns("save"), i18n$t("save"))
+    forbidden_cards,
+    
+    # --- --- --- --- --- --- -
+    # Change password card ----
+    # --- --- --- --- --- --- -
+    
+    shinyjs::hidden(
+      div(id = ns("change_password_card"),
+        make_card(i18n$t("change_password"),
+          div(
+            shiny.fluent::Stack(horizontal = TRUE, tokens = list(childrenGap = 50),
+              make_textfield(i18n = i18n, ns = ns, label = "old_password", type = "password", canRevealPassword = TRUE, width = "300px"),
+              make_textfield(i18n = i18n, ns = ns, label = "new_password", type = "password", canRevealPassword = TRUE, width = "300px"),
+              make_textfield(i18n = i18n, ns = ns, label = "new_password", id = "new_password_bis", type = "password", canRevealPassword = TRUE, width = "300px")
+            ), br(),
+            shiny.fluent::PrimaryButton.shinyInput(ns("save"), i18n$t("save"))
+          )
         )
       )
     )
@@ -54,6 +65,10 @@ mod_settings_general_server <- function(id = character(), r = shiny::reactiveVal
     cards <- c("change_password_card")
     
     show_or_hide_cards(r = r, input = input, session = session, id = id, cards = cards)
+    
+    # Show first card
+    if ("change_password_card" %in% r$user_accesses) shinyjs::show("change_password_card")
+    else shinyjs::show("change_password_card_forbidden")
     
     # Close message bar
     sapply(1:20, function(i) observeEvent(input[[paste0("close_message_bar_", i)]], shinyjs::hide(paste0("message_bar", i))))

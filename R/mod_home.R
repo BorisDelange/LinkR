@@ -84,7 +84,7 @@ mod_home_server <- function(id = character(), r, language = "en", i18n = charact
       
       r$tabs_and_cards <- tibble::tibble()
       
-      filename <- paste0("https://raw.githubusercontent.com/BorisDelange/linkr-content/main/home/", language, "/tabs_and_cards.csv")
+      filename <- paste0("https://framagit.org/interhop/linkr/LinkR-content/-/raw/main/home/", language, "/tabs_and_cards.csv")
       filename_local <- paste0(r$app_folder, "/home/", language, "/tabs_and_cards.csv")
     
       # Get csv file from remote git
@@ -224,7 +224,7 @@ mod_home_server <- function(id = character(), r, language = "en", i18n = charact
               # Check if file exists. If not, copy file.
 
               if (!file.exists(filename)){
-                filename_remote <- paste0("https://raw.githubusercontent.com/BorisDelange/linkr-content/main/home/", language, "/", row$page, "/", row$markdown_file)
+                filename_remote <- paste0("https://framagit.org/interhop/linkr/LinkR-content/-/raw/main/home/", language, "/", row$page, "/", row$markdown_file)
                 download.file(filename_remote, filename, quiet = TRUE)
               }
 

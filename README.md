@@ -1,12 +1,14 @@
 
 <!-- README.md is generated from README.Rmd. Please edit that file -->
 
-# LinkR <a href="https://github.com/BorisDelange/LinkR"><img src="man/figures/hex.png" align="right" width = "123" height="140" /></a>
+# LinkR <a href="https://framagit.org/interhop/linkr/linkr"><img src="man/figures/hex.png" align="right" width = "123" height="140" /></a>
 
 <!-- badges: start -->
 
 [![Lifecycle:
-experimental](https://img.shields.io/badge/lifecycle-experimental-orange.svg)](https://lifecycle.r-lib.org/articles/stages.html#experimental) ![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg) ![version](https://img.shields.io/badge/version-0.2.0.9013-blue)
+experimental](https://img.shields.io/badge/lifecycle-experimental-orange.svg)](https://lifecycle.r-lib.org/articles/stages.html#experimental)
+![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)
+![version](https://img.shields.io/badge/version-0.2.0.9014-blue)
 <!-- badges: end -->
 
 ## Introduction
@@ -93,7 +95,7 @@ or by helping to improve the application’s code.
 
 ## Report a bug
 
-<a href = "https://github.com/BorisDelange/LinkR/issues" target = "_blank">Go
+<a href = "https://framagit.org/interhop/linkr/linkr/-/issues" target = "_blank">Go
 here</a> to report a bug.
 
 ## Support us
@@ -108,6 +110,3 @@ donation here</a>**.
 ## Contact
 
 Email: <linkr-app@pm.me>.
-
-<a href = "https://github.com/BorisDelange/LinkR/discussions" target = "_blank">Discussions
-on GitHub</a>.

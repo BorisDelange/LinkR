@@ -133,8 +133,8 @@ mod_settings_log_server <- function(id = character(), r = shiny::reactiveValuess
         tagList(
           shiny.fluent::ChoiceGroup.shinyInput(ns("see_log_of"), value = "only_me", options = list(
             list(key = "only_me", text = i18n$t("only_me"))
-          ), className = "inline_choicegroup")
-        )
+          ), className = "inline_choicegroup"), br()
+        ) -> result
       }
       
       if (perf_monitoring) monitor_perf(r = r, action = "stop", task = paste0("mod_settings_log - output$main"))

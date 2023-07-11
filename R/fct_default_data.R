@@ -26,7 +26,7 @@ insert_default_data <- function(output, r = shiny::reactiveValues(), m = shiny::
       # Download csv files
       tryCatch({
         
-        db_folder <- paste0("https://raw.githubusercontent.com/BorisDelange/LinkR-content/main/app_database/v", r$app_version)
+        db_folder <- paste0("https://framagit.org/interhop/linkr/LinkR-content/-/raw/main/app_database/v", r$app_version)
         
         for (i in 1:nrow(db_col_types)){
           

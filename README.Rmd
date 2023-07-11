@@ -13,10 +13,10 @@ knitr::opts_chunk$set(
 )
 ```
 
-# LinkR <a href="https://github.com/BorisDelange/LinkR"><img src="man/figures/hex.png" align="right" width = "123" height="140" /></a>
+# LinkR <a href="https://framagit.org/interhop/linkr/linkr"><img src="man/figures/hex.png" align="right" width = "123" height="140" /></a>
 
 <!-- badges: start -->
-[![Lifecycle: experimental](https://img.shields.io/badge/lifecycle-experimental-orange.svg)](https://lifecycle.r-lib.org/articles/stages.html#experimental) ![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg) ![version](https://img.shields.io/badge/version-0.2.0.9013-blue)
+[![Lifecycle: experimental](https://img.shields.io/badge/lifecycle-experimental-orange.svg)](https://lifecycle.r-lib.org/articles/stages.html#experimental) ![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg) ![version](https://img.shields.io/badge/version-0.2.0.9014-blue)
 <!-- badges: end -->
 
 ## Introduction
@@ -84,7 +84,7 @@ LinkR **needs help** to evolve! You can contribute by creating plugins, or by he
 
 ## Report a bug
 
-<a href = "https://github.com/BorisDelange/LinkR/issues" target = "_blank">Go here</a> to report a bug.
+<a href = "https://framagit.org/interhop/linkr/linkr/-/issues" target = "_blank">Go here</a> to report a bug.
 
 ## Support us
 
@@ -95,5 +95,3 @@ You can **<a href = "https://interhop.org/en/dons/" target = "_blank">make a don
 ## Contact
 
 Email: linkr-app@pm.me.
-
-<a href = "https://github.com/BorisDelange/LinkR/discussions" target = "_blank">Discussions on GitHub</a>.
