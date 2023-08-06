@@ -281,7 +281,7 @@ mod_plugins_ui <- function(id = character(), i18n = character()){
                 make_combobox(i18n = i18n, ns = ns, label = "plugin", id = "options_selected_plugin",
                   width = "320px", allowFreeform = FALSE, multiSelect = FALSE),
                 make_textfield(i18n = i18n, ns = ns, label = "author", id = "plugin_author", width = "320px"),
-                make_textfield(i18n = i18n, ns = ns, label = "version", id = "plugin_version", width = "60px")
+                make_textfield(i18n = i18n, ns = ns, label = "version", id = "plugin_version", width = "80px")
               ),
               shiny.fluent::Stack(horizontal = TRUE, tokens = list(childrenGap = 20),
                 make_textfield(i18n = i18n, ns = ns, label = "name_fr", id = "plugin_name_fr", width = "320px"),
@@ -1691,7 +1691,12 @@ mod_plugins_server <- function(id = character(), r = shiny::reactiveValues(), d 
       if (perf_monitoring) monitor_perf(r = r, action = "start")
       if (debug) print(paste0(Sys.time(), " - mod_plugins - observer r$.._plugin_options_description_trigger"))
       
-      options_description <- isolate(input[[paste0("plugin_description_", input$plugin_description_language)]] %>% stringr::str_replace_all("\r", "\n"))
+      options <- r$options %>% dplyr::filter(category == "plugin", link_id == input$options_selected_plugin$key)
+      plugin_folder <- paste0(r$app_folder, "/plugins/", prefix, "/", options %>% dplyr::filter(name == "unique_id") %>% dplyr::pull(value))
+      
+      options_description <- isolate(input[[paste0("plugin_description_", input$plugin_description_language)]] %>% 
+          stringr::str_replace_all("\r", "\n")) %>%
+          stringr::str_replace_all("%plugin_folder%", plugin_folder)
       
       tryCatch({
         

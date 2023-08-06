@@ -217,7 +217,7 @@ mod_scripts_ui <- function(id = character(), i18n = character()){
                 make_combobox(i18n = i18n, ns = ns, label = "script", id = "options_selected_script",
                   width = "320px", allowFreeform = FALSE, multiSelect = FALSE),
                 make_textfield(i18n = i18n, ns = ns, label = "author", id = "script_author", width = "320px"),
-                make_textfield(i18n = i18n, ns = ns, label = "version", id = "script_version", width = "60px")
+                make_textfield(i18n = i18n, ns = ns, label = "version", id = "script_version", width = "80px")
               ), 
               shiny.fluent::Stack(horizontal = TRUE, tokens = list(childrenGap = 20),
                 make_textfield(i18n = i18n, ns = ns, label = "name_fr", id = "script_name_fr", width = "320px"),

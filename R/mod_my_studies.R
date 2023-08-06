@@ -109,7 +109,7 @@ mod_my_studies_ui <- function(id = character(), i18n = character()){
                 make_combobox(i18n = i18n, ns = ns, label = "study", id = "options_selected_study",
                   width = "320px", allowFreeform = FALSE, multiSelect = FALSE),
                 make_textfield(i18n = i18n, ns = ns, label = "author", id = "study_author", width = "320px"),
-                make_textfield(i18n = i18n, ns = ns, label = "version", id = "study_version", width = "60px")
+                make_textfield(i18n = i18n, ns = ns, label = "version", id = "study_version", width = "80px")
               ), 
               shiny.fluent::Stack(horizontal = TRUE, tokens = list(childrenGap = 20),
                 make_textfield(i18n = i18n, ns = ns, label = "name_fr", id = "study_name_fr", width = "320px"),
