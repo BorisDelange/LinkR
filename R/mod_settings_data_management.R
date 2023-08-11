@@ -122,8 +122,8 @@ mod_settings_data_management_ui <- function(id = character(), i18n = character()
             shiny.fluent::Stack(
               tokens = list(childrenGap = 5),
               shiny.fluent::Stack(horizontal = TRUE, tokens = list(childrenGap = 10),
-                shiny.fluent::PrimaryButton.shinyInput(ns("edit_code_save"), i18n$t("save")), " ",
-                shiny.fluent::DefaultButton.shinyInput(ns("execute_code"), i18n$t("run_code"))
+                shiny.fluent::PrimaryButton.shinyInput(ns("execute_code"), i18n$t("run_code")),
+                shiny.fluent::DefaultButton.shinyInput(ns("save_code"), i18n$t("save"))
               ), br(), br(),
               div(textOutput(ns("datetime_code_execution")), style = "color:#878787;"), br(),
               div(shiny::verbatimTextOutput(ns("code_result")), 
@@ -257,8 +257,8 @@ mod_settings_data_management_ui <- function(id = character(), i18n = character()
             shiny.fluent::Stack(
               tokens = list(childrenGap = 5),
               shiny.fluent::Stack(horizontal = TRUE, tokens = list(childrenGap = 10),
-                shiny.fluent::PrimaryButton.shinyInput(ns("edit_code_save"), i18n$t("save")), " ",
-                shiny.fluent::DefaultButton.shinyInput(ns("execute_code"), i18n$t("run_code"))
+                shiny.fluent::PrimaryButton.shinyInput(ns("execute_code"), i18n$t("run_code")),
+                shiny.fluent::DefaultButton.shinyInput(ns("edit_code_save"), i18n$t("save"))
               ), br(), br(),
               div(textOutput(ns("datetime_code_execution")), style = "color:#878787;"), br(),
               div(shiny::verbatimTextOutput(ns("code_result")), 

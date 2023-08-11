@@ -854,3 +854,6 @@ access_to_data,Accéder aux données
 scripts_and_plugins,Scripts & plugins
 comment,Commentaire
 error_exporting_db,Erreur lors de l'export de la BDD
+imported_image_must_be_png,L'image importée doit être au format PNG
+exported_image_must_be_png,L'image exportée doit être au format PNG
+input_image_doesnt_exist,Le fichier de l'image n'existe pas

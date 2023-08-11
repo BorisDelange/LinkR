@@ -854,3 +854,6 @@ access_to_data,Access to data
 scripts_and_plugins,Scripts & plugins
 comment,Comment
 error_exporting_db,Error exporting database
+imported_image_must_be_png,Imported image must be a PNG file
+exported_image_must_be_png,Exported image must be a PNG file
+input_image_doesnt_exist,Input image doesn't exist

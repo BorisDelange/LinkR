@@ -253,8 +253,8 @@ mod_plugins_ui <- function(id = character(), i18n = character()){
             shiny.fluent::Stack(
               tokens = list(childrenGap = 5),
               shiny.fluent::Stack(horizontal = TRUE, tokens = list(childrenGap = 10),
-                shiny.fluent::PrimaryButton.shinyInput(ns("save_code"), i18n$t("save")), " ",
-                shiny.fluent::DefaultButton.shinyInput(ns("execute_code"), i18n$t("run_code"))
+                shiny.fluent::PrimaryButton.shinyInput(ns("execute_code"), i18n$t("run_code")),
+                shiny.fluent::DefaultButton.shinyInput(ns("save_code"), i18n$t("save")),
               ), br(),
               div(textOutput(ns("datetime_code_execution")), style = "color:#878787;"),
               shiny::uiOutput(ns("code_result_ui")), br(),
@@ -351,7 +351,7 @@ mod_plugins_ui <- function(id = character(), i18n = character()){
               div(id = ns("description_markdown_output"),
                 uiOutput(ns("description_markdown_result")), 
                 style = "width: 99%; border-style: dashed; border-width: 1px; padding: 0px 8px 0px 8px; margin-right: 5px; padding-top: 10px;"),
-              div(style = "display:none;", fileInput(ns("import_image_file"), label = "", multiple = FALSE, accept = c(".jpg", ".jpeg", ".png")))
+              div(style = "display:none;", fileInput(ns("import_image_file"), label = "", multiple = FALSE, accept = c(".png")))
             )
           )
         ), br()
@@ -473,9 +473,8 @@ mod_plugins_server <- function(id = character(), r = shiny::reactiveValues(), d 
       
       # Load Export plugins page, to load DT (doesn't update with other DT if not already loaded once)
       if (shiny.router::get_page() == paste0("plugins_", prefix) & length(r[[paste0(prefix, "_plugins_page_loaded")]]) == 0){
-        shinyjs::runjs(glue::glue("$('#{id}-plugins_pivot button[name=\"{i18n$t('plugins_management')}\"]').click();"))
-        shinyjs::delay(500, shinyjs::runjs(glue::glue("$('#{id}-plugins_pivot button[name=\"{i18n$t('export_plugins')}\"]').click();")))
-        shinyjs::delay(1000, shinyjs::runjs(glue::glue("$('#{id}-plugins_pivot button[name=\"{i18n$t('all_plugins')}\"]').click();")))
+        sapply(c("plugins_datatable_card", "export_plugin_card"), function(card) if (card %in% r$user_accesses) shinyjs::show(card))
+        shinyjs::delay(500, sapply(c("plugins_datatable_card", "export_plugin_card"), shinyjs::hide))
         r[[paste0(prefix, "_plugins_page_loaded")]] <- TRUE
       }
     })
@@ -1449,7 +1448,7 @@ mod_plugins_server <- function(id = character(), r = shiny::reactiveValues(), d 
       # Plugin version, author, image and descriptions
       
       plugin_folder <- paste0(r$app_folder, "/plugins/", prefix, "/", options %>% dplyr::filter(name == "unique_id") %>% dplyr::pull(value))
-      files_list <- list.files(path = plugin_folder, pattern = "*.\\.(jpeg|jpg|JPG|JPEG|png|PNG)$")
+      files_list <- list.files(path = plugin_folder, pattern = "*.\\.(png|PNG)$")
       shiny.fluent::updateDropdown.shinyInput(session, "plugin_image", 
         options = convert_tibble_to_list(tibble::tibble(text = c("", files_list), key = c("", files_list)), key_col = "key", text_col = "text"),
         value = options %>% dplyr::filter(name == "image") %>% dplyr::pull(value))
@@ -1609,7 +1608,7 @@ mod_plugins_server <- function(id = character(), r = shiny::reactiveValues(), d 
         plugin_folder <- paste0(r$app_folder, "/plugins/", prefix, "/", plugin$unique_id)
         unlink(paste0(plugin_folder, "/", input$plugin_image))
         
-        files_list <- list.files(path = plugin_folder, pattern = "*.\\.(jpeg|jpg|JPG|JPEG|png|PNG)$")
+        files_list <- list.files(path = plugin_folder, pattern = "*.\\.(png|PNG)$")
         shiny.fluent::updateDropdown.shinyInput(session, "plugin_image", 
           options = convert_tibble_to_list(tibble::tibble(text = c("", files_list), key = c("", files_list)), key_col = "key", text_col = "text"),
           value = "")
@@ -1650,13 +1649,18 @@ mod_plugins_server <- function(id = character(), r = shiny::reactiveValues(), d 
         plugin_folder <- paste0(r$app_folder, "/plugins/", prefix, "/", plugin$unique_id)
         
         if (!dir.exists(plugin_folder)) dir.create(plugin_folder, recursive = TRUE)
-        file.copy(input$import_image_file$datapath, paste0(plugin_folder, "/", input$import_image_file$name), overwrite = TRUE)
+        
+        # Resize and save image
+        resize_and_pad_image(input_path = input$import_image_file$datapath, output_path = paste0(plugin_folder, "/", input$import_image_file$name), 
+          target_width = 2544, target_height = 1600, i18n = i18n)
+        
+        # file.copy(input$import_image_file$datapath, paste0(plugin_folder, "/", input$import_image_file$name), overwrite = TRUE)
         
         # Update dropdown
         
         options <- r$options %>% dplyr::filter(category == "plugin", link_id == !!link_id)
         
-        files_list <- list.files(path = plugin_folder, pattern = "*.\\.(jpeg|jpg|JPG|JPEG|png|PNG)$")
+        files_list <- list.files(path = plugin_folder, pattern = "*.\\.(png|PNG)$")
         shiny.fluent::updateDropdown.shinyInput(session, "plugin_image", 
           options = convert_tibble_to_list(tibble::tibble(text = c("", files_list), key = c("", files_list)), key_col = "key", text_col = "text"),
           value = options %>% dplyr::filter(name == "image") %>% dplyr::pull(value))
@@ -2194,7 +2198,7 @@ mod_plugins_server <- function(id = character(), r = shiny::reactiveValues(), d 
       
       if (prefix == "patient_lvl") server_code <- server_code %>% stringr::str_replace_all("%patient_id%", as.character(m$selected_person))
       
-      output$code_result_ui <- renderUI(make_card("", tryCatch(eval(parse(text = ui_code)), error = function(e) p(toString(e)), warning = function(w) p(toString(w)))))
+      output$code_result_ui <- renderUI(make_shiny_ace_card("", tryCatch(eval(parse(text = ui_code)), error = function(e) p(toString(e)), warning = function(w) p(toString(w)))))
       
       # Create translations file
       
@@ -2254,7 +2258,7 @@ mod_plugins_server <- function(id = character(), r = shiny::reactiveValues(), d 
       # Restore normal value
       options('cli.num_colors' = NULL)
       
-      output$code_result_server <- renderText(paste(paste(captured_output), collapse = "\n"))
+      output$code_result_server <- renderText(paste(captured_output, collapse = "\n"))
       
       output$datetime_code_execution <- renderText(format_datetime(Sys.time(), language))
       
@@ -2616,7 +2620,7 @@ mod_plugins_server <- function(id = character(), r = shiny::reactiveValues(), d 
           list_of_files <- list.files(plugin_dir)
           
           # Add images filenames in the XML
-          images <- list_of_files[grepl("\\.png$|\\.jpg$", tolower(list_of_files))]
+          images <- list_of_files[grepl("\\.png$", tolower(list_of_files))]
           images_node <- XML::newXMLNode("images", paste(images, collapse = ";;;"), parent = plugin_node)
 
           # Create XML file

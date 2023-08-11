@@ -190,8 +190,8 @@ mod_scripts_ui <- function(id = character(), i18n = character()){
             shiny.fluent::Stack(
               tokens = list(childrenGap = 5),
               shiny.fluent::Stack(horizontal = TRUE, tokens = list(childrenGap = 10),
-                shiny.fluent::PrimaryButton.shinyInput(ns("save_code"), i18n$t("save")), " ",
-                shiny.fluent::DefaultButton.shinyInput(ns("execute_code"), i18n$t("run_code"))
+                shiny.fluent::PrimaryButton.shinyInput(ns("execute_code"), i18n$t("run_code")),
+                shiny.fluent::DefaultButton.shinyInput(ns("save_code"), i18n$t("save"))
               ), br(),
               div(textOutput(ns("datetime_code_execution")), style = "color:#878787;"), br(),
               div(id = ns("console_output"), verbatimTextOutput(ns("console_result")),
@@ -404,8 +404,8 @@ mod_scripts_server <- function(id = character(), r = shiny::reactiveValues(), d 
       
       # Load Export scripts page, to load DT (doesn't update with other DT if not already loaded once)
       if (shiny.router::get_page() == "scripts" & length(r$scripts_page_loaded) == 0){
-        shinyjs::runjs(glue::glue("$('#{id}-scripts_pivot button[name=\"{i18n$t('export_scripts')}\"]').click();"))
-        shinyjs::delay(500, shinyjs::runjs(glue::glue("$('#{id}-scripts_pivot button[name=\"{i18n$t('choose_dataset_scripts')}\"]').click();")))
+        if ("export_script_card" %in% r$user_accesses) shinyjs::show("export_script_card")
+        shinyjs::delay(500, shinyjs::hide("export_script_card"))
         r$scripts_page_loaded <- TRUE
       }
     })
@@ -1345,7 +1345,7 @@ mod_scripts_server <- function(id = character(), r = shiny::reactiveValues(), d 
       options('cli.num_colors' = NULL)
       
       output$datetime_code_execution <- renderText(format_datetime(Sys.time(), language))
-      output$console_result <- renderText(paste(paste(captured_output), collapse = "\n"))
+      output$console_result <- renderText(paste(captured_output, collapse = "\n"))
     })
     
     # Hide ace editor

@@ -145,8 +145,8 @@ mod_my_subsets_ui <- function(id = character(), i18n = character()){
               tokens = list(childrenGap = 5),
               conditionalPanel(condition = "input.hide_editor == true", ns = ns, br()),
               shiny.fluent::Stack(horizontal = TRUE, tokens = list(childrenGap = 10),
-                shiny.fluent::PrimaryButton.shinyInput(ns("save_code"), i18n$t("save")),
-                shiny.fluent::DefaultButton.shinyInput(ns("execute_code"), i18n$t("run_code"))
+                shiny.fluent::PrimaryButton.shinyInput(ns("execute_code"), i18n$t("run_code")),
+                shiny.fluent::DefaultButton.shinyInput(ns("save_code"), i18n$t("save"))
               ), br(),
               div(textOutput(ns("datetime_code_execution")), style = "color:#878787;"), br(),
               div(verbatimTextOutput(ns("code_result")), 
@@ -598,7 +598,7 @@ mod_my_subsets_server <- function(id = character(), r = shiny::reactiveValues(),
       options('cli.num_colors' = NULL)
       
       output$datetime_code_execution <- renderText(format_datetime(Sys.time(), language))
-      output$code_result <- renderText(paste(paste(captured_output), collapse = "\n"))
+      output$code_result <- renderText(paste(captured_output, collapse = "\n"))
 
       if (perf_monitoring) monitor_perf(r = r, action = "stop", task = paste0("mod_subsets - observer r$subset_execute_code"))
     })

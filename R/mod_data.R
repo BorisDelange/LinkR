@@ -200,20 +200,6 @@ mod_data_ui <- function(id = character(), i18n = character()){
         style = "position:relative;"
       )
     ),
-    # div(shinyAce::aceEditor(
-    #   ns("ace_edit_code"), "", mode = "r",
-    #   code_hotkeys = list(
-    #     "r", list(
-    #       run_selection = list(win = "CTRL-ENTER", mac = "CTRL-ENTER|CMD-ENTER"),
-    #       run_all = list(win = "CTRL-SHIFT-ENTER", mac = "CTRL-SHIFT-ENTER|CMD-SHIFT-ENTER"),
-    #       save = list(win = "CTRL-S", mac = "CTRL-S|CMD-S")
-    #     )
-    #   ),
-    #   autoScrollEditorIntoView = TRUE, minLines = 30, maxLines = 1000
-    # ), style = "width: 100%;"),
-    # shiny.fluent::PrimaryButton.shinyInput(ns("execute_code"), i18n$t("run_code")), br(),
-    # div(verbatimTextOutput(ns("code_result")),
-    #   style = "width: 99%; border-style: dashed; border-width: 1px; padding: 0px 8px 0px 8px; margin-right: 5px;"),
     br()
   )
 }

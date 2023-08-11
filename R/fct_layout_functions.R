@@ -308,7 +308,6 @@ make_shiny_ace_card <- function(title = character(), content = character(), size
 #' @description Renders a datatable (from library DT)
 #' 
 #' @param output variable from Shiny, used to render messages on the message bar
-#' @param r A shiny::reactiveValues object, used to communicate between modules
 #' @param ns Shiny namespace
 #' @param i18n Translator object from shiny.i18n library
 #' @param data Data used in the datatable (tibble or dataframe)
@@ -340,12 +339,12 @@ make_shiny_ace_card <- function(title = character(), content = character(), size
 #' shortened_cols <- c("name" = 30, "url_address" = 30, "creator_id" = 20)
 #' my_data <- tibble::tibble(col_1 = c("value_1", "value_2"), col_2 = c("value_3", "value_4"))
 #' 
-#' render_datatable(output = output, r = r, ns = ns, i18n = i18n, data = my_data,
+#' render_datatable(output = output, ns = ns, i18n = i18n, data = my_data,
 #'   output_name = "git_repos_datatable", col_names = col_names, shortened_cols = shortened_cols,
 #'   editable_cols = editable_cols, sortable_cols = sortable_cols, centered_cols = centered_cols, column_widths = column_widths,
 #'   searchable_cols = searchable_cols, filter = TRUE, factorize_cols = factorize_cols, hidden_cols = hidden_cols)
 #' }
-render_datatable <- function(output, r = shiny::reactiveValues(), ns = character(), i18n = character(), data = tibble::tibble(),
+render_datatable <- function(output, ns = character(), i18n = character(), data = tibble::tibble(),
   output_name = character(), col_names = character(), datatable_dom = "<'datatable_length'l><'top't><'bottom'p>", page_length = 10,
   editable_cols = character(), sortable_cols = character(), centered_cols = character(), searchable_cols = character(), filter = FALSE, 
   factorize_cols = character(), column_widths = character(), hidden_cols = character(), selection = "single",
