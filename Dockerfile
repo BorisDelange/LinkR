@@ -16,7 +16,7 @@ RUN apt-get update && apt-get install --no-install-recommends -y \
     && rm -rf /var/lib/apt/lists/*
 
 # Install R packages required for the app
-RUN R -e "install.packages(c('clipr', 'curl', 'DBI', 'dplyr', 'DT', 'ggplot2', 'golem', 'glue', 'knitr', 'magrittr', 'pkgload', 'plotly', 'pryr', 'readr', 'remotes', 'rlang', 'rlist', 'rmarkdown', 'RPostgres', 'RSQLite', 'shiny', 'shiny.fluent', 'shiny.i18n', 'shinymanager', 'shiny.react', 'shiny.router', 'shinyAce', 'shinybusy', 'shinyjs', 'sortable', 'stringr', 'tidyr', 'XML', 'zip'), repos='https://cloud.r-project.org/')"
+RUN R -e "install.packages(c('clipr', 'curl', 'DBI', 'dplyr', 'DT', 'ggplot2', 'golem', 'glue', 'knitr', 'magick', 'magrittr', 'pkgload', 'plotly', 'pryr', 'readr', 'remotes', 'rlang', 'rlist', 'rmarkdown', 'RPostgres', 'RSQLite', 'shiny', 'shiny.fluent', 'shiny.i18n', 'shinymanager', 'shiny.react', 'shiny.router', 'shinyAce', 'shinybusy', 'shinyjs', 'sortable', 'stringr', 'tidyr', 'XML', 'zip'), repos='https://cloud.r-project.org/')"
 
 # Install LinkR from GitHub
 RUN R -e "remotes::install_github('BorisDelange/LinkR')"
