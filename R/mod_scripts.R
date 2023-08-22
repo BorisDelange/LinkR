@@ -750,7 +750,7 @@ mod_scripts_server <- function(id = character(), r = shiny::reactiveValues(), d 
         hidden_cols <- c("id", "description", "unique_id")
         col_names <- get_col_names("local_scripts", i18n)
         
-        render_datatable(output = output, r = r, ns = ns, i18n = i18n, data = r$local_scripts, 
+        render_datatable(output = output, ns = ns, i18n = i18n, data = r$local_scripts, 
           col_names = col_names, output_name = "local_scripts_datatable", selection = "single",
           sortable_cols = sortable_cols, centered_cols = centered_cols, column_widths = column_widths,
           searchable_cols = searchable_cols, factorize_cols = factorize_cols, filter = TRUE, hidden_cols = hidden_cols)
@@ -902,7 +902,7 @@ mod_scripts_server <- function(id = character(), r = shiny::reactiveValues(), d 
         hidden_cols <- c("unique_id", "description")
         col_names <- get_col_names("remote_git_scripts", i18n)
 
-        render_datatable(output = output, r = r, ns = ns, i18n = i18n, data = remote_git_scripts,
+        render_datatable(output = output, ns = ns, i18n = i18n, data = remote_git_scripts,
           col_names = col_names, output_name = "remote_git_scripts_datatable", selection = "single",
           sortable_cols = sortable_cols, centered_cols = centered_cols, column_widths = column_widths,
           searchable_cols = searchable_cols, factorize_cols = factorize_cols, filter = TRUE, hidden_cols = hidden_cols)
@@ -1068,13 +1068,13 @@ mod_scripts_server <- function(id = character(), r = shiny::reactiveValues(), d 
       
       if (length(r$scripts_datatable_proxy) == 0){
         
-        render_datatable(output = output, r = r, ns = ns, i18n = i18n,
+        render_datatable(output = output, ns = ns, i18n = i18n,
           data = data_scripts_datatable, 
           col_names = col_names, output_name = "scripts_datatable", selection = "multiple",
           sortable_cols = sortable_cols, centered_cols = centered_cols, column_widths = column_widths,
           searchable_cols = searchable_cols, filter = TRUE, hidden_cols = hidden_cols)
         
-        render_datatable(output = output, r = r, ns = ns, i18n = i18n, data = data_export_scripts_datatable,
+        render_datatable(output = output, ns = ns, i18n = i18n, data = data_export_scripts_datatable,
           output_name = "scripts_to_export_datatable", col_names = col_names,
           sortable_cols = sortable_cols, centered_cols = centered_cols, column_widths = column_widths,
           searchable_cols = searchable_cols, filter = TRUE, hidden_cols = hidden_cols)
@@ -1679,7 +1679,7 @@ mod_scripts_server <- function(id = character(), r = shiny::reactiveValues(), d 
         
         print(scripts)
         
-        render_datatable(output = output, r = r, ns = ns, i18n = i18n,
+        render_datatable(output = output, ns = ns, i18n = i18n,
           data = scripts %>% dplyr::mutate_at(c("creation_datetime", "update_datetime"), format_datetime, language = "en", sec = FALSE),
           output_name = "imported_scripts", col_names = col_names, centered_cols = centered_cols, column_widths = column_widths,
           filter = FALSE, hidden_cols = hidden_cols, datatable_dom = "")

@@ -422,6 +422,7 @@ description_english,Anglaise
 author,Auteur
 browse,Parcourir
 import_image,Importer une image
+resize_image,Redimensionner l'image
 back,Retour
 download,Télécharger
 update,Mettre à jour
@@ -647,7 +648,7 @@ fail_connect_remote_db,Echec lors de la connexion à la base de données distant
 success,Succès
 successfully_connected,Connecté avec succès
 reload_app_to_take_into_account_changes,Vous devez redémarrer la session pour prendre en compte les changements
-modif_names_duplicates,Certains noms sont utilisés plusieurs fois, retirez-les avant de sauvegarder
+modif_names_duplicates,"Certains noms sont utilisés plusieurs fois, retirez-les avant de sauvegarder"
 error_restoring_database,Erreur lors de la restauration de la base de données
 error_restoring_database_table,Erreur lors de la restauration d'une table de la base de données
 error_importing_default_database,Erreur lors de l'importation de la base de données par défaut
@@ -728,6 +729,7 @@ import_script_card_user_access_description,Importer des scripts
 export_script_card_user_access_description,Exporter des scripts
 all_users_user_access_description,Accéder au log de tous les utilisateurs
 only_me_user_access_description,Accéder au log de l'utilisateur connecté
+data_console_user_access_description,Accéder à la console depuis une étude
 vocabulary_id_col,ID (vocabulary_id)
 vocabulary_id,ID de la terminologie
 vocabulary_id_1,ID terminologie 1
@@ -854,6 +856,6 @@ access_to_data,Accéder aux données
 scripts_and_plugins,Scripts & plugins
 comment,Commentaire
 error_exporting_db,Erreur lors de l'export de la BDD
-imported_image_must_be_png,L'image importée doit être au format PNG
-exported_image_must_be_png,L'image exportée doit être au format PNG
+imported_image_must_be_png_svg_or_jpg,"L'image importée doit être au format PNG, SVG ou JPG"
+exported_image_must_be_png_svg_or_jpg,"L'image exportée doit être au format PNG, SVG ou JPG"
 input_image_doesnt_exist,Le fichier de l'image n'existe pas

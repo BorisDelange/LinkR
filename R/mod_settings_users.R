@@ -333,8 +333,8 @@ mod_settings_users_server <- function(id = character(), r = shiny::reactiveValue
       hidden_cols <- c("id", "password", "deleted", "modified")
       
       # Render datatable
-      render_datatable(output = output, r = r, ns = ns, i18n = i18n, data = r[[paste0(table, "_datatable_temp")]],
-        output_name = "management_datatable", col_names =  get_col_names(table_name = table, i18n = i18n),
+      render_datatable(output = output, ns = ns, i18n = i18n, data = r[[paste0(table, "_datatable_temp")]],
+        output_name = "management_datatable", col_names = get_col_names(table_name = table, i18n = i18n),
         editable_cols = editable_cols, sortable_cols = sortable_cols, centered_cols = centered_cols, column_widths = column_widths,
         searchable_cols = searchable_cols, filter = TRUE, hidden_cols = hidden_cols, selection = "multiple")
       

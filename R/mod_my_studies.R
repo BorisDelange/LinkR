@@ -732,7 +732,7 @@ mod_my_studies_server <- function(id = character(), r = shiny::reactiveValues(),
         
         # Render datatable
         
-        render_datatable(output = output, r = r, ns = ns, i18n = i18n, data = data,
+        render_datatable(output = output, ns = ns, i18n = i18n, data = data,
           output_name = "studies_datatable", col_names = get_col_names("studies", i18n),
           editable_cols = studies_management_editable_cols, sortable_cols = studies_management_sortable_cols, centered_cols = studies_management_centered_cols, 
           column_widths = studies_management_column_widths, searchable_cols = studies_management_searchable_cols, 

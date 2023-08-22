@@ -926,7 +926,7 @@ mod_data_server <- function(id = character(), r = shiny::reactiveValues(), d = s
             })
             
             element_code <- div(
-              make_card("",
+              make_shiny_ace_card("",
                 div(
                   div(id = ns(paste0(prefix, "_widget_plugin_ui_", widget_id)), code_ui),
                   div(
@@ -1971,7 +1971,7 @@ mod_data_server <- function(id = character(), r = shiny::reactiveValues(), d = s
           "add_concept_input" = "80px")
         
         # Render datatable
-        render_datatable(output = output, r = r, ns = ns, i18n = i18n, data = widget_vocabulary_concepts,
+        render_datatable(output = output, ns = ns, i18n = i18n, data = widget_vocabulary_concepts,
           output_name = paste0(type, "_vocabulary_concepts"), col_names =  col_names,
           editable_cols = editable_cols, sortable_cols = sortable_cols, centered_cols = centered_cols, column_widths = column_widths,
           searchable_cols = searchable_cols, filter = TRUE, hidden_col = hidden_cols)
@@ -2146,7 +2146,7 @@ mod_data_server <- function(id = character(), r = shiny::reactiveValues(), d = s
         
         # Render datatable
         
-        render_datatable(output = output, r = r, ns = ns, i18n = i18n, data = r[[paste0(prefix, "_", type, "_vocabulary_mapped_concepts")]],
+        render_datatable(output = output, ns = ns, i18n = i18n, data = r[[paste0(prefix, "_", type, "_vocabulary_mapped_concepts")]],
           output_name = paste0(type, "_vocabulary_mapped_concepts"), col_names =  col_names,
           editable_cols = editable_cols, sortable_cols = sortable_cols, centered_cols = centered_cols, column_widths = column_widths,
           searchable_cols = searchable_cols, filter = TRUE, hidden_col = hidden_cols)
@@ -2554,7 +2554,7 @@ mod_data_server <- function(id = character(), r = shiny::reactiveValues(), d = s
       })
       
       element_code <- div(
-        make_card("",
+        make_shiny_ace_card("",
           div(
             div(id = ns(paste0(prefix, "_widget_plugin_ui_", widget_id)), code_ui),
             div(

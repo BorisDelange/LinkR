@@ -67,9 +67,12 @@ resize_and_pad_image <- function(input_path, output_path, target_width = 318, ta
   # Read image
   img <- magick::image_read(input_path)
   
+  # Determine image format
+  image_format <- tolower(magick::image_info(img)$format)
+  
   # Input image & output path must be PNG files
-  if (tolower(magick::image_info(img)$format) != "png") stop(i18n$t("imported_image_must_be_png"))
-  if (!grepl("\\.png$", output_path, ignore.case = TRUE)) stop(i18n$t("exported_image_must_be_png"))
+  if (image_format %not_in% c("png", "svg", "jpg", "jpeg")) stop(i18n$t("imported_image_must_be_png_svg_or_jpg"))
+  if (!grepl("\\.png$|\\.jpg$|\\.jpeg|\\.svg$$", output_path, ignore.case = TRUE)) stop(i18n$t("imported_image_must_be_png_svg_or_jpg"))
   
   # Calculate original image ratio
   original_aspect_ratio <- magick::image_info(img)$height / magick::image_info(img)$width
@@ -88,6 +91,12 @@ resize_and_pad_image <- function(input_path, output_path, target_width = 318, ta
   
   # Resize image
   img_resized <- magick::image_resize(img, paste0(new_width, "x", new_height))
+  
+  # If the image is jpeg/jpg, just save the resized image
+  if (image_format %in% c("jpg", "jpeg")) {
+    magick::image_write(img_resized, output_path)
+    return(invisible(NULL))
+  }
   
   # Center image
   x_off <- floor((target_width - new_width) / 2)

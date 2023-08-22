@@ -190,7 +190,7 @@ mod_settings_log_server <- function(id = character(), r = shiny::reactiveValuess
       
       if (length(r$log_datatable_proxy) == 0){
         
-        render_datatable(output = output, r = r, ns = ns, i18n = i18n, data = r$log, output_name = "log_datatable", col_names = col_names,
+        render_datatable(output = output, ns = ns, i18n = i18n, data = r$log, output_name = "log_datatable", col_names = col_names,
           page_length = page_length, centered_cols = centered_cols, sortable_cols = sortable_cols, column_widths = column_widths,
           searchable_cols = searchable_cols, filter = TRUE, factorize_cols = factorize_cols, shortened_cols = shortened_cols)
         

@@ -86,7 +86,7 @@ mod_plugins_ui <- function(id = character(), i18n = character()){
     div(DT::DTOutput(ns("plugin_vocabulary_concepts")), class = "vocabulary_table"),
     div(DT::DTOutput(ns("plugin_vocabulary_mapped_concepts")), class = "vocabulary_table"),
     div(id = ns("blank_space"), br()),
-    style = "position:relative; z-index:1; margin-bottom:-30px;"
+    style = "position:relative; z-index:1;"
   )
   
   div(
@@ -201,9 +201,7 @@ mod_plugins_ui <- function(id = character(), i18n = character()){
               tokens = list(childrenGap = 5),
               make_combobox(i18n = i18n, ns = ns, label = "plugin", id = "code_selected_plugin",
                 width = "300px", allowFreeform = FALSE, multiSelect = FALSE),
-              
-              vocabulary_concepts_div, br(),
-              
+              vocabulary_concepts_div,
               div(
                 shiny.fluent::Stack(horizontal = TRUE, tokens = list(childrenGap = 10),
                   shiny.fluent::ChoiceGroup.shinyInput(ns("edit_code_ui_server"), value = "ui", options = list(
@@ -306,7 +304,11 @@ mod_plugins_ui <- function(id = character(), i18n = character()){
                 shiny.fluent::Stack(horizontal = TRUE, tokens = list(childrenGap = 20),
                   make_dropdown(i18n = i18n, ns = ns, label = "image_url", id = "plugin_image", width = "320px"),
                   div(shiny.fluent::DefaultButton.shinyInput(ns("delete_image"), i18n$t("delete_this_image")), style = "margin-top:39px;"),
-                  div(shiny.fluent::DefaultButton.shinyInput(ns("import_image"), i18n$t("import_image")), style = "margin-top:39px;")
+                  div(shiny.fluent::DefaultButton.shinyInput(ns("import_image"), i18n$t("import_image")), style = "margin-top:39px;"),
+                  div(
+                    shiny.fluent::Stack(horizontal = TRUE, tokens = list(childrenGap = 10),
+                      make_toggle(i18n = i18n, ns = ns, label = "resize_image", inline = TRUE)), 
+                  style = "margin-top:44px;"),
                 )
               ), 
               br(),
@@ -351,7 +353,7 @@ mod_plugins_ui <- function(id = character(), i18n = character()){
               div(id = ns("description_markdown_output"),
                 uiOutput(ns("description_markdown_result")), 
                 style = "width: 99%; border-style: dashed; border-width: 1px; padding: 0px 8px 0px 8px; margin-right: 5px; padding-top: 10px;"),
-              div(style = "display:none;", fileInput(ns("import_image_file"), label = "", multiple = FALSE, accept = c(".png")))
+              div(style = "display:none;", fileInput(ns("import_image_file"), label = "", multiple = FALSE, accept = c(".jpg", ".jpeg", ".png", ".svg")))
             )
           )
         ), br()
@@ -1182,13 +1184,13 @@ mod_plugins_server <- function(id = character(), r = shiny::reactiveValues(), d 
       # If datatable doesn't exist
       if (length(r[[paste0(prefix, "_plugins_datatable_proxy")]]) == 0){
         
-        render_datatable(output = output, r = r, ns = ns, i18n = i18n, data = data_plugins_datatable,
-          output_name = "plugins_datatable", col_names =  get_col_names(table_name = "plugins", i18n = i18n),
+        render_datatable(output = output, ns = ns, i18n = i18n, data = data_plugins_datatable,
+          output_name = "plugins_datatable", col_names = get_col_names(table_name = "plugins", i18n = i18n),
           editable_cols = editable_cols, sortable_cols = sortable_cols, centered_cols = centered_cols, column_widths = column_widths,
           searchable_cols = searchable_cols, filter = TRUE, hidden_cols = hidden_cols, selection = "multiple")
         
-        render_datatable(output = output, r = r, ns = ns, i18n = i18n, data = data_export_plugins_datatable,
-          output_name = "plugins_to_export_datatable", col_names =  get_col_names(table_name = "plugins", i18n = i18n),
+        render_datatable(output = output, ns = ns, i18n = i18n, data = data_export_plugins_datatable,
+          output_name = "plugins_to_export_datatable", col_names = get_col_names(table_name = "plugins", i18n = i18n),
           editable_cols = editable_cols, sortable_cols = sortable_cols, centered_cols = centered_cols, column_widths = column_widths,
           searchable_cols = searchable_cols, filter = TRUE, hidden_cols = hidden_cols)
         
@@ -1448,7 +1450,7 @@ mod_plugins_server <- function(id = character(), r = shiny::reactiveValues(), d 
       # Plugin version, author, image and descriptions
       
       plugin_folder <- paste0(r$app_folder, "/plugins/", prefix, "/", options %>% dplyr::filter(name == "unique_id") %>% dplyr::pull(value))
-      files_list <- list.files(path = plugin_folder, pattern = "*.\\.(png|PNG)$")
+      files_list <- list.files(path = plugin_folder, pattern = "*.\\.(jpeg|jpg|JPG|JPEG|png|PNG|SVG|svg)$")
       shiny.fluent::updateDropdown.shinyInput(session, "plugin_image", 
         options = convert_tibble_to_list(tibble::tibble(text = c("", files_list), key = c("", files_list)), key_col = "key", text_col = "text"),
         value = options %>% dplyr::filter(name == "image") %>% dplyr::pull(value))
@@ -1608,7 +1610,7 @@ mod_plugins_server <- function(id = character(), r = shiny::reactiveValues(), d 
         plugin_folder <- paste0(r$app_folder, "/plugins/", prefix, "/", plugin$unique_id)
         unlink(paste0(plugin_folder, "/", input$plugin_image))
         
-        files_list <- list.files(path = plugin_folder, pattern = "*.\\.(png|PNG)$")
+        files_list <- list.files(path = plugin_folder, pattern = "*.\\.(jpeg|jpg|JPG|JPEG|png|PNG|SVG|svg)$")
         shiny.fluent::updateDropdown.shinyInput(session, "plugin_image", 
           options = convert_tibble_to_list(tibble::tibble(text = c("", files_list), key = c("", files_list)), key_col = "key", text_col = "text"),
           value = "")
@@ -1650,17 +1652,18 @@ mod_plugins_server <- function(id = character(), r = shiny::reactiveValues(), d 
         
         if (!dir.exists(plugin_folder)) dir.create(plugin_folder, recursive = TRUE)
         
-        # Resize and save image
-        resize_and_pad_image(input_path = input$import_image_file$datapath, output_path = paste0(plugin_folder, "/", input$import_image_file$name), 
+        # If option resize is activated, resize and save the image
+        if (input$resize_image) resize_and_pad_image(input_path = input$import_image_file$datapath, output_path = paste0(plugin_folder, "/", input$import_image_file$name), 
           target_width = 2544, target_height = 1600, i18n = i18n)
         
-        # file.copy(input$import_image_file$datapath, paste0(plugin_folder, "/", input$import_image_file$name), overwrite = TRUE)
+        # Else, just save the image
+        else file.copy(input$import_image_file$datapath, paste0(plugin_folder, "/", input$import_image_file$name), overwrite = TRUE)
         
         # Update dropdown
         
         options <- r$options %>% dplyr::filter(category == "plugin", link_id == !!link_id)
         
-        files_list <- list.files(path = plugin_folder, pattern = "*.\\.(png|PNG)$")
+        files_list <- list.files(path = plugin_folder, pattern = "*.\\.(jpeg|jpg|JPG|JPEG|png|PNG|SVG|svg)$")
         shiny.fluent::updateDropdown.shinyInput(session, "plugin_image", 
           options = convert_tibble_to_list(tibble::tibble(text = c("", files_list), key = c("", files_list)), key_col = "key", text_col = "text"),
           value = options %>% dplyr::filter(name == "image") %>% dplyr::pull(value))
@@ -1859,7 +1862,7 @@ mod_plugins_server <- function(id = character(), r = shiny::reactiveValues(), d 
           "add_concept_input" = "80px")
         
         # Render datatable
-        render_datatable(output = output, r = r, ns = ns, i18n = i18n, data = plugin_vocabulary_concepts,
+        render_datatable(output = output, ns = ns, i18n = i18n, data = plugin_vocabulary_concepts,
           output_name = "plugin_vocabulary_concepts", col_names =  col_names,
           editable_cols = editable_cols, sortable_cols = sortable_cols, centered_cols = centered_cols, column_widths = column_widths,
           searchable_cols = searchable_cols, filter = TRUE, hidden_col = hidden_cols)
@@ -1973,7 +1976,7 @@ mod_plugins_server <- function(id = character(), r = shiny::reactiveValues(), d 
           "add_concept_input" = "80px")
         
         # Render datatable
-        render_datatable(output = output, r = r, ns = ns, i18n = i18n, data = r[[paste0(prefix, "_plugin_vocabulary_mapped_concepts")]],
+        render_datatable(output = output, ns = ns, i18n = i18n, data = r[[paste0(prefix, "_plugin_vocabulary_mapped_concepts")]],
           output_name = "plugin_vocabulary_mapped_concepts", col_names =  col_names,
           editable_cols = editable_cols, sortable_cols = sortable_cols, centered_cols = centered_cols, column_widths = column_widths,
           searchable_cols = searchable_cols, filter = TRUE, hidden_col = hidden_cols)
@@ -2503,7 +2506,7 @@ mod_plugins_server <- function(id = character(), r = shiny::reactiveValues(), d 
         
         shinyjs::show("imported_plugins_div")
         
-        render_datatable(output = output, r = r, ns = ns, i18n = i18n, 
+        render_datatable(output = output, ns = ns, i18n = i18n, 
           data = plugins %>% dplyr::mutate_at(c("creation_datetime", "update_datetime"), format_datetime, language = "en", sec = FALSE),
           output_name = "imported_plugins", col_names = col_names, centered_cols = centered_cols, column_widths = column_widths,
           filter = FALSE, hidden_cols = hidden_cols, datatable_dom = "")
@@ -2620,7 +2623,7 @@ mod_plugins_server <- function(id = character(), r = shiny::reactiveValues(), d 
           list_of_files <- list.files(plugin_dir)
           
           # Add images filenames in the XML
-          images <- list_of_files[grepl("\\.png$", tolower(list_of_files))]
+          images <- list_of_files[grepl("\\.png$|\\.jpg|\\.jpeg|\\.svg", tolower(list_of_files))]
           images_node <- XML::newXMLNode("images", paste(images, collapse = ";;;"), parent = plugin_node)
 
           # Create XML file

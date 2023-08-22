@@ -84,7 +84,7 @@ col_names <- get_col_names("git_repos", i18n)
 shortened_cols <- c("name" = 30, "url_address" = 30, "creator_id" = 20)
 my_data <- tibble::tibble(col_1 = c("value_1", "value_2"), col_2 = c("value_3", "value_4"))
 
-render_datatable(output = output, r = r, ns = ns, i18n = i18n, data = my_data,
+render_datatable(output = output, ns = ns, i18n = i18n, data = my_data,
   output_name = "git_repos_datatable", col_names = col_names, shortened_cols = shortened_cols,
   editable_cols = editable_cols, sortable_cols = sortable_cols, centered_cols = centered_cols, column_widths = column_widths,
   searchable_cols = searchable_cols, filter = TRUE, factorize_cols = factorize_cols, hidden_cols = hidden_cols)

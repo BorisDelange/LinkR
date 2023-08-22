@@ -153,7 +153,7 @@ add_vocabulary_concept <- function(output, m = shiny::reactiveValues(), vocabula
   if (length(concept_class_id) == 0) stop_fct <- TRUE
   else if (is.na(concept_class_id) | concept_class_id == "") stop_fct <- TRUE
   else {
-    sql <- glue::glue_sql("SELECT * from concept_class WHERE concept_class_id == {concept_class_id}", .con = m$db)
+    sql <- glue::glue_sql("SELECT * from concept_class WHERE concept_class_id = {concept_class_id}", .con = m$db)
     if (nrow(DBI::dbGetQuery(m$db, sql)) == 0) stop_fct <- TRUE
   }
   if (stop_fct){

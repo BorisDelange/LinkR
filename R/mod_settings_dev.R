@@ -223,7 +223,7 @@ mod_settings_dev_server <- function(id = character(), r = shiny::reactiveValues(
       # Render datatable
       if (length(r$perf_monitoring_datatable_proxy) == 0){
         
-        render_datatable(output = output, r = r, ns = ns, i18n = i18n, data = perf_monitoring_table,
+        render_datatable(output = output, ns = ns, i18n = i18n, data = perf_monitoring_table,
           output_name = "perf_monitoring_datatable", col_names = col_names,
           sortable_cols = sortable_cols, centered_cols = centered_cols, column_widths = column_widths,
           searchable_cols = searchable_cols, filter = TRUE, page_length = 100)

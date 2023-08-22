@@ -609,8 +609,8 @@ mod_settings_data_management_server <- function(id = character(), r = shiny::rea
       
       if (length(r[[paste0(table, "_datatable_proxy")]]) == 0){
         
-        render_datatable(output = output, r = r, ns = ns, i18n = i18n, data = data,
-          output_name = "management_datatable", col_names =  get_col_names(table_name = table, i18n = i18n),
+        render_datatable(output = output, ns = ns, i18n = i18n, data = data,
+          output_name = "management_datatable", col_names = get_col_names(table_name = table, i18n = i18n),
           editable_cols = editable_cols, sortable_cols = sortable_cols, centered_cols = centered_cols, column_widths = column_widths,
           searchable_cols = searchable_cols, filter = TRUE, factorize_cols = factorize_cols, hidden_cols = hidden_cols, selection = "multiple")
 
@@ -869,7 +869,7 @@ mod_settings_data_management_server <- function(id = character(), r = shiny::rea
           if (table == "datasets"){
             
             # Reset datatable of results
-            render_datatable(output = output, r = r, ns = ns, i18n = i18n, data = tibble::tibble(name = character(), rows = integer()),
+            render_datatable(output = output, ns = ns, i18n = i18n, data = tibble::tibble(name = character(), rows = integer()),
               output_name = "code_datatable", col_names = c(i18n$t("table_name"), i18n$t("rows")),
               column_widths = c("rows" = "150px"), datatable_dom = "", page_length = 30)
             
@@ -1010,7 +1010,7 @@ mod_settings_data_management_server <- function(id = character(), r = shiny::rea
             data <- data %>% dplyr::bind_rows(tibble::tibble(name = var, rows = n_rows))
           }
           
-          render_datatable(output = output, r = r, ns = ns, i18n = i18n, data = data,
+          render_datatable(output = output, ns = ns, i18n = i18n, data = data,
             output_name = "code_datatable", col_names = c(i18n$t("table_name"), i18n$t("rows")),
             column_widths = c("rows" = "150px"), datatable_dom = "", page_length = 30)
           
@@ -1381,7 +1381,7 @@ mod_settings_data_management_server <- function(id = character(), r = shiny::rea
           output$vocabularies_datatable_row_details <- renderUI("")
 
           # Reset mapped concepts datatable
-          render_datatable(output = output, r = r, ns = ns, i18n = i18n, output_name = "vocabularies_tables_mapped_concepts_datatable",
+          render_datatable(output = output, ns = ns, i18n = i18n, output_name = "vocabularies_tables_mapped_concepts_datatable",
             data = tibble::tibble(concept_id_1 = character(), relationship_id = character(), concept_id_2 = character(), concept_name_2 = character()))
 
           n_rows <- stringr::str_split_1(input$vocabularies_table_rows, ";")
@@ -1398,7 +1398,7 @@ mod_settings_data_management_server <- function(id = character(), r = shiny::rea
           if ((input$vocabularies_table %in% c("concept_relationship", "concept_synonym", "concept_ancestor", "drug_strength") & input$vocabularies_datatable_show_row_details) |
               (input$vocabularies_table == "concept" & input$vocabularies_datatable_show_mapped_concepts)) selection <- "single" else selection <- "multiple"
 
-          render_datatable(output = output, r = r, ns = ns, i18n = i18n, data = data,
+          render_datatable(output = output, ns = ns, i18n = i18n, data = data,
             output_name = "vocabularies_tables_datatable", editable_cols = editable_cols_vocab[[input$vocabularies_table]],
             sortable_cols = sortable_cols_vocab[[input$vocabularies_table]], centered_cols = centered_cols_vocab[[input$vocabularies_table]],
             hidden_cols = c("id", "modified", "standard_concept", "concept_code", "valid_start_date", "valid_end_date", "invalid_reason", "box_size"), 
@@ -1527,7 +1527,7 @@ mod_settings_data_management_server <- function(id = character(), r = shiny::rea
               dplyr::select(concept_id_1, relationship_id, concept_id_2, concept_name_2) %>%
               dplyr::mutate_at(c("concept_id_1", "concept_id_2"), as.character)
 
-            render_datatable(output = output, r = r, ns = ns, i18n = i18n, data = mapped_concepts,
+            render_datatable(output = output, ns = ns, i18n = i18n, data = mapped_concepts,
               output_name = "vocabularies_tables_mapped_concepts_datatable", sortable_cols = c("concept_id_1", "concept_id_2", "concept_name_2", "relationship_id"),
               centered_cols = c("concept_id_1", "concept_id_2", "relationship_id"), searchable_cols = c("concept_id_1", "concept_id_2", "concept_name_2", "relationship_id"),
               filter = TRUE, factorize_cols = c("relationship_id"))
@@ -1757,7 +1757,7 @@ mod_settings_data_management_server <- function(id = character(), r = shiny::rea
               
               shinyjs::show("imported_vocabularies_div")
               
-              render_datatable(output = output, r = r, ns = ns, i18n = i18n, data = r$import_vocabulary_count_rows,
+              render_datatable(output = output, ns = ns, i18n = i18n, data = r$import_vocabulary_count_rows,
                 output_name = "imported_vocabularies", col_names = c(i18n$t("table_name"), i18n$t("num_rows")),
                 centered_cols = c("n_rows"), column_widths = c("n_rows" = "200px"))
               
@@ -1798,7 +1798,7 @@ mod_settings_data_management_server <- function(id = character(), r = shiny::rea
                 
                 shinyjs::show("imported_vocabularies_div")
                 
-                render_datatable(output = output, r = r, ns = ns, i18n = i18n, data = r$import_vocabulary_count_rows,
+                render_datatable(output = output, ns = ns, i18n = i18n, data = r$import_vocabulary_count_rows,
                   output_name = "imported_vocabularies", col_names = c(i18n$t("table_name"), i18n$t("row_number")),
                   centered_cols = c("table_name", "n_rows"), column_widths = c("n_rows" = "100px"))
                 

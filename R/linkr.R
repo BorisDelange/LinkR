@@ -68,7 +68,6 @@ linkr <- function(
   if (debug) print(paste0(Sys.time(), " - linkr - translation"))
   
   translations_path <- "inst/translations"
-  if (!dir.exists(translations_path)) translations_path <- paste0(find.package("linkr"), "/translations")
   if (!dir.exists(translations_path)) print("Translations path not found")
   
   i18n <- suppressWarnings(shiny.i18n::Translator$new(translation_csvs_path = translations_path))
@@ -145,6 +144,8 @@ linkr <- function(
       "subsets_datatable_card",
       "subsets_edit_code_card",
       "subsets_persons_card"),
+    "data", c(
+      "data_console"),
     "vocabularies", c(
       "vocabularies_concepts_card",
       "vocabularies_mapping_card",
@@ -153,8 +154,7 @@ linkr <- function(
       "vocabularies_edit_code_card",
       "vocabularies_import_vocabulary_card"),
     "messages", c(
-      "study_messages_card"
-    ),
+      "study_messages_card"),
     "plugins", c(
       "plugins_see_all_data",
       "all_plugins_card",

@@ -855,7 +855,7 @@ mod_vocabularies_server <- function(id = character(), r = shiny::reactiveValues(
       shiny.fluent::updateDropdown.shinyInput(session, "vocabulary_table_cols", value = value_show_cols)
 
       # Render datatable
-      render_datatable(output = output, r = r, ns = ns, i18n = i18n, data = r$dataset_vocabulary_concepts,
+      render_datatable(output = output, ns = ns, i18n = i18n, data = r$dataset_vocabulary_concepts,
         output_name = "vocabulary_concepts", col_names = col_names,
         editable_cols = editable_cols, sortable_cols = sortable_cols, centered_cols = centered_cols, column_widths = column_widths,
         searchable_cols = searchable_cols, filter = TRUE, hidden_cols = hidden_cols, factorize_cols = factorize_cols)
@@ -1339,7 +1339,7 @@ mod_vocabularies_server <- function(id = character(), r = shiny::reactiveValues(
       if (mapping == "mapping_2") col_names <- get_col_names(table_name = "mapping_vocabulary_concepts_with_counts_and_datasets", i18n = i18n)
       
       # Render datatable
-      render_datatable(output = output, r = r, ns = ns, i18n = i18n, data = r[[paste0("dataset_vocabulary_concepts_", mapping)]],
+      render_datatable(output = output, ns = ns, i18n = i18n, data = r[[paste0("dataset_vocabulary_concepts_", mapping)]],
         output_name = paste0("vocabulary_", mapping, "_dt"), col_names = col_names, datatable_dom = "<'top't><'bottom'p>",
         sortable_cols = sortable_cols, centered_cols = centered_cols, column_widths = column_widths,
         searchable_cols = searchable_cols, filter = TRUE, hidden_cols = hidden_cols, shortened_cols = shortened_cols)
@@ -1486,8 +1486,8 @@ mod_vocabularies_server <- function(id = character(), r = shiny::reactiveValues(
       output$vocabulary_selected_concept_mapping_1 <- renderText("")
       output$vocabulary_selected_concept_mapping_2 <- renderText("")
 
-      render_datatable(output = output, r = r, ns = ns, i18n = i18n, data = tibble::tibble(), output_name = "vocabulary_mapping_1_dt", datatable_dom = "")
-      render_datatable(output = output, r = r, ns = ns, i18n = i18n, data = tibble::tibble(), output_name = "vocabulary_mapping_2_dt", datatable_dom = "")
+      render_datatable(output = output, ns = ns, i18n = i18n, data = tibble::tibble(), output_name = "vocabulary_mapping_1_dt", datatable_dom = "")
+      render_datatable(output = output, ns = ns, i18n = i18n, data = tibble::tibble(), output_name = "vocabulary_mapping_2_dt", datatable_dom = "")
 
       r$reload_vocabulary_added_mappings_datatable <- Sys.time()
       r$reload_vocabulary_evaluate_mappings_datatable <- Sys.time()
@@ -1506,7 +1506,7 @@ mod_vocabularies_server <- function(id = character(), r = shiny::reactiveValues(
       hidden_cols <- c("id")
 
       # Render datatable
-      render_datatable(output = output, r = r, ns = ns, i18n = i18n, data = r$vocabulary_added_mappings, datatable_dom = "<'top't><'bottom'p>",
+      render_datatable(output = output, ns = ns, i18n = i18n, data = r$vocabulary_added_mappings, datatable_dom = "<'top't><'bottom'p>",
         output_name = "vocabulary_added_mappings", col_names = col_names, centered_cols = centered_cols, hidden_cols = hidden_cols)
 
       # Create a proxy for datatatable
@@ -1664,7 +1664,7 @@ mod_vocabularies_server <- function(id = character(), r = shiny::reactiveValues(
       if (input$vocabulary_show_mapping_details) selection <- "single"
       
       # Render datatable
-      render_datatable(output = output, r = r, ns = ns, i18n = i18n, data = r$dataset_vocabulary_concepts_evaluate_mappings,
+      render_datatable(output = output, ns = ns, i18n = i18n, data = r$dataset_vocabulary_concepts_evaluate_mappings,
         output_name = "vocabulary_evaluate_mappings", hidden_cols = hidden_cols, centered_cols = centered_cols, searchable_cols = searchable_cols,
         col_names = col_names, filter = TRUE, sortable_cols = sortable_cols, column_widths = column_widths, #factorize_cols = factorize_cols,
         selection = selection

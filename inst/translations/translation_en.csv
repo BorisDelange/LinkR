@@ -422,6 +422,7 @@ description_english,English
 author,Author
 browse,Browse
 import_image,Import image
+resize_image,Resize image
 back,Back
 download,Download
 update,Update
@@ -647,7 +648,7 @@ fail_connect_remote_db,Failed to connect to remote database
 success,Success
 successfully_connected,Successfully connected
 reload_app_to_take_into_account_changes,You have to restart session to take into account the changes
-modif_names_duplicates,There are duplicates in the names, please remove duplicates before saving
+modif_names_duplicates,"There are duplicates in the names, please remove duplicates before saving"
 error_restoring_database,Error restoring database
 error_restoring_database_table,Error restoring database table
 error_importing_default_database,Error importing default database
@@ -728,6 +729,7 @@ import_script_card_user_access_description,Import scripts
 export_script_card_user_access_description,Export scripts
 all_users_user_access_description,Access to log of all users
 only_me_user_access_description,Access the log of the connected user
+data_console_user_access_description,Accessing the console from a study
 vocabulary_id_col,ID (vocabulary_id)
 vocabulary_id,Vocabulary ID
 vocabulary_id_1,Vocabulary ID 1
@@ -854,6 +856,6 @@ access_to_data,Access to data
 scripts_and_plugins,Scripts & plugins
 comment,Comment
 error_exporting_db,Error exporting database
-imported_image_must_be_png,Imported image must be a PNG file
-exported_image_must_be_png,Exported image must be a PNG file
+imported_image_must_be_png_svg_or_jpg,"Imported image must be a PNG, a SVG or a JPG file"
+exported_image_must_be_png_svg_or_jpg,"Exported image must be a PNG, a SVG or a JPG file file"
 input_image_doesnt_exist,Input image doesn't exist

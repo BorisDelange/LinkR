@@ -167,7 +167,7 @@ mod_settings_git_server <- function(id = character(), r = shiny::reactiveValues(
       # Reset fields
 
       if(nrow(r$git_repos_temp) == 0){
-        render_datatable(output = output, r = r, ns = ns, i18n = i18n,
+        render_datatable(output = output, ns = ns, i18n = i18n,
           data = r$git_repos_temp %>% dplyr::mutate(action = character()),
           col_names = col_names, output_name = "git_repos_datatable", shortened_cols = shortened_cols,
           editable_cols = editable_cols, sortable_cols = sortable_cols, centered_cols = centered_cols, column_widths = column_widths,
@@ -183,7 +183,7 @@ mod_settings_git_server <- function(id = character(), r = shiny::reactiveValues(
         dplyr::mutate(category = dplyr::case_when(category == "plugin" ~ i18n$t("plugins"), category == "script" ~ i18n$t("scripts")))
       
       if (length(r$git_repos_datatable_proxy) == 0){
-        render_datatable(output = output, r = r, ns = ns, i18n = i18n, data = r$git_repos_datatable_temp,
+        render_datatable(output = output, ns = ns, i18n = i18n, data = r$git_repos_datatable_temp,
           output_name = "git_repos_datatable", col_names = col_names, shortened_cols = shortened_cols,
           editable_cols = editable_cols, sortable_cols = sortable_cols, centered_cols = centered_cols, column_widths = column_widths,
           searchable_cols = searchable_cols, filter = TRUE, factorize_cols = factorize_cols, hidden_cols = hidden_cols)

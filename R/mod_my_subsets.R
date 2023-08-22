@@ -351,7 +351,7 @@ mod_my_subsets_server <- function(id = character(), r = shiny::reactiveValues(),
         
         # Render datatable
         
-        render_datatable(output = output, r = r, ns = ns, i18n = i18n, data = m$subsets_datatable_temp,
+        render_datatable(output = output, ns = ns, i18n = i18n, data = m$subsets_datatable_temp,
           output_name = "subsets_datatable", col_names = get_col_names("subsets", i18n),
           editable_cols = subsets_management_editable_cols, sortable_cols = subsets_management_sortable_cols, centered_cols = subsets_management_centered_cols,
           column_widths = subsets_management_column_widths, searchable_cols = subsets_management_searchable_cols,
@@ -692,7 +692,7 @@ mod_my_subsets_server <- function(id = character(), r = shiny::reactiveValues(),
 
         # Render datatable
 
-        render_datatable(output = output, r = r, ns = ns, i18n = i18n, data = r$subset_persons_temp,
+        render_datatable(output = output, ns = ns, i18n = i18n, data = r$subset_persons_temp,
           output_name = "subset_persons_datatable", col_names = get_col_names("subset_persons", i18n),
           sortable_cols = subset_persons_sortable_cols, centered_cols = subset_persons_centered_cols,
           column_widths = subset_persons_column_widths, searchable_cols = subset_persons_searchable_cols,
@@ -733,7 +733,7 @@ mod_my_subsets_server <- function(id = character(), r = shiny::reactiveValues(),
         
         # Render datatable
         
-        render_datatable(output = output, r = r, ns = ns, i18n = i18n, data = r$subset_add_persons,
+        render_datatable(output = output, ns = ns, i18n = i18n, data = r$subset_add_persons,
           output_name = "subset_add_persons_datatable", col_names = get_col_names("subset_add_persons", i18n),
           filter = TRUE, sortable_cols = "person_id", searchable_cols = "person_id", selection = "multiple")
         

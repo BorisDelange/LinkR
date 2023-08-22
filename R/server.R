@@ -204,6 +204,7 @@ app_server <- function(router, language = "en", app_folder = character(),
 
       # Get user accesses
       r$user_accesses <- r$options %>% dplyr::filter(category == "users_accesses" & link_id == user_access_id & value_num == 1) %>% dplyr::pull(name)
+      m$user_accesses <- r$user_accesses
       
       # Show username on top of the page
       r$username <- r$users %>% dplyr::filter(id == r$user_id)

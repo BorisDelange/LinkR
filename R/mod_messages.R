@@ -331,7 +331,7 @@ mod_messages_server <- function(id = character(), r = shiny::reactiveValues(), d
         
         # Render datatable
         if (length(r$study_conversations_datatable_proxy) == 0){
-          render_datatable(output = output, r = r, ns = ns, i18n = i18n, data = r$study_conversations_temp,
+          render_datatable(output = output, ns = ns, i18n = i18n, data = r$study_conversations_temp,
             output_name = "study_conversations", col_names = conv_col_names,
             sortable_cols = conv_sortable_cols, centered_cols = conv_centered_cols, column_widths = conv_column_widths,
             searchable_cols = conv_searchable_cols, filter = TRUE, factorize_cols = conv_factorize_cols, 
