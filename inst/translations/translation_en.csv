@@ -25,6 +25,7 @@ aggregated,Aggregated
 exclusion_reason,Exclusion reason
 no_study_available,No study available
 no_person_in_subset,No patient in this subset
+no_stay_available,No stay available
 years,years
 months,months
 age,Age
@@ -116,7 +117,9 @@ everybody,Everybody
 everybody_who_has_access_to_dataset,Everybody who has access to study's dataset
 choose_users,Select users
 choose_zip_file,Choose a ZIP file
+zip,ZIP
 choose_csv_files,Choose CSV files
+csv,CSV
 loaded_file,Loaded file
 loaded_files,Loaded files
 plugins_patient_lvl,Plugins - Patient-level data

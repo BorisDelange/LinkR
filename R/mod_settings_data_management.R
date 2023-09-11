@@ -101,9 +101,8 @@ mod_settings_data_management_ui <- function(id = character(), i18n = character()
               shiny.fluent::Stack(horizontal = TRUE, tokens = list(childrenGap = 10),
                 make_combobox(i18n = i18n, ns = ns, label = "dataset", id = "code_selected_dataset_or_vocabulary",
                   width = "300px", allowFreeform = FALSE, multiSelect = FALSE),
-                div(style = "width:20px;"),
                 div(shiny.fluent::Toggle.shinyInput(ns("hide_editor"), value = FALSE), style = "margin-top:45px;"),
-                div(i18n$t("hide_editor"), style = "font-weight:bold; margin-top:45px; margin-right:30px;"), 
+                div(i18n$t("hide_editor"), style = "font-weight:bold; margin-top:45px; margin-right:30px;")
               ),
               conditionalPanel(condition = "input.hide_editor == true", ns = ns, br())
             ),
@@ -123,10 +122,10 @@ mod_settings_data_management_ui <- function(id = character(), i18n = character()
               tokens = list(childrenGap = 5),
               shiny.fluent::Stack(horizontal = TRUE, tokens = list(childrenGap = 10),
                 shiny.fluent::PrimaryButton.shinyInput(ns("execute_code"), i18n$t("run_code")),
-                shiny.fluent::DefaultButton.shinyInput(ns("save_code"), i18n$t("save"))
+                shiny.fluent::DefaultButton.shinyInput(ns("edit_code_save"), i18n$t("save"))
               ), br(), br(),
               div(textOutput(ns("datetime_code_execution")), style = "color:#878787;"), br(),
-              div(shiny::verbatimTextOutput(ns("code_result")), 
+              div(shiny::uiOutput(ns("code_result")), 
                 style = "width: 99%; border-style: dashed; border-width: 1px; padding: 0px 8px 0px 8px; margin-right: 5px;"), br(),
               DT::DTOutput(ns("code_datatable"))
             )
@@ -235,7 +234,6 @@ mod_settings_data_management_ui <- function(id = character(), i18n = character()
               shiny.fluent::Stack(horizontal = TRUE, tokens = list(childrenGap = 10),
                 make_combobox(i18n = i18n, ns = ns, label = "vocabulary", id = "code_selected_dataset_or_vocabulary",
                   width = "300px", allowFreeform = FALSE, multiSelect = FALSE),
-                div(style = "width:20px;"),
                 div(shiny.fluent::Toggle.shinyInput(ns("hide_editor"), value = FALSE), style = "margin-top:45px;"),
                 div(i18n$t("hide_editor"), style = "font-weight:bold; margin-top:45px; margin-right:30px;"), 
               ),
@@ -261,7 +259,7 @@ mod_settings_data_management_ui <- function(id = character(), i18n = character()
                 shiny.fluent::DefaultButton.shinyInput(ns("edit_code_save"), i18n$t("save"))
               ), br(), br(),
               div(textOutput(ns("datetime_code_execution")), style = "color:#878787;"), br(),
-              div(shiny::verbatimTextOutput(ns("code_result")), 
+              div(shiny::uiOutput(ns("code_result")), 
                 style = "width: 99%; border-style: dashed; border-width: 1px; padding: 0px 8px 0px 8px; margin-right: 5px;")
             )
           )
@@ -333,13 +331,17 @@ mod_settings_data_management_ui <- function(id = character(), i18n = character()
       div(id = ns("import_vocabulary_card"),
         make_card(i18n$t("import_vocabulary"),
           div(
-            br(),
-            shiny.fluent::Stack(horizontal = TRUE, tokens = list(childrenGap = 10),
-              shiny.fluent::DefaultButton.shinyInput(ns("import_vocabulary_browse_zip"), i18n$t("choose_zip_file"), style = "width:270px;"),
-              uiOutput(ns("import_vocabulary_zip_status"))), br(),
-            shiny.fluent::Stack(horizontal = TRUE, tokens = list(childrenGap = 10),
-              shiny.fluent::DefaultButton.shinyInput(ns("import_vocabulary_browse_csv"), i18n$t("choose_csv_files"), style = "width:270px;"),
-              uiOutput(ns("import_vocabulary_csv_status"))), br(),
+            shiny.fluent::ChoiceGroup.shinyInput(ns("import_vocabulary_data_type"), value = "zip",
+              options = list(
+                list(key = "zip", text = i18n$t("zip")),
+                list(key = "csv", text = i18n$t("csv"))
+              ), className = "inline_choicegroup"
+            ), br(),
+            conditionalPanel("input.import_vocabulary_data_type == 'zip'", ns = ns,
+              shiny.fluent::DefaultButton.shinyInput(ns("import_vocabulary_browse_zip"), i18n$t("choose_zip_file"), style = "width:270px;")),
+            conditionalPanel("input.import_vocabulary_data_type == 'csv'", ns = ns,
+              shiny.fluent::DefaultButton.shinyInput(ns("import_vocabulary_browse_csv"), i18n$t("choose_csv_files"), style = "width:270px;")), br(),
+            uiOutput(ns("import_vocabulary_status")), br(),
             shiny.fluent::PrimaryButton.shinyInput(ns("import_vocabulary_button"), i18n$t("import_vocabulary"), iconProps = list(iconName = "Download"), style = "width:270px;"), br(),
             shinyjs::hidden(
               div(
@@ -980,13 +982,15 @@ mod_settings_data_management_server <- function(id = character(), r = shiny::rea
             sapply(main_tables, function(table) d[[table]] <- tibble::tibble())
           }
           
-          edited_code <- r[[paste0(id, "_code")]] %>% 
-            stringr::str_replace_all("\r", "\n")
+          edited_code <- r[[paste0(id, "_code")]] %>% stringr::str_replace_all("\r", "\n")
           
           output$datetime_code_execution <- renderText(format_datetime(Sys.time(), language))
-          output$code_result <- renderText(
-            isolate(execute_settings_code(input = input, output = output, session = session, id = id, ns = ns, 
-              i18n = i18n, r = r, d = d, m = m, edited_code = edited_code)))
+          
+          console_result <- isolate(execute_settings_code(input = input, output = output, session = session, id = id, ns = ns, 
+            i18n = i18n, r = r, d = d, m = m, edited_code = edited_code))
+          
+          print(console_result)
+          output$code_result <- renderUI(HTML(paste0("<pre>", console_result, "</pre>")))
 
           if (table == "datasets") r[[paste0(id, "_code_datatable_trigger")]] <- Sys.time()
           
@@ -1690,14 +1694,6 @@ mod_settings_data_management_server <- function(id = character(), r = shiny::rea
           if (debug) print(paste0(Sys.time(), " - mod_settings_data_management - observer input$import_vocabulary_browse_zip"))
           shinyjs::click("import_vocabulary_upload_zip")
         })
-
-        output$import_vocabulary_zip_status <- renderUI({
-          if (debug) print(paste0(Sys.time(), " - mod_settings_data_management - output$import_vocabulary_zip_status"))
-
-          tagList(div(
-            span(i18n$t("loaded_file"), " : ", style = "padding-top:5px;"),
-            span(input$import_vocabulary_upload_zip$name, style = "font-weight:bold; color:#0078D4;"), style = "padding-top:5px;"))
-        })
         
         # Import CSV files
         observeEvent(input$import_vocabulary_browse_csv, {
@@ -1705,12 +1701,35 @@ mod_settings_data_management_server <- function(id = character(), r = shiny::rea
           shinyjs::click("import_vocabulary_upload_csv")
         })
         
-        output$import_vocabulary_csv_status <- renderUI({
-          if (debug) print(paste0(Sys.time(), " - mod_settings_data_management - output$import_vocabulary_csv_status"))
+        # Import files status
+        observeEvent(input$import_vocabulary_upload_zip, {
+          if (debug) print(paste0(Sys.time(), " - mod_settings_data_management - input$import_vocabulary_upload_zip"))
+          r$import_vocabulary_status_trigger <- Sys.time()
+        })
+        
+        observeEvent(input$import_vocabulary_upload_csv, {
+          if (debug) print(paste0(Sys.time(), " - mod_settings_data_management - input$import_vocabulary_upload_csv"))
+          r$import_vocabulary_status_trigger <- Sys.time()
+        })
+        
+        observeEvent(r$import_vocabulary_status_trigger, {
+          if (debug) print(paste0(Sys.time(), " - mod_settings_data_management - r$import_vocabulary_status_trigger"))
           
-          tagList(div(
-            span(i18n$t("loaded_files"), " : ", style = "padding-top:5px;"),
-            span(toString(input$import_vocabulary_upload_csv$name), style = "font-weight:bold; color:#0078D4;"), style = "padding-top:5px;"))
+          result <- div()
+          
+          if (input$import_vocabulary_data_type == "zip"){
+            result <- tagList(div(
+              span(i18n$t("loaded_file"), " : ", style = "padding-top:5px;"),
+              span(input$import_vocabulary_upload_zip$name, style = "font-weight:bold; color:#0078D4;"), style = "padding-top:5px;"))
+          }
+          
+          if (input$import_vocabulary_data_type == "csv"){
+            result <- tagList(div(
+              span(i18n$t("loaded_files"), " : ", style = "padding-top:5px;"),
+              span(toString(input$import_vocabulary_upload_csv$name), style = "font-weight:bold; color:#0078D4;"), style = "padding-top:5px;"))
+          }
+          
+          output$import_vocabulary_status <- renderUI(result)
         })
 
         # Import button clicked
@@ -1722,7 +1741,7 @@ mod_settings_data_management_server <- function(id = character(), r = shiny::rea
           # Reset count_rows vars
           r$import_vocabulary_count_rows <- tibble::tibble(table_name = character(), n_rows = integer())
 
-          if(length(input$import_vocabulary_upload_zip) > 0){
+          if(input$import_vocabulary_data_type == "zip" & length(input$import_vocabulary_upload_zip) > 0){
             tryCatch({
               
               # Extract ZIP file
@@ -1743,7 +1762,7 @@ mod_settings_data_management_server <- function(id = character(), r = shiny::rea
                     "concept_ancestor", "drug_strength")){
                     
                     # Load CSV file
-                    data <- readr::read_csv(paste0(temp_dir, "/", file_name), col_types = col_types[[table_name]], progress = FALSE)
+                    data <- vroom::vroom(paste0(temp_dir, "/", file_name), col_types = col_types[[table_name]], progress = FALSE)
                     
                     if ("valid_start_date" %in% names(data)) data <- data %>% dplyr::mutate_at(c("valid_start_date", "valid_end_date"), lubridate::ymd)
                     
@@ -1769,7 +1788,7 @@ mod_settings_data_management_server <- function(id = character(), r = shiny::rea
                 error_name = paste0(id, " - import vocabulary"), category = "Error", error_report = w, i18n = i18n, ns = ns))
           }
           
-          else if (length(input$import_vocabulary_upload_csv) > 0){
+          else if (input$import_vocabulary_data_type == "csv" & length(input$import_vocabulary_upload_csv) > 0){
             
             if (nrow(input$import_vocabulary_upload_csv) > 0){
               tryCatch({
@@ -1785,7 +1804,7 @@ mod_settings_data_management_server <- function(id = character(), r = shiny::rea
                   if (table_name %in% tables_names){
                     
                     # Load CSV file
-                    data <- readr::read_csv(row$datapath, col_types = col_types[[table_name]], progress = FALSE)
+                    data <- vroom::vroom(row$datapath, col_types = col_types[[table_name]], progress = FALSE)
                     
                     if ("valid_start_date" %in% names(data)) data <- data %>% dplyr::mutate_at(c("valid_start_date", "valid_end_date"), lubridate::ymd)
                     
@@ -1800,7 +1819,7 @@ mod_settings_data_management_server <- function(id = character(), r = shiny::rea
                 
                 render_datatable(output = output, ns = ns, i18n = i18n, data = r$import_vocabulary_count_rows,
                   output_name = "imported_vocabularies", col_names = c(i18n$t("table_name"), i18n$t("row_number")),
-                  centered_cols = c("table_name", "n_rows"), column_widths = c("n_rows" = "100px"))
+                  centered_cols = c("n_rows"), column_widths = c("n_rows" = "200px"))
                 
                 show_message_bar(output,  "success_importing_vocabulary", "success", i18n = i18n, time = 15000, ns = ns)
               },

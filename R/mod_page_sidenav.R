@@ -477,8 +477,13 @@ mod_page_sidenav_server <- function(id = character(), r = shiny::reactiveValues(
         
         m$selected_person <- input$person$key
         
-        if (nrow(d$visit_detail %>% dplyr::filter(person_id == input$person$key)) == 0) shiny.fluent::updateComboBox.shinyInput(session, "person", options = list(), value = NULL, errorMessage = i18n$t("no_person_in_subset"))
-        if (nrow(d$visit_detail %>% dplyr::filter(person_id == input$person$key)) > 0){
+        no_person_in_subset <- FALSE
+        if (nrow(d$visit_detail) == 0) no_person_in_subset <- TRUE
+        if (nrow(d$visit_detail) > 0) if (nrow(d$visit_detail %>% dplyr::filter(person_id == input$person$key)) == 0) no_person_in_subset <- TRUE
+        
+        if (no_person_in_subset) shiny.fluent::updateComboBox.shinyInput(session, "visit_detail", options = list(), value = NULL, errorMessage = i18n$t("no_stay_available"))
+
+        if (!no_person_in_subset){
           
           if ("visit_detail_concept_name" %in% colnames(d$visit_detail)){
             if (tolower(language) == "fr") visit_details <- convert_tibble_to_list(data = d$visit_detail %>% dplyr::filter(person_id == input$person$key) %>% dplyr::mutate(name_display = paste0(visit_detail_concept_name, " - ",

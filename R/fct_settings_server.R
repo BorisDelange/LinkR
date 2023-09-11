@@ -561,7 +561,8 @@ execute_settings_code <- function(input, output, session, id = character(), ns =
     options('cli.num_colors' = NULL)
     
     # Display result
-    paste(captured_output, collapse = "\n") -> result
+    if (grepl("# A tibble:", toString(captured_output))) paste(captured_output, collapse = "\n") -> result
+    else paste(strwrap(captured_output, width = 150), collapse = "\n") -> result
   }
   
   # If code is not UI or server, capture the console output after replacing %% values
@@ -584,8 +585,8 @@ execute_settings_code <- function(input, output, session, id = character(), ns =
     options('cli.num_colors' = NULL)
     
     # Display result
-    # paste(captured_output, collapse = "\n") -> result
-    paste(strwrap(captured_output), collapse = "\n") -> result
+    if (grepl("# A tibble:", toString(captured_output))) paste(captured_output, collapse = "\n") -> result
+    else paste(strwrap(captured_output, width = 150), collapse = "\n") -> result
   }
   
   result

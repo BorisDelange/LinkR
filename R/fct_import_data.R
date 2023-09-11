@@ -78,7 +78,7 @@ import_dataset <- function(output, ns = character(), i18n = character(), r = shi
           "person" = "iiiiiTTiiiiiccicici",
           "observation_period" = "iiDDi",
           "visit_occurrence" = "iiiDTDTiiiciicici",
-          "visit_detail" = "iiiDTDTiiiciciciiii",
+          "visit_detail" = "iiiDTDTiiiciiciciii",
           "condition_occurrence" = "iiiDTDTiiciiicic",
           "drug_exposure" = "iiiDTDTDiciniciciiicicc",
           "procedure_occurrence" = "iiiDTiiiiiicic",
@@ -245,8 +245,8 @@ import_dataset <- function(output, ns = character(), i18n = character(), r = shi
         "visit_detail_source_concept_id", "integer",
         "admitted_from_concept_id", "integer",
         "admitted_from_source_value", "character",
-        "discharge_to_source_value", "character",
         "discharge_to_concept_id", "integer",
+        "discharge_to_source_value", "character",
         "preceding_visit_detail_id", "integer",
         "visit_detail_parent_id", "integer",
         "visit_occurrence_id", "integer"
@@ -783,7 +783,8 @@ import_dataset <- function(output, ns = character(), i18n = character(), r = shi
   var_cols <- data_cols %>% dplyr::filter(var == type) %>% dplyr::pull(cols)
   var_cols <- var_cols[[1]]
   
-  if (!identical(names(data), var_cols %>% dplyr::pull(name))) stop(paste0(i18n$t("valid_col_names_are"), toString(var_cols %>% dplyr::pull(name))))
+  if (!identical(names(data), var_cols %>% dplyr::pull(name))) stop(paste0("\n<br /><span style = 'font-weight:bold; color:red;'>", 
+    i18n$t("valid_col_names_are"), "</span>\n", toString(var_cols %>% dplyr::pull(name))))
   
   for (i in 1:nrow(var_cols)){
     var_name <- var_cols[[i, "name"]]
@@ -863,7 +864,7 @@ import_dataset <- function(output, ns = character(), i18n = character(), r = shi
 #'   valid_start_date = "1970-01-01", valid_end_date = "2099-12-31", invalid_reason = NA_character_)
 #'   
 #' import_vocabulary_table(output = output, ns = ns, i18n = i18n, r = r, m = m,
-#'   table_name = "concept", data = concept, vocabulary_id = "LOINC", message_bars = FALSE)
+#'   table_name = "concept", data = concept, vocabulary_id = "LOINC", messages_bars = FALSE)
 #' }
 import_vocabulary_table <- function(output, ns = character(), i18n = character(), r = shiny::reactiveValues(), m = shiny::reactiveValues(),
   table_name = character(), data = tibble::tibble(), vocabulary_id = character(), messages_bars = FALSE){

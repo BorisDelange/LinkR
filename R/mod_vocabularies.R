@@ -362,9 +362,10 @@ mod_vocabularies_server <- function(id = character(), r = shiny::reactiveValues(
         
         omop_version <- r$options %>% dplyr::filter(category == "dataset" & link_id == r$selected_dataset & name == "omop_version") %>% dplyr::pull(value)
         
-        count_rows <- tibble::tibble(concept_id = integer(), count_persons_rows = integer(), count_concepts_rows = integer(), count_secondary_concepts_rows = integer())
+        # count_rows <- tibble::tibble(concept_id = integer(), count_persons_rows = integer(), count_concepts_rows = integer(), count_secondary_concepts_rows = integer())
+        count_rows <- tibble::tibble(concept_id = integer(), count_persons_rows = integer(), count_concepts_rows = integer())
         
-        tables <- c("person", "condition_occurrence", "drug_exposure", "procedure_occurrence", "device_exposure",
+        tables <- c("person", "visit_occurrence", "visit_detail", "condition_occurrence", "drug_exposure", "procedure_occurrence", "device_exposure",
           "measurement", "observation", "specimen", "drug_era", "dose_era", "condition_era", "note", "specimen")
         if (omop_version %in% c("5.3", "5.0")) tables <- c(tables, "death")
         
@@ -386,7 +387,7 @@ mod_vocabularies_server <- function(id = character(), r = shiny::reactiveValues(
           "condition_occurrence" = c("condition_type", "condition_status"),
           "drug_exposure" = c("drug_type", "route"),
           "procedure_occurrence" = "procedure_type",
-          "device_exposure" = c("device_type"),
+          "device_exposure" = "device_type",
           "measurement" = c("measurement_type", "value_as", "unit"),
           "observation" = c("observation_type", "qualifier", "value_as", "unit"),
           "note" = c("note_type", "note_class", "encoding", "language"),
@@ -394,8 +395,17 @@ mod_vocabularies_server <- function(id = character(), r = shiny::reactiveValues(
           "dose_era" = "unit"
         )
         
-        if (omop_version == "5.3") secondary_cols <- rlist::list.append(secondary_cols, "visit_occurrence" = c("admitting_source", "discharge_to", "visit", "visit_type"))
-        else if (omop_version %in% c("5.4", "6.0")) secondary_cols <- rlist::list.append(secondary_cols, "visit_occurrence" = c("admitted_from", "discharge_to", "visit", "visit_type"))
+        # EDIT : we do not use anymore the count_secondary_concepts_rows col
+        # count_concepts_rows & count_secondary_concepts_rows are now merged
+        
+        if (omop_version == "5.3"){
+          secondary_cols <- rlist::list.append(secondary_cols, "visit_occurrence" = c("visit", "visit_type", "visit_source", "admitting_source", "discharge_to"))
+          secondary_cols <- rlist::list.append(secondary_cols, "visit_detail" = c("visit_detail", "visit_detail_type", "visit_detail_source", "admitting_source", "discharge_to"))
+        }
+        else if (omop_version %in% c("5.4", "6.0")){
+          secondary_cols <- rlist::list.append(secondary_cols, "visit_occurrence" = c("visit", "visit_type", "visit_source", "admitted_from", "discharge_to"))
+          secondary_cols <- rlist::list.append(secondary_cols, "visit_detail" = c("visit_detail", "visit_detail_type", "visit_detail_source", "admitted_from", "discharge_to"))
+        }
         
         if (omop_version %in% c("5.3", "5.0")) secondary_cols <- rlist::list.append(secondary_cols, "death" = c("death_type", "cause"))
         
@@ -410,7 +420,8 @@ mod_vocabularies_server <- function(id = character(), r = shiny::reactiveValues(
                   dplyr::bind_rows(
                     d[[table]] %>% 
                       dplyr::group_by_at(paste0(main_cols[[table]], "_concept_id")) %>%
-                      dplyr::summarize(count_persons_rows = dplyr::n_distinct(person_id), count_concepts_rows = dplyr::n(), count_secondary_concepts_rows = 0L) %>% 
+                      # dplyr::summarize(count_persons_rows = dplyr::n_distinct(person_id), count_concepts_rows = dplyr::n(), count_secondary_concepts_rows = 0L) %>%
+                      dplyr::summarize(count_persons_rows = dplyr::n_distinct(person_id), count_concepts_rows = dplyr::n()) %>% 
                       dplyr::ungroup() %>% 
                       dplyr::rename(concept_id = paste0(main_cols[[table]], "_concept_id"))
                   )
@@ -420,7 +431,8 @@ mod_vocabularies_server <- function(id = character(), r = shiny::reactiveValues(
                   dplyr::bind_rows(
                     d[[table]] %>% 
                       dplyr::group_by_at(paste0(main_cols[[table]], "_source_concept_id")) %>%
-                      dplyr::summarize(count_persons_rows = dplyr::n_distinct(person_id), count_concepts_rows = dplyr::n(), count_secondary_concepts_rows = 0L) %>% 
+                      # dplyr::summarize(count_persons_rows = dplyr::n_distinct(person_id), count_concepts_rows = dplyr::n(), count_secondary_concepts_rows = 0L) %>%
+                      dplyr::summarize(count_persons_rows = dplyr::n_distinct(person_id), count_concepts_rows = dplyr::n()) %>%
                       dplyr::ungroup() %>% 
                       dplyr::rename(concept_id = paste0(main_cols[[table]], "_source_concept_id"))
                   )
@@ -437,7 +449,8 @@ mod_vocabularies_server <- function(id = character(), r = shiny::reactiveValues(
                     dplyr::bind_rows(
                       d[[table]] %>% 
                         dplyr::group_by_at(paste0(col, "_concept_id")) %>%
-                        dplyr::summarize(count_persons_rows = 0L, count_concepts_rows = 0L, count_secondary_concepts_rows = dplyr::n()) %>% 
+                        # dplyr::summarize(count_persons_rows = dplyr::n_distinct(person_id), count_concepts_rows = 0L, count_secondary_concepts_rows = dplyr::n()) %>% 
+                        dplyr::summarize(count_persons_rows = dplyr::n_distinct(person_id), count_concepts_rows = dplyr::n()) %>% 
                         dplyr::ungroup() %>% 
                         dplyr::rename(concept_id = paste0(col, "_concept_id"))
                     )
@@ -452,16 +465,20 @@ mod_vocabularies_server <- function(id = character(), r = shiny::reactiveValues(
         
         if (nrow(count_rows) > 0){
           
-          # Group count_rows : if a concept_id is in distinct tables, it will produce two more than one row by concept_id
-          count_rows <- count_rows %>% dplyr::group_by(concept_id) %>% 
-            dplyr::summarize(count_persons_rows = max(count_persons_rows), count_concepts_rows = sum(count_concepts_rows),
-              count_secondary_concepts_rows = sum(count_secondary_concepts_rows)) %>%
+          # Group count_rows : if a concept_id is in distinct tables, it will produce multiple rows by concept_id
+          count_rows <- count_rows %>%
+            dplyr::filter(!is.na(concept_id)) %>%
+            dplyr::group_by(concept_id) %>% 
+            dplyr::summarize(count_persons_rows = max(count_persons_rows), count_concepts_rows = sum(count_concepts_rows)) %>%
+            # dplyr::summarize(count_persons_rows = max(count_persons_rows), count_concepts_rows = sum(count_concepts_rows),
+              # count_secondary_concepts_rows = sum(count_secondary_concepts_rows)) %>%
             dplyr::ungroup()
           
           # Merge count_rows, transform count_rows cols to integer, to be sortable
           dataset_all_concepts <- dataset_all_concepts %>% 
             dplyr::left_join(count_rows, by = "concept_id") %>%
-            dplyr::mutate_at(c("count_persons_rows", "count_concepts_rows", "count_secondary_concepts_rows"), as.integer) %>%
+            # dplyr::mutate_at(c("count_persons_rows", "count_concepts_rows", "count_secondary_concepts_rows"), as.integer) %>%
+            dplyr::mutate_at(c("count_persons_rows", "count_concepts_rows"), as.integer) %>%
             # dplyr::filter(count_concepts_rows > 0 | count_secondary_concepts_rows > 0)
             dplyr::filter(count_concepts_rows > 0)
         }
@@ -539,7 +556,8 @@ mod_vocabularies_server <- function(id = character(), r = shiny::reactiveValues(
         
         if (nrow(dataset_all_concepts) == 0){
           dataset_all_concepts <- dataset_all_concepts %>% dplyr::mutate(
-            count_persons_rows = integer(), count_concepts_rows = integer(), count_secondary_concepts_rows = integer(), add_concept_input = character())
+            # count_persons_rows = integer(), count_concepts_rows = integer(), count_secondary_concepts_rows = integer(), add_concept_input = character())
+            count_persons_rows = integer(), count_concepts_rows = integer(), add_concept_input = character())
         }
         
         else {
@@ -559,7 +577,8 @@ mod_vocabularies_server <- function(id = character(), r = shiny::reactiveValues(
         # Add new rows to database
         if (nrow(dataset_all_concepts) > 0) DBI::dbAppendTable(m$db, "concept_dataset", dataset_all_concepts %>% 
           dplyr::transmute(id = get_last_row(m$db, "concept_dataset") + 1:dplyr::n(), concept_id = concept_id_1, dataset_id = r$selected_dataset, vocabulary_id = vocabulary_id_1,
-            count_persons_rows, count_concepts_rows, count_secondary_concepts_rows))
+            # count_persons_rows, count_concepts_rows, count_secondary_concepts_rows))
+            count_persons_rows, count_concepts_rows, count_secondary_concepts_rows = 0L))
         
         # Save data as csv
         readr::write_csv(dataset_all_concepts, dataset_all_concepts_filename, progress = FALSE)
@@ -813,13 +832,14 @@ mod_vocabularies_server <- function(id = character(), r = shiny::reactiveValues(
 
       vocabulary_id <- r$vocabulary %>% dplyr::filter(id == input$vocabulary$key) %>% dplyr::pull(vocabulary_id)
 
-      req(nrow(d$dataset_all_concepts) > 0)
+      # req(nrow(d$dataset_all_concepts) > 0)
 
       # Filter only used concepts in d vars
       r$dataset_vocabulary_concepts <- d$dataset_all_concepts %>%
-        # dplyr::filter(count_concepts_rows > 0 | count_secondary_concepts_rows > 0)
+        # dplyr::filter(count_concepts_rows > 0 | count_secondary_concepts_rows > 0) %>%
         dplyr::filter(count_concepts_rows > 0) %>%
-        dplyr::select(-count_secondary_concepts_rows, -add_concept_input) %>%
+        # dplyr::select(-count_secondary_concepts_rows, -add_concept_input) %>%
+        dplyr::select(-add_concept_input) %>%
         dplyr::arrange(dplyr::desc(count_concepts_rows)) %>%
         dplyr::filter(vocabulary_id_1 == !!vocabulary_id)
 

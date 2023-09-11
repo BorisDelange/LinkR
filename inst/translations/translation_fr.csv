@@ -25,6 +25,7 @@ aggregated,Agrégées
 exclusion_reason,Motif de l'exclusion
 no_study_available,Pas d'étude disponible
 no_person_in_subset,Aucun patient dans le subset
+no_stay_available,Pas de séjour disponible
 years,ans
 months,mois
 age,Age
@@ -116,7 +117,9 @@ everybody,Tout le monde
 everybody_who_has_access_to_dataset,Tout le monde ayant accès au set de données
 choose_users,Choisir les utilisateurs
 choose_zip_file,Choisir un fichier ZIP
+zip,ZIP
 choose_csv_files,Choisir des fichiers CSV
+csv,CSV
 loaded_file,Fichier chargé
 loaded_files,Fichiers chargés
 plugins_patient_lvl,Plugins - Données individuelles
