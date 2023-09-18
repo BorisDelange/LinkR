@@ -169,7 +169,7 @@ app_server <- function(router, language = "en", app_folder = character(),
       if (debug) print(paste0(Sys.time(), " - server - observer r$db"))
       
       # Add default values in database, if it is empty
-      insert_default_data(output = output, r = r, m = m, i18n = i18n, db_col_types = db_col_types, 
+      insert_default_data(output = output, r = r, m = m, i18n = i18n, language = language, db_col_types = db_col_types, 
         users_accesses_toggles_options = users_accesses_toggles_options)
       
       # Load database

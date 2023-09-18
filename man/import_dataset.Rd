@@ -15,8 +15,7 @@ import_dataset(
   type = "",
   omop_version = "6.0",
   save_as_csv = TRUE,
-  rewrite = FALSE,
-  quiet = TRUE
+  rewrite = FALSE
 )
 }
 \arguments{
@@ -41,8 +40,6 @@ import_dataset(
 \item{save_as_csv}{Save or not the data to CSV file (logical)}
 
 \item{rewrite}{If save_as_csv is TRUE, rewrite or not existing CSV file (logical)}
-
-\item{quiet}{Should message bars be displayed (logical)}
 }
 \description{
 Import a dataset in the application, with OMOP CDM
@@ -64,6 +61,6 @@ persons <- tibble::tibble(person_id = 1L, gender_concept_id = 8532L, year_of_bir
   person_source_value = NA_character_, gender_source_value = "F", race_source_value = NA_character_, ethnicity_source_value = NA_character_)
     
 import_dataset(output = output, ns = ns, i18n = i18n, r = r, d = d, dataset_id = 5, data = persons, type = "persons", 
-  omop_versions = "5.4", save_as_csv = FALSE, rewrite = FALSE, quiet = TRUE)
+  omop_versions = "5.4", save_as_csv = FALSE, rewrite = FALSE)
 }
 }

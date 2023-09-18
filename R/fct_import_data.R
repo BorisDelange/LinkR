@@ -884,23 +884,11 @@ import_dataset <- function(output, ns = character(), i18n = character(), r = shi
 import_vocabulary_table <- function(output, ns = character(), i18n = character(), r = shiny::reactiveValues(), m = shiny::reactiveValues(),
   table_name = character(), data = tibble::tibble(), vocabulary_id = character()){
  
-  # Check vocabulary_id
-  if (length(vocabulary_id) == 0){
-    add_log_entry(r = r, category = "Error", name = paste0("import_vocabulary_table - invalid_vocabulary_id_value"), value = i18n$t("invalid_vocabulary_id_value"))
-    cat(paste0("<span style = 'font-weight:bold; color:red;'>**", i18n$t("error"), "** ", i18n$t("invalid_vocabulary_id_value"), "</span>\n"))
-    return(NULL)
-  }
-  if (!is.character(vocabulary_id) | vocabulary_id == ""){
-    add_log_entry(r = r, category = "Error", name = paste0("import_vocabulary_table - invalid_vocabulary_id_value"), value = i18n$t("invalid_vocabulary_id_value"))
-    cat(paste0("<span style = 'font-weight:bold; color:red;'>**", i18n$t("error"), "** ", i18n$t("invalid_vocabulary_id_value"), "</span>\n"))
-    return(NULL)
-  }
-  
   # Create var to count rows if doesn't exist
   if (length(r$import_vocabulary_count_rows) == 0) r$import_vocabulary_count_rows <- tibble::tibble(table_name = character(), n_rows = integer())
   
   if (table_name %not_in% c("concept", "domain", "concept_class", "concept_relationship", "relationship", "concept_synonym", "concept_ancestor", "drug_strength")){
-    add_log_entry(r = r, category = "Error", name = paste0("import_vocabulary_table - invalid_vocabulary_table - id = ", vocabulary_id), value = i18n$t("invalid_vocabulary_table"))
+    add_log_entry(r = r, category = "Error", name = paste0("import_vocabulary_table - invalid_vocabulary_table"), value = i18n$t("invalid_vocabulary_table"))
     cat(paste0("<span style = 'font-weight:bold; color:red;'>**", i18n$t("error"), "** ", i18n$t("invalid_vocabulary_table"), "</span>\n"))
     return(NULL)
   }
@@ -979,7 +967,7 @@ import_vocabulary_table <- function(output, ns = character(), i18n = character()
   # Check columns var types & names
   
   if (!identical(names(data), var_cols$name)){
-    add_log_entry(r = r, category = "Error", name = paste0("import_vocabulary_table - invalid_col_names - id = ", vocabulary_id), value = paste0(i18n$t("valid_col_names_are"), "</span>\n", toString(var_cols %>% dplyr::pull(name))))
+    add_log_entry(r = r, category = "Error", name = paste0("import_vocabulary_table - invalid_col_names"), value = paste0(i18n$t("valid_col_names_are"), "</span>\n", toString(var_cols %>% dplyr::pull(name))))
     cat(paste0("<span style = 'font-weight:bold; color:red;'>**", i18n$t("error"), "** ", i18n$t("valid_col_names_are"), "</span>\n", toString(var_cols %>% dplyr::pull(name)), "\n"))
     return(NULL)
   }
@@ -992,19 +980,19 @@ import_vocabulary_table <- function(output, ns = character(), i18n = character()
   for (i in 1:nrow(var_cols)){
     var_name <- var_cols[[i, "name"]]
     if (var_cols[[i, "type"]] == "integer" & !is.integer(data[[var_name]])){
-      add_log_entry(r = r, category = "Error", name = paste0("import_vocabulary_table - invalid_col_types - id = ", vocabulary_id), value = paste0(i18n$t("column"), " ", var_name, " ", i18n$t("type_must_be_integer")))
+      add_log_entry(r = r, category = "Error", name = paste0("import_vocabulary_table - invalid_col_types"), value = paste0(i18n$t("column"), " ", var_name, " ", i18n$t("type_must_be_integer")))
       error_message <- paste0(error_message, "<span style = 'font-weight:bold; color:red;'>**", i18n$t("error"), "** ", i18n$t("column"), " ", var_name, " ", i18n$t("type_must_be_integer"), "</span>\n")
     }
     else if (var_cols[[i, "type"]] == "character" & !is.character(data[[var_name]])){
-      add_log_entry(r = r, category = "Error", name = paste0("import_vocabulary_table - invalid_col_types - id = ", vocabulary_id), value = paste0(i18n$t("column"), " ", var_name, " ", i18n$t("type_must_be_character")))
+      add_log_entry(r = r, category = "Error", name = paste0("import_vocabulary_table - invalid_col_types - id"), value = paste0(i18n$t("column"), " ", var_name, " ", i18n$t("type_must_be_character")))
       error_message <- paste0(error_message, "<span style = 'font-weight:bold; color:red;'>**", i18n$t("error"), "** ", i18n$t("column"), " ", var_name, " ", i18n$t("type_must_be_character"), "</span>\n")
     }
     else if (var_cols[[i, "type"]] == "numeric" & !is.numeric(data[[var_name]])){
-      add_log_entry(r = r, category = "Error", name = paste0("import_vocabulary_table - invalid_col_types - id = ", vocabulary_id), value = paste0(i18n$t("column"), " ", var_name, " ", i18n$t("type_must_be_numeric")))
+      add_log_entry(r = r, category = "Error", name = paste0("import_vocabulary_table - invalid_col_types - id"), value = paste0(i18n$t("column"), " ", var_name, " ", i18n$t("type_must_be_numeric")))
       error_message <- paste0(error_message, "<span style = 'font-weight:bold; color:red;'>**", i18n$t("error"), "** ", i18n$t("column"), " ", var_name, " ", i18n$t("type_must_be_numeric"), "</span>\n")
     }
     else if (var_cols[[i, "type"]] == "date" & !lubridate::is.Date(data[[var_name]])){
-      add_log_entry(r = r, category = "Error", name = paste0("import_vocabulary_table - invalid_col_types - id = ", vocabulary_id), value = paste0(i18n$t("column"), " ", var_name, " ", i18n$t("type_must_be_date")))
+      add_log_entry(r = r, category = "Error", name = paste0("import_vocabulary_table - invalid_col_types - id"), value = paste0(i18n$t("column"), " ", var_name, " ", i18n$t("type_must_be_date")))
       error_message <- paste0(error_message, "<span style = 'font-weight:bold; color:red;'>**", i18n$t("error"), "** ", i18n$t("column"), " ", var_name, " ", i18n$t("type_must_be_date"), "</span>\n")
     }
     
@@ -1021,7 +1009,7 @@ import_vocabulary_table <- function(output, ns = character(), i18n = character()
 
   # Transform as tibble
   if (!is.data.frame(data)){
-    add_log_entry(r = r, category = "Error", name = paste0("import_vocabulary_table - error_transforming_tibble - id = ", vocabulary_id), value = i18n$t("error_transforming_tibble"))
+    add_log_entry(r = r, category = "Error", name = paste0("import_vocabulary_table - error_transforming_tibble"), value = i18n$t("error_transforming_tibble"))
     cat(paste0("<span style = 'font-weight:bold; color:red;'>**", i18n$t("error"), "** ", i18n$t("error_transforming_tibble"), "</span>\n"))
     return(NULL)
   }
@@ -1043,7 +1031,7 @@ import_vocabulary_table <- function(output, ns = character(), i18n = character()
 
     primary_keys_duplicates <- data %>% dplyr::group_by_at(paste0(table_name, "_id")) %>% dplyr::summarize(n = dplyr::n()) %>% dplyr::filter(n > 1) %>% nrow()
     if (primary_keys_duplicates > 0){
-      add_log_entry(r = r, category = "Error", name = paste0("import_vocabulary_table - error_multiple_primary_keys - id = ", vocabulary_id), value = i18n$t("error_multiple_primary_keys"))
+      add_log_entry(r = r, category = "Error", name = paste0("import_vocabulary_table - error_multiple_primary_keys"), value = i18n$t("error_multiple_primary_keys"))
       cat(paste0("<span style = 'font-weight:bold; color:red;'>**", i18n$t("error"), "** ", i18n$t("error_multiple_primary_keys"), "</span>\n"))
       return(NULL)
     }
@@ -1053,7 +1041,7 @@ import_vocabulary_table <- function(output, ns = character(), i18n = character()
       actual_data <- DBI::dbGetQuery(m$db, sql)
     },
       error = function(e){
-        if (nchar(e[1]) > 0) add_log_entry(r = r, category = "Error", name = paste0("import_vocabulary_table - error_get_actual_primary_keys - id = ", vocabulary_id), value = toString(e))
+        if (nchar(e[1]) > 0) add_log_entry(r = r, category = "Error", name = paste0("import_vocabulary_table - error_get_actual_primary_keys"), value = toString(e))
         cat(paste0("<span style = 'font-weight:bold; color:red;'>**", i18n$t("error"), "** ", i18n$t("error_get_actual_primary_keys"), "</span>\n"))
         return(NULL)}
     )
@@ -1077,7 +1065,7 @@ import_vocabulary_table <- function(output, ns = character(), i18n = character()
     data_duplicates <- data %>% dplyr::group_by_at(data_duplicates_cols) %>% dplyr::summarize(n = dplyr::n()) %>% dplyr::filter(n > 1) %>% nrow()
     
     if (data_duplicates > 0){
-      add_log_entry(r = r, category = "Error", name = paste0("import_vocabulary_table - error_multiple_identical_values - id = ", vocabulary_id), value = i18n$t("error_multiple_identical_values"))
+      add_log_entry(r = r, category = "Error", name = paste0("import_vocabulary_table - error_multiple_identical_values"), value = i18n$t("error_multiple_identical_values"))
       cat(paste0("<span style = 'font-weight:bold; color:red;'>**", i18n$t("error"), "** ", i18n$t("error_multiple_identical_values"), "</span>\n"))
       return(NULL)
     }
@@ -1087,7 +1075,7 @@ import_vocabulary_table <- function(output, ns = character(), i18n = character()
       actual_data <- DBI::dbGetQuery(m$db, sql)
     },
       error = function(e){
-        if (nchar(e[1]) > 0) add_log_entry(r = r, category = "Error", name = paste0("import_vocabulary_table - error_get_actual_primary_keys - id = ", vocabulary_id), value = toString(e))
+        if (nchar(e[1]) > 0) add_log_entry(r = r, category = "Error", name = paste0("import_vocabulary_table - error_get_actual_primary_keys"), value = toString(e))
         cat(paste0("<span style = 'font-weight:bold; color:red;'>**", i18n$t("error"), "** ", i18n$t("error_get_actual_primary_keys"), "</span>\n"))
         return(NULL)}
     )
@@ -1102,8 +1090,8 @@ import_vocabulary_table <- function(output, ns = character(), i18n = character()
   last_id <- get_last_row(m$db, table_name)
   
   if (nrow(data_to_insert) == 0){
-    add_log_entry(r = r, category = "Error", name = paste0("import_vocabulary_table - vocabulary_no_data_to_insert - id = ", vocabulary_id), value = i18n$t("vocabulary_no_data_to_insert"))
-    cat(paste0("<span style = 'font-weight:bold; color:red;'>**", i18n$t("error"), "** ", i18n$t("vocabulary_no_data_to_insert"), "</span>\n"))
+    add_log_entry(r = r, category = "Error", name = paste0("import_vocabulary_table - vocabulary_no_data_to_insert"), value = i18n$t("vocabulary_no_data_to_insert"))
+    cat(paste0("<span style = 'font-weight:bold; color:#0078D4;'>", i18n$t("vocabulary_no_data_to_insert"), "</span>\n"))
     return(NULL)
   }
   
@@ -1112,7 +1100,7 @@ import_vocabulary_table <- function(output, ns = character(), i18n = character()
     
     tryCatch(DBI::dbAppendTable(m$db, table_name, data_to_insert),
       error = function(e){
-        if (nchar(e[1]) > 0) add_log_entry(r = r, category = "Error", name = paste0("import_vocabulary_table - vocabulary_error_append_table - id = ", vocabulary_id), value = toString(e))
+        if (nchar(e[1]) > 0) add_log_entry(r = r, category = "Error", name = paste0("import_vocabulary_table - vocabulary_error_append_table"), value = toString(e))
         cat(paste0("<span style = 'font-weight:bold; color:red;'>**", i18n$t("error"), "** ", i18n$t("vocabulary_error_append_table"), "</span>\n"))
         return(NULL)}
     )

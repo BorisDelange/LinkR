@@ -6,7 +6,6 @@
 \usage{
 render_datatable(
   output,
-  r = shiny::reactiveValues(),
   ns = character(),
   i18n = character(),
   data = tibble::tibble(),
@@ -29,8 +28,6 @@ render_datatable(
 }
 \arguments{
 \item{output}{variable from Shiny, used to render messages on the message bar}
-
-\item{r}{A shiny::reactiveValues object, used to communicate between modules}
 
 \item{ns}{Shiny namespace}
 

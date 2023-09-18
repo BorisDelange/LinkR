@@ -12,7 +12,7 @@ coalesce2(type, x)
 \item{x}{Variable}
 }
 \value{
-Return NA if variable is null or empty, returns the variable if not null & not empty
+Returns NA if variable is null or empty, returns the variable if not null & not empty
 }
 \description{
 Returns a NA value
