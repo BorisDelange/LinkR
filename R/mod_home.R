@@ -52,16 +52,19 @@ mod_home_server <- function(id = character(), r, language = "en", i18n = charact
     # Help for this page ----
     # --- --- --- --- --- ---
     
-    observeEvent(input$help, if (id == shiny.router::get_page() %>% stringr::str_replace_all("/", "_")) r[[paste0("help_home_", id, "_open_panel")]] <- TRUE)
+    observeEvent(input$help, {
+      if (id == shiny.router::get_page() %>% stringr::str_replace_all("/", "_")) r[[paste0("help_home_", id, "_open_panel")]] <- TRUE
+      else if (id == "home" & shiny.router::get_page() == "/") r$help_home_home_open_panel <- TRUE
+    })
     observeEvent(input$hide_panel, r[[paste0("help_home_", id, "_open_panel")]] <- FALSE)
     
-    # observeEvent(shiny.router::get_page(), {
-    #   if (debug) print(paste0(Sys.time(), " - mod_home - ", id, " - observer shiny_router::change_page"))
-    #   
-    #   # Close help pages when page changes
-    #   r[[paste0("help_home_", id, "_open_panel")]] <- FALSE
-    #   r[[paste0("help_home_", id, "_open_modal")]] <- FALSE
-    # })
+    observeEvent(shiny.router::get_page(), {
+      if (debug) print(paste0(Sys.time(), " - mod_home - ", id, " - observer shiny_router::change_page"))
+
+      # Close help pages when page changes
+      r[[paste0("help_home_", id, "_open_panel")]] <- FALSE
+      r[[paste0("help_home_", id, "_open_modal")]] <- FALSE
+    })
     
     r[[paste0("help_home_", id, "_open_panel_light_dismiss")]] <- TRUE
     observeEvent(input$show_modal, r[[paste0("help_home_", id, "_open_modal")]] <- TRUE)

@@ -184,13 +184,13 @@ mod_messages_server <- function(id = character(), r = shiny::reactiveValues(), d
       r$help_messages_open_panel_light_dismiss <- TRUE
     })
     
-    # observeEvent(shiny.router::get_page(), {
-    #   if (debug) print(paste0(Sys.time(), " - mod_messages - ", id, " - observer shiny_router::change_page"))
-    #   
-    #   # Close help pages when page changes
-    #   r$help_messages_open_panel <- FALSE
-    #   r$help_messages_open_modal <- FALSE
-    # })
+    observeEvent(shiny.router::get_page(), {
+      if (debug) print(paste0(Sys.time(), " - mod_messages - ", id, " - observer shiny_router::change_page"))
+
+      # Close help pages when page changes
+      r$help_messages_open_panel <- FALSE
+      r$help_messages_open_modal <- FALSE
+    })
     
     sapply(1:10, function(i){
       observeEvent(input[[paste0("help_page_", i)]], r[[paste0("help_messages_page_", i)]] <- Sys.time())
@@ -412,7 +412,7 @@ mod_messages_server <- function(id = character(), r = shiny::reactiveValues(), d
       
       output$conversation_delete_confirm <- shiny.fluent::renderReact({
         
-        if (debug) print(paste0(Sys.time(), " - mod_my_subsets - output$conversation_delete_confirm"))
+        if (debug) print(paste0(Sys.time(), " - mod_messages - output$conversation_delete_confirm"))
         
         shiny.fluent::Dialog(
           hidden = !r$study_delete_conversation_open_dialog,
@@ -433,11 +433,11 @@ mod_messages_server <- function(id = character(), r = shiny::reactiveValues(), d
       
       # Whether to close or not delete dialog box
       observeEvent(input$study_delete_conversation_hide_dialog, {
-        if (debug) print(paste0(Sys.time(), " - mod_my_subsets - observer input$study_delete_conversation_hide_dialog"))
+        if (debug) print(paste0(Sys.time(), " - mod_messages - observer input$study_delete_conversation_hide_dialog"))
         r$study_delete_conversation_open_dialog <- FALSE 
       })
       observeEvent(input$study_delete_conversation_delete_canceled, {
-        if (debug) print(paste0(Sys.time(), " - mod_my_subsets - observer input$study_delete_conversation_delete_canceled"))
+        if (debug) print(paste0(Sys.time(), " - mod_messages - observer input$study_delete_conversation_delete_canceled"))
         r$study_delete_conversation_open_dialog <- FALSE
       })
       
@@ -445,7 +445,7 @@ mod_messages_server <- function(id = character(), r = shiny::reactiveValues(), d
       
       observeEvent(input$study_delete_conversation_delete_confirmed, {
         
-        if (debug) print(paste0(Sys.time(), " - mod_my_subsets - observer input$study_delete_conversation_delete_confirmed"))
+        if (debug) print(paste0(Sys.time(), " - mod_messages - observer input$study_delete_conversation_delete_confirmed"))
         
         link_id <- substr(input$conversation_deletion, nchar(paste0(id, "-delete_conversation_")) + 1, nchar(input$conversation_deletion)) %>% as.integer()
         
@@ -479,7 +479,7 @@ mod_messages_server <- function(id = character(), r = shiny::reactiveValues(), d
       
       output$message_delete_confirm <- shiny.fluent::renderReact({
         
-        if (debug) print(paste0(Sys.time(), " - mod_my_subsets - output$message_delete_confirm"))
+        if (debug) print(paste0(Sys.time(), " - mod_messages - output$message_delete_confirm"))
         
         shiny.fluent::Dialog(
           hidden = !r$study_delete_message_open_dialog,
@@ -500,11 +500,11 @@ mod_messages_server <- function(id = character(), r = shiny::reactiveValues(), d
       
       # Whether to close or not delete dialog box
       observeEvent(input$study_delete_message_hide_dialog, {
-        if (debug) print(paste0(Sys.time(), " - mod_my_subsets - observer input$study_delete_message_hide_dialog"))
+        if (debug) print(paste0(Sys.time(), " - mod_messages - observer input$study_delete_message_hide_dialog"))
         r$study_delete_message_open_dialog <- FALSE 
       })
       observeEvent(input$study_delete_message_delete_canceled, {
-        if (debug) print(paste0(Sys.time(), " - mod_my_subsets - observer input$study_delete_message_delete_canceled"))
+        if (debug) print(paste0(Sys.time(), " - mod_messages - observer input$study_delete_message_delete_canceled"))
         r$study_delete_message_open_dialog <- FALSE
       })
       
@@ -512,7 +512,7 @@ mod_messages_server <- function(id = character(), r = shiny::reactiveValues(), d
       
       observeEvent(input$study_delete_message_delete_confirmed, {
         
-        if (debug) print(paste0(Sys.time(), " - mod_my_subsets - observer input$study_delete_message_delete_confirmed"))
+        if (debug) print(paste0(Sys.time(), " - mod_messages - observer input$study_delete_message_delete_confirmed"))
         
         link_id <- substr(input$message_deletion, nchar(paste0(id, "-delete_message_")) + 1, nchar(input$message_deletion)) %>% as.integer()
         print(link_id)

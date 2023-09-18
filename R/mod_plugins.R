@@ -474,8 +474,8 @@ mod_plugins_server <- function(id = character(), r = shiny::reactiveValues(), d 
       else if (prefix == "patient_lvl" & shiny.router::get_page() == "plugins" & r$plugins_page == "plugins_aggregated") shiny.router::change_page("plugins_aggregated")
 
       # Close help pages when page changes
-      # r[[paste0("help_plugins_", prefix, "_open_panel")]] <- FALSE
-      # r[[paste0("help_plugins_", prefix, "_open_modal")]] <- FALSE
+      r[[paste0("help_plugins_", prefix, "_open_panel")]] <- FALSE
+      r[[paste0("help_plugins_", prefix, "_open_modal")]] <- FALSE
 
       # Load Export plugins page, to load DT (doesn't update with other DT if not already loaded once)
       if (shiny.router::get_page() == paste0("plugins_", prefix) & length(r[[paste0(prefix, "_plugins_page_loaded")]]) == 0){

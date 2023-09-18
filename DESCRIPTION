@@ -1,6 +1,6 @@
 Package: linkr
 Title: LinkR
-Version: 0.2.0.9022
+Version: 0.2.0.9023
 Authors@R: person('Boris', 'Delange', email = 'linkr-app@pm.me', role = c('cre', 'aut', 'cph'))
 Description: LinkR package gives some tools to help clinicians without advanced programmation skills, 
   statisticiants and data scientists use their clinical data warehouse, from patient-level data visualization 
@@ -27,6 +27,7 @@ Imports:
     RPostgres (>= 1.4.1),
     RSQLite (>= 2.2.8),
     shiny (>= 1.6.0),
+    shiny (<= 1.7.4.1),
     shiny.fluent (>= 0.2.1),
     shiny.i18n (>= 0.2.0),
     shinymanager (>= 1.0.400),

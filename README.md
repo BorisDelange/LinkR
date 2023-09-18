@@ -8,7 +8,7 @@
 [![Lifecycle:
 experimental](https://img.shields.io/badge/lifecycle-experimental-orange.svg)](https://lifecycle.r-lib.org/articles/stages.html#experimental)
 ![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)
-![version](https://img.shields.io/badge/version-0.2.0.9022-blue)
+![version](https://img.shields.io/badge/version-0.2.0.9023-blue)
 <!-- badges: end -->
 
 ## Introduction
@@ -50,10 +50,10 @@ It contributes to **open science** by allowing the sharing of:
 
 ## Installation
 
-You can install the development version from Github, with:
+You can install the development version from Framagit, with:
 
 ``` r
-remotes::install_github("BorisDelange/linkr")
+remotes::install_gitlab(“interhop/linkr/linkr, host = "framagit.org")
 ```
 
 The `remotes` library must be installed, you can install it with:

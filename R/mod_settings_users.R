@@ -222,20 +222,20 @@ mod_settings_users_server <- function(id = character(), r = shiny::reactiveValue
       r$help_settings_users_open_panel_light_dismiss <- TRUE
     })
     
-    # observeEvent(shiny.router::get_page(), {
-    #   if (debug) print(paste0(Sys.time(), " - mod_settings_users - ", id, " - observer shiny_router::change_page"))
-    #   
-    #   # Close help pages when page changes
-    #   r$help_settings_users_open_panel <- FALSE
-    #   r$help_settings_users_open_modal <- FALSE
-    #   
-    #   # Load users_management_card, to load DT (doesn't update with other DT if not already loaded once)
-    #   if (shiny.router::get_page() == "settings/users" & length(r$settings_users_page_loaded) == 0){
-    #     if ("users_management_card" %in% r$user_accesses) shinyjs::show("users_management_card")
-    #     shinyjs::delay(500, shinyjs::hide("users_management_card"))
-    #     r$settings_users_page_loaded <- TRUE
-    #   }
-    # })
+    observeEvent(shiny.router::get_page(), {
+      if (debug) print(paste0(Sys.time(), " - mod_settings_users - ", id, " - observer shiny_router::change_page"))
+
+      # Close help pages when page changes
+      r$help_settings_users_open_panel <- FALSE
+      r$help_settings_users_open_modal <- FALSE
+
+      # Load users_management_card, to load DT (doesn't update with other DT if not already loaded once)
+      if (shiny.router::get_page() == "settings/users" & length(r$settings_users_page_loaded) == 0){
+        if ("users_management_card" %in% r$user_accesses) shinyjs::show("users_management_card")
+        shinyjs::delay(500, shinyjs::hide("users_management_card"))
+        r$settings_users_page_loaded <- TRUE
+      }
+    })
     
     sapply(1:10, function(i){
       observeEvent(input[[paste0("help_page_", i)]], r[[paste0("help_settings_users_page_", i)]] <- Sys.time())
