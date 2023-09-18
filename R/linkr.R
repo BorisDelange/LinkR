@@ -78,33 +78,6 @@ linkr <- function(
 
   css <- "fluent_style.css"
   
-  if (debug) print(paste0(Sys.time(), " - linkr - router_ui"))
-  pages <- c(
-    "home", 
-      "home/get_started", 
-      "home/tutorials", 
-      "home/resources",
-    "my_studies", 
-    "my_subsets",
-    "messages",
-    "vocabularies", 
-    "data", 
-    "scripts", 
-    "patient_level_data", 
-    "aggregated_data",
-    "plugins",
-    "plugins_patient_lvl",
-    "plugins_aggregated",
-    "settings/general_settings",
-    "settings/app_db",
-    "settings/git",
-    "settings/users", 
-    "settings/dev", 
-    "settings/data_sources",
-    "settings/datasets", 
-    "settings/vocabularies",
-    "settings/log")
-  
   # Toggles for users accesses
   
   users_accesses_toggles_options <- tibble::tribble(
@@ -178,20 +151,13 @@ linkr <- function(
       "only_me")
   )
   
-  suppressWarnings(do.call(shiny.router::make_router, 
-    lapply(pages, function(page){
-      if (debug) print(paste0(Sys.time(), " - linkr - make_router - ", page))
-      shiny.router::route(page, make_layout(language = language, page = page, i18n = i18n, users_accesses_toggles_options = users_accesses_toggles_options))
-    })
-  ) -> page)
-  
   # Load UI & server
   
   if (debug) print(paste0(Sys.time(), " - linkr - load UI & server"))
   with_golem_options(
     app = shinyApp(
-      ui = app_ui(css = css, page = page, language = language, debug = debug),
-      server = app_server(router = page, language = language, app_folder = app_folder, 
+      ui = app_ui(css = css, language = language, i18n = i18n, users_accesses_toggles_options = users_accesses_toggles_options, debug = debug),
+      server = app_server(language = language, i18n = i18n, app_folder = app_folder, 
         perf_monitoring = perf_monitoring, debug = debug, local = local, show_home_page = show_home_page,
         users_accesses_toggles_options = users_accesses_toggles_options),
       options = options

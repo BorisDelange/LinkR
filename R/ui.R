@@ -2,20 +2,54 @@
 #' 
 #' @param request Internal parameter for `{shiny}`. 
 #' @param css CSS file location (character)
-#' @param page Pages created with shiny.router
-#' @param users_accesses_toggles_options A tibble containing users accesses, to add in database if no internet access (tibble)
 #' @param language Default language to use in the App (character)
+#' @param i18n shiny.i18n object for translations
+#' @param users_accesses_toggles_options A tibble containing users accesses, to add in database if no internet access (tibble)
 #' @param debug Debug mode : steps and errors will by displayed in the console (logical)
 #' @import shiny
 #' @noRd
 
-app_ui <- function(request, css, page, users_accesses_toggles_options, language, debug = FALSE) {
+app_ui <- function(request, css, language, i18n = character(), users_accesses_toggles_options = tibble::tibble(), debug = FALSE) {
+  
+  pages <- c(
+    "/", 
+    "home/get_started", 
+    "home/tutorials", 
+    "home/resources",
+    "my_studies", 
+    "my_subsets",
+    "messages",
+    "vocabularies", 
+    "data", 
+    "scripts", 
+    "patient_level_data", 
+    "aggregated_data",
+    "plugins",
+    "plugins_patient_lvl",
+    "plugins_aggregated",
+    "settings/general_settings",
+    "settings/app_db",
+    "settings/git",
+    "settings/users", 
+    "settings/dev", 
+    "settings/data_sources",
+    "settings/datasets", 
+    "settings/vocabularies",
+    "settings/log")
+  
+  do.call(shiny.router::router_ui,
+    lapply(pages, function(page_url){
+      if (debug) print(paste0(Sys.time(), " - ui - make_router - ", page_url))
+      if (page_url == "/") page <- "home" else page <- page_url
+      shiny.router::route(page_url, make_layout(language = language, page = page, i18n = i18n, users_accesses_toggles_options = users_accesses_toggles_options))
+    })
+  ) -> page
   
   # Secure page with ShinyManager
   shinymanager::secure_app(
     tagList(
       golem_add_external_resources(css),
-      shiny.fluent::fluentPage(page$ui)
+      shiny.fluent::fluentPage(page)
     ),
     enable_admin = FALSE, language = tolower(language), fab_position = "none"
   )

@@ -21,7 +21,7 @@ mod_page_sidenav_ui <- function(id = character(), i18n = character()){
       shiny.fluent::Nav(
         groups = list(
           list(links = list(
-            list(name = i18n$t("home"), key = "home", url = shiny.router::route_link("home")),
+            list(name = i18n$t("home"), key = "home", url = shiny.router::route_link("/")),
             list(name = i18n$t("get_started"), key = "home_get_started", url = shiny.router::route_link("home/get_started")),
             list(name = i18n$t("tutorials"), key = "home_tutorials", url = shiny.router::route_link("home/tutorials")),
             list(name = i18n$t("resources"), key = "home_resources", url = shiny.router::route_link("home/resources"))
