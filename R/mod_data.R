@@ -287,8 +287,8 @@ mod_data_server <- function(id = character(), r = shiny::reactiveValues(), d = s
       else if (prefix == "patient_lvl" & shiny.router::get_page() == "data" & r$data_page == "aggregated_data") shiny.router::change_page("aggregated_data")
       
       # Close help pages when page changes
-      r[[paste0("help_data_", prefix, "_open_panel")]] <- FALSE
-      r[[paste0("help_data_", prefix, "_open_modal")]] <- FALSE
+      # r[[paste0("help_data_", prefix, "_open_panel")]] <- FALSE
+      # r[[paste0("help_data_", prefix, "_open_modal")]] <- FALSE
 
       # Refresh reactivity
       shinyjs::hide("study_cards")

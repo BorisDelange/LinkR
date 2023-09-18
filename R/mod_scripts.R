@@ -403,8 +403,8 @@ mod_scripts_server <- function(id = character(), r = shiny::reactiveValues(), d 
       if (debug) print(paste0(Sys.time(), " - mod_scripts - observer shiny_router::change_page"))
 
       # Close help pages when page changes
-      r$help_scripts_open_panel <- FALSE
-      r$help_scripts_open_modal <- FALSE
+      # r$help_scripts_open_panel <- FALSE
+      # r$help_scripts_open_modal <- FALSE
 
       # Load Export scripts page, to load DT (doesn't update with other DT if not already loaded once)
       if (shiny.router::get_page() == "scripts" & length(r$scripts_page_loaded) == 0){

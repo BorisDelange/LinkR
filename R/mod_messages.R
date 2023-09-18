@@ -184,13 +184,13 @@ mod_messages_server <- function(id = character(), r = shiny::reactiveValues(), d
       r$help_messages_open_panel_light_dismiss <- TRUE
     })
     
-    observeEvent(shiny.router::get_page(), {
-      if (debug) print(paste0(Sys.time(), " - mod_messages - ", id, " - observer shiny_router::change_page"))
-
-      # Close help pages when page changes
-      r$help_messages_open_panel <- FALSE
-      r$help_messages_open_modal <- FALSE
-    })
+    # observeEvent(shiny.router::get_page(), {
+    #   if (debug) print(paste0(Sys.time(), " - mod_messages - ", id, " - observer shiny_router::change_page"))
+    # 
+    #   # Close help pages when page changes
+    #   r$help_messages_open_panel <- FALSE
+    #   r$help_messages_open_modal <- FALSE
+    # })
     
     sapply(1:10, function(i){
       observeEvent(input[[paste0("help_page_", i)]], r[[paste0("help_messages_page_", i)]] <- Sys.time())

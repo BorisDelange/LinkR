@@ -271,8 +271,8 @@ mod_vocabularies_server <- function(id = character(), r = shiny::reactiveValues(
       if (debug) print(paste0(Sys.time(), " - mod_vocabularies - observer shiny_router::change_page"))
       
       # Close help pages when page changes
-      r$help_vocabularies_open_panel <- FALSE
-      r$help_vocabularies_open_modal <- FALSE
+      # r$help_vocabularies_open_panel <- FALSE
+      # r$help_vocabularies_open_modal <- FALSE
       
       # Load evaluate and edit page, to load DT (doesn't update with other DT if not already loaded once)
       if (shiny.router::get_page() == "vocabularies" & length(r$vocabularies_page_loaded) == 0){

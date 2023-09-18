@@ -226,8 +226,8 @@ mod_settings_users_server <- function(id = character(), r = shiny::reactiveValue
       if (debug) print(paste0(Sys.time(), " - mod_settings_users - ", id, " - observer shiny_router::change_page"))
 
       # Close help pages when page changes
-      r$help_settings_users_open_panel <- FALSE
-      r$help_settings_users_open_modal <- FALSE
+      # r$help_settings_users_open_panel <- FALSE
+      # r$help_settings_users_open_modal <- FALSE
 
       # Load users_management_card, to load DT (doesn't update with other DT if not already loaded once)
       if (shiny.router::get_page() == "settings/users" & length(r$settings_users_page_loaded) == 0){
