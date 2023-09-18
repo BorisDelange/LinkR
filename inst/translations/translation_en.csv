@@ -24,6 +24,7 @@ aggregated_data,Aggregated data
 aggregated,Aggregated
 exclusion_reason,Exclusion reason
 no_study_available,No study available
+no_subset_available,No subset available
 no_person_in_subset,No patient in this subset
 no_stay_available,No stay available
 years,years
@@ -460,8 +461,8 @@ same_level_current_tab,Same level of current tab
 level_under,Level under
 add_tab,Add a tab
 edit_a_tab,Edit a tab
-invalid_dataset_id_value,dataset_id
-var_type_not_valid,Variable 'type' is not valid
+invalid_dataset_id_value,Variable dataset_id must be of integer type
+var_type_not_valid,Variable type is not valid
 error_loading_csv,Error loading CSV file
 error_transforming_tibble,Error transforming data to tibble
 valid_col_names_are,Column names are not valid. Valid col names are :
@@ -862,3 +863,5 @@ error_exporting_db,Error exporting database
 imported_image_must_be_png_svg_or_jpg,"Imported image must be a PNG, a SVG or a JPG file"
 exported_image_must_be_png_svg_or_jpg,"Exported image must be a PNG, a SVG or a JPG file file"
 input_image_doesnt_exist,Input image doesn't exist
+error,Error
+show_imported_data,Show imported data

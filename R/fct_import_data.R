@@ -12,7 +12,6 @@
 #' @param omop_version OMOP versions of the imported data, accepts "5.3", "5.4" or "6.0" (character)
 #' @param save_as_csv Save or not the data to CSV file (logical)
 #' @param rewrite If save_as_csv is TRUE, rewrite or not existing CSV file (logical)
-#' @param quiet Should message bars be displayed (logical)
 #' @description Load +/- save data when a dataset is selected by the user.
 #' @details The function is used in a dataset code and is launched each time a user selects a dataset. \cr\cr
 #' You can choose to \strong{load data each time} the function is used with save_as_csv set to FALSE (eg when dataset is small and the
@@ -27,32 +26,37 @@
 #'   person_source_value = NA_character_, gender_source_value = "F", race_source_value = NA_character_, ethnicity_source_value = NA_character_)
 #'     
 #' import_dataset(output = output, ns = ns, i18n = i18n, r = r, d = d, dataset_id = 5, data = persons, type = "persons", 
-#'   omop_versions = "5.4", save_as_csv = FALSE, rewrite = FALSE, quiet = TRUE)
+#'   omop_versions = "5.4", save_as_csv = FALSE, rewrite = FALSE)
 #' }
 import_dataset <- function(output, ns = character(), i18n = character(), r = shiny::reactiveValues(), d = shiny::reactiveValues(), 
-  dataset_id = integer(), data = tibble::tibble(), type = "", omop_version = "6.0", save_as_csv = TRUE, rewrite = FALSE, quiet = TRUE){
+  dataset_id = integer(), data = tibble::tibble(), type = "", omop_version = "6.0", save_as_csv = TRUE, rewrite = FALSE){
+  
+  # Check dataset_id
+  if (length(dataset_id) == 0){
+    add_log_entry(r = r, category = "Error", name = paste0("import_dataset - invalid_dataset_id_value"), value = i18n$t("invalid_dataset_id_value"))
+    cat(paste0("<span style = 'font-weight:bold; color:red;'>**", i18n$t("error"), "** ", i18n$t("invalid_dataset_id_value"), "</span>\n"))
+    return(NULL)
+  }
+  
+  if (!is.numeric(dataset_id) | is.na(dataset_id)){
+    add_log_entry(r = r, category = "Error", name = paste0("import_dataset - invalid_dataset_id_value - id"), value = i18n$t("invalid_dataset_id_value"))
+    cat(paste0("<span style = 'font-weight:bold; color:red;'>**", i18n$t("error"), "** ", i18n$t("invalid_dataset_id_value"), "</span>\n"))
+    return(NULL)
+  }
+  
+  if (is.numeric(dataset_id) & floor(dataset_id) != dataset_id){
+    add_log_entry(r = r, category = "Error", name = paste0("import_dataset - invalid_dataset_id_value - id"), value = i18n$t("invalid_dataset_id_value"))
+    cat(paste0("<span style = 'font-weight:bold; color:red;'>**", i18n$t("error"), "** ", i18n$t("invalid_dataset_id_value"), "</span>\n"))
+    return(NULL)
+  }
+  
+  dataset_id <- as.integer(dataset_id)
   
   # Check omop_version
   if (omop_version %not_in% c("5.3", "5.4", "6.0")){
-    report_bug(r = r, output = output, error_message = "invalid_omop_version", 
-      error_name = paste0("import_dataset - invalid_omop_version - id = ", dataset_id), category = "Error", error_report = toString(e), i18n = i18n, ns = ns)
-    stop(i18n$t("invalid_omop_version"))
-  }
-  
-  # Check dataset_id
-  tryCatch(as.integer(dataset_id),
-    error = function(e){
-      if (nchar(e[1]) > 0) report_bug(r = r, output = output, error_message = "invalid_dataset_id_value", 
-        error_name = paste0("import_dataset - invalid_dataset_id_value - id = ", dataset_id), category = "Error", error_report = toString(e), i18n = i18n, ns = ns)
-      stop(i18n$t("invalid_dataset_id_value"))}
-  )
-  
-  # If try is a success, assign new value to data (problem with assignment inside the tryCatch)
-  dataset_id <- as.integer(dataset_id)
-  
-  if (is.na(dataset_id) | length(dataset_id) == 0){
-    show_message_bar(output, "invalid_dataset_id_value", "severeWarning", i18n = i18n, ns = ns)
-    stop(i18n$t("invalid_dataset_id_value"))
+    add_log_entry(r = r, category = "Error", name = paste0("import_dataset - invalid_omop_version - id = ", dataset_id), value = i18n$t("invalid_omop_version"))
+    cat(paste0("<span style = 'font-weight:bold; color:red;'>**", i18n$t("error"), "** ", i18n$t("invalid_omop_version"), "</span>\n"))
+    return(NULL)
   }
   
   # Check if type is valid
@@ -61,8 +65,9 @@ import_dataset <- function(output, ns = character(), i18n = character(), r = shi
     "measurement", "observation", "death", "note", "note_nlp", "specimen", "fact_relationship", "location",
     "location_history", "care_site", "provider", "payer_plan_period", "cost", "drug_era",
     "dose_era", "condition_era") | (type == "death" & omop_version %not_in% c("5.3", "5.4"))){
-    show_message_bar(output, "var_type_not_valid", "severeWarning", i18n = i18n, ns = ns) 
-    stop(i18n$t("var_type_not_valid"))
+    add_log_entry(r = r, category = "Error", name = paste0("import_dataset - var_type_not_valid - id = ", dataset_id), value = i18n$t("var_type_not_valid"))
+    cat(paste0("<span style = 'font-weight:bold; color:red;'>**", i18n$t("error"), "** ", i18n$t("var_type_not_valid"), "</span>\n"))
+    return(NULL)
   }
  
   # If a datasets_folder is provided, take this value
@@ -78,7 +83,7 @@ import_dataset <- function(output, ns = character(), i18n = character(), r = shi
           "person" = "iiiiiTTiiiiiccicici",
           "observation_period" = "iiDDi",
           "visit_occurrence" = "iiiDTDTiiiciicici",
-          "visit_detail" = "iiiDTDTiiiciiciciii",
+          "visit_detail" = "iiiDTDTiiiciicciiii",
           "condition_occurrence" = "iiiDTDTiiciiicic",
           "drug_exposure" = "iiiDTDTDiciniciciiicicc",
           "procedure_occurrence" = "iiiDTiiiiiicic",
@@ -101,6 +106,7 @@ import_dataset <- function(output, ns = character(), i18n = character(), r = shi
           "condition_era" = "iiiTTi"
         )
         if (type == "person" & omop_version %in% c("5.3", "5.4")) col_types <- "iiiiiTiiiiiccicici"
+        if (type == "visit_detail" & omop_version == "5.3") col_types <- "iiiDTDTiiiciciciiii"
         if (type == "observation" & omop_version == "5.3") col_types <-  "iiiDTinciiiiiicicc"
         if (type == "observation" & omop_version == "5.4") col_types <-  "iiiDTinciiiiiicicccii"
         if (type == "location" & omop_version == "5.3") col_types <-  "iccccccc"
@@ -109,29 +115,27 @@ import_dataset <- function(output, ns = character(), i18n = character(), r = shi
         if (type == "condition_era" & omop_version %in% c("5.3", "5.4")) col_types <- "iiiDDi"
           
         d[[type]] <- readr::read_csv(path, col_types = col_types, progress = FALSE)
-        cat(i18n$t(paste0("import_dataset_success_", type)))
-        if (!quiet) show_message_bar(output, 1, paste0("import_dataset_success_", type), "success", i18n = i18n, ns = ns)
+        cat(paste0("<span style = 'font-weight:bold; color:#0078D4;'>", i18n$t(paste0("import_dataset_success_", type)), "</span>\n"))
       })
     },
       
       error = function(e){
-        if (nchar(e[1]) > 0) report_bug(r = r, output = output, error_message = "error_loading_csv", 
-          error_name = paste0("import_dataset - error_loading_csv - id = ", dataset_id), category = "Error", error_report = toString(e), i18n = i18n, ns = ns)
-        stop(i18n$t("error_loading_csv"))},
+        add_log_entry(r = r, category = "Error", name = paste0("import_dataset - error_loading_csv - id = ", dataset_id), value = i18n$t("error_loading_csv"))
+        cat(paste0("<span style = 'font-weight:bold; color:red;'>**", i18n$t("error"), "** ", i18n$t("error_loading_csv"), "</span>\n"))
+        return(NULL)},
       warning = function(w){
-        if (nchar(w[1]) > 0) report_bug(r = r, output = output, error_message = "error_loading_csv", 
-          error_name = paste0("import_dataset - error_loading_csv - id = ", dataset_id), category = "Error", error_report = toString(w), i18n = i18n, ns = ns)
-        stop(i18n$t("error_loading_csv"))}
+        add_log_entry(r = r, category = "Error", name = paste0("import_dataset - error_loading_csv - id = ", dataset_id), value = i18n$t("error_loading_csv"))
+        cat(paste0("<span style = 'font-weight:bold; color:red;'>**", i18n$t("error"), "** ", i18n$t("error_loading_csv"), "</span>\n"))
+        return(NULL)}
     )
   }
   
   # Transform as tibble
-  tryCatch(tibble::as_tibble(data), 
-    error = function(e){
-      if (nchar(e[1]) > 0) report_bug(r = r, output = output, error_message = "error_transforming_tibble", 
-        error_name = paste0("import_dataset - error_transforming_tibble - id = ", dataset_id), category = "Error", error_report = toString(e), i18n = i18n, ns = ns)
-      stop(i18n$t("error_transforming_tibble"))}
-  )
+  if (!is.data.frame(data)){
+    add_log_entry(r = r, category = "Error", name = paste0("import_dataset - error_transforming_tibble - id = ", dataset_id), value = i18n$t("error_transforming_tibble"))
+    cat(paste0("<span style = 'font-weight:bold; color:red;'>**", i18n$t("error"), "** ", i18n$t("error_transforming_tibble"), "</span>\n"))
+    return(NULL)
+  }
   
   data <- tibble::as_tibble(data)
   
@@ -245,8 +249,8 @@ import_dataset <- function(output, ns = character(), i18n = character(), r = shi
         "visit_detail_source_concept_id", "integer",
         "admitted_from_concept_id", "integer",
         "admitted_from_source_value", "character",
-        "discharge_to_concept_id", "integer",
         "discharge_to_source_value", "character",
+        "discharge_to_concept_id", "integer",
         "preceding_visit_detail_id", "integer",
         "visit_detail_parent_id", "integer",
         "visit_occurrence_id", "integer"
@@ -543,7 +547,7 @@ import_dataset <- function(output, ns = character(), i18n = character(), r = shi
         "device_exposure_end_date", "date",
         "device_exposure_end_datetime", "datetime",
         "device_type_concept_id", "integer",
-        "unique_device_id", "integer",
+        "unique_device_id", "character",
         "quantity", "integer",
         "provider_id", "integer",
         "visit_occurrence_id", "integer",
@@ -783,59 +787,71 @@ import_dataset <- function(output, ns = character(), i18n = character(), r = shi
   var_cols <- data_cols %>% dplyr::filter(var == type) %>% dplyr::pull(cols)
   var_cols <- var_cols[[1]]
   
-  if (!identical(names(data), var_cols %>% dplyr::pull(name))) stop(paste0("\n<br /><span style = 'font-weight:bold; color:red;'>", 
-    i18n$t("valid_col_names_are"), "</span>\n", toString(var_cols %>% dplyr::pull(name))))
+  if (!identical(names(data), var_cols %>% dplyr::pull(name))){
+    add_log_entry(r = r, category = "Error", name = paste0("import_dataset - invalid_col_names - id = ", dataset_id), value = paste0(i18n$t("valid_col_names_are"), "</span>\n", toString(var_cols %>% dplyr::pull(name))))
+    cat(paste0("<span style = 'font-weight:bold; color:red;'>**", i18n$t("error"), "** ", i18n$t("valid_col_names_are"), "</span>\n", toString(var_cols %>% dplyr::pull(name)), "\n"))
+    return(NULL)
+  }
+  
+  error_message <- ""
+  cols_to_char <- character(0)
   
   for (i in 1:nrow(var_cols)){
     var_name <- var_cols[[i, "name"]]
     if (var_cols[[i, "type"]] == "integer" & !is.integer(data[[var_name]])){
-      show_message_bar(output, "invalid_col_types", "severeWarning", i18n = i18n, ns = ns)
-      stop(paste0(i18n$t("column"), " ", var_name, " ", i18n$t("type_must_be_integer")))
+      add_log_entry(r = r, category = "Error", name = paste0("import_dataset - invalid_col_types - id = ", dataset_id), value = paste0(i18n$t("column"), " ", var_name, " ", i18n$t("type_must_be_integer")))
+      error_message <- paste0(error_message, "<span style = 'font-weight:bold; color:red;'>**", i18n$t("error"), "** ", i18n$t("column"), " ", var_name, " ", i18n$t("type_must_be_integer"), "</span>\n")
     } 
     else if (var_cols[[i, "type"]] == "character" & !is.character(data[[var_name]])){
-      show_message_bar(output, "invalid_col_types", "severeWarning", i18n = i18n, ns = ns)
-      stop(paste0(i18n$t("column"), " ", var_name, " ", i18n$t("type_must_be_character"))) 
+      add_log_entry(r = r, category = "Error", name = paste0("import_dataset - invalid_col_types - id = ", dataset_id), value = paste0(i18n$t("column"), " ", var_name, " ", i18n$t("type_must_be_character")))
+      error_message <- paste0(error_message, "<span style = 'font-weight:bold; color:red;'>**", i18n$t("error"), "** ", i18n$t("column"), " ", var_name, " ", i18n$t("type_must_be_character"), "</span>\n")
     }
     else if (var_cols[[i, "type"]] == "numeric" & !is.numeric(data[[var_name]])){
-      show_message_bar(output, "invalid_col_types", "severeWarning", i18n = i18n, ns = ns)
-      stop(paste0(i18n$t( "column"), " ", var_name, " ", i18n$t("type_must_be_numeric")))
+      add_log_entry(r = r, category = "Error", name = paste0("import_dataset - invalid_col_types - id = ", dataset_id), value = paste0(i18n$t("column"), " ", var_name, " ", i18n$t("type_must_be_numeric")))
+      error_message <- paste0(error_message, "<span style = 'font-weight:bold; color:red;'>**", i18n$t("error"), "** ", i18n$t("column"), " ", var_name, " ", i18n$t("type_must_be_numeric"), "</span>\n")
     } 
     else if (var_cols[[i, "type"]] == "datetime" & !lubridate::is.POSIXct(data[[var_name]])){
-      show_message_bar(output, "invalid_col_types", "severeWarning", i18n = i18n, ns = ns)
-      stop(paste0(i18n$t("column"), " ", var_name, " ", i18n$t("type_must_be_datetime")))
+      add_log_entry(r = r, category = "Error", name = paste0("import_dataset - invalid_col_types - id = ", dataset_id), value = paste0(i18n$t("column"), " ", var_name, " ", i18n$t("type_must_be_datetime")))
+      error_message <- paste0(error_message, "<span style = 'font-weight:bold; color:red;'>**", i18n$t("error"), "** ", i18n$t("column"), " ", var_name, " ", i18n$t("type_must_be_datetime"), "</span>\n")
     }
     else if (var_cols[[i, "type"]] == "date" & !lubridate::is.Date(data[[var_name]])){
-      show_message_bar(output, "invalid_col_types", "severeWarning", i18n = i18n, ns = ns)
-      stop(paste0(i18n$t("column"), " ", var_name, " ", i18n$t("type_must_be_date")))
+      add_log_entry(r = r, category = "Error", name = paste0("import_dataset - invalid_col_types - id = ", dataset_id), value = paste0(i18n$t("column"), " ", var_name, " ", i18n$t("type_must_be_date")))
+      error_message <- paste0(error_message, "<span style = 'font-weight:bold; color:red;'>**", i18n$t("error"), "** ", i18n$t("column"), " ", var_name, " ", i18n$t("type_must_be_date"), "</span>\n")
     }
     
-    # Transform date cols to character
-    if (var_cols[[i, "type"]] %in% c("date", "datetime")) data <- data %>% dplyr::mutate_at(var_name, as.character)
+    if (var_cols[[i, "type"]] %in% c("datetime", "date")) cols_to_char <- c(cols_to_char, var_name)
   }
+  
+  if (error_message != ""){
+    cat(error_message)
+    return(NULL) 
+  }
+  
+  # Transform date cols to character
+  if (length(cols_to_char) > 0) data <- data %>% dplyr::mutate_at(cols_to_char, as.character)
   
   # if  save_as_csv is TRUE, save data in dataset folder
   if (save_as_csv){
     if (!file.exists(folder)) dir.create(folder, recursive = TRUE)
     if (!file.exists(path)) tryCatch(readr::write_csv(data, path, progress = FALSE),
       error = function(e){
-        if (nchar(e[1]) > 0) report_bug(r = r, output = output, error_message = "error_saving_csv", 
-          error_name = paste0("import_dataset - error_saving_csv - id = ", dataset_id), category = "Error", error_report = toString(e), i18n = i18n, ns = ns)
-        stop(i18n$t("error_saving_csv"))}
+        add_log_entry(r = r, category = "Error", name = paste0("import_dataset - error_saving_csv - id = ", dataset_id), value = i18n$t("error_saving_csv"))
+        cat(paste0("<span style = 'font-weight:bold; color:red;'>", i18n$t("error_saving_csv"), "</span>\n"))
+        return(NULL)}
     )
     if (file.exists(path) & rewrite) tryCatch({
       # file.remove(path)
       readr::write_csv(data, path, progress = FALSE)}, 
       error = function(e){
-        if (nchar(e[1]) > 0) report_bug(r = r, output = output, error_message = "error_saving_csv", 
-          error_name = paste0("import_dataset - error_saving_csv - id = ", dataset_id), category = "Error", error_report = toString(e), i18n = i18n, ns = ns)
-        stop(i18n$t("error_saving_csv"))}
+        add_log_entry(r = r, category = "Error", name = paste0("import_dataset - error_saving_csv - id = ", dataset_id), value = i18n$t("error_saving_csv"))
+        cat(paste0("<span style = 'font-weight:bold; color:red;'>", i18n$t("error_saving_csv"), "</span>\n"))
+        return(NULL)}
     )
   }
   
   d[[type]] <- data
   
-  cat(i18n$t(paste0("import_dataset_success_", type)))
-  if (!quiet) show_message_bar(output, 1, paste0("import_dataset_success_", type), "success", i18n = i18n, ns = ns)
+  cat(paste0("<span style = 'font-weight:bold; color:#0078D4;'>", i18n$t(paste0("import_dataset_success_", type)), "</span>\n"))
 }
 
 # dataset_csv_exists <- function(r = shiny::reactiveValues(), table = character(), dataset_id = integer()){
@@ -854,7 +870,6 @@ import_dataset <- function(output, ns = character(), i18n = character(), r = shi
 #' @param table_name Name of the vocabulary table we import (concept, concept_relationship or other) (character)
 #' @param data A tibble containing the data
 #' @param vocabulary_id ID of the vocabulary, for example LOINC (character)
-#' @param message_bars Render messages in message bars or not (logical)
 #' @details The function is used in a vocabulary code, it is launched only when you click on "Run code" on the vocabulary page.\cr\cr
 #' See \href{https://ohdsi.github.io/CommonDataModel/cdm60.html}{\strong{OMOP common data model}} for more information.
 #' @examples
@@ -864,17 +879,30 @@ import_dataset <- function(output, ns = character(), i18n = character(), r = shi
 #'   valid_start_date = "1970-01-01", valid_end_date = "2099-12-31", invalid_reason = NA_character_)
 #'   
 #' import_vocabulary_table(output = output, ns = ns, i18n = i18n, r = r, m = m,
-#'   table_name = "concept", data = concept, vocabulary_id = "LOINC", messages_bars = FALSE)
+#'   table_name = "concept", data = concept, vocabulary_id = "LOINC")
 #' }
 import_vocabulary_table <- function(output, ns = character(), i18n = character(), r = shiny::reactiveValues(), m = shiny::reactiveValues(),
-  table_name = character(), data = tibble::tibble(), vocabulary_id = character(), messages_bars = FALSE){
+  table_name = character(), data = tibble::tibble(), vocabulary_id = character()){
  
+  # Check vocabulary_id
+  if (length(vocabulary_id) == 0){
+    add_log_entry(r = r, category = "Error", name = paste0("import_vocabulary_table - invalid_vocabulary_id_value"), value = i18n$t("invalid_vocabulary_id_value"))
+    cat(paste0("<span style = 'font-weight:bold; color:red;'>**", i18n$t("error"), "** ", i18n$t("invalid_vocabulary_id_value"), "</span>\n"))
+    return(NULL)
+  }
+  if (!is.character(vocabulary_id) | vocabulary_id == ""){
+    add_log_entry(r = r, category = "Error", name = paste0("import_vocabulary_table - invalid_vocabulary_id_value"), value = i18n$t("invalid_vocabulary_id_value"))
+    cat(paste0("<span style = 'font-weight:bold; color:red;'>**", i18n$t("error"), "** ", i18n$t("invalid_vocabulary_id_value"), "</span>\n"))
+    return(NULL)
+  }
+  
   # Create var to count rows if doesn't exist
   if (length(r$import_vocabulary_count_rows) == 0) r$import_vocabulary_count_rows <- tibble::tibble(table_name = character(), n_rows = integer())
   
   if (table_name %not_in% c("concept", "domain", "concept_class", "concept_relationship", "relationship", "concept_synonym", "concept_ancestor", "drug_strength")){
-    if (messages_bars) show_message_bar(output, "invalid_vocabulary_table", "severeWarning", i18n = i18n, ns = ns)
-    return(i18n$t("invalid_vocabulary_table"))
+    add_log_entry(r = r, category = "Error", name = paste0("import_vocabulary_table - invalid_vocabulary_table - id = ", vocabulary_id), value = i18n$t("invalid_vocabulary_table"))
+    cat(paste0("<span style = 'font-weight:bold; color:red;'>**", i18n$t("error"), "** ", i18n$t("invalid_vocabulary_table"), "</span>\n"))
+    return(NULL)
   }
   
   if (table_name == "concept") var_cols <- tibble::tribble(
@@ -951,41 +979,54 @@ import_vocabulary_table <- function(output, ns = character(), i18n = character()
   # Check columns var types & names
   
   if (!identical(names(data), var_cols$name)){
-    if (messages_bars) show_message_bar(output, "invalid_col_names", "severeWarning", i18n = i18n, ns = ns)
-    return(paste0(i18n$t("valid_col_names_are"), toString(var_cols %>% dplyr::pull(name))))
+    add_log_entry(r = r, category = "Error", name = paste0("import_vocabulary_table - invalid_col_names - id = ", vocabulary_id), value = paste0(i18n$t("valid_col_names_are"), "</span>\n", toString(var_cols %>% dplyr::pull(name))))
+    cat(paste0("<span style = 'font-weight:bold; color:red;'>**", i18n$t("error"), "** ", i18n$t("valid_col_names_are"), "</span>\n", toString(var_cols %>% dplyr::pull(name)), "\n"))
+    return(NULL)
   }
   
   # Check col types
+  
+  error_message <- ""
+  cols_to_char <- character(0)
+  
   for (i in 1:nrow(var_cols)){
     var_name <- var_cols[[i, "name"]]
     if (var_cols[[i, "type"]] == "integer" & !is.integer(data[[var_name]])){
-      if (messages_bars) show_message_bar(output, "invalid_col_types", "severeWarning", i18n = i18n, ns = ns)
-      return(paste0(i18n$t("column"), " ", var_name, " ", i18n$t("type_must_be_integer")))
+      add_log_entry(r = r, category = "Error", name = paste0("import_vocabulary_table - invalid_col_types - id = ", vocabulary_id), value = paste0(i18n$t("column"), " ", var_name, " ", i18n$t("type_must_be_integer")))
+      error_message <- paste0(error_message, "<span style = 'font-weight:bold; color:red;'>**", i18n$t("error"), "** ", i18n$t("column"), " ", var_name, " ", i18n$t("type_must_be_integer"), "</span>\n")
     }
     else if (var_cols[[i, "type"]] == "character" & !is.character(data[[var_name]])){
-      if (messages_bars) show_message_bar(output, "invalid_col_types", "severeWarning", i18n = i18n, ns = ns)
-      return(paste0(i18n$t("column"), " ", var_name, " ", i18n$t("type_must_be_character")))
+      add_log_entry(r = r, category = "Error", name = paste0("import_vocabulary_table - invalid_col_types - id = ", vocabulary_id), value = paste0(i18n$t("column"), " ", var_name, " ", i18n$t("type_must_be_character")))
+      error_message <- paste0(error_message, "<span style = 'font-weight:bold; color:red;'>**", i18n$t("error"), "** ", i18n$t("column"), " ", var_name, " ", i18n$t("type_must_be_character"), "</span>\n")
     }
     else if (var_cols[[i, "type"]] == "numeric" & !is.numeric(data[[var_name]])){
-      if (messages_bars) show_message_bar(output, "invalid_col_types", "severeWarning", i18n = i18n, ns = ns)
-      return(paste0(i18n$t("column"), " ", var_name, " ", i18n$t("type_must_be_numeric")))
+      add_log_entry(r = r, category = "Error", name = paste0("import_vocabulary_table - invalid_col_types - id = ", vocabulary_id), value = paste0(i18n$t("column"), " ", var_name, " ", i18n$t("type_must_be_numeric")))
+      error_message <- paste0(error_message, "<span style = 'font-weight:bold; color:red;'>**", i18n$t("error"), "** ", i18n$t("column"), " ", var_name, " ", i18n$t("type_must_be_numeric"), "</span>\n")
     }
     else if (var_cols[[i, "type"]] == "date" & !lubridate::is.Date(data[[var_name]])){
-      show_message_bar(output, "invalid_col_types", "severeWarning", i18n = i18n, ns = ns)
-      stop(paste0(i18n$t("column"), " ", var_name, " ", i18n$t("type_must_be_date")))
+      add_log_entry(r = r, category = "Error", name = paste0("import_vocabulary_table - invalid_col_types - id = ", vocabulary_id), value = paste0(i18n$t("column"), " ", var_name, " ", i18n$t("type_must_be_date")))
+      error_message <- paste0(error_message, "<span style = 'font-weight:bold; color:red;'>**", i18n$t("error"), "** ", i18n$t("column"), " ", var_name, " ", i18n$t("type_must_be_date"), "</span>\n")
     }
     
-    # Transform date cols to character
-    if (var_cols[[i, "type"]] == "date") data <- data %>% dplyr::mutate_at(var_name, as.character)
+    if (var_cols[[i, "type"]] == "date") cols_to_char <- c(cols_to_char, var_name)
   }
+  
+  if (error_message != ""){
+    cat(error_message)
+    return(NULL) 
+  }
+  
+  # Transform date cols to character
+  if (length(cols_to_char) > 0) data <- data %>% dplyr::mutate_at(cols_to_char, as.character)
 
   # Transform as tibble
-  tryCatch(data <- tibble::as_tibble(data), 
-    error = function(e){
-      if (nchar(e[1]) > 0 & messages_bars) report_bug(r = r, output = output, error_message = "error_transforming_tibble", 
-        error_name = "import_vocabulary_table - error_transforming_tibble", category = "Error", error_report = toString(e), i18n = i18n, ns = ns)
-      return(i18n$t("error_transforming_tibble"))}
-  )
+  if (!is.data.frame(data)){
+    add_log_entry(r = r, category = "Error", name = paste0("import_vocabulary_table - error_transforming_tibble - id = ", vocabulary_id), value = i18n$t("error_transforming_tibble"))
+    cat(paste0("<span style = 'font-weight:bold; color:red;'>**", i18n$t("error"), "** ", i18n$t("error_transforming_tibble"), "</span>\n"))
+    return(NULL)
+  }
+  
+  data <- tibble::as_tibble(data)
   
   # Change vocabulary_id col if value is not null
   if (table_name == "concept" & length(vocabulary_id) > 0) data <- data %>% dplyr::mutate(vocabulary_id = !!vocabulary_id)
@@ -1002,8 +1043,9 @@ import_vocabulary_table <- function(output, ns = character(), i18n = character()
 
     primary_keys_duplicates <- data %>% dplyr::group_by_at(paste0(table_name, "_id")) %>% dplyr::summarize(n = dplyr::n()) %>% dplyr::filter(n > 1) %>% nrow()
     if (primary_keys_duplicates > 0){
-      if (messages_bars) show_message_bar(output, "error_multiple_primary_keys", "severeWarning", i18n = i18n, ns = ns)
-      return(i18n$t("error_multiple_primary_keys"))
+      add_log_entry(r = r, category = "Error", name = paste0("import_vocabulary_table - error_multiple_primary_keys - id = ", vocabulary_id), value = i18n$t("error_multiple_primary_keys"))
+      cat(paste0("<span style = 'font-weight:bold; color:red;'>**", i18n$t("error"), "** ", i18n$t("error_multiple_primary_keys"), "</span>\n"))
+      return(NULL)
     }
 
     tryCatch({
@@ -1011,9 +1053,9 @@ import_vocabulary_table <- function(output, ns = character(), i18n = character()
       actual_data <- DBI::dbGetQuery(m$db, sql)
     },
       error = function(e){
-        if (nchar(e[1]) > 0 & messages_bars) report_bug(r = r, output = output, error_message = "error_get_actual_primary_keys",
-          error_name = "import_vocabulary_concepts - error_get_actual_primary_keys", category = "Error", error_report = toString(e), i18n = i18n, ns = ns)
-        return(i18n$t("error_get_actual_primary_keys"))}
+        if (nchar(e[1]) > 0) add_log_entry(r = r, category = "Error", name = paste0("import_vocabulary_table - error_get_actual_primary_keys - id = ", vocabulary_id), value = toString(e))
+        cat(paste0("<span style = 'font-weight:bold; color:red;'>**", i18n$t("error"), "** ", i18n$t("error_get_actual_primary_keys"), "</span>\n"))
+        return(NULL)}
     )
 
     # Get items to insert with an anti-join
@@ -1035,8 +1077,9 @@ import_vocabulary_table <- function(output, ns = character(), i18n = character()
     data_duplicates <- data %>% dplyr::group_by_at(data_duplicates_cols) %>% dplyr::summarize(n = dplyr::n()) %>% dplyr::filter(n > 1) %>% nrow()
     
     if (data_duplicates > 0){
-      if (messages_bars) show_message_bar(output, "error_multiple_identical_values", "severeWarning", i18n = i18n, ns = ns)
-      return(i18n$t("error_multiple_identical_values"))
+      add_log_entry(r = r, category = "Error", name = paste0("import_vocabulary_table - error_multiple_identical_values - id = ", vocabulary_id), value = i18n$t("error_multiple_identical_values"))
+      cat(paste0("<span style = 'font-weight:bold; color:red;'>**", i18n$t("error"), "** ", i18n$t("error_multiple_identical_values"), "</span>\n"))
+      return(NULL)
     }
     
     tryCatch({
@@ -1044,9 +1087,9 @@ import_vocabulary_table <- function(output, ns = character(), i18n = character()
       actual_data <- DBI::dbGetQuery(m$db, sql)
     },
       error = function(e){
-        if (nchar(e[1]) > 0 & messages_bars) report_bug(r = r, output = output, error_message = "error_get_actual_primary_keys",
-          error_name = "import_vocabulary_concepts - error_get_actual_primary_keys - id = ", category = "Error", error_report = toString(e), i18n = i18n, ns = ns)
-        return(i18n$t("error_get_actual_primary_keys"))}
+        if (nchar(e[1]) > 0) add_log_entry(r = r, category = "Error", name = paste0("import_vocabulary_table - error_get_actual_primary_keys - id = ", vocabulary_id), value = toString(e))
+        cat(paste0("<span style = 'font-weight:bold; color:red;'>**", i18n$t("error"), "** ", i18n$t("error_get_actual_primary_keys"), "</span>\n"))
+        return(NULL)}
     )
     
     # Get items to insert with an anti-join
@@ -1059,8 +1102,9 @@ import_vocabulary_table <- function(output, ns = character(), i18n = character()
   last_id <- get_last_row(m$db, table_name)
   
   if (nrow(data_to_insert) == 0){
-    if (messages_bars) show_message_bar(output, "vocabulary_no_data_to_insert", "severeWarning", i18n = i18n, ns = ns)
-    return(i18n$t("vocabulary_no_data_to_insert"))
+    add_log_entry(r = r, category = "Error", name = paste0("import_vocabulary_table - vocabulary_no_data_to_insert - id = ", vocabulary_id), value = i18n$t("vocabulary_no_data_to_insert"))
+    cat(paste0("<span style = 'font-weight:bold; color:red;'>**", i18n$t("error"), "** ", i18n$t("vocabulary_no_data_to_insert"), "</span>\n"))
+    return(NULL)
   }
   
   else {
@@ -1068,9 +1112,9 @@ import_vocabulary_table <- function(output, ns = character(), i18n = character()
     
     tryCatch(DBI::dbAppendTable(m$db, table_name, data_to_insert),
       error = function(e){
-        if (nchar(e[1]) > 0 & messages_bars) report_bug(r = r, output = output, error_message = "vocabulary_error_append_table",
-          error_name = "import_vocabulary_table - vocabulary_error_append_table - id = ", category = "Error", error_report = toString(e), i18n = i18n, ns = ns)
-        return(i18n$t("vocabulary_error_append_table"))}
+        if (nchar(e[1]) > 0) add_log_entry(r = r, category = "Error", name = paste0("import_vocabulary_table - vocabulary_error_append_table - id = ", vocabulary_id), value = toString(e))
+        cat(paste0("<span style = 'font-weight:bold; color:red;'>**", i18n$t("error"), "** ", i18n$t("vocabulary_error_append_table"), "</span>\n"))
+        return(NULL)}
     )
   }
   
@@ -1078,6 +1122,5 @@ import_vocabulary_table <- function(output, ns = character(), i18n = character()
   if (length(r$import_vocabulary_count_rows) > 0) r$import_vocabulary_count_rows <- r$import_vocabulary_count_rows %>%
     dplyr::bind_rows(tibble::tibble(table_name = table_name, n_rows = as.integer(nrow(data_to_insert))))
   
-  if (messages_bars) show_message_bar(output, "import_vocabulary_table_success", "success", i18n, ns = ns)
-  return(paste0(i18n$t("import_vocabulary_table_success"), ". ", nrow(data_to_insert), " ", tolower(i18n$t("rows_inserted")), "."))
+  cat(paste0("<span style = 'font-weight:bold; color:#0078D4;'>", i18n$t("import_vocabulary_table_success"), ". ", nrow(data_to_insert), " ", tolower(i18n$t("rows_inserted")), ".</span>\n"))
 }

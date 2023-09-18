@@ -340,11 +340,21 @@ mod_my_studies_server <- function(id = character(), r = shiny::reactiveValues(),
       # Try to load dataset
       tryCatch({
 
-        capture.output(run_dataset_code(output, r = r, d = d, dataset_id = r$selected_dataset, i18n = i18n))
-  
-        r$show_message_bar <- tibble::tibble(message = "import_dataset_success", type = "success", trigger = Sys.time())
+        captured_output <- capture.output(run_dataset_code(output, r = r, d = d, dataset_id = r$selected_dataset, i18n = i18n))
+        print(toString(captured_output))
+        print(paste0("\\*\\*", i18n$t("error"), "\\*\\*"))
         
-        r$load_scripts <- Sys.time()
+        # If an error occured
+        if (grepl(paste0("\\*\\*", i18n$t("error"), "\\*\\*"), toString(captured_output))){
+          print("FAILURE")
+          r$show_message_bar <- tibble::tibble(message = "fail_load_dataset", type = "severeWarning", trigger = Sys.time())
+          report_bug(r = r, output = output, error_message = "fail_load_dataset",
+            error_name = paste0(id, " - run server code"), category = "Error", error_report = toString(captured_output), i18n = i18n)
+        }
+        else {
+          r$show_message_bar <- tibble::tibble(message = "import_dataset_success", type = "success", trigger = Sys.time())
+          r$load_scripts <- Sys.time() 
+        }
       },
       error = function(e){
         r$show_message_bar <- tibble::tibble(message = "fail_load_dataset", type = "severeWarning", trigger = Sys.time())
@@ -917,13 +927,13 @@ mod_my_studies_server <- function(id = character(), r = shiny::reactiveValues(),
       # Update other fields
       
       for (field in c("version", "author", "name_fr", "name_en", "category_fr", "category_en")){
-        value <- options %>% dplyr::filter(name == field) %>% dplyr::pull(value)
+        value <- options %>% dplyr::filter(name == field) %>% dplyr::pull(value) %>% stringr::str_replace_all("''", "'")
         if (is.na(value)) value <- ""
         shiny.fluent::updateTextField.shinyInput(session, paste0("study_", field), value = value)
       }
       
       for (field in c("description_fr", "description_en")) shinyAce::updateAceEditor(session,
-        paste0("study_", field), value = options %>% dplyr::filter(name == field) %>% dplyr::pull(value))
+        paste0("study_", field), value = options %>% dplyr::filter(name == field) %>% dplyr::pull(value)) %>% stringr::str_replace_all("''", "'")
     })
     
     # Save updates

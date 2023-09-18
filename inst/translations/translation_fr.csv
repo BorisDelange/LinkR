@@ -24,6 +24,7 @@ aggregated_data,Données agrégées
 aggregated,Agrégées
 exclusion_reason,Motif de l'exclusion
 no_study_available,Pas d'étude disponible
+no_subset_available,Pas de subset disponible
 no_person_in_subset,Aucun patient dans le subset
 no_stay_available,Pas de séjour disponible
 years,ans
@@ -242,7 +243,7 @@ user_status_deleted,Statut supprimé
 users_accesses_delete,Suppression d'accès d'utilisateurs
 users_accesses_delete_subtext,Confirmer la suppression de l'accès ou des accès utilisateur(s) ?
 user_access_deleted,Accès supprimé
-users_delete_data,Supprimer des utilisateurs,des accès ou des statuts
+users_delete_data,"Supprimer des utilisateurs, des accès ou des statuts"
 users_creation_card,Créer un utilisateur
 users_creation,Créer un utilisateur
 users_management_card,Gérer les utilisateurs
@@ -383,8 +384,8 @@ type_must_be_numeric,doit être de type numeric
 type_must_be_datetime,doit être de type datetime
 type_must_be_date,doit être de type date
 vocabulary_no_data_to_insert,Pas de nouvelles données à insérer dans la base de données
-column,Colonne
-columns,Colonnes
+column,La colonne
+columns,Les colonnes
 columns_concepts,Colonnes des concepts
 columns_mapped_concepts,Colonnes des concepts alignés
 import_vocabulary_table_success,Table de terminologie ajoutée avec succès
@@ -460,8 +461,8 @@ same_level_current_tab,Même niveau que l'onglet actuel
 level_under,Niveau d'en-dessous
 add_a_tab,Ajouter un onglet
 edit_a_tab,Editer un onglet
-invalid_dataset_id_value,Valeur de dataset_id non valide
-var_type_not_valid,La variable 'type' n'est pas valide
+invalid_dataset_id_value,La variable dataset_id doit être de type integer
+var_type_not_valid,La variable type n'est pas valide
 error_loading_csv,Erreur lors du chargement du fichier CSV
 error_transforming_tibble,Erreur dans la conversion de la variable au format tibble
 valid_col_names_are,Noms de colonnes non valides. Les noms requis sont : 
@@ -862,3 +863,5 @@ error_exporting_db,Erreur lors de l'export de la BDD
 imported_image_must_be_png_svg_or_jpg,"L'image importée doit être au format PNG, SVG ou JPG"
 exported_image_must_be_png_svg_or_jpg,"L'image exportée doit être au format PNG, SVG ou JPG"
 input_image_doesnt_exist,Le fichier de l'image n'existe pas
+error,Erreur
+show_imported_data,Afficher les données importées

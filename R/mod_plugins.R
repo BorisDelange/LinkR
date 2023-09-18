@@ -399,8 +399,12 @@ mod_plugins_ui <- function(id = character(), i18n = character()){
           div(
             shiny.fluent::Stack(
               horizontal = TRUE, tokens = list(childrenGap = 10),
-              make_dropdown(i18n = i18n, ns = ns, label = "plugins_to_export",
-                multiSelect = TRUE, width = "400px"),
+              div(
+                div(id = ns("plugins_to_export_title"), class = "input_title", i18n$t("plugins_to_export")),
+                shiny.fluent::Dropdown.shinyInput(ns("plugins_to_export"), multiSelect = TRUE,
+                  onChanged = htmlwidgets::JS(paste0("item => Shiny.setInputValue('", id, "-plugins_to_export_trigger', Math.random())"))),
+                style = "width:400px;"
+              ),
               div(shiny.fluent::PrimaryButton.shinyInput(ns("export_selected_plugins"), 
                 i18n$t("export_plugins"), iconProps = list(iconName = "Upload")), style = "margin-top:38px;"),
               style = "position:relative; z-index:1; width:700px;"
@@ -1456,7 +1460,7 @@ mod_plugins_server <- function(id = character(), r = shiny::reactiveValues(), d 
         value = options %>% dplyr::filter(name == "image") %>% dplyr::pull(value))
       
       for (field in c("version", "author", "name_fr", "name_en", "category_fr", "category_en")){
-        value <- options %>% dplyr::filter(name == field) %>% dplyr::pull(value)
+        value <- options %>% dplyr::filter(name == field) %>% dplyr::pull(value) %>% stringr::str_replace_all("''", "'")
         if (is.na(value)) value <- ""
         
         shiny.fluent::updateTextField.shinyInput(session, paste0("plugin_", field), value = value)
@@ -2552,8 +2556,8 @@ mod_plugins_server <- function(id = character(), r = shiny::reactiveValues(), d 
       
     })
     
-    # When dropdown is modified
-    observeEvent(input$plugins_to_export, {
+    # When dropdown is updated
+    observeEvent(input$plugins_to_export_trigger, {
       
       if (debug) print(paste0(Sys.time(), " - mod_plugins - observer input$plugins_to_export"))
       

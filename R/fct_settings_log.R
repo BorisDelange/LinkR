@@ -46,8 +46,8 @@ report_bug <- function(r = shiny::reactiveValues(), output, error_message = char
   if (error_message %not_in% c("fail_load_dataset", "fail_load_scripts", "error_connection_remote_git", 
     "error_restoring_database_table", "error_importing_default_database")){
     
-    if (length(ns) > 0) show_message_bar(output,  error_message, "severeWarning", i18n = i18n, ns = ns)
-    if (length(ns) == 0) show_message_bar(output,  error_message, "severeWarning", i18n = i18n)
+    if (length(ns) > 0) show_message_bar(output, error_message, "severeWarning", i18n = i18n, ns = ns)
+    if (length(ns) == 0) show_message_bar(output, error_message, "severeWarning", i18n = i18n)
   }
   
   # Add a log entry for bug report

@@ -398,7 +398,7 @@ mod_page_sidenav_server <- function(id = character(), r = shiny::reactiveValues(
         if (debug) print(paste0(Sys.time(), " - mod_page_sidenav - observer m$subsets"))
         
         if (nrow(m$subsets) == 0) shiny.fluent::updateComboBox.shinyInput(session, "subset", options = list(), value = NULL, 
-          errorMessage = i18n$t("no_study_available"))
+          errorMessage = i18n$t("no_subset_available"))
         
         if (nrow(m$subsets) > 0) shiny.fluent::updateComboBox.shinyInput(session, "subset",
           options = convert_tibble_to_list(m$subsets %>% dplyr::arrange(name), key_col = "id", text_col = "name"), value = NULL)
@@ -545,7 +545,7 @@ mod_page_sidenav_server <- function(id = character(), r = shiny::reactiveValues(
         if (!is.na(birth_datetime)) age <- lubridate::interval(birth_datetime, visit_detail_start_datetime) / lubridate::years(1)
         if (is.na(birth_datetime)) age <- as.numeric(format(visit_detail_start_datetime, "%Y")) - year_of_birth
 
-        age_div <- tagList(age, " ", i18n$t("years"))
+        age_div <- tagList(round(age, 0), " ", i18n$t("years"))
         if (!is.na(age) & age <= 2) age_div <- tagList(round(age * 12, 0), " ", i18n$t("months"))
 
         visit_detail <- d$visit_detail %>% dplyr::filter(visit_detail_id == m$selected_visit_detail)

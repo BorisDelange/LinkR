@@ -584,6 +584,8 @@ execute_settings_code <- function(input, output, session, id = character(), ns =
     # Restore normal value
     options('cli.num_colors' = NULL)
     
+    captured_output <- captured_output %>% stringr:: str_replace_all("<simpleError", "&lt;simpleError")
+    
     # Display result
     if (grepl("# A tibble:", toString(captured_output))) paste(captured_output, collapse = "\n") -> result
     else paste(strwrap(captured_output, width = 150), collapse = "\n") -> result

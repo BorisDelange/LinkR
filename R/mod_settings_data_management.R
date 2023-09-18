@@ -112,7 +112,8 @@ mod_settings_data_management_ui <- function(id = character(), i18n = character()
                 code_hotkeys = list("r", list(
                   run_selection = list(win = "CTRL-ENTER", mac = "CTRL-ENTER|CMD-ENTER"),
                   run_all = list(win = "CTRL-SHIFT-ENTER", mac = "CTRL-SHIFT-ENTER|CMD-SHIFT-ENTER"),
-                  save = list(win = "CTRL-S", mac = "CTRL-S|CMD-S"))
+                  save = list(win = "CTRL-S", mac = "CTRL-S|CMD-S"),
+                  comment = list(win = "CTRL-SHIFT-C", mac = "CTRL-SHIFT-C|CMD-SHIFT-C"))
                 ),
                 autoScrollEditorIntoView = TRUE, minLines = 30, maxLines = 1000),
                 style = "width: 100%;"
@@ -126,8 +127,14 @@ mod_settings_data_management_ui <- function(id = character(), i18n = character()
               ), br(), br(),
               div(textOutput(ns("datetime_code_execution")), style = "color:#878787;"), br(),
               div(shiny::uiOutput(ns("code_result")), 
-                style = "width: 99%; border-style: dashed; border-width: 1px; padding: 0px 8px 0px 8px; margin-right: 5px;"), br(),
-              DT::DTOutput(ns("code_datatable"))
+                style = "width: 99%; border-style: dashed; border-width: 1px; padding: 0px 8px 0px 8px; margin-right: 5px;"), br(), br(),
+              shiny.fluent::Stack(
+                horizontal = TRUE, tokens = list(childrenGap = 10),
+                shiny.fluent::Toggle.shinyInput(ns("show_imported_data"), value = FALSE),
+                div(i18n$t("show_imported_data"), style = "font-weight:bold;"),
+              ),
+              conditionalPanel(condition = "input.show_imported_data == true", ns = ns,
+                DT::DTOutput(ns("code_datatable")))
             )
           )
         ), br()
@@ -246,8 +253,8 @@ mod_settings_data_management_ui <- function(id = character(), i18n = character()
                   "r", list(
                     run_selection = list(win = "CTRL-ENTER", mac = "CTRL-ENTER|CMD-ENTER"),
                     run_all = list(win = "CTRL-SHIFT-ENTER", mac = "CTRL-SHIFT-ENTER|CMD-SHIFT-ENTER"),
-                    save = list(win = "CTRL-S", mac = "CTRL-S|CMD-S")
-                  )
+                    save = list(win = "CTRL-S", mac = "CTRL-S|CMD-S"),
+                    comment = list(win = "CTRL-SHIFT-C", mac = "CTRL-SHIFT-C|CMD-SHIFT-C"))
                 ),
                 autoScrollEditorIntoView = TRUE, minLines = 30, maxLines = 1000), 
               style = "width: 100%;")
@@ -919,7 +926,7 @@ mod_settings_data_management_server <- function(id = character(), r = shiny::rea
 
           # Reset code_result textOutput
           output$datetime_code_execution <- renderText("")
-          output$code_result <- renderText("")
+          output$code_result <- renderUI("")
         })
         
         # When save button is clicked, or CTRL+C or CMD+C is pushed
@@ -930,6 +937,11 @@ mod_settings_data_management_server <- function(id = character(), r = shiny::rea
         observeEvent(input$ace_edit_code_save, {
           if (debug) print(paste0(Sys.time(), " - mod_settings_data_management - observer input$ace_edit_code_save"))
           r[[paste0(id, "_save")]] <- Sys.time()
+          shinyjs::runjs(sprintf("
+            var editor = ace.edit('%s-ace_edit_code');
+            editor.moveCursorTo(%d, %d);
+            editor.focus();
+              ", id, input$ace_edit_code_save$range$end$row, input$ace_edit_code_save$range$end$column))
         })
         observeEvent(r[[paste0(id, "_save")]], {
           
@@ -945,6 +957,33 @@ mod_settings_data_management_server <- function(id = character(), r = shiny::rea
             code_id_input = paste0("edit_code_", link_id), edited_code = input$ace_edit_code, i18n = i18n)
           
           if (perf_monitoring) monitor_perf(r = r, action = "stop", task = paste0("mod_settings_data_management - observer r$..save"))
+        })
+        
+        # Comment text
+        
+        observeEvent(input$ace_edit_code_comment, {
+          if (debug) print(paste0(Sys.time(), " - mod_settings_data_management - observer input$ace_edit_code_comment"))
+          
+          lines <- strsplit(input$ace_edit_code, "\n")[[1]]
+          
+          start_row <- input$ace_edit_code_comment$range$start$row + 1
+          end_row <- input$ace_edit_code_comment$range$end$row + 1
+          
+          for (i in start_row:end_row) {
+            if (startsWith(lines[i], "# ")) {
+              lines[i] <- substr(lines[i], 3, nchar(lines[i]))
+            } else {
+              lines[i] <- paste0("# ", lines[i])
+            }
+          }
+          
+          shinyAce::updateAceEditor(session, "ace_edit_code", value = paste0(lines, collapse = "\n"))
+          
+          shinyjs::runjs(sprintf("
+            var editor = ace.edit('%s-ace_edit_code');
+            editor.moveCursorTo(%d, %d);
+            editor.focus();
+              ", id, input$ace_edit_code_comment$range$end$row, input$ace_edit_code_comment$range$end$column))
         })
         
         # When Execute code button is clicked
@@ -983,13 +1022,14 @@ mod_settings_data_management_server <- function(id = character(), r = shiny::rea
           }
           
           edited_code <- r[[paste0(id, "_code")]] %>% stringr::str_replace_all("\r", "\n")
+          # Prevent "NULL" at the end of console output
+          edited_code <- paste0(edited_code, "\ncat()")
           
           output$datetime_code_execution <- renderText(format_datetime(Sys.time(), language))
           
           console_result <- isolate(execute_settings_code(input = input, output = output, session = session, id = id, ns = ns, 
             i18n = i18n, r = r, d = d, m = m, edited_code = edited_code))
           
-          print(console_result)
           output$code_result <- renderUI(HTML(paste0("<pre>", console_result, "</pre>")))
 
           if (table == "datasets") r[[paste0(id, "_code_datatable_trigger")]] <- Sys.time()
