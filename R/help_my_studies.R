@@ -18,7 +18,7 @@ help_my_studies <- function(output, r = shiny::reactiveValues(), id = character(
   output$help_modal <- shiny.fluent::renderReact({
     
     shiny.fluent::Modal(
-      isOpen = r$help_my_studies_open_modal, dragOptions = TRUE, isModeless = FALSE, topOffsetFixed = TRUE,
+      isOpen = r$help_my_studies_open_modal, dragOptions = TRUE, isModeless = TRUE, topOffsetFixed = TRUE,
       onLightDismissClick = htmlwidgets::JS(paste0("function() { Shiny.setInputValue('", id, "-hide_modal_2', Math.random()); }")),
       div(
         style = "width: 1000px; padding: 15px 10px 0px 15px;",
