@@ -399,20 +399,20 @@ mod_scripts_server <- function(id = character(), r = shiny::reactiveValues(), d 
       r$help_scripts_open_panel_light_dismiss <- TRUE
     })
     
-    observeEvent(shiny.router::get_page(), {
-      if (debug) print(paste0(Sys.time(), " - mod_scripts - observer shiny_router::change_page"))
-      
-      # Close help pages when page changes
-      r$help_scripts_open_panel <- FALSE
-      r$help_scripts_open_modal <- FALSE
-      
-      # Load Export scripts page, to load DT (doesn't update with other DT if not already loaded once)
-      if (shiny.router::get_page() == "scripts" & length(r$scripts_page_loaded) == 0){
-        if ("export_script_card" %in% r$user_accesses) shinyjs::show("export_script_card")
-        shinyjs::delay(500, shinyjs::hide("export_script_card"))
-        r$scripts_page_loaded <- TRUE
-      }
-    })
+    # observeEvent(shiny.router::get_page(), {
+    #   if (debug) print(paste0(Sys.time(), " - mod_scripts - observer shiny_router::change_page"))
+    #   
+    #   # Close help pages when page changes
+    #   r$help_scripts_open_panel <- FALSE
+    #   r$help_scripts_open_modal <- FALSE
+    #   
+    #   # Load Export scripts page, to load DT (doesn't update with other DT if not already loaded once)
+    #   if (shiny.router::get_page() == "scripts" & length(r$scripts_page_loaded) == 0){
+    #     if ("export_script_card" %in% r$user_accesses) shinyjs::show("export_script_card")
+    #     shinyjs::delay(500, shinyjs::hide("export_script_card"))
+    #     r$scripts_page_loaded <- TRUE
+    #   }
+    # })
     
     sapply(1:10, function(i){
       observeEvent(input[[paste0("help_page_", i)]], r[[paste0("help_scripts_page_", i)]] <- Sys.time())

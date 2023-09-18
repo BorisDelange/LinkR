@@ -267,19 +267,19 @@ mod_vocabularies_server <- function(id = character(), r = shiny::reactiveValues(
       r$help_vocabularies_open_panel_light_dismiss <- TRUE
     })
     
-    observeEvent(shiny.router::get_page(), {
-      if (debug) print(paste0(Sys.time(), " - mod_vocabularies - observer shiny_router::change_page"))
-      
-      # Close help pages when page changes
-      r$help_vocabularies_open_panel <- FALSE
-      r$help_vocabularies_open_modal <- FALSE
-      
-      # Load evaluate and edit page, to load DT (doesn't update with other DT if not already loaded once)
-      if (shiny.router::get_page() == "vocabularies" & length(r$vocabularies_page_loaded) == 0){
-        shinyjs::runjs(glue::glue("$('#{id}-vocabularies_mapping_pivot button[name=\"{i18n$t('evaluate_and_edit')}\"]').click();"))
-        r$vocabularies_page_loaded <- TRUE
-      }
-    })
+    # observeEvent(shiny.router::get_page(), {
+    #   if (debug) print(paste0(Sys.time(), " - mod_vocabularies - observer shiny_router::change_page"))
+    #   
+    #   # Close help pages when page changes
+    #   r$help_vocabularies_open_panel <- FALSE
+    #   r$help_vocabularies_open_modal <- FALSE
+    #   
+    #   # Load evaluate and edit page, to load DT (doesn't update with other DT if not already loaded once)
+    #   if (shiny.router::get_page() == "vocabularies" & length(r$vocabularies_page_loaded) == 0){
+    #     shinyjs::runjs(glue::glue("$('#{id}-vocabularies_mapping_pivot button[name=\"{i18n$t('evaluate_and_edit')}\"]').click();"))
+    #     r$vocabularies_page_loaded <- TRUE
+    #   }
+    # })
     
     sapply(1:10, function(i){
       observeEvent(input[[paste0("help_page_", i)]], r[[paste0("help_vocabularies_page_", i)]] <- Sys.time())
