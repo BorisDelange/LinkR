@@ -8,7 +8,7 @@
 [![Lifecycle:
 experimental](https://img.shields.io/badge/lifecycle-experimental-orange.svg)](https://lifecycle.r-lib.org/articles/stages.html#experimental)
 ![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)
-![version](https://img.shields.io/badge/version-0.2.0.9026-blue)
+![version](https://img.shields.io/badge/version-0.2.0.9027-blue)
 <!-- badges: end -->
 
 ## Introduction
@@ -50,16 +50,25 @@ It contributes to **open science** by allowing the sharing of:
 
 ## Installation
 
-You can install the development version from Framagit, with:
-
-``` r
-remotes::install_gitlab(“interhop/linkr/linkr, host = "framagit.org")
-```
-
 The `remotes` library must be installed, you can install it with:
 
 ``` r
 install.packages("remotes")
+```
+
+Please note that your version of shiny must be **earlier than version
+1.7.5**, which causes significant application slowdowns.
+
+You can install version 1.7.4.1 with the following code.
+
+``` r
+remotes::install_github("rstudio/shiny@f5b3954")
+```
+
+You can install the development version from Framagit, with:
+
+``` r
+remotes::install_gitlab(“interhop/linkr/linkr, host = "framagit.org")
 ```
 
 ## Launch the app

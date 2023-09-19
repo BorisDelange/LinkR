@@ -29,7 +29,7 @@ insert_default_data <- function(output, r = shiny::reactiveValues(), m = shiny::
         
         db_folder <- paste0("https://framagit.org/interhop/linkr/LinkR-content/-/raw/main/app_database/v", r$app_version, "/", language)
         
-        for (i in 1:nrow(db_col_types)){
+        sapply (1:nrow(db_col_types), function(i){
           
           row <- db_col_types[i, ]
           table <- row$table
@@ -46,7 +46,7 @@ insert_default_data <- function(output, r = shiny::reactiveValues(), m = shiny::
             
             DBI::dbAppendTable(con, table, temp)
           }
-        }
+        })
         
       }, error = function(e) {
         report_bug(r = r, output = output, error_message = "error_importing_default_database",
