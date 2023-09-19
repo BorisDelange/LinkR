@@ -345,7 +345,7 @@ mod_vocabularies_server <- function(id = character(), r = shiny::reactiveValues(
       
       dataset_all_concepts_filename <- paste0(dataset_folder, "/dataset_all_concepts.csv")
       
-      if (file.exists(dataset_all_concepts_filename)) d$dataset_all_concepts <- readr::read_csv(dataset_all_concepts_filename, col_types = "icicccciccccccccii", progress = FALSE)
+      if (file.exists(dataset_all_concepts_filename)) d$dataset_all_concepts <- vroom::vroom(dataset_all_concepts_filename, col_types = "icicccciccccccccii", progress = FALSE)
      
       if (!file.exists(dataset_all_concepts_filename)){
         
@@ -638,7 +638,7 @@ mod_vocabularies_server <- function(id = character(), r = shiny::reactiveValues(
       
       dataset_drug_strength_filename <- paste0(r$app_folder, "/datasets/", r$selected_dataset, "/dataset_drug_strength.csv")
       
-      if (file.exists(dataset_drug_strength_filename)) d$dataset_drug_strength <- readr::read_csv(dataset_drug_strength_filename, col_types = "iicicncncnciccc", progress = FALSE)
+      if (file.exists(dataset_drug_strength_filename)) d$dataset_drug_strength <- vroom::vroom(dataset_drug_strength_filename, col_types = "iicicncncnciccc", progress = FALSE)
       
       if (!file.exists(dataset_drug_strength_filename)){
         

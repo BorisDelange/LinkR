@@ -38,7 +38,7 @@ insert_default_data <- function(output, r = shiny::reactiveValues(), m = shiny::
           
           if (table != "log"){
             col_types_temp <- db_col_types %>% dplyr::filter(table == !!table) %>% dplyr::pull(col_types)
-            temp <- readr::read_csv(paste0(db_folder, "/", table, ".csv"), col_types = col_types_temp, progress = FALSE)
+            temp <- vroom::vroom(paste0(db_folder, "/", table, ".csv"), col_types = col_types_temp, progress = FALSE)
             
             sql <- glue::glue_sql("DELETE FROM {table}", .con = con)
             query <- DBI::dbSendStatement(con, sql)

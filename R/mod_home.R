@@ -97,7 +97,7 @@ mod_home_server <- function(id = character(), r, language = "en", i18n = charact
             error_name = "home download tabs_and_cards.csv", category = "Error", error_report = toString(e), i18n = i18n, ns = ns))
       }
       
-      tryCatch(r$tabs_and_cards <- readr::read_csv(filename_local, col_types = "cccccciT", progress = FALSE),
+      tryCatch(r$tabs_and_cards <- vroom::vroom(filename_local, col_types = "cccccciT", progress = FALSE),
         error = function(e) report_bug(r = r, output = output, error_message = "error_loading_tabs_and_cards_csv_file",
           error_name = "home load tabs_and_cards.csv", category = "Error", error_report = toString(e), i18n = i18n, ns = ns))
     }

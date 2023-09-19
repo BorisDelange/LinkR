@@ -341,12 +341,9 @@ mod_my_studies_server <- function(id = character(), r = shiny::reactiveValues(),
       tryCatch({
 
         captured_output <- capture.output(run_dataset_code(output, r = r, d = d, dataset_id = r$selected_dataset, i18n = i18n))
-        print(toString(captured_output))
-        print(paste0("\\*\\*", i18n$t("error"), "\\*\\*"))
         
         # If an error occured
         if (grepl(paste0("\\*\\*", i18n$t("error"), "\\*\\*"), toString(captured_output))){
-          print("FAILURE")
           r$show_message_bar <- tibble::tibble(message = "fail_load_dataset", type = "severeWarning", trigger = Sys.time())
           report_bug(r = r, output = output, error_message = "fail_load_dataset",
             error_name = paste0(id, " - run server code"), category = "Error", error_report = toString(captured_output), i18n = i18n)
@@ -522,7 +519,7 @@ mod_my_studies_server <- function(id = character(), r = shiny::reactiveValues(),
               if (table == "dose_era" & omop_version %in% c("5.3", "5.4")) col_types <- "iiiinDD"
               if (table == "condition_era" & omop_version %in% c("5.3", "5.4")) col_types <- "iiiDDi"
               
-              d[[table]] <- readr::read_csv(table_file_path, col_types = col_types)
+              d[[table]] <- vroom::vroom(table_file_path, col_types = col_types)
             }
           }
         }

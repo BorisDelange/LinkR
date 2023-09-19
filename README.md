@@ -8,7 +8,7 @@
 [![Lifecycle:
 experimental](https://img.shields.io/badge/lifecycle-experimental-orange.svg)](https://lifecycle.r-lib.org/articles/stages.html#experimental)
 ![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)
-![version](https://img.shields.io/badge/version-0.2.0.9027-blue)
+![version](https://img.shields.io/badge/version-0.2.0.9028-blue)
 <!-- badges: end -->
 
 ## Introduction
@@ -68,7 +68,7 @@ remotes::install_github("rstudio/shiny@f5b3954")
 You can install the development version from Framagit, with:
 
 ``` r
-remotes::install_gitlab(“interhop/linkr/linkr, host = "framagit.org")
+remotes::install_gitlab("interhop/linkr/linkr", host = "framagit.org")
 ```
 
 ## Launch the app

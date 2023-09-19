@@ -114,7 +114,7 @@ import_dataset <- function(output, ns = character(), i18n = character(), r = shi
         if (type == "dose_era" & omop_version %in% c("5.3", "5.4")) col_types <- "iiiinDD"
         if (type == "condition_era" & omop_version %in% c("5.3", "5.4")) col_types <- "iiiDDi"
           
-        d[[type]] <- readr::read_csv(path, col_types = col_types, progress = FALSE)
+        d[[type]] <- vroom::vroom(path, col_types = col_types, progress = FALSE)
         cat(paste0("<span style = 'font-weight:bold; color:#0078D4;'>", i18n$t(paste0("import_dataset_success_", type)), "</span>\n"))
       })
     },
