@@ -1148,7 +1148,7 @@ mod_data_server <- function(id = character(), r = shiny::reactiveValues(), d = s
             new_env_vars <- list("r" = NA)
             
             # Variables to keep
-            variables_to_keep <- c("d", "m", "session_code", "session_num", "i18n", "selected_concepts")
+            variables_to_keep <- c("d", "m", "session_code", "session_num", "i18n", "selected_concepts", "debug")
             if (exists("i18np")) variables_to_keep <- c(variables_to_keep, "i18np")
             
             for (var in variables_to_keep) new_env_vars[[var]] <- eval(parse(text = var))
@@ -1367,7 +1367,7 @@ mod_data_server <- function(id = character(), r = shiny::reactiveValues(), d = s
       new_env_vars <- list("r" = NA)
       
       # Variables to keep
-      variables_to_keep <- c("d", "m", "session_code", "session_num", "i18n", "selected_concepts")
+      variables_to_keep <- c("d", "m", "session_code", "session_num", "i18n", "selected_concepts", "debug")
       if (exists("i18np")) variables_to_keep <- c(variables_to_keep, "i18np")
       
       for (var in variables_to_keep) new_env_vars[[var]] <- eval(parse(text = var))
@@ -2494,7 +2494,7 @@ mod_data_server <- function(id = character(), r = shiny::reactiveValues(), d = s
         new_env_vars <- list("r" = NA)
         
         # Variables to keep
-        variables_to_keep <- c("d", "m", "session_code", "session_num", "i18n", "selected_concepts")
+        variables_to_keep <- c("d", "m", "session_code", "session_num", "i18n", "selected_concepts", "debug")
         if (exists("i18np")) variables_to_keep <- c(variables_to_keep, "i18np")
         
         for (var in variables_to_keep) new_env_vars[[var]] <- eval(parse(text = var))
