@@ -9,9 +9,12 @@
 #' @param dataset_id ID of the dataset, used to create directory in data folder (integer)
 #' @param data Data variable (data.frame or tibble)
 #' @param type Name of the OMOP table to import (character)
-#' @param omop_version OMOP versions of the imported data, accepts "5.3", "5.4" or "6.0" (character)
+#' @param omop_version OMOP versions of the imported data, accepts 5.3, 5.4 or 6.0 (numeric)
 #' @param save_as_csv Save or not the data to CSV file (logical)
+#' @param save_as_parquet Save or not the data to Parquet file (logical)
 #' @param rewrite If save_as_csv is TRUE, rewrite or not existing CSV file (logical)
+#' @param use_spark Use Spark (sparklyr) to read data (logical)
+#' @param use_duckdb Use DuckDB to read data (logical)
 #' @description Load +/- save data when a dataset is selected by the user.
 #' @details The function is used in a dataset code and is launched each time a user selects a dataset. \cr\cr
 #' You can choose to \strong{load data each time} the function is used with save_as_csv set to FALSE (eg when dataset is small and the
@@ -26,10 +29,11 @@
 #'   person_source_value = NA_character_, gender_source_value = "F", race_source_value = NA_character_, ethnicity_source_value = NA_character_)
 #'     
 #' import_dataset(output = output, ns = ns, i18n = i18n, r = r, d = d, dataset_id = 5, data = persons, type = "persons", 
-#'   omop_versions = "5.4", save_as_csv = FALSE, rewrite = FALSE)
+#'   omop_versions = 5.4, save_as_csv = FALSE, rewrite = FALSE)
 #' }
 import_dataset <- function(output, ns = character(), i18n = character(), r = shiny::reactiveValues(), d = shiny::reactiveValues(), 
-  dataset_id = integer(), data = tibble::tibble(), type = "", omop_version = "6.0", save_as_csv = TRUE, rewrite = FALSE){
+  dataset_id = integer(), data = tibble::tibble(), type = "", omop_version = 6.0, 
+  save_as_csv = FALSE, save_as_parquet = FALSE, rewrite = FALSE, use_spark = FALSE, use_duckdb = FALSE){
   
   # Check dataset_id
   if (length(dataset_id) == 0){
@@ -53,7 +57,7 @@ import_dataset <- function(output, ns = character(), i18n = character(), r = shi
   dataset_id <- as.integer(dataset_id)
   
   # Check omop_version
-  if (omop_version %not_in% c("5.3", "5.4", "6.0")){
+  if (omop_version %not_in% c(5.3, 5.4, 6.0)){
     add_log_entry(r = r, category = "Error", name = paste0("import_dataset - invalid_omop_version - id = ", dataset_id), value = i18n$t("invalid_omop_version"))
     cat(paste0("<span style = 'font-weight:bold; color:red;'>**", i18n$t("error"), "** ", i18n$t("invalid_omop_version"), "</span>\n"))
     return(NULL)
@@ -64,7 +68,7 @@ import_dataset <- function(output, ns = character(), i18n = character(), r = shi
     "condition_occurrence", "drug_exposure", "procedure_occurrence", "device_exposure",
     "measurement", "observation", "death", "note", "note_nlp", "specimen", "fact_relationship", "location",
     "location_history", "care_site", "provider", "payer_plan_period", "cost", "drug_era",
-    "dose_era", "condition_era") | (type == "death" & omop_version %not_in% c("5.3", "5.4"))){
+    "dose_era", "condition_era") | (type == "death" & omop_version %not_in% c(5.3, 5.4))){
     add_log_entry(r = r, category = "Error", name = paste0("import_dataset - var_type_not_valid - id = ", dataset_id), value = i18n$t("var_type_not_valid"))
     cat(paste0("<span style = 'font-weight:bold; color:red;'>**", i18n$t("error"), "** ", i18n$t("var_type_not_valid"), "</span>\n"))
     return(NULL)
@@ -73,7 +77,9 @@ import_dataset <- function(output, ns = character(), i18n = character(), r = shi
   # If a datasets_folder is provided, take this value
   # Take package working directory else
   folder <- paste0(r$app_folder, "/datasets/", dataset_id)
-  path <- paste0(folder, "/", type, ".csv")
+  path <- ""
+  if (save_as_csv) path <- paste0(folder, "/", type, ".csv")
+  else if (save_as_parquet) path <- paste0(folder, "/", type, ".parquet")
   
   # If files already exists and we do not want to rewrite it
   if (save_as_csv & !rewrite & file.exists(path)){
@@ -105,14 +111,14 @@ import_dataset <- function(output, ns = character(), i18n = character(), r = shi
           "dose_era" = "iiiinTT",
           "condition_era" = "iiiTTi"
         )
-        if (type == "person" & omop_version %in% c("5.3", "5.4")) col_types <- "iiiiiTiiiiiccicici"
-        if (type == "visit_detail" & omop_version == "5.3") col_types <- "iiiDTDTiiiciciciiii"
-        if (type == "observation" & omop_version == "5.3") col_types <-  "iiiDTinciiiiiicicc"
-        if (type == "observation" & omop_version == "5.4") col_types <-  "iiiDTinciiiiiicicccii"
-        if (type == "location" & omop_version == "5.3") col_types <-  "iccccccc"
-        if (type == "drug_era" & omop_version %in% c("5.3", "5.4")) col_types <- "iiiDDii"
-        if (type == "dose_era" & omop_version %in% c("5.3", "5.4")) col_types <- "iiiinDD"
-        if (type == "condition_era" & omop_version %in% c("5.3", "5.4")) col_types <- "iiiDDi"
+        if (type == "person" & omop_version %in% c(5.3, 5.4)) col_types <- "iiiiiTiiiiiccicici"
+        if (type == "visit_detail" & omop_version == 5.3) col_types <- "iiiDTDTiiiciciciiii"
+        if (type == "observation" & omop_version == 5.3) col_types <-  "iiiDTinciiiiiicicc"
+        if (type == "observation" & omop_version == 5.4) col_types <-  "iiiDTinciiiiiicicccii"
+        if (type == "location" & omop_version == 5.3) col_types <-  "iccccccc"
+        if (type == "drug_era" & omop_version %in% c(5.3, 5.4)) col_types <- "iiiDDii"
+        if (type == "dose_era" & omop_version %in% c(5.3, 5.4)) col_types <- "iiiinDD"
+        if (type == "condition_era" & omop_version %in% c(5.3, 5.4)) col_types <- "iiiDDi"
           
         d[[type]] <- vroom::vroom(path, col_types = col_types, progress = FALSE)
         cat(paste0("<span style = 'font-weight:bold; color:#0078D4;'>", i18n$t(paste0("import_dataset_success_", type)), "</span>\n"))
@@ -129,6 +135,31 @@ import_dataset <- function(output, ns = character(), i18n = character(), r = shi
         return(NULL)}
     )
   }
+  else if (save_as_parquet & !rewrite & file.exists(path)){
+    if (!requireNamespace("arrow", quiet = TRUE)){
+      add_log_entry(r = r, category = "Error", name = paste0("import_dataset - error_loading_parquet - id = ", dataset_id), value = i18n$t("package_arrow_not_installed"))
+      cat(paste0(error_message, "<span style = 'font-weight:bold; color:red;'>**",  i18n$t("error"), "** ",
+        i18n$t("package_arrow_not_installed"), "</span>\n"))
+      return(NULL)
+    }
+    else {
+      tryCatch({
+        return({
+          d[[type]] <- arrow::read_parquet(path)
+          cat(paste0("<span style = 'font-weight:bold; color:#0078D4;'>", i18n$t(paste0("import_dataset_success_", type)), "</span>\n"))
+        })
+      },
+        error = function(e){
+          add_log_entry(r = r, category = "Error", name = paste0("import_dataset - error_loading_parquet - id = ", dataset_id), value = i18n$t("error_loading_parquet"))
+          cat(paste0("<span style = 'font-weight:bold; color:red;'>**", i18n$t("error"), "** ", i18n$t("error_loading_parquet"), "</span>\n"))
+          return(NULL)},
+        warning = function(w){
+          add_log_entry(r = r, category = "Error", name = paste0("import_dataset - error_loading_parquet - id = ", dataset_id), value = i18n$t("error_loading_parquet"))
+          cat(paste0("<span style = 'font-weight:bold; color:red;'>**", i18n$t("error"), "** ", i18n$t("error_loading_parquet"), "</span>\n"))
+          return(NULL)}
+      ) 
+    }
+  }
   
   # Transform as tibble
   if (!is.data.frame(data) & "tbl" %not_in% class(data)){
@@ -141,7 +172,7 @@ import_dataset <- function(output, ns = character(), i18n = character(), r = shi
   
   # Data cols
   
-  if (omop_version %in% c("5.3", "5.4")){
+  if (omop_version %in% c(5.3, 5.4)){
     
     data_cols <- tibble::tribble(
       ~var, ~cols,
@@ -208,7 +239,7 @@ import_dataset <- function(output, ns = character(), i18n = character(), r = shi
     )
   }
   
-  if (omop_version == "6.0"){
+  if (omop_version == 6.0){
     data_cols <- tibble::tribble(
       ~var, ~cols,
       "person", tibble::tribble(
@@ -287,7 +318,7 @@ import_dataset <- function(output, ns = character(), i18n = character(), r = shi
     )
   }
   
-  if (omop_version == "5.3"){
+  if (omop_version == 5.3){
     data_cols <- data_cols %>% dplyr::bind_rows(
       tibble::tribble(
         ~var, ~cols,
@@ -369,7 +400,7 @@ import_dataset <- function(output, ns = character(), i18n = character(), r = shi
     )
   }
   
-  if (omop_version == "5.4"){
+  if (omop_version == 5.4){
     data_cols <- data_cols %>% dplyr::bind_rows(
       tibble::tribble(
         ~var, ~cols,
@@ -423,7 +454,7 @@ import_dataset <- function(output, ns = character(), i18n = character(), r = shi
     )
   }
   
-  if (omop_version %in% c("5.4", "6.0")){
+  if (omop_version %in% c(5.4, 6.0)){
     data_cols <- data_cols %>% dplyr::bind_rows(
       tibble::tribble(
         ~var, ~cols,
@@ -834,8 +865,6 @@ import_dataset <- function(output, ns = character(), i18n = character(), r = shi
         # } else if (do.call(check_functions[[var_type]], list(data[[var_name]]))) error <- FALSE
         
         if (do.call(check_functions[[var_type]], list(data_test[[var_name]]))) error <- FALSE
-        print(var_type)
-        print(error)
         
         if (error) {
           type_error_msg <- paste0("type_must_be_", var_type)
@@ -861,20 +890,26 @@ import_dataset <- function(output, ns = character(), i18n = character(), r = shi
   # if (length(cols_to_char) > 0) data <- data %>% dplyr::mutate_at(cols_to_char, as.character)
   
   # if  save_as_csv is TRUE, save data in dataset folder
-  if (save_as_csv){
+  if (save_as_csv | save_as_parquet){
     if (!file.exists(folder)) dir.create(folder, recursive = TRUE)
-    if (!file.exists(path)) tryCatch(readr::write_csv(data, path, progress = FALSE),
+    if (save_as_csv) error_message <- "error_saving_csv"
+    else error_message <- "error_saving_parquet"
+    
+    if (!file.exists(path) | (file.exists(path) & rewrite)) tryCatch({
+        if (save_as_csv) readr::write_csv(data %>% dplyr::collect(), path, progress = FALSE)
+        else if (save_as_parquet){
+          if (!requireNamespace("arrow", quiet = TRUE)){
+            add_log_entry(r = r, category = "Error", name = paste0("import_dataset - error_saving_parquet - id = ", dataset_id), value = i18n$t("package_arrow_not_installed"))
+            cat(paste0(error_message, "<span style = 'font-weight:bold; color:red;'>**",  i18n$t("error"), "** ",
+              i18n$t("package_arrow_not_installed"), "</span>\n"))
+            return(NULL)
+          }
+          else arrow::write_parquet(data %>% dplyr::collect(), path)
+        }
+      },
       error = function(e){
-        add_log_entry(r = r, category = "Error", name = paste0("import_dataset - error_saving_csv - id = ", dataset_id), value = i18n$t("error_saving_csv"))
-        cat(paste0("<span style = 'font-weight:bold; color:red;'>", i18n$t("error_saving_csv"), "</span>\n"))
-        return(NULL)}
-    )
-    if (file.exists(path) & rewrite) tryCatch({
-      # file.remove(path)
-      readr::write_csv(data, path, progress = FALSE)}, 
-      error = function(e){
-        add_log_entry(r = r, category = "Error", name = paste0("import_dataset - error_saving_csv - id = ", dataset_id), value = i18n$t("error_saving_csv"))
-        cat(paste0("<span style = 'font-weight:bold; color:red;'>", i18n$t("error_saving_csv"), "</span>\n"))
+        add_log_entry(r = r, category = "Error", name = paste0("import_dataset - ", error_message, " - id = ", dataset_id), value = i18n$t(error_message))
+        cat(paste0("<span style = 'font-weight:bold; color:red;'>", i18n$t(error_message), "</span>\n"))
         return(NULL)}
     )
   }

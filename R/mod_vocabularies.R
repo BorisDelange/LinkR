@@ -1037,11 +1037,13 @@ mod_vocabularies_server <- function(id = character(), r = shiny::reactiveValues(
           else if (!is.na(selected_concept$concept_id_2)) concept_id <- selected_concept$concept_id_2
           else concept_id <- selected_concept$concept_id_1
           
-          values <- d[[row$table]] %>% dplyr::filter(get(row$concept_id) == !!concept_id)
+          if ("tbl_lazy" %in% class(d[[row$table]])) values <- d[[row$table]] %>% dplyr::filter(rlang::sym(row$concept_id) == concept_id) %>% dplyr::collect()
+          else values <- d[[row$table]] %>% dplyr::filter(get(row$concept_id) == concept_id) %>% dplyr::collect()
           
           # Add values for source_concept_id cols (except for Specimen domain)
           if (row$domain_id != "Specimen") values <- values %>% dplyr::bind_rows(
-            d[[row$table]] %>% dplyr::filter(get(row$concept_id %>% stringr::str_replace("concept_id", "source_concept_id")) == !!concept_id)
+            if ("tbl_lazy" %in% class(d[[row$table]])) d[[row$table]] %>% dplyr::filter(rlang::sym(row$concept_id %>% stringr::str_replace("concept_id", "source_concept_id")) == concept_id) %>% dplyr::collect()
+            else d[[row$table]] %>% dplyr::filter(get(row$concept_id %>% stringr::str_replace("concept_id", "source_concept_id")) == concept_id) %>% dplyr::collect()
           )
           
           r$vocabulary_selected_concept_values <- values
@@ -1049,8 +1051,11 @@ mod_vocabularies_server <- function(id = character(), r = shiny::reactiveValues(
           if (nrow(values) > 0){
             
             unit <- character()
-            if (selected_concept$domain_id %in% c("Measurement", "Observation")) unit <- values %>% 
-              dplyr::filter(!is.na(unit_concept_code)) %>% dplyr::distinct(unit_concept_code) %>% dplyr::pull()
+            if (selected_concept$domain_id %in% c("Measurement", "Observation")){
+              values <- values %>% 
+                dplyr::left_join(d$dataset_all_concepts %>% dplyr::select(unit_concept_id = concept_id_1, unit_concept_code = concept_name_1), by = "unit_concept_id")
+              unit <- values %>% dplyr::filter(!is.na(unit_concept_code)) %>% dplyr::distinct(unit_concept_code) %>% dplyr::pull()
+            } 
             r$vocabulary_selected_concept_unit <- unit
             
             values <- values %>% dplyr::slice_sample(n = 5, replace = TRUE)

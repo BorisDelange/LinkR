@@ -614,15 +614,11 @@ mod_page_sidenav_server <- function(id = character(), r = shiny::reactiveValues(
           if (is.na(person$birth_datetime) & !is.na(person$year_of_birth)) age <- as.numeric(format(visit_detail$visit_detail_start_datetime, "%Y")) - person$year_of_birth
           else age <- NA_integer_
           
-          print("2")
-          
           age_div <- tagList(round(age, 0), " ", i18n$t("years"))
           if (!is.na(age) & age <= 2) age_div <- tagList(round(age * 12, 0), " ", i18n$t("months"))
   
           if ("visit_detail_concept_name" %in% names(visit_detail)) visit_detail_concept_name <- visit_detail %>% dplyr::pull(visit_detail_concept_name)
           else visit_detail_concept_name <- visit_detail %>% dplyr::pull(visit_detail_concept_id)
-          
-          print("3")
           
           output$person_info <- renderUI({
             tagList(

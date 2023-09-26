@@ -574,6 +574,12 @@ execute_settings_code <- function(input, output, session, id = character(), ns =
       stringr::str_replace_all("%subset_id%", as.character(isolate(r$subset_id))) %>%
       stringr::str_replace_all("%vocabulary_id%", as.character(isolate(r$vocabulary_id)))
     
+    # Get OMOP version
+    if (!is.na(r$dataset_id)){
+      omop_version <- r$options %>% dplyr::filter(category == "dataset" & name == "omop_version" & link_id == r$dataset_id) %>% dplyr::pull(value)
+      code <- code %>% stringr::str_replace_all("%omop_version%", omop_version)
+    }
+    
     # Change this option to display correctly tibble in textbox
     options('cli.num_colors' = 1)
     

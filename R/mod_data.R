@@ -114,7 +114,7 @@ mod_data_ui <- function(id = character(), i18n = character()){
         shiny.fluent::Stack(horizontal = TRUE, tokens = list(childrenGap = 20),
           div(
             shiny.fluent::Stack(horizontal = TRUE, tokens = list(childrenGap = 10),
-              div(shiny.fluent::Toggle.shinyInput(ns(paste0(type, "_show_mapped_concepts")), value = TRUE), style = "margin-top:30px; margin-bottom:5px;"),
+              div(shiny.fluent::Toggle.shinyInput(ns(paste0(type, "_show_mapped_concepts")), value = FALSE), style = "margin-top:30px; margin-bottom:5px;"),
               div(i18n$t("show_mapped_concepts"), style = "font-weight:bold; margin-top:30px;; margin-bottom:5px;")
             ),
             style = "width:330px;"
@@ -337,8 +337,11 @@ mod_data_server <- function(id = character(), r = shiny::reactiveValues(), d = s
         sapply(person_tables, function(table) d$data_person[[table]] <- tibble::tibble())
         sapply(visit_detail_tables, function(table) d$data_visit_detail[[table]] <- tibble::tibble())
         
-        if (length(m$selected_person) > 0) for(table in person_tables) if (d$data_subset[[table]] %>% dplyr::count() %>% dplyr::pull() > 0) d$data_person[[table]] <- 
-          d$data_subset[[table]] %>% dplyr::filter(person_id == m$selected_person)
+        if (length(m$selected_person) > 0){
+          selected_person <- m$selected_person
+          for(table in person_tables) if (d$data_subset[[table]] %>% dplyr::count() %>% dplyr::pull() > 0) d$data_person[[table]] <- 
+          d$data_subset[[table]] %>% dplyr::filter(person_id == selected_person)
+        }
         
         # Reset selected_visit_detail
         m$selected_visit_detail <- NA_integer_
@@ -357,8 +360,11 @@ mod_data_server <- function(id = character(), r = shiny::reactiveValues(), d = s
           "observation", "note", "note_nlp", "fact_relationship", "payer_plan_period", "cost")
         sapply(visit_detail_tables, function(table) d$data_visit_detail[[table]] <- tibble::tibble())
         
-        if (length(m$selected_visit_detail) > 0) for(table in visit_detail_tables) if (d$data_person[[table]] %>% dplyr::count() %>% dplyr::pull() > 0) d$data_visit_detail[[table]] <- 
-          d$data_person[[table]] %>% dplyr::filter(visit_detail_id == m$selected_visit_detail)
+        if (length(m$selected_visit_detail) > 0){
+          selected_visit_detail <- m$selected_visit_detail
+          for(table in visit_detail_tables) if (d$data_person[[table]] %>% dplyr::count() %>% dplyr::pull() > 0) d$data_visit_detail[[table]] <- 
+              d$data_person[[table]] %>% dplyr::filter(visit_detail_id == selected_visit_detail)
+        }
         
         if (perf_monitoring) monitor_perf(r = r, action = "stop", task = paste0("mod_data - ", id, " - observer m$selected_visit_detail"))
       })
