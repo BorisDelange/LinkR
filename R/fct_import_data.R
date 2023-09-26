@@ -96,7 +96,7 @@ import_dataset <- function(output, ns = character(), i18n = character(), r = shi
           "specimen" = "iiiiDTniiiccccc",
           "fact_relationship" = "iiiii",
           "location" = "icccccccnn",
-          "location_hisTory" = "iiciDD",
+          "location_history" = "iiciDD",
           "care_site" = "iciicc",
           "provider" = "iccciiiiccici",
           "payer_plan_period" = "iiiDDiciiciiciicicici",
@@ -131,13 +131,13 @@ import_dataset <- function(output, ns = character(), i18n = character(), r = shi
   }
   
   # Transform as tibble
-  if (!is.data.frame(data)){
+  if (!is.data.frame(data) & "tbl" %not_in% class(data)){
     add_log_entry(r = r, category = "Error", name = paste0("import_dataset - error_transforming_tibble - id = ", dataset_id), value = i18n$t("error_transforming_tibble"))
     cat(paste0("<span style = 'font-weight:bold; color:red;'>**", i18n$t("error"), "** ", i18n$t("error_transforming_tibble"), "</span>\n"))
     return(NULL)
   }
   
-  data <- tibble::as_tibble(data)
+  if ("tbl" %not_in% class(data)) data <- tibble::as_tibble(data)
   
   # Data cols
   
@@ -794,32 +794,62 @@ import_dataset <- function(output, ns = character(), i18n = character(), r = shi
   }
   
   error_message <- ""
-  cols_to_char <- character(0)
+  # cols_to_char <- character(0)
+  
+  var_types <- c("integer", "character", "numeric", "datetime", "date")
+  
+  conversion_functions <- list(
+    "integer" = as.integer,
+    "character" = as.character,
+    "numeric" = as.numeric,
+    "datetime" = as.POSIXct,
+    "date" = as.Date
+  )
+  
+  check_functions <- list(
+    "integer" = is.integer,
+    "character" = is.character,
+    "numeric" = is.numeric,
+    "datetime" = lubridate::is.POSIXct,
+    "date" = lubridate::is.Date
+  )
+  
+  data_test <- data %>% dplyr::slice_sample(n = 1) %>% dplyr::collect()
   
   for (i in 1:nrow(var_cols)){
-    var_name <- var_cols[[i, "name"]]
-    if (var_cols[[i, "type"]] == "integer" & !is.integer(data[[var_name]])){
-      add_log_entry(r = r, category = "Error", name = paste0("import_dataset - invalid_col_types - id = ", dataset_id), value = paste0(i18n$t("column"), " ", var_name, " ", i18n$t("type_must_be_integer")))
-      error_message <- paste0(error_message, "<span style = 'font-weight:bold; color:red;'>**", i18n$t("error"), "** ", i18n$t("column"), " ", var_name, " ", i18n$t("type_must_be_integer"), "</span>\n")
-    } 
-    else if (var_cols[[i, "type"]] == "character" & !is.character(data[[var_name]])){
-      add_log_entry(r = r, category = "Error", name = paste0("import_dataset - invalid_col_types - id = ", dataset_id), value = paste0(i18n$t("column"), " ", var_name, " ", i18n$t("type_must_be_character")))
-      error_message <- paste0(error_message, "<span style = 'font-weight:bold; color:red;'>**", i18n$t("error"), "** ", i18n$t("column"), " ", var_name, " ", i18n$t("type_must_be_character"), "</span>\n")
-    }
-    else if (var_cols[[i, "type"]] == "numeric" & !is.numeric(data[[var_name]])){
-      add_log_entry(r = r, category = "Error", name = paste0("import_dataset - invalid_col_types - id = ", dataset_id), value = paste0(i18n$t("column"), " ", var_name, " ", i18n$t("type_must_be_numeric")))
-      error_message <- paste0(error_message, "<span style = 'font-weight:bold; color:red;'>**", i18n$t("error"), "** ", i18n$t("column"), " ", var_name, " ", i18n$t("type_must_be_numeric"), "</span>\n")
-    } 
-    else if (var_cols[[i, "type"]] == "datetime" & !lubridate::is.POSIXct(data[[var_name]])){
-      add_log_entry(r = r, category = "Error", name = paste0("import_dataset - invalid_col_types - id = ", dataset_id), value = paste0(i18n$t("column"), " ", var_name, " ", i18n$t("type_must_be_datetime")))
-      error_message <- paste0(error_message, "<span style = 'font-weight:bold; color:red;'>**", i18n$t("error"), "** ", i18n$t("column"), " ", var_name, " ", i18n$t("type_must_be_datetime"), "</span>\n")
-    }
-    else if (var_cols[[i, "type"]] == "date" & !lubridate::is.Date(data[[var_name]])){
-      add_log_entry(r = r, category = "Error", name = paste0("import_dataset - invalid_col_types - id = ", dataset_id), value = paste0(i18n$t("column"), " ", var_name, " ", i18n$t("type_must_be_date")))
-      error_message <- paste0(error_message, "<span style = 'font-weight:bold; color:red;'>**", i18n$t("error"), "** ", i18n$t("column"), " ", var_name, " ", i18n$t("type_must_be_date"), "</span>\n")
-    }
     
-    if (var_cols[[i, "type"]] %in% c("datetime", "date")) cols_to_char <- c(cols_to_char, var_name)
+    error <- TRUE
+    
+    var_name <- var_cols[[i, "name"]]
+    
+    for (var_type in var_types) {
+      if (var_cols[[i, "type"]] == var_type) {
+        # if ("tbl_lazy" %in% class(data)) {
+        #   tryCatch({
+        #     # data <- data %>% dplyr::mutate_at(var_name, conversion_functions[[var_type]])
+        #     if (var_type == "datetime") data <- data %>% dplyr::mutate_at(var_name, as.POSIXct)
+        #     print(data %>% dplyr::select(var_name))
+        #     error <- FALSE
+        #   })
+        # } else if (do.call(check_functions[[var_type]], list(data[[var_name]]))) error <- FALSE
+        
+        if (do.call(check_functions[[var_type]], list(data_test[[var_name]]))) error <- FALSE
+        print(var_type)
+        print(error)
+        
+        if (error) {
+          type_error_msg <- paste0("type_must_be_", var_type)
+          
+          add_log_entry(r = r, category = "Error", name = paste0("import_dataset - invalid_col_types - id = ", dataset_id), 
+            value = paste0(i18n$t("column"), " ", var_name, " ", i18n$t(type_error_msg)))
+          
+          error_message <- paste0(error_message, "<span style = 'font-weight:bold; color:red;'>**",  i18n$t("error"), "** ",
+            i18n$t("column"), " ", var_name, " ", i18n$t(type_error_msg), "</span>\n"
+          )
+        }
+      }
+    }
+    # if (var_cols[[i, "type"]] %in% c("datetime", "date")) cols_to_char <- c(cols_to_char, var_name)
   }
   
   if (error_message != ""){
@@ -828,7 +858,7 @@ import_dataset <- function(output, ns = character(), i18n = character(), r = shi
   }
   
   # Transform date cols to character
-  if (length(cols_to_char) > 0) data <- data %>% dplyr::mutate_at(cols_to_char, as.character)
+  # if (length(cols_to_char) > 0) data <- data %>% dplyr::mutate_at(cols_to_char, as.character)
   
   # if  save_as_csv is TRUE, save data in dataset folder
   if (save_as_csv){

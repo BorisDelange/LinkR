@@ -337,7 +337,7 @@ mod_data_server <- function(id = character(), r = shiny::reactiveValues(), d = s
         sapply(person_tables, function(table) d$data_person[[table]] <- tibble::tibble())
         sapply(visit_detail_tables, function(table) d$data_visit_detail[[table]] <- tibble::tibble())
         
-        if (length(m$selected_person) > 0) for(table in person_tables) if (nrow(d$data_subset[[table]]) > 0) d$data_person[[table]] <- 
+        if (length(m$selected_person) > 0) for(table in person_tables) if (d$data_subset[[table]] %>% dplyr::count() %>% dplyr::pull() > 0) d$data_person[[table]] <- 
           d$data_subset[[table]] %>% dplyr::filter(person_id == m$selected_person)
         
         # Reset selected_visit_detail
@@ -357,7 +357,7 @@ mod_data_server <- function(id = character(), r = shiny::reactiveValues(), d = s
           "observation", "note", "note_nlp", "fact_relationship", "payer_plan_period", "cost")
         sapply(visit_detail_tables, function(table) d$data_visit_detail[[table]] <- tibble::tibble())
         
-        if (length(m$selected_visit_detail) > 0) for(table in visit_detail_tables) if (nrow(d$data_person[[table]]) > 0) d$data_visit_detail[[table]] <- 
+        if (length(m$selected_visit_detail) > 0) for(table in visit_detail_tables) if (d$data_person[[table]] %>% dplyr::count() %>% dplyr::pull() > 0) d$data_visit_detail[[table]] <- 
           d$data_person[[table]] %>% dplyr::filter(visit_detail_id == m$selected_visit_detail)
         
         if (perf_monitoring) monitor_perf(r = r, action = "stop", task = paste0("mod_data - ", id, " - observer m$selected_visit_detail"))
@@ -376,10 +376,17 @@ mod_data_server <- function(id = character(), r = shiny::reactiveValues(), d = s
         subset_tables <- c("condition_occurrence", "drug_exposure", "procedure_occurrence", "device_exposure", "measurement",
           "observation", "death", "note", "note_nlp", "specimen", "fact_relationship", "payer_plan_period", "cost", 
           "drug_era", "dose_era", "condition_era", "person", "observation_period", "visit_occurrence", "visit_detail")
-        for(table in subset_tables) d$data_subset[[table]] <- tibble::tibble()
         
-        if (nrow(m$subset_persons) > 0) for(table in subset_tables) if (nrow(d[[table]]) > 0) d$data_subset[[table]] <- 
-          d[[table]] %>% dplyr::inner_join(m$subset_persons %>% dplyr::select(person_id), by = "person_id")
+        for(table in subset_tables){
+          if (nrow(m$subset_persons) > 0){
+            if (d[[table]] %>% dplyr::count() %>% dplyr::pull() > 0){
+              person_ids <- m$subset_persons$person_id
+              d$data_subset[[table]] <- d[[table]] %>% dplyr::filter(person_id %in% person_ids)
+            } 
+            else d$data_subset[[table]] <- tibble::tibble()
+          }
+          else d$data_subset[[table]] <- tibble::tibble()
+        }
         
         if (perf_monitoring) monitor_perf(r = r, action = "stop", task = paste0("mod_data - ", id, " - observer m$subset_persons"))
       })

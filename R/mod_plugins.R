@@ -1225,7 +1225,7 @@ mod_plugins_server <- function(id = character(), r = shiny::reactiveValues(), d 
       if (debug) print(paste0(Sys.time(), " - mod_plugins - observer r$..export_plugins_temp"))
       
       # Reload datatable_temp variable
-      if (nrow(r[[paste0(prefix, "_export_plugins_temp")]] == 0)){
+      if (nrow(r[[paste0(prefix, "_export_plugins_temp")]]) == 0){
         data <- tibble::tibble(id = integer(), name = character(), tab_type_id = integer(),
           creation_datetime = character(), update_datetime = character(), deleted = integer(), modified = logical(), action = character())
       }

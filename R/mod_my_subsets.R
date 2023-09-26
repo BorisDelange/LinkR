@@ -713,9 +713,10 @@ mod_my_subsets_server <- function(id = character(), r = shiny::reactiveValues(),
       
       # Update persons not already added in subset
       
-      if (nrow(d$person) > 0) r$subset_add_persons <-
+      if (d$person %>% dplyr::count() %>% dplyr::pull() > 0) r$subset_add_persons <-
         d$person %>%
         dplyr::select(person_id) %>%
+        dplyr::collect() %>%
         dplyr::anti_join(r$subset_persons_temp %>% dplyr::select(person_id) %>% dplyr::mutate_at("person_id", as.integer), by = "person_id") %>%
         dplyr::mutate_at("person_id", as.character)
     })

@@ -63,7 +63,7 @@ make_card <- function(title = character(), content = character(), size = 12, sty
 #' @param options Options available for the combobox (list)
 #' @param value Value of the combobox (character)
 #' @param multiSelect Is multiselection of options is possible ? (logical)
-#' @param allowFreeForm Allows user to enter free text, not provided in the options / choices (logical)
+#' @param allowFreeform Allows user to enter free text, not provided in the options / choices (logical)
 #' @param autoComplete Auto completion of the text entered in the combobox, to match with available options / choices ("on" of "off") (character)
 #' @param width Width of the dropdown, CSS code so "300px" or "100\%" are accepted
 #' @examples 

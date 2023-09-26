@@ -8,7 +8,7 @@
 [![Lifecycle:
 experimental](https://img.shields.io/badge/lifecycle-experimental-orange.svg)](https://lifecycle.r-lib.org/articles/stages.html#experimental)
 ![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)
-![version](https://img.shields.io/badge/version-0.2.0.9028-blue)
+![version](https://img.shields.io/badge/version-0.2.0.9029-blue)
 <!-- badges: end -->
 
 ## Introduction
@@ -90,7 +90,7 @@ You can use the following arguments in the linkr function :
 - *show_home_page*: TRUE or FALSE to show home pages (Overview, News,
   Tutorials… pages)
 
-See `?linkr` for more informations.
+See `?linkr::linkr` for more informations.
 
 The first load may take a few minutes to create the application database
 and download the default data.

@@ -96,6 +96,13 @@ golem_add_external_resources <- function(css){
     # ")
     # ),
     
+    # Script for make an input when a text is entered in the person ComboBox.shinyInput
+    tags$head(tags$script("
+      $(document).on('keyup', '#patient_level_data-person-input', function() {
+        Shiny.setInputValue('patient_level_data-person_trigger', $(this).val());
+      });
+    ")),
+    
     # Add fontawesome icons
     htmltools::tags$link(
       rel = "stylesheet",

@@ -1050,7 +1050,7 @@ mod_settings_data_management_server <- function(id = character(), r = shiny::rea
           
           for (var in vars){
             if (length(d[[var]]) == 0) n_rows <- 0L
-            else n_rows <- nrow(d[[var]])
+            else n_rows <- d[[var]] %>% dplyr::count() %>% dplyr::pull()
             data <- data %>% dplyr::bind_rows(tibble::tibble(name = var, rows = n_rows))
           }
           

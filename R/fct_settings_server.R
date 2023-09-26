@@ -302,7 +302,7 @@ add_settings_new_data <- function(session, output, r = shiny::reactiveValues(), 
       last_row$subsets + 1, i18n$t("subset_all_patients"), "", last_row$data + 1, r$user_id, as.character(Sys.time()), FALSE)
     
     # Add code for creating subset with all patients
-    code <- paste0("add_persons_to_subset(output = output, m = m, persons = d$person %>% dplyr::select(person_id), subset_id = %subset_id%, i18n = i18n, ns = ns)")
+    code <- paste0("add_persons_to_subset(output = output, m = m, persons = d$person %>% dplyr::select(person_id) %>% dplyr::collect(), subset_id = %subset_id%, i18n = i18n, ns = ns)")
     new_data$code <- tibble::tribble(~id, ~category, ~link_id, ~code, ~creator_id, ~datetime, ~deleted,
       last_row$code + 1, "subset", last_row$subsets + 1, code, r$user_id, as.character(Sys.time()), FALSE)
     

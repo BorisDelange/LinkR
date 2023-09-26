@@ -464,7 +464,7 @@ mod_my_studies_server <- function(id = character(), r = shiny::reactiveValues(),
           
           # Save data as CSV files
           for (table in tables){
-            if (nrow(d[[table]]) > 0){
+            if (d[[table]] %>% dplyr::count() %>% dplyr::pull() > 0){
               # Select cols without merged cols
               readr::write_csv(d[[table]] %>% dplyr::select(-dplyr::contains("concept_name"), -dplyr::contains("unit_concept_code")),
                 paste0(r$app_folder, "/datasets/", r$selected_dataset, "/", table, "_with_scripts.csv"))
