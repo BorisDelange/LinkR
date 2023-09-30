@@ -339,7 +339,7 @@ mod_my_studies_server <- function(id = character(), r = shiny::reactiveValues(),
       
       # Try to load dataset
       tryCatch({
-
+        
         captured_output <- capture.output(run_dataset_code(output, r = r, d = d, dataset_id = r$selected_dataset, i18n = i18n))
         
         # If an error occured
@@ -392,7 +392,7 @@ mod_my_studies_server <- function(id = character(), r = shiny::reactiveValues(),
           
           # If cache activated, load cache
           if(cache_activated){
-            loaded_scripts_file_path <- paste0(r$app_folder, "/datasets/", r$selected_dataset, "/loaded_scripts.csv")
+            loaded_scripts_file_path <- paste0(r$app_folder, "/datasets_files/", r$selected_dataset, "/loaded_scripts.csv")
             if (!file.exists(loaded_scripts_file_path) | r$force_reload_scripts_cache) execute_scripts_files <- TRUE
           }
           
@@ -453,8 +453,8 @@ mod_my_studies_server <- function(id = character(), r = shiny::reactiveValues(),
           "drug_era", "dose_era", "condition_era", "person", "observation_period", "visit_occurrence", "visit_detail",
           "location", "care_site", "provider")
         
-        dataset_file_path <- paste0(r$app_folder, "/datasets/", r$selected_dataset)
-        loaded_scripts_file_path <- paste0(r$app_folder, "/datasets/", r$selected_dataset, "/loaded_scripts.csv")
+        dataset_file_path <- paste0(r$app_folder, "/datasets_files/", r$selected_dataset)
+        loaded_scripts_file_path <- paste0(r$app_folder, "/datasets_files/", r$selected_dataset, "/loaded_scripts.csv")
         
         # If dataset folder doesn't exist, create it
         if (!dir.exists(dataset_file_path)) dir.create(dataset_file_path)
@@ -467,19 +467,19 @@ mod_my_studies_server <- function(id = character(), r = shiny::reactiveValues(),
             if (d[[table]] %>% dplyr::count() %>% dplyr::pull() > 0){
               # Select cols without merged cols
               readr::write_csv(d[[table]] %>% dplyr::select(-dplyr::contains("concept_name"), -dplyr::contains("unit_concept_code")),
-                paste0(r$app_folder, "/datasets/", r$selected_dataset, "/", table, "_with_scripts.csv"))
+                paste0(r$app_folder, "/datasets_files/", r$selected_dataset, "/", table, "_with_scripts.csv"))
             }
           }
           
           # Save a CSV file for informations on loaded scripts
-          readr::write_csv(r$dataset_loaded_scripts, paste0(r$app_folder, "/datasets/", r$selected_dataset, "/loaded_scripts.csv"))
+          readr::write_csv(r$dataset_loaded_scripts, paste0(r$app_folder, "/datasets_files/", r$selected_dataset, "/loaded_scripts.csv"))
         }
         
         # Load cache if already exists
         
         if (file.exists(loaded_scripts_file_path)){
           for (table in tables){
-            table_file_path <- paste0(r$app_folder, "/datasets/", r$selected_dataset, "/", table, "_with_scripts.csv")
+            table_file_path <- paste0(r$app_folder, "/datasets_files/", r$selected_dataset, "/", table, "_with_scripts.csv")
             
             if (file.exists(table_file_path)){
               

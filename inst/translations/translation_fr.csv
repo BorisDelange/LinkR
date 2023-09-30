@@ -469,6 +469,8 @@ valid_col_names_are,Noms de colonnes non valides. Les noms requis sont :
 error_saving_csv,Erreur dans l'enregistrement du fichier CSV
 error_saving_parquet,Erreur dans l'enregistrement du fichier Parquet
 package_arrow_not_installed,La librairie arrow n'est pas installée
+package_duckdb_not_installed,La librairie duckdb n'est pas installée
+package_sparklyr_not_installed,La librairie sparklyr n'est pas installée
 import_dataset_success_person,Variable person importée avec succès
 import_dataset_success_observation_period,Variable observation_period importée avec succès
 import_dataset_success_visit_occurrence,Variable visit_occurrence importée avec succès
@@ -867,3 +869,8 @@ exported_image_must_be_png_svg_or_jpg,"L'image exportée doit être au format PN
 input_image_doesnt_exist,Le fichier de l'image n'existe pas
 error,Erreur
 show_imported_data,Afficher les données importées
+dataset_invalid_save_as,"Value non valide pour le paramètre 'save as'. Valeurs acceptées : 'none', 'csv' et 'parquet'."
+dataset_invalid_read_with,"Valeur non valid pour le paramètre 'read_with'. Valeurs acceptées : 'none', 'vroom', 'duckdb', 'spark'."
+wrong_association_read_with_and_save_as,"L'association entre les paramètres 'read_with' et 'save_as' n'est pas valide."
+error_loading_duckdb,Erreur lors du chargement de la base de données duckdb
+error_loading_sparklyr,Erreur lors du chargement des données avec sparklyr

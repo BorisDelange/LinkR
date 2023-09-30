@@ -10,11 +10,9 @@
 #' @param data Data variable (data.frame or tibble)
 #' @param type Name of the OMOP table to import (character)
 #' @param omop_version OMOP versions of the imported data, accepts 5.3, 5.4 or 6.0 (numeric)
-#' @param save_as_csv Save or not the data to CSV file (logical)
-#' @param save_as_parquet Save or not the data to Parquet file (logical)
-#' @param rewrite If save_as_csv is TRUE, rewrite or not existing CSV file (logical)
-#' @param use_spark Use Spark (sparklyr) to read data (logical)
-#' @param use_duckdb Use DuckDB to read data (logical)
+#' @param read_with The library used to read the data. Accepted values = c("none", "vroom", "duckdb", "spark", "arrow") (character)
+#' @param save_as Save the data locally. Accepted values = c("none", "csv", "parquet") (character)
+#' @param rewrite If save_as_csv is TRUE, rewrite or not existing CSV file (logical)-
 #' @description Load +/- save data when a dataset is selected by the user.
 #' @details The function is used in a dataset code and is launched each time a user selects a dataset. \cr\cr
 #' You can choose to \strong{load data each time} the function is used with save_as_csv set to FALSE (eg when dataset is small and the
@@ -33,7 +31,25 @@
 #' }
 import_dataset <- function(output, ns = character(), i18n = character(), r = shiny::reactiveValues(), d = shiny::reactiveValues(), 
   dataset_id = integer(), data = tibble::tibble(), type = "", omop_version = 6.0, 
-  save_as_csv = FALSE, save_as_parquet = FALSE, rewrite = FALSE, use_spark = FALSE, use_duckdb = FALSE){
+  read_with = "none", save_as = "none", rewrite = FALSE){
+  
+  # --- --- --- --- -- -
+  # Check arguments ----
+  # --- --- --- --- -- -
+  
+  # Check read_with
+  if (read_with %not_in% c("none", "vroom", "duckdb", "spark", "arrow")){
+    add_log_entry(r = r, category = "Error", name = paste0("import_dataset - invalid_read_with"), value = i18n$t("dataset_invalid_read_with"))
+    cat(paste0("<span style = 'font-weight:bold; color:red;'>**", i18n$t("error"), "** ", i18n$t("dataset_invalid_read_with"), "</span>\n"))
+    return(NULL)
+  }
+  
+  # Check save_as
+  if (save_as %not_in% c("none", "csv", "parquet")){
+    add_log_entry(r = r, category = "Error", name = paste0("import_dataset - invalid_save_as"), value = i18n$t("dataset_invalid_save_as"))
+    cat(paste0("<span style = 'font-weight:bold; color:red;'>**", i18n$t("error"), "** ", i18n$t("dataset_invalid_save_as"), "</span>\n"))
+    return(NULL)
+  }
   
   # Check dataset_id
   if (length(dataset_id) == 0){
@@ -76,92 +92,289 @@ import_dataset <- function(output, ns = character(), i18n = character(), r = shi
  
   # If a datasets_folder is provided, take this value
   # Take package working directory else
-  folder <- paste0(r$app_folder, "/datasets/", dataset_id)
+  folder <- paste0(r$app_folder, "/datasets_files/", dataset_id)
   path <- ""
-  if (save_as_csv) path <- paste0(folder, "/", type, ".csv")
-  else if (save_as_parquet) path <- paste0(folder, "/", type, ".parquet")
+  if (save_as != "none") path <- paste0(folder, "/", type, ".", save_as)
+  
+  # Accepted associations :
+  # - vroom / csv
+  # - arrow / parquet
+  # - duckdb / csv
+  # - duckdb / parquet
+  # - duckdb / none
+  # - spark / csv
+  # - spark / parquet
+  # - spark / none
+  
+  error_read_with_save_as <- TRUE
+  if (read_with == "none" & save_as == "none") error_read_with_save_as <- FALSE
+  
+  # --- --- --- --- ---
+  # Read data file ----
+  # --- --- --- --- ---
   
   # If files already exists and we do not want to rewrite it
-  if (save_as_csv & !rewrite & file.exists(path)){
-    tryCatch({
-      return({
-        col_types <- switch(type, 
-          "person" = "iiiiiTTiiiiiccicici",
-          "observation_period" = "iiDDi",
-          "visit_occurrence" = "iiiDTDTiiiciicici",
-          "visit_detail" = "iiiDTDTiiiciicciiii",
-          "condition_occurrence" = "iiiDTDTiiciiicic",
-          "drug_exposure" = "iiiDTDTDiciniciciiicicc",
-          "procedure_occurrence" = "iiiDTiiiiiicic",
-          "device_exposure" = "iiiDTDTiciiiici",
-          "measurement" = "iiiDTciiniinniiicicc",
-          "observation" = "iiiDTinciiiiiicicciiT",
-          "death" = "iDTiici",
-          "note" = "iiiiDTiicciiiiic",
-          "note_nlp" = "iiiccciicDTccc",
-          "specimen" = "iiiiDTniiiccccc",
-          "fact_relationship" = "iiiii",
-          "location" = "icccccccnn",
-          "location_history" = "iiciDD",
-          "care_site" = "iciicc",
-          "provider" = "iccciiiiccici",
-          "payer_plan_period" = "iiiDDiciiciiciicicici",
-          "cost" = "iiiiiiicinDDDiicci",
-          "drug_era" = "iiiTTii",
-          "dose_era" = "iiiinTT",
-          "condition_era" = "iiiTTi"
-        )
-        if (type == "person" & omop_version %in% c(5.3, 5.4)) col_types <- "iiiiiTiiiiiccicici"
-        if (type == "visit_detail" & omop_version == 5.3) col_types <- "iiiDTDTiiiciciciiii"
-        if (type == "observation" & omop_version == 5.3) col_types <-  "iiiDTinciiiiiicicc"
-        if (type == "observation" & omop_version == 5.4) col_types <-  "iiiDTinciiiiiicicccii"
-        if (type == "location" & omop_version == 5.3) col_types <-  "iccccccc"
-        if (type == "drug_era" & omop_version %in% c(5.3, 5.4)) col_types <- "iiiDDii"
-        if (type == "dose_era" & omop_version %in% c(5.3, 5.4)) col_types <- "iiiinDD"
-        if (type == "condition_era" & omop_version %in% c(5.3, 5.4)) col_types <- "iiiDDi"
-          
-        d[[type]] <- vroom::vroom(path, col_types = col_types, progress = FALSE)
-        cat(paste0("<span style = 'font-weight:bold; color:#0078D4;'>", i18n$t(paste0("import_dataset_success_", type)), "</span>\n"))
-      })
-    },
-      
-      error = function(e){
-        add_log_entry(r = r, category = "Error", name = paste0("import_dataset - error_loading_csv - id = ", dataset_id), value = i18n$t("error_loading_csv"))
-        cat(paste0("<span style = 'font-weight:bold; color:red;'>**", i18n$t("error"), "** ", i18n$t("error_loading_csv"), "</span>\n"))
-        return(NULL)},
-      warning = function(w){
-        add_log_entry(r = r, category = "Error", name = paste0("import_dataset - error_loading_csv - id = ", dataset_id), value = i18n$t("error_loading_csv"))
-        cat(paste0("<span style = 'font-weight:bold; color:red;'>**", i18n$t("error"), "** ", i18n$t("error_loading_csv"), "</span>\n"))
-        return(NULL)}
-    )
-  }
-  else if (save_as_parquet & !rewrite & file.exists(path)){
-    if (!requireNamespace("arrow", quiet = TRUE)){
-      add_log_entry(r = r, category = "Error", name = paste0("import_dataset - error_loading_parquet - id = ", dataset_id), value = i18n$t("package_arrow_not_installed"))
-      cat(paste0(error_message, "<span style = 'font-weight:bold; color:red;'>**",  i18n$t("error"), "** ",
-        i18n$t("package_arrow_not_installed"), "</span>\n"))
-      return(NULL)
-    }
-    else {
+  if (read_with != "none" & save_as != "none" & !rewrite & file.exists(path)){
+    
+    # --- --- --- --- -
+    ## vroom - csv ----
+    # --- --- --- --- -
+    
+    if (read_with == "vroom" & save_as == "csv"){
+      error_read_with_save_as <- FALSE
       tryCatch({
         return({
-          d[[type]] <- arrow::read_parquet(path)
+          col_types <- switch(type, 
+            "person" = "iiiiiTTiiiiiccicici",
+            "observation_period" = "iiDDi",
+            "visit_occurrence" = "iiiDTDTiiiciicici",
+            "visit_detail" = "iiiDTDTiiiciicciiii",
+            "condition_occurrence" = "iiiDTDTiiciiicic",
+            "drug_exposure" = "iiiDTDTDiciniciciiicicc",
+            "procedure_occurrence" = "iiiDTiiiiiicic",
+            "device_exposure" = "iiiDTDTiciiiici",
+            "measurement" = "iiiDTciiniinniiicicc",
+            "observation" = "iiiDTinciiiiiicicciiT",
+            "death" = "iDTiici",
+            "note" = "iiiiDTiicciiiiic",
+            "note_nlp" = "iiiccciicDTccc",
+            "specimen" = "iiiiDTniiiccccc",
+            "fact_relationship" = "iiiii",
+            "location" = "icccccccnn",
+            "location_history" = "iiciDD",
+            "care_site" = "iciicc",
+            "provider" = "iccciiiiccici",
+            "payer_plan_period" = "iiiDDiciiciiciicicici",
+            "cost" = "iiiiiiicinDDDiicci",
+            "drug_era" = "iiiTTii",
+            "dose_era" = "iiiinTT",
+            "condition_era" = "iiiTTi"
+          )
+          if (type == "person" & omop_version %in% c(5.3, 5.4)) col_types <- "iiiiiTiiiiiccicici"
+          if (type == "visit_detail" & omop_version == 5.3) col_types <- "iiiDTDTiiiciciciiii"
+          if (type == "observation" & omop_version == 5.3) col_types <-  "iiiDTinciiiiiicicc"
+          if (type == "observation" & omop_version == 5.4) col_types <-  "iiiDTinciiiiiicicccii"
+          if (type == "location" & omop_version == 5.3) col_types <-  "iccccccc"
+          if (type == "drug_era" & omop_version %in% c(5.3, 5.4)) col_types <- "iiiDDii"
+          if (type == "dose_era" & omop_version %in% c(5.3, 5.4)) col_types <- "iiiinDD"
+          if (type == "condition_era" & omop_version %in% c(5.3, 5.4)) col_types <- "iiiDDi"
+            
+          d[[type]] <- vroom::vroom(path, col_types = col_types, progress = FALSE)
           cat(paste0("<span style = 'font-weight:bold; color:#0078D4;'>", i18n$t(paste0("import_dataset_success_", type)), "</span>\n"))
         })
       },
+        
         error = function(e){
-          add_log_entry(r = r, category = "Error", name = paste0("import_dataset - error_loading_parquet - id = ", dataset_id), value = i18n$t("error_loading_parquet"))
-          cat(paste0("<span style = 'font-weight:bold; color:red;'>**", i18n$t("error"), "** ", i18n$t("error_loading_parquet"), "</span>\n"))
+          add_log_entry(r = r, category = "Error", name = paste0("import_dataset - error_loading_csv - id = ", dataset_id), value = toString(e))
+          cat(paste0("<span style = 'font-weight:bold; color:red;'>**", i18n$t("error"), "** ", i18n$t("error_loading_csv"), "</span>\n"))
           return(NULL)},
         warning = function(w){
-          add_log_entry(r = r, category = "Error", name = paste0("import_dataset - error_loading_parquet - id = ", dataset_id), value = i18n$t("error_loading_parquet"))
-          cat(paste0("<span style = 'font-weight:bold; color:red;'>**", i18n$t("error"), "** ", i18n$t("error_loading_parquet"), "</span>\n"))
+          add_log_entry(r = r, category = "Error", name = paste0("import_dataset - error_loading_csv - id = ", dataset_id), value = toString(w))
+          cat(paste0("<span style = 'font-weight:bold; color:red;'>**", i18n$t("error"), "** ", i18n$t("error_loading_csv"), "</span>\n"))
           return(NULL)}
-      ) 
+      )
+    }
+    
+    # --- --- --- --- --- -
+    ## arrow - parquet ----
+    # --- --- --- --- --- -
+    
+    else if (read_with == "arrow" & save_as == "parquet"){
+      error_read_with_save_as <- FALSE
+      if (!requireNamespace("arrow", quiet = TRUE)){
+        add_log_entry(r = r, category = "Error", name = paste0("import_dataset - error_loading_parquet - id = ", dataset_id), value = i18n$t("package_arrow_not_installed"))
+        cat(paste0(error_message, "<span style = 'font-weight:bold; color:red;'>**",  i18n$t("error"), "** ",
+          i18n$t("package_arrow_not_installed"), "</span>\n"))
+        return(NULL)
+      }
+      else {
+        tryCatch({
+          return({
+            d[[type]] <- arrow::read_parquet(path)
+            cat(paste0("<span style = 'font-weight:bold; color:#0078D4;'>", i18n$t(paste0("import_dataset_success_", type)), "</span>\n"))
+          })
+        },
+          error = function(e){
+            add_log_entry(r = r, category = "Error", name = paste0("import_dataset - error_loading_parquet - id = ", dataset_id), value = toString(e))
+            cat(paste0("<span style = 'font-weight:bold; color:red;'>**", i18n$t("error"), "** ", i18n$t("error_loading_parquet"), "</span>\n"))
+            return(NULL)},
+          warning = function(w){
+            add_log_entry(r = r, category = "Error", name = paste0("import_dataset - error_loading_parquet - id = ", dataset_id), value = toString(w))
+            cat(paste0("<span style = 'font-weight:bold; color:red;'>**", i18n$t("error"), "** ", i18n$t("error_loading_parquet"), "</span>\n"))
+            return(NULL)}
+        ) 
+      }
+    }
+    
+    # --- --- --- --- --- --- -- -
+    ## duckdb - csv & parquet ----
+    # --- --- --- --- --- --- -- -
+    
+    else if (read_with == "duckdb" & save_as %in% c("csv", "parquet")){
+      error_read_with_save_as <- FALSE
+      
+      if (!requireNamespace("duckdb", quiet = TRUE)){
+        add_log_entry(r = r, category = "Error", name = paste0("import_dataset - error_loading_duckdb - id = ", dataset_id), value = i18n$t("package_duckdb_not_installed"))
+        cat(paste0(error_message, "<span style = 'font-weight:bold; color:red;'>**",  i18n$t("error"), "** ",
+          i18n$t("package_duckdb_not_installed"), "</span>\n"))
+        return(NULL)
+      }
+      else {
+        tryCatch({
+            duckdb_drv <- duckdb::duckdb()
+            if (length(r$duckdb_drv) == 0) r$duckdb_drv <- c(duckdb_drv)
+            else r$duckdb_drv <- c(r$duckdb_drv, duckdb_drv)
+            con <- DBI::dbConnect(duckdb_drv, dbdir = paste0(folder, "/dataset.duckdb"))
+            
+            table_exists <- type %in% DBI::dbListTables(con)
+            if (table_exists) d[[type]] <- dplyr::tbl(con, type)
+            if (!table_exists){
+              if (save_as == "csv") request <- paste0("CREATE TABLE ", type, " AS SELECT * FROM read_csv_auto('", path, "');")
+              if (save_as == "parquet") request <- paste0("CREATE TABLE ", type, " AS SELECT * FROM parquet_scan('", path, "');")
+              DBI::dbExecute(con, request)
+              d[[type]] <- dplyr::tbl(con, type)
+            }
+            cat(paste0("<span style = 'font-weight:bold; color:#0078D4;'>", i18n$t(paste0("import_dataset_success_", type)), "</span>\n"))
+            return(NULL)
+        },
+          error = function(e){
+            add_log_entry(r = r, category = "Error", name = paste0("import_dataset - error_loading_duckdb - id = ", dataset_id), value = toString(e))
+            cat(paste0("<span style = 'font-weight:bold; color:red;'>**", i18n$t("error"), "** ", i18n$t("error_loading_duckdb"), "</span>\n"))
+            return(NULL)},
+          warning = function(w){
+            add_log_entry(r = r, category = "Error", name = paste0("import_dataset - error_loading_duckdb - id = ", dataset_id), value = toString(w))
+            cat(paste0("<span style = 'font-weight:bold; color:red;'>**", i18n$t("error"), "** ", i18n$t("error_loading_duckdb"), "</span>\n"))
+            return(NULL)}  
+        )
+      }
+    }
+    
+    # --- --- --- --- --- --- ---
+    ## spark - csv & parquet ----
+    # --- --- --- --- --- --- ---
+    
+    else if (read_with == "spark" & save_as %in% c("csv", "parquet")){
+      error_read_with_save_as <- FALSE
+      
+      if (!requireNamespace("sparklyr", quiet = TRUE)){
+        add_log_entry(r = r, category = "Error", name = paste0("import_dataset - error_loading_sparklyr - id = ", dataset_id), value = i18n$t("package_sparklyr_not_installed"))
+        cat(paste0(error_message, "<span style = 'font-weight:bold; color:red;'>**",  i18n$t("error"), "** ",
+          i18n$t("package_sparklyr_not_installed"), "</span>\n"))
+        return(NULL)
+      }
+      else {
+        tryCatch({
+          con <- sparklyr::spark_connect(master = "local")
+          
+          table_exists <- type %in% dplyr::src_tbls(con)
+          
+          if (!table_exists) {
+            if (save_as == "csv") sparklyr::spark_read_csv(con, name = type, path = path)
+            if (save_as == "parquet") sparklyr::spark_read_parquet(con, name = type, path = path)
+          }
+          
+          d[[type]] <- dplyr::tbl(con, type)
+          cat(paste0("<span style = 'font-weight:bold; color:#0078D4;'>", i18n$t(paste0("import_dataset_success_", type)), "</span>\n"))
+          return(NULL)
+        },
+          error = function(e){
+            add_log_entry(r = r, category = "Error", name = paste0("import_dataset - error_loading_sparklyr - id = ", dataset_id), value = toString(e))
+            cat(paste0("<span style = 'font-weight:bold; color:red;'>**", i18n$t("error"), "** ", i18n$t("error_loading_sparklyr"), "</span>\n"))
+            return(NULL)},
+          warning = function(w){
+            add_log_entry(r = r, category = "Error", name = paste0("import_dataset - error_loading_sparklyr - id = ", dataset_id), value = toString(w))
+            cat(paste0("<span style = 'font-weight:bold; color:red;'>**", i18n$t("error"), "** ", i18n$t("error_loading_sparklyr"), "</span>\n"))
+            return(NULL)}  
+        )
+      }
     }
   }
   
-  # Transform as tibble
+  # --- --- --- --- --- -- -
+  # Load in memory data ----
+  # --- --- --- --- --- -- -
+  
+  # For duckdb & spark, if database file exist for duckdb, or sparklyr local connection exist, this database is loaded
+  # If rewrite is true, we can delete current table and replace it
+  
+  if (read_with != "none" & save_as == "none"){
+    if (read_with == "duckdb"){
+      error_read_with_save_as <- FALSE
+      
+      if (!requireNamespace("duckdb", quiet = TRUE)){
+        add_log_entry(r = r, category = "Error", name = paste0("import_dataset - error_loading_duckdb - id = ", dataset_id), value = i18n$t("package_duckdb_not_installed"))
+        cat(paste0(error_message, "<span style = 'font-weight:bold; color:red;'>**",  i18n$t("error"), "** ",
+          i18n$t("package_duckdb_not_installed"), "</span>\n"))
+        return(NULL)
+      }
+      else {
+        tryCatch({
+            duckdb_drv <- duckdb::duckdb()
+            if (length(r$duckdb_drv) == 0) r$duckdb_drv <- c(duckdb_drv)
+            else r$duckdb_drv <- c(r$duckdb_drv, duckdb_drv)
+            con <- DBI::dbConnect(duckdb_drv, dbdir = paste0(folder, "/dataset.duckdb"))
+            
+            table_exists <- type %in% DBI::dbListTables(con)
+            if (table_exists & rewrite) DBI::dbExecute(con, paste0("DROP TABLE ", type))
+            if ((table_exists & rewrite) | !table_exists) duckdb::duckdb_register(con, type, data)
+            
+            d[[type]] <- dplyr::tbl(con, type)
+            
+            cat(paste0("<span style = 'font-weight:bold; color:#0078D4;'>", i18n$t(paste0("import_dataset_success_", type)), "</span>\n"))
+            return(NULL)
+        },
+          error = function(e){
+            add_log_entry(r = r, category = "Error", name = paste0("import_dataset - error_loading_duckdb - id = ", dataset_id), value = toString(e))
+            cat(paste0("<span style = 'font-weight:bold; color:red;'>**", i18n$t("error"), "** ", i18n$t("error_loading_duckdb"), "</span>\n"))
+            return(NULL)},
+          warning = function(w){
+            add_log_entry(r = r, category = "Error", name = paste0("import_dataset - error_loading_duckdb - id = ", dataset_id), value = toString(w))
+            cat(paste0("<span style = 'font-weight:bold; color:red;'>**", i18n$t("error"), "** ", i18n$t("error_loading_duckdb"), "</span>\n"))
+            return(NULL)}  
+        )
+      }
+    }
+    
+    if (read_with == "spark"){
+      error_read_with_save_as <- FALSE
+      
+      if (!requireNamespace("sparklyr", quiet = TRUE)){
+        add_log_entry(r = r, category = "Error", name = paste0("import_dataset - error_loading_sparklyr - id = ", dataset_id), value = i18n$t("package_sparklyr_not_installed"))
+        cat(paste0(error_message, "<span style = 'font-weight:bold; color:red;'>**",  i18n$t("error"), "** ",
+          i18n$t("package_sparklyr_not_installed"), "</span>\n"))
+        return(NULL)
+      }
+      else {
+        tryCatch({
+          con <- sparklyr::spark_connect(master = "local")
+          
+          table_exists <- type %in% dplyr::src_tbls(con)
+          
+          if (table_exists & rewrite) DBI::dbExecute(con, paste0("DROP TABLE ", type))
+          if ((table_exists & rewrite) | !table_exists) sparklyr::sdf_copy_to(con, data, name = type)
+          
+          d[[type]] <- dplyr::tbl(con, type)
+          
+          cat(paste0("<span style = 'font-weight:bold; color:#0078D4;'>", i18n$t(paste0("import_dataset_success_", type)), "</span>\n"))
+          return(NULL)
+        },
+          error = function(e){
+            add_log_entry(r = r, category = "Error", name = paste0("import_dataset - error_loading_sparklyr - id = ", dataset_id), value = toString(e))
+            cat(paste0("<span style = 'font-weight:bold; color:red;'>**", i18n$t("error"), "** ", i18n$t("error_loading_sparklyr"), "</span>\n"))
+            return(NULL)},
+          warning = function(w){
+            add_log_entry(r = r, category = "Error", name = paste0("import_dataset - error_loading_sparklyr - id = ", dataset_id), value = toString(w))
+            cat(paste0("<span style = 'font-weight:bold; color:red;'>**", i18n$t("error"), "** ", i18n$t("error_loading_sparklyr"), "</span>\n"))
+            return(NULL)}  
+        )
+      }
+    }
+  }
+  
+  # --- --- --- --- --- -- -
+  # Transform as tibble ----
+  # --- --- --- --- --- -- -
+  
   if (!is.data.frame(data) & "tbl" %not_in% class(data)){
     add_log_entry(r = r, category = "Error", name = paste0("import_dataset - error_transforming_tibble - id = ", dataset_id), value = i18n$t("error_transforming_tibble"))
     cat(paste0("<span style = 'font-weight:bold; color:red;'>**", i18n$t("error"), "** ", i18n$t("error_transforming_tibble"), "</span>\n"))
@@ -169,6 +382,10 @@ import_dataset <- function(output, ns = character(), i18n = character(), r = shi
   }
   
   if ("tbl" %not_in% class(data)) data <- tibble::as_tibble(data)
+  
+  # --- --- --- --- -- -
+  # Check data cols ----
+  # --- --- --- --- -- -
   
   # Data cols
   
@@ -855,14 +1072,6 @@ import_dataset <- function(output, ns = character(), i18n = character(), r = shi
     
     for (var_type in var_types) {
       if (var_cols[[i, "type"]] == var_type) {
-        # if ("tbl_lazy" %in% class(data)) {
-        #   tryCatch({
-        #     # data <- data %>% dplyr::mutate_at(var_name, conversion_functions[[var_type]])
-        #     if (var_type == "datetime") data <- data %>% dplyr::mutate_at(var_name, as.POSIXct)
-        #     print(data %>% dplyr::select(var_name))
-        #     error <- FALSE
-        #   })
-        # } else if (do.call(check_functions[[var_type]], list(data[[var_name]]))) error <- FALSE
         
         if (do.call(check_functions[[var_type]], list(data_test[[var_name]]))) error <- FALSE
         
@@ -889,15 +1098,25 @@ import_dataset <- function(output, ns = character(), i18n = character(), r = shi
   # Transform date cols to character
   # if (length(cols_to_char) > 0) data <- data %>% dplyr::mutate_at(cols_to_char, as.character)
   
-  # if  save_as_csv is TRUE, save data in dataset folder
-  if (save_as_csv | save_as_parquet){
+  # --- --- --- --- ---
+  # Save data file ----
+  # --- --- --- --- ---
+  
+  # if  save_as != "none", save data in dataset folder
+  if (save_as != "none"){
     if (!file.exists(folder)) dir.create(folder, recursive = TRUE)
-    if (save_as_csv) error_message <- "error_saving_csv"
-    else error_message <- "error_saving_parquet"
+    error_message <- paste0("error_saving_", save_as)
     
-    if (!file.exists(path) | (file.exists(path) & rewrite)) tryCatch({
-        if (save_as_csv) readr::write_csv(data %>% dplyr::collect(), path, progress = FALSE)
-        else if (save_as_parquet){
+    if (!file.exists(path) | (file.exists(path) & rewrite)){
+      tryCatch({
+      
+        if (save_as == "csv"){
+          if (read_with %in% c("vroom", "duckdb", "spark")) error_read_with_save_as <- FALSE
+          readr::write_csv(data %>% dplyr::collect(), path, progress = FALSE)
+          if (read_with == "vroom") data <- data %>% dplyr::collect()
+        }
+        else if (save_as == "parquet"){
+          if (read_with %in% c("duckdb", "spark")) error_read_with_save_as <- FALSE
           if (!requireNamespace("arrow", quiet = TRUE)){
             add_log_entry(r = r, category = "Error", name = paste0("import_dataset - error_saving_parquet - id = ", dataset_id), value = i18n$t("package_arrow_not_installed"))
             cat(paste0(error_message, "<span style = 'font-weight:bold; color:red;'>**",  i18n$t("error"), "** ",
@@ -907,22 +1126,102 @@ import_dataset <- function(output, ns = character(), i18n = character(), r = shi
           else arrow::write_parquet(data %>% dplyr::collect(), path)
         }
       },
-      error = function(e){
-        add_log_entry(r = r, category = "Error", name = paste0("import_dataset - ", error_message, " - id = ", dataset_id), value = i18n$t(error_message))
-        cat(paste0("<span style = 'font-weight:bold; color:red;'>", i18n$t(error_message), "</span>\n"))
-        return(NULL)}
-    )
+        error = function(e){
+          add_log_entry(r = r, category = "Error", name = paste0("import_dataset - ", error_message, " - id = ", dataset_id), value = toString(e))
+          cat(paste0("<span style = 'font-weight:bold; color:red;'>", i18n$t(error_message), "</span>\n"))
+          return(NULL)}
+      )
+      
+      if (read_with == "duckdb" & save_as %in% c("csv", "parquet")){
+        
+        if (!requireNamespace("duckdb", quiet = TRUE)){
+          add_log_entry(r = r, category = "Error", name = paste0("import_dataset - error_loading_duckdb - id = ", dataset_id), value = i18n$t("package_duckdb_not_installed"))
+          cat(paste0(error_message, "<span style = 'font-weight:bold; color:red;'>**",  i18n$t("error"), "** ",
+            i18n$t("package_duckdb_not_installed"), "</span>\n"))
+          return(NULL)
+        }
+        else {
+          tryCatch({
+            
+              duckdb_drv <- duckdb::duckdb()
+              if (length(r$duckdb_drv) == 0) r$duckdb_drv <- c(duckdb_drv)
+              else r$duckdb_drv <- c(r$duckdb_drv, duckdb_drv)
+              con <- DBI::dbConnect(duckdb_drv, dbdir = paste0(folder, "/dataset.duckdb"))
+              
+              table_exists <- type %in% DBI::dbListTables(con)
+              if (table_exists & rewrite) DBI::dbExecute(con, paste0("DROP TABLE ", type))
+              
+              if ((table_exists & rewrite) | !table_exists){
+                if (save_as == "csv") request <- paste0("CREATE TABLE ", type, " AS SELECT * FROM read_csv_auto('", path, "');")
+                if (save_as == "parquet") request <- paste0("CREATE TABLE ", type, " AS SELECT * FROM parquet_scan('", path, "');")
+                DBI::dbExecute(con, request)
+              }
+              
+              d[[type]] <- dplyr::tbl(con, type)
+              cat(paste0("<span style = 'font-weight:bold; color:#0078D4;'>", i18n$t(paste0("import_dataset_success_", type)), "</span>\n"))
+              return(NULL)
+          },
+            error = function(e){
+              add_log_entry(r = r, category = "Error", name = paste0("import_dataset - error_loading_duckdb - id = ", dataset_id), value = toString(e))
+              cat(paste0("<span style = 'font-weight:bold; color:red;'>**", i18n$t("error"), "** ", i18n$t("error_loading_duckdb"), "</span>\n"))
+              return(NULL)},
+            warning = function(w){
+              add_log_entry(r = r, category = "Error", name = paste0("import_dataset - error_loading_duckdb - id = ", dataset_id), value = toString(w))
+              cat(paste0("<span style = 'font-weight:bold; color:red;'>**", i18n$t("error"), "** ", i18n$t("error_loading_duckdb"), "</span>\n"))
+              return(NULL)}
+          )
+        }
+      }
+      
+      if (read_with == "spark" & save_as %in% c("csv", "parquet")){
+        
+        if (!requireNamespace("sparklyr", quiet = TRUE)){
+          add_log_entry(r = r, category = "Error", name = paste0("import_dataset - error_loading_sparklyr - id = ", dataset_id), value = i18n$t("package_sparklyr_not_installed"))
+          cat(paste0(error_message, "<span style = 'font-weight:bold; color:red;'>**",  i18n$t("error"), "** ",
+            i18n$t("package_sparklyr_not_installed"), "</span>\n"))
+          return(NULL)
+        }
+        else {
+          tryCatch({
+            con <- sparklyr::spark_connect(master = "local")
+            
+            table_exists <- type %in% dplyr::src_tbls(con)
+            if (table_exists & rewrite) DBI::dbExecute(con, paste0("DROP TABLE ", type))
+            
+            if ((table_exists & rewrite) | !table_exists) {
+              if (save_as == "csv") sparklyr::spark_read_csv(con, name = type, path = path)
+              else if (save_as == "parquet") sparklyr::spark_read_parquet(con, name = type, path = path)
+            }
+            
+            d[[type]] <- dplyr::tbl(con, type)
+            cat(paste0("<span style = 'font-weight:bold; color:#0078D4;'>", i18n$t(paste0("import_dataset_success_", type)), "</span>\n"))
+            return(NULL)
+          },
+            error = function(e){
+              add_log_entry(r = r, category = "Error", name = paste0("import_dataset - error_loading_sparklyr - id = ", dataset_id), value = toString(e))
+              cat(paste0("<span style = 'font-weight:bold; color:red;'>**", i18n$t("error"), "** ", i18n$t("error_loading_sparklyr"), "</span>\n"))
+              return(NULL)},
+            warning = function(w){
+              add_log_entry(r = r, category = "Error", name = paste0("import_dataset - error_loading_duckdb - id = ", dataset_id), value = toString(w))
+              cat(paste0("<span style = 'font-weight:bold; color:red;'>**", i18n$t("error"), "** ", i18n$t("error_loading_duckdb"), "</span>\n"))
+              return(NULL)}  
+          )
+        }
+      }
+    }
+  }
+  
+  # Not a good association between read_with & save_as
+  if (error_read_with_save_as) {
+    add_log_entry(r = r, category = "Error", name = paste0("import_dataset - error_loading_data - id = ", dataset_id), value = i18n$t("wrong_association_read_with_and_save_as"))
+    cat(paste0("<span style = 'font-weight:bold; color:red;'>**", i18n$t("error"), "** ", i18n$t("wrong_association_read_with_and_save_as"), "</span>\n"))
+    return(NULL)
   }
   
   d[[type]] <- data
   
   cat(paste0("<span style = 'font-weight:bold; color:#0078D4;'>", i18n$t(paste0("import_dataset_success_", type)), "</span>\n"))
 }
-
-# dataset_csv_exists <- function(r = shiny::reactiveValues(), table = character(), dataset_id = integer()){
-#   if (file.exists(paste0(r$app_folder, "/datasets/", dataset_id, "/", table, ".csv"))) return(TRUE)
-#   else return(FALSE)
-# }
 
 #' Import a vocabulary table
 #' 

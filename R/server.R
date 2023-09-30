@@ -156,7 +156,13 @@ app_server <- function(language = "en", i18n = character(), app_folder = charact
     onStop(function() {
       if (debug) print(paste0(Sys.time(), " - server - observer onStop"))
       add_log_entry(r = isolate(r), category = trad$session, name = trad$session_ends, value = "")
+      
+      # Close duckdb connections
       DBI::dbDisconnect(isolate(r$db))
+      if (length(isolate(r$duckdb_drv)) > 0) sapply(isolate(r$duckdb_drv), duckdb::duckdb_shutdown)
+      
+      # Close spark connections
+      sparklyr::spark_disconnect_all()
     })
     
     # Add default values in database if database is empty

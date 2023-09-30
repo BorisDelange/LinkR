@@ -338,7 +338,7 @@ mod_vocabularies_server <- function(id = character(), r = shiny::reactiveValues(
       if (debug) print(paste0(Sys.time(), " - mod_vocabularies - observer r$load_dataset_all_concepts"))
       
       # Create dataset folder if doesn't exist
-      dataset_folder <- paste0(r$app_folder, "/datasets/", r$selected_dataset)
+      dataset_folder <- paste0(r$app_folder, "/datasets_files/", r$selected_dataset)
       if (!dir.exists(dataset_folder)) dir.create(dataset_folder)
       
       # Load csv file if it exists
@@ -363,7 +363,7 @@ mod_vocabularies_server <- function(id = character(), r = shiny::reactiveValues(
         omop_version <- r$options %>% dplyr::filter(category == "dataset" & link_id == r$selected_dataset & name == "omop_version") %>% dplyr::pull(value)
         
         # count_rows <- tibble::tibble(concept_id = integer(), count_persons_rows = integer(), count_concepts_rows = integer(), count_secondary_concepts_rows = integer())
-        count_rows <- tibble::tibble(concept_id = integer(), count_persons_rows = integer(), count_concepts_rows = integer())
+        count_rows <- tibble::tibble(concept_id = integer(), count_persons_rows = numeric(), count_concepts_rows = numeric())
         
         tables <- c("person", "visit_occurrence", "visit_detail", "condition_occurrence", "drug_exposure", "procedure_occurrence", "device_exposure",
           "measurement", "observation", "specimen", "drug_era", "dose_era", "condition_era", "note", "specimen")
@@ -420,7 +420,7 @@ mod_vocabularies_server <- function(id = character(), r = shiny::reactiveValues(
                     d[[table]] %>% 
                       dplyr::group_by_at(paste0(main_cols[[table]], "_concept_id")) %>%
                       # dplyr::summarize(count_persons_rows = dplyr::n_distinct(person_id), count_concepts_rows = dplyr::n(), count_secondary_concepts_rows = 0L) %>%
-                      dplyr::summarize(count_persons_rows = dplyr::n_distinct(person_id), count_concepts_rows = dplyr::n()) %>% 
+                      dplyr::summarize(count_persons_rows = as.numeric(dplyr::n_distinct(person_id)), count_concepts_rows = as.numeric(dplyr::n())) %>% 
                       dplyr::ungroup() %>% 
                       dplyr::rename(concept_id = paste0(main_cols[[table]], "_concept_id")) %>%
                       dplyr::collect()
@@ -431,7 +431,7 @@ mod_vocabularies_server <- function(id = character(), r = shiny::reactiveValues(
                     d[[table]] %>% 
                       dplyr::group_by_at(paste0(main_cols[[table]], "_source_concept_id")) %>%
                       # dplyr::summarize(count_persons_rows = dplyr::n_distinct(person_id), count_concepts_rows = dplyr::n(), count_secondary_concepts_rows = 0L) %>%
-                      dplyr::summarize(count_persons_rows = dplyr::n_distinct(person_id), count_concepts_rows = dplyr::n()) %>%
+                      dplyr::summarize(count_persons_rows = as.numeric(dplyr::n_distinct(person_id)), count_concepts_rows = as.numeric(dplyr::n())) %>%
                       dplyr::ungroup() %>% 
                       dplyr::rename(concept_id = paste0(main_cols[[table]], "_source_concept_id")) %>%
                       dplyr::collect()
@@ -450,7 +450,7 @@ mod_vocabularies_server <- function(id = character(), r = shiny::reactiveValues(
                       d[[table]] %>% 
                         dplyr::group_by_at(paste0(col, "_concept_id")) %>%
                         # dplyr::summarize(count_persons_rows = dplyr::n_distinct(person_id), count_concepts_rows = 0L, count_secondary_concepts_rows = dplyr::n()) %>% 
-                        dplyr::summarize(count_persons_rows = dplyr::n_distinct(person_id), count_concepts_rows = dplyr::n()) %>% 
+                        dplyr::summarize(count_persons_rows = as.numeric(dplyr::n_distinct(person_id)), count_concepts_rows = as.numeric(dplyr::n())) %>% 
                         dplyr::ungroup() %>% 
                         dplyr::rename(concept_id = paste0(col, "_concept_id")) %>%
                         dplyr::collect()
@@ -470,7 +470,7 @@ mod_vocabularies_server <- function(id = character(), r = shiny::reactiveValues(
           count_rows <- count_rows %>%
             dplyr::filter(!is.na(concept_id)) %>%
             dplyr::group_by(concept_id) %>% 
-            dplyr::summarize(count_persons_rows = max(count_persons_rows), count_concepts_rows = sum(count_concepts_rows)) %>%
+            dplyr::summarize(count_persons_rows = as.numeric(max(count_persons_rows)), count_concepts_rows = as.numeric(sum(count_concepts_rows))) %>%
             # dplyr::summarize(count_persons_rows = max(count_persons_rows), count_concepts_rows = sum(count_concepts_rows),
               # count_secondary_concepts_rows = sum(count_secondary_concepts_rows)) %>%
             dplyr::ungroup()
@@ -479,7 +479,7 @@ mod_vocabularies_server <- function(id = character(), r = shiny::reactiveValues(
           dataset_all_concepts <- dataset_all_concepts %>% 
             dplyr::left_join(count_rows, by = "concept_id") %>%
             # dplyr::mutate_at(c("count_persons_rows", "count_concepts_rows", "count_secondary_concepts_rows"), as.integer) %>%
-            dplyr::mutate_at(c("count_persons_rows", "count_concepts_rows"), as.integer) %>%
+            dplyr::mutate_at(c("count_persons_rows", "count_concepts_rows"), as.numeric) %>%
             # dplyr::filter(count_concepts_rows > 0 | count_secondary_concepts_rows > 0)
             dplyr::filter(count_concepts_rows > 0)
         }
@@ -558,7 +558,7 @@ mod_vocabularies_server <- function(id = character(), r = shiny::reactiveValues(
         if (nrow(dataset_all_concepts) == 0){
           dataset_all_concepts <- dataset_all_concepts %>% dplyr::mutate(
             # count_persons_rows = integer(), count_concepts_rows = integer(), count_secondary_concepts_rows = integer(), add_concept_input = character())
-            count_persons_rows = integer(), count_concepts_rows = integer(), add_concept_input = character())
+            count_persons_rows = numeric(), count_concepts_rows = numeric(), add_concept_input = character())
         }
         
         else {
@@ -579,7 +579,7 @@ mod_vocabularies_server <- function(id = character(), r = shiny::reactiveValues(
         if (nrow(dataset_all_concepts) > 0) DBI::dbAppendTable(m$db, "concept_dataset", dataset_all_concepts %>% 
           dplyr::transmute(id = get_last_row(m$db, "concept_dataset") + 1:dplyr::n(), concept_id = concept_id_1, dataset_id = r$selected_dataset, vocabulary_id = vocabulary_id_1,
             # count_persons_rows, count_concepts_rows, count_secondary_concepts_rows))
-            count_persons_rows, count_concepts_rows, count_secondary_concepts_rows = 0L))
+            count_persons_rows, count_concepts_rows, count_secondary_concepts_rows = as.numeric(0)))
         
         # Save data as csv
         readr::write_csv(dataset_all_concepts, dataset_all_concepts_filename, progress = FALSE)
@@ -637,7 +637,7 @@ mod_vocabularies_server <- function(id = character(), r = shiny::reactiveValues(
       if (perf_monitoring) monitor_perf(r = r, action = "start")
       if (debug) print(paste0(Sys.time(), " - mod_vocabularies - observer r$load_dataset_drug_strength"))
       
-      dataset_drug_strength_filename <- paste0(r$app_folder, "/datasets/", r$selected_dataset, "/dataset_drug_strength.csv")
+      dataset_drug_strength_filename <- paste0(r$app_folder, "/datasets_files/", r$selected_dataset, "/dataset_drug_strength.csv")
       
       if (file.exists(dataset_drug_strength_filename)) d$dataset_drug_strength <- vroom::vroom(dataset_drug_strength_filename, col_types = "iicicncncnciccc", progress = FALSE)
       
@@ -717,81 +717,81 @@ mod_vocabularies_server <- function(id = character(), r = shiny::reactiveValues(
     
     # Join concepts cols of d$ vars with d$dataset_all_concepts
     
-    observeEvent(r$merge_concepts_and_d_vars, {
-      
-      if (perf_monitoring) monitor_perf(r = r, action = "start")
-      if (debug) print(paste0(Sys.time(), " - mod_vocabularies - observer r$merge_concepts_and_d_vars"))
-      
-      req(d$person %>% dplyr::count() %>% dplyr::pull() > 0)
-      
-      omop_version <- r$options %>% dplyr::filter(category == "dataset" & link_id == r$selected_dataset & name == "omop_version") %>% dplyr::pull(value)
-      
-      # Don't reload if already done
-      
-      if ("gender_concept_name" %not_in% colnames(d$person)){
-        
-        # Do that only for small tables
-        
-        cols <- list(
-          "person" = c("gender", "race", "ethnicity")#,
-          # "condition_occurrence" = c("condition", "condition_type", "condition_status"),
-          # "drug_exposure" = c("drug", "drug_type", "route"),
-          # "procedure_occurrence" = c("procedure", "procedure_type", "modifier"),
-          # "device_exposure" = c("device", "device_type"),
-          # "measurement" = c("measurement", "measurement_type", "value_as", "unit"),
-          # "observation" = c("observation", "observation_type", "qualifier", "value_as", "unit"),
-          # "note" = c("note_type", "note_class", "encoding", "language"),
-          # "note_nlp" = c("section", "note_nlp"),
-          # "specimen" = c("specimen", "specimen_type", "unit", "anatomic_site", "disease_status"),
-          # "drug_era" = "drug",
-          # "dose_era" = c("drug", "unit"),
-          # "condition_era" = "condition"
-        )
-        
-        if (omop_version == "5.3"){
-          cols <- rlist::list.append(cols, 
-            "visit_occurrence" = c("visit", "visit_type", "admitting_source", "discharge_to"),
-            "visit_detail" = c("visit_detail", "visit_detail_type", "admitting_source", "discharge_to")) 
-        }
-        else if (omop_version %in% c("5.4", "6.0")){
-          cols <- rlist::list.append(cols, 
-            "visit_occurrence" = c("visit", "visit_type", "admitted_from", "discharge_to"),
-            "visit_detail" = c("visit_detail", "visit_detail_type", "admitted_from", "discharge_to")) 
-        }
-        
-        if (omop_version %in% c("5.3", "5.0")) cols <- rlist::list.append(cols, "death" = c("death_type", "cause"))
-        
-        dataset_all_concepts <- d$dataset_all_concepts %>% 
-          dplyr::group_by(concept_id_1, concept_name_1, concept_code) %>%
-          dplyr::slice(1) %>%
-          dplyr::ungroup()
-        
-        for (table in names(cols)){
-          table_cols <- cols[[table]]
-          for (col in table_cols){
-            if (d[[table]] %>% dplyr::count() %>% dplyr::pull() > 0){
-              if (paste0(col, "_concept_id") %in% colnames(d[[table]])){
-                if (grepl("unit", col)) merge_col <- c("concept_code", "concept_code") else merge_col <- c("concept_name", "concept_name_1")
-                
-                d[[table]] <- d[[table]] %>%
-                  dplyr::left_join(
-                    dataset_all_concepts %>%
-                      dplyr::select(!!paste0(col, "_concept_id") := concept_id_1, !!paste0(col, "_", merge_col[1]) := !!merge_col[2]),
-                    by = paste0(col, "_concept_id"),
-                    copy = TRUE
-                  ) %>%
-                  dplyr::relocate(!!paste0(col, "_", merge_col[1]), .after = !!paste0(col, "_concept_id"))
-              }
-              else report_bug(r = r, output = output, error_message = "error_calculating_num_rows_concepts_dataset", 
-                error_name = paste0("mod_vocabularies - observer r$merge_concepts_and_d_vars - dataset_id = ", r$selected_dataset), 
-                category = "Error", error_report = paste0("table = ", table, " / col = ", col, "_concept_id"), i18n = i18n, ns = ns)
-            } 
-          }
-        }
-      }
-      
-      if (perf_monitoring) monitor_perf(r = r, action = "stop", task = paste0("mod_vocabularies - observer r$merge_concepts_and_d_vars"))
-    })
+    # observeEvent(r$merge_concepts_and_d_vars, {
+    #   
+    #   if (perf_monitoring) monitor_perf(r = r, action = "start")
+    #   if (debug) print(paste0(Sys.time(), " - mod_vocabularies - observer r$merge_concepts_and_d_vars"))
+    #   
+    #   req(d$person %>% dplyr::count() %>% dplyr::pull() > 0)
+    #   
+    #   omop_version <- r$options %>% dplyr::filter(category == "dataset" & link_id == r$selected_dataset & name == "omop_version") %>% dplyr::pull(value)
+    #   
+    #   # Don't reload if already done
+    #   
+    #   if ("gender_concept_name" %not_in% colnames(d$person)){
+    #     
+    #     # Do that only for small tables
+    #     
+    #     cols <- list(
+    #       "person" = c("gender", "race", "ethnicity")#,
+    #       # "condition_occurrence" = c("condition", "condition_type", "condition_status"),
+    #       # "drug_exposure" = c("drug", "drug_type", "route"),
+    #       # "procedure_occurrence" = c("procedure", "procedure_type", "modifier"),
+    #       # "device_exposure" = c("device", "device_type"),
+    #       # "measurement" = c("measurement", "measurement_type", "value_as", "unit"),
+    #       # "observation" = c("observation", "observation_type", "qualifier", "value_as", "unit"),
+    #       # "note" = c("note_type", "note_class", "encoding", "language"),
+    #       # "note_nlp" = c("section", "note_nlp"),
+    #       # "specimen" = c("specimen", "specimen_type", "unit", "anatomic_site", "disease_status"),
+    #       # "drug_era" = "drug",
+    #       # "dose_era" = c("drug", "unit"),
+    #       # "condition_era" = "condition"
+    #     )
+    #     
+    #     if (omop_version == "5.3"){
+    #       cols <- rlist::list.append(cols, 
+    #         "visit_occurrence" = c("visit", "visit_type", "admitting_source", "discharge_to"),
+    #         "visit_detail" = c("visit_detail", "visit_detail_type", "admitting_source", "discharge_to")) 
+    #     }
+    #     else if (omop_version %in% c("5.4", "6.0")){
+    #       cols <- rlist::list.append(cols, 
+    #         "visit_occurrence" = c("visit", "visit_type", "admitted_from", "discharge_to"),
+    #         "visit_detail" = c("visit_detail", "visit_detail_type", "admitted_from", "discharge_to")) 
+    #     }
+    #     
+    #     if (omop_version %in% c("5.3", "5.0")) cols <- rlist::list.append(cols, "death" = c("death_type", "cause"))
+    #     
+    #     dataset_all_concepts <- d$dataset_all_concepts %>% 
+    #       dplyr::group_by(concept_id_1, concept_name_1, concept_code) %>%
+    #       dplyr::slice(1) %>%
+    #       dplyr::ungroup()
+    #     
+    #     for (table in names(cols)){
+    #       table_cols <- cols[[table]]
+    #       for (col in table_cols){
+    #         if (d[[table]] %>% dplyr::count() %>% dplyr::pull() > 0){
+    #           if (paste0(col, "_concept_id") %in% colnames(d[[table]])){
+    #             if (grepl("unit", col)) merge_col <- c("concept_code", "concept_code") else merge_col <- c("concept_name", "concept_name_1")
+    #             
+    #             d[[table]] <- d[[table]] %>%
+    #               dplyr::left_join(
+    #                 dataset_all_concepts %>%
+    #                   dplyr::select(!!paste0(col, "_concept_id") := concept_id_1, !!paste0(col, "_", merge_col[1]) := !!merge_col[2]),
+    #                 by = paste0(col, "_concept_id"),
+    #                 copy = TRUE
+    #               ) %>%
+    #               dplyr::relocate(!!paste0(col, "_", merge_col[1]), .after = !!paste0(col, "_concept_id"))
+    #           }
+    #           else report_bug(r = r, output = output, error_message = "error_calculating_num_rows_concepts_dataset", 
+    #             error_name = paste0("mod_vocabularies - observer r$merge_concepts_and_d_vars - dataset_id = ", r$selected_dataset), 
+    #             category = "Error", error_report = paste0("table = ", table, " / col = ", col, "_concept_id"), i18n = i18n, ns = ns)
+    #         } 
+    #       }
+    #     }
+    #   }
+    #   
+    #   if (perf_monitoring) monitor_perf(r = r, action = "stop", task = paste0("mod_vocabularies - observer r$merge_concepts_and_d_vars"))
+    # })
     
     # When a vocabulary is selected, filter on it
     
@@ -928,7 +928,7 @@ mod_vocabularies_server <- function(id = character(), r = shiny::reactiveValues(
       # Close dialog box
       r$dataset_all_concepts_reload_cache_open_dialog <- FALSE
       
-      file.remove(paste0(r$app_folder, "/datasets/", r$selected_dataset, "/dataset_all_concepts.csv"))
+      file.remove(paste0(r$app_folder, "/datasets_files/", r$selected_dataset, "/dataset_all_concepts.csv"))
       
       r$load_dataset_all_concepts <- Sys.time()
       
@@ -1038,12 +1038,12 @@ mod_vocabularies_server <- function(id = character(), r = shiny::reactiveValues(
           else concept_id <- selected_concept$concept_id_1
           
           if ("tbl_lazy" %in% class(d[[row$table]])) values <- d[[row$table]] %>% dplyr::filter(rlang::sym(row$concept_id) == concept_id) %>% dplyr::collect()
-          else values <- d[[row$table]] %>% dplyr::filter(get(row$concept_id) == concept_id) %>% dplyr::collect()
+          else values <- d[[row$table]] %>% dplyr::filter(get(row$concept_id) == concept_id)
           
           # Add values for source_concept_id cols (except for Specimen domain)
           if (row$domain_id != "Specimen") values <- values %>% dplyr::bind_rows(
             if ("tbl_lazy" %in% class(d[[row$table]])) d[[row$table]] %>% dplyr::filter(rlang::sym(row$concept_id %>% stringr::str_replace("concept_id", "source_concept_id")) == concept_id) %>% dplyr::collect()
-            else d[[row$table]] %>% dplyr::filter(get(row$concept_id %>% stringr::str_replace("concept_id", "source_concept_id")) == concept_id) %>% dplyr::collect()
+            else d[[row$table]] %>% dplyr::filter(get(row$concept_id %>% stringr::str_replace("concept_id", "source_concept_id")) == concept_id)
           )
           
           r$vocabulary_selected_concept_values <- values

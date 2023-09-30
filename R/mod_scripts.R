@@ -659,7 +659,7 @@ mod_scripts_server <- function(id = character(), r = shiny::reactiveValues(), d 
       if (perf_monitoring) monitor_perf(r = r, action = "start")
       if (debug) print(paste0(Sys.time(), " - mod_scripts - observer r$update_scripts_cache_card"))
       
-      loaded_scripts_file_path <- paste0(r$app_folder, "/datasets/", r$selected_dataset, "/loaded_scripts.csv")
+      loaded_scripts_file_path <- paste0(r$app_folder, "/datasets_files/", r$selected_dataset, "/loaded_scripts.csv")
       if (file.exists(loaded_scripts_file_path)) dataset_loaded_scripts <- vroom::vroom(loaded_scripts_file_path, show_col_types = FALSE)
       if (!file.exists(loaded_scripts_file_path)) dataset_loaded_scripts <- tibble::tibble()
       

@@ -469,6 +469,8 @@ valid_col_names_are,Column names are not valid. Valid col names are :
 error_saving_csv,Error saving CSV file
 error_saving_parquet,Error saving Parquet file
 package_arrow_not_installed,Package arrow is not installed
+package_duckdb_not_installed,Package duckdb is not installed
+package_sparklyr_not_installed,Package sparklyr is not installed
 import_dataset_success_person,Variable person imported with success
 import_dataset_success_observation_period,Variable observation_period imported with success
 import_dataset_success_visit_occurrence,Variable visit_occurrence imported with success
@@ -867,3 +869,8 @@ exported_image_must_be_png_svg_or_jpg,"Exported image must be a PNG, a SVG or a 
 input_image_doesnt_exist,Input image doesn't exist
 error,Error
 show_imported_data,Show imported data
+dataset_invalid_save_as,"Invalid value for 'save as' argument. Accepted values are : 'none', 'csv' et 'parquet'."
+dataset_invalid_read_with,"Invalid value for 'read_with' argument. Accepted values are : 'none', 'vroom', 'duckdb', 'spark'."
+wrong_association_read_with_and_save_as,"The association between 'read_with' and 'save_as' arguments is not valid."
+error_loading_duckdb,Error loading duck database
+error_loading_sparklyr,Error loading data with sparklyr
