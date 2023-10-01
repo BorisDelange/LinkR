@@ -8,7 +8,7 @@
 #'
 #' @importFrom shiny NS tagList 
 
-mod_page_main_ui <- function(id = character(), language = "en", i18n = character(), users_accesses_toggles_options = tibble::tibble()){
+mod_page_main_ui <- function(id = character(), language = "en", languages = tibble::tibble(), i18n = character(), users_accesses_toggles_options = tibble::tibble()){
   ns <- NS(id)
   result <- ""
   
@@ -58,8 +58,7 @@ mod_page_main_ui <- function(id = character(), language = "en", i18n = character
   # Plugins ----
   # --- --- -- -
   
-  if (id == "plugins_patient_lvl") mod_plugins_ui(id = "plugins_patient_lvl", i18n = i18n) -> result
-  if (id == "plugins_aggregated") mod_plugins_ui(id = "plugins_aggregated", i18n = i18n) -> result
+  if (id %in% c("plugins_patient_lvl", "plugins_aggregated")) mod_plugins_ui(id = id, i18n = i18n, language = language, languages = languages) -> result
   
   # --- --- --- -
   # Settings ----

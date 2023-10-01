@@ -67,12 +67,23 @@ linkr <- function(
   # Load translations
   if (debug) print(paste0(Sys.time(), " - linkr - translation"))
   
+  languages <- c("en", "fr")
+  if (language %not_in% languages) print("Valid languages are 'en' (english) and 'fr' (french)")
+  
   translations_path <- "inst/translations"
   if (!dir.exists(translations_path)) translations_path <- paste0(find.package("linkr"), "/translations")
   if (!dir.exists(translations_path)) print("Translations path not found")
   
   i18n <- suppressWarnings(shiny.i18n::Translator$new(translation_csvs_path = translations_path))
   i18n$set_translation_language(language)
+  
+  languages <- tibble::tribble(
+    ~code, ~language, 
+    "en", i18n$t("english"),
+    "fr", i18n$t("french")#,
+    # "it", i18n$t("italian"),
+    # "es", i18n$t("spanish")
+  )
   
   options(digits.secs = 0)
 
@@ -156,8 +167,8 @@ linkr <- function(
   if (debug) print(paste0(Sys.time(), " - linkr - load UI & server"))
   with_golem_options(
     app = shinyApp(
-      ui = app_ui(css = css, language = language, i18n = i18n, users_accesses_toggles_options = users_accesses_toggles_options, debug = debug),
-      server = app_server(language = language, i18n = i18n, app_folder = app_folder, 
+      ui = app_ui(css = css, language = language, languages = languages, i18n = i18n, users_accesses_toggles_options = users_accesses_toggles_options, debug = debug),
+      server = app_server(language = language, languages = languages, i18n = i18n, app_folder = app_folder, 
         perf_monitoring = perf_monitoring, debug = debug, local = local, show_home_page = show_home_page,
         users_accesses_toggles_options = users_accesses_toggles_options),
       options = options

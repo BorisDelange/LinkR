@@ -9,7 +9,7 @@
 #' @import shiny
 #' @noRd
 
-app_ui <- function(request, css, language, i18n = character(), users_accesses_toggles_options = tibble::tibble(), debug = FALSE) {
+app_ui <- function(request, css, language, languages, i18n = character(), users_accesses_toggles_options = tibble::tibble(), debug = FALSE) {
   
   pages <- c(
     "/", 
@@ -41,7 +41,7 @@ app_ui <- function(request, css, language, i18n = character(), users_accesses_to
     lapply(pages, function(page_url){
       if (debug) print(paste0(Sys.time(), " - ui - make_router - ", page_url))
       if (page_url == "/") page <- "home" else page <- page_url
-      shiny.router::route(page_url, make_layout(language = language, page = page, i18n = i18n, users_accesses_toggles_options = users_accesses_toggles_options))
+      shiny.router::route(page_url, make_layout(language = language, languages = languages, page = page, i18n = i18n, users_accesses_toggles_options = users_accesses_toggles_options))
     })
   ) -> page
   

@@ -723,7 +723,7 @@ mod_scripts_server <- function(id = character(), r = shiny::reactiveValues(), d 
       if (debug) print(paste0(Sys.time(), " - mod_scripts - observer r$git_repos"))
       
       shiny.fluent::updateDropdown.shinyInput(session, "remote_git_repo", 
-        options = convert_tibble_to_list(r$git_repos %>% dplyr::filter(category == "script"), key_col = "id", text_col = "name"))
+        options = convert_tibble_to_list(r$git_repos, key_col = "id", text_col = "name"))
     })
     
     observeEvent(r$reload_local_scripts_datatable, {
@@ -793,7 +793,7 @@ mod_scripts_server <- function(id = character(), r = shiny::reactiveValues(), d 
       tryCatch({
 
         # Clear temp dir
-        unlink(paste0(r$app_folder, "/temp_files"), recursive = TRUE, force = TRUE)
+        # unlink(paste0(r$app_folder, "/temp_files"), recursive = TRUE, force = TRUE)
 
         markdown_settings <- paste0("```{r setup, include=FALSE}\nknitr::opts_knit$set(root.dir = '",
           r$app_folder, "/temp_files')\n",
@@ -803,7 +803,7 @@ mod_scripts_server <- function(id = character(), r = shiny::reactiveValues(), d 
 
         # Create temp dir
         dir <- paste0(r$app_folder, "/temp_files")
-        file <- paste0(dir, "/", as.character(Sys.time()) %>% stringr::str_replace_all(":", "_") %>% stringr::str_replace_all(" ", "_"), ".Md")
+        file <- paste0(dir, "/", paste0(sample(c(0:9, letters[1:6]), 8, TRUE), collapse = ''), "_", as.character(Sys.time()) %>% stringr::str_replace_all(":", "_") %>% stringr::str_replace_all(" ", "_"), ".Md")
         if (!dir.exists(dir)) dir.create(dir)
 
         shinyjs::show(paste0(type, "_selected_script_markdown_div"))
@@ -825,6 +825,7 @@ mod_scripts_server <- function(id = character(), r = shiny::reactiveValues(), d 
       # Get URL of remote git repo
       url_address <- r$git_repos %>% dplyr::filter(id == input$remote_git_repo) %>% dplyr::pull(url_address)
       if (substr(url_address, nchar(url_address), nchar(url_address)) != "/") url_address <- paste0(url_address, "/")
+      url_address <- paste0(url_address, "scripts/")
       
       error_loading_remote_git <- TRUE
       scripts_file <- paste0(r$app_folder, "/temp_files/scripts.xml")
@@ -1497,7 +1498,7 @@ mod_scripts_server <- function(id = character(), r = shiny::reactiveValues(), d 
       tryCatch({
         
         # Clear temp dir
-        unlink(paste0(r$app_folder, "/temp_files"), recursive = TRUE, force = TRUE)
+        # unlink(paste0(r$app_folder, "/temp_files"), recursive = TRUE, force = TRUE)
         
         markdown_settings <- paste0("```{r setup, include=FALSE}\nknitr::opts_knit$set(root.dir = '", 
           r$app_folder, "/temp_files')\n",
@@ -1507,7 +1508,7 @@ mod_scripts_server <- function(id = character(), r = shiny::reactiveValues(), d 
         
         # Create temp dir
         dir <- paste0(r$app_folder, "/temp_files")
-        file <- paste0(dir, "/", as.character(Sys.time()) %>% stringr::str_replace_all(":", "_"), ".Md")
+        file <- paste0(dir, "/", paste0(sample(c(0:9, letters[1:6]), 8, TRUE), collapse = ''), "_", as.character(Sys.time()) %>% stringr::str_replace_all(":", "_"), ".Md")
         if (!dir.exists(dir)) dir.create(dir)
         
         # Create the markdown file

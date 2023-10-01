@@ -7,7 +7,7 @@
 #' @noRd 
 #'
 #' @importFrom shiny NS tagList 
-mod_plugins_ui <- function(id = character(), i18n = character()){
+mod_plugins_ui <- function(id = character(), i18n = character(), language = tibble::tibble(), languages = character()){
   ns <- NS(id)
   
   cards <- c("all_plugins_card", "plugins_datatable_card", "plugins_edit_code_card", "plugins_options_card", "import_plugin_card", "export_plugin_card")
@@ -88,6 +88,44 @@ mod_plugins_ui <- function(id = character(), i18n = character()){
     div(id = ns("blank_space"), br()),
     style = "position:relative; z-index:1;"
   )
+  
+  # Plugins options & description divs (with distinct languages fields)
+  plugin_options_divs <- tagList()
+  plugin_description_divs <- tagList()
+  
+  for (lang in languages$code){
+    
+    plugin_options_div <- shiny.fluent::Stack(horizontal = TRUE, tokens = list(childrenGap = 20),
+      div(
+        div(class = "input_title", paste0(i18n$t("name"), " (", toupper(lang), ")")),
+        div(shiny.fluent::TextField.shinyInput(ns(paste0("plugin_name_", lang))), style = "width:320px;")
+      ),
+      div(
+        div(class = "input_title", paste0(i18n$t("category"), " (", toupper(lang), ")")),
+        div(shiny.fluent::TextField.shinyInput(ns(paste0("plugin_category_", lang))), style = "width:320px;")
+      )
+    )
+    
+    plugin_description_div <- div(
+      div(paste0(i18n$t("description"), " (", toupper(lang), ") :"), style = "font-weight:bold; margin-top:7px; margin-right:5px;"),
+      shinyAce::aceEditor(ns(paste0("plugin_description_", lang)), "", mode = "markdown", 
+        code_hotkeys = list(
+          "markdown", 
+          list(
+            save = list(win = "CTRL-S", mac = "CTRL-S|CMD-S"),
+            run_all = list(win = "CTRL-SHIFT-ENTER|CTRL-ENTER", mac = "CTRL-SHIFT-ENTER|CMD-SHIFT-ENTER|CTRL-ENTER|CMD-ENTER") 
+          )
+        ),
+      autoScrollEditorIntoView = TRUE, minLines = 30, maxLines = 1000), style = "width: 100%;")
+    
+    if (lang == language) condition <- paste0("input.plugin_language == '", lang, "' || input.plugin_language == null")
+    else condition <- paste0("input.plugin_language == '", lang, "'")
+    
+    plugin_options_div <- conditionalPanel(condition = paste0("input.plugin_language == '", lang, "'"), ns = ns, plugin_options_div)
+    
+    plugin_options_divs <- tagList(plugin_options_divs, conditionalPanel(condition = condition, ns = ns, plugin_options_div))
+    plugin_description_divs <- tagList(plugin_description_divs, conditionalPanel(condition = condition, ns = ns, plugin_description_div))
+  }
   
   div(
     class = "main",
@@ -278,17 +316,12 @@ mod_plugins_ui <- function(id = character(), i18n = character()){
               shiny.fluent::Stack(horizontal = TRUE, tokens = list(childrenGap = 20),
                 make_combobox(i18n = i18n, ns = ns, label = "plugin", id = "options_selected_plugin",
                   width = "320px", allowFreeform = FALSE, multiSelect = FALSE),
-                make_textfield(i18n = i18n, ns = ns, label = "author", id = "plugin_author", width = "320px"),
+                make_dropdown(i18n = i18n, ns = ns, label = "language", id = "plugin_language", 
+                  options = convert_tibble_to_list(languages, key_col = "code", text_col = "language"), value = language, width = "320px"),
                 make_textfield(i18n = i18n, ns = ns, label = "version", id = "plugin_version", width = "80px")
               ),
-              shiny.fluent::Stack(horizontal = TRUE, tokens = list(childrenGap = 20),
-                make_textfield(i18n = i18n, ns = ns, label = "name_fr", id = "plugin_name_fr", width = "320px"),
-                make_textfield(i18n = i18n, ns = ns, label = "name_en", id = "plugin_name_en", width = "320px")
-              ),
-              shiny.fluent::Stack(horizontal = TRUE, tokens = list(childrenGap = 20),
-                make_textfield(i18n = i18n, ns = ns, label = "category_fr", id = "plugin_category_fr", width = "320px"),
-                make_textfield(i18n = i18n, ns = ns, label = "category_en", id = "plugin_category_en", width = "320px")
-              ),
+              make_textfield(i18n = i18n, ns = ns, label = "author_s", id = "plugin_author", width = "660px"),
+              plugin_options_divs,
               br(),
               div(
                 div(class = "input_title", paste0(i18n$t("grant_access_to"), " :")),
@@ -315,39 +348,13 @@ mod_plugins_ui <- function(id = character(), i18n = character()){
               conditionalPanel(condition = "input.plugin_image != null & input.plugin_image != ''", ns = ns,
                 div(imageOutput(ns("render_image")), style = "border:solid #ECEBE9 1px; width:318px; height:200px;"), br()
               ),
-              shiny.fluent::Stack(horizontal = TRUE, tokens = list(childrenGap = 10),
-                div(paste0(i18n$t("description"), " :"), style = "font-weight:bold; margin-top:7px; margin-right:5px;"),
-                shiny.fluent::ChoiceGroup.shinyInput(ns("plugin_description_language"), value = "fr", options = list(
-                  list(key = "fr", text = "FR"),
-                  list(key = "en", text = "EN")
-                ), className = "inline_choicegroup")
-              )
             ),
-            conditionalPanel(condition = "input.plugin_description_language == 'fr'", ns = ns,
-              div(shinyAce::aceEditor(ns("plugin_description_fr"), "", mode = "markdown", 
-                code_hotkeys = list(
-                  "markdown", 
-                  list(
-                    save = list(win = "CTRL-S", mac = "CTRL-S|CMD-S"),
-                    run_all = list(win = "CTRL-SHIFT-ENTER|CTRL-ENTER", mac = "CTRL-SHIFT-ENTER|CMD-SHIFT-ENTER|CTRL-ENTER|CMD-ENTER") 
-                  )
-                ),
-                autoScrollEditorIntoView = TRUE, minLines = 30, maxLines = 1000), style = "width: 100%;")),
-            conditionalPanel(condition = "input.plugin_description_language == 'en'", ns = ns,
-              div(shinyAce::aceEditor(ns("plugin_description_en"), "", mode = "markdown", 
-                code_hotkeys = list(
-                  "markdown", 
-                  list(
-                    save = list(win = "CTRL-S", mac = "CTRL-S|CMD-S"),
-                    run_all = list(win = "CTRL-SHIFT-ENTER|CTRL-ENTER", mac = "CTRL-SHIFT-ENTER|CMD-SHIFT-ENTER|CTRL-ENTER|CMD-ENTER") 
-                  )
-                ),
-                autoScrollEditorIntoView = TRUE, minLines = 30, maxLines = 1000), style = "width: 100%;")),
+            plugin_description_divs,
             shiny.fluent::Stack(
               tokens = list(childrenGap = 5),
               shiny.fluent::Stack(horizontal = TRUE, tokens = list(childrenGap = 10),
                 shiny.fluent::PrimaryButton.shinyInput(ns("save_plugin_options"), i18n$t("save")),
-                shiny.fluent::DefaultButton.shinyInput(ns("execute_options_description"), i18n$t("run_code"))
+                shiny.fluent::DefaultButton.shinyInput(ns("execute_options_description"), i18n$t("preview"))
               ),
               br(), br(),
               div(id = ns("description_markdown_output"),
@@ -552,7 +559,7 @@ mod_plugins_server <- function(id = character(), r = shiny::reactiveValues(), d 
       if (debug) print(paste0(Sys.time(), " - mod_plugins - observer r$git_repos"))
       
       shiny.fluent::updateDropdown.shinyInput(session, "remote_git_repo", 
-        options = convert_tibble_to_list(r$git_repos %>% dplyr::filter(category == "plugin"), key_col = "id", text_col = "name"))
+        options = convert_tibble_to_list(r$git_repos, key_col = "id", text_col = "name"))
     })
     
     # Update plugins catalog when a remote git repo is selected
@@ -563,6 +570,7 @@ mod_plugins_server <- function(id = character(), r = shiny::reactiveValues(), d 
       # Get URL of remote git repo
       url_address <- r$git_repos %>% dplyr::filter(id == input$remote_git_repo) %>% dplyr::pull(url_address)
       if (substr(url_address, nchar(url_address), nchar(url_address)) != "/") url_address <- paste0(url_address, "/")
+      url_address <- paste0(url_address, "plugins/")
       r$url_address <- url_address
       
       error_loading_remote_git <- TRUE
@@ -616,7 +624,7 @@ mod_plugins_server <- function(id = character(), r = shiny::reactiveValues(), d 
       if (debug) print(paste0(Sys.time(), " - mod_plugins - observer r$.._remote_git_repo"))
       
       shiny.fluent::updateDropdown.shinyInput(session, "remote_git_repo",
-        options = convert_tibble_to_list(r$git_repos %>% dplyr::filter(category == "plugin"), key_col = "id", text_col = "name"),
+        options = convert_tibble_to_list(r$git_repos, key_col = "id", text_col = "name"),
         value = r[[paste0(prefix, "_remote_git_repo")]])
     })
     
@@ -636,50 +644,50 @@ mod_plugins_server <- function(id = character(), r = shiny::reactiveValues(), d 
     })
     
     observeEvent(r$reload_plugins_document_cards, {
-      
+
       if (perf_monitoring) monitor_perf(r = r, action = "start")
       if (debug) print(paste0(Sys.time(), " - mod_plugins - observer r$reload_plugins_document_cards"))
-      
+
       req(input$local_plugins_category)
-      
+
       if (length(r$error_loading_remote_git) == 0){
         r$remote_git_plugins <- tibble::tibble(type = integer(), unique_id = character())
         error_loading_remote_git <- TRUE
-      } 
+      }
       if (length(r$error_loading_remote_git) > 0) error_loading_remote_git <- r$error_loading_remote_git
-      
+
       plugins <- list()
       plugins$remote_git <- r$remote_git_plugins %>% dplyr::filter(type == tab_type_id) %>% dplyr::mutate(id = unique_id)
       if (nrow(plugins$remote_git) > 0) plugins$remote_git <- plugins$remote_git %>% dplyr::arrange(get(paste0("name_", language)))
       plugins$local <- r$plugins %>% dplyr::filter(tab_type_id == !!tab_type_id) %>% dplyr::arrange(name)
       r[[paste0(prefix, "_plugins_images")]] <- tibble::tibble(type = character(), id = character(), image_url = character())
-      
+
       # Filter local plugins on category
       if (input$local_plugins_category != "all") plugins$local <- plugins$local %>%
         dplyr::left_join(
           r$options %>% dplyr::filter(category == "plugin", name == paste0("category_", language)) %>% dplyr::select(id = link_id, category = value),
           by = "id") %>%
         dplyr::filter(category == input$local_plugins_category)
-      
+
       # Filter remote plugins on category
       if (length(input$remote_git_plugins_category) > 0) if (input$remote_git_plugins_category != "all") plugins$remote_git <- plugins$remote_git %>%
         dplyr::filter(get(paste0("category_", language)) == input$remote_git_plugins_category)
-      
+
       sapply(c("remote_git", "local"), function(type){
-        
+
         all_plugins <- tagList()
         all_plugins_document_cards <- tagList()
-        
+
         if (type == "remote_git" & length(r$error_loading_remote_git) == 0) renderUI(tagList(br(), shiny.fluent::MessageBar(i18n$t("choose_remote_git"), messageBarType = 5)))
         else if (type == "remote_git" & error_loading_remote_git) output$all_plugins_remote_git <- renderUI(tagList(br(), shiny.fluent::MessageBar(i18n$t("error_connection_remote_git"), messageBarType = 3)))
         else if (nrow(plugins[[type]]) == 0) output[[paste0("all_plugins_", type)]] <- renderUI(tagList(br(), shiny.fluent::MessageBar(i18n$t("no_available_plugin"), messageBarType = 5)))
-        
+
         else if (nrow(plugins[[type]]) > 0){
-          
+
           i <- 0
-          
+
           for(plugin_id in plugins[[type]] %>% dplyr::pull(id)){
-            
+
             if (type == "local"){
               plugin <- list()
               plugin$name <- r$plugins %>% dplyr::filter(id == plugin_id) %>% dplyr::pull(name)
@@ -688,7 +696,7 @@ mod_plugins_server <- function(id = character(), r = shiny::reactiveValues(), d 
               plugin$author <- plugin$options %>% dplyr::filter(name == "author") %>% dplyr::pull(value)
               plugin$version <- plugin$options %>% dplyr::filter(name == "version") %>% dplyr::pull(value)
               plugin$category <- plugin$options %>% dplyr::filter(name == paste0("category_", language)) %>% dplyr::pull(value)
-              
+
               if (plugin$options %>% dplyr::filter(name == "image") %>% dplyr::pull(value) != ""){
                 plugin$image_url <- paste0(r$app_folder, "/plugins/", prefix, "/",
                   plugin$options %>% dplyr::filter(name == "unique_id") %>% dplyr::pull(value), "/",
@@ -696,24 +704,24 @@ mod_plugins_server <- function(id = character(), r = shiny::reactiveValues(), d 
               }
               else plugin$image_url <- ""
             }
-            
+
             if (type == "remote_git"){
               plugin <- plugins$remote_git %>% dplyr::filter(id == plugin_id)
-              
+
               plugin$name <- plugin[[paste0("name_", language)]]
-              
+
               if (plugin$image != "") plugin$image_url <- paste0(r$url_address, prefix, "/", plugin$unique_id, "/", plugin$image)
               else plugin$image_url <- ""
             }
-            
+
             r[[paste0(prefix, "_plugins_images")]] <- r[[paste0(prefix, "_plugins_images")]] %>% dplyr::bind_rows(
               tibble::tribble(~type, ~id, ~image_url, type, as.character(plugin_id), plugin$image_url))
-            
+
             if (type == "remote_git") image_div <- uiOutput(ns(paste0(plugin_id, "_image")))
             if (type == "local") image_div <- imageOutput(ns(paste0(plugin_id, "_image")), width = "320px", height = "200px")
-            
+
             all_plugins_document_cards <- tagList(all_plugins_document_cards,
-              
+
               shiny.fluent::Link(
                 div(
                   div(image_div, style = "height:200px; width:320px; background-color:#FAF9F8;"),
@@ -736,9 +744,9 @@ mod_plugins_server <- function(id = character(), r = shiny::reactiveValues(), d 
                   "}"))
               )
             )
-            
+
             i <- i + 1
-            
+
             if (i %% 3 == 0){
               all_plugins <- tagList(all_plugins, br(),
                 div(
@@ -747,11 +755,11 @@ mod_plugins_server <- function(id = character(), r = shiny::reactiveValues(), d 
                   )
                 )
               )
-              
+
               all_plugins_document_cards <- tagList()
             }
           }
-          
+
           if (i %% 3 != 0){
             all_plugins <- tagList(all_plugins, br(),
               div(
@@ -761,13 +769,13 @@ mod_plugins_server <- function(id = character(), r = shiny::reactiveValues(), d 
               )
             )
           }
-          
+
           output[[paste0("all_plugins_", type)]] <- renderUI(tagList(all_plugins))
         }
       })
-      
+
       r[[paste0(prefix, "_load_plugins_images")]] <- Sys.time()
-      
+
       if (perf_monitoring) monitor_perf(r = r, action = "stop", task = paste0("mod_plugins - observer r$reload_plugins_document_cards"))
     })
     
@@ -948,6 +956,13 @@ mod_plugins_server <- function(id = character(), r = shiny::reactiveValues(), d 
       
       plugin <- r$remote_git_plugins %>% dplyr::filter(unique_id == input$plugin_id)
       
+      # Add columns that don't exist (if a language has been added after the creation of the plugin)
+      prefixes <- c("description", "name", "category")
+      new_cols <- outer(prefixes, r$languages$code, paste, sep = "_") %>% as.vector()
+      for(col in new_cols) if(!col %in% colnames(plugin)) plugin <- plugin %>% dplyr::mutate(!!col := "")
+      
+      if (plugin[[paste0("name_", language)]] == "") plugin[[paste0("name_", language)]] <- plugin$name_en
+      
       tryCatch({
         
         # Delete translations file
@@ -983,7 +998,7 @@ mod_plugins_server <- function(id = character(), r = shiny::reactiveValues(), d 
               (category %in% c("plugin_ui", "plugin_server", "plugin_translations") & link_id != new_row))
         }
         
-        for (name in c("description_fr", "description_en")) plugin[[name]] <- plugin[[name]] %>% stringr::str_replace_all("'", "''")
+        for (name in c(paste0("description_", r$languages$code))) if (name %in% colnames(plugin)) plugin[[name]] <- plugin[[name]] %>% stringr::str_replace_all("'", "''")
         
         # Plugin table
         
@@ -999,20 +1014,28 @@ mod_plugins_server <- function(id = character(), r = shiny::reactiveValues(), d 
         
         last_row_options <- get_last_row(r$db, "options")
         
-        new_options <- tibble::tribble(~id, ~category, ~link_id, ~name, ~value, ~value_num, ~creator_id, ~datetime, ~deleted,
-          last_row_options + 1, "plugin", new_row, "users_allowed_read_group", "everybody", 1, r$user_id, as.character(Sys.time()), FALSE,
-          last_row_options + 2, "plugin", new_row, "user_allowed_read", "", r$user_id, r$user_id, as.character(Sys.time()), FALSE,
-          last_row_options + 3, "plugin", new_row, "version", plugin$version, NA_integer_, r$user_id, as.character(Sys.time()), FALSE,
-          last_row_options + 4, "plugin", new_row, "unique_id", plugin$unique_id, NA_integer_, r$user_id, as.character(Sys.time()), FALSE,
-          last_row_options + 5, "plugin", new_row, "author", plugin$author, NA_integer_, r$user_id, as.character(Sys.time()), FALSE,
-          last_row_options + 6, "plugin", new_row, "image", plugin$image, NA_integer_, r$user_id, as.character(Sys.time()), FALSE,
-          last_row_options + 7, "plugin", new_row, "description_fr", plugin$description_fr, NA_integer_, r$user_id, as.character(Sys.time()), FALSE,
-          last_row_options + 8, "plugin", new_row, "description_en", plugin$description_en, NA_integer_, r$user_id, as.character(Sys.time()), FALSE,
-          last_row_options + 9, "plugin", new_row, "category_fr", plugin$category_fr, NA_integer_, r$user_id, as.character(Sys.time()), FALSE,
-          last_row_options + 10, "plugin", new_row, "category_en", plugin$category_en, NA_integer_, r$user_id, as.character(Sys.time()), FALSE,
-          last_row_options + 11, "plugin", new_row, "name_fr", plugin$name_fr, NA_integer_, r$user_id, as.character(Sys.time()), FALSE,
-          last_row_options + 12, "plugin", new_row, "name_en", plugin$name_en, NA_integer_, r$user_id, as.character(Sys.time()), FALSE
-        )
+        new_options <- tibble::tribble(
+          ~name, ~value, ~value_num,
+          "users_allowed_read_group", "everybody", 1,
+          "user_allowed_read", "", r$user_id,
+          "version", plugin$version, NA_integer_,
+          "unique_id", plugin$unique_id, NA_integer_,
+          "author", plugin$author, NA_integer_,
+          "image", plugin$image, NA_integer_
+        ) %>%
+          dplyr::bind_rows(
+            r$languages %>%
+              tidyr::crossing(col_prefix = c("description", "category", "name")) %>%
+              dplyr::rowwise() %>%
+              dplyr::mutate(
+                name = paste0(col_prefix, "_", code),
+                value = plugin[[paste0(col_prefix, "_", code)]],
+                value_num = NA_integer_
+              ) %>%
+              dplyr::select(-code, -language, -col_prefix)
+          ) %>%
+          dplyr::mutate(id = last_row_options + dplyr::row_number(), category = "plugin", link_id = new_row, .before = "name") %>%
+          dplyr::mutate(creator_id = r$user_id, datetime = as.character(Sys.time()), deleted = FALSE)
         
         DBI::dbAppendTable(r$db, "options", new_options)
         add_log_entry(r = r, category = paste0("code", " - ", i18n$t("insert_new_data")), name = i18n$t("sql_query"), value = toString(new_options))
@@ -1037,10 +1060,12 @@ mod_plugins_server <- function(id = character(), r = shiny::reactiveValues(), d 
         
         last_row_code <- get_last_row(r$db, "code")
         
-        new_code <- tibble::tribble(~id, ~category, ~link_id, ~code, ~creator_id, ~datetime, ~deleted,
-          last_row_code + 1, "plugin_ui", new_row, plugin_ui_code, r$user_id, as.character(Sys.time()), FALSE,
-          last_row_code + 2, "plugin_server", new_row, plugin_server_code, r$user_id, as.character(Sys.time()), FALSE,
-          last_row_code + 3, "plugin_translations", new_row, plugin_translations_code, r$user_id, as.character(Sys.time()), FALSE)
+        new_code <- tibble::tibble(
+          id = last_row_code + 1:3,
+          category = c("plugin_ui", "plugin_server", "plugin_translations"),
+          link_id = new_row, code = c(plugin_ui_code, plugin_server_code, plugin_translations_code), 
+          creator_id = r$user_id, datetime = as.character(Sys.time()), deleted = FALSE
+        )
         
         DBI::dbAppendTable(r$db, "code", new_code)
         add_log_entry(r = r, category = paste0("code", " - ", i18n$t("insert_new_data")), name = i18n$t("sql_query"), value = toString(new_code))
@@ -1347,12 +1372,11 @@ mod_plugins_server <- function(id = character(), r = shiny::reactiveValues(), d 
         function(name) shinyAce::updateAceEditor(session, name, value = ""))
       
       shiny.fluent::updateComboBox.shinyInput(session, "options_selected_plugin", options = options, value = NULL)
-      sapply(c("plugin_author", "plugin_version", "plugin_name_fr", "plugin_name_en", "plugin_category_fr", "plugin_category_en"),
+      sapply(c("plugin_author", "plugin_version", paste0("plugin_name_", r$languages$code), paste0("plugin_category_", r$languages$code)),
         function(name) shiny.fluent::updateTextField.shinyInput(session, name, value = ""))
       shiny.fluent::updateChoiceGroup.shinyInput(session, "users_allowed_read_group", value = "everybody")
       shiny.fluent::updateDropdown.shinyInput(session, "plugin_image", options = list(), value = NULL)
-      shiny.fluent::updateChoiceGroup.shinyInput(session, "plugin_description_language", value = "fr")
-      sapply(c("plugin_description_fr", "plugin_description_en"), function(name) shinyAce::updateAceEditor(session, name, value = ""))
+      sapply(paste0("plugin_description_", r$languages$code), function(name) shinyAce::updateAceEditor(session, name, value = ""))
       
       shiny.fluent::updateComboBox.shinyInput(session, "plugins_to_export", value = "")
     })
@@ -1459,14 +1483,14 @@ mod_plugins_server <- function(id = character(), r = shiny::reactiveValues(), d 
         options = convert_tibble_to_list(tibble::tibble(text = c("", files_list), key = c("", files_list)), key_col = "key", text_col = "text"),
         value = options %>% dplyr::filter(name == "image") %>% dplyr::pull(value))
       
-      for (field in c("version", "author", "name_fr", "name_en", "category_fr", "category_en")){
+      for (field in c("version", "author", paste0("name_", r$languages$code), paste0("category_", r$languages$code))){
         value <- options %>% dplyr::filter(name == field) %>% dplyr::pull(value) %>% stringr::str_replace_all("''", "'")
         if (is.na(value)) value <- ""
         
         shiny.fluent::updateTextField.shinyInput(session, paste0("plugin_", field), value = value)
       }
       
-      for (field in c("description_fr", "description_en")) shinyAce::updateAceEditor(session,
+      for (field in paste0("description_", r$languages$code)) shinyAce::updateAceEditor(session,
         paste0("plugin_", field), value = options %>% dplyr::filter(name == field) %>% dplyr::pull(value) %>% stringr::str_replace_all("''", "'"))
       
       if (perf_monitoring) monitor_perf(r = r, action = "stop", task = paste0("mod_plugins - observer input$options_selected_plugin"))
@@ -1490,13 +1514,11 @@ mod_plugins_server <- function(id = character(), r = shiny::reactiveValues(), d 
     
     # Save updates
     
-    observeEvent(input$plugin_description_fr_save, {
-      if (debug) print(paste0(Sys.time(), " - mod_plugins - observer input$plugin_description_fr_save"))
-      r[[paste0(id, "_save_options")]] <- Sys.time()
-    })
-    observeEvent(input$plugin_description_en_save, {
-      if (debug) print(paste0(Sys.time(), " - mod_plugins - observer input$plugin_description_en_save"))
-      r[[paste0(id, "_save_options")]] <- Sys.time()
+    sapply(r$languages$code, function(lang){
+      observeEvent(input[[paste0("plugin_description_", lang, "_save")]], {
+        if (debug) print(paste0(Sys.time(), " - mod_plugins - observer input$plugin_description_", lang, "_save"))
+        r[[paste0(id, "_save_options")]] <- Sys.time()
+      })
     })
     observeEvent(input$save_plugin_options, {
       if (debug) print(paste0(Sys.time(), " - mod_plugins - observer input$save_plugin_options"))
@@ -1532,13 +1554,13 @@ mod_plugins_server <- function(id = character(), r = shiny::reactiveValues(), d 
       
       data <- list()
       data$users_allowed_read <- unique(input$users_allowed_read)
-      for (field in c("users_allowed_read_group", "plugin_version", "plugin_author",
-        "plugin_name_fr", "plugin_name_en", "plugin_category_fr", "plugin_category_en",
-        "plugin_image", "plugin_description_fr", "plugin_description_en")) data[[stringr::str_replace(field, "plugin_", "")]] <- input[[field]]
+      for (field in c("users_allowed_read_group", "plugin_version", "plugin_author", "plugin_image",
+        paste0("plugin_name_", r$languages$code), paste0("plugin_category_", r$languages$code),
+        paste0("plugin_description_", r$languages$code))) data[[stringr::str_replace(field, "plugin_", "")]] <- input[[field]]
       
       save_settings_options(output = output, r = r, id = id, category = "plugin", code_id_input = paste0("options_", link_id),
-        i18n = i18n, data = data, page_options = c("users_allowed_read", "version", "author", "image", "description_fr", "description_en",
-          "name_fr", "name_en", "category_fr", "category_en"))
+        i18n = i18n, data = data, page_options = c("users_allowed_read", "version", "author", "image",
+          paste0("name_", r$languages$code), paste0("category_", r$languages$code), paste0("description_", r$languages$code)))
       
       # Change plugin_name & update_datetime in plugins table
       new_update_datetime <- as.character(Sys.time())
@@ -1705,14 +1727,14 @@ mod_plugins_server <- function(id = character(), r = shiny::reactiveValues(), d 
       options <- r$options %>% dplyr::filter(category == "plugin", link_id == input$options_selected_plugin$key)
       plugin_folder <- paste0(r$app_folder, "/plugins/", prefix, "/", options %>% dplyr::filter(name == "unique_id") %>% dplyr::pull(value))
       
-      options_description <- isolate(input[[paste0("plugin_description_", input$plugin_description_language)]] %>% 
+      options_description <- isolate(input[[paste0("plugin_description_", input$plugin_language)]] %>% 
           stringr::str_replace_all("\r", "\n")) %>%
           stringr::str_replace_all("%plugin_folder%", plugin_folder)
       
       tryCatch({
         
         # Clear temp dir
-        unlink(paste0(r$app_folder, "/temp_files"), recursive = TRUE, force = TRUE)
+        # unlink(paste0(r$app_folder, "/temp_files"), recursive = TRUE, force = TRUE)
         
         markdown_settings <- paste0("```{r setup, include=FALSE}\nknitr::opts_knit$set(root.dir = '", 
           r$app_folder, "/temp_files')\n",
@@ -1722,14 +1744,14 @@ mod_plugins_server <- function(id = character(), r = shiny::reactiveValues(), d 
         
         # Create temp dir
         dir <- paste0(r$app_folder, "/temp_files")
-        file <- paste0(dir, "/", as.character(Sys.time()) %>% stringr::str_replace_all(":", "_"), ".Md")
+        file <- paste0(dir, "/", paste0(sample(c(0:9, letters[1:6]), 8, TRUE), collapse = ''), "_", as.character(Sys.time()) %>% stringr::str_replace_all(":", "_"), ".Md")
         if (!dir.exists(dir)) dir.create(dir)
         
         # Create the markdown file
         knitr::knit(text = markdown_file, output = file, quiet = TRUE)
         
         output$description_markdown_result <- renderUI(div(class = "markdown", withMathJax(includeMarkdown(file))))
-      }, error = function(e) "")
+      })
       
       if (perf_monitoring) monitor_perf(r = r, action = "stop", task = paste0("mod_plugins - observer r$.._plugin_options_description_trigger"))
     })
@@ -2338,36 +2360,36 @@ mod_plugins_server <- function(id = character(), r = shiny::reactiveValues(), d 
     # --- --- --- --- - -
     # Import plugins ----
     # --- --- --- --- - -
-    
+
     observeEvent(input$import_plugins_browse, {
       if (debug) print(paste0(Sys.time(), " - mod_plugins - observer input$import_plugins_browse"))
       shinyjs::click("import_plugins_upload")
     })
-    
+
     output$import_plugins_status <- renderUI({
       if (debug) print(paste0(Sys.time(), " - mod_plugins - output$import_plugins_status"))
-      
+
       tagList(div(
-        span(i18n$t("loaded_file"), " : ", style = "padding-top:5px;"), 
+        span(i18n$t("loaded_file"), " : ", style = "padding-top:5px;"),
         span(input$import_plugins_upload$name, style = "font-weight:bold; color:#0078D4;"), style = "padding-top:5px;"))
     })
-    
+
     observeEvent(input$import_plugins_button, {
-      
+
       if (perf_monitoring) monitor_perf(r = r, action = "start")
       if (debug) print(paste0(Sys.time(), " - mod_plugins - observer input$import_plugins_button"))
-      
+
       req(input$import_plugins_upload)
-      
+
       tryCatch({
-        
+
         # Extract ZIP file
-        
+
         temp_dir <- paste0(r$app_folder, "/temp_files/", Sys.time() %>% stringr::str_replace_all(":| |-", ""), paste0(sample(c(0:9, letters[1:6]), 24, TRUE), collapse = ''))
         zip::unzip(input$import_plugins_upload$datapath, exdir = temp_dir)
-        
+
         # Read XML file
-        
+
         plugins <-
           xml2::read_xml(paste0(temp_dir, "/plugins/plugins.xml")) %>%
           XML::xmlParse() %>%
@@ -2382,146 +2404,156 @@ mod_plugins_server <- function(id = character(), r = shiny::reactiveValues(), d 
               ) %>%
               dplyr::select(id, unique_id),
             by = "unique_id"
-          ) %>%
-          dplyr::mutate(name = dplyr::case_when(
-            language == "fr" ~ name_fr, TRUE ~ name_en
-          )) %>%
-          dplyr::relocate(id)
+          ) 
         
+        prefixes <- c("description", "name", "category")
+        new_cols <- outer(prefixes, r$languages$code, paste, sep = "_") %>% as.vector()
+        for(col in new_cols) if(!col %in% colnames(plugins)) plugins <- plugins %>% dplyr::mutate(!!col := character())
+        
+        plugins <- plugins %>% dplyr::mutate(name = get(paste0("name_", language))) %>% dplyr::relocate(id)
+
         if (!input$replace_already_existing_plugins) plugins <- plugins %>% dplyr::filter(is.na(id))
-        
+
         # Select plugin type
         plugins <- plugins %>% dplyr::filter(type == tab_type_id)
-        
+
         # Loop over each plugin
-        
+
         if (nrow(plugins) > 0){
-          
+
           for (i in 1:nrow(plugins)){
-            
+
             plugin <- plugins[i, ]
-            
+
             # Delete old rows
-            
+
             if (!is.na(plugin$id)){
-              
+
               sql <- glue::glue_sql("DELETE FROM plugins WHERE id = {plugin$id}", .con = r$db)
               query <- DBI::dbSendStatement(r$db, sql)
               DBI::dbClearResult(query)
               r$plugins <- r$plugins %>% dplyr::filter(id != plugin$id)
-              
+
               sql <- glue::glue_sql("DELETE FROM options WHERE category = 'plugin' AND link_id = {plugin$id}", .con = r$db)
               query <- DBI::dbSendStatement(r$db, sql)
               DBI::dbClearResult(query)
               r$options <- r$options %>% dplyr::filter(link_id != plugin$id | (link_id == plugin$id & category != "plugin"))
-              
+
               sql <- glue::glue_sql("DELETE FROM code WHERE category IN ('plugin_ui', 'plugin_server', 'plugin_translations') AND link_id = {plugin$id}", .con = r$db)
               query <- DBI::dbSendStatement(r$db, sql)
               DBI::dbClearResult(query)
               r$code <- r$code %>% dplyr::filter(link_id != plugin$id | (link_id == plugin$id & category %not_in% c("plugin_ui", "plugin_server", "plugin_translations")))
             }
-            
-            for (name in c("description_fr", "description_en")) plugin[[name]] <- plugin[[name]] %>% stringr::str_replace_all("'", "''")
-            
+
+            for (name in paste0("description_", r$languages$code)) plugin[[name]] <- plugin[[name]] %>% stringr::str_replace_all("'", "''")
+
             # Plugins table
-            
+
             new_row <- get_last_row(r$db, "plugins") + 1
-            
+
             new_data <- tibble::tribble(
               ~id, ~name, ~tab_type_id, ~creation_datetime, ~update_datetime, ~deleted,
               new_row, as.character(plugin[[paste0("name_", language)]]), as.integer(tab_type_id), plugin$creation_datetime, plugin$update_datetime, FALSE)
-            
+
             DBI::dbAppendTable(r$db, "plugins", new_data)
             r$plugins <- r$plugins %>% dplyr::bind_rows(new_data)
             add_log_entry(r = r, category = paste0("plugins - ", i18n$t("insert_new_data")), name = i18n$t("sql_query"), value = toString(new_data))
-            
+
             # Options table
-            
+
             last_row_options <- get_last_row(r$db, "options")
             
-            new_options <- tibble::tribble(~id, ~category, ~link_id, ~name, ~value, ~value_num, ~creator_id, ~datetime, ~deleted,
-              last_row_options + 1, "plugin", new_row, "users_allowed_read_group", "everybody", 1, r$user_id, as.character(Sys.time()), FALSE,
-              last_row_options + 2, "plugin", new_row, "user_allowed_read", "", r$user_id, r$user_id, as.character(Sys.time()), FALSE,
-              last_row_options + 3, "plugin", new_row, "version", plugin$version, NA_integer_, r$user_id, as.character(Sys.time()), FALSE,
-              last_row_options + 4, "plugin", new_row, "unique_id", plugin$unique_id, NA_integer_, r$user_id, as.character(Sys.time()), FALSE,
-              last_row_options + 5, "plugin", new_row, "author", plugin$author, NA_integer_, r$user_id, as.character(Sys.time()), FALSE,
-              last_row_options + 6, "plugin", new_row, "image", plugin$image, NA_integer_, r$user_id, as.character(Sys.time()), FALSE,
-              last_row_options + 7, "plugin", new_row, "description_fr", plugin$description_fr, NA_integer_, r$user_id, as.character(Sys.time()), FALSE,
-              last_row_options + 8, "plugin", new_row, "description_en", plugin$description_en, NA_integer_, r$user_id, as.character(Sys.time()), FALSE,
-              last_row_options + 9, "plugin", new_row, "category_fr", plugin$category_fr, NA_integer_, r$user_id, as.character(Sys.time()), FALSE,
-              last_row_options + 10, "plugin", new_row, "category_en", plugin$category_en, NA_integer_, r$user_id, as.character(Sys.time()), FALSE,
-              last_row_options + 11, "plugin", new_row, "name_fr", plugin$name_fr, NA_integer_, r$user_id, as.character(Sys.time()), FALSE,
-              last_row_options + 12, "plugin", new_row, "name_en", plugin$name_en, NA_integer_, r$user_id, as.character(Sys.time()), FALSE
-            )
-            
+            new_options <- tibble::tribble(
+              ~name, ~value, ~value_num,
+              "users_allowed_read_group", "everybody", 1,
+              "user_allowed_read", "", r$user_id,
+              "version", plugin$version, NA_integer_,
+              "unique_id", plugin$unique_id, NA_integer_,
+              "author", plugin$author, NA_integer_,
+              "image", plugin$image, NA_integer_
+            ) %>%
+              dplyr::bind_rows(
+                r$languages %>%
+                  tidyr::crossing(col_prefix = c("description", "category", "name")) %>%
+                  dplyr::rowwise() %>%
+                  dplyr::mutate(
+                    name = paste0(col_prefix, "_", code),
+                    value = plugin[[paste0(col_prefix, "_", code)]],
+                    value_num = NA_integer_
+                  ) %>%
+                  dplyr::select(-code, -language, -col_prefix)
+              ) %>%
+              dplyr::mutate(id = last_row_options + dplyr::row_number(), category = "plugin", link_id = new_row, .before = "name") %>%
+              dplyr::mutate(creator_id = r$user_id, datetime = as.character(Sys.time()), deleted = FALSE)
+
             DBI::dbAppendTable(r$db, "options", new_options)
             r$options <- r$options %>% dplyr::bind_rows(new_options)
             add_log_entry(r = r, category = paste0("code", " - ", i18n$t("insert_new_data")), name = i18n$t("sql_query"), value = toString(new_options))
-            
+
             # Code table
-            
+
             plugin_ui_code <- paste0(temp_dir, "/plugins/", prefix, "/", plugin$unique_id, "/ui.R") %>% readLines(warn = FALSE) %>% paste(collapse = "\n") %>% stringr::str_replace_all("'", "''")
             plugin_server_code <- paste0(temp_dir, "/plugins/", prefix, "/", plugin$unique_id, "/server.R") %>% readLines(warn = FALSE) %>% paste(collapse = "\n") %>% stringr::str_replace_all("'", "''")
             plugin_translations_code <- paste0(temp_dir, "/plugins/", prefix, "/", plugin$unique_id, "/translations.csv") %>% readLines(warn = FALSE) %>% paste(collapse = "\n") %>% stringr::str_replace_all("'", "''")
-            
+
             last_row_code <- get_last_row(r$db, "code")
             
-            new_code <- tibble::tribble(~id, ~category, ~link_id, ~code, ~creator_id, ~datetime, ~deleted,
-              last_row_code + 1, "plugin_ui", new_row, plugin_ui_code, r$user_id, as.character(Sys.time()), FALSE,
-              last_row_code + 2, "plugin_server", new_row, plugin_server_code, r$user_id, as.character(Sys.time()), FALSE,
-              last_row_code + 3, "plugin_translations", new_row, plugin_translations_code, r$user_id, as.character(Sys.time()), FALSE)
-            
+            new_code <- tibble::tibble(
+              id = last_row_code + 1:3,
+              category = c("plugin_ui", "plugin_server", "plugin_translations"),
+              link_id = new_row, code = c(plugin_ui_code, plugin_server_code, plugin_translations_code), 
+              creator_id = r$user_id, datetime = as.character(Sys.time()), deleted = FALSE
+            )
+
             DBI::dbAppendTable(r$db, "code", new_code)
             r$code <- r$code %>% dplyr::bind_rows(new_code)
             add_log_entry(r = r, category = paste0("code", " - ", i18n$t("insert_new_data")), name = i18n$t("sql_query"), value = toString(new_code))
-            
+
             # Copy files
             # Create folder if doesn't exist
             plugin_dir <- paste0(r$app_folder, "/plugins/", prefix, "/", plugin$unique_id)
             if (!dir.exists(plugin_dir)) dir.create(plugin_dir, recursive = TRUE)
-            
+
             list_of_files <- list.files(paste0(temp_dir, "/plugins/", prefix, "/", plugin$unique_id))
-            
+
             # Copy files to temp dir
             file.copy(
               paste0(paste0(temp_dir, "/plugins/", prefix, "/", plugin$unique_id), "/", list_of_files),
               paste0(plugin_dir, "/", list_of_files),
               overwrite = TRUE
             )
-            
+
             r$show_plugin_details <- Sys.time()
-            
+
             # Reload datatable
-            r[[paste0(prefix, "_plugins_temp")]] <- r$plugins %>% dplyr::filter(tab_type_id == !!tab_type_id) %>% 
+            r[[paste0(prefix, "_plugins_temp")]] <- r$plugins %>% dplyr::filter(tab_type_id == !!tab_type_id) %>%
               dplyr::mutate_at(c("creation_datetime", "update_datetime"), format_datetime, language = "en", sec = FALSE) %>%
               dplyr::mutate(modified = FALSE) %>% dplyr::arrange(name)
           }
         }
-        
+
         # Show imported plugins
-        
-        col_names <- c(i18n$t("id"), i18n$t("type"), i18n$t("name"), i18n$t("version"), i18n$t("unique_id"), i18n$t("author"), i18n$t("image"),
-          i18n$t("description_fr"), i18n$t("description_en"), i18n$t("app_version"), 
-          i18n$t("name"), i18n$t("name"), i18n$t("category"), i18n$t("category"), i18n$t("created_on"), i18n$t("updated_on"))
-        centered_cols <- c("author", "version", "id", "creation_datetime", "update_datetime")
-        column_widths <- c("author" = "100px", "version" = "80px", "id" = "50px", "creation_datetime" = "130px", "update_datetime" = "130px")
-        hidden_cols <- c("id", "type", "unique_id", "image", "app_version", "description_fr", "description_en", 
-          "name_en", "name_fr", "category_en", "category_fr")
-        
+
+        col_names <- c(i18n$t("name"), i18n$t("version"), i18n$t("author_s"), i18n$t("created_on"), i18n$t("updated_on"))
+        centered_cols <- c("author", "version", "creation_datetime", "update_datetime")
+        column_widths <- c("author" = "100px", "version" = "80px", "creation_datetime" = "130px", "update_datetime" = "130px")
+
         shinyjs::show("imported_plugins_div")
+
+        data <- plugins %>% dplyr::select(name, version, author, creation_datetime, update_datetime) %>%
+          dplyr::mutate_at(c("creation_datetime", "update_datetime"), format_datetime, language = language, sec = FALSE)
         
-        render_datatable(output = output, ns = ns, i18n = i18n, 
-          data = plugins %>% dplyr::mutate_at(c("creation_datetime", "update_datetime"), format_datetime, language = "en", sec = FALSE),
+        render_datatable(output = output, ns = ns, i18n = i18n, data = data,
           output_name = "imported_plugins", col_names = col_names, centered_cols = centered_cols, column_widths = column_widths,
-          filter = FALSE, hidden_cols = hidden_cols, datatable_dom = "")
-        
+          filter = FALSE, datatable_dom = "")
+
         show_message_bar(output,  "success_importing_plugin", "success", i18n = i18n, time = 15000, ns = ns)
       },
         error = function(e) report_bug(r = r, output = output, error_message = "error_importing_plugin",
           error_name = paste0(id, " - import plugins"), category = "Error", error_report = toString(e), i18n = i18n, ns = ns),
         warning = function(w) report_bug(r = r, output = output, error_message = "error_importing_plugin",
           error_name = paste0(id, " - import plugins"), category = "Error", error_report = w, i18n = i18n, ns = ns))
-      
+
       if (perf_monitoring) monitor_perf(r = r, action = "stop", task = paste0("mod_plugins - observer input$import_plugins_button"))
     })
     
@@ -2531,108 +2563,108 @@ mod_plugins_server <- function(id = character(), r = shiny::reactiveValues(), d 
     
     # When add button is clicked
     observeEvent(input$add_item, {
-      
+
       if (debug) print(paste0(Sys.time(), " - mod_plugins - observer input$add_item"))
-      
+
       # Get ID of selected plugin
       link_id <- as.integer(substr(input$add_item, nchar("add_item_") + 1, nchar(input$add_item)))
-      
+
       # If this plugin is not already selected, add it to the selected items dropdown
-      
+
       value <- integer(1)
       if (nrow(r[[paste0(prefix, "_export_plugins_selected")]]) > 0) value <- r[[paste0(prefix, "_export_plugins_selected")]] %>% dplyr::pull(id)
-      
+
       if (link_id %not_in% value){
-        
+
         r[[paste0(prefix, "_export_plugins_selected")]] <- r[[paste0(prefix, "_export_plugins_temp")]] %>% dplyr::filter(id == link_id) %>%
           dplyr::bind_rows(r[[paste0(prefix, "_export_plugins_selected")]])
-        
+
         # Update dropdown of selected items
         options <- convert_tibble_to_list(r[[paste0(prefix, "_export_plugins_selected")]], key_col = "id", text_col = "name", i18n = i18n)
         value <- r[[paste0(prefix, "_export_plugins_selected")]] %>% dplyr::pull(id)
         shiny.fluent::updateDropdown.shinyInput(session, "plugins_to_export",
           options = options, value = value, multiSelect = TRUE, multiSelectDelimiter = " || ")
       }
-      
+
     })
-    
+
     # When dropdown is updated
     observeEvent(input$plugins_to_export_trigger, {
-      
+
       if (debug) print(paste0(Sys.time(), " - mod_plugins - observer input$plugins_to_export"))
-      
+
       r[[paste0(prefix, "_export_plugins_selected")]] <- r[[paste0(prefix, "_export_plugins_selected")]] %>%
         dplyr::filter(id %in% input$plugins_to_export)
-      
+
       options <- convert_tibble_to_list(r[[paste0(prefix, "_export_plugins_selected")]], key_col = "id", text_col = "name", i18n = i18n)
       value <- r[[paste0(prefix, "_export_plugins_selected")]] %>% dplyr::pull(id)
       shiny.fluent::updateDropdown.shinyInput(session, "plugins_to_export",
         options = options, value = value, multiSelect = TRUE, multiSelectDelimiter = " || ")
     })
-    
+
     # Export plugins
     observeEvent(input$export_selected_plugins, {
-      
+
       if (debug) print(paste0(Sys.time(), " - mod_plugins - observer input$export_plugins"))
-      
+
       req(nrow(r[[paste0(prefix, "_export_plugins_selected")]]) > 0)
-      
+
       shinyjs::click("export_plugins_download")
     })
-    
+
     output$export_plugins_download <- downloadHandler(
-      
-      filename = function() paste0("linkr_export_plugins_", 
+
+      filename = function() paste0("linkr_export_plugins_",
         Sys.time() %>% stringr::str_replace_all(" ", "_") %>% stringr::str_replace_all(":", "_") %>% as.character(), ".zip"),
-      
+
       content = function(file){
-        
+
         if (perf_monitoring) monitor_perf(r = r, action = "start")
         if (debug) print(paste0(Sys.time(), " - mod_plugins - output$export_plugins_download"))
-        
+
         owd <- setwd(tempdir())
         on.exit(setwd(owd))
-        
+
         temp_dir <- paste0(r$app_folder, "/temp_files/", Sys.time() %>% stringr::str_replace_all(":| |-", ""), paste0(sample(c(0:9, letters[1:6]), 24, TRUE), collapse = ''))
         dir.create(paste0(temp_dir, "/plugins/", prefix), recursive = TRUE)
-        
+
         for (plugin_id in r[[paste0(prefix, "_export_plugins_selected")]] %>% dplyr::pull(id)){
-          
+
           plugin <- r$plugins %>% dplyr::filter(id == plugin_id)
           options <- r$options %>% dplyr::filter(category == "plugin", link_id == plugin_id)
           code <- r$code %>% dplyr::filter(link_id == plugin_id, category %in% c("plugin_ui", "plugin_server", "plugin_translations"))
-          
+
           # Create folder if doesn't exist
           plugin_dir <- paste0(r$app_folder, "/plugins/", prefix, "/", options %>% dplyr::filter(name == "unique_id") %>% dplyr::pull(value))
           if (!dir.exists(plugin_dir)) dir.create(plugin_dir, recursive = TRUE)
-          
+
           # Create ui.R & server.R
-          sapply(c("ui", "server"), function(name) writeLines(code %>% dplyr::filter(category == paste0("plugin_", name)) %>% 
+          sapply(c("ui", "server"), function(name) writeLines(code %>% dplyr::filter(category == paste0("plugin_", name)) %>%
               dplyr::pull(code) %>% stringr::str_replace_all("''", "'"), paste0(plugin_dir, "/", name, ".R")))
           writeLines(code %>% dplyr::filter(category == "plugin_translations") %>% dplyr::pull(code) %>% stringr::str_replace_all("''", "'"), paste0(plugin_dir, "/translations.csv"))
-          
+
           # Create XML file
           xml <- XML::newXMLDoc()
           plugins_node <- XML::newXMLNode("plugins", doc = xml)
           plugin_node <- XML::newXMLNode("plugin", parent = plugins_node)
           XML::newXMLNode("app_version", r$app_version, parent = plugin_node)
           XML::newXMLNode("type", tab_type_id, parent = plugin_node)
-          for(name in c("unique_id", "version", "author", "image", "name_fr", "name_en", "category_fr", "category_en")){
+          for(name in c("unique_id", "version", "author", "image", paste0("name_", r$languages$code), paste0("category_", r$languages$code))){
             XML::newXMLNode(name, options %>% dplyr::filter(name == !!name) %>% dplyr::pull(value), parent = plugin_node)
           }
-          for(name in c("description_fr", "description_en")) XML::newXMLNode(name, options %>% dplyr::filter(name == !!name) %>% 
+          for(name in c(paste0("description_", r$languages$code))) XML::newXMLNode(name, options %>% dplyr::filter(name == !!name) %>%
               dplyr::pull(value) %>% stringr::str_replace_all("''", "'"), parent = plugin_node)
           for (name in c("creation_datetime", "update_datetime")) XML::newXMLNode(name, plugin %>% dplyr::pull(get(!!name)), parent = plugin_node)
-          
+
           list_of_files <- list.files(plugin_dir)
-          
+
           # Add images filenames in the XML
           images <- list_of_files[grepl("\\.png$|\\.jpg|\\.jpeg|\\.svg", tolower(list_of_files))]
           images_node <- XML::newXMLNode("images", paste(images, collapse = ";;;"), parent = plugin_node)
 
           # Create XML file
           XML::saveXML(xml, file = paste0(plugin_dir, "/plugin.xml"))
-          
+
           # Copy files to temp dir
           temp_dir_copy <- paste0(temp_dir, "/plugins/", prefix, "/", options %>% dplyr::filter(name == "unique_id") %>% dplyr::pull(value))
           if (!dir.exists(temp_dir_copy)) dir.create(temp_dir_copy, recursive = TRUE)
@@ -2642,56 +2674,58 @@ mod_plugins_server <- function(id = character(), r = shiny::reactiveValues(), d 
             overwrite = TRUE
           )
         }
-        
+
         # Create XML file with all exported plugins
-        
+
         plugins_dir <- paste0(temp_dir, "/plugins")
         
-        plugins_tibble <- tibble::tibble(app_version = character(), type = character(), unique_id = character(), version = character(),
-          author = character(), image = character(), name_fr = character(), name_en = character(), category_fr = character(), category_en = character(),
-          description_fr = character(), description_en = character(), creation_datetime = character(), update_datetime = character())
+        plugins_tibble <- tibble::tibble(app_version = character(), type = character(), unique_id = character(), version = character(), author = character(), image = character())
+        prefixes <- c("description", "name", "category")
+        new_cols <- outer(prefixes, r$languages$code, paste, sep = "_") %>% as.vector()
+        for(col in new_cols) if(!col %in% colnames(plugins_tibble)) plugins_tibble <- plugins_tibble %>% dplyr::mutate(!!col := character())
+        plugins_tibble <- plugins_tibble %>% dplyr::mutate(creation_datetime = character(), update_datetime = character())
         
         for (category in c("patient_lvl", "aggregated")){
-          
+
           dirs <- list.dirs(paste0(plugins_dir, "/", category), full.names = TRUE)
-          
+
           for (dir in dirs){
             if (dir != paste0(plugins_dir, "/", category)){
-              
+
               xml_file <- xml2::read_xml(paste0(dir, "/plugin.xml"))
               image_nodes <- xml2::xml_find_all(xml_file, "//images/image")
               images <- character(0)
               if (length(image_nodes) > 0) images <- xml2::xml_text(image_nodes)
-              
+
               df <- xml_file %>%
                 XML::xmlParse() %>%
                 XML::xmlToDataFrame(nodes = XML::getNodeSet(., "//plugin")) %>%
                 tibble::as_tibble()
               df$images <- paste(images, collapse = ";;;")
-              
+
               plugins_tibble <- plugins_tibble %>% dplyr::bind_rows(df)
             }
           }
         }
-        
-        r$plugins_tibble <- plugins_tibble
-        
+
+        # r$plugins_tibble <- plugins_tibble
+
         plugins_xml <- XML::newXMLDoc()
         plugins_node <- XML::newXMLNode("plugins", doc = plugins_xml)
-        
+
         plugins_nodes <- apply(plugins_tibble, 1, function(x) {
           plugin_node <- XML::newXMLNode("plugin")
           XML::addChildren(plugin_node, lapply(names(x), function(y) XML::newXMLNode(y, x[y])))
         })
-        
+
         XML::xmlParent(plugins_nodes) <- plugins_node
-        
+
         XML::saveXML(plugins_xml, file = paste0(plugins_dir, "/plugins.xml"))
-        
+
         # Create a ZIP
-        
+
         zip::zipr(file, paste0(temp_dir, "/plugins"))
-        
+
         if (perf_monitoring) monitor_perf(r = r, action = "stop", task = paste0("mod_plugins - output$export_plugins_download"))
       }
     )

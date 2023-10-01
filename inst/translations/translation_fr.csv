@@ -104,6 +104,7 @@ git_remote_plugins,Sur dépôt git distant
 git_remote_scripts,Sur dépôt git distant
 remote_git_repo,Dépôt git distant
 remote_git_repos,Dépôts git distants
+git_repo,Dépôt git
 local_plugins,Plugins locaux
 local_plugins_short,Locaux
 plugin,Plugin
@@ -334,6 +335,7 @@ provide_valid_port,Port valide requis (ex : 5432)
 provide_valid_password,Mot de passe valide requis
 provide_valid_object,Objet valide requis
 provide_valid_vocabulary_id,ID valide requis
+provide_valid_api_key,Clef API valide requise
 insert_new_data,Ajout nouvelles données
 sql_query,Requête SQL
 subset_all_patients,Tous les patients
@@ -381,8 +383,9 @@ error_get_actual_primary_keys,Erreur lors du chargement des clés primaires de l
 type_must_be_integer,doit être de type integer
 type_must_be_character,doit être de type character
 type_must_be_numeric,doit être de type numeric
-type_must_be_datetime,doit être de type datetime
 type_must_be_date,doit être de type date
+type_must_be_datetime,doit être de type datetime
+omop_version_must_be_numeric,La version OMOP doit être de type numérique
 vocabulary_no_data_to_insert,Pas de nouvelles données à insérer dans la base de données
 column,La colonne
 columns,Les colonnes
@@ -421,9 +424,12 @@ image_url,URL de l'image
 no_results_found,Pas de résultats
 french,Français
 english,Anglais
+italian,Italien
+spasnish,Espagnol
 description_french,Française
 description_english,Anglaise
 author,Auteur
+author_s,Auteur(s)
 browse,Parcourir
 import_image,Importer une image
 resize_image,Redimensionner l'image
@@ -874,3 +880,13 @@ dataset_invalid_read_with,"Valeur non valid pour le paramètre 'read_with'. Vale
 wrong_association_read_with_and_save_as,"L'association entre les paramètres 'read_with' et 'save_as' n'est pas valide."
 error_loading_duckdb,Erreur lors du chargement de la base de données duckdb
 error_loading_sparklyr,Erreur lors du chargement des données avec sparklyr
+language,Langue
+with_map,Avec la carte
+with_url,Avec un lien
+show_description,Afficher la description
+selected_repo,Dépôt git sélectionné
+error_loading_git_readme,Erreur lors du chargement de la description du dépôt git
+api_key,Clef API
+git_repo_already_in_db,Ce dépôt git a déjà été ajouté
+error_downloading_git_repos_csv,Erreur lors du téléchargement du fichier CSV des git distants
+error_loading_git_repos_csv,Erreur lors du chargement du fichier CSV des git distants

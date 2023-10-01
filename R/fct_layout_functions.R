@@ -20,7 +20,7 @@ format_datetime <- function(datetime = character(), language = "en", sec = TRUE)
       if (sec) datetime <- format(as.POSIXct(datetime), format = "%d-%m-%Y %H:%M:%S")
       else datetime <- format(as.POSIXct(datetime), format = "%d-%m-%Y %H:%M")
     }
-    if (tolower(language) == "en"){
+    else {
       if (sec) datetime <- format(as.POSIXct(datetime), format = "%Y-%m-%d %H:%M:%S")
       else datetime <- format(as.POSIXct(datetime), format = "%Y-%m-%d %H:%M")
     }
@@ -133,11 +133,11 @@ make_dropdown <- function(i18n = character(), ns = character(), id = NA_characte
 #' \dontrun{
 #' make_layout(language = "fr", page = "my_subsets", i18n = i18n, users_accesses_toggles_options = users_accesses_toggles_options)
 #' }
-make_layout <- function(language = "en", page = character(), i18n = character(), users_accesses_toggles_options = tibble::tibble()){
+make_layout <- function(language = "en", languages = tibble::tibble(), page = character(), i18n = character(), users_accesses_toggles_options = tibble::tibble()){
   div(class = "grid-container",
     mod_page_header_ui(id = stringr::str_replace(page, "/", "_"), i18n = i18n),
     mod_page_sidenav_ui(id = stringr::str_replace(page, "/", "_"), i18n = i18n),
-    mod_page_main_ui(id = stringr::str_replace(page, "/", "_"), language = language, i18n = i18n, users_accesses_toggles_options = users_accesses_toggles_options),
+    mod_page_main_ui(id = stringr::str_replace(page, "/", "_"), language = language, languages = languages, i18n = i18n, users_accesses_toggles_options = users_accesses_toggles_options),
     mod_page_footer_ui(i18n = i18n)
   )
 }

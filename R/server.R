@@ -13,7 +13,7 @@
 #' @import shiny
 #' @noRd
 
-app_server <- function(language = "en", i18n = character(), app_folder = character(), 
+app_server <- function(language = "en", languages = tibble::tibble(), i18n = character(), app_folder = character(), 
   perf_monitoring = FALSE, debug = FALSE, local = FALSE, show_home_page = TRUE, users_accesses_toggles_options = tibble::tibble()){
   function(input, output, session ) {
     
@@ -131,6 +131,7 @@ app_server <- function(language = "en", i18n = character(), app_folder = charact
     # i18n <- suppressWarnings(shiny.i18n::Translator$new(translation_csvs_path = translations_path))
     # i18n$set_translation_language(language)
     r$i18n <- i18n
+    r$languages <- languages
     
     # Save currently opened toggles (used to reload cards when we load a page, restart reactivity)
     r$activated_toggles <- ""
@@ -226,6 +227,11 @@ app_server <- function(language = "en", i18n = character(), app_folder = charact
     if (debug) print(paste0(Sys.time(), " - server - shiny.router"))
     shiny.router::router_server()
     # router$server(input, output, session)
+    
+    # Clear temp dir
+    if (debug) print(paste0(Sys.time(), " - server - clear temp_files"))
+    unlink(paste0(app_folder, "/temp_files"), recursive = TRUE, force = TRUE)
+    if (!dir.exists(paste0(app_folder, "/temp_files"))) dir.create(paste0(app_folder, "/temp_files"))
     
     # Keep trace of loaded observers (not to have multiple identical observers)
     r$loaded_observers <- ""

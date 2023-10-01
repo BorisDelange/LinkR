@@ -168,7 +168,7 @@ db_create_tables <- function(db, type = character(), dbms = character()){
       tibble::tibble(id = integer(), category = character(), name = character(), value = character(), creator_id = integer(), datetime = character()))
     
     db_create_table(db, "git_repos", primary_key_col = "id", dbms = dbms, text_cols = c("description", "link"),
-      tibble::tibble(id = integer(), name = character(), description = character(), category = character(),
+      tibble::tibble(id = integer(), unique_id = character(), name = character(), api_key = character(),
         url_address = character(), creator_id = integer(), datetime = character(), deleted = logical()))
   }
   

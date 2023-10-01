@@ -73,6 +73,11 @@ import_dataset <- function(output, ns = character(), i18n = character(), r = shi
   dataset_id <- as.integer(dataset_id)
   
   # Check omop_version
+  if (!is.numeric(omop_version)){
+    add_log_entry(r = r, category = "Error", name = paste0("import_dataset - invalid_omop_version - id = ", dataset_id), value = i18n$t("omop_version_must_be_numeric"))
+    cat(paste0("<span style = 'font-weight:bold; color:red;'>**", i18n$t("error"), "** ", i18n$t("omop_version_must_be_numeric"), "</span>\n"))
+    return(NULL)
+  }
   if (omop_version %not_in% c(5.3, 5.4, 6.0)){
     add_log_entry(r = r, category = "Error", name = paste0("import_dataset - invalid_omop_version - id = ", dataset_id), value = i18n$t("invalid_omop_version"))
     cat(paste0("<span style = 'font-weight:bold; color:red;'>**", i18n$t("error"), "** ", i18n$t("invalid_omop_version"), "</span>\n"))

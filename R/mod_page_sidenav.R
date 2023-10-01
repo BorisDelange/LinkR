@@ -230,7 +230,7 @@ mod_page_sidenav_server <- function(id = character(), r = shiny::reactiveValues(
   moduleServer(id, function(input, output, session){
     ns <- session$ns
     
-    if (debug) print(paste0(Sys.time(), " - mod_plugins - start"))
+    if (debug) print(paste0(Sys.time(), " - mod_page_sidenav (", id, ") - start"))
     
     # --- --- -- -
     # Plugins ----

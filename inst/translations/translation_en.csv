@@ -104,6 +104,7 @@ git_remote_plugins,On remote git repository
 git_remote_scripts,On remote git repository
 remote_git_repo,Remote git repository
 remote_git_repos,Remote git repositories
+git_repo,Git repository
 local_plugins,Local plugins
 local_plugins_short,Local
 plugin,Plugin
@@ -334,6 +335,7 @@ provide_valid_port,Please provide a valid port (eg : 5432)
 provide_valid_password,Please provide a valid password
 provide_valid_object,Please provide a valid object
 provide_valid_vocabulary_id,Please provide a valid ID
+provide_valid_api_key,Please provide a valid API key
 insert_new_data,Insert new data
 sql_query,SQL query
 subset_all_patients,All patients
@@ -383,6 +385,7 @@ type_must_be_character,type must be character
 type_must_be_numeric,type must be numeric
 type_must_be_date,type must be date
 type_must_be_datetime,type must be datetime
+omop_version_must_be_numeric,OMOP version must be numeric
 vocabulary_no_data_to_insert,There's not any new data to insert in the database
 column,Column
 columns,Columns
@@ -421,9 +424,12 @@ image_url,Image URL
 no_results_found,No results found
 french,French
 english,English
+italian,Italian
+spanish,Spanish
 description_french,French
 description_english,English
 author,Author
+author_s,Author(s)
 browse,Browse
 import_image,Import image
 resize_image,Resize image
@@ -828,7 +834,7 @@ git_repos_management,Repositories management
 git_add_repo_card_user_access_description,Add a repository
 git_repos_management_card_user_access_description,Repositories management
 link,Link
-url_address,Url address
+url_address,URL address
 git_repos_delete,Delete git repo
 git_repos_delete_subtext,Do you want to delete this repo ?
 git_repo_deleted,Git repository deleted
@@ -874,3 +880,13 @@ dataset_invalid_read_with,"Invalid value for 'read_with' argument. Accepted valu
 wrong_association_read_with_and_save_as,"The association between 'read_with' and 'save_as' arguments is not valid."
 error_loading_duckdb,Error loading duck database
 error_loading_sparklyr,Error loading data with sparklyr
+language,Language
+with_map,With map
+with_url,With URL
+show_description,Show description
+selected_repo,Selected git repository
+error_loading_git_readme,Error loading git repo description
+api_key,API key
+git_repo_already_in_db,This git repository has already been added
+error_downloading_git_repos_csv,Error downloading git repos CSV file
+error_loading_git_repos_csv,Error loading git repos CSV file

@@ -68,8 +68,6 @@ add_settings_new_data <- function(session, output, r = shiny::reactiveValues(), 
       AND study_id = {data$study_id}", .con = db)
     else if (table == "plugins") sql <- glue::glue_sql("SELECT DISTINCT({`field`}) FROM {`table`} WHERE deleted IS FALSE
       AND tab_type_id = {data$tab_type}", .con = db)
-    else if (table == "git_repos") sql <- glue::glue_sql("SELECT DISTINCT({`field`}) FROM {`table`} WHERE deleted IS FALSE
-      AND category = {data$category}", .con = db)
     else sql <- glue::glue_sql("SELECT DISTINCT({`field`}) FROM {`table`} WHERE deleted IS FALSE", .con = db)
     
     distinct_values <- DBI::dbGetQuery(db, sql) %>% dplyr::pull() %>% tolower()
@@ -192,8 +190,11 @@ add_settings_new_data <- function(session, output, r = shiny::reactiveValues(), 
   }
   
   else if (table == "git_repos"){
-    new_data$data <- tibble::tribble(~id, ~name, ~description, ~category, ~url_address, ~creator_id, ~datetime, ~deleted,
-      last_row$data + 1, as.character(data$name), as.character(data$description), as.character(data$category), as.character(data$url_address), r$user_id, as.character(Sys.time()), FALSE)
+    if (length(data$unique_id) > 0) unique_id <- data$unique_id
+    else unique_id <- paste0(sample(c(0:9, letters[1:6]), 64, TRUE), collapse = '')
+    new_data$data <- tibble::tribble(~id, ~unique_id, ~name, ~api_key, ~url_address, ~creator_id, ~datetime, ~deleted,
+      last_row$data + 1, unique_id, as.character(data$name), as.character(data$api_key),
+      as.character(data$url_address), r$user_id, as.character(Sys.time()), FALSE)
   }
   
   # Append data to the table and to r / m variables
@@ -225,26 +226,34 @@ add_settings_new_data <- function(session, output, r = shiny::reactiveValues(), 
   if (grepl("plugins", id)){
     
     # Add options rows
-    new_data$options <- tibble::tribble(~id, ~category, ~link_id, ~name, ~value, ~value_num, ~creator_id, ~datetime, ~deleted,
-      last_row$options + 1, "plugin", last_row$data + 1, "users_allowed_read_group", "everybody", 1, r$user_id, as.character(Sys.time()), FALSE,
-      last_row$options + 2, "plugin", last_row$data + 1, "user_allowed_read", "", r$user_id, r$user_id, as.character(Sys.time()), FALSE,
-      last_row$options + 3, "plugin", last_row$data + 1, "version", "0.0.1", NA_integer_, r$user_id, as.character(Sys.time()), FALSE,
-      last_row$options + 4, "plugin", last_row$data + 1, "unique_id", paste0(sample(c(0:9, letters[1:6]), 64, TRUE), collapse = ''), NA_integer_, r$user_id, as.character(Sys.time()), FALSE,
-      last_row$options + 5, "plugin", last_row$data + 1, "author", username, NA_integer_, r$user_id, as.character(Sys.time()), FALSE,
-      last_row$options + 6, "plugin", last_row$data + 1, "image", "", NA_integer_, r$user_id, as.character(Sys.time()), FALSE,
-      last_row$options + 7, "plugin", last_row$data + 1, "description_fr", "", NA_integer_, r$user_id, as.character(Sys.time()), FALSE,
-      last_row$options + 8, "plugin", last_row$data + 1, "description_en", "", NA_integer_, r$user_id, as.character(Sys.time()), FALSE,
-      last_row$options + 9, "plugin", last_row$data + 1, "category_fr", "", NA_integer_, r$user_id, as.character(Sys.time()), FALSE,
-      last_row$options + 10, "plugin", last_row$data + 1, "category_en", "", NA_integer_, r$user_id, as.character(Sys.time()), FALSE,
-      last_row$options + 11, "plugin", last_row$data + 1, "name_fr", as.character(data$name), NA_integer_, r$user_id, as.character(Sys.time()), FALSE,
-      last_row$options + 12, "plugin", last_row$data + 1, "name_en", as.character(data$name), NA_integer_, r$user_id, as.character(Sys.time()), FALSE
-      )
+    new_data$options <- tibble::tribble(
+      ~name, ~value, ~value_num,
+      "users_allowed_read_group", "everybody", 1,
+      "user_allowed_read", "", r$user_id,
+      "version", "0.0.1.9000", NA_integer_,
+      "unique_id", paste0(sample(c(0:9, letters[1:6]), 64, TRUE), collapse = ''), NA_integer_,
+      "author", username, NA_integer_,
+      "image", "", NA_integer_
+    ) %>%
+    dplyr::bind_rows(
+      r$languages %>%
+        tidyr::crossing(name = c("description", "category", "name")) %>%
+        dplyr::mutate(
+          name = paste0(name, "_", code),
+          value = ifelse(grepl("name_", name), as.character(data$name), ""),
+          value_num = NA_integer_
+        ) %>%
+        dplyr::select(-code, -language)
+    ) %>%
+    dplyr::mutate(id = last_row$options + dplyr::row_number(), category = "plugin", link_id = last_row$data + 1, .before = "name") %>%
+    dplyr::mutate(creator_id = r$user_id, datetime = as.character(Sys.time()), deleted = FALSE)
     
     # Add code rows
-    new_data$code <- tibble::tribble(~id, ~category, ~link_id, ~code, ~creator_id, ~datetime, ~deleted,
-      last_row$code + 1, "plugin_ui", last_row$data + 1, "", r$user_id, as.character(Sys.time()), FALSE,
-      last_row$code + 2, "plugin_server", last_row$data + 1, "", r$user_id, as.character(Sys.time()), FALSE,
-      last_row$code + 3, "plugin_translations", last_row$data + 1, "", r$user_id, as.character(Sys.time()), FALSE)
+    new_data$code <- tibble::tibble(
+      id = last_row$code + 1:3,
+      category = c("plugin_ui", "plugin_server", "plugin_translations"),
+      link_id = last_row$data + 1, code = "", creator_id = r$user_id, datetime = as.character(Sys.time()), deleted = FALSE
+    )
   }
 
   # For options of scripts, add one row for long description (Markdown)
@@ -252,7 +261,7 @@ add_settings_new_data <- function(session, output, r = shiny::reactiveValues(), 
     
     # Add options rows
     new_data$options <- tibble::tribble(~id, ~category, ~link_id, ~name, ~value, ~value_num, ~creator_id, ~datetime, ~deleted,
-      last_row$options + 1, "script", last_row$data + 1, "version", "0.0.1", NA_integer_, r$user_id, as.character(Sys.time()), FALSE,
+      last_row$options + 1, "script", last_row$data + 1, "version", "0.0.1.9000", NA_integer_, r$user_id, as.character(Sys.time()), FALSE,
       last_row$options + 2, "script", last_row$data + 1, "unique_id", paste0(sample(c(0:9, letters[1:6]), 64, TRUE), collapse = ''), NA_integer_, r$user_id, as.character(Sys.time()), FALSE,
       last_row$options + 3, "script", last_row$data + 1, "author", username, NA_integer_, r$user_id, as.character(Sys.time()), FALSE,
       last_row$options + 4, "script", last_row$data + 1, "description_fr", "", NA_integer_, r$user_id, as.character(Sys.time()), FALSE,
@@ -286,7 +295,7 @@ add_settings_new_data <- function(session, output, r = shiny::reactiveValues(), 
     new_data$options <- tibble::tribble(~id, ~category, ~link_id, ~name, ~value, ~value_num, ~creator_id, ~datetime, ~deleted,
       last_row$options + 1, "study", last_row$data + 1, "users_allowed_read_group", "everybody", 1, r$user_id, as.character(Sys.time()), FALSE,
       last_row$options + 2, "study", last_row$data + 1, "user_allowed_read", "", r$user_id, r$user_id, as.character(Sys.time()), FALSE,
-      last_row$options + 3, "study", last_row$data + 1, "version", "0.0.1", NA_integer_, r$user_id, as.character(Sys.time()), FALSE,
+      last_row$options + 3, "study", last_row$data + 1, "version", "0.0.1.9000", NA_integer_, r$user_id, as.character(Sys.time()), FALSE,
       last_row$options + 4, "study", last_row$data + 1, "unique_id", paste0(sample(c(0:9, letters[1:6]), 64, TRUE), collapse = ''), NA_integer_, r$user_id, as.character(Sys.time()), FALSE,
       last_row$options + 5, "study", last_row$data + 1, "author", username, NA_integer_, r$user_id, as.character(Sys.time()), FALSE,
       last_row$options + 6, "study", last_row$data + 1, "description_fr", "", NA_integer_, r$user_id, as.character(Sys.time()), FALSE,
@@ -349,6 +358,20 @@ add_settings_new_data <- function(session, output, r = shiny::reactiveValues(), 
     shiny.fluent::updateToggle.shinyInput(session, "options_card_toggle", value = FALSE)
     shiny.fluent::updateToggle.shinyInput(session, "creation_card_toggle", value = FALSE)
     shiny.fluent::updateToggle.shinyInput(session, "datatable_card_toggle", value = TRUE)
+  }
+  
+  if (table == "git_repos"){
+    # Add options rows
+    new_data$options <-
+      r$languages %>%
+        tidyr::crossing(name = "name") %>%
+        dplyr::mutate(
+          name = paste0(name, "_", code),
+          value = ifelse(grepl("name_", name), as.character(data$name), ""),
+          value_num = NA_integer_
+        ) %>%
+        dplyr::select(-code, -language) %>%
+      dplyr::mutate(id = last_row$options + dplyr::row_number(), category = "git_repo", link_id = last_row$data + 1, .before = "name")
   }
   
   # Add new data to r variables and database
@@ -1009,16 +1032,26 @@ save_settings_options <- function(output, r = shiny::reactiveValues(), id = char
     }
   }
   
-  for (field in c("markdown_description", "version", "author", "image", "description_fr", "description_en",
-    "name_fr", "name_en", "category_fr", "category_en", "omop_version")){
+  for (field in c("markdown_description", "version", "author", "image", "omop_version",
+    paste0("name_", r$languages$code), paste0("category_", r$languages$code), paste0("description_", r$languages$code))){
     if (field %in% page_options){
       option_id <- options %>% dplyr::filter(name == field) %>% dplyr::pull(id)
       new_value <- stringr::str_replace_all(data[[field]], "'", "''")
+      
+      sql <- glue::glue_sql("SELECT id FROM options WHERE id = {option_id}")
+      
+      if (DBI::dbGetQuery(r$db, sql) %>% nrow() == 0){
+        option_id <- get_last_row(r$db, "options") + 1
+        new_data <- tibble::tibble(
+          id = option_id, category = !!category, link_id = !!link_id,
+          name = field, value = "", value_num = NA_real_, creator_id = r$user_id, datetime = as.character(Sys.time()), deleted = FALSE)
+        DBI::dbAppendTable(r$db, "options", new_data)
+        r$options <- r$options %>% dplyr::bind_rows(new_data)
+      }
+      
       sql <- glue::glue_sql("UPDATE options SET value = {new_value} WHERE id = {option_id}", .con = r$db)
       query <- DBI::dbSendStatement(r$db, sql)
       DBI::dbClearResult(query)
-      print(field)
-      print(new_value)
       r$options <- r$options %>% dplyr::mutate(value = dplyr::case_when(id == option_id ~ new_value, TRUE ~ value))
     }
   }
@@ -1092,7 +1125,6 @@ save_settings_datatable_updates <- function(output, r = shiny::reactiveValues(),
         duplicates_display_order <- r[[paste0(table, "_temp")]] %>%
           dplyr::group_by(tab_id, display_order) %>% dplyr::summarize(n = dplyr::n()) %>% dplyr::filter(n > 1) %>% nrow()
       }
-      
     }
     
     else if (table == "users") duplicates_name <- r[[paste0(r_table, "_temp")]] %>% dplyr::mutate_at("username", tolower) %>%
@@ -1101,8 +1133,8 @@ save_settings_datatable_updates <- function(output, r = shiny::reactiveValues(),
     else if (table == "vocabulary") duplicates_name <- r[[paste0(r_table, "_temp")]] %>%
       dplyr::group_by(vocabulary_id) %>% dplyr::summarize(n = dplyr::n()) %>% dplyr::filter(n > 1) %>% nrow()
     
-    else if (table == "git_repos") duplicates_name <- r$git_repos_temp %>% dplyr::mutate_at("name", tolower) %>%
-      dplyr::group_by(category, name) %>% dplyr::summarize(n = dplyr::n()) %>% dplyr::filter(n > 1) %>% nrow()
+    # else if (table == "git_repos") duplicates_name <- r$git_repos_temp %>% dplyr::mutate_at("name", tolower) %>%
+    #   dplyr::group_by(category, name) %>% dplyr::summarize(n = dplyr::n()) %>% dplyr::filter(n > 1) %>% nrow()
     
     else {
       if (table %in% m_tables) duplicates_name <- m[[paste0(r_table, "_temp")]] %>% dplyr::mutate_at("name", tolower) %>%
