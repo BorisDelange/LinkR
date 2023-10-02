@@ -339,6 +339,7 @@ provide_valid_password,Please provide a valid password
 provide_valid_object,Please provide a valid object
 provide_valid_vocabulary_id,Please provide a valid ID
 provide_valid_api_key,Please provide a valid API key
+provide_valid_commit_message,Please provide a valid commit message
 insert_new_data,Insert new data
 sql_query,SQL query
 subset_all_patients,All patients
@@ -907,3 +908,6 @@ edit_git_repo_delete_file,Delete a file
 edit_git_repo_delete_file_subtext,Confirm deletion of this file?
 file_deleted,File deleted
 error_deleting_file,Error deleting file
+error_creating_xml_files,Error creating XML files
+success_update_remote_git_repo,Remote git repo successfully updated
+error_update_remote_git_repo,Error updating remote git repo

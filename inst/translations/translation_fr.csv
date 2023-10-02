@@ -141,7 +141,7 @@ add_access,Ajouter un accès
 accesses_mngmt,Gestion accès
 add_status,Ajouter un statut
 add_user,Ajouter un utilisateur
-username,Pseudo
+username,Identifiant
 firstname,Prénom
 lastname,Nom
 user_access,Accès utilisateur
@@ -338,6 +338,7 @@ provide_valid_password,Mot de passe valide requis
 provide_valid_object,Objet valide requis
 provide_valid_vocabulary_id,ID valide requis
 provide_valid_api_key,Clef API valide requise
+provide_valid_commit_message,Commentaire valide requis
 insert_new_data,Ajout nouvelles données
 sql_query,Requête SQL
 subset_all_patients,Tous les patients
@@ -906,3 +907,6 @@ edit_git_repo_delete_file,Supprimer un fichier
 edit_git_repo_delete_file_subtext,Confirmer la suppression de ce fichier ?
 file_deleted,Fichier supprimé
 error_deleting_file,Erreur lors de la suppression du fichier
+error_creating_xml_files,Erreur lors de la création des fichiers XML
+success_update_remote_git_repo,Dépôt git distant mis à jour avec succès
+error_update_remote_git_repo,Erreur lors de la mise à jour du dépôt git distant

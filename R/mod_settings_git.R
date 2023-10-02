@@ -51,7 +51,7 @@ mod_settings_git_ui <- function(id = character(), i18n = character()){
             shiny.fluent::PivotItem(id = "git_add_repo_url", itemKey = "git_add_repo_url", headerText = i18n$t("with_url")),
           ),
           conditionalPanel(condition = "input.add_repo_tab == null || input.add_repo_tab == 'git_add_repo_map'", ns = ns, br(),
-            leaflet::leafletOutput(ns("git_repos_map"), height = 600),
+            leaflet::leafletOutput(ns("git_repos_map"), height = 500),
             conditionalPanel(condition = "input.git_repos_map_marker_click != null", ns = ns,
               shiny.fluent::Stack(horizontal = TRUE, tokens = list(childrenGap = 10), br(),
                 div(
@@ -119,9 +119,9 @@ mod_settings_git_ui <- function(id = character(), i18n = character()){
           div(
             shiny.fluent::Stack(horizontal = TRUE, tokens = list(childrenGap = 20),
               make_combobox(i18n = i18n, ns = ns, label = "git_repo", id = "edit_repo_selected_repo", width = "300px", allowFreeform = FALSE, multiSelect = FALSE),
-              make_textfield(i18n = i18n, ns = ns, label = "username", id = "edit_repo_username", width = "300px"),
+              # make_textfield(i18n = i18n, ns = ns, label = "username", id = "edit_repo_username", width = "300px"),
               make_textfield(i18n = i18n, ns = ns, label = "api_key", id = "edit_repo_api_key", width = "300px"),
-              div(shiny.fluent::DefaultButton.shinyInput(ns("edit_repo_load_repo"), i18n$t("load")), style = "margin-top:39px")
+              div(shiny.fluent::PrimaryButton.shinyInput(ns("edit_repo_load_repo"), i18n$t("load")), style = "margin-top:39px")
             ),
             shiny.fluent::Stack(horizontal = TRUE, tokens = list(childrenGap = 20),
               make_dropdown(i18n = i18n, ns = ns, label = "category", id = "repo_category",
@@ -510,7 +510,8 @@ mod_settings_git_server <- function(id = character(), r = shiny::reactiveValues(
       
       # Check if username & api_key are not empty
       empty_field <- list()
-      fields <- c("username", "api_key")
+      # fields <- c("username", "api_key")
+      fields <- c("api_key")
       for(field in fields){
         empty_field[[field]] <- FALSE
         if (length(input[[paste0("edit_repo_", field)]]) == 0) empty_field[[field]] <- TRUE
@@ -519,7 +520,8 @@ mod_settings_git_server <- function(id = character(), r = shiny::reactiveValues(
         else shiny.fluent::updateTextField.shinyInput(session, paste0("edit_repo_", field), errorMessage = NULL)
       }
       
-      req(!empty_field$username, !empty_field$api_key)
+      # req(!empty_field$username, !empty_field$api_key)
+      req(!empty_field$api_key)
       
       # Copy locally git repo
       
@@ -538,18 +540,30 @@ mod_settings_git_server <- function(id = character(), r = shiny::reactiveValues(
       error_loading_git_repo <- TRUE
       
       tryCatch({
-        credentials <- git2r::cred_user_pass(input$edit_repo_username, input$edit_repo_api_key)
+        # credentials <- git2r::cred_user_pass(input$edit_repo_username, input$edit_repo_api_key)
+        credentials <- git2r::cred_user_pass("linkr_user", input$edit_repo_api_key)
+        r$edit_git_repo_credentials <- credentials
         
         repo <- git2r::clone(repo_url, local_path, credentials = credentials, progress = FALSE)
+        r$edit_git_repo_repo <- repo
         
-        # Create dirs that don't exist
+        # Create dirs & files that don't exist
         dirs <- c("datasets", "plugins", "scripts", "studies", "vocabularies")
         for (dir in dirs){
           dir_path <- paste0(local_path, "/", dir)
           file_path <- paste0(local_path, "/", dir, "/.gitkeep")
+          xml_file_path <- paste0(dir_path, "/", dir, ".xml")
+          
           if (!dir.exists(dir_path)) dir.create(dir_path)
           if (!file.exists(file_path)) file.create(file_path)
+          if (!file.exists(xml_file_path)){
+            xml <- XML::newXMLDoc()
+            category_general_node <- XML::newXMLNode(dir, doc = xml)
+            XML::saveXML(xml, file = xml_file_path) 
+          }
         }
+        readme_file_path <- paste0(local_path, "/README.md")
+        if (!file.exists(readme_file_path)) file.create(readme_file_path)
         
         error_loading_git_repo <- FALSE
       },
@@ -582,7 +596,6 @@ mod_settings_git_server <- function(id = character(), r = shiny::reactiveValues(
       # Update add_files dropdown
       if (input$repo_category == "patient_lvl_plugins") dropdown_options <- r$plugins %>% dplyr::filter(tab_type_id == 1)
       else if (input$repo_category == "aggregated_plugins") dropdown_options <- r$plugins %>% dplyr::filter(tab_type_id == 2)
-      
       else dropdown_options <- r[[input$repo_category]]
       dropdown_options <- dropdown_options %>% convert_tibble_to_list(key_col = "id", text_col = "name")
       
@@ -666,13 +679,13 @@ mod_settings_git_server <- function(id = character(), r = shiny::reactiveValues(
     
     # Render datatable
     
-    editable_cols <- ""
-    sortable_cols <- c("name", "category", "creation_datetime", "update_datetime")
-    column_widths <- c("version" = "100px", "creation_datetime" = "130px", "update_datetime" = "130px", "action" = "100px")
-    centered_cols <- c("version", "creation_datetime", "update_datetime", "action")
-    searchable_cols <- c("name")
-    hidden_cols <- c("row_id", "unique_id")
-    col_names <- get_col_names("edit_git_repo_category_elements", i18n)
+    edit_git_repo_editable_cols <- ""
+    edit_git_repo_sortable_cols <- c("name", "category", "creation_datetime", "update_datetime")
+    edit_git_repo_column_widths <- c("version" = "100px", "creation_datetime" = "130px", "update_datetime" = "130px", "action" = "100px")
+    edit_git_repo_centered_cols <- c("version", "creation_datetime", "update_datetime", "action")
+    edit_git_repo_searchable_cols <- c("name")
+    edit_git_repo_hidden_cols <- c("row_id", "unique_id")
+    edit_git_repo_col_names <- get_col_names("edit_git_repo_category_elements", i18n)
     
     observeEvent(r$edit_git_repo_category_elements, {
       
@@ -685,9 +698,10 @@ mod_settings_git_server <- function(id = character(), r = shiny::reactiveValues(
       if (length(r$edit_git_repo_category_elements_datatable_proxy) == 0){
         
         render_datatable(output = output, ns = ns, i18n = i18n, data = r$edit_git_repo_category_elements,
-          output_name = "edit_repo_files", col_names = col_names,
-          editable_cols = editable_cols, sortable_cols = sortable_cols, centered_cols = centered_cols, column_widths = column_widths,
-          searchable_cols = searchable_cols, filter = TRUE, hidden_cols = hidden_cols, selection = "multiple")
+          output_name = "edit_repo_files", col_names = edit_git_repo_col_names,
+          editable_cols = edit_git_repo_editable_cols, sortable_cols = edit_git_repo_sortable_cols, 
+          centered_cols = edit_git_repo_centered_cols, column_widths = edit_git_repo_column_widths,
+          searchable_cols = edit_git_repo_searchable_cols, filter = TRUE, hidden_cols = edit_git_repo_hidden_cols, selection = "multiple")
         
         # Create a proxy for datatables
         
@@ -701,24 +715,105 @@ mod_settings_git_server <- function(id = character(), r = shiny::reactiveValues(
       
       if (debug) print(paste0(Sys.time(), " - mod_settings_git - observer input$edit_repo_add_files"))
       
+      req(input$edit_repo_add_selected_files)
+      
       # Get unique_ids
       
       ## Not working for studies, datasets & vocabularies for now
       req(input$repo_category %in% c("patient_lvl_plugins", "aggregated_plugins", "scripts"))
       
+      # Category elements
       if (input$repo_category == "patient_lvl_plugins") category_elements <- r$plugins %>% dplyr::filter(tab_type_id == 1)
       else if (input$repo_category == "aggregated_plugins") category_elements <- r$plugins %>% dplyr::filter(tab_type_id == 2)
       else category_elements <- r[[input$repo_category]]
-      category_elements <- category_elements %>% dplyr::filter(id %in%  input$edit_repo_add_selected_files)
+      category_elements <- category_elements %>% dplyr::filter(id %in% input$edit_repo_add_selected_files)
       
-      # print(category_elements)
-     
+      # Repo category
+      if (input$repo_category %in% c("patient_lvl_plugins", "aggregated_plugins")) repo_category <- "plugins"
+      else repo_category <- input$repo_category
       
-      # Copy folder
-      # ...
+      # Options files
+      if (repo_category == "plugins") options_files <- c("plugin_ui", "plugin_server", "plugin_translations")
+      else options_files <- get_singular(repo_category)
       
-      # Create XML file
-      # ...
+      # Repo category path
+      r$repo_category_path <- paste0(r$edit_git_local_path, "/", repo_category)
+      r$repo_category <- repo_category
+      
+      tryCatch({
+        for (category_element_id in category_elements %>% dplyr::pull(id)){
+          
+          # Get category element row, with associated options and code
+          category_element <- category_elements %>% dplyr::filter(id == category_element_id)
+          options <- r$options %>% dplyr::filter(category == get_singular(repo_category), link_id == category_element_id)
+          code <- r$code %>% dplyr::filter(link_id == category_element_id, category %in% options_files)
+          
+          # Create folder if doesn't exist
+          if (repo_category == "plugins"){
+            type <- gsub("_plugins", "", input$repo_category)
+            category_element_dir <- paste0(r$edit_git_local_path, "/", repo_category, "/", type, "/", options %>% dplyr::filter(name == "unique_id") %>% dplyr::pull(value))
+          }
+          else category_element_dir <- paste0(r$edit_git_local_path, "/", repo_category, "/", options %>% dplyr::filter(name == "unique_id") %>% dplyr::pull(value))
+          
+          if (!dir.exists(category_element_dir)) dir.create(category_element_dir, recursive = TRUE)
+          
+          # Create ui.R & server.R for plugins
+          if (repo_category == "plugins"){
+            sapply(c("ui", "server"), function(name) writeLines(code %>% dplyr::filter(category == paste0("plugin_", name)) %>%
+                dplyr::pull(code) %>% stringr::str_replace_all("''", "'"), paste0(category_element_dir, "/", name, ".R")))
+            writeLines(code %>% dplyr::filter(category == "plugin_translations") %>% dplyr::pull(code) %>% stringr::str_replace_all("''", "'"), paste0(category_element_dir, "/translations.csv"))
+          }
+          
+          # Create XML file
+          xml <- XML::newXMLDoc()
+          category_general_node <- XML::newXMLNode(repo_category, doc = xml)
+          category_node <- XML::newXMLNode(get_singular(repo_category), parent = category_general_node)
+          XML::newXMLNode("app_version", r$app_version, parent = category_node)
+          
+          if (repo_category == "plugins"){
+            if (type == "patient_lvl") type <- 1 else type <- 2
+            XML::newXMLNode("type", type, parent = category_node)
+            for(name in c("unique_id", "version", "author", "image", paste0("name_", r$languages$code), paste0("category_", r$languages$code))){
+              XML::newXMLNode(name, options %>% dplyr::filter(name == !!name) %>% dplyr::pull(value), parent = category_node)
+            }
+            for(name in c(paste0("description_", r$languages$code))) XML::newXMLNode(name, options %>% dplyr::filter(name == !!name) %>%
+                dplyr::pull(value) %>% stringr::str_replace_all("''", "'"), parent = category_node)
+            for (name in c("creation_datetime", "update_datetime")) XML::newXMLNode(name, category_element %>% dplyr::pull(get(!!name)), parent = category_node)
+          }
+          
+          else if (repo_category == "scripts"){
+            for(name in c("unique_id", "version", "author",  "name_fr", "name_en", "category_fr", "category_en")) XML::newXMLNode(name, 
+              options %>% dplyr::filter(name == !!name) %>% dplyr::pull(value), parent = category_node)
+            for(name in c("description_fr", "description_en")) XML::newXMLNode(name,
+              options %>% dplyr::filter(name == !!name) %>% dplyr::pull(value) %>% stringr::str_replace_all("''", "'"), parent = category_node)
+            for (name in c("creation_datetime", "update_datetime")) XML::newXMLNode(name, category_element %>% dplyr::pull(get(!!name)), parent = category_node)
+            XML::newXMLNode("code", code %>% dplyr::pull(code) %>% stringr::str_replace_all("''", "'"), parent = category_node)
+          }
+          
+          list_of_files <- list.files(category_element_dir)
+          
+          if (repo_category == "plugins"){
+            # Add images filenames in the XML
+            images <- list_of_files[grepl("\\.png$|\\.jpg|\\.jpeg|\\.svg", tolower(list_of_files))]
+            images_node <- XML::newXMLNode("images", paste(images, collapse = ";;;"), parent = category_node)
+          }
+            
+          # Create XML file
+          XML::saveXML(xml, file = paste0(category_element_dir, "/", get_singular(repo_category), ".xml"))
+        }
+      }, error = function(e) report_bug(r = r, output = output, error_message = "error_creating_xml_files",
+        error_name = paste0(id, " - create git repo XML files"), category = "Error", error_report = toString(e), i18n = i18n))
+      
+      # Clear dropdown
+      if (input$repo_category == "patient_lvl_plugins") dropdown_options <- r$plugins %>% dplyr::filter(tab_type_id == 1)
+      else if (input$repo_category == "aggregated_plugins") dropdown_options <- r$plugins %>% dplyr::filter(tab_type_id == 2)
+      else dropdown_options <- r[[input$repo_category]]
+      dropdown_options <- dropdown_options %>% convert_tibble_to_list(key_col = "id", text_col = "name")
+      
+      shiny.fluent::updateDropdown.shinyInput(session, "edit_repo_add_selected_files", options = dropdown_options, value = NULL)
+      
+      # Create global XML file
+      r$edit_repo_create_global_xml_trigger <- Sys.time()
     })
     
     # Delete a category element
@@ -818,54 +913,13 @@ mod_settings_git_server <- function(id = character(), r = shiny::reactiveValues(
         
         sapply(unique_ids, function(unique_id) unlink(paste0(repo_category_delete_path, "/", unique_id), recursive = TRUE, force = TRUE))
         
-        # Delete XML file
-        unlink(paste0(repo_category_path, "/", repo_category, ".xml"), force = TRUE)
-        
-        # Create XML file
-        
-        ## Convert XML to tibble
-        
         r$repo_category_path <- repo_category_path
+        r$repo_category <- repo_category
         
-        dirs <- character()
-        if (repo_category == "plugins") for (category in c("patient_lvl", "aggregated")) dirs <- c(dirs, list.dirs(paste0(repo_category_path, "/", category), full.names = TRUE))
-        else dirs <- list.dirs(repo_category_path, full.names = TRUE)
-
-        category_tibble <- repo_category_xml_fields[[repo_category]]
-
-        for (dir in dirs){
-          if (repo_category != "plugins" |
-              (repo_category == "plugins" & dir != paste0(repo_category_path, "/patient_lvl") & dir != paste0(repo_category_path, "/aggregated"))){
-
-            category_tibble <-
-              category_tibble %>%
-              dplyr::bind_rows(
-                xml2::read_xml(paste0(dir, "/", get_singular(repo_category), ".xml")) %>%
-                  XML::xmlParse() %>%
-                  XML::xmlToDataFrame(nodes = XML::getNodeSet(., paste0("//", get_singular(repo_category)))) %>%
-                  tibble::as_tibble()
-              )
-          }
-        }
+        # Create global XML file
+        r$edit_repo_create_global_xml_trigger <- Sys.time()
         
-        ## Convert tibble to XML
-        
-        category_xml <- XML::newXMLDoc()
-        category_general_node <- XML::newXMLNode(repo_category, doc = category_xml)
-        
-        category_nodes <- apply(category_tibble, 1, function(x) {
-          category_node <- XML::newXMLNode(get_singular(repo_category))
-          XML::addChildren(category_node, lapply(names(x), function(y) XML::newXMLNode(y, x[y])))
-        })
-        
-        XML::xmlParent(category_nodes) <- category_general_node
-
-        XML::saveXML(category_xml, file = paste0(repo_category_path, "/", repo_category, ".xml"))
-        
-        # Trigger to render datatable
-        r$edit_repo_datatable_trigger <- Sys.time()
-        
-        show_message_bar(output,  "file_deleted", "success", i18n = i18n, ns = ns)
+        show_message_bar(output, "file_deleted", "success", i18n = i18n, ns = ns)
         
       }, error = function(e) report_bug(r = r, output = output, error_message = "error_deleting_file",
         error_name = paste0(id, " - delete git repo file"), category = "Error", error_report = toString(e), i18n = i18n))
@@ -873,8 +927,90 @@ mod_settings_git_server <- function(id = character(), r = shiny::reactiveValues(
       r$delete_edit_git_repo_category_elements_open_dialog <- FALSE
     })
     
-    
+    observeEvent(r$edit_repo_create_global_xml_trigger, {
+      
+      if (debug) print(paste0(Sys.time(), " - mod_settings_git - observer r$edit_repo_create_global_xml_trigger"))
+      
+      repo_category_path <- r$repo_category_path
+      repo_category <- r$repo_category
+      
+      # Delete XML file
+      unlink(paste0(repo_category_path, "/", repo_category, ".xml"), force = TRUE)
+      
+      # Create XML file
+      
+      ## Convert XML to tibble
+      
+      dirs <- character()
+      if (repo_category == "plugins") for (category in c("patient_lvl", "aggregated")) dirs <- c(dirs, list.dirs(paste0(repo_category_path, "/", category), full.names = TRUE))
+      else dirs <- list.dirs(repo_category_path, full.names = TRUE)
+      
+      category_tibble <- repo_category_xml_fields[[repo_category]]
+      
+      for (dir in dirs){
+        if ((repo_category != "plugins" & dir != repo_category_path) |
+            (repo_category == "plugins" & dir != paste0(repo_category_path, "/patient_lvl") & dir != paste0(repo_category_path, "/aggregated"))){
+          
+          category_tibble <-
+            category_tibble %>%
+            dplyr::bind_rows(
+              xml2::read_xml(paste0(dir, "/", get_singular(repo_category), ".xml")) %>%
+                XML::xmlParse() %>%
+                XML::xmlToDataFrame(nodes = XML::getNodeSet(., paste0("//", get_singular(repo_category)))) %>%
+                tibble::as_tibble()
+            )
+        }
+      }
+      
+      ## Convert tibble to XML
+      
+      category_xml <- XML::newXMLDoc()
+      category_general_node <- XML::newXMLNode(repo_category, doc = category_xml)
+      
+      category_nodes <- apply(category_tibble, 1, function(x) {
+        category_node <- XML::newXMLNode(get_singular(repo_category))
+        XML::addChildren(category_node, lapply(names(x), function(y) XML::newXMLNode(y, x[y])))
+      })
+      
+      XML::xmlParent(category_nodes) <- category_general_node
+      
+      XML::saveXML(category_xml, file = paste0(repo_category_path, "/", repo_category, ".xml"))
+      
+      # Trigger to render datatable
+      r$edit_repo_datatable_trigger <- Sys.time()
+    })
     
     # Commit & push
+    observeEvent(input$commit_and_push, {
+      
+      if (debug) print(paste0(Sys.time(), " - mod_settings_git - observer input$commit_and_push"))
+      
+      # Check if commit message is not empty
+      
+      empty_commit_message <- FALSE
+      if (length(input$commit_message) == 0) empty_commit_message <- TRUE
+      if (length(input$commit_message) > 0) if (is.na(input$commit_message) | input$commit_message == "") empty_commit_message <- TRUE
+      
+      if (empty_commit_message) shiny.fluent::updateTextField.shinyInput(session, "commit_message", errorMessage = i18n$t("provide_valid_commit_message"))
+      else shiny.fluent::updateTextField.shinyInput(session, "commit_message", errorMessage = NULL)
+      
+      req(!empty_commit_message)
+      
+      tryCatch({
+        repo <- r$edit_git_repo_repo
+        credentials <- r$edit_git_repo_credentials
+        
+        git2r::add(repo, ".")
+        if (length(git2r::status(repo, unstaged = FALSE, untracked = FALSE, ignored = FALSE)$staged) > 0){
+          git2r::commit(repo, message = input$commit_message)
+          git2r::push(repo, "origin", "refs/heads/main", credentials = credentials)
+        }
+        
+        shiny.fluent::updateTextField.shinyInput(session, "commit_message", value = "")
+        
+        show_message_bar(output, "success_update_remote_git_repo", "success", i18n = i18n, ns = ns)
+      }, error = function(e) report_bug(r = r, output = output, error_message = "error_update_remote_git_repo",
+        error_name = "settings_git commit & push repo", category = "Error", error_report = toString(e), i18n = i18n, ns = ns))
+    })
   })
 }

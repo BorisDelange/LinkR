@@ -1780,9 +1780,6 @@ mod_scripts_server <- function(id = character(), r = shiny::reactiveValues(), d 
           script_dir <- paste0(r$app_folder, "/scripts/", options %>% dplyr::filter(name == "unique_id") %>% dplyr::pull(value))
           if (!dir.exists(script_dir)) dir.create(script_dir, recursive = TRUE)
           
-          # Create ui.R & server.R
-          # writeLines(code %>% dplyr::filter(category == "script") %>% dplyr::pull(code), paste0(script_dir, "/", name, ".R"))
-          
           # Create XML file
           xml <- XML::newXMLDoc()
           scripts_node <- XML::newXMLNode("scripts", doc = xml)
