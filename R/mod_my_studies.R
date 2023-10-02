@@ -78,7 +78,7 @@ mod_my_studies_ui <- function(id = character(), i18n = character()){
           div(
             shiny.fluent::Stack(horizontal = TRUE, tokens = list(childrenGap = 20),
               make_textfield(i18n = i18n, ns = ns, label = "name", id = "study_name", width = "300px"),
-              div(shiny.fluent::PrimaryButton.shinyInput(ns("add_study"), i18n$t("add")), style = "margin-top:38px;"),
+              div(shiny.fluent::PrimaryButton.shinyInput(ns("add_study"), i18n$t("add")), style = "margin-top:39px;"),
               style = "position:relative; z-index:1; width:500px;"
             ),
             div(DT::DTOutput(ns("studies_datatable")), style = "margin-top:-30px; z-index:2"),
@@ -995,7 +995,7 @@ mod_my_studies_server <- function(id = character(), r = shiny::reactiveValues(),
         name = dplyr::case_when(id == link_id ~ study_name, TRUE ~ name),
         update_datetime = dplyr::case_when(id == link_id ~ new_update_datetime, TRUE ~ update_datetime))
       r$studies_temp <- r$studies %>%
-        dplyr::mutate_at(c("creation_datetime", "update_datetime"), format_datetime, language = "en", sec = FALSE) %>%
+        dplyr::mutate_at(c("creation_datetime", "update_datetime"), format_datetime, language = language, sec = FALSE) %>%
         dplyr::mutate(modified = FALSE) %>% dplyr::arrange(name)
       
       # req(input$options_selected_study)
@@ -1028,13 +1028,13 @@ mod_my_studies_server <- function(id = character(), r = shiny::reactiveValues(),
         # unlink(paste0(r$app_folder, "/temp_files"), recursive = TRUE, force = TRUE)
         
         markdown_settings <- paste0("```{r setup, include=FALSE}\nknitr::opts_knit$set(root.dir = '", 
-          r$app_folder, "/temp_files')\n",
-          "knitr::opts_chunk$set(root.dir = '", r$app_folder, "/temp_files', fig.path = '", r$app_folder, "/temp_files')\n```\n")
+          r$app_folder, "/temp_files/markdowns')\n",
+          "knitr::opts_chunk$set(root.dir = '", r$app_folder, "/temp_files/markdowns', fig.path = '", r$app_folder, "/temp_files/markdowns')\n```\n")
         
         markdown_file <- paste0(markdown_settings, options_description)
         
         # Create temp dir
-        dir <- paste0(r$app_folder, "/temp_files")
+        dir <- paste0(r$app_folder, "/temp_files/markdowns")
         file <- paste0(dir, "/", paste0(sample(c(0:9, letters[1:6]), 8, TRUE), collapse = ''), "_", as.character(Sys.time()) %>% stringr::str_replace_all(":", "_"), ".Md")
         if (!dir.exists(dir)) dir.create(dir)
         
@@ -1077,13 +1077,13 @@ mod_my_studies_server <- function(id = character(), r = shiny::reactiveValues(),
         # unlink(paste0(r$app_folder, "/temp_files"), recursive = TRUE, force = TRUE)
         
         markdown_settings <- paste0("```{r setup, include=FALSE}\nknitr::opts_knit$set(root.dir = '", 
-          r$app_folder, "/temp_files')\n",
-          "knitr::opts_chunk$set(root.dir = '", r$app_folder, "/temp_files', fig.path = '", r$app_folder, "/temp_files')\n```\n")
+          r$app_folder, "/temp_files/markdowns')\n",
+          "knitr::opts_chunk$set(root.dir = '", r$app_folder, "/temp_files/markdowns', fig.path = '", r$app_folder, "/temp_files/markdowns')\n```\n")
         
         markdown_file <- paste0(markdown_settings, options_description)
         
         # Create temp dir
-        dir <- paste0(r$app_folder, "/temp_files")
+        dir <- paste0(r$app_folder, "/temp_files/markdowns")
         file <- paste0(dir, "/", paste0(sample(c(0:9, letters[1:6]), 8, TRUE), collapse = ''), "_", as.character(Sys.time()) %>% stringr::str_replace_all(":", "_"), ".Md")
         if (!dir.exists(dir)) dir.create(dir)
         

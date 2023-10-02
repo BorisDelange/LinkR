@@ -81,7 +81,7 @@ mod_plugins_ui <- function(id = character(), i18n = character(), language = tibb
         div(shiny.fluent::Dropdown.shinyInput(ns("vocabulary_selected_concepts"), value = NULL, options = list(), multiSelect = TRUE,
           onChanged = htmlwidgets::JS(paste0("item => Shiny.setInputValue('", id, "-vocabulary_selected_concepts_trigger', Math.random())"))), style = "width:650px;")
       ),
-      div(shiny.fluent::DefaultButton.shinyInput(ns("reset_vocabulary_concepts"), i18n$t("reset")), style = "margin-top:38px;")
+      div(shiny.fluent::DefaultButton.shinyInput(ns("reset_vocabulary_concepts"), i18n$t("reset")), style = "margin-top:39px;")
     ),
     div(DT::DTOutput(ns("plugin_vocabulary_concepts")), class = "vocabulary_table"),
     div(DT::DTOutput(ns("plugin_vocabulary_mapped_concepts")), class = "vocabulary_table"),
@@ -213,7 +213,7 @@ mod_plugins_ui <- function(id = character(), i18n = character(), language = tibb
           div(
             shiny.fluent::Stack(horizontal = TRUE, tokens = list(childrenGap = 20),
               make_textfield(i18n = i18n, ns = ns, label = "name", id = "plugin_name", width = "300px"),
-              div(shiny.fluent::PrimaryButton.shinyInput(ns("add_plugin"), i18n$t("add")), style = "margin-top:38px;"),
+              div(shiny.fluent::PrimaryButton.shinyInput(ns("add_plugin"), i18n$t("add")), style = "margin-top:39px;"),
               style = "position:relative; z-index:1; width:500px;"
             ),
             div(DT::DTOutput(ns("plugins_datatable")), style = "margin-top:-30px; z-index:2"),
@@ -413,7 +413,7 @@ mod_plugins_ui <- function(id = character(), i18n = character(), language = tibb
                 style = "width:400px;"
               ),
               div(shiny.fluent::PrimaryButton.shinyInput(ns("export_selected_plugins"), 
-                i18n$t("export_plugins"), iconProps = list(iconName = "Upload")), style = "margin-top:38px;"),
+                i18n$t("export_plugins"), iconProps = list(iconName = "Upload")), style = "margin-top:39px;"),
               style = "position:relative; z-index:1; width:700px;"
             ),
             div(DT::DTOutput(ns("plugins_to_export_datatable")), style = "margin-top:-30px; z-index:2"),
@@ -568,18 +568,18 @@ mod_plugins_server <- function(id = character(), r = shiny::reactiveValues(), d 
       if (debug) print(paste0(Sys.time(), " - mod_plugins - observer input$remote_git_repo"))
       
       # Get URL of remote git repo
-      url_address <- r$git_repos %>% dplyr::filter(id == input$remote_git_repo) %>% dplyr::pull(url_address)
-      if (substr(url_address, nchar(url_address), nchar(url_address)) != "/") url_address <- paste0(url_address, "/")
-      url_address <- paste0(url_address, "plugins/")
-      r$url_address <- url_address
+      raw_files_url_address <- r$git_repos %>% dplyr::filter(id == input$remote_git_repo) %>% dplyr::pull(raw_files_url_address)
+      if (substr(raw_files_url_address, nchar(raw_files_url_address), nchar(raw_files_url_address)) != "/") raw_files_url_address <- paste0(raw_files_url_address, "/")
+      raw_files_url_address <- paste0(raw_files_url_address, "plugins/")
+      r$raw_files_url_address <- raw_files_url_address
       
       error_loading_remote_git <- TRUE
-      plugins_file <- paste0(r$app_folder, "/temp_files/plugins.xml")
+      plugins_file <- paste0(r$app_folder, "/temp_files/plugins/plugins.xml")
       
       if (r$has_internet){
         
         tryCatch({
-          xml2::download_xml(paste0(url_address, "plugins.xml"), plugins_file)
+          xml2::download_xml(paste0(raw_files_url_address, "plugins.xml"), plugins_file)
           error_loading_remote_git <- FALSE
         }, error = function(e) if (nchar(e[1]) > 0) report_bug(r = r, output = output, error_message = "error_connection_remote_git", 
           error_name = "plugins_catalog load plugins.xml", category = "Error", error_report = toString(e), i18n = i18n, ns = ns))
@@ -710,7 +710,7 @@ mod_plugins_server <- function(id = character(), r = shiny::reactiveValues(), d 
 
               plugin$name <- plugin[[paste0("name_", language)]]
 
-              if (plugin$image != "") plugin$image_url <- paste0(r$url_address, prefix, "/", plugin$unique_id, "/", plugin$image)
+              if (plugin$image != "") plugin$image_url <- paste0(r$raw_files_url_address, prefix, "/", plugin$unique_id, "/", plugin$image)
               else plugin$image_url <- ""
             }
 
@@ -820,7 +820,7 @@ mod_plugins_server <- function(id = character(), r = shiny::reactiveValues(), d 
       
       # Render markdown description
       
-      dir <- paste0(r$app_folder, "/temp_files")
+      dir <- paste0(r$app_folder, "/temp_files/markdowns")
       
       markdown_settings <- paste0("```{r setup, include=FALSE}\nknitr::opts_knit$set(root.dir = '", dir, "')\n",
         "knitr::opts_chunk$set(root.dir = '", dir, "', fig.path = '", dir, "')\n```\n")
@@ -853,7 +853,7 @@ mod_plugins_server <- function(id = character(), r = shiny::reactiveValues(), d 
           plugin %>% dplyr::pull(paste0("description_", tolower(language)))
         )
         
-        plugin_folder <- paste0(r$url_address, prefix, "/", plugin$unique_id)
+        plugin_folder <- paste0(r$raw_files_url_address, prefix, "/", plugin$unique_id)
       }
       
       # Change %plugin_folder% for images
@@ -1044,17 +1044,17 @@ mod_plugins_server <- function(id = character(), r = shiny::reactiveValues(), d 
         # Code table
         
         plugin_ui_code <- 
-          paste0(r$url_address, prefix, "/", plugin$unique_id, "/ui.R") %>%
+          paste0(r$raw_files_url_address, prefix, "/", plugin$unique_id, "/ui.R") %>%
           readLines(warn = FALSE) %>% paste(collapse = "\n") %>%
           stringr::str_replace_all("'", "''")
         
         plugin_server_code <-
-          paste0(r$url_address, prefix, "/", plugin$unique_id, "/server.R") %>%
+          paste0(r$raw_files_url_address, prefix, "/", plugin$unique_id, "/server.R") %>%
           readLines(warn = FALSE) %>% paste(collapse = "\n") %>%
           stringr::str_replace_all("'", "''")
         
         plugin_translations_code <-
-          paste0(r$url_address, prefix, "/", plugin$unique_id, "/translations.csv") %>%
+          paste0(r$raw_files_url_address, prefix, "/", plugin$unique_id, "/translations.csv") %>%
           readLines(warn = FALSE) %>% paste(collapse = "\n") %>%
           stringr::str_replace_all("'", "''")
         
@@ -1083,7 +1083,7 @@ mod_plugins_server <- function(id = character(), r = shiny::reactiveValues(), d 
           if (nchar(plugin$images) > 0){
             images <- stringr::str_split(plugin$images, ";;;")
             for (image in images){
-              url <- paste0(r$url_address, prefix, "/", plugin$unique_id, "/", image)
+              url <- paste0(r$raw_files_url_address, prefix, "/", plugin$unique_id, "/", image)
               url <- gsub(" ", "%20", url)
               destfile <- paste0(plugin_dir, "/", image)
               download.file(url, destfile, quiet = TRUE)
@@ -1096,7 +1096,7 @@ mod_plugins_server <- function(id = character(), r = shiny::reactiveValues(), d 
         
         # Reload datatable
         r[[paste0(prefix, "_plugins_temp")]] <- r$plugins %>% dplyr::filter(tab_type_id == !!tab_type_id) %>% 
-          dplyr::mutate_at(c("creation_datetime", "update_datetime"), format_datetime, language = "en", sec = FALSE) %>%
+          dplyr::mutate_at(c("creation_datetime", "update_datetime"), format_datetime, language = language, sec = FALSE) %>%
           dplyr::mutate(modified = FALSE) %>% dplyr::arrange(name)
         
         show_message_bar(output,  "success_installing_remote_git_plugin", "success", i18n = i18n, ns = ns)
@@ -1126,7 +1126,7 @@ mod_plugins_server <- function(id = character(), r = shiny::reactiveValues(), d 
       
       # Reload datatable
       r[[paste0(prefix, "_plugins_temp")]] <- r$plugins %>% dplyr::filter(tab_type_id == !!tab_type_id) %>% 
-        dplyr::mutate_at(c("creation_datetime", "update_datetime"), format_datetime, language = "en", sec = FALSE) %>%
+        dplyr::mutate_at(c("creation_datetime", "update_datetime"), format_datetime, language = language, sec = FALSE) %>%
         dplyr::mutate(modified = FALSE) %>% dplyr::arrange(name)
       
       if (perf_monitoring) monitor_perf(r = r, action = "stop", task = paste0("mod_plugins - observer input$add_plugin"))
@@ -1157,7 +1157,7 @@ mod_plugins_server <- function(id = character(), r = shiny::reactiveValues(), d 
           tab_type_id = integer(), creation_datetime = character(), update_datetime = character(), deleted = integer(), modified = logical())
       }
       else r[[paste0(prefix, "_plugins_temp")]] <- r$plugins %>% dplyr::filter(tab_type_id == !!tab_type_id) %>%
-          dplyr::mutate_at(c("creation_datetime", "update_datetime"), format_datetime, language = "en", sec = FALSE) %>%
+          dplyr::mutate_at(c("creation_datetime", "update_datetime"), format_datetime, language = language, sec = FALSE) %>%
           dplyr::mutate(modified = FALSE) %>% dplyr::arrange(name)
       
     }, once = TRUE)
@@ -1353,7 +1353,7 @@ mod_plugins_server <- function(id = character(), r = shiny::reactiveValues(), d 
       
       # Reload datatable
       r[[paste0(prefix, "_plugins_temp")]] <- r$plugins %>% dplyr::filter(tab_type_id == !!tab_type_id) %>% 
-        dplyr::mutate_at(c("creation_datetime", "update_datetime"), format_datetime, language = "en", sec = FALSE) %>%
+        dplyr::mutate_at(c("creation_datetime", "update_datetime"), format_datetime, language = language, sec = FALSE) %>%
         dplyr::mutate(modified = FALSE) %>% dplyr::arrange(name)
       
       # Reload remote_git description if opened
@@ -1572,7 +1572,7 @@ mod_plugins_server <- function(id = character(), r = shiny::reactiveValues(), d 
         name = dplyr::case_when(id == link_id ~ plugin_name, TRUE ~ name),
         update_datetime = dplyr::case_when(id == link_id ~ new_update_datetime, TRUE ~ update_datetime))
       r[[paste0(prefix, "_plugins_temp")]] <- r$plugins %>% dplyr::filter(tab_type_id == !!tab_type_id) %>%
-        dplyr::mutate_at(c("creation_datetime", "update_datetime"), format_datetime, language = "en", sec = FALSE) %>%
+        dplyr::mutate_at(c("creation_datetime", "update_datetime"), format_datetime, language = language, sec = FALSE) %>%
         dplyr::mutate(modified = FALSE) %>% dplyr::arrange(name)
       
       r$show_plugin_details <- Sys.time()
@@ -1737,13 +1737,13 @@ mod_plugins_server <- function(id = character(), r = shiny::reactiveValues(), d 
         # unlink(paste0(r$app_folder, "/temp_files"), recursive = TRUE, force = TRUE)
         
         markdown_settings <- paste0("```{r setup, include=FALSE}\nknitr::opts_knit$set(root.dir = '", 
-          r$app_folder, "/temp_files')\n",
-          "knitr::opts_chunk$set(root.dir = '", r$app_folder, "/temp_files', fig.path = '", r$app_folder, "/temp_files')\n```\n")
+          r$app_folder, "/temp_files/markdowns')\n",
+          "knitr::opts_chunk$set(root.dir = '", r$app_folder, "/temp_files/markdowns', fig.path = '", r$app_folder, "/temp_files/markdowns')\n```\n")
         
         markdown_file <- paste0(markdown_settings, options_description)
         
         # Create temp dir
-        dir <- paste0(r$app_folder, "/temp_files")
+        dir <- paste0(r$app_folder, "/temp_files/markdowns")
         file <- paste0(dir, "/", paste0(sample(c(0:9, letters[1:6]), 8, TRUE), collapse = ''), "_", as.character(Sys.time()) %>% stringr::str_replace_all(":", "_"), ".Md")
         if (!dir.exists(dir)) dir.create(dir)
         
@@ -2348,7 +2348,7 @@ mod_plugins_server <- function(id = character(), r = shiny::reactiveValues(), d 
       
       # Update datatable
       r[[paste0(prefix, "_plugins_temp")]] <- r$plugins %>% dplyr::filter(tab_type_id == !!tab_type_id) %>%
-        dplyr::mutate_at(c("creation_datetime", "update_datetime"), format_datetime, language = "en", sec = FALSE) %>%
+        dplyr::mutate_at(c("creation_datetime", "update_datetime"), format_datetime, language = language, sec = FALSE) %>%
         dplyr::mutate(modified = FALSE) %>% dplyr::arrange(name)
       
       # Notify user
@@ -2385,7 +2385,7 @@ mod_plugins_server <- function(id = character(), r = shiny::reactiveValues(), d 
 
         # Extract ZIP file
 
-        temp_dir <- paste0(r$app_folder, "/temp_files/", Sys.time() %>% stringr::str_replace_all(":| |-", ""), paste0(sample(c(0:9, letters[1:6]), 24, TRUE), collapse = ''))
+        temp_dir <- paste0(r$app_folder, "/temp_files/plugins/", Sys.time() %>% stringr::str_replace_all(":| |-", ""), paste0(sample(c(0:9, letters[1:6]), 24, TRUE), collapse = ''))
         zip::unzip(input$import_plugins_upload$datapath, exdir = temp_dir)
 
         # Read XML file
@@ -2527,7 +2527,7 @@ mod_plugins_server <- function(id = character(), r = shiny::reactiveValues(), d 
 
             # Reload datatable
             r[[paste0(prefix, "_plugins_temp")]] <- r$plugins %>% dplyr::filter(tab_type_id == !!tab_type_id) %>%
-              dplyr::mutate_at(c("creation_datetime", "update_datetime"), format_datetime, language = "en", sec = FALSE) %>%
+              dplyr::mutate_at(c("creation_datetime", "update_datetime"), format_datetime, language = language, sec = FALSE) %>%
               dplyr::mutate(modified = FALSE) %>% dplyr::arrange(name)
           }
         }
@@ -2625,7 +2625,7 @@ mod_plugins_server <- function(id = character(), r = shiny::reactiveValues(), d 
         owd <- setwd(tempdir())
         on.exit(setwd(owd))
 
-        temp_dir <- paste0(r$app_folder, "/temp_files/", Sys.time() %>% stringr::str_replace_all(":| |-", ""), paste0(sample(c(0:9, letters[1:6]), 24, TRUE), collapse = ''))
+        temp_dir <- paste0(r$app_folder, "/temp_files/plugins/", Sys.time() %>% stringr::str_replace_all(":| |-", ""), paste0(sample(c(0:9, letters[1:6]), 24, TRUE), collapse = ''))
         dir.create(paste0(temp_dir, "/plugins/", prefix), recursive = TRUE)
 
         for (plugin_id in r[[paste0(prefix, "_export_plugins_selected")]] %>% dplyr::pull(id)){

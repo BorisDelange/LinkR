@@ -216,7 +216,7 @@ mod_settings_data_management_ui <- function(id = character(), i18n = character()
               make_textfield(i18n = i18n, ns = ns, label = "id", id = "vocabulary_id", width = "300px"),
               make_textfield(i18n = i18n, ns = ns, label = "name", id = "vocabulary_name", width = "300px"),
               make_dropdown(i18n = i18n, ns = ns, label = "data_source", id = "data_source", width = "300px", multiSelect = TRUE),
-            div(shiny.fluent::PrimaryButton.shinyInput(ns("add"), i18n$t("add")), style = "margin-top:38px;")),
+            div(shiny.fluent::PrimaryButton.shinyInput(ns("add"), i18n$t("add")), style = "margin-top:39px;")),
             div(DT::DTOutput(ns("management_datatable")), style = "z-index:2"),
             div(
               shiny.fluent::Stack(horizontal = TRUE, tokens = list(childrenGap = 10),
@@ -1786,7 +1786,7 @@ mod_settings_data_management_server <- function(id = character(), r = shiny::rea
               
               # Extract ZIP file
               
-              temp_dir <- paste0(r$app_folder, "/temp_files/", Sys.time() %>% stringr::str_replace_all(":| |-", ""), paste0(sample(c(0:9, letters[1:6]), 24, TRUE), collapse = ''))
+              temp_dir <- paste0(r$app_folder, "/temp_files/vocabularies/", Sys.time() %>% stringr::str_replace_all(":| |-", ""), paste0(sample(c(0:9, letters[1:6]), 24, TRUE), collapse = ''))
               zip::unzip(input$import_vocabulary_upload_zip$datapath, exdir = temp_dir)
               
               csv_files <- zip::zip_list(input$import_vocabulary_upload_zip$datapath)

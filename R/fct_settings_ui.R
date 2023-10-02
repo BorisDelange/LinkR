@@ -89,7 +89,7 @@ render_settings_datatable_card <- function(i18n = character(), ns = character(),
     
     inputs_div <- shiny.fluent::Stack(horizontal = TRUE, tokens = list(childrenGap = 20),
       inputs_div,
-      div(shiny.fluent::PrimaryButton.shinyInput(ns("add"), i18n$t("add")), style = "margin-top:38px;")
+      div(shiny.fluent::PrimaryButton.shinyInput(ns("add"), i18n$t("add")), style = "margin-top:39px;")
     )
   }
   

@@ -292,6 +292,8 @@ subsets_creation_card,Créer un subset
 subsets_datatable_card,Gérer les subsets
 subsets_edit_code_card,Editer le code d'un subset
 plugins,Plugins
+patient_lvl_plugins,Plugins de données individuelles
+aggregated_plugins,Plugins de données agrégées
 all_plugins_card,Accéder au catalogue des plugins
 plugins_see_all_data,Accéder à toutes les données
 plugins_edit_data,Editer un plugin
@@ -435,6 +437,7 @@ import_image,Importer une image
 resize_image,Redimensionner l'image
 back,Retour
 download,Télécharger
+load,Charger
 update,Mettre à jour
 download_plugin,Télécharger le plugin
 no_plugin_available,Pas de plugin disponible
@@ -833,8 +836,11 @@ add_git_repo,Ajouter un dépôt git
 git_repos_management,Gestion des dépôts git
 git_add_repo_card_user_access_description,Ajouter un dépôt git
 git_repos_management_card_user_access_description,Gestion des dépôts git
+git_edit_repo_card_user_access_description,Modifier un dépôt git (commit et push)
 link,Lien
 url_address,Adresse URL
+repo_url_address,Adresse URL du dépôt git
+raw_files_url_address,Adresse URL des fichiers raw
 git_repos_delete,Suppression de dépôt git
 git_repos_delete_subtext,Confirmer la suppression du dépôt git ?
 git_repo_deleted,Dépôt git supprimé
@@ -890,3 +896,13 @@ api_key,Clef API
 git_repo_already_in_db,Ce dépôt git a déjà été ajouté
 error_downloading_git_repos_csv,Erreur lors du téléchargement du fichier CSV des git distants
 error_loading_git_repos_csv,Erreur lors du chargement du fichier CSV des git distants
+error_downloading_git_repo,Erreur lors du téléchargement du dépôt git
+error_loading_category_xml_file,Erreur lors du chargement du fichier XML de la catégorie sélectionnée
+edit_git_repo,Modifier un dépôt git
+add_files,Ajouter des fichiers
+commit_message,Message de commit
+commit_and_push,Commit & push
+edit_git_repo_delete_file,Supprimer un fichier
+edit_git_repo_delete_file_subtext,Confirmer la suppression de ce fichier ?
+file_deleted,Fichier supprimé
+error_deleting_file,Erreur lors de la suppression du fichier

@@ -142,7 +142,7 @@ mod_data_ui <- function(id = character(), i18n = character()){
             div(shiny.fluent::Dropdown.shinyInput(ns(paste0(type, "_vocabulary_selected_concepts")), value = NULL, options = list(), multiSelect = TRUE,
               onChanged = htmlwidgets::JS(paste0("item => Shiny.setInputValue('", id, "-", type, "_vocabulary_selected_concepts_trigger', Math.random())"))), style = "width:650px;")
           ),
-          div(shiny.fluent::DefaultButton.shinyInput(ns(paste0(type, "_reset_vocabulary_concepts")), i18n$t("reset")), style = "margin-top:38px;")
+          div(shiny.fluent::DefaultButton.shinyInput(ns(paste0(type, "_reset_vocabulary_concepts")), i18n$t("reset")), style = "margin-top:39px;")
         ),
         div(DT::DTOutput(ns(paste0(type, "_vocabulary_concepts"))), class = "vocabulary_table"),
         div(DT::DTOutput(ns(paste0(type, "_vocabulary_mapped_concepts"))), class = "vocabulary_table"),

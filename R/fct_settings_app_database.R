@@ -169,7 +169,7 @@ db_create_tables <- function(db, type = character(), dbms = character()){
     
     db_create_table(db, "git_repos", primary_key_col = "id", dbms = dbms, text_cols = c("description", "link"),
       tibble::tibble(id = integer(), unique_id = character(), name = character(), api_key = character(),
-        url_address = character(), creator_id = integer(), datetime = character(), deleted = logical()))
+        repo_url_address = character(), raw_files_url_address = character(), creator_id = integer(), datetime = character(), deleted = logical()))
   }
   
   if (type == "public"){

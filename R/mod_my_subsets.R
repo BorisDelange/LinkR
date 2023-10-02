@@ -54,7 +54,7 @@ mod_my_subsets_ui <- function(id = character(), i18n = character()){
           div(
             shiny.fluent::Stack(horizontal = TRUE, tokens = list(childrenGap = 20),
               make_textfield(i18n = i18n, ns = ns, label = "name", id = "subset_name", width = "300px"),
-              div(shiny.fluent::PrimaryButton.shinyInput(ns("add_subset"), i18n$t("add")), style = "margin-top:38px;"),
+              div(shiny.fluent::PrimaryButton.shinyInput(ns("add_subset"), i18n$t("add")), style = "margin-top:39px;"),
               style = "position:relative; z-index:1; width:500px;"
             ),
             div(DT::DTOutput(ns("subsets_datatable")), style = "margin-top:-30px; z-index:2"),

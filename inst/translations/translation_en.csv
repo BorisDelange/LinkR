@@ -292,6 +292,8 @@ subsets_creation_card,Create a subset
 subsets_datatable_card,Subsets management
 subsets_edit_code_card,Edit subset code
 plugins,Plugins
+patient_lvl_plugins,Patient-level plugins
+aggregated_plugins,Aggregated plugins
 all_plugins_card,Access to plugins catalog
 plugins_see_all_data,Access to all data
 plugins_edit_data,Edit a plugin
@@ -315,7 +317,8 @@ only_me,Access to current account log only
 available_scripts,Available scripts
 selected_scripts,Selected scripts
 provide_valid_name,Please provide a valid name
-provide_valid_url_address,Please provide a valid URL address
+provide_valid_repo_url_address,Please provide a valid URL address
+provide_valid_raw_files_url_address,Please provide a valid URL address
 provide_valid_study_name,Please provide a valid name
 provide_valid_subset_name,Please provide a valid name
 provide_valid_script_name,Nom valide requis
@@ -435,6 +438,7 @@ import_image,Import image
 resize_image,Resize image
 back,Back
 download,Download
+load,Load
 update,Update
 download_plugin,Download plugin
 no_plugin_available,No plugin available
@@ -833,8 +837,11 @@ add_git_repo,Add a repository
 git_repos_management,Repositories management
 git_add_repo_card_user_access_description,Add a repository
 git_repos_management_card_user_access_description,Repositories management
+git_edit_repo_card_user_access_description,Edit a repository (commit & push files)
 link,Link
 url_address,URL address
+repo_url_address,Repo URL address
+raw_files_url_address,Raw files URL address
 git_repos_delete,Delete git repo
 git_repos_delete_subtext,Do you want to delete this repo ?
 git_repo_deleted,Git repository deleted
@@ -890,3 +897,13 @@ api_key,API key
 git_repo_already_in_db,This git repository has already been added
 error_downloading_git_repos_csv,Error downloading git repos CSV file
 error_loading_git_repos_csv,Error loading git repos CSV file
+error_downloading_git_repo,Error downloading git repo
+error_loading_category_xml_file,Error loading selected repo category XML file
+edit_git_repo,Edit git repo
+add_files,Add files
+commit_message,Commit message
+commit_and_push,Commit & push
+edit_git_repo_delete_file,Delete a file
+edit_git_repo_delete_file_subtext,Confirm deletion of this file?
+file_deleted,File deleted
+error_deleting_file,Error deleting file

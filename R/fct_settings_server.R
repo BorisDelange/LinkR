@@ -192,9 +192,9 @@ add_settings_new_data <- function(session, output, r = shiny::reactiveValues(), 
   else if (table == "git_repos"){
     if (length(data$unique_id) > 0) unique_id <- data$unique_id
     else unique_id <- paste0(sample(c(0:9, letters[1:6]), 64, TRUE), collapse = '')
-    new_data$data <- tibble::tribble(~id, ~unique_id, ~name, ~api_key, ~url_address, ~creator_id, ~datetime, ~deleted,
+    new_data$data <- tibble::tribble(~id, ~unique_id, ~name, ~api_key, ~repo_url_address, ~raw_files_url_address, ~creator_id, ~datetime, ~deleted,
       last_row$data + 1, unique_id, as.character(data$name), as.character(data$api_key),
-      as.character(data$url_address), r$user_id, as.character(Sys.time()), FALSE)
+      as.character(data$repo_url_address), as.character(data$raw_files_url_address), r$user_id, as.character(Sys.time()), FALSE)
   }
   
   # Append data to the table and to r / m variables
@@ -395,7 +395,7 @@ add_settings_new_data <- function(session, output, r = shiny::reactiveValues(), 
   # Reset textfields
   if (table == "users") sapply(c("username", "firstname", "lastname", "password"), function(name) shiny.fluent::updateTextField.shinyInput(session, name, value = ""))
   else if (table == "vocabulary") sapply(c("vocabulary_id", "vocabulary_name"), function(name) shiny.fluent::updateTextField.shinyInput(session, name, value = ""))
-  else sapply(c("plugin_name", "script_name", "study_name", "subset_name", "name", "description", "url_address"), function(name) shiny.fluent::updateTextField.shinyInput(session, name, value = ""))
+  else sapply(c("plugin_name", "script_name", "study_name", "subset_name", "name", "description", "raw_files_url_address", "repo_url_address"), function(name) shiny.fluent::updateTextField.shinyInput(session, name, value = ""))
 }
 
 #' Delete element

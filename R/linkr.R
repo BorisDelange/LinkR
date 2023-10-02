@@ -51,10 +51,6 @@ linkr <- function(
     )
   }
   
-  # Clear temp dir
-  if (debug) print(paste0(Sys.time(), " - linkr - temp dir"))
-  unlink(paste0(app_folder, "/temp_files"), recursive = TRUE, force = TRUE)
-  
   # Create app sub-dirs
   if (debug) print(paste0(Sys.time(), " - linkr - app sub-dirs"))
   sub_dirs <- c("app_database", "datasets", "datasets_files",
@@ -102,7 +98,8 @@ linkr <- function(
       "db_restore_card"),
     "remote_git_repos", c(
       "git_add_repo_card", 
-      "git_repos_management_card"),
+      "git_repos_management_card",
+      "git_edit_repo_card"),
     "users", c(
       "users_creation_card",
       "users_management_card",

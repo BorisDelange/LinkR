@@ -143,7 +143,7 @@ mod_scripts_ui <- function(id = character(), i18n = character()){
           div(
             shiny.fluent::Stack(horizontal = TRUE, tokens = list(childrenGap = 20),
               make_textfield(i18n = i18n, ns = ns, label = "name", id = "script_name", width = "300px"),
-              div(shiny.fluent::PrimaryButton.shinyInput(ns("add_script"), i18n$t("add")), style = "margin-top:38px;"),
+              div(shiny.fluent::PrimaryButton.shinyInput(ns("add_script"), i18n$t("add")), style = "margin-top:39px;"),
               style = "position:relative; z-index:1; width:500px;"
             ),
             div(DT::DTOutput(ns("scripts_datatable")), style = "margin-top:-30px; z-index:2"),
@@ -317,7 +317,7 @@ mod_scripts_ui <- function(id = character(), i18n = character()){
                 style = "width:400px;"
               ),
               div(shiny.fluent::PrimaryButton.shinyInput(ns("export_selected_scripts"), 
-                i18n$t("export_scripts"), iconProps = list(iconName = "Upload")), style = "margin-top:38px;"),
+                i18n$t("export_scripts"), iconProps = list(iconName = "Upload")), style = "margin-top:39px;"),
               style = "position:relative; z-index:1; width:700px;"
             ),
             div(DT::DTOutput(ns("scripts_to_export_datatable")), style = "margin-top:-30px; z-index:2"),
@@ -796,13 +796,13 @@ mod_scripts_server <- function(id = character(), r = shiny::reactiveValues(), d 
         # unlink(paste0(r$app_folder, "/temp_files"), recursive = TRUE, force = TRUE)
 
         markdown_settings <- paste0("```{r setup, include=FALSE}\nknitr::opts_knit$set(root.dir = '",
-          r$app_folder, "/temp_files')\n",
-          "knitr::opts_chunk$set(root.dir = '", r$app_folder, "/temp_files/', fig.path = '", r$app_folder, "/temp_files/')\n```\n")
+          r$app_folder, "/temp_files/markdowns')\n",
+          "knitr::opts_chunk$set(root.dir = '", r$app_folder, "/temp_files/markdowns/', fig.path = '", r$app_folder, "/temp_files/markdowns/')\n```\n")
         
         markdown_file <- paste0(markdown_settings, script_description)
 
         # Create temp dir
-        dir <- paste0(r$app_folder, "/temp_files")
+        dir <- paste0(r$app_folder, "/temp_files/markdowns")
         file <- paste0(dir, "/", paste0(sample(c(0:9, letters[1:6]), 8, TRUE), collapse = ''), "_", as.character(Sys.time()) %>% stringr::str_replace_all(":", "_") %>% stringr::str_replace_all(" ", "_"), ".Md")
         if (!dir.exists(dir)) dir.create(dir)
 
@@ -823,17 +823,17 @@ mod_scripts_server <- function(id = character(), r = shiny::reactiveValues(), d 
       if (debug) print(paste0(Sys.time(), " - mod_scripts - observer input$remote_git_repo"))
       
       # Get URL of remote git repo
-      url_address <- r$git_repos %>% dplyr::filter(id == input$remote_git_repo) %>% dplyr::pull(url_address)
-      if (substr(url_address, nchar(url_address), nchar(url_address)) != "/") url_address <- paste0(url_address, "/")
-      url_address <- paste0(url_address, "scripts/")
+      raw_files_url_address <- r$git_repos %>% dplyr::filter(id == input$remote_git_repo) %>% dplyr::pull(raw_files_url_address)
+      if (substr(raw_files_url_address, nchar(raw_files_url_address), nchar(raw_files_url_address)) != "/") raw_files_url_address <- paste0(raw_files_url_address, "/")
+      raw_files_url_address <- paste0(raw_files_url_address, "scripts/")
       
       error_loading_remote_git <- TRUE
-      scripts_file <- paste0(r$app_folder, "/temp_files/scripts.xml")
+      scripts_file <- paste0(r$app_folder, "/temp_files/scripts/scripts.xml")
       
       if (r$has_internet){
         
         tryCatch({
-          xml2::download_xml(paste0(url_address, "scripts.xml"), scripts_file)
+          xml2::download_xml(paste0(raw_files_url_address, "scripts.xml"), scripts_file)
           error_loading_remote_git <- FALSE
         }, error = function(e) if (nchar(e[1]) > 0) report_bug(r = r, output = output, error_message = "error_connection_remote_git", 
           error_name = "scripts_catalog load scripts.xml", category = "Error", error_report = toString(e), i18n = i18n, ns = ns))
@@ -1051,7 +1051,7 @@ mod_scripts_server <- function(id = character(), r = shiny::reactiveValues(), d 
       if(nrow(r$scripts) > 0){
         
         r$scripts_temp <- r$scripts %>%
-          dplyr::mutate_at(c("creation_datetime", "update_datetime"), format_datetime, language = "en", sec = FALSE) %>%
+          dplyr::mutate_at(c("creation_datetime", "update_datetime"), format_datetime, language = language, sec = FALSE) %>%
           dplyr::mutate(modified = FALSE)
         
         # Reset selected scripts for export_scripts and export_scripts_selected
@@ -1196,7 +1196,7 @@ mod_scripts_server <- function(id = character(), r = shiny::reactiveValues(), d 
       
       # Reload datatable
       r$scripts_temp <- r$scripts %>% 
-        dplyr::mutate_at(c("creation_datetime", "update_datetime"), format_datetime, language = "en", sec = FALSE) %>%
+        dplyr::mutate_at(c("creation_datetime", "update_datetime"), format_datetime, language = language, sec = FALSE) %>%
         dplyr::mutate(modified = FALSE)
     })
     
@@ -1465,7 +1465,7 @@ mod_scripts_server <- function(id = character(), r = shiny::reactiveValues(), d 
         name = dplyr::case_when(id == link_id ~ script_name, TRUE ~ name),
         update_datetime = dplyr::case_when(id == link_id ~ new_update_datetime, TRUE ~ update_datetime))
       r$scripts_temp <- r$scripts %>%
-        dplyr::mutate_at(c("creation_datetime", "update_datetime"), format_datetime, language = "en", sec = FALSE) %>%
+        dplyr::mutate_at(c("creation_datetime", "update_datetime"), format_datetime, language = language, sec = FALSE) %>%
         dplyr::mutate(modified = FALSE) %>% dplyr::arrange(name)
       
       if (perf_monitoring) monitor_perf(r = r, action = "stop", task = paste0("mod_scripts - observer input$save_options_description"))
@@ -1501,13 +1501,13 @@ mod_scripts_server <- function(id = character(), r = shiny::reactiveValues(), d 
         # unlink(paste0(r$app_folder, "/temp_files"), recursive = TRUE, force = TRUE)
         
         markdown_settings <- paste0("```{r setup, include=FALSE}\nknitr::opts_knit$set(root.dir = '", 
-          r$app_folder, "/temp_files')\n",
-          "knitr::opts_chunk$set(root.dir = '", r$app_folder, "/temp_files', fig.path = '", r$app_folder, "/temp_files')\n```\n")
+          r$app_folder, "/temp_files/markdowns')\n",
+          "knitr::opts_chunk$set(root.dir = '", r$app_folder, "/temp_files/markdowns', fig.path = '", r$app_folder, "/temp_files/markdowns')\n```\n")
         
         markdown_file <- paste0(markdown_settings, options_description)
         
         # Create temp dir
-        dir <- paste0(r$app_folder, "/temp_files")
+        dir <- paste0(r$app_folder, "/temp_files/markdowns")
         file <- paste0(dir, "/", paste0(sample(c(0:9, letters[1:6]), 8, TRUE), collapse = ''), "_", as.character(Sys.time()) %>% stringr::str_replace_all(":", "_"), ".Md")
         if (!dir.exists(dir)) dir.create(dir)
         
@@ -1548,7 +1548,7 @@ mod_scripts_server <- function(id = character(), r = shiny::reactiveValues(), d 
         
         # Extract ZIP file
         
-        temp_dir <- paste0(r$app_folder, "/temp_files/", Sys.time() %>% stringr::str_replace_all(":| |-", ""), paste0(sample(c(0:9, letters[1:6]), 24, TRUE), collapse = ''))
+        temp_dir <- paste0(r$app_folder, "/temp_files/scripts/", Sys.time() %>% stringr::str_replace_all(":| |-", ""), paste0(sample(c(0:9, letters[1:6]), 24, TRUE), collapse = ''))
         zip::unzip(input$import_scripts_upload$datapath, exdir = temp_dir)
         
         # Read XML file
@@ -1665,7 +1665,7 @@ mod_scripts_server <- function(id = character(), r = shiny::reactiveValues(), d 
             
             # Reload datatable
             r$scripts_temp <- r$scripts %>%
-              dplyr::mutate_at(c("creation_datetime", "update_datetime"), format_datetime, language = "en", sec = FALSE) %>%
+              dplyr::mutate_at(c("creation_datetime", "update_datetime"), format_datetime, language = language, sec = FALSE) %>%
               dplyr::mutate(modified = FALSE) %>% dplyr::arrange(name)
           }
         }
@@ -1685,7 +1685,7 @@ mod_scripts_server <- function(id = character(), r = shiny::reactiveValues(), d 
         print(scripts)
         
         render_datatable(output = output, ns = ns, i18n = i18n,
-          data = scripts %>% dplyr::mutate_at(c("creation_datetime", "update_datetime"), format_datetime, language = "en", sec = FALSE),
+          data = scripts %>% dplyr::mutate_at(c("creation_datetime", "update_datetime"), format_datetime, language = language, sec = FALSE),
           output_name = "imported_scripts", col_names = col_names, centered_cols = centered_cols, column_widths = column_widths,
           filter = FALSE, hidden_cols = hidden_cols, datatable_dom = "")
         
@@ -1767,7 +1767,7 @@ mod_scripts_server <- function(id = character(), r = shiny::reactiveValues(), d 
         owd <- setwd(tempdir())
         on.exit(setwd(owd))
         
-        temp_dir <- paste0(r$app_folder, "/temp_files/", Sys.time() %>% stringr::str_replace_all(":| |-", ""), paste0(sample(c(0:9, letters[1:6]), 24, TRUE), collapse = ''))
+        temp_dir <- paste0(r$app_folder, "/temp_files/scripts/", Sys.time() %>% stringr::str_replace_all(":| |-", ""), paste0(sample(c(0:9, letters[1:6]), 24, TRUE), collapse = ''))
         dir.create(paste0(temp_dir, "/scripts"), recursive = TRUE)
         
         for (script_id in r$export_scripts_selected %>% dplyr::pull(id)){
