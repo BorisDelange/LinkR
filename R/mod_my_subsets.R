@@ -136,7 +136,8 @@ mod_my_subsets_ui <- function(id = character(), i18n = character()){
                   "r", list(
                     run_selection = list(win = "CTRL-ENTER", mac = "CTRL-ENTER|CMD-ENTER"),
                     run_all = list(win = "CTRL-SHIFT-ENTER", mac = "CTRL-SHIFT-ENTER|CMD-SHIFT-ENTER"),
-                    save = list(win = "CTRL-S", mac = "CTRL-S|CMD-S")
+                    save = list(win = "CTRL-S", mac = "CTRL-S|CMD-S"),
+                    comment = list(win = "CTRL-SHIFT-C", mac = "CTRL-SHIFT-C|CMD-SHIFT-C")
                   )
                 ),
                 autoScrollEditorIntoView = TRUE, minLines = 30, maxLines = 1000))
@@ -221,7 +222,7 @@ mod_my_subsets_server <- function(id = character(), r = shiny::reactiveValues(),
     
     observeEvent(r$selected_dataset, {
       
-      if (debug) print(paste0(Sys.time(), " - mod_subsets - observer r$selected_dataset"))
+      if (debug) print(paste0(Sys.time(), " - mod_my_subsets - observer r$selected_dataset"))
       
       shinyjs::show("choose_a_study_card")
       sapply(c("subsets_datatable_card", "subsets_datatable_card_forbidden", "subsets_persons_card", "subsets_persons_card_forbidden",
@@ -328,7 +329,7 @@ mod_my_subsets_server <- function(id = character(), r = shiny::reactiveValues(),
     # Load data for datatable
     observeEvent(m$subsets, {
       
-      if (debug) print(paste0(Sys.time(), " - mod_subsets - observer m$subsets"))
+      if (debug) print(paste0(Sys.time(), " - mod_my_subsets - observer m$subsets"))
       
       m$subsets_temp <- m$subsets %>% dplyr::mutate(modified = FALSE) %>% dplyr::arrange(name)
     })
@@ -476,7 +477,7 @@ mod_my_subsets_server <- function(id = character(), r = shiny::reactiveValues(),
     observeEvent(input$code_selected_subset, {
       
       if (perf_monitoring) monitor_perf(r = r, action = "start")
-      if (debug) print(paste0(Sys.time(), " - mod_subsets - observer input$code_selected_subset"))
+      if (debug) print(paste0(Sys.time(), " - mod_my_subsets - observer input$code_selected_subset"))
       
       if (length(input$code_selected_subset) > 1) link_id <- input$code_selected_subset$key
       else link_id <- input$code_selected_subset
@@ -499,25 +500,25 @@ mod_my_subsets_server <- function(id = character(), r = shiny::reactiveValues(),
       shinyAce::updateAceEditor(session, "ace_edit_code", value = code)
       output$code_result <- renderText("")
       
-      if (perf_monitoring) monitor_perf(r = r, action = "stop", task = paste0("mod_subsets - observer input$code_selected_subset"))
+      if (perf_monitoring) monitor_perf(r = r, action = "stop", task = paste0("mod_my_subsets - observer input$code_selected_subset"))
     })
     
     # When save button is clicked, or CTRL+C or CMD+C is pushed
     
     observeEvent(input$save_code, {
-      if (debug) print(paste0(Sys.time(), " - mod_subsets - observer input$save_code"))
+      if (debug) print(paste0(Sys.time(), " - mod_my_subsets - observer input$save_code"))
       r$subset_code_save <- Sys.time()
     })
     
     observeEvent(input$ace_edit_code_save, {
-      if (debug) print(paste0(Sys.time(), " - mod_subsets - observer input$ace_edit_code_save"))
+      if (debug) print(paste0(Sys.time(), " - mod_my_subsets - observer input$ace_edit_code_save"))
       r$subset_code_save <- Sys.time()
     })
     
     observeEvent(r$subset_code_save, {
       
       if (perf_monitoring) monitor_perf(r = r, action = "start")
-      if (debug) print(paste0(Sys.time(), " - mod_subsets - observer r$subset_code_save"))
+      if (debug) print(paste0(Sys.time(), " - mod_my_subsets - observer r$subset_code_save"))
       
       req(input$code_selected_subset)
       
@@ -545,26 +546,26 @@ mod_my_subsets_server <- function(id = character(), r = shiny::reactiveValues(),
       # Notify user
       show_message_bar(output, "modif_saved", "success", i18n = i18n, ns = ns)
       
-      if (perf_monitoring) monitor_perf(r = r, action = "stop", task = paste0("mod_subsets - observer r$subset_code_save"))
+      if (perf_monitoring) monitor_perf(r = r, action = "stop", task = paste0("mod_my_subsets - observer r$subset_code_save"))
     })
     
     # When Execute code button is clicked
     
     observeEvent(input$execute_code, {
-      if (debug) print(paste0(Sys.time(), " - mod_subsets - observer input$execute_code"))
+      if (debug) print(paste0(Sys.time(), " - mod_my_subsets - observer input$execute_code"))
       r$subset_execute_code <- input$ace_edit_code
       r$subset_execute_code_trigger <- Sys.time()
     })
 
     observeEvent(input$ace_edit_code_run_selection, {
-      if (debug) print(paste0(Sys.time(), " - mod_subsets - observer input$ace_edit_code_run_selection"))
+      if (debug) print(paste0(Sys.time(), " - mod_my_subsets - observer input$ace_edit_code_run_selection"))
       if(!shinyAce::is.empty(input$ace_edit_code_run_selection$selection)) r$subset_execute_code <- input$ace_edit_code_run_selection$selection
       else r$subset_execute_code <- input$ace_edit_code_run_selection$line
       r$subset_execute_code_trigger <- Sys.time()
     })
 
     observeEvent(input$ace_edit_code_run_all, {
-      if (debug) print(paste0(Sys.time(), " - mod_subsets - observer input$ace_edit_code_run_all"))
+      if (debug) print(paste0(Sys.time(), " - mod_my_subsets - observer input$ace_edit_code_run_all"))
       r$subset_execute_code <- input$ace_edit_code
       r$subset_execute_code_trigger <- Sys.time()
     })
@@ -572,7 +573,7 @@ mod_my_subsets_server <- function(id = character(), r = shiny::reactiveValues(),
     observeEvent(r$subset_execute_code_trigger, {
 
       if (perf_monitoring) monitor_perf(r = r, action = "start")
-      if (debug) print(paste0(Sys.time(), " - mod_subsets - observer r$subset_execute_code_trigger"))
+      if (debug) print(paste0(Sys.time(), " - mod_my_subsets - observer r$subset_execute_code_trigger"))
 
       if (length(input$code_selected_subset) > 1) link_id <- input$code_selected_subset$key
       else link_id <- input$code_selected_subset
@@ -600,7 +601,29 @@ mod_my_subsets_server <- function(id = character(), r = shiny::reactiveValues(),
       output$datetime_code_execution <- renderText(format_datetime(Sys.time(), language))
       output$code_result <- renderText(paste(captured_output, collapse = "\n"))
 
-      if (perf_monitoring) monitor_perf(r = r, action = "stop", task = paste0("mod_subsets - observer r$subset_execute_code"))
+      if (perf_monitoring) monitor_perf(r = r, action = "stop", task = paste0("mod_my_subsets - observer r$subset_execute_code"))
+    })
+    
+    # Comment text
+    
+    observeEvent(input$ace_edit_code_comment, {
+      if (debug) print(paste0(Sys.time(), " - mod_my_subsets - observer input$ace_edit_code_comment"))
+      
+      lines <- strsplit(input$ace_edit_code, "\n")[[1]]
+      req(length(lines) > 0)
+      
+      start_row <- input$ace_edit_code_comment$range$start$row + 1
+      end_row <- input$ace_edit_code_comment$range$end$row + 1
+      
+      for (i in start_row:end_row) if (startsWith(lines[i], "# ")) lines[i] <- substr(lines[i], 3, nchar(lines[i]))else lines[i] <- paste0("# ", lines[i])
+      
+      shinyAce::updateAceEditor(session, "ace_edit_code", value = paste0(lines, collapse = "\n"))
+      
+      shinyjs::runjs(sprintf("
+        var editor = ace.edit('%s-ace_edit_code');
+        editor.moveCursorTo(%d, %d);
+        editor.focus();
+          ", id, input$ace_edit_code_comment$range$end$row, input$ace_edit_code_comment$range$end$column))
     })
     
     # --- --- --- --- --- --- --
@@ -630,7 +653,7 @@ mod_my_subsets_server <- function(id = character(), r = shiny::reactiveValues(),
     observeEvent(input$persons_selected_subset, {
       
       if (perf_monitoring) monitor_perf(r = r, action = "start")
-      if (debug) print(paste0(Sys.time(), " - mod_subsets - observer input$persons_selected_subset"))
+      if (debug) print(paste0(Sys.time(), " - mod_my_subsets - observer input$persons_selected_subset"))
       
       if (length(input$persons_selected_subset) > 1) link_id <- input$persons_selected_subset$key
       else link_id <- input$persons_selected_subset
@@ -669,7 +692,7 @@ mod_my_subsets_server <- function(id = character(), r = shiny::reactiveValues(),
           dplyr::mutate_at("creator_id", as.factor)
       }
       
-      if (perf_monitoring) monitor_perf(r = r, action = "stop", task = paste0("mod_subsets - observer input$persons_selected_subset"))
+      if (perf_monitoring) monitor_perf(r = r, action = "stop", task = paste0("mod_my_subsets - observer input$persons_selected_subset"))
     })
     
     subset_persons_sortable_cols <- c("person_id", "creator_id", "datetime")
@@ -684,7 +707,7 @@ mod_my_subsets_server <- function(id = character(), r = shiny::reactiveValues(),
     
     observeEvent(r$subset_persons_temp, {
       
-      if (debug) print(paste0(Sys.time(), " - mod_subsets - observer r$subset_persons_temp"))
+      if (debug) print(paste0(Sys.time(), " - mod_my_subsets - observer r$subset_persons_temp"))
       
       # Subset persons datatable
 

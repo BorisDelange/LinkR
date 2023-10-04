@@ -317,7 +317,8 @@ only_me,Accès uniquement à son log
 available_scripts,Scripts disponibles
 selected_scripts,Scripts choisis
 provide_valid_name,Nom valide requis
-provide_valid_url_address,URL valide requise
+provide_valid_repo_url_address,Please provide a valid URL address
+provide_valid_raw_files_url_address,Please provide a valid URL address
 provide_valid_study_name,Nom valide requis
 provide_valid_subset_name,Nom valide requis
 provide_valid_script_name,Nom valide requis
@@ -835,8 +836,10 @@ vocabulary_show_only_not_evaluated_concepts,Alignements non évalués uniquement
 vocabulary_show_mapping_details,Afficher le détail de l'alignement sélectionné
 add_git_repo,Ajouter un dépôt git
 git_repos_management,Gestion des dépôts git
+git_repo_options,Options du dépôt git
 git_add_repo_card_user_access_description,Ajouter un dépôt git
 git_repos_management_card_user_access_description,Gestion des dépôts git
+git_repo_options_card_user_access_description,Gestion du dépôt git
 git_edit_repo_card_user_access_description,Modifier un dépôt git (commit et push)
 link,Lien
 url_address,Adresse URL
@@ -844,7 +847,7 @@ repo_url_address,Adresse URL du dépôt git
 raw_files_url_address,Adresse URL des fichiers raw
 git_repos_delete,Suppression de dépôt git
 git_repos_delete_subtext,Confirmer la suppression du dépôt git ?
-git_repo_deleted,Dépôt git supprimé
+git_repo_deleted,Dépôt(s) git supprimé(s)
 all_categories,Toutes les catégories
 show_data,Afficher les données
 hide_concepts_datatables,Masquer les tableaux

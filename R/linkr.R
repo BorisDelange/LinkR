@@ -99,6 +99,7 @@ linkr <- function(
     "remote_git_repos", c(
       "git_add_repo_card", 
       "git_repos_management_card",
+      "git_repo_options_card",
       "git_edit_repo_card"),
     "users", c(
       "users_creation_card",

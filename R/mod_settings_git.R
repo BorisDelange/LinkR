@@ -11,7 +11,7 @@
 mod_settings_git_ui <- function(id = character(), i18n = character()){
   ns <- NS(id)
   
-  cards <- c("git_add_repo_card", "git_repos_management_card", "git_edit_repo_card")
+  cards <- c("git_add_repo_card", "git_repos_management_card", "git_repo_options_card", "git_edit_repo_card")
   
   forbidden_cards <- tagList()
   for (card in cards) forbidden_cards <- tagList(forbidden_cards, forbidden_card(ns = ns, name = card, i18n = i18n))
@@ -30,9 +30,11 @@ mod_settings_git_ui <- function(id = character(), i18n = character()){
       list(key = "remote_git_repos", text = i18n$t("remote_git_repos"))
     ), maxDisplayedItems = 3),
     shiny.fluent::Pivot(
+      id = ns("git_repos_pivot"),
       onLinkClick = htmlwidgets::JS(paste0("item => Shiny.setInputValue('", id, "-current_tab', item.props.id)")),
       shiny.fluent::PivotItem(id = "git_add_repo_card", itemKey = "git_add_repo_card", headerText = i18n$t("add_git_repo")),
       shiny.fluent::PivotItem(id = "git_repos_management_card", itemKey = "git_repos_management_card", headerText = i18n$t("git_repos_management")),
+      shiny.fluent::PivotItem(id = "git_repo_options_card", itemKey = "git_repo_options_card", headerText = i18n$t("git_repo_options")),
       shiny.fluent::PivotItem(id = "git_edit_repo_card", itemKey = "git_edit_repo_card", headerText = i18n$t("edit_git_repo"))
     ),
     forbidden_cards,
@@ -99,11 +101,29 @@ mod_settings_git_ui <- function(id = character(), i18n = character()){
             div(DT::DTOutput(ns("git_repos_datatable")), style = "margin-top:-30px; z-index:2"),
             div(
               shiny.fluent::Stack(horizontal = TRUE, tokens = list(childrenGap = 10),
-                shiny.fluent::PrimaryButton.shinyInput(ns("save_git_repos_management"), i18n$t("save"))#,
-                # shiny.fluent::DefaultButton.shinyInput(ns("delete_selection"), i18n$t("delete_selection"))
+                shiny.fluent::PrimaryButton.shinyInput(ns("save_git_repos_management"), i18n$t("save")),
+                shiny.fluent::DefaultButton.shinyInput(ns("delete_selection"), i18n$t("delete_selection"))
               ),
               style = "position:relative; z-index:2; margin-top:-30px;"
             )
+          )
+        ), br()
+      )
+    ),
+    
+    # --- --- --- --- --- --
+    # Repo options card ----
+    # --- --- --- --- --- --
+    
+    shinyjs::hidden(
+      div(id = ns("git_repo_options_card"),
+        make_card(i18n$t("git_repo_options"),
+          div(
+            make_combobox(i18n = i18n, ns = ns, label = "git_repo", id = "options_selected_repo", width = "300px", allowFreeform = FALSE, multiSelect = FALSE),
+            make_textfield(i18n = i18n, ns = ns, label = "repo_url_address", id = "options_repo_url_address", width = "600px"),
+            make_textfield(i18n = i18n, ns = ns, label = "raw_files_url_address", id = "options_raw_files_url_address", width = "600px"),
+            make_textfield(i18n = i18n, ns = ns, label = "api_key", id = "options_api_key", width = "600px"), br(),
+            shiny.fluent::PrimaryButton.shinyInput(ns("save_git_repo_options"), i18n$t("save")),
           )
         ), br()
       )
@@ -169,7 +189,7 @@ mod_settings_git_server <- function(id = character(), r = shiny::reactiveValues(
     # Show or hide cards ----
     # --- --- --- --- --- ---
     
-    cards <- c("git_add_repo_card", "git_repos_management_card", "git_edit_repo_card")
+    cards <- c("git_add_repo_card", "git_repos_management_card", "git_repo_options_card", "git_edit_repo_card")
     show_or_hide_cards(r = r, input = input, session = session, id = id, cards = cards)
     if ("git_add_repo_card" %in% r$user_accesses) shinyjs::show("git_add_repo_card")
     else shinyjs::show("git_add_repo_card_forbidden")
@@ -347,6 +367,9 @@ mod_settings_git_server <- function(id = character(), r = shiny::reactiveValues(
       # Reload datatable
       r$git_repos_temp <- r$git_repos %>% dplyr::mutate(modified = FALSE) %>% dplyr::arrange(name)
       
+      # Click git repos management card
+      shinyjs::runjs(glue::glue("$('#settings_git-git_repos_pivot button[name=\"{i18n$t('git_repos_management')}\"]').click();"))
+      
       if (perf_monitoring) monitor_perf(r = r, action = "stop", task = paste0("mod_settings_git - observer input$add_git_repo_with_url"))
     })
     
@@ -381,11 +404,11 @@ mod_settings_git_server <- function(id = character(), r = shiny::reactiveValues(
       })
     })
     
-    # --- --- --- --- --- -- -
-    # Git repo management ----
-    # --- --- --- --- --- -- -
+    # --- --- --- --- --- --- -
+    # Git repos management ----
+    # --- --- --- --- --- --- -
     
-    action_buttons <- c("delete")
+    action_buttons <- c("delete", "options")
     editable_cols <- c("name", "description")
     sortable_cols <- c("name", "creator_id", "datetime")
     column_widths <- c("id" = "80px", "datetime" = "130px", "creator_id" = "200px", "action" = "80px")
@@ -403,8 +426,9 @@ mod_settings_git_server <- function(id = character(), r = shiny::reactiveValues(
       if (perf_monitoring) monitor_perf(r = r, action = "start")
       if (debug) print(paste0(Sys.time(), " - mod_settings_git - observer r$git_repos"))
       
-      # Also update dropdowns
+      # Update dropdowns
       shiny.fluent::updateComboBox.shinyInput(session, "edit_repo_selected_repo", options = convert_tibble_to_list(r$git_repos, key_col = "id", text_col = "name"))
+      shiny.fluent::updateComboBox.shinyInput(session, "options_selected_repo", options = convert_tibble_to_list(r$git_repos, key_col = "id", text_col = "name"))
       
       r$git_repos_temp <- r$git_repos %>% dplyr::mutate(modified = FALSE)
       
@@ -415,7 +439,7 @@ mod_settings_git_server <- function(id = character(), r = shiny::reactiveValues(
           data = r$git_repos_temp %>% dplyr::mutate(action = character()),
           col_names = col_names, output_name = "git_repos_datatable", shortened_cols = shortened_cols,
           editable_cols = editable_cols, sortable_cols = sortable_cols, centered_cols = centered_cols, column_widths = column_widths,
-          searchable_cols = searchable_cols, filter = TRUE, factorize_cols = factorize_cols, hidden_cols = hidden_cols)
+          searchable_cols = searchable_cols, filter = TRUE, factorize_cols = factorize_cols, hidden_cols = hidden_cols, selection = "multiple")
       }
       
       req(nrow(r$git_repos_temp) > 0)
@@ -429,7 +453,7 @@ mod_settings_git_server <- function(id = character(), r = shiny::reactiveValues(
         render_datatable(output = output, ns = ns, i18n = i18n, data = r$git_repos_datatable_temp,
           output_name = "git_repos_datatable", col_names = col_names, shortened_cols = shortened_cols,
           editable_cols = editable_cols, sortable_cols = sortable_cols, centered_cols = centered_cols, column_widths = column_widths,
-          searchable_cols = searchable_cols, filter = TRUE, factorize_cols = factorize_cols, hidden_cols = hidden_cols)
+          searchable_cols = searchable_cols, filter = TRUE, factorize_cols = factorize_cols, hidden_cols = hidden_cols, selection = "multiple")
         
         # Create a proxy for datatable
         
@@ -495,6 +519,94 @@ mod_settings_git_server <- function(id = character(), r = shiny::reactiveValues(
       
       # Reload datatable (to unselect rows)
       DT::replaceData(r$git_repos_datatable_proxy, r$git_repos_datatable_temp, resetPaging = FALSE, rownames = FALSE)
+    })
+    
+    observeEvent(input$delete_selection, {
+      
+      if (debug) print(paste0(Sys.time(), " - mod_settings_git - observer input$delete_selection"))
+      
+      req(length(input$git_repos_datatable_rows_selected) > 0)
+      
+      r$delete_git_repo <- r$git_repos[input$git_repos_datatable_rows_selected, ] %>% dplyr::pull(id)
+      r[[git_repos_delete_variable]] <- TRUE
+    })
+    
+    # --- --- --- --- --- -
+    # Git repo options ----
+    # --- --- --- --- --- -
+    
+    # When a repo is selected
+    observeEvent(input$options, {
+      
+      if (debug) print(paste0(Sys.time(), " - mod_settings_git - observer input$options"))
+      
+      # Get link_id variable, to update options div
+      link_id <- as.integer(substr(input$options, nchar("options_") + 1, nchar(input$options)))
+      
+      options <- convert_tibble_to_list(r$git_repos_temp, key_col = "id", text_col = "name")
+      value <- list(key = link_id, text = r$git_repos_temp %>% dplyr::filter(id == link_id) %>% dplyr::pull(name))
+      
+      shiny.fluent::updateComboBox.shinyInput(session, "options_selected_repo", options = options, value = value)
+      
+      # Reload datatable (to unselect rows)
+      DT::replaceData(r$git_repos_datatable_proxy, r$git_repos_datatable_temp, resetPaging = FALSE, rownames = FALSE)
+      
+      # Set current pivot to edit_plugins_code
+      shinyjs::runjs(glue::glue("$('#{id}-git_repos_pivot button[name=\"{i18n$t('git_repo_options')}\"]').click();"))
+    })
+    
+    observeEvent(input$options_selected_repo, {
+      
+      if (debug) print(paste0(Sys.time(), " - mod_settings_git - observer input$options_selected_repo"))
+      
+      if (length(input$options_selected_repo) > 1) link_id <- input$options_selected_repo$key
+      else link_id <- input$options_selected_repo
+      
+      # Code repo options
+      
+      git_repo_options <- r$git_repos_temp %>% dplyr::filter(id == link_id)
+      
+      sapply(c("options_repo_url_address", "options_raw_files_url_address", "options_api_key"), function(field) shiny.fluent::updateTextField.shinyInput(session, 
+        field, value = git_repo_options[[sub("options_", "", field)]]))
+    })
+    
+    # Save updates
+    observeEvent(input$save_git_repo_options, {
+      
+      if (debug) print(paste0(Sys.time(), " - mod_settings_git - observer input$save_git_repo_options"))
+      
+      if (length(input$options_selected_repo) > 1) link_id <- input$options_selected_repo$key
+      else link_id <- input$options_selected_repo
+      
+      # Check if fields are not empty
+      empty_field <- list()
+      fields <- c("repo_url_address", "raw_files_url_address")
+      for(field in fields){
+        empty_field[[field]] <- FALSE
+        if (length(input[[paste0("options_", field)]]) == 0) empty_field[[field]] <- TRUE
+        else if (is.na(input[[paste0("options_", field)]]) | input[[paste0("options_", field)]] == "") empty_field[[field]] <- TRUE
+        if (empty_field[[field]]) shiny.fluent::updateTextField.shinyInput(session, paste0("options_", field), errorMessage = i18n$t(paste0("provide_valid_", field)))
+        else shiny.fluent::updateTextField.shinyInput(session, paste0("options_", field), errorMessage = NULL)
+      }
+      
+      req(!empty_field$repo_url_address, !empty_field$raw_files_url_address)
+      
+      # Save updates in db
+      sql <- glue::glue_sql(paste0("UPDATE git_repos SET repo_url_address = {input$options_repo_url_address}, ",
+        "raw_files_url_address = {input$options_raw_files_url_address}, api_key = {input$options_api_key} WHERE id = {link_id}"), .con = r$db)
+      query <- DBI::dbSendStatement(r$db, sql)
+      DBI::dbClearResult(query)
+      
+      if (length(input$options_api_key) == 0) new_api_key <- NA_character_ else new_api_key <- input$options_api_key
+      
+      r$git_repos <- r$git_repos %>% 
+        dplyr::mutate(
+          repo_url_address = dplyr::case_when(id == link_id ~ input$options_repo_url_address, TRUE ~ repo_url_address),
+          raw_files_url_address = dplyr::case_when(id == link_id ~ input$options_raw_files_url_address, TRUE ~ raw_files_url_address),
+          api_key = dplyr::case_when(id == link_id ~ new_api_key, TRUE ~ api_key)
+        )
+      
+      show_message_bar(output, "modif_saved", "success", i18n = i18n, ns = ns)
     })
     
     # --- --- --- --- --
@@ -655,8 +767,8 @@ mod_settings_git_server <- function(id = character(), r = shiny::reactiveValues(
               dplyr::mutate(row_id = dplyr::row_number(), .before = "unique_id") %>%
               dplyr::mutate(action = as.character(
                 shiny::actionButton("delete_%plugin_id%", "", icon = icon("trash-alt"),
-                    onclick = paste0("Shiny.setInputValue('", id, "-edit_git_repo_delete_category_element', this.id, {priority: 'event'})"))
-                )) %>%
+                  onclick = paste0("Shiny.setInputValue('", id, "-edit_git_repo_delete_category_element', this.id, {priority: 'event'})"))
+              )) %>%
               dplyr::mutate(action = stringr::str_replace_all(action, "%plugin_id%", as.character(row_id)))
           }
           
@@ -797,7 +909,7 @@ mod_settings_git_server <- function(id = character(), r = shiny::reactiveValues(
             images <- list_of_files[grepl("\\.png$|\\.jpg|\\.jpeg|\\.svg", tolower(list_of_files))]
             images_node <- XML::newXMLNode("images", paste(images, collapse = ";;;"), parent = category_node)
           }
-            
+          
           # Create XML file
           XML::saveXML(xml, file = paste0(category_element_dir, "/", get_singular(repo_category), ".xml"))
         }

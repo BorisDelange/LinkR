@@ -836,8 +836,10 @@ vocabulary_show_only_not_evaluated_concepts,Non-evaluated mapping only
 vocabulary_show_mapping_details,Show details of selected mapping
 add_git_repo,Add a repository
 git_repos_management,Repositories management
+git_repo_options,Repository options
 git_add_repo_card_user_access_description,Add a repository
 git_repos_management_card_user_access_description,Repositories management
+git_repo_options_card_user_access_description,Repository options
 git_edit_repo_card_user_access_description,Edit a repository (commit & push files)
 link,Link
 url_address,URL address
@@ -845,7 +847,7 @@ repo_url_address,Repo URL address
 raw_files_url_address,Raw files URL address
 git_repos_delete,Delete git repo
 git_repos_delete_subtext,Do you want to delete this repo ?
-git_repo_deleted,Git repository deleted
+git_repo_deleted,Git repository / repositories deleted
 all_categories,All categories
 show_data,Show data
 hide_concepts_datatables,Hide datatables

@@ -573,14 +573,24 @@ mod_plugins_server <- function(id = character(), r = shiny::reactiveValues(), d 
       raw_files_url_address <- paste0(raw_files_url_address, "plugins/")
       r$raw_files_url_address <- raw_files_url_address
       
+      # Get API key
+      api_key <- r$git_repos %>% dplyr::filter(id == input$remote_git_repo) %>% dplyr::pull(api_key)
+      r$api_key <- api_key
+      
       error_loading_remote_git <- TRUE
       plugins_file <- paste0(r$app_folder, "/temp_files/plugins/plugins.xml")
       
       if (r$has_internet){
         
         tryCatch({
-          xml2::download_xml(paste0(raw_files_url_address, "plugins.xml"), plugins_file)
-          error_loading_remote_git <- FALSE
+          if (api_key == "" | is.na(api_key)){
+            xml2::download_xml(paste0(raw_files_url_address, "plugins.xml"), plugins_file)
+            error_loading_remote_git <- FALSE
+          }
+          else {
+            response <- httr::GET(url = paste0(raw_files_url_address, "plugins.xml"), httr::authenticate("token", api_key, type = "basic"), httr::write_disk(plugins_file, overwrite = TRUE))
+            if (httr::http_status(response)$category == "Success") error_loading_remote_git <- FALSE
+          }
         }, error = function(e) if (nchar(e[1]) > 0) report_bug(r = r, output = output, error_message = "error_connection_remote_git", 
           error_name = "plugins_catalog load plugins.xml", category = "Error", error_report = toString(e), i18n = i18n, ns = ns))
       }
@@ -716,10 +726,15 @@ mod_plugins_server <- function(id = character(), r = shiny::reactiveValues(), d 
 
             r[[paste0(prefix, "_plugins_images")]] <- r[[paste0(prefix, "_plugins_images")]] %>% dplyr::bind_rows(
               tibble::tribble(~type, ~id, ~image_url, type, as.character(plugin_id), plugin$image_url))
+            
+            choice_image_div <- "image_output"
+            if (length(r$api_key) > 0) if (type == "remote_git" & (is.na(r$api_key) | r$api_key == "")) choice_image_div <- "ui_output"
+            
+            if (choice_image_div == "image_output") image_div <- imageOutput(ns(paste0(plugin_id, "_image")), width = "320px", height = "200px")
+            if (choice_image_div == "ui_output") image_div <- uiOutput(ns(paste0(plugin_id, "_image")))
 
-            if (type == "remote_git") image_div <- uiOutput(ns(paste0(plugin_id, "_image")))
-            if (type == "local") image_div <- imageOutput(ns(paste0(plugin_id, "_image")), width = "320px", height = "200px")
-
+            print(image_div)
+            
             all_plugins_document_cards <- tagList(all_plugins_document_cards,
 
               shiny.fluent::Link(
@@ -789,14 +804,23 @@ mod_plugins_server <- function(id = character(), r = shiny::reactiveValues(), d 
         row <- r[[paste0(prefix, "_plugins_images")]][i, ]
         
         if (row$type == "remote_git"){
-          output[[paste0(row$id, "_image")]] <- renderUI({
-            req(row$image_url != "")
-            tags$img(src = row$image_url, width = 318, height = 200)
-          })
+          
+          if (is.na(r$api_key) | r$api_key == "") output[[paste0(row$id, "_image")]] <- renderUI(tags$img(src = row$image_url, width = 318, height = 200))
+          else {
+            if (row$image_url != ""){
+              local_folder <- paste0(r$app_folder, "/temp_files/plugins/", row$id)
+              local_path <- paste0(local_folder, "/", stringr::str_extract(row$image_url, "(?<=/)[^/]+$"))
+              if (!dir.exists(local_folder)) dir.create(local_folder)
+              response <- httr::GET(url = row$image_url, httr::authenticate("token", r$api_key, type = "basic"), httr::write_disk(path = local_path, overwrite = TRUE))
+              if (httr::http_status(response)$category == "Success") output[[paste0(row$id, "_image")]] <- renderImage({
+                req(file.exists(local_path))
+                list(src = local_path, width = 318, height = 200)}, deleteFile = TRUE)
+            }
+          }
         }
         if (row$type == "local"){
           output[[paste0(row$id, "_image")]] <- renderImage({
-            req(row$image_url != "")
+            req(file.exists(row$image_url))
             list(src = row$image_url, width = 318, height = 200)
           },
             deleteFile = FALSE)
@@ -965,10 +989,14 @@ mod_plugins_server <- function(id = character(), r = shiny::reactiveValues(), d 
       
       tryCatch({
         
-        # Delete translations file
-        # Create plugin folder in translations folder if doesn't exist
-        translations_dir <- paste0(r$app_folder, "/translations/", plugin$unique_id)
-        if (dir.exists(translations_dir)) unlink(translations_dir, recursive = TRUE)
+        # Delete plugin folder & translations folder, and re-create it
+        dirs <- list()
+        dirs$translations <-  paste0(r$app_folder, "/translations/", plugin$unique_id)
+        dirs$plugin <- paste0(r$app_folder, "/plugins/", prefix, "/", plugin$unique_id)
+        for (dir in dirs){
+          if (dir.exists(dir)) unlink(dir, recursive = TRUE)
+          if (!dir.exists(dir)) dir.create(dir) 
+        }
         
         # Delete old rows
         
@@ -1043,27 +1071,29 @@ mod_plugins_server <- function(id = character(), r = shiny::reactiveValues(), d 
         
         # Code table
         
-        plugin_ui_code <- 
-          paste0(r$raw_files_url_address, prefix, "/", plugin$unique_id, "/ui.R") %>%
-          readLines(warn = FALSE) %>% paste(collapse = "\n") %>%
-          stringr::str_replace_all("'", "''")
+        plugin_code <- list()
         
-        plugin_server_code <-
-          paste0(r$raw_files_url_address, prefix, "/", plugin$unique_id, "/server.R") %>%
-          readLines(warn = FALSE) %>% paste(collapse = "\n") %>%
-          stringr::str_replace_all("'", "''")
-        
-        plugin_translations_code <-
-          paste0(r$raw_files_url_address, prefix, "/", plugin$unique_id, "/translations.csv") %>%
-          readLines(warn = FALSE) %>% paste(collapse = "\n") %>%
-          stringr::str_replace_all("'", "''")
+        for (code_type in c("ui", "server", "translations")){
+          if (code_type == "translations") extension <- "csv" else extension <- "R"
+          
+          url <- paste0(r$raw_files_url_address, prefix, "/", plugin$unique_id, "/", code_type, ".", extension)
+          
+          if (is.na(r$api_key) | r$api_key == "") plugin_code[[code_type]] <- readLines(url, warn = FALSE)
+          else {
+            response <- httr::GET(url = url, httr::authenticate("token", r$api_key, type = "basic"))
+              if (httr::http_status(response)$category == "Success") plugin_code[[code_type]] <- httr::content(response, type = "text/plain", encoding = "UTF-8")
+              else stop("Error downloading ui, server & translations files")
+          }
+          
+          plugin_code[[code_type]] <- plugin_code[[code_type]] %>% paste(collapse = "\n") %>% stringr::str_replace_all("'", "''")
+        }
         
         last_row_code <- get_last_row(r$db, "code")
         
         new_code <- tibble::tibble(
           id = last_row_code + 1:3,
           category = c("plugin_ui", "plugin_server", "plugin_translations"),
-          link_id = new_row, code = c(plugin_ui_code, plugin_server_code, plugin_translations_code), 
+          link_id = new_row, code = c(plugin_code$ui, plugin_code$server, plugin_code$translations), 
           creator_id = r$user_id, datetime = as.character(Sys.time()), deleted = FALSE
         )
         
@@ -1072,26 +1102,22 @@ mod_plugins_server <- function(id = character(), r = shiny::reactiveValues(), d 
         r$code <- r$code %>% dplyr::bind_rows(new_code)
         
         # Copy files
-        # Create folder if doesn't exist
-        plugin_dir <- paste0(r$app_folder, "/plugins/", prefix, "/", plugin$unique_id)
-        if (!dir.exists(plugin_dir)) dir.create(plugin_dir, recursive = TRUE)
-        
-        # list_of_files <- list.files(paste0(temp_dir, "/plugins/", prefix, "/", plugin$unique_id))
         
         # Copy images
-        tryCatch({
-          if (nchar(plugin$images) > 0){
-            images <- stringr::str_split(plugin$images, ";;;")
-            for (image in images){
-              url <- paste0(r$raw_files_url_address, prefix, "/", plugin$unique_id, "/", image)
-              url <- gsub(" ", "%20", url)
-              destfile <- paste0(plugin_dir, "/", image)
-              download.file(url, destfile, quiet = TRUE)
+        if (nchar(plugin$images) > 0){
+          images <- stringr::str_split(plugin$images, ";;;")[[1]]
+          for (image in images){
+            url <- paste0(r$raw_files_url_address, prefix, "/", plugin$unique_id, "/", image)
+            url <- gsub(" ", "%20", url)
+            destfile <- paste0(dirs$plugin, "/", image)
+            
+            if (is.na(r$api_key) | r$api_key == "") download.file(url, destfile, quiet = TRUE)
+            else {
+              response <- httr::GET(url = url, httr::authenticate("token", r$api_key, type = "basic"), httr::write_disk(path = destfile, overwrite = TRUE))
+              if (httr::http_status(response)$category != "Success") stop(i18n$t("Error downloading plugin's images"))
             }
           }
-        }, error = function(e) if (nchar(e[1]) > 0) report_bug(r = r, output = output, error_message = "error_install_remote_git_plugin", 
-          error_name = paste0("install_remote_git_plugin - download_images - id = ", plugin$unique_id), category = "Error", error_report = toString(e), i18n = i18n, ns = ns))
-        
+        }
         r$show_plugin_details <- Sys.time()
         
         # Reload datatable
@@ -2424,6 +2450,15 @@ mod_plugins_server <- function(id = character(), r = shiny::reactiveValues(), d 
           for (i in 1:nrow(plugins)){
 
             plugin <- plugins[i, ]
+            
+            # Delete plugin folder & translations folder, and re-create it
+            dirs <- list()
+            dirs$translations <-  paste0(r$app_folder, "/translations/", plugin$unique_id)
+            dirs$plugin <- paste0(r$app_folder, "/plugins/", prefix, "/", plugin$unique_id)
+            for (dir in dirs){
+              if (dir.exists(dir)) unlink(dir, recursive = TRUE)
+              if (!dir.exists(dir)) dir.create(dir) 
+            }
 
             # Delete old rows
 
@@ -2492,16 +2527,22 @@ mod_plugins_server <- function(id = character(), r = shiny::reactiveValues(), d 
 
             # Code table
 
-            plugin_ui_code <- paste0(temp_dir, "/plugins/", prefix, "/", plugin$unique_id, "/ui.R") %>% readLines(warn = FALSE) %>% paste(collapse = "\n") %>% stringr::str_replace_all("'", "''")
-            plugin_server_code <- paste0(temp_dir, "/plugins/", prefix, "/", plugin$unique_id, "/server.R") %>% readLines(warn = FALSE) %>% paste(collapse = "\n") %>% stringr::str_replace_all("'", "''")
-            plugin_translations_code <- paste0(temp_dir, "/plugins/", prefix, "/", plugin$unique_id, "/translations.csv") %>% readLines(warn = FALSE) %>% paste(collapse = "\n") %>% stringr::str_replace_all("'", "''")
-
+            plugin_code <- list()
+            
+            for (code_type in c("ui", "server", "translations")){
+              if (code_type == "translations") extension <- "csv" else extension <- "R"
+              
+              url <- paste0(temp_dir, "/plugins/", prefix, "/", plugin$unique_id, "/", code_type, ".", extension)
+              
+              plugin_code[[code_type]] <- readLines(url, warn = FALSE) %>% paste(collapse = "\n") %>% stringr::str_replace_all("'", "''")
+            }
+            
             last_row_code <- get_last_row(r$db, "code")
             
             new_code <- tibble::tibble(
               id = last_row_code + 1:3,
               category = c("plugin_ui", "plugin_server", "plugin_translations"),
-              link_id = new_row, code = c(plugin_ui_code, plugin_server_code, plugin_translations_code), 
+              link_id = new_row, code = c(plugin_code$ui, plugin_code$server, plugin_code$translations), 
               creator_id = r$user_id, datetime = as.character(Sys.time()), deleted = FALSE
             )
 
@@ -2510,16 +2551,13 @@ mod_plugins_server <- function(id = character(), r = shiny::reactiveValues(), d 
             add_log_entry(r = r, category = paste0("code", " - ", i18n$t("insert_new_data")), name = i18n$t("sql_query"), value = toString(new_code))
 
             # Copy files
-            # Create folder if doesn't exist
-            plugin_dir <- paste0(r$app_folder, "/plugins/", prefix, "/", plugin$unique_id)
-            if (!dir.exists(plugin_dir)) dir.create(plugin_dir, recursive = TRUE)
 
             list_of_files <- list.files(paste0(temp_dir, "/plugins/", prefix, "/", plugin$unique_id))
 
             # Copy files to temp dir
             file.copy(
-              paste0(paste0(temp_dir, "/plugins/", prefix, "/", plugin$unique_id), "/", list_of_files),
-              paste0(plugin_dir, "/", list_of_files),
+              paste0(temp_dir, "/plugins/", prefix, "/", plugin$unique_id, "/", list_of_files),
+              paste0(dirs$plugin, "/", list_of_files),
               overwrite = TRUE
             )
 

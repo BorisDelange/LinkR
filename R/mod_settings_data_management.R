@@ -965,17 +965,12 @@ mod_settings_data_management_server <- function(id = character(), r = shiny::rea
           if (debug) print(paste0(Sys.time(), " - mod_settings_data_management - observer input$ace_edit_code_comment"))
           
           lines <- strsplit(input$ace_edit_code, "\n")[[1]]
+          req(length(lines) > 0)
           
           start_row <- input$ace_edit_code_comment$range$start$row + 1
           end_row <- input$ace_edit_code_comment$range$end$row + 1
           
-          for (i in start_row:end_row) {
-            if (startsWith(lines[i], "# ")) {
-              lines[i] <- substr(lines[i], 3, nchar(lines[i]))
-            } else {
-              lines[i] <- paste0("# ", lines[i])
-            }
-          }
+          for (i in start_row:end_row) if (startsWith(lines[i], "# ")) lines[i] <- substr(lines[i], 3, nchar(lines[i]))else lines[i] <- paste0("# ", lines[i])
           
           shinyAce::updateAceEditor(session, "ace_edit_code", value = paste0(lines, collapse = "\n"))
           

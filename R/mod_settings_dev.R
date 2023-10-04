@@ -41,7 +41,8 @@ mod_settings_dev_ui <- function(id = character(), i18n = character()){
                 outputId = ns("ace_code"), value = "", mode = "r",
                 code_hotkeys = list("r", list(
                     run_selection = list(win = "CTRL-ENTER", mac = "CTRL-ENTER|CMD-ENTER"),
-                    run_all = list(win = "CTRL-SHIFT-ENTER", mac = "CTRL-SHIFT-ENTER|CMD-SHIFT-ENTER")
+                    run_all = list(win = "CTRL-SHIFT-ENTER", mac = "CTRL-SHIFT-ENTER|CMD-SHIFT-ENTER"),
+                    comment = list(win = "CTRL-SHIFT-C", mac = "CTRL-SHIFT-C|CMD-SHIFT-C")
                   )
                 ),
                 wordWrap = TRUE, debounce = 10,
@@ -172,23 +173,34 @@ mod_settings_dev_server <- function(id = character(), r = shiny::reactiveValues(
     # --- --- --- --- -
     
     observeEvent(input$execute_code, {
+      
+      if (debug) print(paste0(Sys.time(), " - mod_settings_dev - observer input$execute_code"))
+      
       r$r_console_code <- input$ace_code
       r$r_console_code_trigger <- Sys.time()
     })
     
     observeEvent(input$ace_code_run_selection, {
+      
+      if (debug) print(paste0(Sys.time(), " - mod_settings_dev - observer input$ace_code_run_selection"))
+      
       if(!shinyAce::is.empty(input$ace_code_run_selection$selection)) r$r_console_code <- input$ace_code_run_selection$selection
       else r$r_console_code <- input$ace_code_run_selection$line
       r$r_console_code_trigger <- Sys.time()
     })
 
     observeEvent(input$ace_code_run_all, {
+      
+      if (debug) print(paste0(Sys.time(), " - mod_settings_dev - observer input$ace_code_run_all"))
+      
       r$r_console_code <- input$ace_code
       r$r_console_code_trigger <- Sys.time()
     })
 
     observeEvent(r$r_console_code_trigger, {
-
+      
+      if (debug) print(paste0(Sys.time(), " - mod_settings_dev - observer r$r_console_code_trigger"))
+      
       if ("dev_edit_code_card" %in% r$user_accesses){
         edited_code <- r$r_console_code %>% stringr::str_replace_all("\r", "\n")
         
@@ -197,6 +209,27 @@ mod_settings_dev_server <- function(id = character(), r = shiny::reactiveValues(
             edited_code = edited_code, code_type = "server"))
         output$datetime_code_execution <- renderText(format_datetime(Sys.time(), language))
       }
+    })
+    
+    # Comment text
+    observeEvent(input$ace_code_comment, {
+      if (debug) print(paste0(Sys.time(), " - mod_settings_dev - observer input$ace_code_comment"))
+      
+      lines <- strsplit(input$ace_code, "\n")[[1]]
+      req(length(lines) > 0)
+      
+      start_row <- input$ace_code_comment$range$start$row + 1
+      end_row <- input$ace_code_comment$range$end$row + 1
+      
+      for (i in start_row:end_row) if (startsWith(lines[i], "# ")) lines[i] <- substr(lines[i], 3, nchar(lines[i])) else lines[i] <- paste0("# ", lines[i])
+      
+      shinyAce::updateAceEditor(session, "ace_code", value = paste0(lines, collapse = "\n"))
+      
+      shinyjs::runjs(sprintf("
+        var editor = ace.edit('%s-ace_code');
+        editor.moveCursorTo(%d, %d);
+        editor.focus();
+          ", id, input$ace_code_comment$range$end$row, input$ace_code_comment$range$end$column))
     })
     
     # --- --- --- --- -- -
@@ -210,6 +243,8 @@ mod_settings_dev_server <- function(id = character(), r = shiny::reactiveValues(
     col_names <- get_col_names(table_name = "perf_monitoring", i18n = i18n)
     
     observeEvent(input$show_datatable, {
+      
+      if (debug) print(paste0(Sys.time(), " - mod_settings_dev - observer input$show_datatable"))
       
       if (nrow(r$perf_monitoring_table) > 0) perf_monitoring_table <- r$perf_monitoring_table %>%
         dplyr::mutate(elapsed_time = round(datetime_stop - datetime_start, 2), .before = "task") %>%
@@ -239,6 +274,9 @@ mod_settings_dev_server <- function(id = character(), r = shiny::reactiveValues(
     # Reset perf monitoring
     
     observeEvent(input$reset_perf_monitoring, {
+      
+      if (debug) print(paste0(Sys.time(), " - mod_settings_dev - observer input$reset_perf_monitoring"))
+      
       r$perf_monitoring_table <- r$perf_monitoring_table %>% dplyr::slice(0)
     })
   })

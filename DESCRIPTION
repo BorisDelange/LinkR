@@ -1,6 +1,6 @@
 Package: linkr
 Title: LinkR
-Version: 0.2.0.9034
+Version: 0.2.0.9035
 Authors@R: person('Boris', 'Delange', email = 'linkr-app@pm.me', role = c('cre', 'aut', 'cph'))
 Description: LinkR package gives some tools to help clinicians without advanced programmation skills, 
   statisticiants and data scientists use their clinical data warehouse, from patient-level data visualization 
@@ -16,6 +16,7 @@ Imports:
     git2r (>= 0.30.1),
     golem (>= 0.3.1),
     glue (>= 1.4.2),
+    httr (>= 1.4.6),
     knitr (>= 1.36),
     leaflet (>= 2.2.0),
     magick (>= 2.7.4),

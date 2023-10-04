@@ -335,7 +335,7 @@ mod_page_sidenav_server <- function(id = character(), r = shiny::reactiveValues(
       # Selected study --
       # --- --- --- --- -
       
-      if (id %in% c("my_studies", "my_subsets", "patient_level_data", "aggregated_data")){
+      if (id %in% c("my_studies", "my_subsets", "patient_level_data", "aggregated_data", "messages")){
       
         observeEvent(r$studies, {
           

@@ -204,11 +204,11 @@ mod_settings_log_server <- function(id = character(), r = shiny::reactiveValuess
     
     observeEvent(input$log_datatable_rows_selected, {
       
-      output$log_details <- renderText(
+      output$log_details <- renderText({
         paste0(
           r$log[input$log_datatable_rows_selected, ] %>% dplyr::pull(name), "\n\n",
-          r$log[input$log_datatable_rows_selected, ] %>% dplyr::pull(value) %>% strwrap(width = 100) %>% paste(collase = "\n"))
-      )
+          r$log[input$log_datatable_rows_selected, ] %>% dplyr::pull(value) %>% strwrap(width = 100) %>% paste(collase = "\n") %>% toString())
+      })
     })
     
   })
