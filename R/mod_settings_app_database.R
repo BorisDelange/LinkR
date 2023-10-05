@@ -329,7 +329,7 @@ mod_settings_app_database_server <- function(id = character(), r = shiny::reacti
     })
     
     # observeEvent(shiny.router::get_page(), {
-    #   if (debug) print(paste0(Sys.time(), " - mod_settings_app_database - ", id, " - observer shiny_router::change_page"))
+    #   if (debug) cat(paste0("\n", Sys.time(), " - mod_settings_app_database - ", id, " - observer shiny_router::change_page"))
     # 
     #   # Close help pages when page changes
     #   r$help_settings_app_database_open_panel <- FALSE
@@ -352,7 +352,7 @@ mod_settings_app_database_server <- function(id = character(), r = shiny::reacti
     # --- --- --- --- --- -- -
     
     observeEvent(r$db_connection_type, {
-      if (debug) print(paste0(Sys.time(), " - mod_settings_app_database - observer r$db_connection_type"))
+      if (debug) cat(paste0("\n", Sys.time(), " - mod_settings_app_database - observer r$db_connection_type"))
       shiny.fluent::updateChoiceGroup.shinyInput(session, "connection_type", value = r$db_connection_type)
       shiny.fluent::updateChoiceGroup.shinyInput(session, "app_db_request_connection_type", value = r$db_connection_type)
       shiny.fluent::updateChoiceGroup.shinyInput(session, "app_db_tables_connection_type", value = r$db_connection_type)
@@ -363,7 +363,7 @@ mod_settings_app_database_server <- function(id = character(), r = shiny::reacti
     observeEvent(input$app_db_tables_connection_type, r$db_connection_type <- input$app_db_tables_connection_type)
     
     observeEvent(r$db_database, {
-      if (debug) print(paste0(Sys.time(), " - mod_settings_app_database - observer r$db_database"))
+      if (debug) cat(paste0("\n", Sys.time(), " - mod_settings_app_database - observer r$db_database"))
       shiny.fluent::updateChoiceGroup.shinyInput(session, "app_db_request_database", value = r$db_database)
       shiny.fluent::updateChoiceGroup.shinyInput(session, "app_db_tables_database", value = r$db_database)
     })
@@ -377,7 +377,7 @@ mod_settings_app_database_server <- function(id = character(), r = shiny::reacti
     
     observeEvent(r$local_db, {
       
-      if (debug) print(paste0(Sys.time(), " - mod_settings_app_database - observer r$local_db"))
+      if (debug) cat(paste0("\n", Sys.time(), " - mod_settings_app_database - observer r$local_db"))
 
       # Get remote db informations
       db_info <- DBI::dbGetQuery(r$local_db, "SELECT * FROM options WHERE category = 'remote_db'") %>% tibble::as_tibble()
@@ -398,7 +398,7 @@ mod_settings_app_database_server <- function(id = character(), r = shiny::reacti
     
     observeEvent(input$db_connection_save, {
       if (perf_monitoring) monitor_perf(r = r, action = "start")
-      if (debug) print(paste0(Sys.time(), " - mod_settings_app_database - observer input$db_connection_save"))
+      if (debug) cat(paste0("\n", Sys.time(), " - mod_settings_app_database - observer input$db_connection_save"))
       
       # If connection_type is local, save only connection_type but do not erase other informations (remote DB informations)
       if (input$connection_type == "local"){
@@ -450,7 +450,7 @@ mod_settings_app_database_server <- function(id = character(), r = shiny::reacti
     observeEvent(input$test_connection, {
       
       if (perf_monitoring) monitor_perf(r = r, action = "start")
-      if (debug) print(paste0(Sys.time(), " - mod_settings_app_database - observer input$test_connection"))
+      if (debug) cat(paste0("\n", Sys.time(), " - mod_settings_app_database - observer input$test_connection"))
       
       # Before testing connection, make sure fields are filled
       db_checks <- c("main_db_name" = FALSE, "public_db_name" = FALSE, "host" = FALSE, "port" = FALSE, "user" = FALSE, "password" = FALSE)
@@ -513,7 +513,7 @@ mod_settings_app_database_server <- function(id = character(), r = shiny::reacti
       req(input$app_db_tables_connection_type)
       
       if (perf_monitoring) monitor_perf(r = r, action = "start")
-      if (debug) print(paste0(Sys.time(), " - mod_settings_app_database - observer r$reload_app_db_tables"))
+      if (debug) cat(paste0("\n", Sys.time(), " - mod_settings_app_database - observer r$reload_app_db_tables"))
       
       # Local database tables
       
@@ -594,14 +594,14 @@ mod_settings_app_database_server <- function(id = character(), r = shiny::reacti
     # --- --- --- ---
     
     observeEvent(input$request, {
-      if (debug) print(paste0(Sys.time(), " - mod_settings_app_database - observer input$request"))
+      if (debug) cat(paste0("\n", Sys.time(), " - mod_settings_app_database - observer input$request"))
       
       r$app_db_request_code <- input$app_db_request_code
       r$app_db_request_trigger_code <- Sys.time()
     })
     
     observeEvent(input$app_db_request_code_run_selection, {
-      if (debug) print(paste0(Sys.time(), " - mod_settings_app_database - observer input$app_db_request_code_run_selection"))
+      if (debug) cat(paste0("\n", Sys.time(), " - mod_settings_app_database - observer input$app_db_request_code_run_selection"))
       
       if(!shinyAce::is.empty(input$app_db_request_code_run_selection$selection)) r$app_db_request_code <- input$app_db_request_code_run_selection$selection
       else r$app_db_request_code <- input$app_db_request_code_run_selection$line
@@ -609,7 +609,7 @@ mod_settings_app_database_server <- function(id = character(), r = shiny::reacti
     })
     
     observeEvent(input$app_db_request_code_run_all, {
-      if (debug) print(paste0(Sys.time(), " - mod_settings_app_database - observer input$app_db_request_code_run_all"))
+      if (debug) cat(paste0("\n", Sys.time(), " - mod_settings_app_database - observer input$app_db_request_code_run_all"))
       
       r$app_db_request_code <- input$app_db_request_code
       r$app_db_request_trigger_code <- Sys.time()
@@ -618,7 +618,7 @@ mod_settings_app_database_server <- function(id = character(), r = shiny::reacti
     observeEvent(r$app_db_request_trigger_code, {
       
       if (perf_monitoring) monitor_perf(r = r, action = "start")
-      if (debug) print(paste0(Sys.time(), " - mod_settings_app_database - observer r$app_db_request_trigger_code"))
+      if (debug) cat(paste0("\n", Sys.time(), " - mod_settings_app_database - observer r$app_db_request_trigger_code"))
         
       # Replace \r with \n to prevent bugs
       request <- isolate(r$app_db_request_code %>% stringr::str_replace_all("\r", "\n"))
@@ -672,7 +672,7 @@ mod_settings_app_database_server <- function(id = character(), r = shiny::reacti
 
     observeEvent(r$options, {
       
-      if (debug) print(paste0(Sys.time(), " - mod_settings_app_database - observer r$options"))
+      if (debug) cat(paste0("\n", Sys.time(), " - mod_settings_app_database - observer r$options"))
       
       # Last time the db was saved
 
@@ -710,7 +710,7 @@ mod_settings_app_database_server <- function(id = character(), r = shiny::reacti
     observeEvent(input$db_save_button, {
       
       if (perf_monitoring) monitor_perf(r = r, action = "start")
-      if (debug) print(paste0(Sys.time(), " - mod_settings_app_database - observer input$db_save_button"))
+      if (debug) cat(paste0("\n", Sys.time(), " - mod_settings_app_database - observer input$db_save_button"))
       
       req(length(input$main_db_tables_to_export) > 0 | length(input$public_db_tables_to_export))
       
@@ -753,7 +753,7 @@ mod_settings_app_database_server <- function(id = character(), r = shiny::reacti
       content = function(file){
         
         if (perf_monitoring) monitor_perf(r = r, action = "start")
-        if (debug) print(paste0(Sys.time(), " - mod_settings_app_database - output$db_save"))
+        if (debug) cat(paste0("\n", Sys.time(), " - mod_settings_app_database - output$db_save"))
         
         owd <- setwd(tempdir())
         on.exit(setwd(owd))
@@ -800,12 +800,12 @@ mod_settings_app_database_server <- function(id = character(), r = shiny::reacti
     # And save that the database has been restored
     
     observeEvent(input$db_restore_browse, {
-      if (debug) print(paste0(Sys.time(), " - mod_settings_app_database - observer input$db_restore_browse"))
+      if (debug) cat(paste0("\n", Sys.time(), " - mod_settings_app_database - observer input$db_restore_browse"))
       shinyjs::click("db_restore")
     })
     
     output$db_restore_status <- renderUI({
-      if (debug) print(paste0(Sys.time(), " - mod_settings_app_database - output$db_restore_status"))
+      if (debug) cat(paste0("\n", Sys.time(), " - mod_settings_app_database - output$db_restore_status"))
       
       req(input$db_restore$name)
       
@@ -817,7 +817,7 @@ mod_settings_app_database_server <- function(id = character(), r = shiny::reacti
     observeEvent(input$db_restore_button, {
       
       if (perf_monitoring) monitor_perf(r = r, action = "start")
-      if (debug) print(paste0(Sys.time(), " - mod_settings_app_database - observer input$db_restore_button"))
+      if (debug) cat(paste0("\n", Sys.time(), " - mod_settings_app_database - observer input$db_restore_button"))
       
       req(input$db_restore)
       

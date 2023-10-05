@@ -913,3 +913,4 @@ error_deleting_file,Erreur lors de la suppression du fichier
 error_creating_xml_files,Erreur lors de la création des fichiers XML
 success_update_remote_git_repo,Dépôt git distant mis à jour avec succès
 error_update_remote_git_repo,Erreur lors de la mise à jour du dépôt git distant
+error_downloading_remote_plugin_images,Erreur lors du téléchargement des images du plugin du dépôt git distant

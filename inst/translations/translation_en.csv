@@ -913,3 +913,4 @@ error_deleting_file,Error deleting file
 error_creating_xml_files,Error creating XML files
 success_update_remote_git_repo,Remote git repo successfully updated
 error_update_remote_git_repo,Error updating remote git repo
+error_downloading_remote_plugin_images,Error downloading remote git plugin's images

@@ -56,7 +56,7 @@ mod_settings_general_server <- function(id = character(), r = shiny::reactiveVal
   moduleServer(id, function(input, output, session){
     ns <- session$ns
     
-    if (debug) print(paste0(Sys.time(), " - mod_settings_general - start"))
+    if (debug) cat(paste0("\n", Sys.time(), " - mod_settings_general - start"))
     
     # --- --- --- --- --- ---
     # Show or hide cards ----
@@ -88,7 +88,7 @@ mod_settings_general_server <- function(id = character(), r = shiny::reactiveVal
     })
     
     # observeEvent(shiny.router::get_page(), {
-    #   if (debug) print(paste0(Sys.time(), " - mod_settings_general - ", id, " - observer shiny_router::change_page"))
+    #   if (debug) cat(paste0("\n", Sys.time(), " - mod_settings_general - ", id, " - observer shiny_router::change_page"))
     # 
     #   # Close help pages when page changes
     #   r$help_settings_general_open_panel <- FALSE
@@ -107,7 +107,7 @@ mod_settings_general_server <- function(id = character(), r = shiny::reactiveVal
     
     observeEvent(input$save, {
       
-      if (debug) print(paste0(Sys.time(), " - mod_settings_general - observer input$save"))
+      if (debug) cat(paste0("\n", Sys.time(), " - mod_settings_general - observer input$save"))
       
       # Check if textfields are not empty
       

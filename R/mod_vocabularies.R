@@ -233,7 +233,7 @@ mod_vocabularies_server <- function(id = character(), r = shiny::reactiveValues(
     ns <- session$ns
     
     if (perf_monitoring) monitor_perf(r = r, action = "start")
-    if (debug) print(paste0(Sys.time(), " - mod_vocabularies - start"))
+    if (debug) cat(paste0("\n", Sys.time(), " - mod_vocabularies - start"))
     
     # Close message bar
     sapply(1:20, function(i) observeEvent(input[[paste0("close_message_bar_", i)]], shinyjs::hide(paste0("message_bar", i))))
@@ -268,7 +268,7 @@ mod_vocabularies_server <- function(id = character(), r = shiny::reactiveValues(
     })
     
     observeEvent(shiny.router::get_page(), {
-      if (debug) print(paste0(Sys.time(), " - mod_vocabularies - observer shiny_router::change_page"))
+      if (debug) cat(paste0("\n", Sys.time(), " - mod_vocabularies - observer shiny_router::change_page"))
       
       # Close help pages when page changes
       # r$help_vocabularies_open_panel <- FALSE
@@ -294,7 +294,7 @@ mod_vocabularies_server <- function(id = character(), r = shiny::reactiveValues(
     observeEvent(r$selected_dataset, {
       
       if (perf_monitoring) monitor_perf(r = r, action = "start")
-      if (debug) print(paste0(Sys.time(), " - mod_vocabularies - observer r$selected_dataset 2"))
+      if (debug) cat(paste0("\n", Sys.time(), " - mod_vocabularies - observer r$selected_dataset 2"))
       
       # Show first card & hide "choose a dataset" card
       shinyjs::hide("choose_a_dataset_card")
@@ -335,7 +335,7 @@ mod_vocabularies_server <- function(id = character(), r = shiny::reactiveValues(
     
     observeEvent(r$load_dataset_all_concepts, {
       if (perf_monitoring) monitor_perf(r = r, action = "start")
-      if (debug) print(paste0(Sys.time(), " - mod_vocabularies - observer r$load_dataset_all_concepts"))
+      if (debug) cat(paste0("\n", Sys.time(), " - mod_vocabularies - observer r$load_dataset_all_concepts"))
       
       # Create dataset folder if doesn't exist
       dataset_folder <- paste0(r$app_folder, "/datasets_files/", r$selected_dataset)
@@ -635,7 +635,7 @@ mod_vocabularies_server <- function(id = character(), r = shiny::reactiveValues(
     observeEvent(r$load_dataset_drug_strength, {
       
       if (perf_monitoring) monitor_perf(r = r, action = "start")
-      if (debug) print(paste0(Sys.time(), " - mod_vocabularies - observer r$load_dataset_drug_strength"))
+      if (debug) cat(paste0("\n", Sys.time(), " - mod_vocabularies - observer r$load_dataset_drug_strength"))
       
       dataset_drug_strength_filename <- paste0(r$app_folder, "/datasets_files/", r$selected_dataset, "/dataset_drug_strength.csv")
       
@@ -720,7 +720,7 @@ mod_vocabularies_server <- function(id = character(), r = shiny::reactiveValues(
     # observeEvent(r$merge_concepts_and_d_vars, {
     #   
     #   if (perf_monitoring) monitor_perf(r = r, action = "start")
-    #   if (debug) print(paste0(Sys.time(), " - mod_vocabularies - observer r$merge_concepts_and_d_vars"))
+    #   if (debug) cat(paste0("\n", Sys.time(), " - mod_vocabularies - observer r$merge_concepts_and_d_vars"))
     #   
     #   req(d$person %>% dplyr::count() %>% dplyr::pull() > 0)
     #   
@@ -796,7 +796,7 @@ mod_vocabularies_server <- function(id = character(), r = shiny::reactiveValues(
     # When a vocabulary is selected, filter on it
     
     observeEvent(input$vocabulary, {
-      if (debug) print(paste0(Sys.time(), " - mod_vocabularies - observer input$vocabulary"))
+      if (debug) cat(paste0("\n", Sys.time(), " - mod_vocabularies - observer input$vocabulary"))
       
       r$reload_vocabulary_datatable <- Sys.time()
     })
@@ -804,7 +804,7 @@ mod_vocabularies_server <- function(id = character(), r = shiny::reactiveValues(
     # Update which cols are hidden
     observeEvent(input$vocabulary_table_cols, {
       
-      if (debug) print(paste0(Sys.time(), " - mod_vocabularies - observer input$vocabulary_table_cols"))
+      if (debug) cat(paste0("\n", Sys.time(), " - mod_vocabularies - observer input$vocabulary_table_cols"))
       
       req(length(r$dataset_vocabulary_concepts_datatable_proxy) > 0)
       
@@ -816,7 +816,7 @@ mod_vocabularies_server <- function(id = character(), r = shiny::reactiveValues(
     # Show mapped concepts in the datatable
     
     observeEvent(input$vocabulary_show_mapped_concepts, {
-      if (debug) print(paste0(Sys.time(), " - mod_vocabularies - observer input$vocabulary_show_mapped_concepts"))
+      if (debug) cat(paste0("\n", Sys.time(), " - mod_vocabularies - observer input$vocabulary_show_mapped_concepts"))
       
       req(length(input$vocabulary) > 0)
       
@@ -827,7 +827,7 @@ mod_vocabularies_server <- function(id = character(), r = shiny::reactiveValues(
     
     observeEvent(r$reload_vocabulary_datatable, {
 
-      if (debug) print(paste0(Sys.time(), " - mod_vocabularies - observer r$reload_vocabulary_datatable"))
+      if (debug) cat(paste0("\n", Sys.time(), " - mod_vocabularies - observer r$reload_vocabulary_datatable"))
 
       # Reset row details
       output$vocabulary_datatable_selected_item <- renderUI("")
@@ -892,7 +892,7 @@ mod_vocabularies_server <- function(id = character(), r = shiny::reactiveValues(
     
     observeEvent(input$reload_vocabulary_concepts_cache, {
       
-      if (debug) print(paste0(Sys.time(), " - mod_vocabularies - observer input$reload_vocabulary_concepts_cache"))
+      if (debug) cat(paste0("\n", Sys.time(), " - mod_vocabularies - observer input$reload_vocabulary_concepts_cache"))
       
       r$dataset_all_concepts_reload_cache_open_dialog <- TRUE
     })
@@ -901,7 +901,7 @@ mod_vocabularies_server <- function(id = character(), r = shiny::reactiveValues(
     
     output$dataset_all_concepts_reload_cache <- shiny.fluent::renderReact({
       
-      if (debug) print(paste0(Sys.time(), " - mod_vocabularies - output$dataset_all_concepts_reload_cache"))
+      if (debug) cat(paste0("\n", Sys.time(), " - mod_vocabularies - output$dataset_all_concepts_reload_cache"))
       
       shiny.fluent::Dialog(
         hidden = !r$dataset_all_concepts_reload_cache_open_dialog,
@@ -923,7 +923,7 @@ mod_vocabularies_server <- function(id = character(), r = shiny::reactiveValues(
     
     observeEvent(input$dataset_all_concepts_reload_cache_confirmed, {
       
-      if (debug) print(paste0(Sys.time(), " - mod_vocabularies - observer input$dataset_all_concepts_reload_cache_confirmed"))
+      if (debug) cat(paste0("\n", Sys.time(), " - mod_vocabularies - observer input$dataset_all_concepts_reload_cache_confirmed"))
       
       # Close dialog box
       r$dataset_all_concepts_reload_cache_open_dialog <- FALSE
@@ -938,7 +938,7 @@ mod_vocabularies_server <- function(id = character(), r = shiny::reactiveValues(
     # Updates on datatable data
     observeEvent(input$vocabulary_concepts_cell_edit, {
       
-      if (debug) print(paste0(Sys.time(), " - mod_vocabularies - observer input$vocabulary_concepts_cell_edit"))
+      if (debug) cat(paste0("\n", Sys.time(), " - mod_vocabularies - observer input$vocabulary_concepts_cell_edit"))
       
       edit_info <- input$vocabulary_concepts_cell_edit
       r$dataset_vocabulary_concepts <- DT::editData(r$dataset_vocabulary_concepts, edit_info, rownames = FALSE)
@@ -965,7 +965,7 @@ mod_vocabularies_server <- function(id = character(), r = shiny::reactiveValues(
     observeEvent(input$save_vocabulary_concepts, {
       
       if (perf_monitoring) monitor_perf(r = r, action = "start")
-      if (debug) print(paste0(Sys.time(), " - mod_vocabularies - observer input$save_vocabulary_concepts"))
+      if (debug) cat(paste0("\n", Sys.time(), " - mod_vocabularies - observer input$save_vocabulary_concepts"))
       
       vocabulary_id <- r$vocabulary %>% dplyr::filter(id == input$vocabulary$key) %>% dplyr::pull(vocabulary_id)
       
@@ -992,7 +992,7 @@ mod_vocabularies_server <- function(id = character(), r = shiny::reactiveValues(
     # When a row is selected
     observeEvent(input$vocabulary_concepts_rows_selected, {
       
-      if (debug) print(paste0(Sys.time(), " - mod_vocabularies - observer input$vocabulary_concepts_rows_selected"))
+      if (debug) cat(paste0("\n", Sys.time(), " - mod_vocabularies - observer input$vocabulary_concepts_rows_selected"))
       
       shinyjs::show("vocabulary_datatable_selected_item_div")
       
@@ -1002,7 +1002,7 @@ mod_vocabularies_server <- function(id = character(), r = shiny::reactiveValues(
     
     observeEvent(r$vocabulary_concepts_rows_selected_trigger, {
       
-      if (debug) print(paste0(Sys.time(), " - mod_vocabularies - observer r$vocabulary_concepts_rows_trigger"))
+      if (debug) cat(paste0("\n", Sys.time(), " - mod_vocabularies - observer r$vocabulary_concepts_rows_trigger"))
       
       if (r$vocabulary_concepts_rows_selected_type == "main_vocab") selected_concept <- r$dataset_vocabulary_concepts[input$vocabulary_concepts_rows_selected, ]
       else if (r$vocabulary_concepts_rows_selected_type == "mapping_vocab_1") selected_concept <- r$dataset_vocabulary_concepts_mapping_1[input$vocabulary_mapping_1_dt_rows_selected, ]
@@ -1133,7 +1133,7 @@ mod_vocabularies_server <- function(id = character(), r = shiny::reactiveValues(
     })
     
     observeEvent(input$vocabulary_datatable_selected_item_plot_variable, {
-      if (debug) print(paste0(Sys.time(), " - mod_vocabularies - observer input$vocabulary_datatable_selected_item_plot_variable"))
+      if (debug) cat(paste0("\n", Sys.time(), " - mod_vocabularies - observer input$vocabulary_datatable_selected_item_plot_variable"))
       r$vocabulary_datatable_selected_item_reload_plot <- Sys.time()
     })
     
@@ -1141,7 +1141,7 @@ mod_vocabularies_server <- function(id = character(), r = shiny::reactiveValues(
     
     observeEvent(r$vocabulary_datatable_selected_item_reload_plot, {
       
-      if (debug) print(paste0(Sys.time(), " - mod_vocabularies - observer r$vocabulary_datatable_selected_item_reload_plot"))
+      if (debug) cat(paste0("\n", Sys.time(), " - mod_vocabularies - observer r$vocabulary_datatable_selected_item_reload_plot"))
       
       if(length(input$vocabulary_datatable_selected_item_plot_variable) == 0){
         output$vocabulary_datatable_selected_item_error_message <- renderUI(tagList(br(),
@@ -1247,7 +1247,7 @@ mod_vocabularies_server <- function(id = character(), r = shiny::reactiveValues(
     
     # observeEvent(plotly::event_data(event = "plotly_relayout", source = "vocabulary_concept_plot"), {
     # 
-    #   if (debug) print(paste0(Sys.time(), " - mod_vocabularies - observer input$vocabulary_datatable_selected_item_plot_bins"))
+    #   if (debug) cat(paste0("\n", Sys.time(), " - mod_vocabularies - observer input$vocabulary_datatable_selected_item_plot_bins"))
     # 
     #   relayout_data <- plotly::event_data(event = "plotly_relayout", source = "vocabulary_concept_plot")
     #   
@@ -1271,20 +1271,20 @@ mod_vocabularies_server <- function(id = character(), r = shiny::reactiveValues(
     # --- --- --- --- --- --
     
     observeEvent(input$vocabulary_mapping_1, {
-      if (debug) print(paste0(Sys.time(), " - mod_vocabularies - observer input$vocabulary_mapping_1"))
+      if (debug) cat(paste0("\n", Sys.time(), " - mod_vocabularies - observer input$vocabulary_mapping_1"))
       r$vocabulary_mapping_reload <- paste0(Sys.time(), "_mapping_1")
     })
     observeEvent(input$vocabulary_mapping_2, {
-      if (debug) print(paste0(Sys.time(), " - mod_vocabularies - observer input$vocabulary_mapping_2"))
+      if (debug) cat(paste0("\n", Sys.time(), " - mod_vocabularies - observer input$vocabulary_mapping_2"))
       r$vocabulary_mapping_reload <- paste0(Sys.time(), "_mapping_2")
     })
     observeEvent(input$vocabulary_show_only_not_mapped_concepts, {
-      if (debug) print(paste0(Sys.time(), " - mod_vocabularies - observer input$show_only_not_mapped_concepts"))
+      if (debug) cat(paste0("\n", Sys.time(), " - mod_vocabularies - observer input$show_only_not_mapped_concepts"))
       req(length(r$vocabulary_mapping_reload) > 0)
       r$vocabulary_mapping_reload <- paste0(Sys.time(), "_mapping_1")
     })
     observeEvent(input$vocabulary_show_only_used_concepts, {
-      if (debug) print(paste0(Sys.time(), " - mod_vocabularies - observer input$vocabulary_show_only_used_concepts"))
+      if (debug) cat(paste0("\n", Sys.time(), " - mod_vocabularies - observer input$vocabulary_show_only_used_concepts"))
       req(length(r$vocabulary_mapping_reload) > 0)
       r$vocabulary_mapping_reload <- paste0(Sys.time(), "_mapping_2")
     })
@@ -1292,7 +1292,7 @@ mod_vocabularies_server <- function(id = character(), r = shiny::reactiveValues(
     observeEvent(r$vocabulary_mapping_reload, {
       
       if (perf_monitoring) monitor_perf(r = r, action = "start")
-      if (debug) print(paste0(Sys.time(), " - mod_vocabularies - observer r$vocabulary_mapping_reload"))
+      if (debug) cat(paste0("\n", Sys.time(), " - mod_vocabularies - observer r$vocabulary_mapping_reload"))
       
       if (grepl("mapping_1", r$vocabulary_mapping_reload)) mapping <- "mapping_1"
       else if (grepl("mapping_2", r$vocabulary_mapping_reload)) mapping <- "mapping_2"
@@ -1378,13 +1378,13 @@ mod_vocabularies_server <- function(id = character(), r = shiny::reactiveValues(
     
     # When a row is selected
     observeEvent(input$vocabulary_mapping_1_dt_rows_selected, {
-      if (debug) print(paste0(Sys.time(), " - mod_vocabularies - observer input$vocabulary_mapping_1_dt_rows_selected"))
+      if (debug) cat(paste0("\n", Sys.time(), " - mod_vocabularies - observer input$vocabulary_mapping_1_dt_rows_selected"))
       
       r$vocabulary_concepts_rows_selected_trigger <- Sys.time()
       r$vocabulary_concepts_rows_selected_type <- "mapping_vocab_1"
     })
     observeEvent(input$vocabulary_mapping_2_dt_rows_selected, {
-      if (debug) print(paste0(Sys.time(), " - mod_vocabularies - observer input$vocabulary_mapping_2_dt_rows_selected"))
+      if (debug) cat(paste0("\n", Sys.time(), " - mod_vocabularies - observer input$vocabulary_mapping_2_dt_rows_selected"))
       
       r$vocabulary_concepts_rows_selected_trigger <- Sys.time()
       r$vocabulary_concepts_rows_selected_type <- "mapping_vocab_2"
@@ -1395,7 +1395,7 @@ mod_vocabularies_server <- function(id = character(), r = shiny::reactiveValues(
     observeEvent(input$add_mapping, {
       
       if (perf_monitoring) monitor_perf(r = r, action = "start")
-      if (debug) print(paste0(Sys.time(), " - mod_vocabularies - observer input$add_mapping"))
+      if (debug) cat(paste0("\n", Sys.time(), " - mod_vocabularies - observer input$add_mapping"))
       
       req(length(input$vocabulary_mapping_1_dt_rows_selected) > 0)
       req(length(input$vocabulary_mapping_2_dt_rows_selected) > 0)
@@ -1507,7 +1507,7 @@ mod_vocabularies_server <- function(id = character(), r = shiny::reactiveValues(
     observeEvent(r$selected_dataset, {
       
       if (perf_monitoring) monitor_perf(r = r, action = "start")
-      if (debug) print(paste0(Sys.time(), " - mod_vocabularies - observer r$selected_dataset 1"))
+      if (debug) cat(paste0("\n", Sys.time(), " - mod_vocabularies - observer r$selected_dataset 1"))
       
       r$vocabulary_added_mappings <- tibble::tibble(id = integer(), vocabulary_id_1 = character(), concept_id_1 = integer(),
         relationship_id = character(), vocabulary_id_2 = character(), concept_id_2 = integer())
@@ -1528,7 +1528,7 @@ mod_vocabularies_server <- function(id = character(), r = shiny::reactiveValues(
     observeEvent(r$reload_vocabulary_added_mappings_datatable, {
       
       if (perf_monitoring) monitor_perf(r = r, action = "start")
-      if (debug) print(paste0(Sys.time(), " - mod_vocabularies - observer r$reload_vocabulary_added_mappings_datatable"))
+      if (debug) cat(paste0("\n", Sys.time(), " - mod_vocabularies - observer r$reload_vocabulary_added_mappings_datatable"))
 
       centered_cols <- c("vocabulary_id_1", "concept_id_1", "relationship_id", "vocabulary_id_2", "concept_id_2")
       col_names <- get_col_names(table_name = "dataset_vocabulary_concepts_mapping", i18n = i18n)
@@ -1553,7 +1553,7 @@ mod_vocabularies_server <- function(id = character(), r = shiny::reactiveValues(
     observeEvent(r$reload_vocabulary_evaluate_mappings_datatable, {
 
       if (perf_monitoring) monitor_perf(r = r, action = "start")
-      if (debug) print(paste0(Sys.time(), " - mod_vocabularies - observer r$reload_vocabulary_evaluate_mappings_datatable"))
+      if (debug) cat(paste0("\n", Sys.time(), " - mod_vocabularies - observer r$reload_vocabulary_evaluate_mappings_datatable"))
 
       # Get all concepts mappings
       
@@ -1708,7 +1708,7 @@ mod_vocabularies_server <- function(id = character(), r = shiny::reactiveValues(
     # Reload when toggle input$vocabulary_show_only_not_evaluated_concepts is activated
     
     observeEvent(input$vocabulary_show_only_not_evaluated_concepts, {
-      if (debug) print(paste0(Sys.time(), " - mod_vocabularies - observer input$vocabulary_show_only_not_evaluated_concepts"))
+      if (debug) cat(paste0("\n", Sys.time(), " - mod_vocabularies - observer input$vocabulary_show_only_not_evaluated_concepts"))
       req(length(r$selected_dataset) > 0, !is.na(r$selected_dataset))
       r$reload_vocabulary_evaluate_mappings_datatable <- Sys.time()
       r$reload_vocabulary_evaluate_mappings_datatable_type <- "filter_data"
@@ -1717,7 +1717,7 @@ mod_vocabularies_server <- function(id = character(), r = shiny::reactiveValues(
     # Reload when toggle input$vocabulary_show_mapping_details is activated
     
     observeEvent(input$vocabulary_show_mapping_details, {
-      if (debug) print(paste0(Sys.time(), " - mod_vocabularies - observer input$vocabulary_show_mapping_details"))
+      if (debug) cat(paste0("\n", Sys.time(), " - mod_vocabularies - observer input$vocabulary_show_mapping_details"))
       req(length(r$selected_dataset) > 0, !is.na(r$selected_dataset))
       
       # Reload UI outputs
@@ -1731,7 +1731,7 @@ mod_vocabularies_server <- function(id = character(), r = shiny::reactiveValues(
     
     observeEvent(input$vocabulary_mapping_eval_cols, {
       
-      if (debug) print(paste0(Sys.time(), " - mod_vocabularies - observer input$vocabulary_mapping_eval_cols"))
+      if (debug) cat(paste0("\n", Sys.time(), " - mod_vocabularies - observer input$vocabulary_mapping_eval_cols"))
       
       req(length(r$dataset_vocabulary_concepts_evaluate_mappings_datatable_proxy) > 0)
       
@@ -1743,13 +1743,13 @@ mod_vocabularies_server <- function(id = character(), r = shiny::reactiveValues(
     # When an evaluation button is clicked
     
     observeEvent(input$concept_mapping_evaluated_positive, {
-      if (debug) print(paste0(Sys.time(), " - mod_vocabularies - observer input$concept_mapping_evaluated_positive"))
+      if (debug) cat(paste0("\n", Sys.time(), " - mod_vocabularies - observer input$concept_mapping_evaluated_positive"))
       r$concept_mapping_evaluation_type <- "positive"
       r$concept_mapping_evaluation_update <- Sys.time()
     })
     
     observeEvent(input$concept_mapping_evaluated_negative, {
-      if (debug) print(paste0(Sys.time(), " - mod_vocabularies - observer input$concept_mapping_evaluated_positive"))
+      if (debug) cat(paste0("\n", Sys.time(), " - mod_vocabularies - observer input$concept_mapping_evaluated_positive"))
       r$concept_mapping_evaluation_type <- "negative"
       r$concept_mapping_evaluation_update <- Sys.time()
     })
@@ -1757,7 +1757,7 @@ mod_vocabularies_server <- function(id = character(), r = shiny::reactiveValues(
     observeEvent(r$concept_mapping_evaluation_update, {
 
       if (perf_monitoring) monitor_perf(r = r, action = "start")
-      if (debug) print(paste0(Sys.time(), " - mod_vocabularies - observer r$concept_mapping_evaluation_update"))
+      if (debug) cat(paste0("\n", Sys.time(), " - mod_vocabularies - observer r$concept_mapping_evaluation_update"))
 
       prefix <- r$concept_mapping_evaluation_type
       new_evaluation_id <- switch(r$concept_mapping_evaluation_type, "positive" = 1L, "negative" = 2L)
@@ -1886,7 +1886,7 @@ mod_vocabularies_server <- function(id = character(), r = shiny::reactiveValues(
     
     observeEvent(input$concept_mapping_deleted_pressed, {
 
-      if (debug) print(paste0(Sys.time(), " - mod_vocabularies - observer input$concept_mapping_deleted_pressed"))
+      if (debug) cat(paste0("\n", Sys.time(), " - mod_vocabularies - observer input$concept_mapping_deleted_pressed"))
 
       r$delete_mappings <- as.integer(substr(input$concept_mapping_deleted_pressed, nchar("delete_") + 1, 100))
       r$mappings_open_dialog <- TRUE
@@ -1899,7 +1899,7 @@ mod_vocabularies_server <- function(id = character(), r = shiny::reactiveValues(
     
     observeEvent(input$mapping_delete_selection, {
 
-      if (debug) print(paste0(Sys.time(), " - mod_vocabularies - observer input$mapping_delete_selection"))
+      if (debug) cat(paste0("\n", Sys.time(), " - mod_vocabularies - observer input$mapping_delete_selection"))
 
       req(length(input$vocabulary_evaluate_mappings_rows_selected) > 0)
 
@@ -1911,7 +1911,7 @@ mod_vocabularies_server <- function(id = character(), r = shiny::reactiveValues(
     
     observeEvent(r$reload_mappings_evals, {
 
-      if (debug) print(paste0(Sys.time(), " - mod_vocabularies - observer r$reload_mappings_evals"))
+      if (debug) cat(paste0("\n", Sys.time(), " - mod_vocabularies - observer r$reload_mappings_evals"))
 
       # Reload datatable
       DT::replaceData(r$dataset_vocabulary_concepts_evaluate_mappings_datatable_proxy, r$dataset_vocabulary_concepts_evaluate_mappings, resetPaging = FALSE, rownames = FALSE)
@@ -1922,7 +1922,7 @@ mod_vocabularies_server <- function(id = character(), r = shiny::reactiveValues(
     observeEvent(input$save_mappings_evaluation, {
 
       if (perf_monitoring) monitor_perf(r = r, action = "start")
-      if (debug) print(paste0(Sys.time(), " - mod_vocabularies - observer input$save_mappings_evaluation"))
+      if (debug) cat(paste0("\n", Sys.time(), " - mod_vocabularies - observer input$save_mappings_evaluation"))
 
       # Update database
 
@@ -1951,7 +1951,7 @@ mod_vocabularies_server <- function(id = character(), r = shiny::reactiveValues(
     
     # When a row is selected
     observeEvent(input$vocabulary_evaluate_mappings_rows_selected, {
-      if (debug) print(paste0(Sys.time(), " - mod_vocabularies - observer input$vocabulary_evaluate_mappings_rows_selected"))
+      if (debug) cat(paste0("\n", Sys.time(), " - mod_vocabularies - observer input$vocabulary_evaluate_mappings_rows_selected"))
       
       req(input$vocabulary_show_mapping_details)
       

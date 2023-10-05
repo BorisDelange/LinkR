@@ -64,7 +64,7 @@ mod_settings_log_server <- function(id = character(), r = shiny::reactiveValuess
     })
     
     # observeEvent(shiny.router::get_page(), {
-    #   if (debug) print(paste0(Sys.time(), " - mod_settings_log - ", id, " - observer shiny_router::change_page"))
+    #   if (debug) cat(paste0("\n", Sys.time(), " - mod_settings_log - ", id, " - observer shiny_router::change_page"))
     # 
     #   # Close help pages when page changes
     #   r$help_settings_log_open_panel <- FALSE
@@ -81,7 +81,7 @@ mod_settings_log_server <- function(id = character(), r = shiny::reactiveValuess
     # Log ----
     # --- -- -
     
-    if (debug) print(paste0(Sys.time(), " - mod_settings_log - start"))
+    if (debug) cat(paste0("\n", Sys.time(), " - mod_settings_log - start"))
 
     if ("log" %in% r$user_accesses & ("all_users" %in% r$user_accesses | "only_me" %in% r$user_accesses)){
       
@@ -103,7 +103,7 @@ mod_settings_log_server <- function(id = character(), r = shiny::reactiveValuess
     output$main <- renderUI({
       
       if (perf_monitoring) monitor_perf(r = r, action = "start")
-      if (debug) print(paste0(Sys.time(), " - mod_settings_log - output$main"))
+      if (debug) cat(paste0("\n", Sys.time(), " - mod_settings_log - output$main"))
       
       result <- ""
       
@@ -162,7 +162,7 @@ mod_settings_log_server <- function(id = character(), r = shiny::reactiveValuess
     observeEvent(input$reload_log, {
       
       if (perf_monitoring) monitor_perf(r = r, action = "start")
-      if (debug) print(paste0(Sys.time(), " - mod_settings_log - observer input$reload_log"))
+      if (debug) cat(paste0("\n", Sys.time(), " - mod_settings_log - observer input$reload_log"))
       
       r$log <- tibble::tibble()
       

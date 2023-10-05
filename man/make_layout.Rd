@@ -6,6 +6,7 @@
 \usage{
 make_layout(
   language = "en",
+  languages = tibble::tibble(),
   page = character(),
   i18n = character(),
   users_accesses_toggles_options = tibble::tibble()

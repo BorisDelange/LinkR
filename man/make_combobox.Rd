@@ -32,11 +32,11 @@ make_combobox(
 
 \item{multiSelect}{Is multiselection of options is possible ? (logical)}
 
+\item{allowFreeform}{Allows user to enter free text, not provided in the options / choices (logical)}
+
 \item{autoComplete}{Auto completion of the text entered in the combobox, to match with available options / choices ("on" of "off") (character)}
 
 \item{width}{Width of the dropdown, CSS code so "300px" or "100\%" are accepted}
-
-\item{allowFreeForm}{Allows user to enter free text, not provided in the options / choices (logical)}
 }
 \description{
 Creates a shiny.fluent combo box

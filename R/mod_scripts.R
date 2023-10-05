@@ -340,7 +340,7 @@ mod_scripts_server <- function(id = character(), r = shiny::reactiveValues(), d 
     ns <- session$ns
     
     if (perf_monitoring) monitor_perf(r = r, action = "start")
-    if (debug) print(paste0(Sys.time(), " - mod_scripts - start"))
+    if (debug) cat(paste0("\n", Sys.time(), " - mod_scripts - start"))
     
     # --- --- --- --- --- ---
     # Show or hide cards ----
@@ -352,7 +352,7 @@ mod_scripts_server <- function(id = character(), r = shiny::reactiveValues(), d 
     
     observeEvent(input$current_tab, {
       
-      if (debug) print(paste0(Sys.time(), " - mod_scripts - observer input$current_tab"))
+      if (debug) cat(paste0("\n", Sys.time(), " - mod_scripts - observer input$current_tab"))
       
       sapply(cards %>% setdiff(., input$current_tab), shinyjs::hide)
       sapply(cards %>% setdiff(., input$current_tab), function(card) shinyjs::hide(paste0(card, "_forbidden")))
@@ -400,7 +400,7 @@ mod_scripts_server <- function(id = character(), r = shiny::reactiveValues(), d 
     })
     
     observeEvent(shiny.router::get_page(), {
-      if (debug) print(paste0(Sys.time(), " - mod_scripts - observer shiny_router::change_page"))
+      if (debug) cat(paste0("\n", Sys.time(), " - mod_scripts - observer shiny_router::change_page"))
 
       # Close help pages when page changes
       # r$help_scripts_open_panel <- FALSE
@@ -430,7 +430,7 @@ mod_scripts_server <- function(id = character(), r = shiny::reactiveValues(), d 
     
     observeEvent(r$scripts, {
       
-      if (debug) print(paste0(Sys.time(), " - mod_scripts - observer r$scripts 1"))
+      if (debug) cat(paste0("\n", Sys.time(), " - mod_scripts - observer r$scripts 1"))
       
       options <- convert_tibble_to_list(r$scripts%>% dplyr::arrange(name), key_col = "id", text_col = "name")
       
@@ -447,7 +447,7 @@ mod_scripts_server <- function(id = character(), r = shiny::reactiveValues(), d 
     
     reset_scripts_fields <- function(session){
       
-      if (debug) print(paste0(Sys.time(), " - mod_scripts - function reset_scripts_fields"))
+      if (debug) cat(paste0("\n", Sys.time(), " - mod_scripts - function reset_scripts_fields"))
       
       shiny.fluent::updateComboBox.shinyInput(session, "code_selected_script", value = NULL)
       shiny.fluent::updateComboBox.shinyInput(session, "options_selected_script", value = NULL)
@@ -473,7 +473,7 @@ mod_scripts_server <- function(id = character(), r = shiny::reactiveValues(), d 
     observeEvent(r$selected_dataset, {
       
       if (perf_monitoring) monitor_perf(r = r, action = "start")
-      if (debug) print(paste0(Sys.time(), " - mod_scripts - observer r$selected_dataset"))
+      if (debug) cat(paste0("\n", Sys.time(), " - mod_scripts - observer r$selected_dataset"))
       
       # Reset fields
       # reset_scripts_fields(session = session)
@@ -526,7 +526,7 @@ mod_scripts_server <- function(id = character(), r = shiny::reactiveValues(), d 
     # Select scripts category
     
     observeEvent(input$dataset_scripts_category, {
-      if (debug) print(paste0(Sys.time(), " - mod_scripts - observer input$dataset_scripts_category"))
+      if (debug) cat(paste0("\n", Sys.time(), " - mod_scripts - observer input$dataset_scripts_category"))
       
       r$scripts_update_bucket_list <- Sys.time()
     })
@@ -534,7 +534,7 @@ mod_scripts_server <- function(id = character(), r = shiny::reactiveValues(), d 
     # Reload bucket_list scripts var
     
     observeEvent(r$scripts_reload_bucket_list_var, {
-      if (debug) print(paste0(Sys.time(), " - mod_scripts - observer r$scripts_reload_bucket_list_var"))
+      if (debug) cat(paste0("\n", Sys.time(), " - mod_scripts - observer r$scripts_reload_bucket_list_var"))
       
       req(r$selected_dataset)
       
@@ -554,7 +554,7 @@ mod_scripts_server <- function(id = character(), r = shiny::reactiveValues(), d 
     
     observeEvent(r$scripts_update_bucket_list, {
       
-      if (debug) print(paste0(Sys.time(), " - mod_scripts - observer r$scripts_update_bucket_list"))
+      if (debug) cat(paste0("\n", Sys.time(), " - mod_scripts - observer r$scripts_update_bucket_list"))
             
       req(input$dataset_scripts_category)
       
@@ -583,7 +583,7 @@ mod_scripts_server <- function(id = character(), r = shiny::reactiveValues(), d 
     
     observeEvent(input$dataset_selected_scripts, {
       
-      if (debug) print(paste0(Sys.time(), " - mod_scripts - observer input$dataset_selected_scripts"))
+      if (debug) cat(paste0("\n", Sys.time(), " - mod_scripts - observer input$dataset_selected_scripts"))
       
       if (length(input$dataset_selected_scripts) == 0){
         if (input$dataset_scripts_category == "all_scripts") r$bucket_list_selected_scripts <- r$bucket_list_selected_scripts %>% dplyr::slice(0)
@@ -604,7 +604,7 @@ mod_scripts_server <- function(id = character(), r = shiny::reactiveValues(), d 
     observeEvent(input$save_dataset_scripts, {
       
       if (perf_monitoring) monitor_perf(r = r, action = "start")
-      if (debug) print(paste0(Sys.time(), " - mod_scripts - observer input$save_dataset_scripts"))
+      if (debug) cat(paste0("\n", Sys.time(), " - mod_scripts - observer input$save_dataset_scripts"))
       
       # Delete rows in options table concerning the scripts for this dataset
       
@@ -637,7 +637,7 @@ mod_scripts_server <- function(id = character(), r = shiny::reactiveValues(), d 
     observeEvent(input$save_cache_settings, {
       
       if (perf_monitoring) monitor_perf(r = r, action = "start")
-      if (debug) print(paste0(Sys.time(), " - mod_scripts - observer input$save_cache_settings"))
+      if (debug) cat(paste0("\n", Sys.time(), " - mod_scripts - observer input$save_cache_settings"))
       
       sql <- glue::glue_sql(paste0("UPDATE options SET value_num = {as.integer(input$activate_scripts_cache)} ",
         "WHERE category = 'dataset' AND name = 'activate_scripts_cache' AND link_id = {r$selected_dataset} AND deleted IS FALSE"), .con = r$db)
@@ -657,7 +657,7 @@ mod_scripts_server <- function(id = character(), r = shiny::reactiveValues(), d 
     observeEvent(r$update_scripts_cache_card, {
       
       if (perf_monitoring) monitor_perf(r = r, action = "start")
-      if (debug) print(paste0(Sys.time(), " - mod_scripts - observer r$update_scripts_cache_card"))
+      if (debug) cat(paste0("\n", Sys.time(), " - mod_scripts - observer r$update_scripts_cache_card"))
       
       loaded_scripts_file_path <- paste0(r$app_folder, "/datasets_files/", r$selected_dataset, "/loaded_scripts.csv")
       if (file.exists(loaded_scripts_file_path)) dataset_loaded_scripts <- vroom::vroom(loaded_scripts_file_path, show_col_types = FALSE)
@@ -688,7 +688,7 @@ mod_scripts_server <- function(id = character(), r = shiny::reactiveValues(), d 
         }
         
         output$scripts_cache_infos <- renderUI({
-          if (debug) print(paste0(Sys.time(), " - mod_scripts - output$scripts_cache_infos"))
+          if (debug) cat(paste0("\n", Sys.time(), " - mod_scripts - output$scripts_cache_infos"))
           
           tagList(
             br(), div(
@@ -707,7 +707,7 @@ mod_scripts_server <- function(id = character(), r = shiny::reactiveValues(), d 
     # Reload script cache
     
     observeEvent(input$reload_cache, {
-      if (debug) print(paste0(Sys.time(), " - mod_scripts - observer input$reload_cache"))
+      if (debug) cat(paste0("\n", Sys.time(), " - mod_scripts - observer input$reload_cache"))
       
       r$load_scripts <- Sys.time()
       r$force_reload_scripts_cache <- TRUE
@@ -720,14 +720,14 @@ mod_scripts_server <- function(id = character(), r = shiny::reactiveValues(), d 
     # Update dropdown of remote git repos
     
     observeEvent(r$git_repos, {
-      if (debug) print(paste0(Sys.time(), " - mod_scripts - observer r$git_repos"))
+      if (debug) cat(paste0("\n", Sys.time(), " - mod_scripts - observer r$git_repos"))
       
       shiny.fluent::updateDropdown.shinyInput(session, "remote_git_repo", 
         options = convert_tibble_to_list(r$git_repos, key_col = "id", text_col = "name"))
     })
     
     observeEvent(r$reload_local_scripts_datatable, {
-      if (debug) print(paste0(Sys.time(), " - mod_scripts - observer r$reload_local_scripts_datatable"))
+      if (debug) cat(paste0("\n", Sys.time(), " - mod_scripts - observer r$reload_local_scripts_datatable"))
       
       if (nrow(r$scripts) == 0) r$local_scripts <- tibble::tibble(id = integer(), name = character(), unique_id = character(), description = character(),
         category = character(), author = character(), version = character(), creation_datetime = character(), update_datetime = character())
@@ -769,19 +769,19 @@ mod_scripts_server <- function(id = character(), r = shiny::reactiveValues(), d 
     # When script is selected
     
     observeEvent(input$local_scripts_datatable_rows_selected, {
-      if (debug) print(paste0(Sys.time(), " - mod_scripts - observer input$local_scripts_datatable_rows_selected"))
+      if (debug) cat(paste0("\n", Sys.time(), " - mod_scripts - observer input$local_scripts_datatable_rows_selected"))
       r$datatable_script_selected <- Sys.time()
       r$datatable_script_selected_type <- "local"
     })
     
     observeEvent(input$remote_git_scripts_datatable_rows_selected, {
-      if (debug) print(paste0(Sys.time(), " - mod_scripts - observer input$remote_git_scripts_datatable_rows_selected"))
+      if (debug) cat(paste0("\n", Sys.time(), " - mod_scripts - observer input$remote_git_scripts_datatable_rows_selected"))
       r$datatable_script_selected <- Sys.time()
       r$datatable_script_selected_type <- "remote_git"
     })
     
     observeEvent(r$datatable_script_selected, {
-      if (debug) print(paste0(Sys.time(), " - mod_scripts - observer r$datatable_script_selected"))
+      if (debug) cat(paste0("\n", Sys.time(), " - mod_scripts - observer r$datatable_script_selected"))
       
       type <- r$datatable_script_selected_type
       
@@ -820,7 +820,7 @@ mod_scripts_server <- function(id = character(), r = shiny::reactiveValues(), d 
     # Download scripts from repo git
     
     observeEvent(input$remote_git_repo, {
-      if (debug) print(paste0(Sys.time(), " - mod_scripts - observer input$remote_git_repo"))
+      if (debug) cat(paste0("\n", Sys.time(), " - mod_scripts - observer input$remote_git_repo"))
       
       # Get URL of remote git repo
       raw_files_url_address <- r$git_repos %>% dplyr::filter(id == input$remote_git_repo) %>% dplyr::pull(raw_files_url_address)
@@ -860,7 +860,7 @@ mod_scripts_server <- function(id = character(), r = shiny::reactiveValues(), d 
     # Update remote_git_scripts datatable
     
     observeEvent(r$update_remote_git_scripts_datatable, {
-      if (debug) print(paste0(Sys.time(), " - mod_scripts - observer r$update_remote_git_scripts_datatable"))
+      if (debug) cat(paste0("\n", Sys.time(), " - mod_scripts - observer r$update_remote_git_scripts_datatable"))
       
       req(r$remote_git_scripts)
       
@@ -922,7 +922,7 @@ mod_scripts_server <- function(id = character(), r = shiny::reactiveValues(), d 
     # Download a script from remote git
     
     observeEvent(input$add_remote_git_script, {
-      if (debug) print(paste0(Sys.time(), " - mod_scripts - observer input$add_remote_git_script"))
+      if (debug) cat(paste0("\n", Sys.time(), " - mod_scripts - observer input$add_remote_git_script"))
       
       unique_id <- substr(input$add_remote_git_script, nchar("add_remote_git_script_") + 1, nchar(input$add_remote_git_script))
 
@@ -1009,7 +1009,7 @@ mod_scripts_server <- function(id = character(), r = shiny::reactiveValues(), d 
     
     observeEvent(input$add_script, {
       
-      if (debug) print(paste0(Sys.time(), " - mod_scripts - observer input$add_script"))
+      if (debug) cat(paste0("\n", Sys.time(), " - mod_scripts - observer input$add_script"))
       
       new_data <- list()
       new_data$name <- coalesce2(type = "char", x = input$script_name)
@@ -1037,7 +1037,7 @@ mod_scripts_server <- function(id = character(), r = shiny::reactiveValues(), d 
     observeEvent(r$scripts, {
       
       if (perf_monitoring) monitor_perf(r = r, action = "start")
-      if (debug) print(paste0(Sys.time(), " - mod_scripts - observer r$scripts 2"))
+      if (debug) cat(paste0("\n", Sys.time(), " - mod_scripts - observer r$scripts 2"))
       
       # data_source_id <- r$datasets %>% dplyr::filter(id == r$selected_dataset) %>% dplyr::pull(data_source_id)
       
@@ -1107,7 +1107,7 @@ mod_scripts_server <- function(id = character(), r = shiny::reactiveValues(), d 
     # Updates on datatable data
     observeEvent(input$scripts_datatable_cell_edit, {
       
-      if (debug) print(paste0(Sys.time(), " - mod_scripts - observer input$scripts_datatable_cell_edit"))
+      if (debug) cat(paste0("\n", Sys.time(), " - mod_scripts - observer input$scripts_datatable_cell_edit"))
       
       edit_info <- input$scripts_datatable_cell_edit
       r$scripts_temp <- DT::editData(r$scripts_temp, edit_info, rownames = FALSE)
@@ -1120,7 +1120,7 @@ mod_scripts_server <- function(id = character(), r = shiny::reactiveValues(), d 
     
     observeEvent(input$save_scripts_management, {
       
-      if (debug) print(paste0(Sys.time(), " - mod_scripts - observer input$save_scripts_management"))
+      if (debug) cat(paste0("\n", Sys.time(), " - mod_scripts - observer input$save_scripts_management"))
       
       req(nrow(r$scripts) > 0)
       
@@ -1154,7 +1154,7 @@ mod_scripts_server <- function(id = character(), r = shiny::reactiveValues(), d 
     
     observeEvent(input$deleted_pressed, {
       
-      if (debug) print(paste0(Sys.time(), " - mod_scripts - observer input$deleted_pressed"))
+      if (debug) cat(paste0("\n", Sys.time(), " - mod_scripts - observer input$deleted_pressed"))
       
       r$delete_scripts <- as.integer(substr(input$deleted_pressed, nchar("delete_") + 1, 100))
       r[[script_delete_variable]] <- TRUE
@@ -1165,7 +1165,7 @@ mod_scripts_server <- function(id = character(), r = shiny::reactiveValues(), d 
     
     observeEvent(input$delete_selection, {
       
-      if (debug) print(paste0(Sys.time(), " - mod_scripts - observer input$delete_selection"))
+      if (debug) cat(paste0("\n", Sys.time(), " - mod_scripts - observer input$delete_selection"))
       
       req(length(input$scripts_datatable_rows_selected) > 0)
       
@@ -1176,7 +1176,7 @@ mod_scripts_server <- function(id = character(), r = shiny::reactiveValues(), d 
     
     # observeEvent(input$deleted_pressed, {
     #   
-    #   if (debug) print(paste0(Sys.time(), " - mod_scripts - observer input$deleted_pressed"))
+    #   if (debug) cat(paste0("\n", Sys.time(), " - mod_scripts - observer input$deleted_pressed"))
     # 
     #   r$delete_script <- as.integer(substr(input$deleted_pressed, nchar("delete_") + 1, 100))
     #   r[[script_delete_variable]] <- TRUE
@@ -1189,7 +1189,7 @@ mod_scripts_server <- function(id = character(), r = shiny::reactiveValues(), d 
     
     observeEvent(r$reload_scripts, {
       
-      if (debug) print(paste0(Sys.time(), " - mod_scripts - observer r$reload_scripts"))
+      if (debug) cat(paste0("\n", Sys.time(), " - mod_scripts - observer r$reload_scripts"))
       
       # Reload sidenav dropdown with reloading scripts
       # update_r(r = r, table = "scripts")
@@ -1202,7 +1202,7 @@ mod_scripts_server <- function(id = character(), r = shiny::reactiveValues(), d 
     
     observeEvent(input$edit_code, {
       
-      if (debug) print(paste0(Sys.time(), " - mod_scripts - observer input$edit_code"))
+      if (debug) cat(paste0("\n", Sys.time(), " - mod_scripts - observer input$edit_code"))
       
       link_id <- as.integer(substr(input$edit_code, nchar("edit_code_") + 1, nchar(input$edit_code)))
       
@@ -1218,7 +1218,7 @@ mod_scripts_server <- function(id = character(), r = shiny::reactiveValues(), d 
     
     observeEvent(input$options, {
       
-      if (debug) print(paste0(Sys.time(), " - mod_scripts - observer input$options"))
+      if (debug) cat(paste0("\n", Sys.time(), " - mod_scripts - observer input$options"))
       
       # Get link_id variable, to update options div
       link_id <- as.integer(substr(input$options, nchar("options_") + 1, nchar(input$options)))
@@ -1239,7 +1239,7 @@ mod_scripts_server <- function(id = character(), r = shiny::reactiveValues(), d 
     
     observeEvent(input$code_selected_script, {
       
-      if (debug) print(paste0(Sys.time(), " - mod_scripts - observer input$code_selected_script"))
+      if (debug) cat(paste0("\n", Sys.time(), " - mod_scripts - observer input$code_selected_script"))
       
       if (length(input$code_selected_script) > 1) link_id <- input$code_selected_script$key
       else link_id <- input$code_selected_script
@@ -1265,18 +1265,18 @@ mod_scripts_server <- function(id = character(), r = shiny::reactiveValues(), d 
     # Save updates
     
     observeEvent(input$ace_edit_code_save, {
-      if (debug) print(paste0(Sys.time(), " - mod_scripts - observer input$ace_edit_code_save"))
+      if (debug) cat(paste0("\n", Sys.time(), " - mod_scripts - observer input$ace_edit_code_save"))
       r$script_save_code <- Sys.time()
     })
     observeEvent(input$save_code, {
-      if (debug) print(paste0(Sys.time(), " - mod_scripts - observer input$save_code"))
+      if (debug) cat(paste0("\n", Sys.time(), " - mod_scripts - observer input$save_code"))
       r$script_save_code <- Sys.time()
     })
     
     observeEvent(r$script_save_code, {
       
       if (perf_monitoring) monitor_perf(r = r, action = "start")
-      if (debug) print(paste0(Sys.time(), " - mod_scripts - observer r$script_save_code"))
+      if (debug) cat(paste0("\n", Sys.time(), " - mod_scripts - observer r$script_save_code"))
       
       if (length(input$code_selected_script) > 1) link_id <- input$code_selected_script$key
       else link_id <- input$code_selected_script
@@ -1310,27 +1310,27 @@ mod_scripts_server <- function(id = character(), r = shiny::reactiveValues(), d 
     # Execute code
     
     observeEvent(input$execute_code, {
-      if (debug) print(paste0(Sys.time(), " - mod_scripts - observer input$execute_code"))
+      if (debug) cat(paste0("\n", Sys.time(), " - mod_scripts - observer input$execute_code"))
       r$script_code <- input$ace_edit_code
       r$script_code_trigger <- Sys.time()
     })
     
     observeEvent(input$ace_edit_code_run_selection, {
-      if (debug) print(paste0(Sys.time(), " - mod_scripts - observer input$ace_edit_code_run_selection"))
+      if (debug) cat(paste0("\n", Sys.time(), " - mod_scripts - observer input$ace_edit_code_run_selection"))
       if(!shinyAce::is.empty(input$ace_edit_code_run_selection$selection)) r$script_code <- input$ace_edit_code_run_selection$selection
       else r$script_code <- input$ace_edit_code_run_selection$line
       r$script_code_trigger <- Sys.time()
     })
     
     observeEvent(input$ace_edit_code_run_all, {
-      if (debug) print(paste0(Sys.time(), " - mod_scripts - observer input$ace_edit_code_run_all"))
+      if (debug) cat(paste0("\n", Sys.time(), " - mod_scripts - observer input$ace_edit_code_run_all"))
       r$script_code <- input$ace_edit_code
       r$script_code_trigger <- Sys.time()
     })
     
     observeEvent(r$script_code_trigger, {
       
-      if (debug) print(paste0(Sys.time(), " - mod_scripts - observer r$script_code_trigger"))
+      if (debug) cat(paste0("\n", Sys.time(), " - mod_scripts - observer r$script_code_trigger"))
       
       edited_code <- r$script_code %>% stringr::str_replace_all("\r", "\n")
       
@@ -1357,7 +1357,7 @@ mod_scripts_server <- function(id = character(), r = shiny::reactiveValues(), d 
     
     observeEvent(input$hide_code_editor, {
       
-      if (debug) print(paste0(Sys.time(), " - mod_scripts - observer input$hide_code_editor"))
+      if (debug) cat(paste0("\n", Sys.time(), " - mod_scripts - observer input$hide_code_editor"))
       
       if (input$hide_code_editor){
         shinyjs::hide("ace_edit_code")
@@ -1375,7 +1375,7 @@ mod_scripts_server <- function(id = character(), r = shiny::reactiveValues(), d 
     
     observeEvent(input$options_selected_script, {
       
-      if (debug) print(paste0(Sys.time(), " - mod_scripts - observer input$options_selected_script"))
+      if (debug) cat(paste0("\n", Sys.time(), " - mod_scripts - observer input$options_selected_script"))
       
       if (length(input$options_selected_script) > 1) link_id <- input$options_selected_script$key
       else link_id <- input$options_selected_script
@@ -1407,22 +1407,22 @@ mod_scripts_server <- function(id = character(), r = shiny::reactiveValues(), d 
     # Save updates
     
     observeEvent(input$script_description_fr_save, {
-      if (debug) print(paste0(Sys.time(), " - mod_scripts - observer input$script_description_fr_save"))
+      if (debug) cat(paste0("\n", Sys.time(), " - mod_scripts - observer input$script_description_fr_save"))
       r$script_save_options <- Sys.time()
     })
     observeEvent(input$script_description_en_save, {
-      if (debug) print(paste0(Sys.time(), " - mod_scripts - observer input$script_description_en_save"))
+      if (debug) cat(paste0("\n", Sys.time(), " - mod_scripts - observer input$script_description_en_save"))
       r$script_save_options <- Sys.time()
     })
     observeEvent(input$save_options_description, {
-      if (debug) print(paste0(Sys.time(), " - mod_scripts - observer input$save_options_description"))
+      if (debug) cat(paste0("\n", Sys.time(), " - mod_scripts - observer input$save_options_description"))
       r$script_save_options <- Sys.time()
     })
     
     observeEvent(r$script_save_options, {
       
       if (perf_monitoring) monitor_perf(r = r, action = "start")
-      if (debug) print(paste0(Sys.time(), " - mod_scripts - observer r$script_save_options"))
+      if (debug) cat(paste0("\n", Sys.time(), " - mod_scripts - observer r$script_save_options"))
       
       req(length(input$options_selected_script) > 0)
       if (length(input$options_selected_script) > 1) link_id <- input$options_selected_script$key
@@ -1474,24 +1474,24 @@ mod_scripts_server <- function(id = character(), r = shiny::reactiveValues(), d 
     # Render markdown
     
     observeEvent(input$execute_options_description, {
-      if (debug) print(paste0(Sys.time(), " - mod_scripts - observer input$execute_options_description"))
+      if (debug) cat(paste0("\n", Sys.time(), " - mod_scripts - observer input$execute_options_description"))
       r$script_options_description_trigger <- Sys.time()
     })
     
     observeEvent(input$script_description_fr_run_all, {
-      if (debug) print(paste0(Sys.time(), " - mod_scripts - observer input$script_description_fr_run_all"))
+      if (debug) cat(paste0("\n", Sys.time(), " - mod_scripts - observer input$script_description_fr_run_all"))
       r$script_options_description_trigger <- Sys.time()
     })
     
     observeEvent(input$script_description_en_run_all, {
-      if (debug) print(paste0(Sys.time(), " - mod_scripts - observer input$script_description_en_run_all"))
+      if (debug) cat(paste0("\n", Sys.time(), " - mod_scripts - observer input$script_description_en_run_all"))
       r$script_options_description_trigger <- Sys.time()
     })
     
     observeEvent(r$script_options_description_trigger, {
       
       if (perf_monitoring) monitor_perf(r = r, action = "start")
-      if (debug) print(paste0(Sys.time(), " - mod_scripts - observer input$execute_options_description"))
+      if (debug) cat(paste0("\n", Sys.time(), " - mod_scripts - observer input$execute_options_description"))
       
       options_description <- isolate(input[[paste0("script_description_", input$script_description_language)]] %>% stringr::str_replace_all("\r", "\n"))
       
@@ -1525,12 +1525,12 @@ mod_scripts_server <- function(id = character(), r = shiny::reactiveValues(), d 
     # --- --- --- --- - -
     
     observeEvent(input$import_scripts_browse, {
-      if (debug) print(paste0(Sys.time(), " - mod_scripts - observer input$import_scripts_browse"))
+      if (debug) cat(paste0("\n", Sys.time(), " - mod_scripts - observer input$import_scripts_browse"))
       shinyjs::click("import_scripts_upload")
     })
     
     output$import_scripts_status <- renderUI({
-      if (debug) print(paste0(Sys.time(), " - mod_scripts - output$import_scripts_status"))
+      if (debug) cat(paste0("\n", Sys.time(), " - mod_scripts - output$import_scripts_status"))
       
       tagList(div(
         span(i18n$t("loaded_file"), " : ", style = "padding-top:5px;"),
@@ -1540,7 +1540,7 @@ mod_scripts_server <- function(id = character(), r = shiny::reactiveValues(), d 
     observeEvent(input$import_scripts_button, {
       
       if (perf_monitoring) monitor_perf(r = r, action = "start")
-      if (debug) print(paste0(Sys.time(), " - mod_scripts - observer input$import_scripts_button"))
+      if (debug) cat(paste0("\n", Sys.time(), " - mod_scripts - observer input$import_scripts_button"))
       
       req(input$import_scripts_upload)
       
@@ -1706,7 +1706,7 @@ mod_scripts_server <- function(id = character(), r = shiny::reactiveValues(), d 
     # When add button is clicked
     observeEvent(input$add_item, {
       
-      if (debug) print(paste0(Sys.time(), " - mod_scripts - observer input$add_item"))
+      if (debug) cat(paste0("\n", Sys.time(), " - mod_scripts - observer input$add_item"))
       
       # Get ID of selected script
       link_id <- as.integer(substr(input$add_item, nchar("add_item_") + 1, nchar(input$add_item)))
@@ -1733,7 +1733,7 @@ mod_scripts_server <- function(id = character(), r = shiny::reactiveValues(), d 
     # When dropdown is modified
     observeEvent(input$scripts_to_export_trigger, {
       
-      if (debug) print(paste0(Sys.time(), " - mod_scripts - observer input$scripts_to_export"))
+      if (debug) cat(paste0("\n", Sys.time(), " - mod_scripts - observer input$scripts_to_export"))
       
       r$export_scripts_selected <- r$export_scripts_selected %>%
         dplyr::filter(id %in% input$scripts_to_export)
@@ -1747,7 +1747,7 @@ mod_scripts_server <- function(id = character(), r = shiny::reactiveValues(), d 
     # Export scripts
     observeEvent(input$export_selected_scripts, {
       
-      if (debug) print(paste0(Sys.time(), " - mod_scripts - observer input$export_scripts"))
+      if (debug) cat(paste0("\n", Sys.time(), " - mod_scripts - observer input$export_scripts"))
       
       req(nrow(r$export_scripts_selected) > 0)
       
@@ -1762,7 +1762,7 @@ mod_scripts_server <- function(id = character(), r = shiny::reactiveValues(), d 
       content = function(file){
         
         if (perf_monitoring) monitor_perf(r = r, action = "start")
-        if (debug) print(paste0(Sys.time(), " - mod_scripts - output$export_scripts_download"))
+        if (debug) cat(paste0("\n", Sys.time(), " - mod_scripts - output$export_scripts_download"))
         
         owd <- setwd(tempdir())
         on.exit(setwd(owd))

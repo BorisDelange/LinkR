@@ -235,7 +235,7 @@ mod_my_studies_server <- function(id = character(), r = shiny::reactiveValues(),
   moduleServer(id, function(input, output, session){
     ns <- session$ns
     
-    if (debug) print(paste0(Sys.time(), " - mod_my_studies - start"))
+    if (debug) cat(paste0("\n", Sys.time(), " - mod_my_studies - start"))
     
     sapply(1:20, function(i) observeEvent(input[[paste0("close_message_bar_", i)]], shinyjs::hide(paste0("message_bar", i))))
     
@@ -269,7 +269,7 @@ mod_my_studies_server <- function(id = character(), r = shiny::reactiveValues(),
     })
     
     # observeEvent(shiny.router::get_page(), {
-    #   if (debug) print(paste0(Sys.time(), " - mod_my_studies - ", id, " - observer shiny_router::change_page"))
+    #   if (debug) cat(paste0("\n", Sys.time(), " - mod_my_studies - ", id, " - observer shiny_router::change_page"))
     # 
     #   # Close help pages when page changes
     #   r$help_my_studies_open_panel <- FALSE
@@ -291,7 +291,7 @@ mod_my_studies_server <- function(id = character(), r = shiny::reactiveValues(),
     observeEvent(r$selected_dataset, {
       
       if (perf_monitoring) monitor_perf(r = r, action = "start")
-      if (debug) print(paste0(Sys.time(), " - mod_my_studies - observer r$selected_dataset"))
+      if (debug) cat(paste0("\n", Sys.time(), " - mod_my_studies - observer r$selected_dataset"))
       
       # Show first card & hide "choose a dataset" card
       shinyjs::hide("choose_a_dataset_card")
@@ -369,7 +369,7 @@ mod_my_studies_server <- function(id = character(), r = shiny::reactiveValues(),
     observeEvent(r$load_scripts, {
       
       if (perf_monitoring) monitor_perf(r = r, action = "start")
-      if (debug) print(paste0(Sys.time(), " - mod_my_studies - observer r$load_scripts"))
+      if (debug) cat(paste0("\n", Sys.time(), " - mod_my_studies - observer r$load_scripts"))
       
       # Try to run the scripts associated with this dataset
       # Save runned scripts and success status
@@ -441,7 +441,7 @@ mod_my_studies_server <- function(id = character(), r = shiny::reactiveValues(),
     observeEvent(r$reload_scripts_cache, {
       
       if (perf_monitoring) monitor_perf(r = r, action = "start")
-      if (debug) print(paste0(Sys.time(), " - mod_my_studies - observer r$reload_scripts_cache"))
+      if (debug) cat(paste0("\n", Sys.time(), " - mod_my_studies - observer r$reload_scripts_cache"))
       
       req(!is.na(r$selected_dataset))
       
@@ -542,7 +542,7 @@ mod_my_studies_server <- function(id = character(), r = shiny::reactiveValues(),
     # Once the dataset is loaded, load studies & scripts
     observeEvent(r$loaded_dataset, {
       
-      if (debug) print(paste0(Sys.time(), " - mod_my_studies - observer r$loaded_dataset"))
+      if (debug) cat(paste0("\n", Sys.time(), " - mod_my_studies - observer r$loaded_dataset"))
       
       # Load studies datatable
       # r$reload_studies_datatable <- Sys.time()
@@ -558,7 +558,7 @@ mod_my_studies_server <- function(id = character(), r = shiny::reactiveValues(),
     
     observeEvent(m$selected_study, {
       
-      if (debug) print(paste0(Sys.time(), " - mod_my_studies - observer r$selected_study"))
+      if (debug) cat(paste0("\n", Sys.time(), " - mod_my_studies - observer r$selected_study"))
       
       req(!is.na(m$selected_study))
       # Show first card & hide "choose a dataset" card
@@ -673,7 +673,7 @@ mod_my_studies_server <- function(id = character(), r = shiny::reactiveValues(),
     observeEvent(input$add_study, {
       
       if (perf_monitoring) monitor_perf(r = r, action = "start")
-      if (debug) print(paste0(Sys.time(), " - mod_my_studies - observer input$add_study"))
+      if (debug) cat(paste0("\n", Sys.time(), " - mod_my_studies - observer input$add_study"))
       
       new_data <- list()
       new_data$name <- coalesce2(type = "char", x = input$study_name)
@@ -715,7 +715,7 @@ mod_my_studies_server <- function(id = character(), r = shiny::reactiveValues(),
     observeEvent(r$reload_studies_datatable, {
       
       if (perf_monitoring) monitor_perf(r = r, action = "start")
-      if (debug) print(paste0(Sys.time(), " - mod_my_studies - observer r$reload_studies_datatable"))
+      if (debug) cat(paste0("\n", Sys.time(), " - mod_my_studies - observer r$reload_studies_datatable"))
       
       if (nrow(r$studies) == 0) {
         
@@ -759,7 +759,7 @@ mod_my_studies_server <- function(id = character(), r = shiny::reactiveValues(),
     # Reload datatable
     observeEvent(r$studies_temp, {
       
-      if (debug) print(paste0(Sys.time(), " - mod_my_studies - observer r$studies_temp"))
+      if (debug) cat(paste0("\n", Sys.time(), " - mod_my_studies - observer r$studies_temp"))
 
       # Reload datatable_temp variable
       if (nrow(r$studies_temp) == 0) r$studies_datatable_temp <- tibble::tibble(id = integer(), name = character(), dataset_id = factor(),
@@ -777,7 +777,7 @@ mod_my_studies_server <- function(id = character(), r = shiny::reactiveValues(),
     # Updates on datatable data
     observeEvent(input$studies_datatable_cell_edit, {
       
-      if (debug) print(paste0(Sys.time(), " - mod_my_studies - observer input$studies_datatable_cell_edit"))
+      if (debug) cat(paste0("\n", Sys.time(), " - mod_my_studies - observer input$studies_datatable_cell_edit"))
       
       edit_info <- input$studies_datatable_cell_edit
       r$studies_temp <- DT::editData(r$studies_temp, edit_info, rownames = FALSE)
@@ -789,7 +789,7 @@ mod_my_studies_server <- function(id = character(), r = shiny::reactiveValues(),
     # Save updates
     observeEvent(input$save_studies_management, {
       
-      if (debug) print(paste0(Sys.time(), " - mod_my_studies - observer input$save_studies_management"))
+      if (debug) cat(paste0("\n", Sys.time(), " - mod_my_studies - observer input$save_studies_management"))
       
       req(nrow(r$studies %>% dplyr::filter(dataset_id == r$selected_dataset)) > 0)
       
@@ -824,7 +824,7 @@ mod_my_studies_server <- function(id = character(), r = shiny::reactiveValues(),
     
     observeEvent(input$deleted_pressed, {
       
-      if (debug) print(paste0(Sys.time(), " - mod_my_studies - observer input$deleted_pressed"))
+      if (debug) cat(paste0("\n", Sys.time(), " - mod_my_studies - observer input$deleted_pressed"))
       
       r$delete_study <- as.integer(substr(input$deleted_pressed, nchar("delete_") + 1, 100))
       r[[study_delete_variable]] <- TRUE
@@ -837,7 +837,7 @@ mod_my_studies_server <- function(id = character(), r = shiny::reactiveValues(),
     
     observeEvent(input$delete_selection, {
       
-      if (debug) print(paste0(Sys.time(), " - mod_my_studies - observer input$delete_selection"))
+      if (debug) cat(paste0("\n", Sys.time(), " - mod_my_studies - observer input$delete_selection"))
       
       req(length(input$studies_datatable_rows_selected) > 0)
       
@@ -847,7 +847,7 @@ mod_my_studies_server <- function(id = character(), r = shiny::reactiveValues(),
     
     observeEvent(r$reload_studies, {
       
-      if (debug) print(paste0(Sys.time(), " - mod_my_studies - observer r$reload_studies"))
+      if (debug) cat(paste0("\n", Sys.time(), " - mod_my_studies - observer r$reload_studies"))
       
       r$studies_temp <- r$studies %>% dplyr::filter(dataset_id == r$selected_dataset) %>% dplyr::mutate(modified = FALSE) %>% dplyr::arrange(name)
       
@@ -861,7 +861,7 @@ mod_my_studies_server <- function(id = character(), r = shiny::reactiveValues(),
     
     observeEvent(input$options, {
       
-      if (debug) print(paste0(Sys.time(), " - mod_my_studies - observer input$options"))
+      if (debug) cat(paste0("\n", Sys.time(), " - mod_my_studies - observer input$options"))
       
       # Get link_id variable, to update options div
       link_id <- as.integer(substr(input$options, nchar("options_") + 1, nchar(input$options)))
@@ -881,7 +881,7 @@ mod_my_studies_server <- function(id = character(), r = shiny::reactiveValues(),
     
     observeEvent(input$options_selected_study, {
       
-      if (debug) print(paste0(Sys.time(), " - mod_my_studies - observer input$options_selected_study"))
+      if (debug) cat(paste0("\n", Sys.time(), " - mod_my_studies - observer input$options_selected_study"))
       
       if (length(input$options_selected_study) > 1) link_id <- input$options_selected_study$key
       else link_id <- input$options_selected_study
@@ -936,22 +936,22 @@ mod_my_studies_server <- function(id = character(), r = shiny::reactiveValues(),
     # Save updates
     
     observeEvent(input$study_description_fr_save, {
-      if (debug) print(paste0(Sys.time(), " - mod_my_studies - observer input$study_description_fr_save"))
+      if (debug) cat(paste0("\n", Sys.time(), " - mod_my_studies - observer input$study_description_fr_save"))
       r$study_save_options <- Sys.time()
     })
     observeEvent(input$study_description_en_save, {
-      if (debug) print(paste0(Sys.time(), " - mod_my_studies - observer input$study_description_en_save"))
+      if (debug) cat(paste0("\n", Sys.time(), " - mod_my_studies - observer input$study_description_en_save"))
       r$study_save_options <- Sys.time()
     })
     observeEvent(input$options_save, {
-      if (debug) print(paste0(Sys.time(), " - mod_my_studies - observer input$options_save"))
+      if (debug) cat(paste0("\n", Sys.time(), " - mod_my_studies - observer input$options_save"))
       r$study_save_options <- Sys.time()
     })
     
     observeEvent(r$study_save_options, {
       
       if (perf_monitoring) monitor_perf(r = r, action = "start")
-      if (debug) print(paste0(Sys.time(), " - mod_my_studies - observer r$study_save_options"))
+      if (debug) cat(paste0("\n", Sys.time(), " - mod_my_studies - observer r$study_save_options"))
 
       req(length(input$options_selected_study) > 0)
       if (length(input$options_selected_study) > 1) link_id <- input$options_selected_study$key
@@ -1018,7 +1018,7 @@ mod_my_studies_server <- function(id = character(), r = shiny::reactiveValues(),
     observeEvent(input$execute_options_description, {
       
       if (perf_monitoring) monitor_perf(r = r, action = "start")
-      if (debug) print(paste0(Sys.time(), " - mod_my_studies - observer input$execute_options_description"))
+      if (debug) cat(paste0("\n", Sys.time(), " - mod_my_studies - observer input$execute_options_description"))
       
       options_description <- isolate(input$ace_options_description %>% stringr::str_replace_all("\r", "\n"))
       
@@ -1050,24 +1050,24 @@ mod_my_studies_server <- function(id = character(), r = shiny::reactiveValues(),
     # Render markdown
     
     observeEvent(input$execute_options_description, {
-      if (debug) print(paste0(Sys.time(), " - mod_studies - observer input$execute_options_description"))
+      if (debug) cat(paste0("\n", Sys.time(), " - mod_studies - observer input$execute_options_description"))
       r$study_options_description_trigger <- Sys.time()
     })
     
     observeEvent(input$study_description_fr_run_all, {
-      if (debug) print(paste0(Sys.time(), " - mod_studies - observer input$study_description_fr_run_all"))
+      if (debug) cat(paste0("\n", Sys.time(), " - mod_studies - observer input$study_description_fr_run_all"))
       r$study_options_description_trigger <- Sys.time()
     })
     
     observeEvent(input$study_description_en_run_all, {
-      if (debug) print(paste0(Sys.time(), " - mod_studies - observer input$study_description_en_run_all"))
+      if (debug) cat(paste0("\n", Sys.time(), " - mod_studies - observer input$study_description_en_run_all"))
       r$study_options_description_trigger <- Sys.time()
     })
     
     observeEvent(r$study_options_description_trigger, {
       
       if (perf_monitoring) monitor_perf(r = r, action = "start")
-      if (debug) print(paste0(Sys.time(), " - mod_studies - observer input$execute_options_description"))
+      if (debug) cat(paste0("\n", Sys.time(), " - mod_studies - observer input$execute_options_description"))
       
       options_description <- isolate(input[[paste0("study_description_", input$study_description_language)]] %>% stringr::str_replace_all("\r", "\n"))
       

@@ -201,7 +201,7 @@ mod_my_subsets_server <- function(id = character(), r = shiny::reactiveValues(),
     })
     
     # observeEvent(shiny.router::get_page(), {
-    #   if (debug) print(paste0(Sys.time(), " - mod_my_subsets - ", id, " - observer shiny_router::change_page"))
+    #   if (debug) cat(paste0("\n", Sys.time(), " - mod_my_subsets - ", id, " - observer shiny_router::change_page"))
     # 
     #   # Close help pages when page changes
     #   r$help_my_subsets_open_panel <- FALSE
@@ -222,7 +222,7 @@ mod_my_subsets_server <- function(id = character(), r = shiny::reactiveValues(),
     
     observeEvent(r$selected_dataset, {
       
-      if (debug) print(paste0(Sys.time(), " - mod_my_subsets - observer r$selected_dataset"))
+      if (debug) cat(paste0("\n", Sys.time(), " - mod_my_subsets - observer r$selected_dataset"))
       
       shinyjs::show("choose_a_study_card")
       sapply(c("subsets_datatable_card", "subsets_datatable_card_forbidden", "subsets_persons_card", "subsets_persons_card_forbidden",
@@ -241,7 +241,7 @@ mod_my_subsets_server <- function(id = character(), r = shiny::reactiveValues(),
     observeEvent(m$selected_study, {
       
       if (perf_monitoring) monitor_perf(r = r, action = "start")
-      if (debug) print(paste0(Sys.time(), " - mod_my_subsets - observer m$selected_study"))
+      if (debug) cat(paste0("\n", Sys.time(), " - mod_my_subsets - observer m$selected_study"))
       
       req(!is.na(m$selected_study))
       
@@ -279,7 +279,7 @@ mod_my_subsets_server <- function(id = character(), r = shiny::reactiveValues(),
     
     observeEvent(m$subsets, {
       
-      if (debug) print(paste0(Sys.time(), " - mod_my_subsets - observer m$subsets"))
+      if (debug) cat(paste0("\n", Sys.time(), " - mod_my_subsets - observer m$subsets"))
       
       options <- convert_tibble_to_list(m$subsets %>% dplyr::arrange(name), key_col = "id", text_col = "name")
       shiny.fluent::updateComboBox.shinyInput(session, "code_selected_subset", options = options)
@@ -293,7 +293,7 @@ mod_my_subsets_server <- function(id = character(), r = shiny::reactiveValues(),
     observeEvent(input$add_subset, {
       
       if (perf_monitoring) monitor_perf(r = r, action = "start")
-      if (debug) print(paste0(Sys.time(), " - mod_my_subsets - observer input$add_subset"))
+      if (debug) cat(paste0("\n", Sys.time(), " - mod_my_subsets - observer input$add_subset"))
       
       new_data <- list()
       new_data$name <- coalesce2(type = "char", x = input$subset_name)
@@ -329,7 +329,7 @@ mod_my_subsets_server <- function(id = character(), r = shiny::reactiveValues(),
     # Load data for datatable
     observeEvent(m$subsets, {
       
-      if (debug) print(paste0(Sys.time(), " - mod_my_subsets - observer m$subsets"))
+      if (debug) cat(paste0("\n", Sys.time(), " - mod_my_subsets - observer m$subsets"))
       
       m$subsets_temp <- m$subsets %>% dplyr::mutate(modified = FALSE) %>% dplyr::arrange(name)
     })
@@ -338,7 +338,7 @@ mod_my_subsets_server <- function(id = character(), r = shiny::reactiveValues(),
     observeEvent(m$subsets_temp, {
       
       if (perf_monitoring) monitor_perf(r = r, action = "start")
-      if (debug) print(paste0(Sys.time(), " - mod_my_subsets - observer m$subsets_temp"))
+      if (debug) cat(paste0("\n", Sys.time(), " - mod_my_subsets - observer m$subsets_temp"))
 
       # Reload datatable_temp variable
       if (nrow(m$subsets_temp) == 0) m$subsets_datatable_temp <- tibble::tibble(id = integer(), name = character(), description = character(), study_id = factor(),
@@ -372,7 +372,7 @@ mod_my_subsets_server <- function(id = character(), r = shiny::reactiveValues(),
     # Updates on datatable data
     observeEvent(input$subsets_datatable_cell_edit, {
 
-      if (debug) print(paste0(Sys.time(), " - mod_my_subsets - observer input$subsets_datatable_cell_edit"))
+      if (debug) cat(paste0("\n", Sys.time(), " - mod_my_subsets - observer input$subsets_datatable_cell_edit"))
 
       edit_info <- input$subsets_datatable_cell_edit
       m$subsets_temp <- DT::editData(m$subsets_temp, edit_info, rownames = FALSE)
@@ -384,7 +384,7 @@ mod_my_subsets_server <- function(id = character(), r = shiny::reactiveValues(),
     # Save updates
     observeEvent(input$save_subsets_management, {
 
-      if (debug) print(paste0(Sys.time(), " - mod_my_subsets - observer input$save_subsets_management"))
+      if (debug) cat(paste0("\n", Sys.time(), " - mod_my_subsets - observer input$save_subsets_management"))
 
       req(nrow(m$subsets %>% dplyr::filter(study_id == m$selected_study)) > 0)
 
@@ -419,7 +419,7 @@ mod_my_subsets_server <- function(id = character(), r = shiny::reactiveValues(),
     
     observeEvent(input$deleted_pressed, {
 
-      if (debug) print(paste0(Sys.time(), " - mod_my_subsets - observer input$deleted_pressed"))
+      if (debug) cat(paste0("\n", Sys.time(), " - mod_my_subsets - observer input$deleted_pressed"))
 
       r$delete_subset <- as.integer(substr(input$deleted_pressed, nchar("delete_") + 1, 100))
       r[[subset_delete_variable]] <- TRUE
@@ -432,7 +432,7 @@ mod_my_subsets_server <- function(id = character(), r = shiny::reactiveValues(),
     
     observeEvent(input$delete_selection, {
 
-      if (debug) print(paste0(Sys.time(), " - mod_my_subsets - observer input$delete_selection"))
+      if (debug) cat(paste0("\n", Sys.time(), " - mod_my_subsets - observer input$delete_selection"))
 
       req(length(input$subsets_datatable_rows_selected) > 0)
 
@@ -442,7 +442,7 @@ mod_my_subsets_server <- function(id = character(), r = shiny::reactiveValues(),
     
     observeEvent(r$reload_subsets, {
 
-      if (debug) print(paste0(Sys.time(), " - mod_my_subsets - observer r$reload_subsets"))
+      if (debug) cat(paste0("\n", Sys.time(), " - mod_my_subsets - observer r$reload_subsets"))
 
       m$subsets_temp <- m$subsets %>% dplyr::filter(study_id == m$selected_study) %>% dplyr::mutate(modified = FALSE) %>% dplyr::arrange(name)
 
@@ -457,7 +457,7 @@ mod_my_subsets_server <- function(id = character(), r = shiny::reactiveValues(),
     # Button "Edit code" is clicked on the datatable
     observeEvent(input$edit_code, {
       
-      if (debug) print(paste0(Sys.time(), " - mod_my_subsets - observer input$edit_code"))
+      if (debug) cat(paste0("\n", Sys.time(), " - mod_my_subsets - observer input$edit_code"))
       
       # Get link_id variable, to update code editor
       link_id <- as.integer(substr(input$edit_code, nchar("edit_code_") + 1, nchar(input$edit_code)))
@@ -477,7 +477,7 @@ mod_my_subsets_server <- function(id = character(), r = shiny::reactiveValues(),
     observeEvent(input$code_selected_subset, {
       
       if (perf_monitoring) monitor_perf(r = r, action = "start")
-      if (debug) print(paste0(Sys.time(), " - mod_my_subsets - observer input$code_selected_subset"))
+      if (debug) cat(paste0("\n", Sys.time(), " - mod_my_subsets - observer input$code_selected_subset"))
       
       if (length(input$code_selected_subset) > 1) link_id <- input$code_selected_subset$key
       else link_id <- input$code_selected_subset
@@ -506,19 +506,19 @@ mod_my_subsets_server <- function(id = character(), r = shiny::reactiveValues(),
     # When save button is clicked, or CTRL+C or CMD+C is pushed
     
     observeEvent(input$save_code, {
-      if (debug) print(paste0(Sys.time(), " - mod_my_subsets - observer input$save_code"))
+      if (debug) cat(paste0("\n", Sys.time(), " - mod_my_subsets - observer input$save_code"))
       r$subset_code_save <- Sys.time()
     })
     
     observeEvent(input$ace_edit_code_save, {
-      if (debug) print(paste0(Sys.time(), " - mod_my_subsets - observer input$ace_edit_code_save"))
+      if (debug) cat(paste0("\n", Sys.time(), " - mod_my_subsets - observer input$ace_edit_code_save"))
       r$subset_code_save <- Sys.time()
     })
     
     observeEvent(r$subset_code_save, {
       
       if (perf_monitoring) monitor_perf(r = r, action = "start")
-      if (debug) print(paste0(Sys.time(), " - mod_my_subsets - observer r$subset_code_save"))
+      if (debug) cat(paste0("\n", Sys.time(), " - mod_my_subsets - observer r$subset_code_save"))
       
       req(input$code_selected_subset)
       
@@ -552,20 +552,20 @@ mod_my_subsets_server <- function(id = character(), r = shiny::reactiveValues(),
     # When Execute code button is clicked
     
     observeEvent(input$execute_code, {
-      if (debug) print(paste0(Sys.time(), " - mod_my_subsets - observer input$execute_code"))
+      if (debug) cat(paste0("\n", Sys.time(), " - mod_my_subsets - observer input$execute_code"))
       r$subset_execute_code <- input$ace_edit_code
       r$subset_execute_code_trigger <- Sys.time()
     })
 
     observeEvent(input$ace_edit_code_run_selection, {
-      if (debug) print(paste0(Sys.time(), " - mod_my_subsets - observer input$ace_edit_code_run_selection"))
+      if (debug) cat(paste0("\n", Sys.time(), " - mod_my_subsets - observer input$ace_edit_code_run_selection"))
       if(!shinyAce::is.empty(input$ace_edit_code_run_selection$selection)) r$subset_execute_code <- input$ace_edit_code_run_selection$selection
       else r$subset_execute_code <- input$ace_edit_code_run_selection$line
       r$subset_execute_code_trigger <- Sys.time()
     })
 
     observeEvent(input$ace_edit_code_run_all, {
-      if (debug) print(paste0(Sys.time(), " - mod_my_subsets - observer input$ace_edit_code_run_all"))
+      if (debug) cat(paste0("\n", Sys.time(), " - mod_my_subsets - observer input$ace_edit_code_run_all"))
       r$subset_execute_code <- input$ace_edit_code
       r$subset_execute_code_trigger <- Sys.time()
     })
@@ -573,7 +573,7 @@ mod_my_subsets_server <- function(id = character(), r = shiny::reactiveValues(),
     observeEvent(r$subset_execute_code_trigger, {
 
       if (perf_monitoring) monitor_perf(r = r, action = "start")
-      if (debug) print(paste0(Sys.time(), " - mod_my_subsets - observer r$subset_execute_code_trigger"))
+      if (debug) cat(paste0("\n", Sys.time(), " - mod_my_subsets - observer r$subset_execute_code_trigger"))
 
       if (length(input$code_selected_subset) > 1) link_id <- input$code_selected_subset$key
       else link_id <- input$code_selected_subset
@@ -607,7 +607,7 @@ mod_my_subsets_server <- function(id = character(), r = shiny::reactiveValues(),
     # Comment text
     
     observeEvent(input$ace_edit_code_comment, {
-      if (debug) print(paste0(Sys.time(), " - mod_my_subsets - observer input$ace_edit_code_comment"))
+      if (debug) cat(paste0("\n", Sys.time(), " - mod_my_subsets - observer input$ace_edit_code_comment"))
       
       lines <- strsplit(input$ace_edit_code, "\n")[[1]]
       req(length(lines) > 0)
@@ -633,7 +633,7 @@ mod_my_subsets_server <- function(id = character(), r = shiny::reactiveValues(),
     # Button "sub_datatable" is clicked on the datatable
     observeEvent(input$sub_datatable, {
       
-      if (debug) print(paste0(Sys.time(), " - mod_my_subsets - observer input$sub_datatable"))
+      if (debug) cat(paste0("\n", Sys.time(), " - mod_my_subsets - observer input$sub_datatable"))
       
       # Get link_id variable, to update code editor
       link_id <- as.integer(substr(input$sub_datatable, nchar("sub_datatable_") + 1, nchar(input$sub_datatable)))
@@ -653,7 +653,7 @@ mod_my_subsets_server <- function(id = character(), r = shiny::reactiveValues(),
     observeEvent(input$persons_selected_subset, {
       
       if (perf_monitoring) monitor_perf(r = r, action = "start")
-      if (debug) print(paste0(Sys.time(), " - mod_my_subsets - observer input$persons_selected_subset"))
+      if (debug) cat(paste0("\n", Sys.time(), " - mod_my_subsets - observer input$persons_selected_subset"))
       
       if (length(input$persons_selected_subset) > 1) link_id <- input$persons_selected_subset$key
       else link_id <- input$persons_selected_subset
@@ -707,7 +707,7 @@ mod_my_subsets_server <- function(id = character(), r = shiny::reactiveValues(),
     
     observeEvent(r$subset_persons_temp, {
       
-      if (debug) print(paste0(Sys.time(), " - mod_my_subsets - observer r$subset_persons_temp"))
+      if (debug) cat(paste0("\n", Sys.time(), " - mod_my_subsets - observer r$subset_persons_temp"))
       
       # Subset persons datatable
 
@@ -749,7 +749,7 @@ mod_my_subsets_server <- function(id = character(), r = shiny::reactiveValues(),
     observeEvent(r$subset_add_persons, {
       
       if (perf_monitoring) monitor_perf(r = r, action = "start")
-      if (debug) print(paste0(Sys.time(), " - mod_my_subsets - observer r$subset_add_persons"))
+      if (debug) cat(paste0("\n", Sys.time(), " - mod_my_subsets - observer r$subset_add_persons"))
       
       # Subset persons datatable
       
@@ -782,7 +782,7 @@ mod_my_subsets_server <- function(id = character(), r = shiny::reactiveValues(),
     
     output$subset_persons_delete_confirm <- shiny.fluent::renderReact({
       
-      if (debug) print(paste0(Sys.time(), " - mod_my_subsets - output$subset_persons_delete_confirm"))
+      if (debug) cat(paste0("\n", Sys.time(), " - mod_my_subsets - output$subset_persons_delete_confirm"))
       
       shiny.fluent::Dialog(
         hidden = !r$subset_persons_open_dialog,
@@ -803,11 +803,11 @@ mod_my_subsets_server <- function(id = character(), r = shiny::reactiveValues(),
     
     # Whether to close or not delete dialog box
     observeEvent(input$subset_persons_hide_dialog, {
-      if (debug) print(paste0(Sys.time(), " - mod_my_subsets - observer input$subset_persons_hide_dialog"))
+      if (debug) cat(paste0("\n", Sys.time(), " - mod_my_subsets - observer input$subset_persons_hide_dialog"))
       r$subset_persons_open_dialog <- FALSE 
     })
     observeEvent(input$subset_persons_delete_canceled, {
-      if (debug) print(paste0(Sys.time(), " - mod_my_subsets - observer input$subset_persons_delete_canceled"))
+      if (debug) cat(paste0("\n", Sys.time(), " - mod_my_subsets - observer input$subset_persons_delete_canceled"))
       r$subset_persons_open_dialog <- FALSE
     })
     
@@ -815,7 +815,7 @@ mod_my_subsets_server <- function(id = character(), r = shiny::reactiveValues(),
     
     observeEvent(input$subset_persons_delete_confirmed, {
       
-      if (debug) print(paste0(Sys.time(), " - mod_my_subsets - observer input$subset_persons_delete_confirmed"))
+      if (debug) cat(paste0("\n", Sys.time(), " - mod_my_subsets - observer input$subset_persons_delete_confirmed"))
       
       if (length(input$persons_selected_subset) > 1) link_id <- input$persons_selected_subset$key
       else link_id <- input$persons_selected_subset
@@ -833,7 +833,7 @@ mod_my_subsets_server <- function(id = character(), r = shiny::reactiveValues(),
 
     observeEvent(input$delete_selected_persons, {
 
-      if (debug) print(paste0(Sys.time(), " - mod_my_subsets - observer input$delete_selected_persons"))
+      if (debug) cat(paste0("\n", Sys.time(), " - mod_my_subsets - observer input$delete_selected_persons"))
 
       req(length(input$subset_persons_datatable_rows_selected) > 0)
 
@@ -844,7 +844,7 @@ mod_my_subsets_server <- function(id = character(), r = shiny::reactiveValues(),
 
     observeEvent(r$reload_subset_persons, {
 
-      if (debug) print(paste0(Sys.time(), " - mod_my_subsets - observer r$reload_subset_persons"))
+      if (debug) cat(paste0("\n", Sys.time(), " - mod_my_subsets - observer r$reload_subset_persons"))
 
       r$subset_persons_temp <- r$subset_persons %>% dplyr::mutate(modified = FALSE) %>% dplyr::arrange(person_id)
     })
@@ -853,7 +853,7 @@ mod_my_subsets_server <- function(id = character(), r = shiny::reactiveValues(),
     
     observeEvent(input$subset_add_persons, {
       
-      if (debug) print(paste0(Sys.time(), " - mod_my_subsets - observer input$subset_add_persons"))
+      if (debug) cat(paste0("\n", Sys.time(), " - mod_my_subsets - observer input$subset_add_persons"))
       
       if (length(input$persons_selected_subset) > 1) link_id <- input$persons_selected_subset$key
       else link_id <- input$persons_selected_subset
@@ -871,7 +871,7 @@ mod_my_subsets_server <- function(id = character(), r = shiny::reactiveValues(),
     
     observeEvent(r$reload_subset_add_persons, {
       
-      if (debug) print(paste0(Sys.time(), " - mod_my_subsets - observer r$reload_subset_add_persons"))
+      if (debug) cat(paste0("\n", Sys.time(), " - mod_my_subsets - observer r$reload_subset_add_persons"))
       
       if (length(input$persons_selected_subset) > 1) link_id <- input$persons_selected_subset$key
       else link_id <- input$persons_selected_subset
