@@ -9,7 +9,7 @@
 #' @param dataset_id ID of the dataset, used to create directory in data folder (integer)
 #' @param data Data variable (data.frame or tibble)
 #' @param type Name of the OMOP table to import (character)
-#' @param omop_version OMOP versions of the imported data, accepts 5.3, 5.4 or 6.0 (numeric)
+#' @param omop_version OMOP versions of the imported data, accepts "5.3", "5.4" or "6.0" (character)
 #' @param read_with The library used to read the data. Accepted values = c("none", "vroom", "duckdb", "spark", "arrow") (character)
 #' @param save_as Save the data locally. Accepted values = c("none", "csv", "parquet") (character)
 #' @param rewrite If save_as_csv is TRUE, rewrite or not existing CSV file (logical)-
@@ -27,10 +27,10 @@
 #'   person_source_value = NA_character_, gender_source_value = "F", race_source_value = NA_character_, ethnicity_source_value = NA_character_)
 #'     
 #' import_dataset(output = output, ns = ns, i18n = i18n, r = r, d = d, dataset_id = 5, data = persons, type = "persons", 
-#'   omop_versions = 5.4, save_as_csv = FALSE, rewrite = FALSE)
+#'   omop_versions = "5.4", save_as_csv = FALSE, rewrite = FALSE)
 #' }
 import_dataset <- function(output, ns = character(), i18n = character(), r = shiny::reactiveValues(), d = shiny::reactiveValues(), 
-  dataset_id = integer(), data = tibble::tibble(), type = "", omop_version = 6.0, 
+  dataset_id = integer(), data = tibble::tibble(), type = "", omop_version = "6.0", 
   read_with = "none", save_as = "none", rewrite = FALSE){
   
   # --- --- --- --- -- -
@@ -73,12 +73,7 @@ import_dataset <- function(output, ns = character(), i18n = character(), r = shi
   dataset_id <- as.integer(dataset_id)
   
   # Check omop_version
-  if (!is.numeric(omop_version)){
-    add_log_entry(r = r, category = "Error", name = paste0("import_dataset - invalid_omop_version - id = ", dataset_id), value = i18n$t("omop_version_must_be_numeric"))
-    cat(paste0("<span style = 'font-weight:bold; color:red;'>**", i18n$t("error"), "** ", i18n$t("omop_version_must_be_numeric"), "</span>\n"))
-    return(NULL)
-  }
-  if (omop_version %not_in% c(5.3, 5.4, 6.0)){
+  if (omop_version %not_in% c("5.3", "5.4", "6.0")){
     add_log_entry(r = r, category = "Error", name = paste0("import_dataset - invalid_omop_version - id = ", dataset_id), value = i18n$t("invalid_omop_version"))
     cat(paste0("<span style = 'font-weight:bold; color:red;'>**", i18n$t("error"), "** ", i18n$t("invalid_omop_version"), "</span>\n"))
     return(NULL)
@@ -89,7 +84,7 @@ import_dataset <- function(output, ns = character(), i18n = character(), r = shi
     "condition_occurrence", "drug_exposure", "procedure_occurrence", "device_exposure",
     "measurement", "observation", "death", "note", "note_nlp", "specimen", "fact_relationship", "location",
     "location_history", "care_site", "provider", "payer_plan_period", "cost", "drug_era",
-    "dose_era", "condition_era") | (type == "death" & omop_version %not_in% c(5.3, 5.4))){
+    "dose_era", "condition_era") | (type == "death" & omop_version %not_in% c("5.3", "5.4"))){
     add_log_entry(r = r, category = "Error", name = paste0("import_dataset - var_type_not_valid - id = ", dataset_id), value = i18n$t("var_type_not_valid"))
     cat(paste0("<span style = 'font-weight:bold; color:red;'>**", i18n$t("error"), "** ", i18n$t("var_type_not_valid"), "</span>\n"))
     return(NULL)
@@ -155,14 +150,14 @@ import_dataset <- function(output, ns = character(), i18n = character(), r = shi
             "dose_era" = "iiiinTT",
             "condition_era" = "iiiTTi"
           )
-          if (type == "person" & omop_version %in% c(5.3, 5.4)) col_types <- "iiiiiTiiiiiccicici"
-          if (type == "visit_detail" & omop_version == 5.3) col_types <- "iiiDTDTiiiciciciiii"
-          if (type == "observation" & omop_version == 5.3) col_types <-  "iiiDTinciiiiiicicc"
-          if (type == "observation" & omop_version == 5.4) col_types <-  "iiiDTinciiiiiicicccii"
-          if (type == "location" & omop_version == 5.3) col_types <-  "iccccccc"
-          if (type == "drug_era" & omop_version %in% c(5.3, 5.4)) col_types <- "iiiDDii"
-          if (type == "dose_era" & omop_version %in% c(5.3, 5.4)) col_types <- "iiiinDD"
-          if (type == "condition_era" & omop_version %in% c(5.3, 5.4)) col_types <- "iiiDDi"
+          if (type == "person" & omop_version %in% c("5.3", "5.4")) col_types <- "iiiiiTiiiiiccicici"
+          if (type == "visit_detail" & omop_version == "5.3") col_types <- "iiiDTDTiiiciciciiii"
+          if (type == "observation" & omop_version == "5.3") col_types <-  "iiiDTinciiiiiicicc"
+          if (type == "observation" & omop_version == "5.4") col_types <-  "iiiDTinciiiiiicicccii"
+          if (type == "location" & omop_version == "5.3") col_types <-  "iccccccc"
+          if (type == "drug_era" & omop_version %in% c("5.3", "5.4")) col_types <- "iiiDDii"
+          if (type == "dose_era" & omop_version %in% c("5.3", "5.4")) col_types <- "iiiinDD"
+          if (type == "condition_era" & omop_version %in% c("5.3", "5.4")) col_types <- "iiiDDi"
             
           d[[type]] <- vroom::vroom(path, col_types = col_types, progress = FALSE)
           cat(paste0("<span style = 'font-weight:bold; color:#0078D4;'>", i18n$t(paste0("import_dataset_success_", type)), "</span>\n"))
@@ -394,7 +389,7 @@ import_dataset <- function(output, ns = character(), i18n = character(), r = shi
   
   # Data cols
   
-  if (omop_version %in% c(5.3, 5.4)){
+  if (omop_version %in% c("5.3", "5.4")){
     
     data_cols <- tibble::tribble(
       ~var, ~cols,
@@ -461,7 +456,7 @@ import_dataset <- function(output, ns = character(), i18n = character(), r = shi
     )
   }
   
-  if (omop_version == 6.0){
+  if (omop_version == "6.0"){
     data_cols <- tibble::tribble(
       ~var, ~cols,
       "person", tibble::tribble(
@@ -540,7 +535,7 @@ import_dataset <- function(output, ns = character(), i18n = character(), r = shi
     )
   }
   
-  if (omop_version == 5.3){
+  if (omop_version == "5.3"){
     data_cols <- data_cols %>% dplyr::bind_rows(
       tibble::tribble(
         ~var, ~cols,
@@ -622,7 +617,7 @@ import_dataset <- function(output, ns = character(), i18n = character(), r = shi
     )
   }
   
-  if (omop_version == 5.4){
+  if (omop_version == "5.4"){
     data_cols <- data_cols %>% dplyr::bind_rows(
       tibble::tribble(
         ~var, ~cols,
@@ -676,7 +671,7 @@ import_dataset <- function(output, ns = character(), i18n = character(), r = shi
     )
   }
   
-  if (omop_version %in% c(5.4, 6.0)){
+  if (omop_version %in% c("5.4", "6.0")){
     data_cols <- data_cols %>% dplyr::bind_rows(
       tibble::tribble(
         ~var, ~cols,

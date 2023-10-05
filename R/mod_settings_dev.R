@@ -27,8 +27,7 @@ mod_settings_dev_ui <- function(id = character(), i18n = character()){
     shiny.fluent::Pivot(
       onLinkClick = htmlwidgets::JS(paste0("item => Shiny.setInputValue('", id, "-current_tab', item.props.id)")),
       shiny.fluent::PivotItem(id = "dev_edit_code_card", itemKey = "dev_edit_code_card", headerText = i18n$t("r_console")),
-      shiny.fluent::PivotItem(id = "dev_perf_monitoring_card", itemKey = "dev_perf_monitoring_card", headerText = i18n$t("perf_monitoring"))#,
-      # shiny.fluent::PivotItem(id = "dev_to_do_list_card", itemKey = "dev_to_do_list_card", headerText = i18n$t("to_do_list"))
+      shiny.fluent::PivotItem(id = "dev_perf_monitoring_card", itemKey = "dev_perf_monitoring_card", headerText = i18n$t("perf_monitoring"))
     ),
     forbidden_cards,
     
@@ -68,37 +67,7 @@ mod_settings_dev_ui <- function(id = character(), i18n = character()){
               shiny.fluent::DefaultButton.shinyInput(ns("show_datatable"), i18n$t("show_data")),
               shiny.fluent::DefaultButton.shinyInput(ns("reset_perf_monitoring"), i18n$t("reset"))
             ),
-            DT::DTOutput(ns("perf_monitoring_datatable")),
-            
-          )
-        )
-      )
-    ),
-    
-    shinyjs::hidden(
-      div(id = ns("dev_to_do_list_card"),
-        make_card(i18n$t("to_do_list"),
-          div(br(),
-            shiny.fluent::MessageBar(
-              div(
-                strong("A faire pour la version 0.2.1"),
-                p(
-                  tags$ul(
-
-                  )
-                )
-              ),
-              messageBarType = 5), br(),
-            shiny.fluent::MessageBar(
-              div(
-                strong("Fait pour la version 0.2.1"),
-                p(
-                  tags$ul(
-                    
-                  )  
-                )
-              ),
-              messageBarType = 4)
+            DT::DTOutput(ns("perf_monitoring_datatable"))
           )
         )
       )

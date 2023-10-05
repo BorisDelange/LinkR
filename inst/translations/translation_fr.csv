@@ -375,7 +375,6 @@ console,Console
 table,Table
 output,Output
 script_description,Description du script
-all_scripts_card,Tous les scripts
 run_scripts_success,Scripts exécutés avec succès
 fail_load_dataset,Erreur lors du chargement du set de données
 fail_load_vocabulary,Erreur lors du chargement de la terminologie
@@ -641,10 +640,16 @@ translations,Traductions
 error_creating_translations_file,Erreur de la création du fichier de traductions
 error_creating_new_translator,Erreur lors de la création de la variable de traduction
 delete_this_image,Supprimer cette image
+delete_this_file,Supprimer ce fichier
+import_file,Importer un fichier
+file,Fichier
+all_datasets,Tous les sets de données
 error_deleting_image,Erreur lors de la suppression de l'image
 image_deleted,Image supprimée
 plugin_image_delete,Supprimer une image
 plugin_image_delete_subtext,Confirmer la suppression de cette image ?
+script_image_delete,Supprimer une image
+script_image_delete_subtext,Confirmer la suppression de cette image ?
 no_available_plugin,Pas de plugin disponible
 activate_scripts_cache,Activer la mise en mémoire cache
 last_cache_load_datetime,Date du dernier chargement du cache
@@ -749,6 +754,9 @@ export_script_card_user_access_description,Exporter des scripts
 all_users_user_access_description,Accéder au log de tous les utilisateurs
 only_me_user_access_description,Accéder au log de l'utilisateur connecté
 data_console_user_access_description,Accéder à la console depuis une étude
+import_dataset_card_user_access_description,Importer des sets de données
+export_dataset_card_user_access_description,Exporter des sets de données
+all_datasets_card_user_access_description,Tous les sets de données
 vocabulary_id_col,ID (vocabulary_id)
 vocabulary_id,ID de la terminologie
 vocabulary_id_1,ID terminologie 1
@@ -914,3 +922,5 @@ error_creating_xml_files,Erreur lors de la création des fichiers XML
 success_update_remote_git_repo,Dépôt git distant mis à jour avec succès
 error_update_remote_git_repo,Erreur lors de la mise à jour du dépôt git distant
 error_downloading_remote_plugin_images,Erreur lors du téléchargement des images du plugin du dépôt git distant
+import_datasets,Importer des sets
+export_datasets,Exporter des sets

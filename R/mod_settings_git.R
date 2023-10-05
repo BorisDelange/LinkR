@@ -241,7 +241,7 @@ mod_settings_git_server <- function(id = character(), r = shiny::reactiveValues(
           error_name = "settings_git load git_repos.csv", category = "Error", error_report = toString(e), i18n = i18n, ns = ns))
       
       new_cols <- outer("name", r$languages$code, paste, sep = "_") %>% as.vector()
-      for(col in new_cols) if(!col %in% colnames(git_repos)) git_repos <- git_repos %>% dplyr::mutate(!!col := NA_character_)
+      for(col in new_cols) if(!col %in% colnames(git_repos)) git_repos <- git_repos %>% dplyr::mutate(!!col := "")
       
       git_repos <- git_repos %>% dplyr::mutate(name = ifelse(!is.na(get(paste0("name_", language))), get(paste0("name_", language)), name_en))
       
@@ -757,7 +757,7 @@ mod_settings_git_server <- function(id = character(), r = shiny::reactiveValues(
           if (nrow(repo_category_elements) > 0){
             prefixes <- c("name", "category")
             new_cols <- outer(prefixes, r$languages$code, paste, sep = "_") %>% as.vector()
-            for(col in new_cols) if(!col %in% colnames(repo_category_elements)) repo_category_elements <- repo_category_elements %>% dplyr::mutate(!!col := character())
+            for(col in new_cols) if(!col %in% colnames(repo_category_elements)) repo_category_elements <- repo_category_elements %>% dplyr::mutate(!!col := "")
             
             if (input$repo_category %in% c("patient_lvl_plugins", "aggregated_plugins")){
               if (input$repo_category == "patient_lvl_plugins") plugin_type <- 1
@@ -884,6 +884,8 @@ mod_settings_git_server <- function(id = character(), r = shiny::reactiveValues(
                 dplyr::pull(code) %>% stringr::str_replace_all("''", "'"), paste0(local_category_element_dir, "/", name, ".R")))
             writeLines(code %>% dplyr::filter(category == "plugin_translations") %>% dplyr::pull(code) %>% stringr::str_replace_all("''", "'"), paste0(local_category_element_dir, "/translations.csv"))
           }
+          # Create code.R for scripts
+          if (repo_category == "scripts") writeLines(code %>%  dplyr::filter(category == "script") %>% dplyr::pull(code) %>% stringr::str_replace_all("''", "'"), paste0(local_category_element_dir, "/code.R"))
           
           # Create XML file
           xml <- XML::newXMLDoc()
@@ -903,9 +905,9 @@ mod_settings_git_server <- function(id = character(), r = shiny::reactiveValues(
           }
           
           else if (repo_category == "scripts"){
-            for(name in c("unique_id", "version", "author",  "name_fr", "name_en", "category_fr", "category_en")) XML::newXMLNode(name, 
+            for(name in c("unique_id", "version", "author", paste0("name_", r$languages$code), paste0("category_", r$languages$code))) XML::newXMLNode(name, 
               options %>% dplyr::filter(name == !!name) %>% dplyr::pull(value), parent = category_node)
-            for(name in c("description_fr", "description_en")) XML::newXMLNode(name,
+            for(name in c(paste0("description_", r$languages$code))) XML::newXMLNode(name,
               options %>% dplyr::filter(name == !!name) %>% dplyr::pull(value) %>% stringr::str_replace_all("''", "'"), parent = category_node)
             for (name in c("creation_datetime", "update_datetime")) XML::newXMLNode(name, category_element %>% dplyr::pull(get(!!name)), parent = category_node)
             XML::newXMLNode("code", code %>% dplyr::pull(code) %>% stringr::str_replace_all("''", "'"), parent = category_node)
@@ -1005,12 +1007,12 @@ mod_settings_git_server <- function(id = character(), r = shiny::reactiveValues(
       app_version = character(), type = character(), unique_id = character(), 
       version = character(), author = character(), image = character())
     for(col in new_cols) if(!col %in% colnames(repo_category_xml_fields$plugins)) repo_category_xml_fields$plugins <- 
-      repo_category_xml_fields$plugins %>% dplyr::mutate(!!col := character())
+      repo_category_xml_fields$plugins %>% dplyr::mutate(!!col := "")
     
     repo_category_xml_fields$scripts <- tibble::tibble(
       app_version = character(), unique_id = character(),  version = character(), author = character())
     for(col in new_cols) if(!col %in% colnames(repo_category_xml_fields$scripts)) repo_category_xml_fields$scripts <- 
-      repo_category_xml_fields$scripts %>% dplyr::mutate(!!col := character())
+      repo_category_xml_fields$scripts %>% dplyr::mutate(!!col := "")
     
     observeEvent(input$delete_edit_git_repo_delete_confirmed, {
       

@@ -7,7 +7,7 @@
 #' @noRd 
 #' @importFrom shiny NS tagList 
 
-mod_settings_data_management_ui <- function(id = character(), i18n = character()){
+mod_settings_data_management_ui <- function(id = character(), i18n = character(), language = "en", languages = tibble::tibble()){
   ns <- NS(id)
   result <- div()
  
@@ -17,11 +17,58 @@ mod_settings_data_management_ui <- function(id = character(), i18n = character()
     "settings_datasets", "data_source",
     "settings_vocabularies", "data_source")
   
-  cards <- c("datatable_card", "edit_code_card", "options_card", "vocabularies_tables_datatable_card", "import_vocabulary_card")
+  cards <- c("all_datasets_card", "datatable_card", "edit_code_card", "options_card", "vocabularies_tables_datatable_card", 
+    "import_dataset_card", "export_dataset_card", "import_vocabulary_card")
   forbidden_cards <- tagList()
   sapply(cards, function(card){
     forbidden_cards <<- tagList(forbidden_cards, forbidden_card(ns = ns, name = card, i18n = i18n))
   })
+  
+  # Scripts options & description divs (with distinct languages fields)
+  options_divs <- list()
+  options_div <- list()
+  description_divs <- list()
+  description_div <- list()
+  
+  for (type in c("dataset", "vocabulary")){
+    options_divs[[type]] <- tagList()
+    description_divs[[type]] <- tagList()
+    
+    for (lang in languages$code){
+      
+      options_div[[type]] <- shiny.fluent::Stack(horizontal = TRUE, tokens = list(childrenGap = 20),
+        div(
+          div(class = "input_title", paste0(i18n$t("name"), " (", toupper(lang), ")")),
+          div(shiny.fluent::TextField.shinyInput(ns(paste0(type, "_name_", lang))), style = "width:320px;")
+        ),
+        div(
+          div(class = "input_title", paste0(i18n$t("category"), " (", toupper(lang), ")")),
+          div(shiny.fluent::TextField.shinyInput(ns(paste0(type, "_category_", lang))), style = "width:320px;")
+        )
+      )
+      
+      description_div[[type]] <- div(
+        div(paste0(i18n$t("description"), " (", toupper(lang), ") :"), style = "font-weight:bold; margin-top:7px; margin-right:5px;"),
+        shinyAce::aceEditor(ns(paste0(type, "_description_", lang)), "", mode = "markdown", 
+          code_hotkeys = list(
+            "markdown", 
+            list(
+              save = list(win = "CTRL-S", mac = "CTRL-S|CMD-S"),
+              run_all = list(win = "CTRL-SHIFT-ENTER|CTRL-ENTER", mac = "CTRL-SHIFT-ENTER|CMD-SHIFT-ENTER|CTRL-ENTER|CMD-ENTER"),
+              comment = list(win = "CTRL-SHIFT-C", mac = "CTRL-SHIFT-C|CMD-SHIFT-C")
+            )
+          ),
+          autoScrollEditorIntoView = TRUE, minLines = 30, maxLines = 1000), style = "width: 100%;")
+      
+      if (lang == language) condition <- paste0("input.", type, "_language == '", lang, "' || input.", type, "_language == null")
+      else condition <- paste0("input.", type, "_language == '", lang, "'")
+      
+      options_div[[type]] <- conditionalPanel(condition = paste0("input.", type, "_language == '", lang, "'"), ns = ns, options_div[[type]])
+      
+      options_divs[[type]] <- tagList(options_divs[[type]], conditionalPanel(condition = condition, ns = ns, options_div[[type]]))
+      description_divs[[type]] <- tagList(description_divs[[type]], conditionalPanel(condition = condition, ns = ns, description_div[[type]]))
+    }
+  }
   
   # --- --- --- --- --- --
   # Data sources card ----
@@ -75,9 +122,12 @@ mod_settings_data_management_ui <- function(id = character(), i18n = character()
       shiny.fluent::Pivot(
         id = ns("datasets_pivot"),
         onLinkClick = htmlwidgets::JS(paste0("item => Shiny.setInputValue('", id, "-current_tab', item.props.id)")),
+        shiny.fluent::PivotItem(id = "all_datasets_card", itemKey = "all_datasets_card", headerText = i18n$t("all_datasets")),
         shiny.fluent::PivotItem(id = "datatable_card", itemKey = "datatable_card", headerText = i18n$t("datasets_management")),
         shiny.fluent::PivotItem(id = "edit_code_card", itemKey = "edit_code_card", headerText = i18n$t("edit_dataset_code")),
-        shiny.fluent::PivotItem(id = "options_card", itemKey = "options_card", headerText = i18n$t("dataset_options"))
+        shiny.fluent::PivotItem(id = "options_card", itemKey = "options_card", headerText = i18n$t("dataset_options")),
+        shiny.fluent::PivotItem(id = "import_dataset_card", itemKey = "import_dataset_card", headerText = i18n$t("import_datasets")),
+        shiny.fluent::PivotItem(id = "export_dataset_card", itemKey = "export_dataset_card", headerText = i18n$t("export_datasets"))
       ),
       
       forbidden_cards,
@@ -145,30 +195,53 @@ mod_settings_data_management_ui <- function(id = character(), i18n = character()
       # --- --- --- --- --- ---
       
       div(id = ns("options_card"),
-        make_card(i18n$t("dataset_options"),
+        make_shiny_ace_card(i18n$t("dataset_options"),
           div(
-            make_combobox(i18n = i18n, ns = ns, label = "dataset", id = "options_selected_dataset_or_vocabulary", width = "300px", allowFreeform = FALSE, multiSelect = FALSE), br(),
-            make_dropdown(i18n = i18n, ns = ns, label = "omop_version", width = "300px", 
-              options = list(
-                list(key = "5.3", text = "5.3"),
-                list(key = "5.4", text = "5.4"),
-                list(key = "6.0", text = "6.0")
-              )), br(), br(),
             shiny.fluent::Stack(
-              horizontal = TRUE, tokens = list(childrenGap = 10),
-              make_toggle(i18n = i18n, ns = ns, label = "show_only_aggregated_data", inline = TRUE)
-            ), br(),
-            div(
-              div(class = "input_title", paste0(i18n$t("grant_access_to"), " :")),
-              shiny.fluent::ChoiceGroup.shinyInput(ns("users_allowed_read_group"), options = list(
-                list(key = "everybody", text = i18n$t("everybody")),
-                list(key = "people_picker", text = i18n$t("choose_users"))
-              ), className = "inline_choicegroup"),
-              conditionalPanel(condition = "input.users_allowed_read_group == 'people_picker'", ns = ns,
-                uiOutput(ns("users_allowed_read_div"))
+              tokens = list(childrenGap = 5),
+              shiny.fluent::Stack(horizontal = TRUE, tokens = list(childrenGap = 20),
+                make_combobox(i18n = i18n, ns = ns, label = "dataset", id = "options_selected_dataset_or_vocabulary", width = "320px", allowFreeform = FALSE, multiSelect = FALSE), 
+                make_dropdown(i18n = i18n, ns = ns, label = "language", id = "dataset_language", 
+                  options = convert_tibble_to_list(languages, key_col = "code", text_col = "language"), value = language, width = "320px"),
+                make_textfield(i18n = i18n, ns = ns, label = "version", id = "dataset_version", width = "80px")
+              ),
+              make_textfield(i18n = i18n, ns = ns, label = "author_s", id = "dataset_author", width = "660px"),
+              options_divs$dataset,
+              make_dropdown(i18n = i18n, ns = ns, label = "omop_version", width = "320px", 
+                options = list(
+                  list(key = "5.3", text = "5.3"),
+                  list(key = "5.4", text = "5.4"),
+                  list(key = "6.0", text = "6.0")
+                )), br(), br(), br(),
+              shiny.fluent::Stack(
+                horizontal = TRUE, tokens = list(childrenGap = 10),
+                make_toggle(i18n = i18n, ns = ns, label = "show_only_aggregated_data", inline = TRUE)
+              ), br(),
+              div(
+                div(class = "input_title", paste0(i18n$t("grant_access_to"), " :")),
+                shiny.fluent::ChoiceGroup.shinyInput(ns("users_allowed_read_group"), options = list(
+                  list(key = "everybody", text = i18n$t("everybody")),
+                  list(key = "people_picker", text = i18n$t("choose_users"))
+                ), className = "inline_choicegroup"),
+                conditionalPanel(condition = "input.users_allowed_read_group == 'people_picker'", ns = ns,
+                  uiOutput(ns("users_allowed_read_div"))
+                )
               )
-            ), br(),
-            shiny.fluent::PrimaryButton.shinyInput(ns("options_save"), i18n$t("save"))
+            ),
+            shiny.fluent::Stack(horizontal = TRUE, tokens = list(childrenGap = 20),
+              make_dropdown(i18n = i18n, ns = ns, label = "file", id = "dataset_file", width = "320px"),
+              div(shiny.fluent::DefaultButton.shinyInput(ns("delete_file"), i18n$t("delete_this_file")), style = "margin-top:39px;"),
+              div(shiny.fluent::DefaultButton.shinyInput(ns("import_file"), i18n$t("import_file")), style = "margin-top:39px;"),
+            ),
+            description_divs$dataset,
+            shiny.fluent::Stack(horizontal = TRUE, tokens = list(childrenGap = 10),
+              shiny.fluent::PrimaryButton.shinyInput(ns("options_save"), i18n$t("save")), " ",
+              shiny.fluent::DefaultButton.shinyInput(ns("preview_description"), i18n$t("preview"))
+            ),
+            br(),
+            div(id = ns("description_markdown_output"),
+              uiOutput(ns("description_markdown_result")), 
+              style = "width: 99%; border-style: dashed; border-width: 1px; padding:0px 8px 0px 8px; margin-right: 5px;")
           )
         ), br()
       )
@@ -425,7 +498,8 @@ mod_settings_data_management_server <- function(id = character(), r = shiny::rea
     # --- --- --- --- --- ---
     
     # Toggles IDs
-    cards <- c("creation_card", "datatable_card", "edit_code_card", "options_card", "vocabularies_tables_datatable_card", "import_vocabulary_card")
+    cards <- c("all_datasets_card", "datatable_card", "edit_code_card", "options_card", "vocabularies_tables_datatable_card", 
+      "import_dataset_card", "export_dataset_card", "import_vocabulary_card")
     sapply(cards, shinyjs::hide)
     
     show_or_hide_cards(r = r, input = input, session = session, table = table, id = id, cards = cards)
@@ -806,12 +880,40 @@ mod_settings_data_management_server <- function(id = character(), r = shiny::rea
               width = "100%", style = "padding-bottom:10px;")
           })
           
+          for (field in c("version", "author", paste0("name_", r$languages$code), paste0("category_", r$languages$code))){
+            value <- options %>% dplyr::filter(name == field) %>% dplyr::pull(value) %>% stringr::str_replace_all("''", "'")
+            if (length(value) == 0) value <- ""
+            if (length(value) > 0) if (is.na(value)) value <- ""
+            
+            shiny.fluent::updateTextField.shinyInput(session, paste0(get_singular(table), "_", field), value = value)
+          }
+          
+          for (field in paste0("description_", r$languages$code)){
+            value <- options %>% dplyr::filter(name == field) %>% dplyr::pull(value) %>% stringr::str_replace_all("''", "'")
+            if (length(value) == 0) value <- ""
+            if (length(value) > 0) if (is.na(value)) value <- ""
+            shinyAce::updateAceEditor(session, paste0(get_singular(table), "_", field), value = value) 
+          }
         })
         
-        observeEvent(input$options_save, {
+        # Save updates
+        
+        sapply(r$languages$code, function(lang){
+          observeEvent(input[[paste0(get_singular(table), "_description_", lang, "_save")]], {
+            if (debug) cat(paste0("\n", Sys.time(), " - mod_settings_data_management - observer input$.._description_", lang, "_save"))
+            r[[paste0(get_singular(table), "_save_options")]] <- Sys.time()
+          })
+        })
+        
+        observeEvent(input$save_options_description, {
+          if (debug) cat(paste0("\n", Sys.time(), " - mod_settings_data_management - observer input$save_options_description"))
+          r[[paste0(get_singular(table), "_save_options")]] <- Sys.time()
+        })
+        
+        observeEvent(r[[paste0(get_singular(table), "_save_options")]], {
           
           if (perf_monitoring) monitor_perf(r = r, action = "start")
-          if (debug) cat(paste0("\n", Sys.time(), " - mod_settings_data_management - observer input$options_save"))
+          if (debug) cat(paste0("\n", Sys.time(), " - mod_settings_data_management - observer r$.._save_options"))
           
           req(input$options_selected_dataset_or_vocabulary)
           
@@ -821,15 +923,77 @@ mod_settings_data_management_server <- function(id = character(), r = shiny::rea
           category <- get_singular(id)
           
           data <- list()
-          data$show_only_aggregated_data <- as.integer(input$show_only_aggregated_data)
-          data$users_allowed_read <- input$users_allowed_read
-          data$users_allowed_read_group <- input$users_allowed_read_group
-          data$omop_version <- input$omop_version
-  
+          if (table == "datasets"){
+            data$show_only_aggregated_data <- as.integer(input$show_only_aggregated_data)
+            data$users_allowed_read <- input$users_allowed_read
+            data$users_allowed_read_group <- input$users_allowed_read_group
+            data$omop_version <- input$omop_version 
+          }
+          
+          for (field in c(paste0(get_singular(table), "_version"), paste0(get_singular(table), "_author"),
+            paste0(get_singular(table), "_name_", r$languages$code), paste0(get_singular(table), "_category_", r$languages$code),
+            paste0(get_singular(table), "_description_", r$languages$code))) data[[stringr::str_replace(field, paste0(get_singular(table), "_"), "")]] <- input[[field]]
+          
+          if (table == "datasets") page_options <- c("version", "unique_id", "author", "show_only_aggregated_data", "users_allowed_read", "omop_version",
+            paste0("name_", r$languages$code), paste0("category_", r$languages$code), paste0("description_", r$languages$code))
+          if (table == "vocabularies") page_options <- c("version", "unique_id", "author",
+            paste0("name_", r$languages$code), paste0("category_", r$languages$code), paste0("description_", r$languages$code))
+          
           save_settings_options(output = output, r = r, id = id, category = category, code_id_input = paste0("options_", link_id), 
-            i18n = i18n, data = data, page_options = c("show_only_aggregated_data", "users_allowed_read", "omop_version"))
+            i18n = i18n, data = data, page_options = page_options)
           
           if (perf_monitoring) monitor_perf(r = r, action = "stop", task = paste0("mod_settings_data_management - observer input$options_save"))
+        })
+        
+        # Render markdown
+        
+        observeEvent(input$preview_description, {
+          if (debug) cat(paste0("\n", Sys.time(), " - mod_settings_data_management - observer input$preview_description"))
+          r[[paste0(get_singular(table), "_preview_description_trigger")]] <- Sys.time()
+        })
+        
+        sapply(r$languages$code, function(lang){
+          observeEvent(input[[paste0(get_singular(table), "_description_", lang, "_run_all")]], {
+            if (debug) cat(paste0("\n", Sys.time(), " - mod_settings_data_management - observer input$.._description_", lang, "_run_all"))
+            r[[paste0(get_singular(table), "_preview_description_trigger")]] <- Sys.time()
+          })
+        })
+        
+        observeEvent(r[[paste0(get_singular(table), "_preview_description_trigger")]], {
+          
+          if (debug) cat(paste0("\n", Sys.time(), " - mod_settings_data_management - observer r$..preview_description_trigger"))
+          
+          if (length(input$options_selected_dataset_or_vocabulary) > 1) link_id <- input$options_selected_dataset_or_vocabulary$key
+          else link_id <- input$options_selected_dataset_or_vocabulary
+          
+          options <- r$options %>% dplyr::filter(category == get_singular(table), link_id == !!link_id)
+          dataset_or_vocabulary_folder <- paste0(r$app_folder, "/", get_singular(table), "/", options %>% dplyr::filter(name == "unique_id") %>% dplyr::pull(value))
+          
+          options_description <- isolate(input[[paste0(get_singular(table), "_description_", input[[paste0(get_singular(table), "_language")]])]] %>% 
+            stringr::str_replace_all("\r", "\n")) %>%
+            stringr::str_replace_all(paste0("%", get_singular(table), "_folder%"), dataset_or_vocabulary_folder)
+          
+          tryCatch({
+            
+            # Clear temp dir
+            # unlink(paste0(r$app_folder, "/temp_files"), recursive = TRUE, force = TRUE)
+            
+            markdown_settings <- paste0("```{r setup, include=FALSE}\nknitr::opts_knit$set(root.dir = '", 
+              r$app_folder, "/temp_files/markdowns')\n",
+              "knitr::opts_chunk$set(root.dir = '", r$app_folder, "/temp_files/markdowns', fig.path = '", r$app_folder, "/temp_files/markdowns')\n```\n")
+            
+            markdown_file <- paste0(markdown_settings, options_description)
+            
+            # Create temp dir
+            dir <- paste0(r$app_folder, "/temp_files/markdowns")
+            file <- paste0(dir, "/", paste0(sample(c(0:9, letters[1:6]), 8, TRUE), collapse = ''), "_", as.character(Sys.time()) %>% stringr::str_replace_all(":", "_"), ".Md")
+            if (!dir.exists(dir)) dir.create(dir)
+            
+            # Create the markdown file
+            knitr::knit(text = markdown_file, output = file, quiet = TRUE)
+            
+            output$description_markdown_result <- renderUI(div(class = "markdown", withMathJax(includeMarkdown(file))))
+          }, error = function(e) "")
         })
       }
       

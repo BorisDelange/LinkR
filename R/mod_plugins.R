@@ -113,7 +113,8 @@ mod_plugins_ui <- function(id = character(), i18n = character(), language = tibb
           "markdown", 
           list(
             save = list(win = "CTRL-S", mac = "CTRL-S|CMD-S"),
-            run_all = list(win = "CTRL-SHIFT-ENTER|CTRL-ENTER", mac = "CTRL-SHIFT-ENTER|CMD-SHIFT-ENTER|CTRL-ENTER|CMD-ENTER") 
+            run_all = list(win = "CTRL-SHIFT-ENTER|CTRL-ENTER", mac = "CTRL-SHIFT-ENTER|CMD-SHIFT-ENTER|CTRL-ENTER|CMD-ENTER"),
+            comment = list(win = "CTRL-SHIFT-C", mac = "CTRL-SHIFT-C|CMD-SHIFT-C")
           )
         ),
       autoScrollEditorIntoView = TRUE, minLines = 30, maxLines = 1000), style = "width: 100%;")
@@ -262,7 +263,8 @@ mod_plugins_ui <- function(id = character(), i18n = character(), language = tibb
                     "r", list(
                       run_selection = list(win = "CTRL-ENTER", mac = "CTRL-ENTER|CMD-ENTER"),
                       run_all = list(win = "CTRL-SHIFT-ENTER", mac = "CTRL-SHIFT-ENTER|CMD-SHIFT-ENTER"),
-                      save = list(win = "CTRL-S", mac = "CTRL-S|CMD-S")
+                      save = list(win = "CTRL-S", mac = "CTRL-S|CMD-S"),
+                      comment = list(win = "CTRL-SHIFT-C", mac = "CTRL-SHIFT-C|CMD-SHIFT-C")
                     )
                   ),
                   autoScrollEditorIntoView = TRUE, minLines = 30, maxLines = 1000
@@ -274,7 +276,8 @@ mod_plugins_ui <- function(id = character(), i18n = character(), language = tibb
                     "r", list(
                       run_selection = list(win = "CTRL-ENTER", mac = "CTRL-ENTER|CMD-ENTER"),
                       run_all = list(win = "CTRL-SHIFT-ENTER", mac = "CTRL-SHIFT-ENTER|CMD-SHIFT-ENTER"),
-                      save = list(win = "CTRL-S", mac = "CTRL-S|CMD-S")
+                      save = list(win = "CTRL-S", mac = "CTRL-S|CMD-S"),
+                      comment = list(win = "CTRL-SHIFT-C", mac = "CTRL-SHIFT-C|CMD-SHIFT-C")
                     )
                   ),
                   autoScrollEditorIntoView = TRUE, minLines = 30, maxLines = 1000
@@ -282,7 +285,12 @@ mod_plugins_ui <- function(id = character(), i18n = character(), language = tibb
               conditionalPanel(condition = "input.edit_code_ui_server == 'translations'", ns = ns,
                 div(shinyAce::aceEditor(
                   ns("ace_edit_code_translations"), "", mode = "text",
-                  code_hotkeys = list("r", list(save = list(win = "CTRL-S", mac = "CTRL-S|CMD-S"))),
+                  code_hotkeys = list("r", 
+                    list(
+                      save = list(win = "CTRL-S", mac = "CTRL-S|CMD-S"),
+                      comment = list(win = "CTRL-SHIFT-C", mac = "CTRL-SHIFT-C|CMD-SHIFT-C")
+                    )
+                  ),
                   autoScrollEditorIntoView = TRUE, minLines = 30, maxLines = 1000
                 ), style = "width: 100%;"))
             ),
@@ -321,8 +329,7 @@ mod_plugins_ui <- function(id = character(), i18n = character(), language = tibb
                 make_textfield(i18n = i18n, ns = ns, label = "version", id = "plugin_version", width = "80px")
               ),
               make_textfield(i18n = i18n, ns = ns, label = "author_s", id = "plugin_author", width = "660px"),
-              plugin_options_divs,
-              br(),
+              plugin_options_divs, br(),
               div(
                 div(class = "input_title", paste0(i18n$t("grant_access_to"), " :")),
                 shiny.fluent::ChoiceGroup.shinyInput(ns("users_allowed_read_group"), options = list(
@@ -333,16 +340,14 @@ mod_plugins_ui <- function(id = character(), i18n = character(), language = tibb
                   uiOutput(ns("users_allowed_read_div"))
                 )
               ), br(),
-              div(
-                shiny.fluent::Stack(horizontal = TRUE, tokens = list(childrenGap = 20),
-                  make_dropdown(i18n = i18n, ns = ns, label = "image_url", id = "plugin_image", width = "320px"),
-                  div(shiny.fluent::DefaultButton.shinyInput(ns("delete_image"), i18n$t("delete_this_image")), style = "margin-top:39px;"),
-                  div(shiny.fluent::DefaultButton.shinyInput(ns("import_image"), i18n$t("import_image")), style = "margin-top:39px;"),
-                  div(
-                    shiny.fluent::Stack(horizontal = TRUE, tokens = list(childrenGap = 10),
-                      make_toggle(i18n = i18n, ns = ns, label = "resize_image", inline = TRUE)), 
-                  style = "margin-top:44px;"),
-                )
+              shiny.fluent::Stack(horizontal = TRUE, tokens = list(childrenGap = 20),
+                make_dropdown(i18n = i18n, ns = ns, label = "image", id = "plugin_image", width = "320px"),
+                div(shiny.fluent::DefaultButton.shinyInput(ns("delete_image"), i18n$t("delete_this_image")), style = "margin-top:39px;"),
+                div(shiny.fluent::DefaultButton.shinyInput(ns("import_image"), i18n$t("import_image")), style = "margin-top:39px;"),
+                div(
+                  shiny.fluent::Stack(horizontal = TRUE, tokens = list(childrenGap = 10),
+                    make_toggle(i18n = i18n, ns = ns, label = "resize_image", inline = TRUE)), 
+                style = "margin-top:44px;"),
               ), 
               br(),
               conditionalPanel(condition = "input.plugin_image != null & input.plugin_image != ''", ns = ns,
@@ -356,10 +361,10 @@ mod_plugins_ui <- function(id = character(), i18n = character(), language = tibb
                 shiny.fluent::PrimaryButton.shinyInput(ns("save_plugin_options"), i18n$t("save")),
                 shiny.fluent::DefaultButton.shinyInput(ns("execute_options_description"), i18n$t("preview"))
               ),
-              br(), br(),
+              br(),
               div(id = ns("description_markdown_output"),
                 uiOutput(ns("description_markdown_result")), 
-                style = "width: 99%; border-style: dashed; border-width: 1px; padding: 0px 8px 0px 8px; margin-right: 5px; padding-top: 10px;"),
+                style = "width: 99%; border-style: dashed; border-width: 1px; padding:0px 8px 0px 8px; margin-right: 5px;"),
               div(style = "display:none;", fileInput(ns("import_image_file"), label = "", multiple = FALSE, accept = c(".jpg", ".jpeg", ".png", ".svg")))
             )
           )
@@ -899,8 +904,6 @@ mod_plugins_server <- function(id = character(), r = shiny::reactiveValues(), d 
         }
       }
       
-      print(plugin_folder)
-      
       # Change %plugin_folder% for images
       plugin_description <- plugin_description %>% stringr::str_replace_all("%plugin_folder%", plugin_folder)
       
@@ -978,7 +981,7 @@ mod_plugins_server <- function(id = character(), r = shiny::reactiveValues(), d 
       shinyjs::hide("all_plugins_plugin_details")
     })
     
-    # Install of update a remote_git plugin
+    # Install or update a remote_git plugin
     
     observeEvent(input$install_plugin, {
       if (debug) cat(paste0("\n", Sys.time(), " - mod_plugins - observer input$install_plugin"))
@@ -1380,6 +1383,9 @@ mod_plugins_server <- function(id = character(), r = shiny::reactiveValues(), d 
       
       r$delete_plugins <- as.integer(substr(input$deleted_pressed, nchar("delete_") + 1, 100))
       r[[plugin_delete_variable]] <- TRUE
+      
+      # Reload datatable (to unselect rows)
+      DT::replaceData(r[[paste0(prefix, "_plugins_datatable_proxy")]], r[[paste0(prefix, "_plugins_datatable_temp")]], resetPaging = FALSE, rownames = FALSE)
     })
     
     # Delete multiple rows (with "Delete selection" button)
@@ -1440,6 +1446,9 @@ mod_plugins_server <- function(id = character(), r = shiny::reactiveValues(), d 
       shiny.fluent::updateComboBox.shinyInput(session, "code_selected_plugin", options = options, value = value)
       shiny.fluent::updateComboBox.shinyInput(session, "options_selected_plugin", options = options, value = value)
       
+      # Reload datatable (to unselect rows)
+      DT::replaceData(r[[paste0(prefix, "_plugins_datatable_proxy")]], r[[paste0(prefix, "_plugins_datatable_temp")]], resetPaging = FALSE, rownames = FALSE)
+      
       # Set current pivot to edit_plugins_code
       shinyjs::runjs(glue::glue("$('#{id}-plugins_pivot button[name=\"{i18n$t('edit_plugin_code')}\"]').click();"))
     })
@@ -1456,6 +1465,9 @@ mod_plugins_server <- function(id = character(), r = shiny::reactiveValues(), d 
       
       shiny.fluent::updateComboBox.shinyInput(session, "code_selected_plugin", options = options, value = value)
       shiny.fluent::updateComboBox.shinyInput(session, "options_selected_plugin", options = options, value = value)
+      
+      # Reload datatable (to unselect rows)
+      DT::replaceData(r[[paste0(prefix, "_plugins_datatable_proxy")]], r[[paste0(prefix, "_plugins_datatable_temp")]], resetPaging = FALSE, rownames = FALSE)
       
       # Set current pivot to edit_plugins_code
       shinyjs::runjs(glue::glue("$('#{id}-plugins_pivot button[name=\"{i18n$t('plugin_options')}\"]').click();"))
@@ -1532,13 +1544,18 @@ mod_plugins_server <- function(id = character(), r = shiny::reactiveValues(), d 
       
       for (field in c("version", "author", paste0("name_", r$languages$code), paste0("category_", r$languages$code))){
         value <- options %>% dplyr::filter(name == field) %>% dplyr::pull(value) %>% stringr::str_replace_all("''", "'")
-        if (is.na(value)) value <- ""
+        if (length(value) == 0) value <- ""
+        if (length(value) > 0) if (is.na(value)) value <- ""
         
         shiny.fluent::updateTextField.shinyInput(session, paste0("plugin_", field), value = value)
       }
       
-      for (field in paste0("description_", r$languages$code)) shinyAce::updateAceEditor(session,
-        paste0("plugin_", field), value = options %>% dplyr::filter(name == field) %>% dplyr::pull(value) %>% stringr::str_replace_all("''", "'"))
+      for (field in paste0("description_", r$languages$code)){
+        value <- options %>% dplyr::filter(name == field) %>% dplyr::pull(value) %>% stringr::str_replace_all("''", "'")
+        if (length(value) == 0) value <- ""
+        if (length(value) > 0) if (is.na(value)) value <- ""
+        shinyAce::updateAceEditor(session, paste0("plugin_", field), value = value) 
+      }
       
       if (perf_monitoring) monitor_perf(r = r, action = "stop", task = paste0("mod_plugins - observer input$options_selected_plugin"))
     })
@@ -1552,7 +1569,9 @@ mod_plugins_server <- function(id = character(), r = shiny::reactiveValues(), d 
       req(length(input$plugin_image) > 0)
       req(input$plugin_image != "")
       
-      link_id <- input$options_selected_plugin$key
+      if (length(input$options_selected_plugin) > 1) link_id <- input$options_selected_plugin$key
+      else link_id <- input$options_selected_plugin
+      
       options <- r$options %>% dplyr::filter(category == "plugin", link_id == !!link_id)
       plugin_folder <- paste0(r$app_folder, "/plugins/", prefix, "/", options %>% dplyr::filter(name == "unique_id") %>% dplyr::pull(value))
       
@@ -1710,9 +1729,8 @@ mod_plugins_server <- function(id = character(), r = shiny::reactiveValues(), d 
       
       tryCatch({
         
-        # if (length(input$options_selected_plugin) > 1) link_id <- input$options_selected_plugin$key
-        # else link_id <- input$code_selected_plugin
-        link_id <- input$options_selected_plugin$key
+        if (length(input$options_selected_plugin) > 1) link_id <- input$options_selected_plugin$key
+        else link_id <- input$options_selected_plugin
         
         plugin <- r$plugins %>%
           dplyr::filter(id == link_id) %>%
@@ -1756,14 +1774,11 @@ mod_plugins_server <- function(id = character(), r = shiny::reactiveValues(), d 
       r[[paste0(prefix, "_plugin_options_description_trigger")]] <- Sys.time()
     })
     
-    observeEvent(input$plugin_description_fr_run_all, {
-      if (debug) cat(paste0("\n", Sys.time(), " - mod_plugins - observer input$plugin_description_fr_run_all"))
-      r[[paste0(prefix, "_plugin_options_description_trigger")]] <- Sys.time()
-    })
-    
-    observeEvent(input$plugin_description_en_run_all, {
-      if (debug) cat(paste0("\n", Sys.time(), " - mod_plugins - observer input$plugin_description_en_run_all"))
-      r[[paste0(prefix, "_plugin_options_description_trigger")]] <- Sys.time()
+    sapply(r$languages$code, function(lang){
+      observeEvent(input[[paste0("plugin_description_", lang, "_run_all")]], {
+        if (debug) cat(paste0("\n", Sys.time(), " - mod_plugins - observer input$plugin_description_", lang, "_run_all"))
+        r[[paste0(prefix, "_plugin_options_description_trigger")]] <- Sys.time()
+      })
     })
     
     observeEvent(r[[paste0(prefix, "_plugin_options_description_trigger")]], {
@@ -1847,6 +1862,29 @@ mod_plugins_server <- function(id = character(), r = shiny::reactiveValues(), d 
       output$code_result_server <- renderText("")
       
       if (perf_monitoring) monitor_perf(r = r, action = "stop", task = paste0("mod_plugins - observer input$code_selected_plugin"))
+    })
+    
+    # Comment text
+    sapply(c("ui", "server"), function(type){
+      observeEvent(input[[paste0("ace_edit_code_", type, "_comment")]], {
+        if (debug) cat(paste0("\n", Sys.time(), " - mod_plugins - observer input$ace_code_.._comment"))
+        
+        lines <- strsplit(input[[paste0("ace_edit_code_", type)]], "\n")[[1]]
+        req(length(lines) > 0)
+        
+        start_row <- input[[paste0("ace_edit_code_", type, "_comment")]]$range$start$row + 1
+        end_row <- input[[paste0("ace_edit_code_", type, "_comment")]]$range$end$row + 1
+        
+        for (i in start_row:end_row) if (startsWith(lines[i], "# ")) lines[i] <- substr(lines[i], 3, nchar(lines[i])) else lines[i] <- paste0("# ", lines[i])
+        
+        shinyAce::updateAceEditor(session, paste0("ace_edit_code_", type), value = paste0(lines, collapse = "\n"))
+        
+        shinyjs::runjs(sprintf("
+        var editor = ace.edit('%s-ace_edit_code_%s');
+        editor.moveCursorTo(%d, %d);
+        editor.focus();
+          ", id, type, input[[paste0("ace_edit_code_", type, "_comment")]]$range$end$row, input[[paste0("ace_edit_code_", type, "_comment")]]$range$end$column))
+      })
     })
     
     # Load vocabulary concepts
@@ -2451,11 +2489,11 @@ mod_plugins_server <- function(id = character(), r = shiny::reactiveValues(), d 
               ) %>%
               dplyr::select(id, unique_id),
             by = "unique_id"
-          ) 
+          )
         
         prefixes <- c("description", "name", "category")
         new_cols <- outer(prefixes, r$languages$code, paste, sep = "_") %>% as.vector()
-        for(col in new_cols) if(!col %in% colnames(plugins)) plugins <- plugins %>% dplyr::mutate(!!col := character())
+        for(col in new_cols) if(!col %in% colnames(plugins)) plugins <- plugins %>% dplyr::mutate(!!col := "")
         
         plugins <- plugins %>% dplyr::mutate(name = get(paste0("name_", language))) %>% dplyr::relocate(id)
 
@@ -2571,11 +2609,9 @@ mod_plugins_server <- function(id = character(), r = shiny::reactiveValues(), d 
             r$code <- r$code %>% dplyr::bind_rows(new_code)
             add_log_entry(r = r, category = paste0("code", " - ", i18n$t("insert_new_data")), name = i18n$t("sql_query"), value = toString(new_code))
 
-            # Copy files
-
+            # Copy files to temp dir
             list_of_files <- list.files(paste0(temp_dir, "/plugins/", prefix, "/", plugin$unique_id))
 
-            # Copy files to temp dir
             file.copy(
               paste0(temp_dir, "/plugins/", prefix, "/", plugin$unique_id, "/", list_of_files),
               paste0(dirs$plugin, "/", list_of_files),
@@ -2597,14 +2633,14 @@ mod_plugins_server <- function(id = character(), r = shiny::reactiveValues(), d 
         centered_cols <- c("author", "version", "creation_datetime", "update_datetime")
         column_widths <- c("author" = "100px", "version" = "80px", "creation_datetime" = "130px", "update_datetime" = "130px")
 
-        shinyjs::show("imported_plugins_div")
-
         data <- plugins %>% dplyr::select(name, version, author, creation_datetime, update_datetime) %>%
           dplyr::mutate_at(c("creation_datetime", "update_datetime"), format_datetime, language = language, sec = FALSE)
         
         render_datatable(output = output, ns = ns, i18n = i18n, data = data,
           output_name = "imported_plugins", col_names = col_names, centered_cols = centered_cols, column_widths = column_widths,
           filter = FALSE, datatable_dom = "")
+        
+        shinyjs::show("imported_plugins_div")
 
         show_message_bar(output,  "success_importing_plugin", "success", i18n = i18n, time = 15000, ns = ns)
       },
@@ -2737,7 +2773,7 @@ mod_plugins_server <- function(id = character(), r = shiny::reactiveValues(), d 
         plugins_tibble <- tibble::tibble(app_version = character(), type = character(), unique_id = character(), version = character(), author = character(), image = character())
         prefixes <- c("description", "name", "category")
         new_cols <- outer(prefixes, r$languages$code, paste, sep = "_") %>% as.vector()
-        for(col in new_cols) if(!col %in% colnames(plugins_tibble)) plugins_tibble <- plugins_tibble %>% dplyr::mutate(!!col := character())
+        for(col in new_cols) if(!col %in% colnames(plugins_tibble)) plugins_tibble <- plugins_tibble %>% dplyr::mutate(!!col := "")
         plugins_tibble <- plugins_tibble %>% dplyr::mutate(creation_datetime = character(), update_datetime = character())
         
         for (category in c("patient_lvl", "aggregated")){

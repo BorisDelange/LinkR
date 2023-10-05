@@ -260,33 +260,79 @@ add_settings_new_data <- function(session, output, r = shiny::reactiveValues(), 
   if (table == "scripts"){
     
     # Add options rows
-    new_data$options <- tibble::tribble(~id, ~category, ~link_id, ~name, ~value, ~value_num, ~creator_id, ~datetime, ~deleted,
-      last_row$options + 1, "script", last_row$data + 1, "version", "0.0.1.9000", NA_integer_, r$user_id, as.character(Sys.time()), FALSE,
-      last_row$options + 2, "script", last_row$data + 1, "unique_id", paste0(sample(c(0:9, letters[1:6]), 64, TRUE), collapse = ''), NA_integer_, r$user_id, as.character(Sys.time()), FALSE,
-      last_row$options + 3, "script", last_row$data + 1, "author", username, NA_integer_, r$user_id, as.character(Sys.time()), FALSE,
-      last_row$options + 4, "script", last_row$data + 1, "description_fr", "", NA_integer_, r$user_id, as.character(Sys.time()), FALSE,
-      last_row$options + 5, "script", last_row$data + 1, "description_en", "", NA_integer_, r$user_id, as.character(Sys.time()), FALSE,
-      last_row$options + 6, "script", last_row$data + 1, "category_fr", "", NA_integer_, r$user_id, as.character(Sys.time()), FALSE,
-      last_row$options + 7, "script", last_row$data + 1, "category_en", "", NA_integer_, r$user_id, as.character(Sys.time()), FALSE,
-      last_row$options + 8, "script", last_row$data + 1, "name_fr", as.character(data$name), NA_integer_, r$user_id, as.character(Sys.time()), FALSE,
-      last_row$options + 9, "script", last_row$data + 1, "name_en", as.character(data$name), NA_integer_, r$user_id, as.character(Sys.time()), FALSE)
+    new_data$options <- tibble::tribble(
+      ~name, ~value, ~value_num,
+      "version", "0.0.1.9000", NA_integer_,
+      "unique_id", paste0(sample(c(0:9, letters[1:6]), 64, TRUE), collapse = ''), NA_integer_,
+      "author", username, NA_integer_
+    ) %>%
+      dplyr::bind_rows(
+        r$languages %>%
+          tidyr::crossing(name = c("description", "category", "name")) %>%
+          dplyr::mutate(
+            name = paste0(name, "_", code),
+            value = ifelse(grepl("name_", name), as.character(data$name), ""),
+            value_num = NA_integer_
+          ) %>%
+          dplyr::select(-code, -language)
+      ) %>%
+      dplyr::mutate(id = last_row$options + dplyr::row_number(), category = "script", link_id = last_row$data + 1, .before = "name") %>%
+      dplyr::mutate(creator_id = r$user_id, datetime = as.character(Sys.time()), deleted = FALSE)
     
-    # Add code rows
+    # Add code row
     new_data$code <- tibble::tribble(~id, ~category, ~link_id, ~code, ~creator_id, ~datetime, ~deleted,
       last_row$code + 1, "script", last_row$data + 1, "", r$user_id, as.character(Sys.time()), FALSE)
   }
   
-  # For datasets options, need to add 3 rows in options
+  # For datasets options
   if (table == "datasets"){
     
-    new_data$options <- tibble::tribble(~id, ~category, ~link_id, ~name, ~value, ~value_num, ~creator_id, ~datetime, ~deleted,
-      last_row$options + 1, "dataset", last_row$data + 1, "users_allowed_read_group", "everybody", 1, r$user_id, as.character(Sys.time()), FALSE,
-      last_row$options + 2, "dataset", last_row$data + 1, "user_allowed_read", "", r$user_id, r$user_id, as.character(Sys.time()), FALSE,
-      last_row$options + 3, "dataset", last_row$data + 1, "show_only_aggregated_data", "", 0, r$user_id, as.character(Sys.time()), FALSE,
-      last_row$options + 4, "dataset", last_row$data + 1, "activate_scripts_cache", "", 1, r$user_id, as.character(Sys.time()), FALSE,
-      last_row$options + 5, "dataset", last_row$data + 1, "unique_id", paste0(sample(c(0:9, letters[1:6]), 64, TRUE), collapse = ''), NA_integer_, r$user_id, as.character(Sys.time()), FALSE,
-      last_row$options + 6, "dataset", last_row$data + 1, "omop_version", "6.0", NA_integer_, r$user_id, as.character(Sys.time()), FALSE,
-      last_row$options + 7, "dataset", last_row$data + 1, "description", "", NA_integer_, r$user_id, as.character(Sys.time()), FALSE)
+    # Add options rows
+    new_data$options <- tibble::tribble(
+      ~name, ~value, ~value_num,
+      "version", "0.0.1.9000", NA_integer_,
+      "unique_id", paste0(sample(c(0:9, letters[1:6]), 64, TRUE), collapse = ''), NA_integer_,
+      "author", username, NA_integer_,
+      "users_allowed_read_group", "everybody", 1,
+      "user_allowed_read", "", r$user_id,
+      "show_only_aggregated_data", "", 0,
+      "omop_version", "6.0", NA_integer_
+    ) %>%
+      dplyr::bind_rows(
+        r$languages %>%
+          tidyr::crossing(name = c("description", "category", "name")) %>%
+          dplyr::mutate(
+            name = paste0(name, "_", code),
+            value = ifelse(grepl("name_", name), as.character(data$name), ""),
+            value_num = NA_integer_
+          ) %>%
+          dplyr::select(-code, -language)
+      ) %>%
+      dplyr::mutate(id = last_row$options + dplyr::row_number(), category = "dataset", link_id = last_row$data + 1, .before = "name") %>%
+      dplyr::mutate(creator_id = r$user_id, datetime = as.character(Sys.time()), deleted = FALSE)
+  }
+  
+  if (table == "vocabularies"){
+    
+    # Add options rows
+    new_data$options <- tibble::tribble(
+      ~name, ~value, ~value_num,
+      "version", "0.0.1.9000", NA_integer_,
+      "unique_id", paste0(sample(c(0:9, letters[1:6]), 64, TRUE), collapse = ''), NA_integer_,
+      "author", username, NA_integer_
+    ) %>%
+      dplyr::bind_rows(
+        r$languages %>%
+          tidyr::crossing(name = c("description", "category", "name")) %>%
+          dplyr::mutate(
+            name = paste0(name, "_", code),
+            value = ifelse(grepl("name_", name), as.character(data$name), ""),
+            value_num = NA_integer_
+          ) %>%
+          dplyr::select(-code, -language)
+      ) %>%
+      dplyr::mutate(id = last_row$options + dplyr::row_number(), category = "vocabulary", link_id = last_row$data + 1, .before = "name") %>%
+      dplyr::mutate(creator_id = r$user_id, datetime = as.character(Sys.time()), deleted = FALSE)
   }
   
   # For studies, need to add one row in options and add rows of code for subsets, with default value
@@ -325,7 +371,7 @@ add_settings_new_data <- function(session, output, r = shiny::reactiveValues(), 
     
     # Add persons to subset
     tryCatch({
-      persons <- d$person %>% dplyr::select(person_id) %>% dplyr::collect() %>% dplyr::mutate_at("person_id", as.integer)
+      persons <- d$person %>% dplyr::select(person_id) %>% dplyr::collec %>% dplyr::mutate_at("person_id", as.integer)
       add_persons_to_subset(output = output, r = r, m = m, persons = persons, subset_id = last_row$subsets + 1, i18n = i18n, ns = ns)
     }, 
       error = function(e) if (nchar(e[1]) > 0) report_bug(r = r, output = output, error_message = "error_adding_patients_to_subset", 
@@ -495,11 +541,18 @@ delete_element <- function(r = shiny::reactiveValues(), m = shiny::reactiveValue
     
     r[[delete_variable]] <- FALSE
     
-    # Remove files if this is a plugin
+    # Remove files if this is a plugin or a script
     if (table == "plugins"){
       for (plugin_id in r[[id_var_r]]){
         plugin_options <- r$options %>% dplyr::filter(category == "plugin", link_id == plugin_id)
         unlink(paste0(app_folder, "/plugins/", prefix, "/", plugin_options %>% dplyr::filter(name == "unique_id") %>% dplyr::pull(value)), recursive = TRUE)
+      }
+    }
+    if (table == "scripts"){
+      for (script_id in r[[id_var_r]]){
+        script_options <- r$options %>% dplyr::filter(category == "script", link_id == script_id)
+        print(paste0(app_folder, "/scripts/", script_options %>% dplyr::filter(name == "unique_id") %>% dplyr::pull(value)))
+        unlink(paste0(app_folder, "/scripts/", script_options %>% dplyr::filter(name == "unique_id") %>% dplyr::pull(value)), recursive = TRUE)
       }
     }
     
@@ -600,7 +653,7 @@ execute_settings_code <- function(input, output, session, id = character(), ns =
     # Get OMOP version
     if (!is.na(r$dataset_id)){
       omop_version <- r$options %>% dplyr::filter(category == "dataset" & name == "omop_version" & link_id == r$dataset_id) %>% dplyr::pull(value)
-      code <- code %>% stringr::str_replace_all("%omop_version%", omop_version)
+      code <- code %>% stringr::str_replace_all("%omop_version%", paste0("'", omop_version, "'"))
     }
     
     # Change this option to display correctly tibble in textbox
@@ -1032,6 +1085,8 @@ save_settings_options <- function(output, r = shiny::reactiveValues(), id = char
     }
   }
   
+  print(data)
+  
   for (field in c("markdown_description", "version", "author", "image", "omop_version",
     paste0("name_", r$languages$code), paste0("category_", r$languages$code), paste0("description_", r$languages$code))){
     if (field %in% page_options){
@@ -1044,15 +1099,16 @@ save_settings_options <- function(output, r = shiny::reactiveValues(), id = char
         option_id <- get_last_row(r$db, "options") + 1
         new_data <- tibble::tibble(
           id = option_id, category = !!category, link_id = !!link_id,
-          name = field, value = "", value_num = NA_real_, creator_id = r$user_id, datetime = as.character(Sys.time()), deleted = FALSE)
+          name = field, value = new_value, value_num = NA_real_, creator_id = r$user_id, datetime = as.character(Sys.time()), deleted = FALSE)
         DBI::dbAppendTable(r$db, "options", new_data)
         r$options <- r$options %>% dplyr::bind_rows(new_data)
       }
-      
-      sql <- glue::glue_sql("UPDATE options SET value = {new_value} WHERE id = {option_id}", .con = r$db)
-      query <- DBI::dbSendStatement(r$db, sql)
-      DBI::dbClearResult(query)
-      r$options <- r$options %>% dplyr::mutate(value = dplyr::case_when(id == option_id ~ new_value, TRUE ~ value))
+      else {
+        sql <- glue::glue_sql("UPDATE options SET value = {new_value} WHERE id = {option_id}", .con = r$db)
+        query <- DBI::dbSendStatement(r$db, sql)
+        DBI::dbClearResult(query)
+        r$options <- r$options %>% dplyr::mutate(value = dplyr::case_when(id == option_id ~ new_value, TRUE ~ value))
+      }
     }
   }
   

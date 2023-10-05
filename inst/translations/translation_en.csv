@@ -375,7 +375,6 @@ console,Console
 table,Table
 output,Output
 script_description,Script description
-all_scripts_card,All scripts
 run_scripts_success,Scripts executed successfully
 fail_load_dataset,Failed loading dataset
 fail_load_vocabulary,Failed loading vocabulary
@@ -641,10 +640,16 @@ translations,Translations
 error_creating_translations_file,Error creating translations files
 error_creating_new_translator,Error creating new translator
 delete_this_image,Delete this image
+delete_this_file,Delete this file
+import_file,Import file
+file,File
+all_datasets,All datasets
 error_deleting_image,Error deleting image
 image_deleted,Image deleted
 plugin_image_delete,Delete an image
 plugin_image_delete_subtext,Confirm deletion of this image ?
+script_image_delete,Delete an image
+script_image_delete_subtext,Confirm deletion of this image ?
 no_available_plugin,No available plugin
 activate_scripts_cache,Activate cash memory
 last_cache_load_datetime,Date of last cache load
@@ -749,6 +754,9 @@ export_script_card_user_access_description,Export scripts
 all_users_user_access_description,Access to log of all users
 only_me_user_access_description,Access the log of the connected user
 data_console_user_access_description,Accessing the console from a study
+import_dataset_card_user_access_description,Import datasets
+export_dataset_card_user_access_description,Export datasets
+all_datasets_card_user_access_description,All datasets
 vocabulary_id_col,ID (vocabulary_id)
 vocabulary_id,Vocabulary ID
 vocabulary_id_1,Vocabulary ID 1
@@ -914,3 +922,5 @@ error_creating_xml_files,Error creating XML files
 success_update_remote_git_repo,Remote git repo successfully updated
 error_update_remote_git_repo,Error updating remote git repo
 error_downloading_remote_plugin_images,Error downloading remote git plugin's images
+import_datasets,Import datasets
+export_datasets,Export datasets
