@@ -576,11 +576,11 @@ mod_plugins_server <- function(id = character(), r = shiny::reactiveValues(), d 
       raw_files_url_address <- r$git_repos %>% dplyr::filter(id == input$remote_git_repo) %>% dplyr::pull(raw_files_url_address)
       if (substr(raw_files_url_address, nchar(raw_files_url_address), nchar(raw_files_url_address)) != "/") raw_files_url_address <- paste0(raw_files_url_address, "/")
       raw_files_url_address <- paste0(raw_files_url_address, "plugins/")
-      r$raw_files_url_address <- raw_files_url_address
+      r$plugins_raw_files_url_address <- raw_files_url_address
       
       # Get API key
       api_key <- r$git_repos %>% dplyr::filter(id == input$remote_git_repo) %>% dplyr::pull(api_key)
-      r$api_key <- api_key
+      r$plugins_api_key <- api_key
       
       error_loading_remote_git <- TRUE
       plugins_file <- paste0(r$app_folder, "/temp_files/plugins/plugins.xml")
@@ -725,7 +725,7 @@ mod_plugins_server <- function(id = character(), r = shiny::reactiveValues(), d 
 
               plugin$name <- plugin[[paste0("name_", language)]]
 
-              if (plugin$image != "") plugin$image_url <- paste0(r$raw_files_url_address, prefix, "/", plugin$unique_id, "/", plugin$image)
+              if (plugin$image != "") plugin$image_url <- paste0(r$plugins_raw_files_url_address, prefix, "/", plugin$unique_id, "/", plugin$image)
               else plugin$image_url <- ""
             }
 
@@ -733,7 +733,7 @@ mod_plugins_server <- function(id = character(), r = shiny::reactiveValues(), d 
               tibble::tribble(~type, ~id, ~image_url, type, as.character(plugin_id), plugin$image_url))
             
             choice_image_div <- "image_output"
-            if (length(r$api_key) > 0) if (type == "remote_git" & (is.na(r$api_key) | r$api_key == "")) choice_image_div <- "ui_output"
+            if (length(r$plugins_api_key) > 0) if (type == "remote_git" & (is.na(r$plugins_api_key) | r$plugins_api_key == "")) choice_image_div <- "ui_output"
             
             if (choice_image_div == "image_output") image_div <- imageOutput(ns(paste0(plugin_id, "_image")), width = "320px", height = "200px")
             if (choice_image_div == "ui_output") image_div <- uiOutput(ns(paste0(plugin_id, "_image")))
@@ -808,13 +808,13 @@ mod_plugins_server <- function(id = character(), r = shiny::reactiveValues(), d 
         
         if (row$type == "remote_git"){
           
-          if (is.na(r$api_key) | r$api_key == "") output[[paste0(row$id, "_image")]] <- renderUI(tags$img(src = row$image_url, width = 318, height = 200))
+          if (is.na(r$plugins_api_key) | r$plugins_api_key == "") output[[paste0(row$id, "_image")]] <- renderUI(tags$img(src = row$image_url, width = 318, height = 200))
           else {
             if (row$image_url != ""){
               local_folder <- paste0(r$app_folder, "/temp_files/plugins/", row$id)
               local_path <- paste0(local_folder, "/", stringr::str_extract(row$image_url, "(?<=/)[^/]+$"))
               if (!dir.exists(local_folder)) dir.create(local_folder)
-              response <- httr::GET(url = row$image_url, httr::authenticate("token", r$api_key, type = "basic"), httr::write_disk(path = local_path, overwrite = TRUE))
+              response <- httr::GET(url = row$image_url, httr::authenticate("token", r$plugins_api_key, type = "basic"), httr::write_disk(path = local_path, overwrite = TRUE))
               if (httr::http_status(response)$category == "Success") output[[paste0(row$id, "_image")]] <- renderImage({
                 req(file.exists(local_path))
                 list(src = local_path, width = 318, height = 200)}, deleteFile = FALSE)
@@ -859,8 +859,8 @@ mod_plugins_server <- function(id = character(), r = shiny::reactiveValues(), d 
         plugin_options <- r$options %>% dplyr::filter(category == "plugin", link_id == input$plugin_id)
         
         plugin_description <- paste0(
-          "**Auteur** : ", plugin_options %>% dplyr::filter(name == "author") %>% dplyr::pull(value), "<br />",
-          "**Version** : ", plugin_options %>% dplyr::filter(name == "version") %>% dplyr::pull(value), "\n\n",
+          "**", i18n$t("author_s"), "** : ", plugin_options %>% dplyr::filter(name == "author") %>% dplyr::pull(value), "<br />",
+          "**", i18n$t("version"), "** : ", plugin_options %>% dplyr::filter(name == "version") %>% dplyr::pull(value), "\n\n",
           plugin_options %>% dplyr::filter(name == paste0("description_", tolower(language))) %>% dplyr::pull(value) %>% stringr::str_replace_all("''", "'")
         )
         
@@ -876,12 +876,12 @@ mod_plugins_server <- function(id = character(), r = shiny::reactiveValues(), d 
         plugin$name <- plugin[[paste0("name_", language)]]
         
         plugin_description <- paste0(
-          "**Auteur** : ", plugin$name, "<br />",
-          "**Version** : ", plugin$version, "\n\n",
+          "**", i18n$t("author_s"), "** : ", plugin$name, "<br />",
+          "**", i18n$t("version"), "** : ", plugin$version, "\n\n",
           plugin %>% dplyr::pull(paste0("description_", tolower(language)))
         )
         
-        if (is.na(r$api_key) | r$api_key == "") plugin_folder <- paste0(r$raw_files_url_address, prefix, "/", plugin$unique_id)
+        if (is.na(r$plugins_api_key) | r$plugins_api_key == "") plugin_folder <- paste0(r$plugins_raw_files_url_address, prefix, "/", plugin$unique_id)
         
         # If there's an API key, copy all images
         else {
@@ -891,11 +891,11 @@ mod_plugins_server <- function(id = character(), r = shiny::reactiveValues(), d 
           tryCatch({
             images <- stringr::str_split(plugin$images, ";;;")[[1]]
             for (image in images){
-              url <- paste0(r$raw_files_url_address, prefix, "/", plugin$unique_id, "/", image)
+              url <- paste0(r$plugins_raw_files_url_address, prefix, "/", plugin$unique_id, "/", image)
               url <- gsub(" ", "%20", url)
               destfile <- paste0(plugin_folder, "/", image)
               
-              response <- httr::GET(url = url, httr::authenticate("token", r$api_key, type = "basic"), httr::write_disk(path = destfile, overwrite = TRUE))
+              response <- httr::GET(url = url, httr::authenticate("token", r$plugins_api_key, type = "basic"), httr::write_disk(path = destfile, overwrite = TRUE))
               if (httr::http_status(response)$category != "Success") stop(i18n$t("Error downloading plugin's images"))
             }
             
@@ -1100,11 +1100,11 @@ mod_plugins_server <- function(id = character(), r = shiny::reactiveValues(), d 
         for (code_type in c("ui", "server", "translations")){
           if (code_type == "translations") extension <- "csv" else extension <- "R"
           
-          url <- paste0(r$raw_files_url_address, prefix, "/", plugin$unique_id, "/", code_type, ".", extension)
+          url <- paste0(r$plugins_raw_files_url_address, prefix, "/", plugin$unique_id, "/", code_type, ".", extension)
           
-          if (is.na(r$api_key) | r$api_key == "") plugin_code[[code_type]] <- readLines(url, warn = FALSE)
+          if (is.na(r$plugins_api_key) | r$plugins_api_key == "") plugin_code[[code_type]] <- readLines(url, warn = FALSE)
           else {
-            response <- httr::GET(url = url, httr::authenticate("token", r$api_key, type = "basic"))
+            response <- httr::GET(url = url, httr::authenticate("token", r$plugins_api_key, type = "basic"))
               if (httr::http_status(response)$category == "Success") plugin_code[[code_type]] <- httr::content(response, type = "text/plain", encoding = "UTF-8")
               else stop("Error downloading ui, server & translations files")
           }
@@ -1125,23 +1125,22 @@ mod_plugins_server <- function(id = character(), r = shiny::reactiveValues(), d 
         add_log_entry(r = r, category = paste0("code", " - ", i18n$t("insert_new_data")), name = i18n$t("sql_query"), value = toString(new_code))
         r$code <- r$code %>% dplyr::bind_rows(new_code)
         
-        # Copy files
-        
         # Copy images
         if (nchar(plugin$images) > 0){
           images <- stringr::str_split(plugin$images, ";;;")[[1]]
           for (image in images){
-            url <- paste0(r$raw_files_url_address, prefix, "/", plugin$unique_id, "/", image)
+            url <- paste0(r$plugins_raw_files_url_address, prefix, "/", plugin$unique_id, "/", image)
             url <- gsub(" ", "%20", url)
             destfile <- paste0(dirs$plugin, "/", image)
             
-            if (is.na(r$api_key) | r$api_key == "") download.file(url, destfile, quiet = TRUE)
+            if (is.na(r$plugins_api_key) | r$plugins_api_key == "") download.file(url, destfile, quiet = TRUE)
             else {
-              response <- httr::GET(url = url, httr::authenticate("token", r$api_key, type = "basic"), httr::write_disk(path = destfile, overwrite = TRUE))
+              response <- httr::GET(url = url, httr::authenticate("token", r$plugins_api_key, type = "basic"), httr::write_disk(path = destfile, overwrite = TRUE))
               if (httr::http_status(response)$category != "Success") stop(i18n$t("Error downloading plugin's images"))
             }
           }
         }
+        
         r$show_plugin_details <- Sys.time()
         
         # Reload datatable
@@ -1707,7 +1706,7 @@ mod_plugins_server <- function(id = character(), r = shiny::reactiveValues(), d 
           options = convert_tibble_to_list(tibble::tibble(text = c("", files_list), key = c("", files_list)), key_col = "key", text_col = "text"),
           value = "")
         
-        show_message_bar(output,  "image_deleted", "success", i18n = i18n, ns = ns)
+        show_message_bar(output,  "image_deleted", "warning", i18n = i18n, ns = ns)
         
       }, error = function(e) report_bug(r = r, output = output, error_message = "error_deleting_image",
         error_name = paste0(id, " - delete plugin image"), category = "Error", error_report = toString(e), i18n = i18n))
@@ -2538,7 +2537,7 @@ mod_plugins_server <- function(id = character(), r = shiny::reactiveValues(), d 
               DBI::dbClearResult(query)
               r$code <- r$code %>% dplyr::filter(link_id != plugin$id | (link_id == plugin$id & category %not_in% c("plugin_ui", "plugin_server", "plugin_translations")))
             }
-
+            
             for (name in paste0("description_", r$languages$code)) plugin[[name]] <- plugin[[name]] %>% stringr::str_replace_all("'", "''")
 
             # Plugins table

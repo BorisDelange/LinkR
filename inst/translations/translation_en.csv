@@ -295,6 +295,7 @@ plugins,Plugins
 patient_lvl_plugins,Patient-level plugins
 aggregated_plugins,Aggregated plugins
 all_plugins_card,Access to plugins catalog
+all_scripts_card,All scripts
 plugins_see_all_data,Access to all data
 plugins_edit_data,Edit a plugin
 plugins_delete_data,Delete a plugin
@@ -451,6 +452,7 @@ update_plugin,Update plugin
 plugin_up_to_date,Plugin up to date
 local_plugin_newer,Local plugin is newer
 error_install_remote_git_plugin,Error installing a plugin from remote git
+error_install_remote_git_script,Error installing a script from remote git
 success_installing_remote_git_plugin,Plugin successfully installed from remote git
 choose_remote_git,Choose a remote git repository
 success_importing_plugin,Plugin(s) successfully imported
@@ -922,5 +924,6 @@ error_creating_xml_files,Error creating XML files
 success_update_remote_git_repo,Remote git repo successfully updated
 error_update_remote_git_repo,Error updating remote git repo
 error_downloading_remote_plugin_images,Error downloading remote git plugin's images
+error_downloading_remote_script_images,Error downloading remote git script's images
 import_datasets,Import datasets
 export_datasets,Export datasets

@@ -579,8 +579,8 @@ delete_element <- function(r = shiny::reactiveValues(), m = shiny::reactiveValue
     }
     
     # Notify user
-    if (!r_message_bar) show_message_bar(output, delete_message, type = "severeWarning", i18n = i18n, ns = ns)
-    if (r_message_bar) r[[paste0(table, "_show_message_bar")]] <- tibble::tibble(message = delete_message, type = "severeWarning", trigger = Sys.time())
+    if (!r_message_bar) show_message_bar(output, delete_message, type = "warning", i18n = i18n, ns = ns)
+    if (r_message_bar) r[[paste0(table, "_show_message_bar")]] <- tibble::tibble(message = delete_message, type = "warning", trigger = Sys.time())
     
     # Activate reload variable
     if (length(reload_variable) > 0) r[[reload_variable]] <- Sys.time()
@@ -1084,8 +1084,6 @@ save_settings_options <- function(output, r = shiny::reactiveValues(), id = char
       r$options <- r$options %>% dplyr::bind_rows(new_data)
     }
   }
-  
-  print(data)
   
   for (field in c("markdown_description", "version", "author", "image", "omop_version",
     paste0("name_", r$languages$code), paste0("category_", r$languages$code), paste0("description_", r$languages$code))){

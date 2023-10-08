@@ -782,7 +782,7 @@ mod_scripts_server <- function(id = character(), r = shiny::reactiveValues(), d 
       }
     })
     
-    # When script is selected
+    # When a script is selected
     
     observeEvent(input$local_scripts_datatable_rows_selected, {
       if (debug) cat(paste0("\n", Sys.time(), " - mod_scripts - observer input$local_scripts_datatable_rows_selected"))
@@ -801,11 +801,6 @@ mod_scripts_server <- function(id = character(), r = shiny::reactiveValues(), d 
       
       type <- r$datatable_script_selected_type
       
-      # script_description <- r[[paste0(type, "_scripts")]][input[[paste0(type, "_scripts_datatable_rows_selected")]], ] %>% 
-      #   dplyr::pull(description)
-      
-      # if (type == "local") script_description <- script_description %>% stringr::str_replace_all("''", "'")
-      
       tryCatch({
 
         # Clear temp dir
@@ -815,58 +810,56 @@ mod_scripts_server <- function(id = character(), r = shiny::reactiveValues(), d 
           r$app_folder, "/temp_files/markdowns')\n",
           "knitr::opts_chunk$set(root.dir = '", r$app_folder, "/temp_files/markdowns/', fig.path = '", r$app_folder, "/temp_files/markdowns/')\n```\n")
         
-        # For local plugins
+        # For local scripts
         
         if (type == "local"){
-          link_id <- r$scripts %>% dplyr::filter(id == r$scripts[input$scripts_datatable_rows_selected, ]$id)
-          print(link_id)
+          link_id <- r$local_scripts[input$local_scripts_datatable_rows_selected, ]$id
           script_options <- r$options %>% dplyr::filter(category == "script", link_id == !!link_id)
           
           script_description <- paste0(
-            "**Auteur** : ", script_options %>% dplyr::filter(name == "author") %>% dplyr::pull(value), "<br />",
-            "**Version** : ", script_options %>% dplyr::filter(name == "version") %>% dplyr::pull(value), "\n\n",
+            "**", i18n$t("author_s"), "** : ", script_options %>% dplyr::filter(name == "author") %>% dplyr::pull(value), "<br />",
+            "**", i18n$t("version"), "** : ", script_options %>% dplyr::filter(name == "version") %>% dplyr::pull(value), "\n\n",
             script_options %>% dplyr::filter(name == paste0("description_", tolower(language))) %>% dplyr::pull(value) %>% stringr::str_replace_all("''", "'")
           )
           
           script_folder <- paste0(r$app_folder, "/scripts/", script_options %>% dplyr::filter(name == "unique_id") %>% dplyr::pull(value))
         }
         
-        # For remote_git plugins
+        # For remote_git scripts
         
         if (type == "remote_git"){
           
-          # link_id <- r$scripts %>% dplyr::filter(id == r$scripts[input$scripts_datatable_rows_selected, ]$id)
-          # script <- r$remote_git_plugins %>% dplyr::filter(unique_id == input$plugin_id)
-          # 
-          # plugin$name <- plugin[[paste0("name_", language)]]
-          # 
-          # plugin_description <- paste0(
-          #   "**Auteur** : ", plugin$name, "<br />",
-          #   "**Version** : ", plugin$version, "\n\n",
-          #   plugin %>% dplyr::pull(paste0("description_", tolower(language)))
-          # )
-          # 
-          # if (is.na(r$api_key) | r$api_key == "") plugin_folder <- paste0(r$raw_files_url_address, prefix, "/", plugin$unique_id)
-          # 
-          # # If there's an API key, copy all images
-          # else {
-          #   
-          #   plugin_folder <- paste0(r$app_folder, "/temp_files/plugins/", plugin$unique_id)
-          #   
-          #   tryCatch({
-          #     images <- stringr::str_split(plugin$images, ";;;")[[1]]
-          #     for (image in images){
-          #       url <- paste0(r$raw_files_url_address, prefix, "/", plugin$unique_id, "/", image)
-          #       url <- gsub(" ", "%20", url)
-          #       destfile <- paste0(plugin_folder, "/", image)
-          #       
-          #       response <- httr::GET(url = url, httr::authenticate("token", r$api_key, type = "basic"), httr::write_disk(path = destfile, overwrite = TRUE))
-          #       if (httr::http_status(response)$category != "Success") stop(i18n$t("Error downloading plugin's images"))
-          #     }
-          #     
-          #   }, error = function(e) if (nchar(e[1]) > 0) report_bug(r = r, output = output, error_message = "error_downloading_remote_plugin_images", 
-          #     error_name = paste0("install_remote_git_plugin - id = ", plugin$unique_id), category = "Error", error_report = toString(e), i18n = i18n, ns = ns))
-          # }
+          print(input$remote_git_scripts_datatable_rows_selected)
+          script <- r$remote_git_scripts[input$remote_git_scripts_datatable_rows_selected, ]
+
+          script_description <- paste0(
+            "**", i18n$t("author_s"), "** : ", script$name, "<br />",
+            "**", i18n$t("version"), "** : ", script$version, "\n\n",
+            script %>% dplyr::pull(description)
+          )
+
+          if (is.na(r$scripts_api_key) | r$scripts_api_key == "") script_folder <- paste0(r$scripts_raw_files_url_address, "/", script$unique_id)
+
+          # If there's an API key, copy all images
+          else {
+
+            script_folder <- paste0(r$app_folder, "/temp_files/scripts/", script$unique_id)
+            if (!dir.exists(script_folder)) dir.create(script_folder)
+            
+            tryCatch({
+              images <- stringr::str_split(script$images, ";;;")[[1]]
+              for (image in images){
+                url <- paste0(r$scripts_raw_files_url_address, script$unique_id, "/", image)
+                url <- gsub(" ", "%20", url)
+                destfile <- paste0(script_folder, "/", image)
+
+                response <- httr::GET(url = url, httr::authenticate("token", r$scripts_api_key, type = "basic"), httr::write_disk(path = destfile, overwrite = TRUE))
+                if (httr::http_status(response)$category != "Success") stop("Error downloading script's images")
+              }
+
+            }, error = function(e) if (nchar(e[1]) > 0) report_bug(r = r, output = output, error_message = "error_downloading_remote_script_image",
+              error_name = paste0("install_remote_git_script - id = ", script$unique_id), category = "Error", error_report = toString(e), i18n = i18n, ns = ns))
+          }
         }
         
         # Change %script_folder% for images
@@ -899,11 +892,11 @@ mod_scripts_server <- function(id = character(), r = shiny::reactiveValues(), d 
       raw_files_url_address <- r$git_repos %>% dplyr::filter(id == input$remote_git_repo) %>% dplyr::pull(raw_files_url_address)
       if (substr(raw_files_url_address, nchar(raw_files_url_address), nchar(raw_files_url_address)) != "/") raw_files_url_address <- paste0(raw_files_url_address, "/")
       raw_files_url_address <- paste0(raw_files_url_address, "scripts/")
-      r$raw_files_url_address <- raw_files_url_address
+      r$scripts_raw_files_url_address <- raw_files_url_address
       
       # Get API key
       api_key <- r$git_repos %>% dplyr::filter(id == input$remote_git_repo) %>% dplyr::pull(api_key)
-      r$api_key <- api_key
+      r$scripts_api_key <- api_key
       
       error_loading_remote_git <- TRUE
       scripts_file <- paste0(r$app_folder, "/temp_files/scripts/scripts.xml")
@@ -924,7 +917,7 @@ mod_scripts_server <- function(id = character(), r = shiny::reactiveValues(), d 
       }
       
       if (error_loading_remote_git) r$remote_git_scripts <- tibble::tibble(name = character(), unique_id = character(), description = character(),
-        category = character(), author = character(), version = character(), creation_datetime = character(), update_datetime = character(), action = character())
+        category = character(), author = character(), version = character(), images = character(), creation_datetime = character(), update_datetime = character(), action = character())
       
       else {
         r$remote_git_scripts_full <-
@@ -935,7 +928,7 @@ mod_scripts_server <- function(id = character(), r = shiny::reactiveValues(), d 
         
         r$remote_git_scripts <- r$remote_git_scripts_full %>%
           dplyr::select(name = paste0("name_", language), unique_id, description = paste0("description_", language), 
-            category = paste0("category_", language), author, version, creation_datetime, update_datetime)
+            category = paste0("category_", language), author, version, images, creation_datetime, update_datetime)
       }
       
       r$update_remote_git_scripts_datatable <- Sys.time()
@@ -948,11 +941,11 @@ mod_scripts_server <- function(id = character(), r = shiny::reactiveValues(), d 
       
       req(r$remote_git_scripts)
       
-      # Merge with local scripts, to know if a plugin is already installed
+      # Merge with local scripts, to know if a script is already installed
         
       if (nrow(r$remote_git_scripts) == 0){
         remote_git_scripts <- tibble::tibble(name = character(), unique_id = character(), description = character(),
-          category = character(), author = character(), version = character(), creation_datetime = character(), update_datetime = character())
+          category = character(), author = character(), version = character(), images = character(), creation_datetime = character(), update_datetime = character())
       }
       
       if (nrow(r$remote_git_scripts) > 0){
@@ -1009,93 +1002,133 @@ mod_scripts_server <- function(id = character(), r = shiny::reactiveValues(), d 
       if (debug) cat(paste0("\n", Sys.time(), " - mod_scripts - observer input$add_remote_git_script"))
       
       unique_id <- substr(input$add_remote_git_script, nchar("add_remote_git_script_") + 1, nchar(input$add_remote_git_script))
-
+      print("unique_id")
+      print(unique_id)
+      print("input$add_remote_git_script")
+      print(input$add_remote_git_script)
+      
       script_updated <- FALSE
       link_id <- integer(0)
       
-      # Delete old script if exists
-      if (nrow(r$options %>% dplyr::filter(category == "script" & name == "unique_id" & value == unique_id)) > 0){
-        
-        link_id <- r$options %>% dplyr::filter(category == "script" & name == "unique_id" & value == unique_id) %>% dplyr::pull(link_id)
-        
-        sql <- glue::glue_sql("DELETE FROM options WHERE category = 'script' & link_id = {link_id}", .con = r$db)
-        query <- DBI::dbSendStatement(r$db, sql) -> query
-        DBI::dbClearResult(query)
-        r$options <- r$options %>% dplyr::filter(category != "script" | (category == "script" & link_id != !!link_id))
-
-        sql <- glue::glue_sql("DELETE FROM code WHERE category = 'script' & link_id = {link_id}", .con = r$db)
-        query <- DBI::dbSendStatement(r$db, sql) -> query
-        DBI::dbClearResult(query)
-        r$code <- r$code %>% dplyr::filter(category != "script" | (category == "script" & link_id != !!link_id))
-
-        sql <- glue::glue_sql("DELETE FROM scripts WHERE id = {link_id}", .con = r$db)
-        query <- DBI::dbSendStatement(r$db, sql) -> query
-        DBI::dbClearResult(query)
-        r$scripts <- r$scripts %>% dplyr::filter(id != link_id)
-        
-        # Update remote git scripts : script is up to date
-        r$remote_git_scripts <- r$remote_git_scripts %>% dplyr::mutate(action = dplyr::case_when(unique_id == !!unique_id ~ "", TRUE ~ action))
-        
-        script_updated <- TRUE
-      }
-      
-      # Add new script
-      
       script <- r$remote_git_scripts_full %>% dplyr::filter(unique_id == !!unique_id)
       
-      last_row <- list()
-      for (name in c("scripts", "options", "code")) last_row[[name]] <- get_last_row(r$db, name)
-      
-      new_data <- list()
-      
-      link_id <- last_row$scripts + 1
-      
-      new_data$scripts <- tibble::tibble(id = last_row$scripts + 1, name = script[[paste0("name_", language)]], 
-        creation_datetime = script$creation_datetime, update_datetime = script$update_datetime, deleted = FALSE)
-      
-      for (name in c(paste0("description_", r$languages$code), "code")) script[[name]] <- script[[name]] %>% stringr::str_replace_all("'", "''")
-      
-      new_data$options <- tibble::tribble(
-        ~name, ~value, ~value_num,
-        "version", script$version, NA_integer_,
-        "unique_id", script$unique_id, NA_integer_,
-        "author", script$author, NA_integer_
-      ) %>%
-        dplyr::bind_rows(
-          r$languages %>%
-            tidyr::crossing(col_prefix = c("description", "category", "name")) %>%
-            dplyr::rowwise() %>%
-            dplyr::mutate(
-              name = paste0(col_prefix, "_", code),
-              value = script[[paste0(col_prefix, "_", code)]],
-              value_num = NA_integer_
-            ) %>%
-            dplyr::select(-code, -language, -col_prefix)
+      tryCatch({
+        script_dir <- paste0(r$app_folder, "/scripts/", script$unique_id)
+        if (dir.exists(script_dir)) unlink(script_dir, recursive = TRUE)
+        if (!dir.exists(script_dir)) dir.create(script_dir)
+        
+        # Delete old script if exists
+        if (nrow(r$options %>% dplyr::filter(category == "script" & name == "unique_id" & value == unique_id)) > 0){
+          
+          link_id <- r$options %>% dplyr::filter(category == "script" & name == "unique_id" & value == unique_id) %>% dplyr::pull(link_id)
+          
+          print("link_id")
+          print(link_id)
+          
+          sql <- glue::glue_sql("DELETE FROM options WHERE category = 'script' AND link_id = {link_id}", .con = r$db)
+          query <- DBI::dbSendStatement(r$db, sql)
+          DBI::dbClearResult(query)
+          r$options <- r$options %>% dplyr::filter(category != "script" | (category == "script" & link_id != !!link_id))
+          print("sql")
+          print(sql)
+          
+          sql <- glue::glue_sql("DELETE FROM code WHERE category = 'script' AND link_id = {link_id}", .con = r$db)
+          query <- DBI::dbSendStatement(r$db, sql)
+          DBI::dbClearResult(query)
+          r$code <- r$code %>% dplyr::filter(category != "script" | (category == "script" & link_id != !!link_id))
+  
+          sql <- glue::glue_sql("DELETE FROM scripts WHERE id = {link_id}", .con = r$db)
+          query <- DBI::dbSendStatement(r$db, sql)
+          DBI::dbClearResult(query)
+          r$scripts <- r$scripts %>% dplyr::filter(id != link_id)
+          
+          # Update remote git scripts : script is up to date
+          r$remote_git_scripts <- r$remote_git_scripts %>% dplyr::mutate(action = dplyr::case_when(unique_id == !!unique_id ~ "", TRUE ~ action))
+          
+          script_updated <- TRUE
+        }
+        
+        # Add new script
+        
+        # Add columns that don't exist (if a language has been added after the creation of the script)
+        prefixes <- c("description", "name", "category")
+        new_cols <- outer(prefixes, r$languages$code, paste, sep = "_") %>% as.vector()
+        for(col in new_cols) if(!col %in% colnames(script)) script <- script %>% dplyr::mutate(!!col := "")
+        
+        if (script[[paste0("name_", language)]] == "") script[[paste0("name_", language)]] <- script$name_en
+        
+        last_row <- list()
+        for (name in c("scripts", "options", "code")) last_row[[name]] <- get_last_row(r$db, name)
+        
+        new_data <- list()
+        
+        link_id <- last_row$scripts + 1
+        
+        new_data$scripts <- tibble::tibble(id = last_row$scripts + 1, name = script[[paste0("name_", language)]], 
+          creation_datetime = script$creation_datetime, update_datetime = script$update_datetime, deleted = FALSE)
+        
+        for (name in c(paste0("description_", r$languages$code), "code")) script[[name]] <- script[[name]] %>% stringr::str_replace_all("'", "''")
+        
+        new_data$options <- tibble::tribble(
+          ~name, ~value, ~value_num,
+          "version", script$version, NA_integer_,
+          "unique_id", script$unique_id, NA_integer_,
+          "author", script$author, NA_integer_
         ) %>%
-        dplyr::mutate(id = last_row$options + dplyr::row_number(), category = "script", link_id = !!link_id, .before = "name") %>%
-        dplyr::mutate(creator_id = r$user_id, datetime = as.character(Sys.time()), deleted = FALSE)
-      
-      new_data$code <- tibble::tribble(
-        ~id, ~category, ~link_id, ~code, ~creator_id, ~datetime, ~deleted,
-        last_row$code + 1, "script", link_id, script$code, r$user_id, script$creation_datetime, FALSE)
-      
-      for (name in c("scripts", "options", "code")){
-        DBI::dbAppendTable(r$db, name, new_data[[name]])
-        r[[name]] <- r[[name]] %>% dplyr::bind_rows(new_data[[name]])
-      }
-      
-      if (script_updated) show_message_bar(output, message = "script_updated", type = "success", i18n = i18n, ns = ns)
-      else show_message_bar(output, message = "script_imported", type = "success", i18n = i18n, ns = ns)
-      
-      r$local_scripts <- r$local_scripts %>%
-        dplyr::filter(id != link_id) %>%
-        dplyr::bind_rows(tibble::tibble(
-          id = link_id, name = script[[paste0("name_", language)]], unique_id = script$unique_id,
-          description = script[[paste0("description_", language)]], category = script[[paste0("category_", language)]],
-          author = script$author, version = script$version, creation_datetime = script$creation_datetime, update_datetime = script$update_datetime
-        ))
-      
-      r$update_remote_git_scripts_datatable <- Sys.time()
+          dplyr::bind_rows(
+            r$languages %>%
+              tidyr::crossing(col_prefix = c("description", "category", "name")) %>%
+              dplyr::rowwise() %>%
+              dplyr::mutate(
+                name = paste0(col_prefix, "_", code),
+                value = script[[paste0(col_prefix, "_", code)]],
+                value_num = NA_integer_
+              ) %>%
+              dplyr::select(-code, -language, -col_prefix)
+          ) %>%
+          dplyr::mutate(id = last_row$options + dplyr::row_number(), category = "script", link_id = !!link_id, .before = "name") %>%
+          dplyr::mutate(creator_id = r$user_id, datetime = as.character(Sys.time()), deleted = FALSE)
+        
+        new_data$code <- tibble::tribble(
+          ~id, ~category, ~link_id, ~code, ~creator_id, ~datetime, ~deleted,
+          last_row$code + 1, "script", link_id, script$code, r$user_id, script$creation_datetime, FALSE)
+        
+        for (name in c("scripts", "options", "code")){
+          DBI::dbAppendTable(r$db, name, new_data[[name]])
+          r[[name]] <- r[[name]] %>% dplyr::bind_rows(new_data[[name]])
+        }
+        
+        # Copy images
+        if (nchar(script$images) > 0){
+          images <- stringr::str_split(script$images, ";;;")[[1]]
+          for (image in images){
+            url <- paste0(r$scripts_raw_files_url_address, "/", script$unique_id, "/", image)
+            url <- gsub(" ", "%20", url)
+            destfile <- paste0(script_dir, "/", image)
+            
+            if (is.na(r$scripts_api_key) | r$scripts_api_key == "") download.file(url, destfile, quiet = TRUE)
+            else {
+              response <- httr::GET(url = url, httr::authenticate("token", r$scripts_api_key, type = "basic"), httr::write_disk(path = destfile, overwrite = TRUE))
+              if (httr::http_status(response)$category != "Success") stop("Error downloading script's images")
+            }
+          }
+        }
+        
+        if (script_updated) show_message_bar(output, message = "script_updated", type = "success", i18n = i18n, ns = ns)
+        else show_message_bar(output, message = "script_imported", type = "success", i18n = i18n, ns = ns)
+        
+        r$local_scripts <- r$local_scripts %>%
+          dplyr::filter(id != link_id) %>%
+          dplyr::bind_rows(tibble::tibble(
+            id = link_id, name = script[[paste0("name_", language)]], unique_id = script$unique_id,
+            description = script[[paste0("description_", language)]], category = script[[paste0("category_", language)]],
+            author = script$author, version = script$version, creation_datetime = script$creation_datetime, update_datetime = script$update_datetime
+          ))
+        
+        r$update_remote_git_scripts_datatable <- Sys.time()
+        
+      }, error = function(e) if (nchar(e[1]) > 0) report_bug(r = r, output = output, error_message = "error_install_remote_git_script", 
+        error_name = paste0("error_install_remote_git_script - id = ", script$unique_id), category = "Error", error_report = toString(e), i18n = i18n, ns = ns))
     })
     
     # --- --- --- -- -- --
@@ -1313,7 +1346,7 @@ mod_scripts_server <- function(id = character(), r = shiny::reactiveValues(), d 
       # Reload datatable (to unselect rows)
       DT::replaceData(r$scripts_datatable_proxy, r$scripts_datatable_temp, resetPaging = FALSE, rownames = FALSE)
       
-      # Set current pivot to edit_plugins_code
+      # Set current pivot to edit_scripts_code
       shinyjs::runjs(glue::glue("$('#{id}-scripts_pivot button[name=\"{i18n$t('edit_script_code')}\"]').click();"))
     })
     
@@ -1333,7 +1366,7 @@ mod_scripts_server <- function(id = character(), r = shiny::reactiveValues(), d 
       # Reload datatable (to unselect rows)
       DT::replaceData(r$scripts_datatable_proxy, r$scripts_datatable_temp, resetPaging = FALSE, rownames = FALSE)
       
-      # Set current pivot to edit_plugins_code
+      # Set current pivot to edit_scripts_code
       shinyjs::runjs(glue::glue("$('#{id}-scripts_pivot button[name=\"{i18n$t('script_options')}\"]').click();"))
     })
     
@@ -1393,11 +1426,11 @@ mod_scripts_server <- function(id = character(), r = shiny::reactiveValues(), d 
       
       ace_edit_code <- stringr::str_replace_all(input$ace_edit_code, "'", "''")
       sql <- glue::glue_sql("UPDATE code SET code = {ace_edit_code} WHERE id = {code_id}", .con = r$db)
-      query <- DBI::dbSendStatement(r$db, sql) -> query
+      query <- DBI::dbSendStatement(r$db, sql)
       DBI::dbClearResult(query)
       r$code <- r$code %>% dplyr::mutate(code = dplyr::case_when(id == code_id ~ ace_edit_code, TRUE ~ code))
       
-      # Update datetime in plugins table
+      # Update datetime in scripts table
       
       new_update_datetime <- as.character(Sys.time())
       sql <- glue::glue_sql("UPDATE scripts SET update_datetime = {new_update_datetime} WHERE id = {link_id}", .con = r$db)
@@ -2048,9 +2081,15 @@ mod_scripts_server <- function(id = character(), r = shiny::reactiveValues(), d 
             options %>% dplyr::filter(name == !!name) %>% dplyr::pull(value) %>% stringr::str_replace_all("''", "'"), parent = script_node)
           for (name in c("creation_datetime", "update_datetime")) XML::newXMLNode(name, script %>% dplyr::pull(get(!!name)), parent = script_node)
           XML::newXMLNode("code", code, parent = script_node)
-          XML::saveXML(xml, file = paste0(script_dir, "/script.xml"))
           
           list_of_files <- list.files(script_dir)
+          
+          # Add images filenames in the XML
+          images <- list_of_files[grepl("\\.png$|\\.jpg|\\.jpeg|\\.svg", tolower(list_of_files))]
+          images_node <- XML::newXMLNode("images", paste(images, collapse = ";;;"), parent = script_node)
+          
+          # Create XML file
+          XML::saveXML(xml, file = paste0(script_dir, "/script.xml"))
           
           # Copy files to temp dir
           temp_dir_copy <- paste0(temp_dir, "/scripts/", options %>% dplyr::filter(name == "unique_id") %>% dplyr::pull(value))

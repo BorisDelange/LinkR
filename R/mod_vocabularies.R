@@ -1879,7 +1879,7 @@ mod_vocabularies_server <- function(id = character(), r = shiny::reactiveValues(
       
       r$reload_mappings_evals <- Sys.time()
       
-      show_message_bar(output, "mapping_deleted", type = "severeWarning", i18n = i18n, ns = ns)
+      show_message_bar(output, "mapping_deleted", type = "warning", i18n = i18n, ns = ns)
     })
     
     # Delete one row (with icon on DT)

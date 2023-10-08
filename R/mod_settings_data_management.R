@@ -1869,7 +1869,7 @@ mod_settings_data_management_server <- function(id = character(), r = shiny::rea
 
           r$vocabulary_table_reload_datatable <- Sys.time()
 
-          show_message_bar(output, "vocabulary_table_rows_deleted", type ="severeWarning", i18n = i18n, ns = ns)
+          show_message_bar(output, "vocabulary_table_rows_deleted", type = "warning", i18n = i18n, ns = ns)
         })
 
         # Reload datatable

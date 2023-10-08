@@ -287,6 +287,9 @@ mod_settings_git_server <- function(id = character(), r = shiny::reactiveValues(
         r$show_git_repo_description_trigger <- Sys.time()
         r$show_git_repo_description_type <- "map"
         r$show_git_repo_description_url <- git_repo$raw_files_url_address
+        
+        if (substr(r$show_git_repo_description_url, nchar(r$show_git_repo_description_url), 
+          nchar(r$show_git_repo_description_url)) != "/") r$show_git_repo_description_url <- paste0(r$show_git_repo_description_url, "/")
       })
       
       ## Add with map
@@ -350,6 +353,9 @@ mod_settings_git_server <- function(id = character(), r = shiny::reactiveValues(
       r$show_git_repo_description_trigger <- Sys.time()
       r$show_git_repo_description_type <- "url"
       r$show_git_repo_description_url <- input$repo_url_address
+      
+      if (substr(r$show_git_repo_description_url, nchar(r$show_git_repo_description_url), 
+        nchar(r$show_git_repo_description_url)) != "/") r$show_git_repo_description_url <- paste0(r$show_git_repo_description_url, "/")
     })
     
     ## Add git repo
@@ -386,7 +392,7 @@ mod_settings_git_server <- function(id = character(), r = shiny::reactiveValues(
         new_file <- paste0(dir, "/", paste0(sample(c(0:9, letters[1:6]), 8, TRUE), collapse = ''), "_README.md")
         if (!dir.exists(dir)) dir.create(dir)
         
-        filename_remote <- paste0(r$show_git_repo_description_url, "/README.md")
+        filename_remote <- paste0(r$show_git_repo_description_url, "README.md")
         
         download.file(filename_remote, new_file, quiet = TRUE)
         
@@ -915,7 +921,7 @@ mod_settings_git_server <- function(id = character(), r = shiny::reactiveValues(
           
           list_of_files <- list.files(local_category_element_dir)
           
-          if (repo_category == "plugins"){
+          if (repo_category %in% c("plugins", "scripts")){
             # Add images filenames in the XML
             images <- list_of_files[grepl("\\.png$|\\.jpg|\\.jpeg|\\.svg", tolower(list_of_files))]
             images_node <- XML::newXMLNode("images", paste(images, collapse = ";;;"), parent = category_node)
@@ -1047,7 +1053,7 @@ mod_settings_git_server <- function(id = character(), r = shiny::reactiveValues(
         # Create global XML file
         r$edit_repo_create_global_xml_trigger <- Sys.time()
         
-        show_message_bar(output, "file_deleted", "success", i18n = i18n, ns = ns)
+        show_message_bar(output, "file_deleted", "warning", i18n = i18n, ns = ns)
         
       }, error = function(e) report_bug(r = r, output = output, error_message = "error_deleting_file",
         error_name = paste0(id, " - delete git repo file"), category = "Error", error_report = toString(e), i18n = i18n))

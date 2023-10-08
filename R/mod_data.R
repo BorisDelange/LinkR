@@ -855,7 +855,7 @@ mod_data_server <- function(id = character(), r = shiny::reactiveValues(), d = s
             # check_deleted_plugin <- DBI::dbGetQuery(r$db, paste0("SELECT * FROM plugins WHERE id = ", plugin_id)) %>% dplyr::pull(deleted)
             check_deleted_plugin <- r$plugins %>% dplyr::filter(id == plugin_id)
             if (nrow(check_deleted_plugin) == 0){
-              code_ui_card <- paste0("div(shiny.fluent::MessageBar('", i18n$t("plugin_deleted"), "', messageBarType = 3), style = 'margin-top:10px;')")
+              code_ui_card <- paste0("div(shiny.fluent::MessageBar('", i18n$t("plugin_deleted"), "', messageBarType = 5), style = 'margin-top:10px;')")
               settings_widget_button <- ""
             }
             if (nrow(check_deleted_plugin) > 0){
