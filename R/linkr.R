@@ -117,11 +117,12 @@ linkr <- function(
       "data_sources_datatable_card"),
     "datasets", c(
       "datasets_see_all_data",
+      "datasets_all_datasets_card",
       "datasets_datatable_card",
-      "datasets_options_card",
       "datasets_edit_code_card",
-      "import_dataset_card",
-      "export_dataset_card"),
+      "datasets_options_card",
+      "datasets_import_dataset_card",
+      "datasets_export_dataset_card"),
     "studies", c(
       "studies_see_all_data",
       # "studies_messages_card",
@@ -137,10 +138,13 @@ linkr <- function(
     "vocabularies", c(
       "vocabularies_concepts_card",
       "vocabularies_mapping_card",
+      "vocabularies_all_vocabularies_card",
       "vocabularies_datatable_card",
       "vocabularies_vocabularies_tables_datatable_card",
       "vocabularies_edit_code_card",
-      "vocabularies_import_vocabulary_card"),
+      "vocabularies_options_card",
+      "vocabularies_import_vocabulary_card",
+      "vocabularies_export_vocabulary_card"),
     "messages", c(
       "study_messages_card"),
     "plugins", c(

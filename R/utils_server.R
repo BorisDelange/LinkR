@@ -148,7 +148,7 @@ update_r <- function(r = shiny::reactiveValues(), m = shiny::reactiveValues(), t
 get_col_names <- function(table_name = character(), i18n = character()){
   result <- ""
   
-  if (table_name %in% c("data_sources", "datasets", "subsets")){
+  if (table_name %in% c("data_sources", "subsets")){
     result <- c(i18n$t("id"), i18n$t("name"), i18n$t("description"))
     c(result, switch(table_name,
       "datasets" = i18n$t("data_source"),
@@ -157,9 +157,12 @@ get_col_names <- function(table_name = character(), i18n = character()){
       i18n$t("deleted"), i18n$t("modified"), i18n$t("action"))
   }
   
+  else if (table_name == "datasets") result <- c(i18n$t("id"), i18n$t("name"), i18n$t("data_source"),
+    i18n$t("creator"), i18n$t("created_on"), i18n$t("updated_on"), i18n$t("deleted"), i18n$t("modified"), i18n$t("action"))
+  
   else if (table_name == "vocabulary") result <- c(i18n$t("id"), i18n$t("vocabulary_id_col"), i18n$t("vocabulary_name_col"),
     i18n$t("vocabulary_reference"), i18n$t("vocabulary_version"), i18n$t("vocabulary_concept_id"), i18n$t("data_source_id"),
-    i18n$t("display_order"), i18n$t("creator"), i18n$t("datetime"), i18n$t("deleted"), i18n$t("modified"), i18n$t("action"))
+    i18n$t("display_order"), i18n$t("creator"), i18n$t("created_on"), i18n$t("updated_on"), i18n$t("deleted"), i18n$t("modified"), i18n$t("action"))
   
   else if (table_name == "studies"){
     result <- c(i18n$t("id"), i18n$t("name"), i18n$t("dataset"), i18n$t("patient_lvl_tab_group"),
@@ -278,6 +281,11 @@ get_col_names <- function(table_name = character(), i18n = character()){
   else if (table_name == "remote_git_scripts"){
     result <- c(i18n$t("name"), i18n$t("unique_id"), i18n$t("description"), i18n$t("category"), i18n$t("author"), i18n$t("version"),
       i18n$t("created_on"), i18n$t("updated_on"), i18n$t("action"))
+  }
+  
+  else if (table_name == "local_datasets_or_vocabs"){
+    result <- c(i18n$t("id"), i18n$t("name"), i18n$t("unique_id"), i18n$t("description"), i18n$t("category"), i18n$t("author"), i18n$t("version"),
+      i18n$t("created_on"), i18n$t("updated_on"))
   }
   
   else if (table_name == "perf_monitoring"){

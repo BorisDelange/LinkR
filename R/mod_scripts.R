@@ -122,7 +122,7 @@ mod_scripts_ui <- function(id = character(), i18n = character(), language = "en"
               div(
                 shiny.fluent::ChoiceGroup.shinyInput(ns("all_scripts_source"), value = "local", options = list(
                   list(key = "local", text = i18n$t("local_plural")),
-                  list(key = "remote_git", text = i18n$t("git_remote_scripts"))
+                  list(key = "remote_git", text = i18n$t("on_remote_git_repo"))
                 ), className = "inline_choicegroup"),
                 style = "width:322px;"
               ),
@@ -1553,7 +1553,7 @@ mod_scripts_server <- function(id = character(), r = shiny::reactiveValues(), d 
       # Script version, author, images and descriptions
       
       script_folder <- paste0(r$app_folder, "/scripts/", options %>% dplyr::filter(name == "unique_id") %>% dplyr::pull(value))
-      files_list <- list.files(path = script_folder, pattern = "*.\\.(jpeg|jpg|JPG|JPEG|png|PNG|SVG|svg)$")
+      files_list <- list.files(path = script_folder, pattern = "(?i)*.\\.(jpeg|jpg|JPG|JPEG|png|PNG|SVG|svg)$")
       shiny.fluent::updateDropdown.shinyInput(session, "script_image", 
         options = convert_tibble_to_list(tibble::tibble(text = c("", files_list), key = c("", files_list)), key_col = "key", text_col = "text"))
       
@@ -1692,7 +1692,7 @@ mod_scripts_server <- function(id = character(), r = shiny::reactiveValues(), d 
         script_folder <- paste0(r$app_folder, "/scripts/", script$unique_id)
         unlink(paste0(script_folder, "/", input$script_image))
 
-        files_list <- list.files(path = script_folder, pattern = "*.\\.(jpeg|jpg|JPG|JPEG|png|PNG|SVG|svg)$")
+        files_list <- list.files(path = script_folder, pattern = "(?i)*.\\.(jpeg|jpg|JPG|JPEG|png|PNG|SVG|svg)$")
         shiny.fluent::updateDropdown.shinyInput(session, "script_image",
           options = convert_tibble_to_list(tibble::tibble(text = c("", files_list), key = c("", files_list)), key_col = "key", text_col = "text"), value = "")
 
@@ -1708,6 +1708,7 @@ mod_scripts_server <- function(id = character(), r = shiny::reactiveValues(), d 
 
     observeEvent(input$import_image, {
       if (debug) cat(paste0("\n", Sys.time(), " - mod_scripts - observer input$import_image"))
+      req(input$options_selected_script)
       shinyjs::click("import_image_file")
     })
 
@@ -1732,7 +1733,7 @@ mod_scripts_server <- function(id = character(), r = shiny::reactiveValues(), d 
 
         # Update dropdown
 
-        files_list <- list.files(path = script_folder, pattern = "*.\\.(jpeg|jpg|JPG|JPEG|png|PNG|SVG|svg)$")
+        files_list <- list.files(path = script_folder, pattern = "(?i)*.\\.(jpeg|jpg|JPG|JPEG|png|PNG|SVG|svg)$")
         shiny.fluent::updateDropdown.shinyInput(session, "script_image",
           options = convert_tibble_to_list(tibble::tibble(text = c("", files_list), key = c("", files_list)), key_col = "key", text_col = "text"))
 

@@ -102,8 +102,8 @@ db_create_tables <- function(db, type = character(), dbms = character()){
         datetime = character(), deleted = logical()))
     
     db_create_table(db, "datasets", primary_key_col = "id", dbms = dbms, text_cols = "description",
-      tibble::tibble(id = integer(), name = character(), description = character(), data_source_id = integer(), creator_id = integer(),
-        datetime = character(), deleted = logical()))
+      tibble::tibble(id = integer(), name = character(), data_source_id = integer(), creator_id = integer(),
+        creation_datetime = character(), update_datetime = character(), deleted = logical()))
     
     db_create_table(db, "studies", primary_key_col = "id", dbms = dbms, text_cols = "description",
       tibble::tibble(id = integer(), name = character(), dataset_id = integer(),
@@ -212,7 +212,7 @@ db_create_tables <- function(db, type = character(), dbms = character()){
     db_create_table(db, "vocabulary", primary_key_col = "id", dbms = dbms,
       tibble::tibble(id = integer(), vocabulary_id = character(), vocabulary_name = character(), 
         vocabulary_reference = character(), vocabulary_version = character(), vocabulary_concept_id = character(), data_source_id = character(), 
-        display_order = integer(), creator_id = integer(), datetime = character(), deleted = logical()))
+        display_order = integer(), creator_id = integer(), creation_datetime = character(), update_datetime = character(), deleted = logical()))
     
     db_create_table(db, "domain", primary_key_col = "id", dbms = dbms,
       tibble::tibble(id = integer(), domain_id = character(), domain_name = character(), domain_concept_id = integer()))

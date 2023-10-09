@@ -136,13 +136,19 @@ add_settings_new_data <- function(session, output, r = shiny::reactiveValues(), 
     # Add them at last to respect the order of cols
     new_data$data <- new_data$data %>% dplyr::bind_cols(tibble::tribble(~creator_id, ~datetime, ~deleted, r$user_id, as.character(Sys.time()), FALSE))
   }
+  
+  if (table == "datasets"){
+    new_data$data <- tibble::tribble(
+      ~id, ~name, ~data_source_id, ~creator_id, ~creation_datetime, ~update_datetime, ~deleted,
+      last_row$data + 1, as.character(data$name), as.integer(data$data_source), r$user_id, as.character(Sys.time()), as.character(Sys.time()), FALSE)
+  }
 
   # Creation of new_data$data variable for vocabulary page
   else if (table == "vocabulary"){
     new_data$data <- tibble::tribble(~id, ~vocabulary_id, ~vocabulary_name, ~vocabulary_reference, ~vocabulary_version,
-      ~vocabulary_concept_id, ~display_order, ~data_source_id, ~creator_id, ~datetime, ~deleted,
+      ~vocabulary_concept_id, ~display_order, ~data_source_id, ~creator_id, ~creation_datetime, ~update_datetime, ~deleted,
       last_row$data + 1, as.character(data$vocabulary_id), as.character(data$vocabulary_name), "", "", "", NA_integer_,
-      data$data_source, r$user_id, as.character(Sys.time()), FALSE)
+      data$data_source, r$user_id, as.character(Sys.time()), as.character(Sys.time()), FALSE)
   }
   
   # Creation of new_data$data variable for studies page
@@ -312,7 +318,7 @@ add_settings_new_data <- function(session, output, r = shiny::reactiveValues(), 
       dplyr::mutate(creator_id = r$user_id, datetime = as.character(Sys.time()), deleted = FALSE)
   }
   
-  if (table == "vocabularies"){
+  if (table == "vocabulary"){
     
     # Add options rows
     new_data$options <- tibble::tribble(
@@ -1035,53 +1041,55 @@ save_settings_options <- function(output, r = shiny::reactiveValues(), id = char
   # Get options with category & link_id
   options <- r$options %>% dplyr::filter(category == !!category, link_id == !!link_id)
   
-  if (nrow(options) == 0) show_message_bar(output,  "modif_saved", "success", i18n = i18n, ns = ns)
-  req (nrow(options) > 0)
+  # if (nrow(options) == 0) show_message_bar(output,  "modif_saved", "success", i18n = i18n, ns = ns)
+  # req (nrow(options) > 0)
   
-  if("show_only_aggregated_data" %in% page_options){
-    option_id <- options %>% dplyr::filter(name == "show_only_aggregated_data") %>% dplyr::pull(id)
-    sql <- glue::glue_sql("UPDATE options SET value_num = {as.numeric(data$show_only_aggregated_data)} WHERE id = {option_id}", .con = r$db)
-    query <- DBI::dbSendStatement(r$db, sql)
-    DBI::dbClearResult(query)
-    r$options <- r$options %>% dplyr::mutate(value_num = dplyr::case_when(id == option_id ~ as.numeric(data$show_only_aggregated_data), TRUE ~ value_num))
-  }
-  
-  if ("users_allowed_read" %in% page_options){
+  if (nrow(options) > 0){
+    if("show_only_aggregated_data" %in% page_options){
+      option_id <- options %>% dplyr::filter(name == "show_only_aggregated_data") %>% dplyr::pull(id)
+      sql <- glue::glue_sql("UPDATE options SET value_num = {as.numeric(data$show_only_aggregated_data)} WHERE id = {option_id}", .con = r$db)
+      query <- DBI::dbSendStatement(r$db, sql)
+      DBI::dbClearResult(query)
+      r$options <- r$options %>% dplyr::mutate(value_num = dplyr::case_when(id == option_id ~ as.numeric(data$show_only_aggregated_data), TRUE ~ value_num))
+    }
     
-    # Save users_allowed_read_group value (everybody or people_picker)
-    # Don't need to delete each users allowed if you change from "choose people" to "everybody"
-    option_id <- options %>% dplyr::filter(name == "users_allowed_read_group") %>% dplyr::pull(id)
-    sql <- glue::glue_sql("UPDATE options SET value = {data$users_allowed_read_group} WHERE id = {option_id}", .con = r$db)
-    query <- DBI::dbSendStatement(r$db, sql)
-    DBI::dbClearResult(query)
-    r$options <- r$options %>% dplyr::mutate(value = dplyr::case_when(id == option_id ~ data$users_allowed_read_group, TRUE ~ value))
-    
-    # The idea is to delete every rows of options for this tab, and then reinsert one row per user
-    # Get unique ID (peoplePicker can select twice a user, if he's already checked at the initiation of the input)
-    
-    # Delete all users allowed in the options table
-    rows_to_del <- options %>% dplyr::filter(name == "user_allowed_read") %>% dplyr::pull(id)
-    sql <- glue::glue_sql("DELETE FROM options WHERE id IN ({rows_to_del*})", .con = r$db)
-    DBI::dbSendStatement(r$db, sql) -> query
-    DBI::dbClearResult(query)
-    r$options <- r$options %>% dplyr::filter(id %not_in% rows_to_del)
-    
-    # Add users in the selected list
-    if (length(data$users_allowed_read) != 0){
-      data$users_allowed_read <- unique(data$users_allowed_read)
+    if ("users_allowed_read" %in% page_options){
       
-      if (length(data$users_allowed_read) == 1){
-        if (data$users_allowed_read == "everybody") value_num <- NA_real_ 
+      # Save users_allowed_read_group value (everybody or people_picker)
+      # Don't need to delete each users allowed if you change from "choose people" to "everybody"
+      option_id <- options %>% dplyr::filter(name == "users_allowed_read_group") %>% dplyr::pull(id)
+      sql <- glue::glue_sql("UPDATE options SET value = {data$users_allowed_read_group} WHERE id = {option_id}", .con = r$db)
+      query <- DBI::dbSendStatement(r$db, sql)
+      DBI::dbClearResult(query)
+      r$options <- r$options %>% dplyr::mutate(value = dplyr::case_when(id == option_id ~ data$users_allowed_read_group, TRUE ~ value))
+      
+      # The idea is to delete every rows of options for this tab, and then reinsert one row per user
+      # Get unique ID (peoplePicker can select twice a user, if he's already checked at the initiation of the input)
+      
+      # Delete all users allowed in the options table
+      rows_to_del <- options %>% dplyr::filter(name == "user_allowed_read") %>% dplyr::pull(id)
+      sql <- glue::glue_sql("DELETE FROM options WHERE id IN ({rows_to_del*})", .con = r$db)
+      DBI::dbSendStatement(r$db, sql) -> query
+      DBI::dbClearResult(query)
+      r$options <- r$options %>% dplyr::filter(id %not_in% rows_to_del)
+      
+      # Add users in the selected list
+      if (length(data$users_allowed_read) != 0){
+        data$users_allowed_read <- unique(data$users_allowed_read)
+        
+        if (length(data$users_allowed_read) == 1){
+          if (data$users_allowed_read == "everybody") value_num <- NA_real_ 
+          else value_num <- as.numeric(data$users_allowed_read)
+        } 
         else value_num <- as.numeric(data$users_allowed_read)
-      } 
-      else value_num <- as.numeric(data$users_allowed_read)
-      
-      last_row <- get_last_row(r$db, "options")
-      new_data <- tibble::tibble(id = (last_row + (1:length(data$users_allowed_read))), category = category, link_id = link_id,
-        name = "user_allowed_read", value = "", value_num = value_num, creator_id = r$user_id,
-        datetime = as.character(Sys.time()), deleted = FALSE)
-      DBI::dbAppendTable(r$db, "options", new_data)
-      r$options <- r$options %>% dplyr::bind_rows(new_data)
+        
+        last_row <- get_last_row(r$db, "options")
+        new_data <- tibble::tibble(id = (last_row + (1:length(data$users_allowed_read))), category = category, link_id = link_id,
+          name = "user_allowed_read", value = "", value_num = value_num, creator_id = r$user_id,
+          datetime = as.character(Sys.time()), deleted = FALSE)
+        DBI::dbAppendTable(r$db, "options", new_data)
+        r$options <- r$options %>% dplyr::bind_rows(new_data)
+      }
     }
   }
   
@@ -1094,10 +1102,14 @@ save_settings_options <- function(output, r = shiny::reactiveValues(), id = char
       sql <- glue::glue_sql("SELECT id FROM options WHERE id = {option_id}")
       
       if (DBI::dbGetQuery(r$db, sql) %>% nrow() == 0){
+        
+        # Create field if do not already exist
+        
         option_id <- get_last_row(r$db, "options") + 1
         new_data <- tibble::tibble(
           id = option_id, category = !!category, link_id = !!link_id,
           name = field, value = new_value, value_num = NA_real_, creator_id = r$user_id, datetime = as.character(Sys.time()), deleted = FALSE)
+        print(new_data)
         DBI::dbAppendTable(r$db, "options", new_data)
         r$options <- r$options %>% dplyr::bind_rows(new_data)
       }

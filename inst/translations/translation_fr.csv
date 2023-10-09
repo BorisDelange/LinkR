@@ -100,8 +100,7 @@ export_selected_scripts,Exporter les scripts
 export_plugins_remote_git,Exporter sur dépôt git distant
 import_and_export_plugins,Importer et exporter des plugins
 import_and_export_scripts,Importer et exporter des scripts
-git_remote_plugins,Sur dépôt git distant
-git_remote_scripts,Sur dépôt git distant
+on_remote_git_repo,Sur dépôt git distant
 remote_git_repo,Dépôt git distant
 remote_git_repos,Dépôts git distants
 git_repo,Dépôt git
@@ -153,6 +152,7 @@ studies_management,Gestion des études
 import_study,Importer une étude
 export_study,Exporter une étude
 dataset_options,Options du set de données
+vocabulary_options,Options de la terminologie
 create_data_source,Créer une source de données
 data_sources_management,Gestion des sources de données
 concepts_mapping,Alignement de concepts
@@ -296,6 +296,8 @@ patient_lvl_plugins,Plugins de données individuelles
 aggregated_plugins,Plugins de données agrégées
 all_plugins_card,Accéder au catalogue des plugins
 all_scripts_card,Tous les scripts
+all_datasets_card,Tous les sets de données
+all_vocabularies_card,Toutes les terminologies
 plugins_see_all_data,Accéder à toutes les données
 plugins_edit_data,Editer un plugin
 plugins_delete_data,Supprimer un plugin
@@ -460,6 +462,7 @@ success_importing_script,Script(s) importé(s) avec succès
 success_importing_dataset,Set de données importé avec succès
 error_importing_plugin,Erreur lors de l'importation du ou des plugin(s)
 error_importing_image,Erreur lors de l'importation de l'image
+error_importing_file,Erreur lors de l'importation du fichier
 error_importing_script,Erreur lors de l'importation du ou des script(s)
 unique_id,ID unique
 type,Type
@@ -468,6 +471,7 @@ delete_selection,Supprimer la sélection
 imported_plugins,Plugins importés
 imported_scripts,Scripts importés
 image_imported,Image importée
+file_imported,Fichier importé
 never,Jamais
 same_level_current_tab,Même niveau que l'onglet actuel
 level_under,Niveau d'en-dessous
@@ -648,6 +652,8 @@ file,Fichier
 all_datasets,Tous les sets de données
 error_deleting_image,Erreur lors de la suppression de l'image
 image_deleted,Image supprimée
+file_delete,Supprimer un fichier
+file_delete_subtext,Confirmer la suppression de ce fichier ?
 plugin_image_delete,Supprimer une image
 plugin_image_delete_subtext,Confirmer la suppression de cette image ?
 script_image_delete,Supprimer une image
@@ -735,7 +741,9 @@ subsets_persons_card_user_access_description,Gérer les patients des subsets (aj
 vocabularies_datatable_card_user_access_description,"Gérer les terminologies (ajouter, éditer et supprimer)"
 vocabularies_vocabularies_tables_datatable_card_user_access_description,"Accéder aux tables des terminologies (depuis la page des paramètres)"
 vocabularies_edit_code_card_user_access_description,Editer le code des terminologies
+vocabularies_options_card_user_access_description,Editer les options des terminologies
 vocabularies_import_vocabulary_card_user_access_description,Importer une terminologie
+vocabularies_export_vocabulary_card_user_access_description,Exporter une terminologie
 vocabularies_concepts_card_user_access_description,Accéder aux concepts des terminologies (depuis l'onglet en haut de la page)
 vocabularies_mapping_card_user_access_description,Accéder aux alignements de concepts
 study_messages_card_user_access_description,Accéder aux conversations des études
@@ -756,9 +764,10 @@ export_script_card_user_access_description,Exporter des scripts
 all_users_user_access_description,Accéder au log de tous les utilisateurs
 only_me_user_access_description,Accéder au log de l'utilisateur connecté
 data_console_user_access_description,Accéder à la console depuis une étude
-import_dataset_card_user_access_description,Importer des sets de données
-export_dataset_card_user_access_description,Exporter des sets de données
-all_datasets_card_user_access_description,Tous les sets de données
+datasets_import_dataset_card_user_access_description,Importer des sets de données
+datasets_export_dataset_card_user_access_description,Exporter des sets de données
+datasets_all_datasets_card_user_access_description,Tous les sets de données
+vocabularies_all_vocabularies_card_user_access_description,Toutes les terminologies
 vocabulary_id_col,ID (vocabulary_id)
 vocabulary_id,ID de la terminologie
 vocabulary_id_1,ID terminologie 1
@@ -776,6 +785,9 @@ vocabulary_version,Version de la terminologie
 vocabulary_concept_id,Concept ID de la terminologie
 display_order,Ordre d'affichage
 import_vocabulary,Importer une terminologie
+export_vocabulary,Exporter une terminologie
+import,Importer
+export,Exporter
 imported_vocabularies,Terminologies importées
 imported_data,Données importées
 invalid_vocabulary_table,Nom de table de terminologie non valide
@@ -886,6 +898,8 @@ invalid_method_value,Valeur de method non valide
 invalid_concept_id_value,Valeur de concept_id non valide
 concept_not_found,Concept non trouvé
 error_loading_script_description,Erreur lors du chargement de la description du script
+error_loading_dataset_description,Erreur lors du chargement de la description du set de données
+error_loading_vocabulary_description,Erreur lors du chargement de la description de la terminologie
 access_to_data,Accéder aux données
 scripts_and_plugins,Scripts & plugins
 comment,Commentaire

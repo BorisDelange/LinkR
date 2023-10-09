@@ -10,6 +10,10 @@
 mod_settings_data_management_ui <- function(id = character(), i18n = character(), language = "en", languages = tibble::tibble()){
   ns <- NS(id)
   result <- div()
+  
+  # Table name
+  table <- substr(id, nchar("settings_") + 1, nchar(id))
+  if (id == "settings_vocabularies") table <- "vocabulary"
  
   # Dropdowns shown in datatable for each page
   dropdowns <- tibble::tribble(~id, ~dropdowns,
@@ -17,12 +21,26 @@ mod_settings_data_management_ui <- function(id = character(), i18n = character()
     "settings_datasets", "data_source",
     "settings_vocabularies", "data_source")
   
-  cards <- c("all_datasets_card", "datatable_card", "edit_code_card", "options_card", "vocabularies_tables_datatable_card", 
-    "import_dataset_card", "export_dataset_card", "import_vocabulary_card")
+  cards <- c("all_datasets_card", "all_vocabularies_card", "datatable_card", "edit_code_card", "options_card", "vocabularies_tables_datatable_card", 
+    "import_dataset_card", "export_dataset_card", "import_vocabulary_card", "export_vocabulary_card")
   forbidden_cards <- tagList()
   sapply(cards, function(card){
     forbidden_cards <<- tagList(forbidden_cards, forbidden_card(ns = ns, name = card, i18n = i18n))
   })
+  
+  all_dataset_or_vocab_cards <- list()
+  for (name in c("local", "remote_git")){
+    all_dataset_or_vocab_cards[[name]] <- tagList(
+      # conditionalPanel(condition = paste0("input.all_", get_singular(table), "_source == '", name, "'"), ns = ns,
+        DT::DTOutput(ns(paste0(name, "_", get_plural(table), "_datatable"))), br(),
+        shinyjs::hidden(
+          div(id = ns(paste0(name, "_selected_", get_singular(table), "_markdown_div")),
+            uiOutput(ns(paste0(name, "_selected_", get_singular(table), "_markdown"))),
+            style = "width:99%; border-style: dashed; border-width: 1px; padding: 0px 8px 0px 8px; margin-right: 5px;")
+        )
+      # )
+    )
+  }
   
   # Scripts options & description divs (with distinct languages fields)
   options_divs <- list()
@@ -111,6 +129,7 @@ mod_settings_data_management_ui <- function(id = character(), i18n = character()
       render_settings_default_elements(ns = ns),
       shiny.fluent::reactOutput(ns("help_panel")),
       shiny.fluent::reactOutput(ns("help_modal")),
+      shiny.fluent::reactOutput(ns("dataset_file_delete_confirm")),
       shiny.fluent::Breadcrumb(items = list(
         list(key = "datasets", text = i18n$t("datasets"))
       ), maxDisplayedItems = 3),
@@ -131,6 +150,39 @@ mod_settings_data_management_ui <- function(id = character(), i18n = character()
       ),
       
       forbidden_cards,
+      
+      # --- --- --- --- -
+      # Catalog card ----
+      # --- --- --- --- -
+      
+      shinyjs::hidden(
+        div(
+          id = ns("all_datasets_card"),
+          make_card(i18n$t("all_datasets_card"),
+            div(
+              shiny.fluent::Stack(horizontal = TRUE, tokens = list(childrenGap = 20),
+                div(
+                  shiny.fluent::ChoiceGroup.shinyInput(ns("all_datasets_source"), value = "local", options = list(
+                    list(key = "local", text = i18n$t("local_plural")),
+                    list(key = "remote_git", text = i18n$t("on_remote_git_repo"))
+                  ), className = "inline_choicegroup"),
+                  style = "width:322px;"
+                ),
+                conditionalPanel(condition = "input.all_datasets_source == 'remote_git'", ns = ns,
+                  div(
+                    shiny.fluent::Stack(horizontal = TRUE, tokens = list(childrenGap = 10),
+                      div(strong(i18n$t("remote_git_repo")), style = "margin-top:8px;"),
+                      div(shiny.fluent::Dropdown.shinyInput(ns("remote_git_repo")), style = "width:322px;margin-top:3px;")
+                    )
+                  )
+                )
+              ),
+              all_dataset_or_vocab_cards$local,
+              all_dataset_or_vocab_cards$remote_git
+            )
+          ), br()
+        )
+      ),
       
       # --- --- --- --- -- -
       # Management card ----
@@ -241,7 +293,9 @@ mod_settings_data_management_ui <- function(id = character(), i18n = character()
             br(),
             div(id = ns("description_markdown_output"),
               uiOutput(ns("description_markdown_result")), 
-              style = "width: 99%; border-style: dashed; border-width: 1px; padding:0px 8px 0px 8px; margin-right: 5px;")
+              style = "width: 99%; border-style: dashed; border-width: 1px; padding:0px 8px 0px 8px; margin-right: 5px;"),
+            div(style = "display:none;", fileInput(ns("import_file_input"), label = "", multiple = FALSE, 
+              accept = c(".jpg", ".jpeg", ".png", ".svg", ".parquet", ".csv", ".xls", ".xlsx", ".toml", ".json", ".yaml", ".yml")))
           )
         ), br()
       )
@@ -257,6 +311,7 @@ mod_settings_data_management_ui <- function(id = character(), i18n = character()
       render_settings_default_elements(ns = ns),
       shiny.fluent::reactOutput(ns("help_panel")),
       shiny.fluent::reactOutput(ns("help_modal")),
+      shiny.fluent::reactOutput(ns("vocabulary_file_delete_confirm")),
       shiny.fluent::reactOutput(ns("vocabularies_table_delete_confirm")),
       shiny.fluent::Breadcrumb(items = list(
         list(key = "vocabularies", text = i18n$t("vocabularies"))
@@ -269,14 +324,49 @@ mod_settings_data_management_ui <- function(id = character(), i18n = character()
       shiny.fluent::Pivot(
         id = ns("vocabularies_pivot"),
         onLinkClick = htmlwidgets::JS(paste0("item => Shiny.setInputValue('", id, "-current_tab', item.props.id)")),
+        shiny.fluent::PivotItem(id = "all_vocabularies_card", itemKey = "all_vocabularies_card", headerText = i18n$t("all_vocabularies")),
         shiny.fluent::PivotItem(id = "datatable_card", itemKey = "datatable_card", headerText = i18n$t("vocabularies_management")),
         shiny.fluent::PivotItem(id = "edit_code_card", itemKey = "edit_code_card", headerText = i18n$t("edit_vocabulary_code")),
+        shiny.fluent::PivotItem(id = "options_card", itemKey = "options_card", headerText = i18n$t("vocabulary_options")),
         shiny.fluent::PivotItem(id = "vocabularies_tables_datatable_card", itemKey = "vocabularies_tables_datatable_card", headerText = i18n$t("vocabularies_tables")),
-        shiny.fluent::PivotItem(id = "import_vocabulary_card", itemKey = "import_vocabulary_card", headerText = i18n$t("import_vocabulary"))
+        shiny.fluent::PivotItem(id = "import_vocabulary_card", itemKey = "import_vocabulary_card", headerText = i18n$t("import")),
+        shiny.fluent::PivotItem(id = "export_vocabulary_card", itemKey = "export_vocabulary_card", headerText = i18n$t("export"))
       ),
       
-      
       forbidden_cards,
+      
+      # --- --- --- --- -
+      # Catalog card ----
+      # --- --- --- --- -
+      
+      shinyjs::hidden(
+        div(
+          id = ns("all_vocabularies_card"),
+          make_card(i18n$t("all_vocabularies_card"),
+            div(
+              shiny.fluent::Stack(horizontal = TRUE, tokens = list(childrenGap = 20),
+                div(
+                  shiny.fluent::ChoiceGroup.shinyInput(ns("all_vocabularies_source"), value = "local", options = list(
+                    list(key = "local", text = i18n$t("local_plural")),
+                    list(key = "remote_git", text = i18n$t("on_remote_git_repo"))
+                  ), className = "inline_choicegroup"),
+                  style = "width:322px;"
+                ),
+                conditionalPanel(condition = "input.all_vocabularies_source == 'remote_git'", ns = ns,
+                  div(
+                    shiny.fluent::Stack(horizontal = TRUE, tokens = list(childrenGap = 10),
+                      div(strong(i18n$t("remote_git_repo")), style = "margin-top:8px;"),
+                      div(shiny.fluent::Dropdown.shinyInput(ns("remote_git_repo")), style = "width:322px;margin-top:3px;")
+                    )
+                  )
+                )
+              ),
+              all_dataset_or_vocab_cards$local,
+              all_dataset_or_vocab_cards$remote_git
+            )
+          ), br()
+        )
+      ),
       
       # --- --- --- --- -- -
       # Management card ----
@@ -342,6 +432,44 @@ mod_settings_data_management_ui <- function(id = character(), i18n = character()
               div(shiny::uiOutput(ns("code_result")), 
                 style = "width: 99%; border-style: dashed; border-width: 1px; padding: 0px 8px 0px 8px; margin-right: 5px;")
             )
+          )
+        ), br()
+      ),
+      
+      # --- --- --- --- --- ---
+      # Edit options card ----
+      # --- --- --- --- --- ---
+      
+      div(id = ns("options_card"),
+        make_shiny_ace_card(i18n$t("vocabulary_options"),
+          div(
+            shiny.fluent::Stack(
+              tokens = list(childrenGap = 5),
+              shiny.fluent::Stack(horizontal = TRUE, tokens = list(childrenGap = 20),
+                make_combobox(i18n = i18n, ns = ns, label = "vocabulary", id = "options_selected_dataset_or_vocabulary", width = "320px", allowFreeform = FALSE, multiSelect = FALSE), 
+                make_dropdown(i18n = i18n, ns = ns, label = "language", id = "vocabulary_language", 
+                  options = convert_tibble_to_list(languages, key_col = "code", text_col = "language"), value = language, width = "320px"),
+                make_textfield(i18n = i18n, ns = ns, label = "version", id = "vocabulary_version", width = "80px")
+              ),
+              make_textfield(i18n = i18n, ns = ns, label = "author_s", id = "vocabulary_author", width = "660px"),
+              options_divs$vocabulary
+            ),
+            shiny.fluent::Stack(horizontal = TRUE, tokens = list(childrenGap = 20),
+              make_dropdown(i18n = i18n, ns = ns, label = "file", id = "vocabulary_file", width = "320px"),
+              div(shiny.fluent::DefaultButton.shinyInput(ns("delete_file"), i18n$t("delete_this_file")), style = "margin-top:39px;"),
+              div(shiny.fluent::DefaultButton.shinyInput(ns("import_file"), i18n$t("import_file")), style = "margin-top:39px;"),
+            ),
+            description_divs$vocabulary,
+            shiny.fluent::Stack(horizontal = TRUE, tokens = list(childrenGap = 10),
+              shiny.fluent::PrimaryButton.shinyInput(ns("options_save"), i18n$t("save")), " ",
+              shiny.fluent::DefaultButton.shinyInput(ns("preview_description"), i18n$t("preview"))
+            ),
+            br(),
+            div(id = ns("description_markdown_output"),
+              uiOutput(ns("description_markdown_result")), 
+              style = "width: 99%; border-style: dashed; border-width: 1px; padding:0px 8px 0px 8px; margin-right: 5px;"),
+            div(style = "display:none;", fileInput(ns("import_file_input"), label = "", multiple = FALSE, 
+              accept = c(".jpg", ".jpeg", ".png", ".svg", ".parquet", ".csv", ".xls", ".xlsx", ".toml", ".json", ".yaml", ".yml")))
           )
         ), br()
       ),
@@ -479,17 +607,17 @@ mod_settings_data_management_server <- function(id = character(), r = shiny::rea
         
         if (debug) cat(paste0("\n", Sys.time(), " - mod_settings_data_management - observer r$", table, " - updateComboBox"))
         
-        if (table == "datasets"){
-          options <- convert_tibble_to_list(r[[table]] %>% dplyr::arrange(name), key_col = "id", text_col = "name")
-          shiny.fluent::updateComboBox.shinyInput(session, "options_selected_dataset_or_vocabulary", options = options)
-        }
+        if (table == "datasets") options <- convert_tibble_to_list(r[[table]] %>% dplyr::arrange(name), key_col = "id", text_col = "name")
         
         if (table == "vocabulary"){
           options <- convert_tibble_to_list(r[[table]] %>% dplyr::arrange(vocabulary_id), key_col = "id", text_col = "vocabulary_id")
           shiny.fluent::updateComboBox.shinyInput(session, "vocabulary_tables_selected_vocabulary", options = options)
         }
         
+        shiny.fluent::updateComboBox.shinyInput(session, "options_selected_dataset_or_vocabulary", options = options)
         shiny.fluent::updateComboBox.shinyInput(session, "code_selected_dataset_or_vocabulary", options = options)
+        
+        r[[paste0("reload_local_", get_plural(table), "_datatable")]] <- Sys.time()
       })
     }
     
@@ -498,16 +626,21 @@ mod_settings_data_management_server <- function(id = character(), r = shiny::rea
     # --- --- --- --- --- ---
     
     # Toggles IDs
-    cards <- c("all_datasets_card", "datatable_card", "edit_code_card", "options_card", "vocabularies_tables_datatable_card", 
-      "import_dataset_card", "export_dataset_card", "import_vocabulary_card")
+    cards <- c("all_datasets_card", "all_vocabularies_card", "datatable_card", "edit_code_card", "options_card", "vocabularies_tables_datatable_card", 
+      "import_dataset_card", "export_dataset_card", "import_vocabulary_card", "export_vocabulary_card")
     sapply(cards, shinyjs::hide)
     
     show_or_hide_cards(r = r, input = input, session = session, table = table, id = id, cards = cards)
     
     # Show first card
-    
-    if (paste0(get_plural(table), "_datatable_card") %in% r$user_accesses) shinyjs::show("datatable_card")
-    else shinyjs::show("datatable_card_forbidden")
+    if (table %in% c("datasets", "vocabulary")){
+      if (paste0(get_plural(table), "_all_", get_plural(table), "_card") %in% r$user_accesses) shinyjs::show(paste0("all_", get_plural(table), "_card"))
+      else shinyjs::show(paste0(get_plural(table), "_all_", get_plural(table), "_card_forbidden"))
+    }
+    else {
+      if (paste0(get_plural(table), "_datatable_card") %in% r$user_accesses) shinyjs::show("datatable_card")
+      else shinyjs::show("datatable_card_forbidden")
+    }
     
     # --- --- --- --- --- ---
     # Help for this page ----
@@ -539,6 +672,413 @@ mod_settings_data_management_server <- function(id = character(), r = shiny::rea
     
     observeEvent(input$copy_code_1, r$help_settings_data_management_copy_code_1 <- Sys.time())
     observeEvent(input$copy_code_2, r$help_settings_data_management_copy_code_2 <- Sys.time())
+    
+    # --- --- --- --- --- --- --- -
+    # Datasets & vocab catalog ----
+    # --- --- --- --- --- --- --- -
+    
+    # Update dropdown of remote git repos
+    
+    observeEvent(r$git_repos, {
+      if (debug) cat(paste0("\n", Sys.time(), " - mod_settings_data_management - observer r$git_repos"))
+
+      shiny.fluent::updateDropdown.shinyInput(session, "remote_git_repo", options = convert_tibble_to_list(r$git_repos, key_col = "id", text_col = "name"))
+    })
+
+    observeEvent(r[[paste0("reload_local_", get_plural(table), "_datatable")]], {
+      if (debug) cat(paste0("\n", Sys.time(), " - mod_settings_data_management - observer r$reload_local_.._datatable"))
+
+      if (nrow(r[[table]]) == 0) r[[paste0("local_", get_plural(table))]] <- tibble::tibble(id = integer(), name = character(), unique_id = character(), description = character(),
+        category = character(), author = character(), version = character(), creation_datetime = character(), update_datetime = character())
+
+      if (nrow(r[[table]]) > 0){
+        if (table == "datasets") r[[paste0("local_", get_plural(table))]] <- r[[table]] %>% dplyr::select(id, name, creation_datetime, update_datetime)
+        if (table == "vocabulary") r[[paste0("local_", get_plural(table))]] <- r[[table]] %>% dplyr::select(id, vocabulary_id, creation_datetime, update_datetime)
+        
+        r[[paste0("local_", get_plural(table))]] <- r[[paste0("local_", get_plural(table))]] %>%
+          dplyr::left_join(r$options %>% dplyr::filter(category == get_singular(table), name == "author") %>% dplyr::select(id = link_id, author = value), by = "id") %>%
+          dplyr::left_join(r$options %>% dplyr::filter(category == get_singular(table), name == "version") %>% dplyr::select(id = link_id, version = value), by = "id") %>%
+          dplyr::left_join(r$options %>% dplyr::filter(category == get_singular(table), name == paste0("category_", language)) %>% dplyr::select(id = link_id, category = value), by = "id") %>%
+          dplyr::left_join(r$options %>% dplyr::filter(category == get_singular(table), name == paste0("description_", language)) %>% dplyr::select(id = link_id, description = value), by = "id") %>%
+          dplyr::left_join(r$options %>% dplyr::filter(category == get_singular(table), name == "unique_id") %>% dplyr::select(id = link_id, unique_id = value), by = "id")
+
+        if (table == "datasets") r[[paste0("local_", get_plural(table))]] <- r[[paste0("local_", get_plural(table))]] %>%
+          dplyr::relocate(unique_id, description, category, author, version, unique_id, .after = "name") %>%
+          dplyr::arrange(name)
+        if (table == "vocabulary") r[[paste0("local_", get_plural(table))]] <- r[[paste0("local_", get_plural(table))]] %>%
+          dplyr::relocate(unique_id, description, category, author, version, unique_id, .after = "vocabulary_id") %>%
+          dplyr::arrange(vocabulary_id)
+      }
+
+      # Create datatable if doesn't exist
+
+      if (length(r[[paste0("local_", get_plural(table), "_datatable_proxy")]]) == 0){
+        
+        sortable_cols <- c("name", "creation_datetime", "update_datetime", "category")
+        column_widths <- c("creation_datetime" = "130px", "update_datetime" = "130px", "author" = "100px", "version" = "80px")
+        centered_cols <- c("author", "creation_datetime", "update_datetime", "version")
+        searchable_cols <- c("name", "category", "author")
+        factorize_cols <- c("category", "author")
+        hidden_cols <- c("id", "description", "unique_id")
+        col_names <- get_col_names("local_datasets_or_vocabs", i18n)
+        
+        render_datatable(output = output, ns = ns, i18n = i18n, data = r[[paste0("local_", get_plural(table))]],
+          col_names = col_names, output_name = paste0("local_", get_plural(table), "_datatable"), selection = "single",
+          sortable_cols = sortable_cols, centered_cols = centered_cols, column_widths = column_widths,
+          searchable_cols = searchable_cols, factorize_cols = factorize_cols, filter = TRUE, hidden_cols = hidden_cols)
+      }
+
+      if (length(r[[paste0("local_", get_plural(table), "_datatable_proxy")]]) > 0){
+        r[[paste0("local_", get_plural(table), "_datatable_proxy")]] <- DT::dataTableProxy(paste0("local_", get_plural(table), "_datatable"), deferUntilFlush = FALSE)
+        DT::replaceData(r[[paste0("local_", get_plural(table), "_datatable_proxy")]], r[[paste0("local_", get_plural(table))]], resetPaging = FALSE, rownames = FALSE)
+      }
+    })
+    
+    # When a script is selected
+
+    observeEvent(input[[paste0("local_", get_plural(table), "_datatable_rows_selected")]], {
+      if (debug) cat(paste0("\n", Sys.time(), " - mod_settings_data_management - observer input$local_.._datatable_rows_selected"))
+      r[[paste0("datatable_", get_plural(table), "_selected")]] <- Sys.time()
+      r[[paste0("datatable_", get_plural(table), "_selected_type")]] <- "local"
+    })
+
+    observeEvent(input[[paste0("remote_git_", get_plural(table), "_datatable_rows_selected")]], {
+      if (debug) cat(paste0("\n", Sys.time(), " - mod_settings_data_management - observer input$remote_git_.._datatable_rows_selected"))
+      r[[paste0("datatable_", get_plural(table), "_selected")]] <- Sys.time()
+      r[[paste0("datatable_", get_plural(table), "_selected_type")]] <- "remote_git"
+    })
+
+    observeEvent(r[[paste0("datatable_", get_plural(table), "_selected")]], {
+      if (debug) cat(paste0("\n", Sys.time(), " - mod_settings_data_management - observer r$datatable_.._selected"))
+
+      type <- r[[paste0("datatable_", get_plural(table), "_selected_type")]]
+
+      tryCatch({
+        
+        markdown_settings <- paste0("```{r setup, include=FALSE}\nknitr::opts_knit$set(root.dir = '",
+          r$app_folder, "/temp_files/markdowns')\n",
+          "knitr::opts_chunk$set(root.dir = '", r$app_folder, "/temp_files/markdowns/', fig.path = '", r$app_folder, "/temp_files/markdowns/')\n```\n")
+
+        # For local scripts
+
+        if (type == "local"){
+          link_id <- r[[paste0("local_", get_plural(table))]][input[[paste0("local_", get_plural(table), "_datatable_rows_selected")]], ]$id
+          dataset_or_vocab_options <- r$options %>% dplyr::filter(category == get_singular(table), link_id == !!link_id)
+
+          dataset_or_vocab_description <- paste0(
+            "**", i18n$t("author_s"), "** : ", dataset_or_vocab_options %>% dplyr::filter(name == "author") %>% dplyr::pull(value), "<br />",
+            "**", i18n$t("version"), "** : ", dataset_or_vocab_options %>% dplyr::filter(name == "version") %>% dplyr::pull(value), "\n\n",
+            dataset_or_vocab_options %>% dplyr::filter(name == paste0("description_", tolower(language))) %>% dplyr::pull(value) %>% stringr::str_replace_all("''", "'")
+          )
+
+          dataset_or_vocab_folder <- paste0(r$app_folder, "/", get_plural(table), "/", dataset_or_vocab_options %>% dplyr::filter(name == "unique_id") %>% dplyr::pull(value))
+        }
+
+        # For remote_git scripts
+
+        # if (type == "remote_git"){
+        # 
+        #   print(input$remote_git_scripts_datatable_rows_selected)
+        #   script <- r$remote_git_scripts[input$remote_git_scripts_datatable_rows_selected, ]
+        # 
+        #   script_description <- paste0(
+        #     "**", i18n$t("author_s"), "** : ", script$name, "<br />",
+        #     "**", i18n$t("version"), "** : ", script$version, "\n\n",
+        #     script %>% dplyr::pull(description)
+        #   )
+        # 
+        #   if (is.na(r$scripts_api_key) | r$scripts_api_key == "") script_folder <- paste0(r$scripts_raw_files_url_address, "/", script$unique_id)
+        # 
+        #   # If there's an API key, copy all images
+        #   else {
+        # 
+        #     script_folder <- paste0(r$app_folder, "/temp_files/scripts/", script$unique_id)
+        #     if (!dir.exists(script_folder)) dir.create(script_folder)
+        # 
+        #     tryCatch({
+        #       images <- stringr::str_split(script$images, ";;;")[[1]]
+        #       for (image in images){
+        #         url <- paste0(r$scripts_raw_files_url_address, script$unique_id, "/", image)
+        #         url <- gsub(" ", "%20", url)
+        #         destfile <- paste0(script_folder, "/", image)
+        # 
+        #         response <- httr::GET(url = url, httr::authenticate("token", r$scripts_api_key, type = "basic"), httr::write_disk(path = destfile, overwrite = TRUE))
+        #         if (httr::http_status(response)$category != "Success") stop("Error downloading script's images")
+        #       }
+        # 
+        #     }, error = function(e) if (nchar(e[1]) > 0) report_bug(r = r, output = output, error_message = "error_downloading_remote_script_image",
+        #       error_name = paste0("install_remote_git_script - id = ", script$unique_id), category = "Error", error_report = toString(e), i18n = i18n, ns = ns))
+        #   }
+        # }
+
+        # Change %script_folder% for images
+        dataset_or_vocab_description <- dataset_or_vocab_description %>% stringr::str_replace_all(paste0("%", get_singular(table), "_folder%"), dataset_or_vocab_folder)
+
+        markdown_file <- paste0(markdown_settings, dataset_or_vocab_description)
+
+        # Create temp dir
+        dir <- paste0(r$app_folder, "/temp_files/markdowns")
+        file <- paste0(dir, "/", paste0(sample(c(0:9, letters[1:6]), 8, TRUE), collapse = ''), "_", as.character(Sys.time()) %>% stringr::str_replace_all(":", "_") %>% stringr::str_replace_all(" ", "_"), ".Md")
+        if (!dir.exists(dir)) dir.create(dir)
+
+        shinyjs::show(paste0(type, "_selected_", get_singular(table), "_markdown_div"))
+
+        # Create the markdown file
+        knitr::knit(text = markdown_file, output = file, quiet = TRUE)
+
+        output[[paste0(type, "_selected_", get_singular(table), "_markdown")]] <- renderUI(div(class = "markdown", withMathJax(includeMarkdown(file))))
+
+      }, error = function(e) report_bug(r = r, output = output, error_message = paste0("error_loading_", get_singular(table), "_description"),
+        error_name = "dataset or vocab catalog - render markdown description", category = "Error", error_report = toString(e), i18n = i18n, ns = ns))
+    })
+    # 
+    # # Download scripts from repo git
+    # 
+    # observeEvent(input$remote_git_repo, {
+    #   if (debug) cat(paste0("\n", Sys.time(), " - mod_scripts - observer input$remote_git_repo"))
+    #   
+    #   # Get URL of remote git repo
+    #   raw_files_url_address <- r$git_repos %>% dplyr::filter(id == input$remote_git_repo) %>% dplyr::pull(raw_files_url_address)
+    #   if (substr(raw_files_url_address, nchar(raw_files_url_address), nchar(raw_files_url_address)) != "/") raw_files_url_address <- paste0(raw_files_url_address, "/")
+    #   raw_files_url_address <- paste0(raw_files_url_address, "scripts/")
+    #   r$scripts_raw_files_url_address <- raw_files_url_address
+    #   
+    #   # Get API key
+    #   api_key <- r$git_repos %>% dplyr::filter(id == input$remote_git_repo) %>% dplyr::pull(api_key)
+    #   r$scripts_api_key <- api_key
+    #   
+    #   error_loading_remote_git <- TRUE
+    #   scripts_file <- paste0(r$app_folder, "/temp_files/scripts/scripts.xml")
+    #   
+    #   if (r$has_internet){
+    #     
+    #     tryCatch({
+    #       if (api_key == "" | is.na(api_key)){
+    #         xml2::download_xml(paste0(raw_files_url_address, "scripts.xml"), scripts_file)
+    #         error_loading_remote_git <- FALSE
+    #       }
+    #       else {
+    #         response <- httr::GET(url = paste0(raw_files_url_address, "scripts.xml"), httr::authenticate("token", api_key, type = "basic"), httr::write_disk(scripts_file, overwrite = TRUE))
+    #         if (httr::http_status(response)$category == "Success") error_loading_remote_git <- FALSE
+    #       }
+    #     }, error = function(e) if (nchar(e[1]) > 0) report_bug(r = r, output = output, error_message = "error_connection_remote_git", 
+    #       error_name = "scripts_catalog load scripts.xml", category = "Error", error_report = toString(e), i18n = i18n, ns = ns))
+    #   }
+    #   
+    #   if (error_loading_remote_git) r$remote_git_scripts <- tibble::tibble(name = character(), unique_id = character(), description = character(),
+    #     category = character(), author = character(), version = character(), images = character(), creation_datetime = character(), update_datetime = character(), action = character())
+    #   
+    #   else {
+    #     r$remote_git_scripts_full <-
+    #       xml2::read_xml(scripts_file) %>%
+    #       XML::xmlParse() %>%
+    #       XML::xmlToDataFrame(nodes = XML::getNodeSet(., "//script")) %>%
+    #       tibble::as_tibble()
+    #     
+    #     r$remote_git_scripts <- r$remote_git_scripts_full %>%
+    #       dplyr::select(name = paste0("name_", language), unique_id, description = paste0("description_", language), 
+    #         category = paste0("category_", language), author, version, images, creation_datetime, update_datetime)
+    #   }
+    #   
+    #   r$update_remote_git_scripts_datatable <- Sys.time()
+    # })
+    # 
+    # # Update remote_git_scripts datatable
+    # 
+    # observeEvent(r$update_remote_git_scripts_datatable, {
+    #   if (debug) cat(paste0("\n", Sys.time(), " - mod_scripts - observer r$update_remote_git_scripts_datatable"))
+    #   
+    #   req(r$remote_git_scripts)
+    #   
+    #   # Merge with local scripts, to know if a script is already installed
+    #   
+    #   if (nrow(r$remote_git_scripts) == 0){
+    #     remote_git_scripts <- tibble::tibble(name = character(), unique_id = character(), description = character(),
+    #       category = character(), author = character(), version = character(), images = character(), creation_datetime = character(), update_datetime = character())
+    #   }
+    #   
+    #   if (nrow(r$remote_git_scripts) > 0){
+    #     r$remote_git_scripts <- r$remote_git_scripts %>%
+    #       dplyr::left_join(
+    #         r$local_scripts %>% dplyr::select(unique_id, local_script_version = version),
+    #         by = "unique_id"
+    #       ) %>%
+    #       dplyr::rowwise() %>%
+    #       dplyr::mutate(compare_versions = compareVersion(local_script_version, version)) %>%
+    #       dplyr::ungroup() %>%
+    #       dplyr::mutate(action = dplyr::case_when(
+    #         is.na(local_script_version) ~ as.character(tagList(
+    #           actionButton("add_remote_git_script_%unique_id%", "", icon = icon("plus"),
+    #             onclick = paste0("Shiny.setInputValue('", id, "-add_remote_git_script', this.id, {priority: 'event'})")))),
+    #         !is.na(local_script_version) & compare_versions == -1 ~ as.character(tagList(
+    #           actionButton("add_remote_git_script_%unique_id%", "", icon = icon("refresh"),
+    #             onclick = paste0("Shiny.setInputValue('", id, "-add_remote_git_script', this.id, {priority: 'event'})")))),
+    #         TRUE ~ ""
+    #       )) %>%
+    #       dplyr::mutate(action = stringr::str_replace_all(action, "%unique_id%", unique_id)) %>%
+    #       dplyr::select(-local_script_version, -compare_versions)
+    #     
+    #     remote_git_scripts <- r$remote_git_scripts
+    #   }
+    #   
+    #   # Create datatable if doesn't exist
+    #   
+    #   if (length(r$remote_scripts_datatable_proxy) == 0){
+    #     
+    #     sortable_cols <- c("name", "creation_datetime", "update_datetime", "category")
+    #     column_widths <- c("creation_datetime" = "130px", "update_datetime" = "130px", "author" = "100px", "action" = "80px", "version" = "80px")
+    #     centered_cols <- c("author", "creation_datetime", "update_datetime", "version", "action")
+    #     searchable_cols <- c("name", "category", "author")
+    #     factorize_cols <- c("category", "author")
+    #     hidden_cols <- c("unique_id", "description")
+    #     col_names <- get_col_names("remote_git_scripts", i18n)
+    #     
+    #     render_datatable(output = output, ns = ns, i18n = i18n, data = remote_git_scripts,
+    #       col_names = col_names, output_name = "remote_git_scripts_datatable", selection = "single",
+    #       sortable_cols = sortable_cols, centered_cols = centered_cols, column_widths = column_widths,
+    #       searchable_cols = searchable_cols, factorize_cols = factorize_cols, filter = TRUE, hidden_cols = hidden_cols)
+    #   }
+    #   
+    #   if (length(r$remote_git_scripts_datatable_proxy) > 0){
+    #     r$remote_git_scripts_datatable_proxy <- DT::dataTableProxy("remote_git_scripts_datatable", deferUntilFlush = FALSE)
+    #     DT::replaceData(r$remote_git_scripts_datatable_proxy, r$remote_git_scripts, resetPaging = FALSE, rownames = FALSE)
+    #   }
+    # })
+    # 
+    # # Download a script from remote git
+    # 
+    # observeEvent(input$add_remote_git_script, {
+    #   if (debug) cat(paste0("\n", Sys.time(), " - mod_scripts - observer input$add_remote_git_script"))
+    #   
+    #   unique_id <- substr(input$add_remote_git_script, nchar("add_remote_git_script_") + 1, nchar(input$add_remote_git_script))
+    #   print("unique_id")
+    #   print(unique_id)
+    #   print("input$add_remote_git_script")
+    #   print(input$add_remote_git_script)
+    #   
+    #   script_updated <- FALSE
+    #   link_id <- integer(0)
+    #   
+    #   script <- r$remote_git_scripts_full %>% dplyr::filter(unique_id == !!unique_id)
+    #   
+    #   tryCatch({
+    #     script_dir <- paste0(r$app_folder, "/scripts/", script$unique_id)
+    #     if (dir.exists(script_dir)) unlink(script_dir, recursive = TRUE)
+    #     if (!dir.exists(script_dir)) dir.create(script_dir)
+    #     
+    #     # Delete old script if exists
+    #     if (nrow(r$options %>% dplyr::filter(category == "script" & name == "unique_id" & value == unique_id)) > 0){
+    #       
+    #       link_id <- r$options %>% dplyr::filter(category == "script" & name == "unique_id" & value == unique_id) %>% dplyr::pull(link_id)
+    #       
+    #       print("link_id")
+    #       print(link_id)
+    #       
+    #       sql <- glue::glue_sql("DELETE FROM options WHERE category = 'script' AND link_id = {link_id}", .con = r$db)
+    #       query <- DBI::dbSendStatement(r$db, sql)
+    #       DBI::dbClearResult(query)
+    #       r$options <- r$options %>% dplyr::filter(category != "script" | (category == "script" & link_id != !!link_id))
+    #       print("sql")
+    #       print(sql)
+    #       
+    #       sql <- glue::glue_sql("DELETE FROM code WHERE category = 'script' AND link_id = {link_id}", .con = r$db)
+    #       query <- DBI::dbSendStatement(r$db, sql)
+    #       DBI::dbClearResult(query)
+    #       r$code <- r$code %>% dplyr::filter(category != "script" | (category == "script" & link_id != !!link_id))
+    #       
+    #       sql <- glue::glue_sql("DELETE FROM scripts WHERE id = {link_id}", .con = r$db)
+    #       query <- DBI::dbSendStatement(r$db, sql)
+    #       DBI::dbClearResult(query)
+    #       r$scripts <- r$scripts %>% dplyr::filter(id != link_id)
+    #       
+    #       # Update remote git scripts : script is up to date
+    #       r$remote_git_scripts <- r$remote_git_scripts %>% dplyr::mutate(action = dplyr::case_when(unique_id == !!unique_id ~ "", TRUE ~ action))
+    #       
+    #       script_updated <- TRUE
+    #     }
+    #     
+    #     # Add new script
+    #     
+    #     # Add columns that don't exist (if a language has been added after the creation of the script)
+    #     prefixes <- c("description", "name", "category")
+    #     new_cols <- outer(prefixes, r$languages$code, paste, sep = "_") %>% as.vector()
+    #     for(col in new_cols) if(!col %in% colnames(script)) script <- script %>% dplyr::mutate(!!col := "")
+    #     
+    #     if (script[[paste0("name_", language)]] == "") script[[paste0("name_", language)]] <- script$name_en
+    #     
+    #     last_row <- list()
+    #     for (name in c("scripts", "options", "code")) last_row[[name]] <- get_last_row(r$db, name)
+    #     
+    #     new_data <- list()
+    #     
+    #     link_id <- last_row$scripts + 1
+    #     
+    #     new_data$scripts <- tibble::tibble(id = last_row$scripts + 1, name = script[[paste0("name_", language)]], 
+    #       creation_datetime = script$creation_datetime, update_datetime = script$update_datetime, deleted = FALSE)
+    #     
+    #     for (name in c(paste0("description_", r$languages$code), "code")) script[[name]] <- script[[name]] %>% stringr::str_replace_all("'", "''")
+    #     
+    #     new_data$options <- tibble::tribble(
+    #       ~name, ~value, ~value_num,
+    #       "version", script$version, NA_integer_,
+    #       "unique_id", script$unique_id, NA_integer_,
+    #       "author", script$author, NA_integer_
+    #     ) %>%
+    #       dplyr::bind_rows(
+    #         r$languages %>%
+    #           tidyr::crossing(col_prefix = c("description", "category", "name")) %>%
+    #           dplyr::rowwise() %>%
+    #           dplyr::mutate(
+    #             name = paste0(col_prefix, "_", code),
+    #             value = script[[paste0(col_prefix, "_", code)]],
+    #             value_num = NA_integer_
+    #           ) %>%
+    #           dplyr::select(-code, -language, -col_prefix)
+    #       ) %>%
+    #       dplyr::mutate(id = last_row$options + dplyr::row_number(), category = "script", link_id = !!link_id, .before = "name") %>%
+    #       dplyr::mutate(creator_id = r$user_id, datetime = as.character(Sys.time()), deleted = FALSE)
+    #     
+    #     new_data$code <- tibble::tribble(
+    #       ~id, ~category, ~link_id, ~code, ~creator_id, ~datetime, ~deleted,
+    #       last_row$code + 1, "script", link_id, script$code, r$user_id, script$creation_datetime, FALSE)
+    #     
+    #     for (name in c("scripts", "options", "code")){
+    #       DBI::dbAppendTable(r$db, name, new_data[[name]])
+    #       r[[name]] <- r[[name]] %>% dplyr::bind_rows(new_data[[name]])
+    #     }
+    #     
+    #     # Copy images
+    #     if (nchar(script$images) > 0){
+    #       images <- stringr::str_split(script$images, ";;;")[[1]]
+    #       for (image in images){
+    #         url <- paste0(r$scripts_raw_files_url_address, "/", script$unique_id, "/", image)
+    #         url <- gsub(" ", "%20", url)
+    #         destfile <- paste0(script_dir, "/", image)
+    #         
+    #         if (is.na(r$scripts_api_key) | r$scripts_api_key == "") download.file(url, destfile, quiet = TRUE)
+    #         else {
+    #           response <- httr::GET(url = url, httr::authenticate("token", r$scripts_api_key, type = "basic"), httr::write_disk(path = destfile, overwrite = TRUE))
+    #           if (httr::http_status(response)$category != "Success") stop("Error downloading script's images")
+    #         }
+    #       }
+    #     }
+    #     
+    #     if (script_updated) show_message_bar(output, message = "script_updated", type = "success", i18n = i18n, ns = ns)
+    #     else show_message_bar(output, message = "script_imported", type = "success", i18n = i18n, ns = ns)
+    #     
+    #     r$local_scripts <- r$local_scripts %>%
+    #       dplyr::filter(id != link_id) %>%
+    #       dplyr::bind_rows(tibble::tibble(
+    #         id = link_id, name = script[[paste0("name_", language)]], unique_id = script$unique_id,
+    #         description = script[[paste0("description_", language)]], category = script[[paste0("category_", language)]],
+    #         author = script$author, version = script$version, creation_datetime = script$creation_datetime, update_datetime = script$update_datetime
+    #       ))
+    #     
+    #     r$update_remote_git_scripts_datatable <- Sys.time()
+    #     
+    #   }, error = function(e) if (nchar(e[1]) > 0) report_bug(r = r, output = output, error_message = "error_install_remote_git_script", 
+    #     error_name = paste0("error_install_remote_git_script - id = ", script$unique_id), category = "Error", error_report = toString(e), i18n = i18n, ns = ns))
+    # })
     
     # --- --- --- --- --- --
     # Add a new element ----
@@ -617,11 +1157,12 @@ mod_settings_data_management_server <- function(id = character(), r = shiny::rea
     action_buttons = switch(table,
       "data_sources" = "delete",
       "datasets" = c("delete", "edit_code", "options"),
-      "vocabulary" = c("delete", "edit_code")
+      "vocabulary" = c("delete", "edit_code", "options")
     )
     
     # Editable cols
-    if (table == "vocabulary") editable_cols <- c("vocabulary_id", "vocabulary_name")
+    if (table == "vocabulary") editable_cols <- c("vocabulary_id")
+    else if (table == "datasets") editable_cols <- ""
     else editable_cols <- c("name", "description")
     
     # Sortable cols
@@ -632,7 +1173,7 @@ mod_settings_data_management_server <- function(id = character(), r = shiny::rea
     column_widths <- c("datetime" = "130px", "creator_id" = "200px", "action" = "100px")
     
     # Centered columns
-    centered_cols <- c("creator_id", "datetime", "action")
+    centered_cols <- c("creator_id", "data_source_id", "creation_datetime", "update_datetime", "datetime", "action")
     
     # Searchable_cols
     if (table == "vocabulary") searchable_cols <- c("vocabulary_id", "vocabulary_name")
@@ -666,11 +1207,11 @@ mod_settings_data_management_server <- function(id = character(), r = shiny::rea
         
         if (table == "data_sources") data <- tibble::tibble(id = integer(), name = character(), description = character(),
           creator_id = integer(), datetime = character(), deleted = integer(), modified = logical(), action = character())
-        if (table == "datasets") data <- tibble::tibble(id = integer(), name = character(), description = character(),
-          data_source_id = character(), creator_id = integer(), datetime = character(), deleted = integer(), modified = logical(), action = character())
+        if (table == "datasets") data <- tibble::tibble(id = integer(), name = character(),
+          data_source_id = character(), creator_id = integer(), creation_datetime = character(), update_datetime = character(), deleted = integer(), modified = logical(), action = character())
         if (table == "vocabulary") data <- tibble::tibble(id = integer(), vocabulary_id = character(), vocabulary_name = character(), 
           vocabulary_reference = character(), vocabulary_version = character(), vocabulary_concept_id = character(), data_source_id = character(), 
-          display_order = integer(), creator_id = integer(), datetime = character(), deleted = integer(), modified = logical(), action = character())
+          display_order = integer(), creator_id = integer(), creation_datetime = character(), update_datetime = character(), deleted = integer(), modified = logical(), action = character())
       }
       
       if (nrow(r[[paste0(table, "_temp")]]) > 0){
@@ -687,6 +1228,12 @@ mod_settings_data_management_server <- function(id = character(), r = shiny::rea
               data_source_id == "" ~ i18n$t("deleted_data_source"), TRUE ~ data_source_id
             ))
         }
+        
+        if (table %in% c("datasets", "vocabulary")){
+          r[[paste0(table, "_datatable_temp")]] <- r[[paste0(table, "_datatable_temp")]] %>%
+            dplyr::mutate_at(c("creation_datetime", "update_datetime"), format_datetime, language = language, sec = FALSE)
+        }
+        
         data <- r[[paste0(table, "_datatable_temp")]]
       }
       
@@ -800,7 +1347,7 @@ mod_settings_data_management_server <- function(id = character(), r = shiny::rea
       # Edit options by selecting a row ----
       # --- --- --- --- --- --- --- --- -- -
         
-      if (table == "datasets"){
+      if (table %in% c("datasets", "vocabulary")){
           
         observeEvent(input$options, {
           
@@ -809,11 +1356,18 @@ mod_settings_data_management_server <- function(id = character(), r = shiny::rea
           # Get link_id variable, to update options div
           link_id <- as.integer(substr(input$options, nchar("options_") + 1, nchar(input$options)))
           
-          options <- convert_tibble_to_list(r$datasets %>% dplyr::arrange(name), key_col = "id", text_col = "name")
-          value <- list(key = link_id, text = r$datasets %>% dplyr::filter(id == link_id) %>% dplyr::pull(name))
+          if (table == "vocabulary") {
+            options <- convert_tibble_to_list(r$vocabulary %>% dplyr::arrange(vocabulary_id), key_col = "id", text_col = "vocabulary_id")
+            value <- list(key = link_id, text = r$vocabulary %>% dplyr::filter(id == link_id) %>% dplyr::pull(vocabulary_id))
+          }
+          else {
+            options <- convert_tibble_to_list(r[[table]] %>% dplyr::arrange(name), key_col = "id", text_col = "name")
+            value <- list(key = link_id, text = r[[table]] %>% dplyr::filter(id == link_id) %>% dplyr::pull(name))
+          }
           
           shiny.fluent::updateComboBox.shinyInput(session, "code_selected_dataset_or_vocabulary", options = options, value = value)
           shiny.fluent::updateComboBox.shinyInput(session, "options_selected_dataset_or_vocabulary", options = options, value = value)
+          if (table == "vocabulary") shiny.fluent::updateComboBox.shinyInput(session, "vocabulary_tables_selected_vocabulary", options = options, value = value)
           
           # Reload datatable (to unselect rows)
           DT::replaceData(r[[paste0(table, "_datatable_proxy")]], r[[paste0(table, "_datatable_temp")]], resetPaging = FALSE, rownames = FALSE)
@@ -835,14 +1389,20 @@ mod_settings_data_management_server <- function(id = character(), r = shiny::rea
           else code_link_id <- 0L
           
           if (link_id != code_link_id){
-            options <- convert_tibble_to_list(r$datasets %>% dplyr::arrange(name), key_col = "id", text_col = "name")
-            value <- list(key = link_id, text = r$datasets %>% dplyr::filter(id == link_id) %>% dplyr::pull(name))
+            if (table == "datasets"){
+              options <- convert_tibble_to_list(r$datasets %>% dplyr::arrange(name), key_col = "id", text_col = "name")
+              value <- list(key = link_id, text = r$datasets %>% dplyr::filter(id == link_id) %>% dplyr::pull(name))
+            }
+            else if (table == "vocabulary"){
+              options <- convert_tibble_to_list(r$vocabulary %>% dplyr::arrange(vocabulary_id), key_col = "id", text_col = "vocabulary_id")
+              value <- list(key = link_id, text = r$vocabulary %>% dplyr::filter(id == link_id) %>% dplyr::pull(vocabulary_id))
+            }
             shiny.fluent::updateComboBox.shinyInput(session, "code_selected_dataset_or_vocabulary", options = options, value = value)
           }
           
           category <- get_singular(word = id)
           
-          options <- r$options %>% dplyr::filter(category == "dataset", link_id == !!link_id)
+          options <- r$options %>% dplyr::filter(category == get_singular(table), link_id == !!link_id)
           
           picker_options <-
             r$users %>%
@@ -880,6 +1440,11 @@ mod_settings_data_management_server <- function(id = character(), r = shiny::rea
               width = "100%", style = "padding-bottom:10px;")
           })
           
+          dataset_or_vocab_folder <- paste0(r$app_folder, "/", get_plural(table), "/", options %>% dplyr::filter(name == "unique_id") %>% dplyr::pull(value))
+          files_list <- list.files(path = dataset_or_vocab_folder, pattern = "(?i)*.\\.(jpeg|jpg|png|svg|parquet|csv|xls|xlsx|toml|json|yaml|yml)$")
+          shiny.fluent::updateDropdown.shinyInput(session, paste0(get_singular(table), "_file"), 
+            options = convert_tibble_to_list(tibble::tibble(text = c("", files_list), key = c("", files_list)), key_col = "key", text_col = "text"))
+          
           for (field in c("version", "author", paste0("name_", r$languages$code), paste0("category_", r$languages$code))){
             value <- options %>% dplyr::filter(name == field) %>% dplyr::pull(value) %>% stringr::str_replace_all("''", "'")
             if (length(value) == 0) value <- ""
@@ -910,6 +1475,11 @@ mod_settings_data_management_server <- function(id = character(), r = shiny::rea
           r[[paste0(get_singular(table), "_save_options")]] <- Sys.time()
         })
         
+        observeEvent(input$options_save, {
+          if (debug) cat(paste0("\n", Sys.time(), " - mod_settings_data_management - observer input$options_save"))
+          r[[paste0(get_singular(table), "_save_options")]] <- Sys.time()
+        })
+        
         observeEvent(r[[paste0(get_singular(table), "_save_options")]], {
           
           if (perf_monitoring) monitor_perf(r = r, action = "start")
@@ -936,13 +1506,146 @@ mod_settings_data_management_server <- function(id = character(), r = shiny::rea
           
           if (table == "datasets") page_options <- c("version", "unique_id", "author", "show_only_aggregated_data", "users_allowed_read", "omop_version",
             paste0("name_", r$languages$code), paste0("category_", r$languages$code), paste0("description_", r$languages$code))
-          if (table == "vocabularies") page_options <- c("version", "unique_id", "author",
+          if (table == "vocabulary") page_options <- c("version", "unique_id", "author",
             paste0("name_", r$languages$code), paste0("category_", r$languages$code), paste0("description_", r$languages$code))
+          
+          # Change update_datetime
+          if (table %in% c("datasets", "vocabulary")){
+            if (table == "datasets") db <- r$db
+            else if (table == "vocabulary") db <- m$db
+            
+            new_update_datetime <- as.character(Sys.time())
+            sql <- glue::glue_sql("UPDATE {`table`} SET update_datetime = {new_update_datetime} WHERE id = {link_id}", .con = db)
+            query <- DBI::dbSendStatement(db, sql)
+            DBI::dbClearResult(query) 
+            
+            r[[table]] <- r[[table]] %>% dplyr::mutate(update_datetime = dplyr::case_when(id == link_id ~ new_update_datetime, TRUE ~ update_datetime))
+            r[[paste0(table, "_temp")]] <- r[[table]] %>%
+              dplyr::mutate_at(c("creation_datetime", "update_datetime"), format_datetime, language = language, sec = FALSE) %>%
+              dplyr::mutate(modified = FALSE)
+            if (table == "datasets") r$datasets_temp <- r$datasets_temp %>% dplyr::arrange(name)
+            else if (table == "vocabulary") r$vocabulary_temp %>% dplyr::arrange(vocabulary_id)
+          }
           
           save_settings_options(output = output, r = r, id = id, category = category, code_id_input = paste0("options_", link_id), 
             i18n = i18n, data = data, page_options = page_options)
           
-          if (perf_monitoring) monitor_perf(r = r, action = "stop", task = paste0("mod_settings_data_management - observer input$options_save"))
+          if (perf_monitoring) monitor_perf(r = r, action = "stop", task = paste0("mod_settings_data_management - observer r$.._save_options"))
+        })
+        
+        # Delete a file
+        
+        observeEvent(input$delete_file, {
+          if (debug) cat(paste0("\n", Sys.time(), " - mod_settings_data_management - observer input$delete_file"))
+          req(length(input[[paste0(get_singular(table), "_file")]]) > 0 & input[[paste0(get_singular(table), "_file")]] != "")
+          r[[paste0(get_singular(table), "_delete_file")]] <- TRUE
+        })
+
+        r[[paste0(get_singular(table), "_delete_file")]] <- FALSE
+        output[[paste0(get_singular(table), "_file_delete_confirm")]] <- shiny.fluent::renderReact({
+
+          if (debug) cat(paste0("\n", Sys.time(), " - mod_settings_data_management - output$.._file_delete_confirm"))
+
+          shiny.fluent::Dialog(
+            hidden = !r[[paste0(get_singular(table), "_delete_file")]],
+            onDismiss = htmlwidgets::JS(paste0("function() { Shiny.setInputValue('", get_singular(table), "_delete_file_hide_dialog', Math.random()); }")),
+            dialogContentProps = list(
+              type = 0,
+              title = i18n$t("file_delete"),
+              closeButtonAriaLabel = "Close",
+              subText = tagList(i18n$t("file_delete_subtext"), br(), br())
+            ),
+            modalProps = list(),
+            shiny.fluent::DialogFooter(
+              shiny.fluent::PrimaryButton.shinyInput(ns(paste0(get_singular(table), "_delete_file_delete_confirmed")), text = i18n$t("delete")),
+              shiny.fluent::DefaultButton.shinyInput(ns(paste0(get_singular(table), "_delete_file_delete_canceled")), text = i18n$t("dont_delete"))
+            )
+          )
+        })
+
+        observeEvent(input[[paste0(get_singular(table), "_delete_file_hide_dialog")]], {
+          if (debug) cat(paste0("\n", Sys.time(), " - mod_settings_data_management - observer input$.._delete_file_hide_dialog"))
+          r[[paste0(get_singular(table), "_delete_file")]] <- FALSE
+        })
+        observeEvent(input[[paste0(get_singular(table), "_delete_file_delete_canceled")]], {
+          if (debug) cat(paste0("\n", Sys.time(), " - mod_settings_data_management - observer input$.._delete_file_delete_canceled"))
+          r[[paste0(get_singular(table), "_delete_file")]] <- FALSE
+        })
+
+        observeEvent(input[[paste0(get_singular(table), "_delete_file_delete_confirmed")]], {
+
+          if (debug) cat(paste0("\n", Sys.time(), " - mod_settings_data_management - observer input$.._delete_file_delete_confirmed"))
+
+          req(input[[paste0(get_singular(table), "_file")]] != "")
+          tryCatch({
+            if (length(input$options_selected_dataset_or_vocabulary) > 1) link_id <- input$options_selected_dataset_or_vocabulary$key
+            else link_id <- input$options_selected_dataset_or_vocabulary
+
+            dataset_or_vocab <- r[[table]] %>%
+              dplyr::filter(id == link_id) %>%
+              dplyr::left_join(
+                r$options %>% dplyr::filter(category == get_singular(table), name == "unique_id") %>% dplyr::select(id = link_id, unique_id = value),
+                by = "id"
+              )
+            
+            dataset_or_vocab_folder <- paste0(r$app_folder, "/", get_plural(table), "/", dataset_or_vocab$unique_id)
+            unlink(paste0(dataset_or_vocab_folder, "/", input[[paste0(get_singular(table), "_file")]]))
+
+            files_list <- list.files(path = dataset_or_vocab_folder, pattern = "(?i)*.\\.(jpeg|jpg|png|svg|parquet|csv|xls|xlsx|toml|json|yaml|yml)$")
+            shiny.fluent::updateDropdown.shinyInput(session, paste0(get_singular(table), "_file"),
+              options = convert_tibble_to_list(tibble::tibble(text = c("", files_list), key = c("", files_list)), key_col = "key", text_col = "text"),
+              value = "")
+
+            show_message_bar(output,  "file_deleted", "warning", i18n = i18n, ns = ns)
+
+          }, error = function(e) report_bug(r = r, output = output, error_message = "error_deleting_file",
+            error_name = paste0(id, " - delete file"), category = "Error", error_report = toString(e), i18n = i18n))
+
+          r[[paste0(get_singular(table), "_delete_file")]] <- FALSE
+        })
+        
+        # Import a file
+        
+        observeEvent(input$import_file, {
+          if (debug) cat(paste0("\n", Sys.time(), " - mod_settings_data_management - observer input$import_file"))
+          req(input$options_selected_dataset_or_vocabulary)
+          shinyjs::click("import_file_input")
+        })
+
+        observeEvent(input$import_file_input, {
+          
+          if (debug) cat(paste0("\n", Sys.time(), " - mod_settings_data_management - observer input$import_file_input"))
+          
+          tryCatch({
+            
+            if (length(input$options_selected_dataset_or_vocabulary) > 1) link_id <- input$options_selected_dataset_or_vocabulary$key
+            else link_id <- input$options_selected_dataset_or_vocabulary
+            
+            dataset_or_vocab <- r[[table]] %>%
+              dplyr::filter(id == link_id) %>%
+              dplyr::left_join(
+                r$options %>% dplyr::filter(category == get_singular(table), name == "unique_id") %>% dplyr::select(id = link_id, unique_id = value),
+                by = "id"
+              )
+
+            dataset_or_vocab_folder <- paste0(r$app_folder, "/", get_plural(table), "/", dataset_or_vocab$unique_id)
+            if (!dir.exists(dataset_or_vocab_folder)) dir.create(dataset_or_vocab_folder, recursive = TRUE)
+            
+            # Save the file
+            file.copy(input$import_file_input$datapath, paste0(dataset_or_vocab_folder, "/", input$import_file_input$name), overwrite = TRUE)
+            
+            # Update dropdown
+
+            options <- r$options %>% dplyr::filter(category == get_singular(table), link_id == !!link_id)
+
+            files_list <- list.files(path = dataset_or_vocab_folder, pattern = "(?i)*.\\.(jpeg|jpg|png|svg|parquet|csv|xls|xlsx|toml|json|yaml|yml)$")
+            shiny.fluent::updateDropdown.shinyInput(session, paste0(get_singular(table), "_file"),
+              options = convert_tibble_to_list(tibble::tibble(text = c("", files_list), key = c("", files_list)), key_col = "key", text_col = "text"))
+
+            show_message_bar(output,  "file_imported", "success", i18n = i18n, ns = ns)
+
+          }, error = function(e) report_bug(r = r, output = output, error_message = "error_importing_file",
+            error_name = paste0(id, " - import file"), category = "Error", error_report = toString(e), i18n = i18n))
         })
         
         # Render markdown
@@ -967,11 +1670,11 @@ mod_settings_data_management_server <- function(id = character(), r = shiny::rea
           else link_id <- input$options_selected_dataset_or_vocabulary
           
           options <- r$options %>% dplyr::filter(category == get_singular(table), link_id == !!link_id)
-          dataset_or_vocabulary_folder <- paste0(r$app_folder, "/", get_singular(table), "/", options %>% dplyr::filter(name == "unique_id") %>% dplyr::pull(value))
+          dataset_or_vocab_folder <- paste0(r$app_folder, "/", get_plural(table), "/", options %>% dplyr::filter(name == "unique_id") %>% dplyr::pull(value))
           
           options_description <- isolate(input[[paste0(get_singular(table), "_description_", input[[paste0(get_singular(table), "_language")]])]] %>% 
             stringr::str_replace_all("\r", "\n")) %>%
-            stringr::str_replace_all(paste0("%", get_singular(table), "_folder%"), dataset_or_vocabulary_folder)
+            stringr::str_replace_all(paste0("%", get_singular(table), "_folder%"), dataset_or_vocab_folder)
           
           tryCatch({
             
@@ -1021,7 +1724,7 @@ mod_settings_data_management_server <- function(id = character(), r = shiny::rea
           }
           
           shiny.fluent::updateComboBox.shinyInput(session, "code_selected_dataset_or_vocabulary", options = options, value = value)
-          if (table == "datasets") shiny.fluent::updateComboBox.shinyInput(session, "options_selected_dataset_or_vocabulary", options = options, value = value)
+          shiny.fluent::updateComboBox.shinyInput(session, "options_selected_dataset_or_vocabulary", options = options, value = value)
           if (table == "vocabulary") shiny.fluent::updateComboBox.shinyInput(session, "vocabulary_tables_selected_vocabulary", options = options, value = value)
           
           # Reload datatable (to unselect rows)
@@ -1070,6 +1773,7 @@ mod_settings_data_management_server <- function(id = character(), r = shiny::rea
               options <- convert_tibble_to_list(r$vocabulary %>% dplyr::arrange(vocabulary_id), key_col = "id", text_col = "vocabulary_id")
               value <- list(key = link_id, text = r$vocabulary %>% dplyr::filter(id == link_id) %>% dplyr::pull(vocabulary_id))
               shiny.fluent::updateComboBox.shinyInput(session, "vocabulary_tables_selected_vocabulary", options = options, value = value)
+              shiny.fluent::updateComboBox.shinyInput(session, "options_selected_dataset_or_vocabulary", options = options, value = value)
             }
           }
 
@@ -1116,6 +1820,24 @@ mod_settings_data_management_server <- function(id = character(), r = shiny::rea
           
           if (length(input$code_selected_dataset_or_vocabulary) > 1) link_id <- input$code_selected_dataset_or_vocabulary$key
           else link_id <- input$code_selected_dataset_or_vocabulary
+          
+          # Change update_datetime
+          if (table %in% c("datasets", "vocabulary")){
+            if (table == "datasets") db <- r$db
+            else if (table == "vocabulary") db <- m$db
+            
+            new_update_datetime <- as.character(Sys.time())
+            sql <- glue::glue_sql("UPDATE {`table`} SET update_datetime = {new_update_datetime} WHERE id = {link_id}", .con = db)
+            query <- DBI::dbSendStatement(db, sql)
+            DBI::dbClearResult(query) 
+            
+            r[[table]] <- r[[table]] %>% dplyr::mutate(update_datetime = dplyr::case_when(id == link_id ~ new_update_datetime, TRUE ~ update_datetime))
+            r[[paste0(table, "_temp")]] <- r[[table]] %>%
+              dplyr::mutate_at(c("creation_datetime", "update_datetime"), format_datetime, language = language, sec = FALSE) %>%
+              dplyr::mutate(modified = FALSE)
+            if (table == "datasets") r$datasets_temp <- r$datasets_temp %>% dplyr::arrange(name)
+            else if (table == "vocabulary") r$vocabulary_temp %>% dplyr::arrange(vocabulary_id)
+          }
           
           save_settings_code(output = output, r = r, id = id, category = get_singular(id),
             code_id_input = paste0("edit_code_", link_id), edited_code = input$ace_edit_code, i18n = i18n)

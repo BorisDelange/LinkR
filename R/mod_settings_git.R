@@ -688,6 +688,9 @@ mod_settings_git_server <- function(id = character(), r = shiny::reactiveValues(
         readme_file_path <- paste0(local_path, "/README.md")
         if (!file.exists(readme_file_path)) file.create(readme_file_path)
         
+        # Create .gitignore
+        writeLines(".DS_Store", paste0(local_path, "/.gitignore"))
+        
         error_loading_git_repo <- FALSE
       },
         error = function(e) report_bug(r = r, output = output, error_message = "error_downloading_git_repo",

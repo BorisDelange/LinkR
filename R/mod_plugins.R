@@ -169,7 +169,7 @@ mod_plugins_ui <- function(id = character(), i18n = character(), language = tibb
                 div(
                   shiny.fluent::ChoiceGroup.shinyInput(ns("all_plugins_source"), value = "local", options = list(
                     list(key = "local", text = i18n$t("local_plural")),
-                    list(key = "remote_git", text = i18n$t("git_remote_plugins"))
+                    list(key = "remote_git", text = i18n$t("on_remote_git_repo"))
                   ), className = "inline_choicegroup"),
                   style = "width:322px;"
                 ),
@@ -1536,7 +1536,7 @@ mod_plugins_server <- function(id = character(), r = shiny::reactiveValues(), d 
       # Plugin version, author, image and descriptions
       
       plugin_folder <- paste0(r$app_folder, "/plugins/", prefix, "/", options %>% dplyr::filter(name == "unique_id") %>% dplyr::pull(value))
-      files_list <- list.files(path = plugin_folder, pattern = "*.\\.(jpeg|jpg|JPG|JPEG|png|PNG|SVG|svg)$")
+      files_list <- list.files(path = plugin_folder, pattern = "(?i)*.\\.(jpeg|jpg|JPG|JPEG|png|PNG|SVG|svg)$")
       shiny.fluent::updateDropdown.shinyInput(session, "plugin_image", 
         options = convert_tibble_to_list(tibble::tibble(text = c("", files_list), key = c("", files_list)), key_col = "key", text_col = "text"),
         value = options %>% dplyr::filter(name == "image") %>% dplyr::pull(value))
@@ -1690,7 +1690,8 @@ mod_plugins_server <- function(id = character(), r = shiny::reactiveValues(), d 
       
       req(input$plugin_image != "")
       tryCatch({
-        link_id <- input$options_selected_plugin$key
+        if (length(input$options_selected_plugin) > 1) link_id <- input$options_selected_plugin$key
+        else link_id <- input$options_selected_plugin
         
         plugin <- r$plugins %>% dplyr::filter(id == link_id) %>%
           dplyr::left_join(
@@ -1701,7 +1702,7 @@ mod_plugins_server <- function(id = character(), r = shiny::reactiveValues(), d 
         plugin_folder <- paste0(r$app_folder, "/plugins/", prefix, "/", plugin$unique_id)
         unlink(paste0(plugin_folder, "/", input$plugin_image))
         
-        files_list <- list.files(path = plugin_folder, pattern = "*.\\.(jpeg|jpg|JPG|JPEG|png|PNG|SVG|svg)$")
+        files_list <- list.files(path = plugin_folder, pattern = "(?i)*.\\.(jpeg|jpg|JPG|JPEG|png|PNG|SVG|svg)$")
         shiny.fluent::updateDropdown.shinyInput(session, "plugin_image", 
           options = convert_tibble_to_list(tibble::tibble(text = c("", files_list), key = c("", files_list)), key_col = "key", text_col = "text"),
           value = "")
@@ -1718,6 +1719,7 @@ mod_plugins_server <- function(id = character(), r = shiny::reactiveValues(), d 
     
     observeEvent(input$import_image, {
       if (debug) cat(paste0("\n", Sys.time(), " - mod_plugins - observer input$import_image"))
+      req(input$options_selected_plugin)
       shinyjs::click("import_image_file")
     })
     
@@ -1753,7 +1755,7 @@ mod_plugins_server <- function(id = character(), r = shiny::reactiveValues(), d 
         
         options <- r$options %>% dplyr::filter(category == "plugin", link_id == !!link_id)
         
-        files_list <- list.files(path = plugin_folder, pattern = "*.\\.(jpeg|jpg|JPG|JPEG|png|PNG|SVG|svg)$")
+        files_list <- list.files(path = plugin_folder, pattern = "(?i)*.\\.(jpeg|jpg|JPG|JPEG|png|PNG|SVG|svg)$")
         shiny.fluent::updateDropdown.shinyInput(session, "plugin_image", 
           options = convert_tibble_to_list(tibble::tibble(text = c("", files_list), key = c("", files_list)), key_col = "key", text_col = "text"),
           value = options %>% dplyr::filter(name == "image") %>% dplyr::pull(value))
