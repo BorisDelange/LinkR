@@ -73,9 +73,12 @@ mod_page_main_ui <- function(id = character(), language = "en", languages = tibb
     if (id == "settings_dev") mod_settings_dev_ui(id = "settings_dev", i18n = i18n) -> result
     
     # Subpages of Settings / data management
-    sapply(c("data_sources", "datasets", "studies", "subsets", "vocabularies"), function(page_settings){
+    sapply(c("datasets", "vocabularies"), function(page_settings){
       if (id == paste0("settings_", page_settings)) mod_settings_data_management_ui(id = paste0("settings_", page_settings), i18n = i18n, language = language, languages = languages) ->> result
     })
+    # sapply(c("data_sources", "datasets", "studies", "subsets", "vocabularies"), function(page_settings){
+    #   if (id == paste0("settings_", page_settings)) mod_settings_data_management_ui(id = paste0("settings_", page_settings), i18n = i18n, language = language, languages = languages) ->> result
+    # })
     
     if (id == "settings_log") mod_settings_log_ui(id = "settings_log", i18n = i18n) -> result
   }

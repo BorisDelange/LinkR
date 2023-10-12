@@ -124,12 +124,14 @@ add_settings_new_data <- function(session, output, r = shiny::reactiveValues(), 
   new_data <- list()
   
   # Creation of new_data$data variable for data_management pages
-  if (table %in% c("data_sources", "datasets", "subsets")){
+  # if (table %in% c("data_sources", "datasets", "subsets")){
+  if (table %in% c("datasets", "subsets")){
     
     # These columns are found in all of these tables
     new_data$data <- tibble::tribble(~id, ~name, ~description, last_row$data + 1, as.character(data$name), as.character(data$description))
     
-    if (table == "datasets") new_data$data <- new_data$data %>% dplyr::bind_cols(tibble::tribble(~data_source_id, as.integer(data$data_source)))
+    # if (table == "datasets") new_data$data <- new_data$data %>% dplyr::bind_cols(tibble::tribble(~data_source_id, as.integer(data$data_source)))
+    if (table == "datasets") new_data$data <- new_data$data %>% dplyr::bind_cols(tibble::tribble(~data_source_id, NA_integer_))
     if (table == "subsets") new_data$data <- new_data$data %>% dplyr::bind_cols(tibble::tribble(~study_id, as.integer(data$study)))
     
     # These columns are also found in all of these tables
@@ -138,17 +140,24 @@ add_settings_new_data <- function(session, output, r = shiny::reactiveValues(), 
   }
   
   if (table == "datasets"){
+    # new_data$data <- tibble::tribble(
+    #   ~id, ~name, ~data_source_id, ~creator_id, ~creation_datetime, ~update_datetime, ~deleted,
+    #   last_row$data + 1, as.character(data$name), as.integer(data$data_source), r$user_id, as.character(Sys.time()), as.character(Sys.time()), FALSE)
     new_data$data <- tibble::tribble(
       ~id, ~name, ~data_source_id, ~creator_id, ~creation_datetime, ~update_datetime, ~deleted,
-      last_row$data + 1, as.character(data$name), as.integer(data$data_source), r$user_id, as.character(Sys.time()), as.character(Sys.time()), FALSE)
+      last_row$data + 1, as.character(data$name), NA_integer_, r$user_id, as.character(Sys.time()), as.character(Sys.time()), FALSE)
   }
 
   # Creation of new_data$data variable for vocabulary page
   else if (table == "vocabulary"){
+    # new_data$data <- tibble::tribble(~id, ~vocabulary_id, ~vocabulary_name, ~vocabulary_reference, ~vocabulary_version,
+    #   ~vocabulary_concept_id, ~display_order, ~data_source_id, ~creator_id, ~creation_datetime, ~update_datetime, ~deleted,
+    #   last_row$data + 1, as.character(data$vocabulary_id), as.character(data$vocabulary_name), "", "", "", NA_integer_,
+    #   data$data_source, r$user_id, as.character(Sys.time()), as.character(Sys.time()), FALSE)
     new_data$data <- tibble::tribble(~id, ~vocabulary_id, ~vocabulary_name, ~vocabulary_reference, ~vocabulary_version,
       ~vocabulary_concept_id, ~display_order, ~data_source_id, ~creator_id, ~creation_datetime, ~update_datetime, ~deleted,
       last_row$data + 1, as.character(data$vocabulary_id), as.character(data$vocabulary_name), "", "", "", NA_integer_,
-      data$data_source, r$user_id, as.character(Sys.time()), as.character(Sys.time()), FALSE)
+      "", r$user_id, as.character(Sys.time()), as.character(Sys.time()), FALSE)
   }
   
   # Creation of new_data$data variable for studies page
@@ -239,7 +248,9 @@ add_settings_new_data <- function(session, output, r = shiny::reactiveValues(), 
       "version", "0.0.1.9000", NA_integer_,
       "unique_id", paste0(sample(c(0:9, letters[1:6]), 64, TRUE), collapse = ''), NA_integer_,
       "author", username, NA_integer_,
-      "image", "", NA_integer_
+      "image", "", NA_integer_,
+      "downloaded_from", "", NA_integer_,
+      "downloaded_from_url", "", NA_integer_
     ) %>%
     dplyr::bind_rows(
       r$languages %>%
@@ -270,7 +281,9 @@ add_settings_new_data <- function(session, output, r = shiny::reactiveValues(), 
       ~name, ~value, ~value_num,
       "version", "0.0.1.9000", NA_integer_,
       "unique_id", paste0(sample(c(0:9, letters[1:6]), 64, TRUE), collapse = ''), NA_integer_,
-      "author", username, NA_integer_
+      "author", username, NA_integer_,
+      "downloaded_from", "", NA_integer_,
+      "downloaded_from_url", "", NA_integer_
     ) %>%
       dplyr::bind_rows(
         r$languages %>%
@@ -302,7 +315,9 @@ add_settings_new_data <- function(session, output, r = shiny::reactiveValues(), 
       "users_allowed_read_group", "everybody", 1,
       "user_allowed_read", "", r$user_id,
       "show_only_aggregated_data", "", 0,
-      "omop_version", "6.0", NA_integer_
+      "omop_version", "6.0", NA_integer_,
+      "downloaded_from", "", NA_integer_,
+      "downloaded_from_url", "", NA_integer_
     ) %>%
       dplyr::bind_rows(
         r$languages %>%
@@ -325,14 +340,16 @@ add_settings_new_data <- function(session, output, r = shiny::reactiveValues(), 
       ~name, ~value, ~value_num,
       "version", "0.0.1.9000", NA_integer_,
       "unique_id", paste0(sample(c(0:9, letters[1:6]), 64, TRUE), collapse = ''), NA_integer_,
-      "author", username, NA_integer_
+      "author", username, NA_integer_,
+      "downloaded_from", "", NA_integer_,
+      "downloaded_from_url", "", NA_integer_
     ) %>%
       dplyr::bind_rows(
         r$languages %>%
           tidyr::crossing(name = c("description", "category", "name")) %>%
           dplyr::mutate(
             name = paste0(name, "_", code),
-            value = ifelse(grepl("name_", name), as.character(data$name), ""),
+            value = ifelse(grepl("name_", name), as.character(data$vocabulary_name), ""),
             value_num = NA_integer_
           ) %>%
           dplyr::select(-code, -language)

@@ -188,10 +188,10 @@ mod_scripts_ui <- function(id = character(), i18n = character(), language = "en"
             ),
             div(DT::DTOutput(ns("scripts_datatable")), style = "margin-top:-30px; z-index:2"),
             div(
-              shiny.fluent::Stack(horizontal = TRUE, tokens = list(childrenGap = 10),
-                shiny.fluent::PrimaryButton.shinyInput(ns("save_scripts_management"), i18n$t("save")),
-                shiny.fluent::DefaultButton.shinyInput(ns("delete_selection"), i18n$t("delete_selection"))
-              ),
+              # shiny.fluent::Stack(horizontal = TRUE, tokens = list(childrenGap = 10),
+                # shiny.fluent::PrimaryButton.shinyInput(ns("save_scripts_management"), i18n$t("save")),
+              shiny.fluent::DefaultButton.shinyInput(ns("delete_selection"), i18n$t("delete_selection")),
+              # ),
               style = "position:relative; z-index:2; margin-top:-30px;"
             )
           )
@@ -833,7 +833,7 @@ mod_scripts_server <- function(id = character(), r = shiny::reactiveValues(), d 
           script <- r$remote_git_scripts[input$remote_git_scripts_datatable_rows_selected, ]
 
           script_description <- paste0(
-            "**", i18n$t("author_s"), "** : ", script$name, "<br />",
+            "**", i18n$t("author_s"), "** : ", script$author, "<br />",
             "**", i18n$t("version"), "** : ", script$version, "\n\n",
             script %>% dplyr::pull(description)
           )
@@ -847,16 +847,17 @@ mod_scripts_server <- function(id = character(), r = shiny::reactiveValues(), d 
             if (!dir.exists(script_folder)) dir.create(script_folder)
             
             tryCatch({
-              images <- stringr::str_split(script$images, ";;;")[[1]]
-              for (image in images){
-                url <- paste0(r$scripts_raw_files_url_address, script$unique_id, "/", image)
-                url <- gsub(" ", "%20", url)
-                destfile <- paste0(script_folder, "/", image)
-
-                response <- httr::GET(url = url, httr::authenticate("token", r$scripts_api_key, type = "basic"), httr::write_disk(path = destfile, overwrite = TRUE))
-                if (httr::http_status(response)$category != "Success") stop("Error downloading script's images")
+              if (nchar(script$images) > 0){
+                images <- stringr::str_split(script$images, ";;;")[[1]]
+                for (image in images){
+                  url <- paste0(r$scripts_raw_files_url_address, script$unique_id, "/", image)
+                  url <- gsub(" ", "%20", url)
+                  destfile <- paste0(script_folder, "/", image)
+  
+                  response <- httr::GET(url = url, httr::authenticate("token", r$scripts_api_key, type = "basic"), httr::write_disk(path = destfile, overwrite = TRUE))
+                  if (httr::http_status(response)$category != "Success") stop("Error downloading script's images")
+                }
               }
-
             }, error = function(e) if (nchar(e[1]) > 0) report_bug(r = r, output = output, error_message = "error_downloading_remote_script_image",
               error_name = paste0("install_remote_git_script - id = ", script$unique_id), category = "Error", error_report = toString(e), i18n = i18n, ns = ns))
           }
@@ -893,6 +894,7 @@ mod_scripts_server <- function(id = character(), r = shiny::reactiveValues(), d 
       if (substr(raw_files_url_address, nchar(raw_files_url_address), nchar(raw_files_url_address)) != "/") raw_files_url_address <- paste0(raw_files_url_address, "/")
       raw_files_url_address <- paste0(raw_files_url_address, "scripts/")
       r$scripts_raw_files_url_address <- raw_files_url_address
+      r$scripts_repo_url_address <- r$git_repos %>% dplyr::filter(id == input$remote_git_repo) %>% dplyr::pull(repo_url_address)
       
       # Get API key
       api_key <- r$git_repos %>% dplyr::filter(id == input$remote_git_repo) %>% dplyr::pull(api_key)
@@ -981,7 +983,7 @@ mod_scripts_server <- function(id = character(), r = shiny::reactiveValues(), d 
         centered_cols <- c("author", "creation_datetime", "update_datetime", "version", "action")
         searchable_cols <- c("name", "category", "author")
         factorize_cols <- c("category", "author")
-        hidden_cols <- c("unique_id", "description")
+        hidden_cols <- c("unique_id", "description", "images")
         col_names <- get_col_names("remote_git_scripts", i18n)
 
         render_datatable(output = output, ns = ns, i18n = i18n, data = remote_git_scripts,
@@ -1002,10 +1004,6 @@ mod_scripts_server <- function(id = character(), r = shiny::reactiveValues(), d 
       if (debug) cat(paste0("\n", Sys.time(), " - mod_scripts - observer input$add_remote_git_script"))
       
       unique_id <- substr(input$add_remote_git_script, nchar("add_remote_git_script_") + 1, nchar(input$add_remote_git_script))
-      print("unique_id")
-      print(unique_id)
-      print("input$add_remote_git_script")
-      print(input$add_remote_git_script)
       
       script_updated <- FALSE
       link_id <- integer(0)
@@ -1022,15 +1020,10 @@ mod_scripts_server <- function(id = character(), r = shiny::reactiveValues(), d 
           
           link_id <- r$options %>% dplyr::filter(category == "script" & name == "unique_id" & value == unique_id) %>% dplyr::pull(link_id)
           
-          print("link_id")
-          print(link_id)
-          
           sql <- glue::glue_sql("DELETE FROM options WHERE category = 'script' AND link_id = {link_id}", .con = r$db)
           query <- DBI::dbSendStatement(r$db, sql)
           DBI::dbClearResult(query)
           r$options <- r$options %>% dplyr::filter(category != "script" | (category == "script" & link_id != !!link_id))
-          print("sql")
-          print(sql)
           
           sql <- glue::glue_sql("DELETE FROM code WHERE category = 'script' AND link_id = {link_id}", .con = r$db)
           query <- DBI::dbSendStatement(r$db, sql)
@@ -1073,7 +1066,9 @@ mod_scripts_server <- function(id = character(), r = shiny::reactiveValues(), d 
           ~name, ~value, ~value_num,
           "version", script$version, NA_integer_,
           "unique_id", script$unique_id, NA_integer_,
-          "author", script$author, NA_integer_
+          "author", script$author, NA_integer_,
+          "downloaded_from", r$git_repos %>% dplyr::filter(id == input$remote_git_repo) %>% dplyr::pull(name), NA_integer_,
+          "downloaded_from_url", r$scripts_repo_url_address, NA_integer_
         ) %>%
           dplyr::bind_rows(
             r$languages %>%
@@ -2086,7 +2081,7 @@ mod_scripts_server <- function(id = character(), r = shiny::reactiveValues(), d 
           list_of_files <- list.files(script_dir)
           
           # Add images filenames in the XML
-          images <- list_of_files[grepl("\\.png$|\\.jpg|\\.jpeg|\\.svg", tolower(list_of_files))]
+          images <- list_of_files[grepl("\\.(png|jpg|jpeg|svg)$", tolower(list_of_files))]
           images_node <- XML::newXMLNode("images", paste(images, collapse = ";;;"), parent = script_node)
           
           # Create XML file

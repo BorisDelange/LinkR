@@ -69,12 +69,13 @@ render_settings_creation_card <- function(i18n = character(), ns = character(), 
 #' @param div_id ID of the div, to show or hide with toggles, default = "datatable_card" (character)
 #' @param output_id ID of div & DTOutput, allows to have multiple management_datatable in one tab, default = "management_datatable" (character)
 #' @param title Title used to create the card, it will be translated with translate function (character)
+#' @param save_button Add a save button (logical)
 #' @examples 
 #' \dontrun{
 #' render_settings_datatable_card(i18n = i18n, ns = ns, output_id = "management_datatable", title = "datasets_management")
 #' }
 render_settings_datatable_card <- function(i18n = character(), ns = character(), div_id = "datatable_card",
-  output_id = "management_datatable", title = character(), inputs = character(), dropdown_multiselect = FALSE){
+  output_id = "management_datatable", title = character(), inputs = character(), dropdown_multiselect = FALSE, save_button = TRUE){
   
   inputs_div <- tagList()
   
@@ -93,16 +94,19 @@ render_settings_datatable_card <- function(i18n = character(), ns = character(),
     )
   }
   
+  if (save_button) buttons_div <- shiny.fluent::Stack(horizontal = TRUE, tokens = list(childrenGap = 10),
+    shiny.fluent::PrimaryButton.shinyInput(ns("management_save"), i18n$t("save")),
+    shiny.fluent::DefaultButton.shinyInput(ns("delete_selection"), i18n$t("delete_selection"))
+  )
+  else buttons_div <- shiny.fluent::DefaultButton.shinyInput(ns("delete_selection"), i18n$t("delete_selection"))
+  
   div(id = ns(div_id),
     make_card(i18n$t(title),
       div(
         inputs_div,
         div(DT::DTOutput(ns(output_id)), style = "z-index:2"),
         div(
-          shiny.fluent::Stack(horizontal = TRUE, tokens = list(childrenGap = 10),
-            shiny.fluent::PrimaryButton.shinyInput(ns("management_save"), i18n$t("save")),
-            shiny.fluent::DefaultButton.shinyInput(ns("delete_selection"), i18n$t("delete_selection"))
-          ),
+          buttons_div,
           style = "position:relative; z-index:1; margin-top:-30px; width:500px;")
       )
     ), br()

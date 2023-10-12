@@ -161,7 +161,7 @@ get_col_names <- function(table_name = character(), i18n = character()){
     i18n$t("creator"), i18n$t("created_on"), i18n$t("updated_on"), i18n$t("deleted"), i18n$t("modified"), i18n$t("action"))
   
   else if (table_name == "vocabulary") result <- c(i18n$t("id"), i18n$t("vocabulary_id_col"), i18n$t("vocabulary_name_col"),
-    i18n$t("vocabulary_reference"), i18n$t("vocabulary_version"), i18n$t("vocabulary_concept_id"), i18n$t("data_source_id"),
+    i18n$t("vocabulary_reference"), i18n$t("vocabulary_version"), i18n$t("vocabulary_concept_id"), i18n$t("data_source"),
     i18n$t("display_order"), i18n$t("creator"), i18n$t("created_on"), i18n$t("updated_on"), i18n$t("deleted"), i18n$t("modified"), i18n$t("action"))
   
   else if (table_name == "studies"){
@@ -280,12 +280,17 @@ get_col_names <- function(table_name = character(), i18n = character()){
   
   else if (table_name == "remote_git_scripts"){
     result <- c(i18n$t("name"), i18n$t("unique_id"), i18n$t("description"), i18n$t("category"), i18n$t("author"), i18n$t("version"),
-      i18n$t("created_on"), i18n$t("updated_on"), i18n$t("action"))
+      i18n$t("images"), i18n$t("created_on"), i18n$t("updated_on"), i18n$t("action"))
   }
   
   else if (table_name == "local_datasets_or_vocabs"){
     result <- c(i18n$t("id"), i18n$t("name"), i18n$t("unique_id"), i18n$t("description"), i18n$t("category"), i18n$t("author"), i18n$t("version"),
       i18n$t("created_on"), i18n$t("updated_on"))
+  }
+  
+  else if (table_name == "remote_git_datasets_or_vocab"){
+    result <- c(i18n$t("name"), i18n$t("unique_id"), i18n$t("description"), i18n$t("category"), i18n$t("author"), i18n$t("version"),
+      i18n$t("images"), i18n$t("created_on"), i18n$t("updated_on"), i18n$t("action"))
   }
   
   else if (table_name == "perf_monitoring"){

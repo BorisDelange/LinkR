@@ -186,7 +186,11 @@ mod_page_sidenav_ui <- function(id = character(), i18n = character()){
   if (grepl("^settings", id)){
     
     links_data_management <- list()
-    lapply(c("data_sources", "datasets", "vocabularies"), function(page){
+    # lapply(c("data_sources", "datasets", "vocabularies"), function(page){
+    #   links_data_management <<- rlist::list.append(links_data_management, list(name = i18n$t(page),
+    #     id = ns(page), key = page, url = shiny.router::route_link(paste0("settings/", page))))
+    # })
+    lapply(c("datasets", "vocabularies"), function(page){
       links_data_management <<- rlist::list.append(links_data_management, list(name = i18n$t(page),
         id = ns(page), key = page, url = shiny.router::route_link(paste0("settings/", page))))
     })

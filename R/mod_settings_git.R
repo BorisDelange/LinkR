@@ -716,14 +716,17 @@ mod_settings_git_server <- function(id = character(), r = shiny::reactiveValues(
       
       req(input$edit_repo_selected_repo)
       
-      # Not working for studies, datasets & vocabularies for now
-      req(input$repo_category %in% c("patient_lvl_plugins", "aggregated_plugins", "scripts"))
+      # Not working for studies for now
+      req(input$repo_category %in% c("datasets", "patient_lvl_plugins", "aggregated_plugins", "scripts", "vocabularies"))
       
       # Update add_files dropdown
       if (input$repo_category == "patient_lvl_plugins") dropdown_options <- r$plugins %>% dplyr::filter(tab_type_id == 1)
       else if (input$repo_category == "aggregated_plugins") dropdown_options <- r$plugins %>% dplyr::filter(tab_type_id == 2)
+      else if (input$repo_category == "vocabularies") dropdown_options <- r$vocabulary
       else dropdown_options <- r[[input$repo_category]]
-      dropdown_options <- dropdown_options %>% convert_tibble_to_list(key_col = "id", text_col = "name")
+      
+      if (input$repo_category == "vocabularies") dropdown_options <- dropdown_options %>% convert_tibble_to_list(key_col = "id", text_col = "vocabulary_name")
+      else dropdown_options <- dropdown_options %>% convert_tibble_to_list(key_col = "id", text_col = "name")
       
       shiny.fluent::updateDropdown.shinyInput(session, "edit_repo_add_selected_files", options = dropdown_options)
       
@@ -846,11 +849,12 @@ mod_settings_git_server <- function(id = character(), r = shiny::reactiveValues(
       # Get unique_ids
       
       ## Not working for studies, datasets & vocabularies for now
-      req(input$repo_category %in% c("patient_lvl_plugins", "aggregated_plugins", "scripts"))
+      req(input$repo_category %in% c("datasets", "patient_lvl_plugins", "aggregated_plugins", "scripts", "vocabularies"))
       
       # Category elements
       if (input$repo_category == "patient_lvl_plugins") category_elements <- r$plugins %>% dplyr::filter(tab_type_id == 1)
       else if (input$repo_category == "aggregated_plugins") category_elements <- r$plugins %>% dplyr::filter(tab_type_id == 2)
+      else if (input$repo_category == "vocabularies") category_elements <- r$vocabulary
       else category_elements <- r[[input$repo_category]]
       category_elements <- category_elements %>% dplyr::filter(id %in% input$edit_repo_add_selected_files)
       
@@ -875,6 +879,7 @@ mod_settings_git_server <- function(id = character(), r = shiny::reactiveValues(
           code <- r$code %>% dplyr::filter(link_id == category_element_id, category %in% options_files)
           
           # Create folders if don't exist
+          # Delete old folder
           if (repo_category == "plugins"){
             type <- gsub("_plugins", "", input$repo_category)
             local_category_element_dir <- paste0(r$app_folder, "/", repo_category, "/", type, "/", options %>% dplyr::filter(name == "unique_id") %>% dplyr::pull(value))
@@ -885,6 +890,7 @@ mod_settings_git_server <- function(id = character(), r = shiny::reactiveValues(
             git_category_element_dir <- paste0(r$edit_git_local_path, "/", repo_category, "/", options %>% dplyr::filter(name == "unique_id") %>% dplyr::pull(value))
           }
           if (!dir.exists(local_category_element_dir)) dir.create(local_category_element_dir, recursive = TRUE)
+          if (dir.exists(git_category_element_dir)) unlink(git_category_element_dir, recursive = TRUE, force = TRUE)
           if (!dir.exists(git_category_element_dir)) dir.create(git_category_element_dir, recursive = TRUE)
           
           # Create ui.R & server.R for plugins
@@ -894,7 +900,7 @@ mod_settings_git_server <- function(id = character(), r = shiny::reactiveValues(
             writeLines(code %>% dplyr::filter(category == "plugin_translations") %>% dplyr::pull(code) %>% stringr::str_replace_all("''", "'"), paste0(local_category_element_dir, "/translations.csv"))
           }
           # Create code.R for scripts
-          if (repo_category == "scripts") writeLines(code %>%  dplyr::filter(category == "script") %>% dplyr::pull(code) %>% stringr::str_replace_all("''", "'"), paste0(local_category_element_dir, "/code.R"))
+          if (repo_category %in% c("datasets", "scripts", "vocabularies")) writeLines(code %>% dplyr::filter(category == get_singular(repo_category)) %>% dplyr::pull(code) %>% stringr::str_replace_all("''", "'"), paste0(local_category_element_dir, "/code.R"))
           
           # Create XML file
           xml <- XML::newXMLDoc()
@@ -913,7 +919,7 @@ mod_settings_git_server <- function(id = character(), r = shiny::reactiveValues(
             for (name in c("creation_datetime", "update_datetime")) XML::newXMLNode(name, category_element %>% dplyr::pull(get(!!name)), parent = category_node)
           }
           
-          else if (repo_category == "scripts"){
+          else if (repo_category %in% c("datasets", "scripts", "vocabularies")){
             for(name in c("unique_id", "version", "author", paste0("name_", r$languages$code), paste0("category_", r$languages$code))) XML::newXMLNode(name, 
               options %>% dplyr::filter(name == !!name) %>% dplyr::pull(value), parent = category_node)
             for(name in c(paste0("description_", r$languages$code))) XML::newXMLNode(name,
@@ -922,11 +928,14 @@ mod_settings_git_server <- function(id = character(), r = shiny::reactiveValues(
             XML::newXMLNode("code", code %>% dplyr::pull(code) %>% stringr::str_replace_all("''", "'"), parent = category_node)
           }
           
+          if (repo_category == "datasets") XML::newXMLNode("omop_version", options %>% dplyr::filter(name == "omop_version") %>% dplyr::pull(value), parent = category_node)
+          if (repo_category == "vocabularies") XML::newXMLNode("vocabulary_id", category_element %>% dplyr::pull(vocabulary_id), parent = category_node)
+          
           list_of_files <- list.files(local_category_element_dir)
           
-          if (repo_category %in% c("plugins", "scripts")){
+          if (repo_category %in% c("datasets", "plugins", "scripts", "vocabularies")){
             # Add images filenames in the XML
-            images <- list_of_files[grepl("\\.png$|\\.jpg|\\.jpeg|\\.svg", tolower(list_of_files))]
+            images <- list_of_files[grepl("\\.(png|jpg|jpeg|svg)$", tolower(list_of_files))]
             images_node <- XML::newXMLNode("images", paste(images, collapse = ";;;"), parent = category_node)
           }
           
@@ -934,9 +943,13 @@ mod_settings_git_server <- function(id = character(), r = shiny::reactiveValues(
           
           # Update list_of_files with XML file
           list_of_files <- list.files(local_category_element_dir)
+          # Select files to copy (images, R files and XML)
+          # Allow csv for plugins (translations.csv)
+          if (repo_category == "plugins") files_to_copy <- list_of_files[grepl("(\\.(png|jpg|jpeg|svg|r|xml)$)|(^translations\\.csv$)", tolower(list_of_files))]
+          else files_to_copy <- list_of_files[grepl("\\.(png|jpg|jpeg|svg|r|xml)$", tolower(list_of_files))]
           
           # Copy all files in temp git folder
-          file.copy(paste0(local_category_element_dir, "/", list_of_files),  paste0(git_category_element_dir, "/", list_of_files), overwrite = TRUE)
+          file.copy(paste0(local_category_element_dir, "/", files_to_copy),  paste0(git_category_element_dir, "/", files_to_copy), overwrite = TRUE)
         }
       }, error = function(e) report_bug(r = r, output = output, error_message = "error_creating_xml_files",
         error_name = paste0(id, " - create git repo XML files"), category = "Error", error_report = toString(e), i18n = i18n))
@@ -944,8 +957,11 @@ mod_settings_git_server <- function(id = character(), r = shiny::reactiveValues(
       # Clear dropdown
       if (input$repo_category == "patient_lvl_plugins") dropdown_options <- r$plugins %>% dplyr::filter(tab_type_id == 1)
       else if (input$repo_category == "aggregated_plugins") dropdown_options <- r$plugins %>% dplyr::filter(tab_type_id == 2)
+      else if (input$repo_category == "vocabularies") dropdown_options <- r$vocabulary
       else dropdown_options <- r[[input$repo_category]]
-      dropdown_options <- dropdown_options %>% convert_tibble_to_list(key_col = "id", text_col = "name")
+      
+      if (input$repo_category == "vocabularies") dropdown_options <- dropdown_options %>% convert_tibble_to_list(key_col = "id", text_col = "vocabulary_name")
+      else dropdown_options <- dropdown_options %>% convert_tibble_to_list(key_col = "id", text_col = "name")
       
       shiny.fluent::updateDropdown.shinyInput(session, "edit_repo_add_selected_files", options = dropdown_options, value = NULL)
       
@@ -1012,6 +1028,7 @@ mod_settings_git_server <- function(id = character(), r = shiny::reactiveValues(
     new_cols <- outer(prefixes, r$languages$code, paste, sep = "_") %>% as.vector()
     
     repo_category_xml_fields <- list()
+    
     repo_category_xml_fields$plugins <- tibble::tibble(
       app_version = character(), type = character(), unique_id = character(), 
       version = character(), author = character(), image = character())
@@ -1022,6 +1039,10 @@ mod_settings_git_server <- function(id = character(), r = shiny::reactiveValues(
       app_version = character(), unique_id = character(),  version = character(), author = character())
     for(col in new_cols) if(!col %in% colnames(repo_category_xml_fields$scripts)) repo_category_xml_fields$scripts <- 
       repo_category_xml_fields$scripts %>% dplyr::mutate(!!col := "")
+    
+    # Fields are the same for scripts, datasets & vocabularies
+    repo_category_xml_fields$datasets <- repo_category_xml_fields$scripts
+    repo_category_xml_fields$vocabularies <- repo_category_xml_fields$scripts
     
     observeEvent(input$delete_edit_git_repo_delete_confirmed, {
       
@@ -1034,7 +1055,7 @@ mod_settings_git_server <- function(id = character(), r = shiny::reactiveValues(
           dplyr::pull(unique_id)
         
         # Not working for studies, datasets & vocabularies for now
-        req(input$repo_category %in% c("patient_lvl_plugins", "aggregated_plugins", "scripts"))
+        req(input$repo_category %in% c("datasets", "patient_lvl_plugins", "aggregated_plugins", "scripts", "vocabularies"))
         
         if (input$repo_category %in% c("patient_lvl_plugins", "aggregated_plugins")){
           repo_category <- "plugins" 

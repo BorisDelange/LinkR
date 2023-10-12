@@ -230,7 +230,7 @@ app_server <- function(language = "en", languages = tibble::tibble(), i18n = cha
     
     # Clear temp dir
     if (debug) cat(paste0("\n", Sys.time(), " - server - clear temp_files"))
-    for (folder in c("markdowns", "plugins", "scripts", "vocabularies", "app_db")){
+    for (folder in c("markdowns", "plugins", "scripts", "vocabularies", "datasets", "studies", "app_db")){
       unlink(paste0(app_folder, "/temp_files/", folder), recursive = TRUE, force = TRUE)
       if (!dir.exists(paste0(app_folder, "/temp_files/", folder))) dir.create(paste0(app_folder, "/temp_files/", folder))
     }
@@ -351,9 +351,11 @@ app_server <- function(language = "en", languages = tibble::tibble(), i18n = cha
       mod_page_header_server("settings_dev", r, language, i18n)
 
       if (perf_monitoring) monitor_perf(r = r, action = "stop", task = "server - load server tabs - settings_dev")
-      if (debug) cat(paste0("\n", Sys.time(), " - server - load server tabs - data_sources / datasets / vocabularies"))
+      # if (debug) cat(paste0("\n", Sys.time(), " - server - load server tabs - data_sources / datasets / vocabularies"))
+      if (debug) cat(paste0("\n", Sys.time(), " - server - load server tabs - datasets / vocabularies"))
 
-      sapply(c("data_sources", "datasets", "vocabularies"), function(page){
+      # sapply(c("data_sources", "datasets", "vocabularies"), function(page){
+      sapply(c("datasets", "vocabularies"), function(page){
         mod_settings_data_management_server(paste0("settings_", page), r, d, m, i18n, language, perf_monitoring, debug)
         mod_page_sidenav_server(paste0("settings_", page), r, d, m, i18n, language, perf_monitoring, debug)
         mod_page_header_server(paste0("settings_", page), r, language, i18n)

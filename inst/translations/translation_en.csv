@@ -341,6 +341,7 @@ provide_valid_port,Please provide a valid port (eg : 5432)
 provide_valid_password,Please provide a valid password
 provide_valid_object,Please provide a valid object
 provide_valid_vocabulary_id,Please provide a valid ID
+provide_valid_vocabulary_name,Please provide a valid name
 provide_valid_api_key,Please provide a valid API key
 provide_valid_commit_message,Please provide a valid commit message
 insert_new_data,Insert new data
@@ -362,6 +363,10 @@ subset_added,New subset added
 script_added,New script added
 script_updated,Script updated
 script_imported,Script imported
+dataset_updated,Dataset updated
+dataset_imported,Dataset imported
+vocabulary_updated,Vocabulary updated
+vocabulary_imported,Vocabulary imported
 vocabulary_added,New vocabulary added
 user_added,New user added
 user_access_added,New user access added
@@ -425,7 +430,9 @@ vocabulary_selected_concepts,Selected concepts
 replace_already_existing_plugins,Replace already existing plugins
 replace_already_existing_scripts,Replace already existing scripts
 plugins_to_export,Plugins to export
-scripts_to_export,Plugins to export
+scripts_to_export,Scripts to export
+datasets_to_export,Datasets to export
+vocabularies_to_export,Vocabularies to export
 image_url,Image URL
 no_results_found,No results found
 french,French
@@ -455,6 +462,8 @@ plugin_up_to_date,Plugin up to date
 local_plugin_newer,Local plugin is newer
 error_install_remote_git_plugin,Error installing a plugin from remote git
 error_install_remote_git_script,Error installing a script from remote git
+error_install_remote_git_dataset,Error installing a dataset from remote git
+error_install_remote_git_vocabulary,Error installing a vocabulary from remote git
 success_installing_remote_git_plugin,Plugin successfully installed from remote git
 choose_remote_git,Choose a remote git repository
 success_importing_plugin,Plugin(s) successfully imported
@@ -939,5 +948,10 @@ success_update_remote_git_repo,Remote git repo successfully updated
 error_update_remote_git_repo,Error updating remote git repo
 error_downloading_remote_plugin_images,Error downloading remote git plugin's images
 error_downloading_remote_script_images,Error downloading remote git script's images
+error_downloading_remote_dataset_images,Error downloading remote git dataset's images
+error_downloading_remote_vocabulary_images,Error downloading remote git vocabulary's images
 import_datasets,Import datasets
 export_datasets,Export datasets
+import_vocabularies,Import vocabularies
+export_vocabularies,Export vocabularies
+images,Images

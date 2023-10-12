@@ -577,6 +577,7 @@ mod_plugins_server <- function(id = character(), r = shiny::reactiveValues(), d 
       if (substr(raw_files_url_address, nchar(raw_files_url_address), nchar(raw_files_url_address)) != "/") raw_files_url_address <- paste0(raw_files_url_address, "/")
       raw_files_url_address <- paste0(raw_files_url_address, "plugins/")
       r$plugins_raw_files_url_address <- raw_files_url_address
+      r$plugins_repo_url_address <- r$git_repos %>% dplyr::filter(id == input$remote_git_repo) %>% dplyr::pull(repo_url_address)
       
       # Get API key
       api_key <- r$git_repos %>% dplyr::filter(id == input$remote_git_repo) %>% dplyr::pull(api_key)
@@ -1073,7 +1074,9 @@ mod_plugins_server <- function(id = character(), r = shiny::reactiveValues(), d 
           "version", plugin$version, NA_integer_,
           "unique_id", plugin$unique_id, NA_integer_,
           "author", plugin$author, NA_integer_,
-          "image", plugin$image, NA_integer_
+          "image", plugin$image, NA_integer_,
+          "downloaded_from", r$git_repos %>% dplyr::filter(id == input$remote_git_repo) %>% dplyr::pull(name), NA_integer_,
+          "downloaded_from_url", r$plugins_repo_url_address, NA_integer_
         ) %>%
           dplyr::bind_rows(
             r$languages %>%
@@ -2755,7 +2758,7 @@ mod_plugins_server <- function(id = character(), r = shiny::reactiveValues(), d 
           list_of_files <- list.files(plugin_dir)
 
           # Add images filenames in the XML
-          images <- list_of_files[grepl("\\.png$|\\.jpg|\\.jpeg|\\.svg", tolower(list_of_files))]
+          images <- list_of_files[grepl("\\.(png|jpg|jpeg|svg)$", tolower(list_of_files))]
           images_node <- XML::newXMLNode("images", paste(images, collapse = ";;;"), parent = plugin_node)
 
           # Create XML file

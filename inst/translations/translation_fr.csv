@@ -341,6 +341,7 @@ provide_valid_port,Port valide requis (ex : 5432)
 provide_valid_password,Mot de passe valide requis
 provide_valid_object,Objet valide requis
 provide_valid_vocabulary_id,ID valide requis
+provide_valid_vocabulary_name,Nom valide requis
 provide_valid_api_key,Clef API valide requise
 provide_valid_commit_message,Commentaire valide requis
 insert_new_data,Ajout nouvelles données
@@ -362,6 +363,10 @@ subset_added,Nouveau subset ajouté
 script_added,Nouveau script ajouté
 script_updated,Script mis à jour
 script_imported,Script importé
+dataset_updated,Set de données mis à jour
+dataset_imported,Set de données importé
+vocabulary_updated,Terminologie mise à jour
+vocabulary_imported,Terminologie importée
 vocabulary_added,Nouvelle terminologiee ajoutée
 user_added,Nouvel utilisateur ajouté
 user_access_added,Nouvel accès utilisateur ajouté
@@ -426,6 +431,8 @@ replace_already_existing_plugins,Remplacer les plugins déjà existants
 replace_already_existing_scripts,Remplacer les scripts déjà existants
 plugins_to_export,Plugins à exporter
 scripts_to_export,Scripts à exporter
+datasets_to_export,Sets de données à exporter
+vocabularies_to_export,Terminologies à exporter
 image_url,URL de l'image
 no_results_found,Pas de résultats
 french,Français
@@ -455,6 +462,8 @@ plugin_up_to_date,Plugin à jour
 local_plugin_newer,Le plugin local est plus récent
 error_install_remote_git_plugin,Erreur lors de l'installation d'un plugin depuis le git distant
 error_install_remote_git_script,Erreur lors de l'installation d'un script depuis le git distant
+error_install_remote_git_dataset,Erreur lors de l'installation d'un set de données depuis le git distant
+error_install_remote_git_vocabulary,Erreur lors de l'installation d'une terminologie depuis le git distant
 success_installing_remote_git_plugin,Plugin installé avec succès depuis le git distant
 choose_remote_git,Choisissez un dépôt de git distant
 success_importing_plugin,Plugin(s) importé(s) avec succès
@@ -939,5 +948,10 @@ success_update_remote_git_repo,Dépôt git distant mis à jour avec succès
 error_update_remote_git_repo,Erreur lors de la mise à jour du dépôt git distant
 error_downloading_remote_plugin_images,Erreur lors du téléchargement des images du plugin du dépôt git distant
 error_downloading_remote_script_images,Erreur lors du téléchargement des images du script du dépôt git distant
+error_downloading_remote_dataset_images,Erreur lors du téléchargement des images du set de données du dépôt git distant
+error_downloading_remote_vocabulary_images,Erreur lors du téléchargement des images de la terminologie du dépôt git distant
 import_datasets,Importer des sets
 export_datasets,Exporter des sets
+import_vocabularies,Importer des terminologies
+export_vocabularies,Exporter des terminologies
+images,Images
