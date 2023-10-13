@@ -429,10 +429,13 @@ updated_on,Updated on
 vocabulary_selected_concepts,Selected concepts
 replace_already_existing_plugins,Replace already existing plugins
 replace_already_existing_scripts,Replace already existing scripts
+replace_already_existing_datasets,Replace already existing datasets
+replace_already_existing_vocabularies,Replace already existing vocabularies
 plugins_to_export,Plugins to export
 scripts_to_export,Scripts to export
 datasets_to_export,Datasets to export
 vocabularies_to_export,Vocabularies to export
+tables_to_export,Tables to export
 image_url,Image URL
 no_results_found,No results found
 french,French
@@ -468,7 +471,6 @@ success_installing_remote_git_plugin,Plugin successfully installed from remote g
 choose_remote_git,Choose a remote git repository
 success_importing_plugin,Plugin(s) successfully imported
 success_importing_script,Script(s) successfully imported
-success_importing_dataset,Dataset successfully imported
 error_importing_plugin,Error importing plugin(s)
 error_importing_image,Error importing image
 error_importing_file,,Error importing file
@@ -479,6 +481,7 @@ refresh,Refresh
 delete_selection,Delete selection
 imported_plugins,Imported plugins
 imported_scripts,Imported scripts
+imported_datasets,Imported datasets
 image_imported,Image successfully imported
 file_imported,File successfully imported
 never,Never
@@ -773,10 +776,10 @@ export_script_card_user_access_description,Export scripts
 all_users_user_access_description,Access to log of all users
 only_me_user_access_description,Access the log of the connected user
 data_console_user_access_description,Accessing the console from a study
-import_dataset_card_user_access_description,Import datasets
-export_dataset_card_user_access_description,Export datasets
-all_datasets_card_user_access_description,All datasets
-all_vocabularies_card_user_access_description,All vocabularies
+datasets_import_dataset_card_user_access_description,Import datasets
+datasets_export_dataset_card_user_access_description,Export datasets
+datasets_all_datasets_card_user_access_description,All datasets
+vocabularies_all_vocabularies_card_user_access_description,All vocabularies
 vocabulary_id_col,ID (vocabulary_id)
 vocabulary_id,Vocabulary ID
 vocabulary_id_1,Vocabulary ID 1
@@ -795,6 +798,8 @@ vocabulary_concept_id,Vocabulary concept ID
 display_order,Display order
 import_vocabulary,Import a vocabulary
 export_vocabulary,Export a vocabulary
+export_concepts,Export concepts
+import_concepts,Import concepts
 import,Import
 export,Export
 imported_vocabularies,Imported vocabularies
@@ -812,8 +817,12 @@ select_only_one_row_for_details,Select only one row to show row details
 load_concept_data_before,Load CONCEPT table before
 load_concept_relationship_data_before,Load CONCEPT_RELATIONSHIP data before
 error_importing_vocabulary,Error importing vocabulary / vocabularies
+error_importing_concepts,Error importing concepts
+error_importing_dataset,Error importing dataset(s)
 all_vocabularies,All vocabularies
 success_importing_vocabulary,Vocabulary / vocabularies successfully imported
+success_importing_concepts,Concepts successfully imported
+success_importing_dataset,Dataset(s) successfully imported
 study_description,Study description
 studies_description_card,Study description
 error_loading_plugins_xml_file,Error loading plugins.xml from remote git

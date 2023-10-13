@@ -77,7 +77,7 @@ app_server <- function(language = "en", languages = tibble::tibble(), i18n = cha
       "concept", "iiccccccccc", "public",
       "concept_dataset", "iiciiii", "public",
       "concept_user", "iiiccc", "public",
-      "vocabulary", "icccccciiccl", "public",
+      "vocabulary", "icccciciiccl", "public",
       "domain", "icci", "public",
       "concept_class", "icci", "public",
       "concept_relationship", "iiicccc", "public",

@@ -429,10 +429,13 @@ updated_on,Modifié le
 vocabulary_selected_concepts,Concepts sélectionnés
 replace_already_existing_plugins,Remplacer les plugins déjà existants
 replace_already_existing_scripts,Remplacer les scripts déjà existants
+replace_already_existing_datasets,Remplacer les sets de données déjà existants
+replace_already_existing_vocabularies,Remplacer les terminologies déjà existants
 plugins_to_export,Plugins à exporter
 scripts_to_export,Scripts à exporter
 datasets_to_export,Sets de données à exporter
 vocabularies_to_export,Terminologies à exporter
+tables_to_export,Tables à exporter
 image_url,URL de l'image
 no_results_found,Pas de résultats
 french,Français
@@ -468,7 +471,6 @@ success_installing_remote_git_plugin,Plugin installé avec succès depuis le git
 choose_remote_git,Choisissez un dépôt de git distant
 success_importing_plugin,Plugin(s) importé(s) avec succès
 success_importing_script,Script(s) importé(s) avec succès
-success_importing_dataset,Set de données importé avec succès
 error_importing_plugin,Erreur lors de l'importation du ou des plugin(s)
 error_importing_image,Erreur lors de l'importation de l'image
 error_importing_file,Erreur lors de l'importation du fichier
@@ -479,6 +481,7 @@ refresh,Rafraîchir
 delete_selection,Supprimer la sélection
 imported_plugins,Plugins importés
 imported_scripts,Scripts importés
+imported_datasets,Sets de données importés
 image_imported,Image importée
 file_imported,Fichier importé
 never,Jamais
@@ -795,6 +798,8 @@ vocabulary_concept_id,Concept ID de la terminologie
 display_order,Ordre d'affichage
 import_vocabulary,Importer une terminologie
 export_vocabulary,Exporter une terminologie
+export_concepts,Exporter des concepts
+import_concepts,Importer des concepts
 import,Importer
 export,Exporter
 imported_vocabularies,Terminologies importées
@@ -812,8 +817,12 @@ select_only_one_row_for_details,Sélectionner une seule ligne pour afficher les 
 load_concept_data_before,Charger la table CONCEPT avant
 load_concept_relationship_data_before,Charger la table CONCEPT_RELATIONSHIP avant
 error_importing_vocabulary,Erreur lors de l'importation du ou des terminologie(s)
+error_importing_concepts,Erreur lors de l'importation des concepts
+error_importing_dataset,Erreur lors de l'importation du ou des set(s) de données
 all_vocabularies,Toutes les terminologies
 success_importing_vocabulary,Terminologie(s) importée(s) avec succès
+success_importing_concepts,Concepts importés avec succès
+success_importing_dataset,Set(s) de données importé(s) avec succès
 study_description,Description de l'étude
 studies_description_card,Description de l'étude
 error_loading_plugins_xml_file,Erreur lors du téléchargement du fichier plugins.xml depuis le git distant

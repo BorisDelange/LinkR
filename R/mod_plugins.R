@@ -418,10 +418,9 @@ mod_plugins_ui <- function(id = character(), i18n = character(), language = tibb
                 style = "width:400px;"
               ),
               div(shiny.fluent::PrimaryButton.shinyInput(ns("export_selected_plugins"), 
-                i18n$t("export_plugins"), iconProps = list(iconName = "Upload")), style = "margin-top:39px;"),
-              style = "position:relative; z-index:1; width:700px;"
+                i18n$t("export_plugins"), iconProps = list(iconName = "Upload")), style = "margin-top:39px;")
             ),
-            div(DT::DTOutput(ns("plugins_to_export_datatable")), style = "margin-top:-30px; z-index:2"),
+            div(DT::DTOutput(ns("plugins_to_export_datatable"))),
             div(style = "visibility:hidden;", downloadButton(ns("export_plugins_download"), label = ""))
           )
         ), br()
@@ -1514,7 +1513,7 @@ mod_plugins_server <- function(id = character(), r = shiny::reactiveValues(), d 
           secondaryText = user_status)
       
       # Users who has access
-      value <-
+      picker_value <-
         picker_options %>%
         dplyr::mutate(n = 1:dplyr::n()) %>%
         dplyr::inner_join(
@@ -1525,14 +1524,12 @@ mod_plugins_server <- function(id = character(), r = shiny::reactiveValues(), d 
         ) %>%
         dplyr::pull(key)
       
-      selected_items <- picker_options %>% dplyr::filter(key %in% value)
-      
       shiny.fluent::updateChoiceGroup.shinyInput(session, "users_allowed_read_group",
         value = options %>% dplyr::filter(name == "users_allowed_read_group") %>% dplyr::pull(value))
       
       output$users_allowed_read_div <- renderUI({
         make_people_picker(
-          i18n = i18n, ns = ns, id = "users_allowed_read", label = "users", options = picker_options, value = value,
+          i18n = i18n, ns = ns, id = "users_allowed_read", label = "users", options = picker_options, value = picker_value,
           width = "100%", style = "padding-bottom:10px;")
       })
       
@@ -2480,7 +2477,7 @@ mod_plugins_server <- function(id = character(), r = shiny::reactiveValues(), d 
         # Read XML file
 
         plugins <-
-          xml2::read_xml(paste0(temp_dir, "/plugins/plugins.xml")) %>%
+          xml2::read_xml(paste0(temp_dir, "/plugins.xml")) %>%
           XML::xmlParse() %>%
           XML::xmlToDataFrame(nodes = XML::getNodeSet(., "//plugin")) %>%
           tibble::as_tibble() %>%
@@ -2568,7 +2565,9 @@ mod_plugins_server <- function(id = character(), r = shiny::reactiveValues(), d 
               "version", plugin$version, NA_integer_,
               "unique_id", plugin$unique_id, NA_integer_,
               "author", plugin$author, NA_integer_,
-              "image", plugin$image, NA_integer_
+              "image", plugin$image, NA_integer_,
+              "downloaded_from", "", NA_integer_,
+              "downloaded_from_url", "", NA_integer_
             ) %>%
               dplyr::bind_rows(
                 r$languages %>%
@@ -2595,7 +2594,7 @@ mod_plugins_server <- function(id = character(), r = shiny::reactiveValues(), d 
             for (code_type in c("ui", "server", "translations")){
               if (code_type == "translations") extension <- "csv" else extension <- "R"
               
-              url <- paste0(temp_dir, "/plugins/", prefix, "/", plugin$unique_id, "/", code_type, ".", extension)
+              url <- paste0(temp_dir, "/", prefix, "/", plugin$unique_id, "/", code_type, ".", extension)
               
               plugin_code[[code_type]] <- readLines(url, warn = FALSE) %>% paste(collapse = "\n") %>% stringr::str_replace_all("'", "''")
             }
@@ -2614,10 +2613,10 @@ mod_plugins_server <- function(id = character(), r = shiny::reactiveValues(), d 
             add_log_entry(r = r, category = paste0("code", " - ", i18n$t("insert_new_data")), name = i18n$t("sql_query"), value = toString(new_code))
 
             # Copy files to temp dir
-            list_of_files <- list.files(paste0(temp_dir, "/plugins/", prefix, "/", plugin$unique_id))
+            list_of_files <- list.files(paste0(temp_dir, "/", prefix, "/", plugin$unique_id))
 
             file.copy(
-              paste0(temp_dir, "/plugins/", prefix, "/", plugin$unique_id, "/", list_of_files),
+              paste0(temp_dir, "/", prefix, "/", plugin$unique_id, "/", list_of_files),
               paste0(dirs$plugin, "/", list_of_files),
               overwrite = TRUE
             )
@@ -2725,10 +2724,10 @@ mod_plugins_server <- function(id = character(), r = shiny::reactiveValues(), d 
         on.exit(setwd(owd))
 
         temp_dir <- paste0(r$app_folder, "/temp_files/plugins/", Sys.time() %>% stringr::str_replace_all(":| |-", ""), paste0(sample(c(0:9, letters[1:6]), 24, TRUE), collapse = ''))
-        dir.create(paste0(temp_dir, "/plugins/", prefix), recursive = TRUE)
-
+        dir.create(temp_dir, recursive = TRUE)
+        
         for (plugin_id in r[[paste0(prefix, "_export_plugins_selected")]] %>% dplyr::pull(id)){
-
+          
           plugin <- r$plugins %>% dplyr::filter(id == plugin_id)
           options <- r$options %>% dplyr::filter(category == "plugin", link_id == plugin_id)
           code <- r$code %>% dplyr::filter(link_id == plugin_id, category %in% c("plugin_ui", "plugin_server", "plugin_translations"))
@@ -2765,14 +2764,13 @@ mod_plugins_server <- function(id = character(), r = shiny::reactiveValues(), d 
           XML::saveXML(xml, file = paste0(plugin_dir, "/plugin.xml"))
 
           # Copy files to temp dir
-          temp_dir_copy <- paste0(temp_dir, "/plugins/", prefix, "/", options %>% dplyr::filter(name == "unique_id") %>% dplyr::pull(value))
+          temp_dir_copy <- paste0(temp_dir, "/", prefix, "/", options %>% dplyr::filter(name == "unique_id") %>% dplyr::pull(value))
           if (!dir.exists(temp_dir_copy)) dir.create(temp_dir_copy, recursive = TRUE)
+          XML::saveXML(xml, file = paste0(temp_dir_copy, "/plugin.xml"))
           file.copy(paste0(plugin_dir, "/", list_of_files), paste0(temp_dir_copy, "/", list_of_files), overwrite = TRUE)
         }
 
         # Create XML file with all exported plugins
-
-        plugins_dir <- paste0(temp_dir, "/plugins")
         
         plugins_tibble <- tibble::tibble(app_version = character(), type = character(), unique_id = character(), version = character(), author = character(), image = character())
         prefixes <- c("description", "name", "category")
@@ -2782,10 +2780,10 @@ mod_plugins_server <- function(id = character(), r = shiny::reactiveValues(), d 
         
         for (category in c("patient_lvl", "aggregated")){
 
-          dirs <- list.dirs(paste0(plugins_dir, "/", category), full.names = TRUE)
+          dirs <- list.dirs(paste0(temp_dir, "/", category), full.names = TRUE)
 
           for (dir in dirs){
-            if (dir != paste0(plugins_dir, "/", category)){
+            if (dir != paste0(temp_dir, "/", category)){
 
               xml_file <- xml2::read_xml(paste0(dir, "/plugin.xml"))
               image_nodes <- xml2::xml_find_all(xml_file, "//images/image")
@@ -2815,11 +2813,11 @@ mod_plugins_server <- function(id = character(), r = shiny::reactiveValues(), d 
 
         XML::xmlParent(plugins_nodes) <- plugins_node
 
-        XML::saveXML(plugins_xml, file = paste0(plugins_dir, "/plugins.xml"))
+        XML::saveXML(plugins_xml, file = paste0(temp_dir, "/plugins.xml"))
 
         # Create a ZIP
 
-        zip::zipr(file, paste0(temp_dir, "/plugins"))
+        zip::zipr(file, list.files(temp_dir, full.names = TRUE))
 
         if (perf_monitoring) monitor_perf(r = r, action = "stop", task = paste0("mod_plugins - output$export_plugins_download"))
       }

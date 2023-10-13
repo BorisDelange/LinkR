@@ -333,10 +333,9 @@ mod_scripts_ui <- function(id = character(), i18n = character(), language = "en"
                 style = "width:400px;"
               ),
               div(shiny.fluent::PrimaryButton.shinyInput(ns("export_selected_scripts"), 
-                i18n$t("export_scripts"), iconProps = list(iconName = "Upload")), style = "margin-top:39px;"),
-              style = "position:relative; z-index:1; width:700px;"
+                i18n$t("export_scripts"), iconProps = list(iconName = "Upload")), style = "margin-top:39px;")
             ),
-            div(DT::DTOutput(ns("scripts_to_export_datatable")), style = "margin-top:-30px; z-index:2"),
+            div(DT::DTOutput(ns("scripts_to_export_datatable"))),
             div(style = "visibility:hidden;", downloadButton(ns("export_scripts_download"), label = ""))
           )
         ), br()
@@ -1826,7 +1825,7 @@ mod_scripts_server <- function(id = character(), r = shiny::reactiveValues(), d 
         # Read XML file
         
         scripts <-
-          xml2::read_xml(paste0(temp_dir, "/scripts/scripts.xml")) %>%
+          xml2::read_xml(paste0(temp_dir, "/scripts.xml")) %>%
           XML::xmlParse() %>%
           XML::xmlToDataFrame(nodes = XML::getNodeSet(., "//script")) %>%
           tibble::as_tibble() %>%
@@ -1903,7 +1902,9 @@ mod_scripts_server <- function(id = character(), r = shiny::reactiveValues(), d 
               ~name, ~value, ~value_num,
               "version", script$version, NA_integer_,
               "unique_id", script$unique_id, NA_integer_,
-              "author", script$author, NA_integer_
+              "author", script$author, NA_integer_,
+              "downloaded_from", "", NA_integer_,
+              "downloaded_from_url", "", NA_integer_
             ) %>%
               dplyr::bind_rows(
                 r$languages %>%
@@ -1972,7 +1973,7 @@ mod_scripts_server <- function(id = character(), r = shiny::reactiveValues(), d 
         
         shinyjs::show("imported_scripts_div")
         
-        show_message_bar(output,  "success_importing_script", "success", i18n = i18n, time = 15000, ns = ns)
+        show_message_bar(output, "success_importing_script", "success", i18n = i18n, time = 15000, ns = ns)
       },
         error = function(e) report_bug(r = r, output = output, error_message = "error_importing_script",
           error_name = paste0(id, " - import scripts"), category = "Error", error_report = toString(e), i18n = i18n, ns = ns),
@@ -2051,7 +2052,7 @@ mod_scripts_server <- function(id = character(), r = shiny::reactiveValues(), d 
         on.exit(setwd(owd))
         
         temp_dir <- paste0(r$app_folder, "/temp_files/scripts/", Sys.time() %>% stringr::str_replace_all(":| |-", ""), paste0(sample(c(0:9, letters[1:6]), 24, TRUE), collapse = ''))
-        dir.create(paste0(temp_dir, "/scripts"), recursive = TRUE)
+        dir.create(temp_dir, recursive = TRUE)
         
         for (script_id in r$export_scripts_selected %>% dplyr::pull(id)){
           
@@ -2088,8 +2089,9 @@ mod_scripts_server <- function(id = character(), r = shiny::reactiveValues(), d 
           XML::saveXML(xml, file = paste0(script_dir, "/script.xml"))
           
           # Copy files to temp dir
-          temp_dir_copy <- paste0(temp_dir, "/scripts/", options %>% dplyr::filter(name == "unique_id") %>% dplyr::pull(value))
+          temp_dir_copy <- paste0(temp_dir, "/", options %>% dplyr::filter(name == "unique_id") %>% dplyr::pull(value))
           if (!dir.exists(temp_dir_copy)) dir.create(temp_dir_copy, recursive = TRUE)
+          XML::saveXML(xml, file = paste0(temp_dir_copy, "/script.xml"))
           file.copy(
             paste0(script_dir, "/", list_of_files),
             paste0(temp_dir_copy, "/", list_of_files),
@@ -2098,7 +2100,6 @@ mod_scripts_server <- function(id = character(), r = shiny::reactiveValues(), d 
         }
         
         # Create XML file with all exported scripts
-        scripts_dir <- paste0(temp_dir, "/scripts")
         
         scripts_tibble <- tibble::tibble(app_version = character(), unique_id = character(), version = character(), author = character())
         prefixes <- c("description", "name", "category")
@@ -2106,9 +2107,9 @@ mod_scripts_server <- function(id = character(), r = shiny::reactiveValues(), d 
         for(col in new_cols) if(!col %in% colnames(scripts_tibble)) scripts_tibble <- scripts_tibble %>% dplyr::mutate(!!col := "")
         scripts_tibble <- scripts_tibble %>% dplyr::mutate(creation_datetime = character(), update_datetime = character())
         
-        dirs <- list.dirs(scripts_dir, full.names = TRUE)
+        dirs <- list.dirs(temp_dir, full.names = TRUE)
         for (dir in dirs){
-          if (dir != scripts_dir){
+          if (dir != temp_dir){
             scripts_tibble <-
               scripts_tibble %>%
               dplyr::bind_rows(
@@ -2130,11 +2131,11 @@ mod_scripts_server <- function(id = character(), r = shiny::reactiveValues(), d 
         
         XML::xmlParent(scripts_nodes) <- scripts_node
         
-        XML::saveXML(scripts_xml, file = paste0(scripts_dir, "/scripts.xml"))
+        XML::saveXML(scripts_xml, file = paste0(temp_dir, "/scripts.xml"))
         
         # Create a ZIP
         
-        zip::zipr(file, paste0(temp_dir, "/scripts"))
+        zip::zipr(file, list.files(temp_dir, full.names = TRUE))
         
         if (perf_monitoring) monitor_perf(r = r, action = "stop", task = paste0("mod_scripts - output$export_scripts_download"))
       }

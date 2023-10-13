@@ -897,7 +897,7 @@ mod_my_studies_server <- function(id = character(), r = shiny::reactiveValues(),
           text = paste0(firstname, " ", lastname), 
           secondaryText = user_status)
       
-      value <-
+      picker_value <-
         picker_options %>%
         dplyr::mutate(n = 1:dplyr::n()) %>%
         dplyr::inner_join(
@@ -911,13 +911,11 @@ mod_my_studies_server <- function(id = character(), r = shiny::reactiveValues(),
       # Users allowed read group
       value_group <- options %>% dplyr::filter(name == "users_allowed_read_group") %>% dplyr::pull(value)
       
-      selected_items <- picker_options %>% dplyr::filter(key %in% value)
-      
       shiny.fluent::updateChoiceGroup.shinyInput(session, "users_allowed_read_group",
         value = options %>% dplyr::filter(name == "users_allowed_read_group") %>% dplyr::pull(value))
       output$users_allowed_read_div <- renderUI({
         make_people_picker(
-          i18n = i18n, ns = ns, id = "users_allowed_read", label = "users", options = picker_options, value = value,
+          i18n = i18n, ns = ns, id = "users_allowed_read", label = "users", options = picker_options, value = picker_value,
           width = "100%", style = "padding-bottom:10px;")
       })
       

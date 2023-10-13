@@ -156,8 +156,8 @@ add_settings_new_data <- function(session, output, r = shiny::reactiveValues(), 
     #   data$data_source, r$user_id, as.character(Sys.time()), as.character(Sys.time()), FALSE)
     new_data$data <- tibble::tribble(~id, ~vocabulary_id, ~vocabulary_name, ~vocabulary_reference, ~vocabulary_version,
       ~vocabulary_concept_id, ~display_order, ~data_source_id, ~creator_id, ~creation_datetime, ~update_datetime, ~deleted,
-      last_row$data + 1, as.character(data$vocabulary_id), as.character(data$vocabulary_name), "", "", "", NA_integer_,
-      "", r$user_id, as.character(Sys.time()), as.character(Sys.time()), FALSE)
+      last_row$data + 1, as.character(data$vocabulary_id), as.character(data$vocabulary_name), "", "", NA_integer_,
+      NA_integer_, "", r$user_id, as.character(Sys.time()), as.character(Sys.time()), FALSE)
   }
   
   # Creation of new_data$data variable for studies page
@@ -564,18 +564,11 @@ delete_element <- function(r = shiny::reactiveValues(), m = shiny::reactiveValue
     
     r[[delete_variable]] <- FALSE
     
-    # Remove files if this is a plugin or a script
-    if (table == "plugins"){
-      for (plugin_id in r[[id_var_r]]){
-        plugin_options <- r$options %>% dplyr::filter(category == "plugin", link_id == plugin_id)
-        unlink(paste0(app_folder, "/plugins/", prefix, "/", plugin_options %>% dplyr::filter(name == "unique_id") %>% dplyr::pull(value)), recursive = TRUE)
-      }
-    }
-    if (table == "scripts"){
-      for (script_id in r[[id_var_r]]){
-        script_options <- r$options %>% dplyr::filter(category == "script", link_id == script_id)
-        print(paste0(app_folder, "/scripts/", script_options %>% dplyr::filter(name == "unique_id") %>% dplyr::pull(value)))
-        unlink(paste0(app_folder, "/scripts/", script_options %>% dplyr::filter(name == "unique_id") %>% dplyr::pull(value)), recursive = TRUE)
+    # Remove files if this is a plugin, a script, a dataset or a vocabulary
+    if (table %in% c("plugins", "scripts", "datasets", "vocabulary")){
+      for (element_id in r[[id_var_r]]){
+        element_options <- r$options %>% dplyr::filter(category == get_singular(table), link_id == element_id)
+        unlink(paste0(r$app_folder, "/", get_plural(table), "/", element_options %>% dplyr::filter(name == "unique_id") %>% dplyr::pull(value)), recursive = TRUE)
       }
     }
     

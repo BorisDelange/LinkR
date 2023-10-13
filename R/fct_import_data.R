@@ -1233,7 +1233,6 @@ import_dataset <- function(output, ns = character(), i18n = character(), r = shi
 #' @param m A shiny::reactiveValues object, used to communicate between modules
 #' @param table_name Name of the vocabulary table we import (concept, concept_relationship or other) (character)
 #' @param data A tibble containing the data
-#' @param vocabulary_id ID of the vocabulary, for example LOINC (character)
 #' @details The function is used in a vocabulary code, it is launched only when you click on "Run code" on the vocabulary page.\cr\cr
 #' See \href{https://ohdsi.github.io/CommonDataModel/cdm60.html}{\strong{OMOP common data model}} for more information.
 #' @examples
@@ -1243,15 +1242,15 @@ import_dataset <- function(output, ns = character(), i18n = character(), r = shi
 #'   valid_start_date = "1970-01-01", valid_end_date = "2099-12-31", invalid_reason = NA_character_)
 #'   
 #' import_vocabulary_table(output = output, ns = ns, i18n = i18n, r = r, m = m,
-#'   table_name = "concept", data = concept, vocabulary_id = "LOINC")
+#'   table_name = "concept", data = concept)
 #' }
 import_vocabulary_table <- function(output, ns = character(), i18n = character(), r = shiny::reactiveValues(), m = shiny::reactiveValues(),
-  table_name = character(), data = tibble::tibble(), vocabulary_id = character()){
+  table_name = character(), data = tibble::tibble()){
  
   # Create var to count rows if doesn't exist
-  if (length(r$import_vocabulary_count_rows) == 0) r$import_vocabulary_count_rows <- tibble::tibble(table_name = character(), n_rows = integer())
+  if (length(r$import_concepts_count_rows) == 0) r$import_concepts_count_rows <- tibble::tibble(table_name = character(), n_rows = integer())
   
-  if (table_name %not_in% c("concept", "domain", "concept_class", "concept_relationship", "relationship", "concept_synonym", "concept_ancestor", "drug_strength")){
+  if (table_name %not_in% c("concept", "vocabulary", "domain", "concept_class", "concept_relationship", "relationship", "concept_synonym", "concept_ancestor", "drug_strength")){
     add_log_entry(r = r, category = "Error", name = paste0("import_vocabulary_table - invalid_vocabulary_table"), value = i18n$t("invalid_vocabulary_table"))
     cat(paste0("<span style = 'font-weight:bold; color:red;'>**", i18n$t("error"), "** ", i18n$t("invalid_vocabulary_table"), "</span>\n"))
     return(NULL)
@@ -1269,6 +1268,14 @@ import_vocabulary_table <- function(output, ns = character(), i18n = character()
     "valid_start_date", "date",
     "valid_end_date", "date",
     "invalid_reason", "character")
+  
+  else if (table_name == "vocabulary") var_cols <- tibble::tribble(
+    ~name, ~type,
+    "vocabulary_id", "character",
+    "vocabulary_name", "character",
+    "vocabulary_reference", "character",
+    "vocabulary_version", "character",
+    "vocabulary_concept_id", "integer")
   
   else if (table_name == "domain") var_cols <- tibble::tribble(
     ~name, ~type,
@@ -1381,11 +1388,11 @@ import_vocabulary_table <- function(output, ns = character(), i18n = character()
   data <- tibble::as_tibble(data)
   
   # Change vocabulary_id col if value is not null
-  if (table_name == "concept" & length(vocabulary_id) > 0) data <- data %>% dplyr::mutate(vocabulary_id = !!vocabulary_id)
+  # if (table_name == "concept" & length(vocabulary_id) > 0) data <- data %>% dplyr::mutate(vocabulary_id = !!vocabulary_id)
 
   # Add data to database
   
-  tables_with_primary_key <- c("concept", "domain", "concept_class", "relationship")
+  tables_with_primary_key <- c("concept", "vocabulary", "domain", "concept_class", "relationship")
 
   # Case 1 : table has a primary key, add data not already in database, filtered by primary key
   
@@ -1401,7 +1408,8 @@ import_vocabulary_table <- function(output, ns = character(), i18n = character()
     }
 
     tryCatch({
-      sql <- glue::glue_sql("SELECT {`paste0(table_name, '_id')`} FROM {`table_name`}", .con = m$db)
+      if (table_name == "vocabulary") sql <- glue::glue_sql("SELECT vocabulary_id FROM vocabulary WHERE deleted IS FALSE", .con = m$db)
+      else sql <- glue::glue_sql("SELECT {`paste0(table_name, '_id')`} FROM {`table_name`}", .con = m$db)
       actual_data <- DBI::dbGetQuery(m$db, sql)
     },
       error = function(e){
@@ -1448,7 +1456,19 @@ import_vocabulary_table <- function(output, ns = character(), i18n = character()
     data_to_insert <- data %>% dplyr::anti_join(actual_data, by = data_duplicates_cols)
   }
   
+  # Add cols if table is vocabulary
+  if (table_name == "vocabulary"){
+    data_to_insert <- data_to_insert %>%
+      dplyr::mutate(id = get_last_row(m$db, "vocabulary") + dplyr::row_number(), .before = "vocabulary_id") %>%
+      dplyr::mutate(data_source_id = NA_character_, display_order = NA_integer_, creator_id = NA_integer_, 
+        creation_datetime = as.character(Sys.time()), update_datetime = as.character(Sys.time()), deleted = FALSE)
+  }
+  
   # Insert data
+  
+  # Add nrow to r$import_concepts_count_rows
+  if (length(r$import_concepts_count_rows) > 0) r$import_concepts_count_rows <- r$import_concepts_count_rows %>%
+    dplyr::bind_rows(tibble::tibble(table_name = table_name, n_rows = as.integer(nrow(data_to_insert))))
   
   # Last ID in vocabulary table
   last_id <- get_last_row(m$db, table_name)
@@ -1462,17 +1482,57 @@ import_vocabulary_table <- function(output, ns = character(), i18n = character()
   else {
     data_to_insert <- data_to_insert %>% dplyr::mutate(id = 1:dplyr::n() + last_id, .before = 1)
     
-    tryCatch(DBI::dbAppendTable(m$db, table_name, data_to_insert),
-      error = function(e){
-        if (nchar(e[1]) > 0) add_log_entry(r = r, category = "Error", name = paste0("import_vocabulary_table - vocabulary_error_append_table"), value = toString(e))
-        cat(paste0("<span style = 'font-weight:bold; color:red;'>**", i18n$t("error"), "** ", i18n$t("vocabulary_error_append_table"), "</span>\n"))
-        return(NULL)}
+    tryCatch({
+      DBI::dbAppendTable(m$db, table_name, data_to_insert)
+    
+      # For vocabulary table, update r$vocabulary, add options & code rows
+      if (table_name == "vocabulary"){
+        r$vocabulary <- r$vocabulary %>% dplyr::bind_rows(data_to_insert)
+        
+        for (i in 1:nrow(data_to_insert)){
+          row <- data_to_insert[i, ]
+          
+          new_data <- list()
+          last_row <- list()
+          last_row$options <- get_last_row(r$db, "options")
+          last_row$code <- get_last_row(r$db, "code")
+          
+          new_data$options <- tibble::tribble(
+            ~name, ~value, ~value_num,
+            "version", "0.0.1", NA_integer_,
+            "unique_id", paste0(sample(c(0:9, letters[1:6]), 64, TRUE), collapse = ''), NA_integer_,
+            "author", "", NA_integer_,
+            "downloaded_from", "", NA_integer_,
+            "downloaded_from_url", "", NA_integer_
+          ) %>%
+            dplyr::bind_rows(
+              r$languages %>%
+                tidyr::crossing(name = c("description", "category", "name")) %>%
+                dplyr::mutate(
+                  name = paste0(name, "_", code),
+                  value = ifelse(grepl("name_", name), as.character(row$vocabulary_name), ""),
+                  value_num = NA_integer_
+                ) %>%
+                dplyr::select(-code, -language)
+            ) %>%
+            dplyr::mutate(id = last_row$options + dplyr::row_number(), category = "vocabulary", link_id = row$id, .before = "name") %>%
+            dplyr::mutate(creator_id = r$user_id, datetime = as.character(Sys.time()), deleted = FALSE)
+          
+          new_data$code <- tibble::tribble(~id, ~category, ~link_id, ~code, ~creator_id, ~datetime, ~deleted,
+            last_row$code + 1, "vocabulary", row$id, "", r$user_id, as.character(Sys.time()), FALSE)
+          
+          for (var in c("options", "code")){
+            DBI::dbAppendTable(r$db, var, new_data[[var]])
+            r[[var]] <- r[[var]] %>% dplyr::bind_rows(new_data[[var]])
+          }
+        }
+      }
+    }, error = function(e){
+      if (nchar(e[1]) > 0) add_log_entry(r = r, category = "Error", name = paste0("import_vocabulary_table - vocabulary_error_append_table"), value = toString(e))
+      cat(paste0("<span style = 'font-weight:bold; color:red;'>**", i18n$t("error"), "** ", i18n$t("vocabulary_error_append_table"), "</span>\n"))
+      return(NULL)}
     )
   }
-  
-  # Add nrow to r$import_vocabulary_count_rows
-  if (length(r$import_vocabulary_count_rows) > 0) r$import_vocabulary_count_rows <- r$import_vocabulary_count_rows %>%
-    dplyr::bind_rows(tibble::tibble(table_name = table_name, n_rows = as.integer(nrow(data_to_insert))))
   
   cat(paste0("<span style = 'font-weight:bold; color:#0078D4;'>", i18n$t("import_vocabulary_table_success"), ". ", nrow(data_to_insert), " ", tolower(i18n$t("rows_inserted")), ".</span>\n"))
 }
