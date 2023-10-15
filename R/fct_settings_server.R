@@ -316,6 +316,7 @@ add_settings_new_data <- function(session, output, r = shiny::reactiveValues(), 
       "user_allowed_read", "", r$user_id,
       "show_only_aggregated_data", "", 0,
       "omop_version", "6.0", NA_integer_,
+      "activate_scripts_cache", "", 0,
       "downloaded_from", "", NA_integer_,
       "downloaded_from_url", "", NA_integer_
     ) %>%
@@ -361,18 +362,29 @@ add_settings_new_data <- function(session, output, r = shiny::reactiveValues(), 
   # For studies, need to add one row in options and add rows of code for subsets, with default value
   if (table == "studies"){
     
-    new_data$options <- tibble::tribble(~id, ~category, ~link_id, ~name, ~value, ~value_num, ~creator_id, ~datetime, ~deleted,
-      last_row$options + 1, "study", last_row$data + 1, "users_allowed_read_group", "everybody", 1, r$user_id, as.character(Sys.time()), FALSE,
-      last_row$options + 2, "study", last_row$data + 1, "user_allowed_read", "", r$user_id, r$user_id, as.character(Sys.time()), FALSE,
-      last_row$options + 3, "study", last_row$data + 1, "version", "0.0.1.9000", NA_integer_, r$user_id, as.character(Sys.time()), FALSE,
-      last_row$options + 4, "study", last_row$data + 1, "unique_id", paste0(sample(c(0:9, letters[1:6]), 64, TRUE), collapse = ''), NA_integer_, r$user_id, as.character(Sys.time()), FALSE,
-      last_row$options + 5, "study", last_row$data + 1, "author", username, NA_integer_, r$user_id, as.character(Sys.time()), FALSE,
-      last_row$options + 6, "study", last_row$data + 1, "description_fr", "", NA_integer_, r$user_id, as.character(Sys.time()), FALSE,
-      last_row$options + 7, "study", last_row$data + 1, "description_en", "", NA_integer_, r$user_id, as.character(Sys.time()), FALSE,
-      last_row$options + 8, "study", last_row$data + 1, "category_fr", "", NA_integer_, r$user_id, as.character(Sys.time()), FALSE,
-      last_row$options + 9, "study", last_row$data + 1, "category_en", "", NA_integer_, r$user_id, as.character(Sys.time()), FALSE,
-      last_row$options + 10, "study", last_row$data + 1, "name_fr", as.character(data$name), NA_integer_, r$user_id, as.character(Sys.time()), FALSE,
-      last_row$options + 11, "study", last_row$data + 1, "name_en", as.character(data$name), NA_integer_, r$user_id, as.character(Sys.time()), FALSE)
+    # Add options rows
+    new_data$options <- tibble::tribble(
+      ~name, ~value, ~value_num,
+      "version", "0.0.1.9000", NA_integer_,
+      "unique_id", paste0(sample(c(0:9, letters[1:6]), 64, TRUE), collapse = ''), NA_integer_,
+      "author", username, NA_integer_,
+      "users_allowed_read_group", "everybody", 1,
+      "user_allowed_read", "", r$user_id,
+      "downloaded_from", "", NA_integer_,
+      "downloaded_from_url", "", NA_integer_
+    ) %>%
+      dplyr::bind_rows(
+        r$languages %>%
+          tidyr::crossing(name = c("description", "category", "name")) %>%
+          dplyr::mutate(
+            name = paste0(name, "_", code),
+            value = ifelse(grepl("name_", name), as.character(data$name), ""),
+            value_num = NA_integer_
+          ) %>%
+          dplyr::select(-code, -language)
+      ) %>%
+      dplyr::mutate(id = last_row$options + dplyr::row_number(), category = "study", link_id = last_row$data + 1, .before = "name") %>%
+      dplyr::mutate(creator_id = r$user_id, datetime = as.character(Sys.time()), deleted = FALSE)
     
     # Add rows in subsets table, for inclusion / exclusion subsets
     # Add also code corresponding to each subset
@@ -565,7 +577,7 @@ delete_element <- function(r = shiny::reactiveValues(), m = shiny::reactiveValue
     r[[delete_variable]] <- FALSE
     
     # Remove files if this is a plugin, a script, a dataset or a vocabulary
-    if (table %in% c("plugins", "scripts", "datasets", "vocabulary")){
+    if (table %in% c("plugins", "scripts", "datasets", "vocabulary", "studies")){
       for (element_id in r[[id_var_r]]){
         element_options <- r$options %>% dplyr::filter(category == get_singular(table), link_id == element_id)
         unlink(paste0(r$app_folder, "/", get_plural(table), "/", element_options %>% dplyr::filter(name == "unique_id") %>% dplyr::pull(value)), recursive = TRUE)
@@ -1103,7 +1115,7 @@ save_settings_options <- function(output, r = shiny::reactiveValues(), id = char
     }
   }
   
-  for (field in c("markdown_description", "version", "author", "image", "omop_version",
+  for (field in c("markdown_description", "version", "author", "image", "omop_version", "activate_scripts_cache",
     paste0("name_", r$languages$code), paste0("category_", r$languages$code), paste0("description_", r$languages$code))){
     if (field %in% page_options){
       option_id <- options %>% dplyr::filter(name == field) %>% dplyr::pull(id)

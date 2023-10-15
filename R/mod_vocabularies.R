@@ -31,20 +31,20 @@ mod_vocabularies_ui <- function(id = character(), i18n = character()){
     # Pivot items ----
     # --- --- -- -- --
     
-    shinyjs::hidden(
-      div(id = ns("menu"),
-        shiny.fluent::Pivot(
-          onLinkClick = htmlwidgets::JS(paste0("item => Shiny.setInputValue('", id, "-current_tab', item.props.id)")),
-          shiny.fluent::PivotItem(id = "vocabularies_concepts_card", itemKey = "vocabularies_concepts_card", headerText = i18n$t("concepts")),
-          shiny.fluent::PivotItem(id = "vocabularies_mapping_card", itemKey = "vocabularies_mapping_card", headerText = i18n$t("concepts_mapping"))
-        )
+    # shinyjs::hidden(
+    div(id = ns("menu"),
+      shiny.fluent::Pivot(
+        onLinkClick = htmlwidgets::JS(paste0("item => Shiny.setInputValue('", id, "-current_tab', item.props.id)")),
+        shiny.fluent::PivotItem(id = "vocabularies_concepts_card", itemKey = "vocabularies_concepts_card", headerText = i18n$t("concepts")),
+        shiny.fluent::PivotItem(id = "vocabularies_mapping_card", itemKey = "vocabularies_mapping_card", headerText = i18n$t("concepts_mapping"))
       )
     ),
+    # ),
     
-    div(
-      id = ns("choose_a_dataset_card"),
-      make_card("", div(shiny.fluent::MessageBar(i18n$t("choose_a_damatart_left_side"), messageBarType = 5), style = "margin-top:10px;"))
-    ),
+    # div(
+    #   id = ns("choose_a_dataset_card"),
+    #   make_card("", div(shiny.fluent::MessageBar(i18n$t("choose_a_damatart_left_side"), messageBarType = 5), style = "margin-top:10px;"))
+    # ),
     forbidden_cards,
     
     # --- --- --- --- --
@@ -56,6 +56,10 @@ mod_vocabularies_ui <- function(id = character(), i18n = character()){
         id = ns("vocabularies_concepts_card"),
         make_card(i18n$t("concepts"),
           div(
+            # shiny.fluent::Stack(horizontal = TRUE, tokens = list(childrenGap = 10),
+            #   div(shiny.fluent::Toggle.shinyInput(ns("vocabulary_show_only_dataset_vocabs"), value = FALSE), style = "margin-top:20px;"),
+            #   div(i18n$t("show_only_dataset_vocabs"), style = "font-weight:bold; margin-top:20px;")
+            # ),
             shiny.fluent::Stack(horizontal = TRUE, tokens = list(childrenGap = 10),
               make_combobox(i18n = i18n, ns = ns, label = "vocabulary", id = "vocabulary", width = "300px", allowFreeform = FALSE, multiSelect = FALSE),
               div(style = "width:20px;"),
@@ -89,12 +93,15 @@ mod_vocabularies_ui <- function(id = character(), i18n = character()){
               condition = "input.vocabulary_concepts_pivot == null | input.vocabulary_concepts_pivot == 'vocabulary_concepts_table_view'", ns = ns,
               DT::DTOutput(ns("vocabulary_concepts")),
               conditionalPanel("input.vocabulary == null", ns = ns, br()),
+              shiny.fluent::Stack(horizontal = TRUE, tokens = list(childrenGap = 10),
+                shiny.fluent::DefaultButton.shinyInput(ns("reload_vocabulary_concepts_cache"), i18n$t("reload_cache")),
+                conditionalPanel(
+                  condition = "input.vocabulary != null", ns = ns,
+                  shiny.fluent::PrimaryButton.shinyInput(ns("save_vocabulary_concepts"), i18n$t("save"))
+                )
+              ), br(),
               conditionalPanel(
                 condition = "input.vocabulary != null", ns = ns,
-                shiny.fluent::Stack(horizontal = TRUE, tokens = list(childrenGap = 10),
-                  shiny.fluent::PrimaryButton.shinyInput(ns("save_vocabulary_concepts"), i18n$t("save")),
-                  shiny.fluent::DefaultButton.shinyInput(ns("reload_vocabulary_concepts_cache"), i18n$t("reload_cache"))
-                ), br(),
                 div(
                   id = ns("vocabulary_datatable_selected_item_div"),
                   div(uiOutput(ns("vocabulary_datatable_selected_item")), style = "display:relative; float:left; width:50%;"),
@@ -245,6 +252,10 @@ mod_vocabularies_server <- function(id = character(), r = shiny::reactiveValues(
     cards <- c("vocabularies_concepts_card", "vocabularies_mapping_card")
     show_or_hide_cards(r = r, input = input, session = session, id = id, cards = cards)
     
+    # Show first card
+    if ("vocabularies_concepts_card" %in% r$user_accesses) shinyjs::show("vocabularies_concepts_card")
+    else shinyjs::show("vocabularies_concepts_card_forbidden")
+    
     # --- --- --- --- --- -
     # Show message bar ----
     # --- --- --- --- --- -
@@ -291,35 +302,66 @@ mod_vocabularies_server <- function(id = character(), r = shiny::reactiveValues(
     # Vocabulary concepts ----
     # --- --- --- --- --- -- -
     
+    # observeEvent(r$vocabulary, {
+    #   if (debug) cat(paste0("\n", Sys.time(), " - mod_vocabularies - observer r$vocabulary"))
+    #   r$reload_vocabulary_dropdown <- Sys.time()
+    # })
+    # 
+    # observeEvent(input$vocabulary_show_only_dataset_vocabs, {
+    #   if (debug) cat(paste0("\n", Sys.time(), " - mod_vocabularies - observer input$vocabulary_show_only_dataset_vocabs"))
+    #   r$reload_vocabulary_dropdown <- Sys.time()
+    # })
+    # 
+    # observeEvent(r$reload_vocabulary_dropdown, {
+    #   if (debug) cat(paste0("\n", Sys.time(), " - mod_vocabularies - observer r$reload_vocabulary_dropdown"))
+    #   
+    #   show_only_dataset_vocabs <- FALSE
+    #   if (length(input$vocabulary_show_only_dataset_vocabs) > 0) show_only_dataset_vocabs <- input$vocabulary_show_only_dataset_vocabs
+    #   
+    #   vocabulary_options <- r$vocabulary
+    #   
+    #   if (show_only_dataset_vocabs){
+    #     if (length(r$selected_dataset) > 0){
+    #       if (nrow(d$dataset_all_concepts) > 0){
+    #         vocabulary_options <- vocabulary_options %>% dplyr::filter(
+    #           vocabulary_id %in% unique(c(unique(d$dataset_all_concepts$vocabulary_id_1), unique(d$dataset_all_concepts$vocabulary_id_2)))
+    #         )
+    #       }
+    #     }
+    #   }
+    #   shiny.fluent::updateComboBox.shinyInput(session, "vocabulary", 
+    #     options = convert_tibble_to_list(vocabulary_options, key_col = "id", text_col = "vocabulary_id"), value = NULL)
+    # })
+    
     observeEvent(r$selected_dataset, {
       
       if (perf_monitoring) monitor_perf(r = r, action = "start")
       if (debug) cat(paste0("\n", Sys.time(), " - mod_vocabularies - observer r$selected_dataset 2"))
       
       # Show first card & hide "choose a dataset" card
-      shinyjs::hide("choose_a_dataset_card")
-      shinyjs::show("menu")
-      if (length(input$current_tab) == 0){
-        if ("vocabularies_concepts_card" %in% r$user_accesses) shinyjs::show("vocabularies_concepts_card")
-        else shinyjs::show("vocabularies_concepts_card_forbidden")
-      }
+      # shinyjs::hide("choose_a_dataset_card")
+      # shinyjs::show("menu")
+      # if (length(input$current_tab) == 0){
+      #   if ("vocabularies_concepts_card" %in% r$user_accesses) shinyjs::show("vocabularies_concepts_card")
+      #   else shinyjs::show("vocabularies_concepts_card_forbidden")
+      # }
       
-      data_source <- r$datasets %>% dplyr::filter(id == r$selected_dataset) %>% dplyr::pull(data_source_id)
+      # data_source <- r$datasets %>% dplyr::filter(id == r$selected_dataset) %>% dplyr::pull(data_source_id)
       
       # Multiple cases
       # Only one ID, so it's the beginning and the end
       # Last ID, so it's the end
       # ID between begin and last, so separated by commas
-      r$dataset_vocabularies <- r$vocabulary %>% 
-        dplyr::filter(
-          grepl(paste0("^", data_source, "$"), data_source_id) | 
-            grepl(paste0(", ", data_source, "$"), data_source_id) | 
-            grepl(paste0("^", data_source, ","), data_source_id) |
-            grepl(paste0(", ", data_source, ","), data_source_id)
-        ) %>% dplyr::arrange(vocabulary_name)
-      vocabulary_options <- convert_tibble_to_list(data = r$dataset_vocabularies, key_col = "vocabulary_id", text_col = "vocabulary_name", i18n = i18n)
-      
-      for (var in c("vocabulary", "vocabulary_mapping_1", "vocabulary_mapping_2")) shiny.fluent::updateComboBox.shinyInput(session, var, options = vocabulary_options, value = NULL)
+      # r$dataset_vocabularies <- r$vocabulary %>% 
+      #   dplyr::filter(
+      #     grepl(paste0("^", data_source, "$"), data_source_id) | 
+      #       grepl(paste0(", ", data_source, "$"), data_source_id) | 
+      #       grepl(paste0("^", data_source, ","), data_source_id) |
+      #       grepl(paste0(", ", data_source, ","), data_source_id)
+      #   ) %>% dplyr::arrange(vocabulary_name)
+      # vocabulary_options <- convert_tibble_to_list(data = r$dataset_vocabularies, key_col = "vocabulary_id", text_col = "vocabulary_name", i18n = i18n)
+      # 
+      # for (var in c("vocabulary", "vocabulary_mapping_1", "vocabulary_mapping_2")) shiny.fluent::updateComboBox.shinyInput(session, var, options = vocabulary_options, value = NULL)
       
       r$load_dataset_all_concepts <- Sys.time()
       
@@ -351,19 +393,7 @@ mod_vocabularies_server <- function(id = character(), r = shiny::reactiveValues(
         
         # Load all concepts for this dataset, with rows count
         
-        sql <- glue::glue_sql(paste0(
-          "SELECT * ",
-          "FROM concept ",
-          "WHERE vocabulary_id IN ({r$dataset_vocabularies %>% dplyr::pull(vocabulary_id)*}) ",
-          "ORDER BY concept_id"), .con = m$db)
-        dataset_all_concepts <- DBI::dbGetQuery(m$db, sql) %>% tibble::as_tibble() %>% dplyr::mutate(concept_display_name = NA_character_, .after = "concept_name")
-        
-        # Count rows
-        
         omop_version <- r$options %>% dplyr::filter(category == "dataset" & link_id == r$selected_dataset & name == "omop_version") %>% dplyr::pull(value)
-        
-        # count_rows <- tibble::tibble(concept_id = integer(), count_persons_rows = integer(), count_concepts_rows = integer(), count_secondary_concepts_rows = integer())
-        count_rows <- tibble::tibble(concept_id = integer(), count_persons_rows = numeric(), count_concepts_rows = numeric())
         
         tables <- c("person", "visit_occurrence", "visit_detail", "condition_occurrence", "drug_exposure", "procedure_occurrence", "device_exposure",
           "measurement", "observation", "specimen", "drug_era", "dose_era", "condition_era", "note", "specimen")
@@ -394,6 +424,26 @@ mod_vocabularies_server <- function(id = character(), r = shiny::reactiveValues(
           "specimen" = c("specimen_type", "unit", "anatomic_site", "disease_status"),
           "dose_era" = "unit"
         )
+        
+        # Get all concept_ids for this dataset
+        dataset_concept_ids <- integer(0)
+        for (table in tables){
+          concept_ids <- d[[table]] %>% dplyr::select(dplyr::contains("concept_id")) %>% unlist(use.names = FALSE) %>% as.integer() %>% unique()
+          dataset_concept_ids <- unique(c(dataset_concept_ids, concept_ids))
+        }
+        
+        sql <- glue::glue_sql(paste0(
+          "SELECT * ",
+          "FROM concept ",
+          "WHERE concept_id IN ({dataset_concept_ids*}) ",
+          # "WHERE vocabulary_id IN ({r$dataset_vocabularies %>% dplyr::pull(vocabulary_id)*}) ",
+          "ORDER BY concept_id"), .con = m$db)
+        dataset_all_concepts <- DBI::dbGetQuery(m$db, sql) %>% tibble::as_tibble() %>% dplyr::mutate(concept_display_name = NA_character_, .after = "concept_name")
+        
+        # Count rows
+        
+        # count_rows <- tibble::tibble(concept_id = integer(), count_persons_rows = integer(), count_concepts_rows = integer(), count_secondary_concepts_rows = integer())
+        count_rows <- tibble::tibble(concept_id = integer(), count_persons_rows = numeric(), count_concepts_rows = numeric())
         
         # EDIT : we do not use anymore the count_secondary_concepts_rows col
         # count_concepts_rows & count_secondary_concepts_rows are now merged
@@ -593,7 +643,8 @@ mod_vocabularies_server <- function(id = character(), r = shiny::reactiveValues(
       sql <- glue::glue_sql(paste0(
         "SELECT id, concept_id, concept_name, concept_display_name ",
         "FROM concept_user ",
-        "WHERE user_id = {r$user_id} AND vocabulary_id IN ({r$dataset_vocabularies %>% dplyr::pull(vocabulary_id)*})"), .con = m$db)
+        # "WHERE user_id = {r$user_id} AND vocabulary_id IN ({r$dataset_vocabularies %>% dplyr::pull(vocabulary_id)*})"
+        "WHERE user_id = {r$user_id}"), .con = m$db)
       dataset_user_concepts <- DBI::dbGetQuery(m$db, sql) %>% tibble::as_tibble()
       
       # Merge tibbles
@@ -620,14 +671,19 @@ mod_vocabularies_server <- function(id = character(), r = shiny::reactiveValues(
         r$dataset_vocabulary_concepts %>% dplyr::slice(0), resetPaging = FALSE, rownames = FALSE)
       
       # Update vocabulary dropdown
-      shiny.fluent::updateComboBox.shinyInput(session, "vocabulary", 
-        options = convert_tibble_to_list(data = r$dataset_vocabularies, key_col = "id", text_col = "vocabulary_name", i18n = i18n), value = NULL)
+      # shiny.fluent::updateComboBox.shinyInput(session, "vocabulary", 
+      #   options = convert_tibble_to_list(data = r$dataset_vocabularies, key_col = "id", text_col = "vocabulary_name", i18n = i18n), value = NULL)
       
       # Join d$person, d$visit_occurrence & d$visit_detail with d$dataset_all_concepts
       r$merge_concepts_and_d_vars <- Sys.time()
       
       # Then load d$dataset_drug_strength
       r$load_dataset_drug_strength <- Sys.time()
+      
+      # Update vocabulary combobox
+      vocabulary_options <- r$vocabulary %>% dplyr::filter(vocabulary_id %in% unique(c(unique(d$dataset_all_concepts$vocabulary_id_1), unique(d$dataset_all_concepts$vocabulary_id_2))))
+      if (nrow(vocabulary_options) > 0) shiny.fluent::updateComboBox.shinyInput(session, "vocabulary",
+        options = convert_tibble_to_list(vocabulary_options, key_col = "id", text_col = "vocabulary_id"), value = NULL)
       
       if (perf_monitoring) monitor_perf(r = r, action = "stop", task = paste0("mod_vocabularies - observer r$load_dataset_all_concepts"))
     })
@@ -1078,8 +1134,14 @@ mod_vocabularies_server <- function(id = character(), r = shiny::reactiveValues(
                   strong(i18n$t("values_as_number")), " : ", values %>% 
                     dplyr::mutate(result = ifelse(!is.na(unit_concept_code), paste0(value_as_number, " ", unit_concept_code), value_as_number)) %>% dplyr::pull(result) %>% toString())
                 
-                else if (name == "value_as_concept_id") concept_values <- tagList(concept_values, br(),
-                  strong(i18n$t("values_as_concept_id")), " : ", values %>% dplyr::pull(value_as_concept_name) %>% toString())
+                else if (name == "value_as_concept_id"){
+                  values <- values %>% dplyr::left_join(
+                    d$dataset_all_concepts %>% dplyr::select(value_as_concept_id = concept_id_1, value_as_concept_name = concept_name_1),
+                    by = "value_as_concept_id"
+                  )
+                  concept_values <- tagList(concept_values, br(),
+                    strong(i18n$t("values_as_concept_id")), " : ", values %>% dplyr::pull(value_as_concept_name) %>% toString())
+                }
                 
                 else concept_values <- tagList(concept_values, br(),
                   strong(i18n$t(col)), " : ", values %>% dplyr::slice_sample(n = 5, replace = TRUE) %>% 

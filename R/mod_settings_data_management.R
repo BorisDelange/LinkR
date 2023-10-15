@@ -233,118 +233,124 @@ mod_settings_data_management_ui <- function(id = character(), i18n = character()
       # Edit code card ----
       # --- --- --- --- -- -
       
-      div(id = ns("edit_code_card"), 
-        make_shiny_ace_card(i18n$t("edit_dataset_code"),
-          div(
-            shiny.fluent::Stack(
-              tokens = list(childrenGap = 5),
-              shiny.fluent::Stack(horizontal = TRUE, tokens = list(childrenGap = 10),
-                make_combobox(i18n = i18n, ns = ns, label = "dataset", id = "code_selected_dataset_or_vocabulary",
-                  width = "300px", allowFreeform = FALSE, multiSelect = FALSE),
-                div(shiny.fluent::Toggle.shinyInput(ns("hide_editor"), value = FALSE), style = "margin-top:45px;"),
-                div(i18n$t("hide_editor"), style = "font-weight:bold; margin-top:45px; margin-right:30px;")
-              ),
-              conditionalPanel(condition = "input.hide_editor == true", ns = ns, br())
-            ),
-            conditionalPanel(condition = "input.hide_editor == false", ns = ns,
-              div(shinyAce::aceEditor(
-                ns("ace_edit_code"), "", mode = "r", 
-                code_hotkeys = list("r", list(
-                  run_selection = list(win = "CTRL-ENTER", mac = "CTRL-ENTER|CMD-ENTER"),
-                  run_all = list(win = "CTRL-SHIFT-ENTER", mac = "CTRL-SHIFT-ENTER|CMD-SHIFT-ENTER"),
-                  save = list(win = "CTRL-S", mac = "CTRL-S|CMD-S"),
-                  comment = list(win = "CTRL-SHIFT-C", mac = "CTRL-SHIFT-C|CMD-SHIFT-C"))
-                ),
-                autoScrollEditorIntoView = TRUE, minLines = 30, maxLines = 1000),
-                style = "width: 100%;"
-              )
-            ),
-            shiny.fluent::Stack(
-              tokens = list(childrenGap = 5),
-              shiny.fluent::Stack(horizontal = TRUE, tokens = list(childrenGap = 10),
-                shiny.fluent::PrimaryButton.shinyInput(ns("execute_code"), i18n$t("run_code")),
-                shiny.fluent::DefaultButton.shinyInput(ns("edit_code_save"), i18n$t("save"))
-              ), br(), br(),
-              div(textOutput(ns("datetime_code_execution")), style = "color:#878787;"), br(),
-              div(shiny::uiOutput(ns("code_result")), 
-                style = "width: 99%; border-style: dashed; border-width: 1px; padding: 0px 8px 0px 8px; margin-right: 5px;"), br(), br(),
+      shinyjs::hidden(
+        div(id = ns("edit_code_card"), 
+          make_shiny_ace_card(i18n$t("edit_dataset_code"),
+            div(
               shiny.fluent::Stack(
-                horizontal = TRUE, tokens = list(childrenGap = 10),
-                shiny.fluent::Toggle.shinyInput(ns("show_imported_data"), value = FALSE),
-                div(i18n$t("show_imported_data"), style = "font-weight:bold;"),
+                tokens = list(childrenGap = 5),
+                shiny.fluent::Stack(horizontal = TRUE, tokens = list(childrenGap = 10),
+                  make_combobox(i18n = i18n, ns = ns, label = "dataset", id = "code_selected_dataset_or_vocabulary",
+                    width = "300px", allowFreeform = FALSE, multiSelect = FALSE),
+                  div(shiny.fluent::Toggle.shinyInput(ns("hide_editor"), value = FALSE), style = "margin-top:45px;"),
+                  div(i18n$t("hide_editor"), style = "font-weight:bold; margin-top:45px; margin-right:30px;")
+                ),
+                conditionalPanel(condition = "input.hide_editor == true", ns = ns, br())
               ),
-              conditionalPanel(condition = "input.show_imported_data == true", ns = ns,
-                DT::DTOutput(ns("code_datatable")))
+              conditionalPanel(condition = "input.hide_editor == false", ns = ns,
+                div(shinyAce::aceEditor(
+                  ns("ace_edit_code"), "", mode = "r", 
+                  code_hotkeys = list("r", list(
+                    run_selection = list(win = "CTRL-ENTER", mac = "CTRL-ENTER|CMD-ENTER"),
+                    run_all = list(win = "CTRL-SHIFT-ENTER", mac = "CTRL-SHIFT-ENTER|CMD-SHIFT-ENTER"),
+                    save = list(win = "CTRL-S", mac = "CTRL-S|CMD-S"),
+                    comment = list(win = "CTRL-SHIFT-C", mac = "CTRL-SHIFT-C|CMD-SHIFT-C"))
+                  ),
+                  autoScrollEditorIntoView = TRUE, minLines = 30, maxLines = 1000),
+                  style = "width: 100%;"
+                )
+              ),
+              shiny.fluent::Stack(
+                tokens = list(childrenGap = 5),
+                shiny.fluent::Stack(horizontal = TRUE, tokens = list(childrenGap = 10),
+                  shiny.fluent::PrimaryButton.shinyInput(ns("execute_code"), i18n$t("run_code")),
+                  shiny.fluent::DefaultButton.shinyInput(ns("edit_code_save"), i18n$t("save"))
+                ), br(), br(),
+                div(textOutput(ns("datetime_code_execution")), style = "color:#878787;"), br(),
+                div(shiny::uiOutput(ns("code_result")), 
+                  style = "width: 99%; border-style: dashed; border-width: 1px; padding: 0px 8px 0px 8px; margin-right: 5px;"), br(), br(),
+                shiny.fluent::Stack(
+                  horizontal = TRUE, tokens = list(childrenGap = 10),
+                  shiny.fluent::Toggle.shinyInput(ns("show_imported_data"), value = FALSE),
+                  div(i18n$t("show_imported_data"), style = "font-weight:bold;"),
+                ),
+                conditionalPanel(condition = "input.show_imported_data == true", ns = ns,
+                  DT::DTOutput(ns("code_datatable")))
+              )
             )
-          )
-        ), br()
+          ), br()
+        )
       ),
       
       # --- --- --- --- --- ---
       # Edit options card ----
       # --- --- --- --- --- ---
       
-      div(id = ns("options_card"),
-        make_shiny_ace_card(i18n$t("dataset_options"),
-          div(
-            shiny.fluent::Stack(
-              tokens = list(childrenGap = 5),
-              shiny.fluent::Stack(horizontal = TRUE, tokens = list(childrenGap = 20),
-                make_combobox(i18n = i18n, ns = ns, label = "dataset", id = "options_selected_dataset_or_vocabulary", width = "320px", allowFreeform = FALSE, multiSelect = FALSE), 
-                make_dropdown(i18n = i18n, ns = ns, label = "language", id = "dataset_language", 
-                  options = convert_tibble_to_list(languages, key_col = "code", text_col = "language"), value = language, width = "320px"),
-                make_textfield(i18n = i18n, ns = ns, label = "version", id = "dataset_version", width = "80px")
-              ),
-              make_textfield(i18n = i18n, ns = ns, label = "author_s", id = "dataset_author", width = "660px"),
-              options_divs$dataset,
-              make_dropdown(i18n = i18n, ns = ns, label = "omop_version", width = "320px", 
-                options = list(
-                  list(key = "5.3", text = "5.3"),
-                  list(key = "5.4", text = "5.4"),
-                  list(key = "6.0", text = "6.0")
-                )), br(), br(), br(),
+      shinyjs::hidden(
+        div(id = ns("options_card"),
+          make_shiny_ace_card(i18n$t("dataset_options"),
+            div(
               shiny.fluent::Stack(
-                horizontal = TRUE, tokens = list(childrenGap = 10),
-                make_toggle(i18n = i18n, ns = ns, label = "show_only_aggregated_data", inline = TRUE)
-              ), br(),
-              div(
-                div(class = "input_title", paste0(i18n$t("grant_access_to"), " :")),
-                shiny.fluent::ChoiceGroup.shinyInput(ns("users_allowed_read_group"), options = list(
-                  list(key = "everybody", text = i18n$t("everybody")),
-                  list(key = "people_picker", text = i18n$t("choose_users"))
-                ), className = "inline_choicegroup"),
-                conditionalPanel(condition = "input.users_allowed_read_group == 'people_picker'", ns = ns,
-                  uiOutput(ns("users_allowed_read_div"))
+                tokens = list(childrenGap = 5),
+                shiny.fluent::Stack(horizontal = TRUE, tokens = list(childrenGap = 20),
+                  make_combobox(i18n = i18n, ns = ns, label = "dataset", id = "options_selected_dataset_or_vocabulary", width = "320px", allowFreeform = FALSE, multiSelect = FALSE), 
+                  make_dropdown(i18n = i18n, ns = ns, label = "language", id = "dataset_language", 
+                    options = convert_tibble_to_list(languages, key_col = "code", text_col = "language"), value = language, width = "320px"),
+                  make_textfield(i18n = i18n, ns = ns, label = "version", id = "dataset_version", width = "80px")
+                ),
+                make_textfield(i18n = i18n, ns = ns, label = "author_s", id = "dataset_author", width = "660px"),
+                options_divs$dataset,
+                make_dropdown(i18n = i18n, ns = ns, label = "omop_version", width = "320px", 
+                  options = list(
+                    list(key = "5.3", text = "5.3"),
+                    list(key = "5.4", text = "5.4"),
+                    list(key = "6.0", text = "6.0")
+                  )), br(), br(), br(),
+                shiny.fluent::Stack(
+                  horizontal = TRUE, tokens = list(childrenGap = 10),
+                  make_toggle(i18n = i18n, ns = ns, label = "show_only_aggregated_data", inline = TRUE)
+                ), br(),
+                div(
+                  div(class = "input_title", paste0(i18n$t("grant_access_to"), " :")),
+                  shiny.fluent::ChoiceGroup.shinyInput(ns("users_allowed_read_group"), options = list(
+                    list(key = "everybody", text = i18n$t("everybody")),
+                    list(key = "people_picker", text = i18n$t("choose_users"))
+                  ), className = "inline_choicegroup"),
+                  conditionalPanel(condition = "input.users_allowed_read_group == 'people_picker'", ns = ns,
+                    uiOutput(ns("users_allowed_read_div"))
+                  )
                 )
-              )
-            ),
-            shiny.fluent::Stack(horizontal = TRUE, tokens = list(childrenGap = 20),
-              make_dropdown(i18n = i18n, ns = ns, label = "file", id = "dataset_file", width = "320px"),
-              div(shiny.fluent::DefaultButton.shinyInput(ns("delete_file"), i18n$t("delete_this_file")), style = "margin-top:39px;"),
-              div(shiny.fluent::DefaultButton.shinyInput(ns("import_file"), i18n$t("import_file")), style = "margin-top:39px;"),
-            ),
-            description_divs$dataset,
-            shiny.fluent::Stack(horizontal = TRUE, tokens = list(childrenGap = 10),
-              shiny.fluent::PrimaryButton.shinyInput(ns("options_save"), i18n$t("save")), " ",
-              shiny.fluent::DefaultButton.shinyInput(ns("preview_description"), i18n$t("preview"))
-            ),
-            br(),
-            div(id = ns("description_markdown_output"),
-              uiOutput(ns("description_markdown_result")), 
-              style = "width: 99%; border-style: dashed; border-width: 1px; padding:0px 8px 0px 8px; margin-right: 5px;"),
-            div(style = "display:none;", fileInput(ns("import_file_input"), label = "", multiple = FALSE, 
-              accept = c(".jpg", ".jpeg", ".png", ".svg", ".parquet", ".csv", ".xls", ".xlsx", ".toml", ".json", ".yaml", ".yml")))
-          )
-        ), br()
+              ),
+              shiny.fluent::Stack(horizontal = TRUE, tokens = list(childrenGap = 20),
+                make_dropdown(i18n = i18n, ns = ns, label = "file", id = "dataset_file", width = "320px"),
+                div(shiny.fluent::DefaultButton.shinyInput(ns("delete_file"), i18n$t("delete_this_file")), style = "margin-top:39px;"),
+                div(shiny.fluent::DefaultButton.shinyInput(ns("import_file"), i18n$t("import_file")), style = "margin-top:39px;"),
+              ),
+              description_divs$dataset,
+              shiny.fluent::Stack(horizontal = TRUE, tokens = list(childrenGap = 10),
+                shiny.fluent::PrimaryButton.shinyInput(ns("options_save"), i18n$t("save")), " ",
+                shiny.fluent::DefaultButton.shinyInput(ns("preview_description"), i18n$t("preview"))
+              ),
+              br(),
+              div(id = ns("description_markdown_output"),
+                uiOutput(ns("description_markdown_result")), 
+                style = "width: 99%; border-style: dashed; border-width: 1px; padding:0px 8px 0px 8px; margin-right: 5px;"),
+              div(style = "display:none;", fileInput(ns("import_file_input"), label = "", multiple = FALSE, 
+                accept = c(".jpg", ".jpeg", ".png", ".svg", ".parquet", ".csv", ".xls", ".xlsx", ".toml", ".json", ".yaml", ".yml")))
+            )
+          ), br()
+        )
       ),
       
       # --- --- --- --- --- -- -
       # Import dataset card ----
       # --- --- --- --- --- -- -
       
-      div(id = ns("import_dataset_card"),
-        make_shiny_ace_card(i18n$t("import_datasets"),
-          import_div$dataset, br()
+      shinyjs::hidden(
+        div(id = ns("import_dataset_card"),
+          make_shiny_ace_card(i18n$t("import_datasets"),
+            import_div$dataset, br()
+          )
         )
       ),
       
@@ -352,9 +358,11 @@ mod_settings_data_management_ui <- function(id = character(), i18n = character()
       # Export dataset card ----
       # --- --- --- --- --- -- -
       
-      div(id = ns("export_dataset_card"),
-        make_shiny_ace_card(i18n$t("export_datasets"),
-          export_div$dataset, br()
+      shinyjs::hidden(
+        div(id = ns("export_dataset_card"),
+          make_shiny_ace_card(i18n$t("export_datasets"),
+            export_div$dataset, br()
+          )
         )
       )
       
@@ -431,208 +439,218 @@ mod_settings_data_management_ui <- function(id = character(), i18n = character()
       # Management card ----
       # --- --- --- --- -- -
       
-      div(id = ns("datatable_card"),
-        make_card(i18n$t("vocabularies_management"),
-          div(
-            shiny.fluent::Stack(horizontal = TRUE, tokens = list(childrenGap = 20),
-              make_textfield(i18n = i18n, ns = ns, label = "id", id = "vocabulary_id", width = "300px"),
-              make_textfield(i18n = i18n, ns = ns, label = "name", id = "vocabulary_name", width = "300px"),
-              # make_dropdown(i18n = i18n, ns = ns, label = "data_source", id = "data_source", width = "300px", multiSelect = TRUE),
-              div(shiny.fluent::PrimaryButton.shinyInput(ns("add"), i18n$t("add")), style = "margin-top:39px;")),
-            div(DT::DTOutput(ns("management_datatable")), style = "z-index:2"),
+      shinyjs::hidden(
+        div(id = ns("datatable_card"),
+          make_card(i18n$t("vocabularies_management"),
             div(
-              shiny.fluent::Stack(horizontal = TRUE, tokens = list(childrenGap = 10),
-                shiny.fluent::PrimaryButton.shinyInput(ns("management_save"), i18n$t("save")),
-                shiny.fluent::DefaultButton.shinyInput(ns("delete_selection"), i18n$t("delete_selection"))
-              ),
-              style = "position:relative; z-index:1; margin-top:-30px; width:500px;"
+              shiny.fluent::Stack(horizontal = TRUE, tokens = list(childrenGap = 20),
+                make_textfield(i18n = i18n, ns = ns, label = "id", id = "vocabulary_id", width = "300px"),
+                make_textfield(i18n = i18n, ns = ns, label = "name", id = "vocabulary_name", width = "300px"),
+                # make_dropdown(i18n = i18n, ns = ns, label = "data_source", id = "data_source", width = "300px", multiSelect = TRUE),
+                div(shiny.fluent::PrimaryButton.shinyInput(ns("add"), i18n$t("add")), style = "margin-top:39px;")),
+              div(DT::DTOutput(ns("management_datatable")), style = "z-index:2"),
+              div(
+                shiny.fluent::Stack(horizontal = TRUE, tokens = list(childrenGap = 10),
+                  shiny.fluent::PrimaryButton.shinyInput(ns("management_save"), i18n$t("save")),
+                  shiny.fluent::DefaultButton.shinyInput(ns("delete_selection"), i18n$t("delete_selection"))
+                ),
+                style = "position:relative; z-index:1; margin-top:-30px; width:500px;"
+              )
             )
-          )
-        ), br()
+          ), br()
+        )
       ),
       
       # --- --- --- --- -- -
       # Edit code card ----
       # --- --- --- --- -- -
       
-      div(id = ns("edit_code_card"), 
-        make_shiny_ace_card(i18n$t("edit_vocabulary_code"),
-          div(
-            shiny.fluent::Stack(
-              tokens = list(childrenGap = 5),
-              shiny.fluent::Stack(horizontal = TRUE, tokens = list(childrenGap = 10),
-                make_combobox(i18n = i18n, ns = ns, label = "vocabulary", id = "code_selected_dataset_or_vocabulary",
-                  width = "300px", allowFreeform = FALSE, multiSelect = FALSE),
-                div(shiny.fluent::Toggle.shinyInput(ns("hide_editor"), value = FALSE), style = "margin-top:45px;"),
-                div(i18n$t("hide_editor"), style = "font-weight:bold; margin-top:45px; margin-right:30px;"), 
-              ),
-              conditionalPanel(condition = "input.hide_editor == true", ns = ns, br())
-            ),
-            conditionalPanel(condition = "input.hide_editor == false", ns = ns,
-              div(shinyAce::aceEditor(
-                ns("ace_edit_code"), "", mode = "r", 
-                code_hotkeys = list(
-                  "r", list(
-                    run_selection = list(win = "CTRL-ENTER", mac = "CTRL-ENTER|CMD-ENTER"),
-                    run_all = list(win = "CTRL-SHIFT-ENTER", mac = "CTRL-SHIFT-ENTER|CMD-SHIFT-ENTER"),
-                    save = list(win = "CTRL-S", mac = "CTRL-S|CMD-S"),
-                    comment = list(win = "CTRL-SHIFT-C", mac = "CTRL-SHIFT-C|CMD-SHIFT-C"))
+      shinyjs::hidden(
+        div(id = ns("edit_code_card"), 
+          make_shiny_ace_card(i18n$t("edit_vocabulary_code"),
+            div(
+              shiny.fluent::Stack(
+                tokens = list(childrenGap = 5),
+                shiny.fluent::Stack(horizontal = TRUE, tokens = list(childrenGap = 10),
+                  make_combobox(i18n = i18n, ns = ns, label = "vocabulary", id = "code_selected_dataset_or_vocabulary",
+                    width = "300px", allowFreeform = FALSE, multiSelect = FALSE),
+                  div(shiny.fluent::Toggle.shinyInput(ns("hide_editor"), value = FALSE), style = "margin-top:45px;"),
+                  div(i18n$t("hide_editor"), style = "font-weight:bold; margin-top:45px; margin-right:30px;"), 
                 ),
-                autoScrollEditorIntoView = TRUE, minLines = 30, maxLines = 1000), 
-                style = "width: 100%;")
-            ),
-            shiny.fluent::Stack(
-              tokens = list(childrenGap = 5),
-              shiny.fluent::Stack(horizontal = TRUE, tokens = list(childrenGap = 10),
-                shiny.fluent::PrimaryButton.shinyInput(ns("execute_code"), i18n$t("run_code")),
-                shiny.fluent::DefaultButton.shinyInput(ns("edit_code_save"), i18n$t("save"))
-              ), br(), br(),
-              div(textOutput(ns("datetime_code_execution")), style = "color:#878787;"), br(),
-              div(shiny::uiOutput(ns("code_result")), 
-                style = "width: 99%; border-style: dashed; border-width: 1px; padding: 0px 8px 0px 8px; margin-right: 5px;")
+                conditionalPanel(condition = "input.hide_editor == true", ns = ns, br())
+              ),
+              conditionalPanel(condition = "input.hide_editor == false", ns = ns,
+                div(shinyAce::aceEditor(
+                  ns("ace_edit_code"), "", mode = "r", 
+                  code_hotkeys = list(
+                    "r", list(
+                      run_selection = list(win = "CTRL-ENTER", mac = "CTRL-ENTER|CMD-ENTER"),
+                      run_all = list(win = "CTRL-SHIFT-ENTER", mac = "CTRL-SHIFT-ENTER|CMD-SHIFT-ENTER"),
+                      save = list(win = "CTRL-S", mac = "CTRL-S|CMD-S"),
+                      comment = list(win = "CTRL-SHIFT-C", mac = "CTRL-SHIFT-C|CMD-SHIFT-C"))
+                  ),
+                  autoScrollEditorIntoView = TRUE, minLines = 30, maxLines = 1000), 
+                  style = "width: 100%;")
+              ),
+              shiny.fluent::Stack(
+                tokens = list(childrenGap = 5),
+                shiny.fluent::Stack(horizontal = TRUE, tokens = list(childrenGap = 10),
+                  shiny.fluent::PrimaryButton.shinyInput(ns("execute_code"), i18n$t("run_code")),
+                  shiny.fluent::DefaultButton.shinyInput(ns("edit_code_save"), i18n$t("save"))
+                ), br(), br(),
+                div(textOutput(ns("datetime_code_execution")), style = "color:#878787;"), br(),
+                div(shiny::uiOutput(ns("code_result")), 
+                  style = "width: 99%; border-style: dashed; border-width: 1px; padding: 0px 8px 0px 8px; margin-right: 5px;")
+              )
             )
-          )
-        ), br()
+          ), br()
+        )
       ),
       
       # --- --- --- --- --- ---
       # Edit options card ----
       # --- --- --- --- --- ---
       
-      div(id = ns("options_card"),
-        make_shiny_ace_card(i18n$t("vocabulary_options"),
-          div(
-            shiny.fluent::Stack(
-              tokens = list(childrenGap = 5),
-              shiny.fluent::Stack(horizontal = TRUE, tokens = list(childrenGap = 20),
-                make_combobox(i18n = i18n, ns = ns, label = "vocabulary", id = "options_selected_dataset_or_vocabulary", width = "320px", allowFreeform = FALSE, multiSelect = FALSE), 
-                make_dropdown(i18n = i18n, ns = ns, label = "language", id = "vocabulary_language", 
-                  options = convert_tibble_to_list(languages, key_col = "code", text_col = "language"), value = language, width = "320px"),
-                make_textfield(i18n = i18n, ns = ns, label = "version", id = "vocabulary_version", width = "80px")
+      shinyjs::hidden(
+        div(id = ns("options_card"),
+          make_shiny_ace_card(i18n$t("vocabulary_options"),
+            div(
+              shiny.fluent::Stack(
+                tokens = list(childrenGap = 5),
+                shiny.fluent::Stack(horizontal = TRUE, tokens = list(childrenGap = 20),
+                  make_combobox(i18n = i18n, ns = ns, label = "vocabulary", id = "options_selected_dataset_or_vocabulary", width = "320px", allowFreeform = FALSE, multiSelect = FALSE), 
+                  make_dropdown(i18n = i18n, ns = ns, label = "language", id = "vocabulary_language", 
+                    options = convert_tibble_to_list(languages, key_col = "code", text_col = "language"), value = language, width = "320px"),
+                  make_textfield(i18n = i18n, ns = ns, label = "version", id = "vocabulary_version", width = "80px")
+                ),
+                make_textfield(i18n = i18n, ns = ns, label = "author_s", id = "vocabulary_author", width = "660px"),
+                options_divs$vocabulary
               ),
-              make_textfield(i18n = i18n, ns = ns, label = "author_s", id = "vocabulary_author", width = "660px"),
-              options_divs$vocabulary
-            ),
-            shiny.fluent::Stack(horizontal = TRUE, tokens = list(childrenGap = 20),
-              make_dropdown(i18n = i18n, ns = ns, label = "file", id = "vocabulary_file", width = "320px"),
-              div(shiny.fluent::DefaultButton.shinyInput(ns("delete_file"), i18n$t("delete_this_file")), style = "margin-top:39px;"),
-              div(shiny.fluent::DefaultButton.shinyInput(ns("import_file"), i18n$t("import_file")), style = "margin-top:39px;"),
-            ),
-            description_divs$vocabulary,
-            shiny.fluent::Stack(horizontal = TRUE, tokens = list(childrenGap = 10),
-              shiny.fluent::PrimaryButton.shinyInput(ns("options_save"), i18n$t("save")), " ",
-              shiny.fluent::DefaultButton.shinyInput(ns("preview_description"), i18n$t("preview"))
-            ),
-            br(),
-            div(id = ns("description_markdown_output"),
-              uiOutput(ns("description_markdown_result")), 
-              style = "width: 99%; border-style: dashed; border-width: 1px; padding:0px 8px 0px 8px; margin-right: 5px;"),
-            div(style = "display:none;", fileInput(ns("import_file_input"), label = "", multiple = FALSE, 
-              accept = c(".jpg", ".jpeg", ".png", ".svg", ".parquet", ".csv", ".xls", ".xlsx", ".toml", ".json", ".yaml", ".yml")))
-          )
-        ), br()
+              shiny.fluent::Stack(horizontal = TRUE, tokens = list(childrenGap = 20),
+                make_dropdown(i18n = i18n, ns = ns, label = "file", id = "vocabulary_file", width = "320px"),
+                div(shiny.fluent::DefaultButton.shinyInput(ns("delete_file"), i18n$t("delete_this_file")), style = "margin-top:39px;"),
+                div(shiny.fluent::DefaultButton.shinyInput(ns("import_file"), i18n$t("import_file")), style = "margin-top:39px;"),
+              ),
+              description_divs$vocabulary,
+              shiny.fluent::Stack(horizontal = TRUE, tokens = list(childrenGap = 10),
+                shiny.fluent::PrimaryButton.shinyInput(ns("options_save"), i18n$t("save")), " ",
+                shiny.fluent::DefaultButton.shinyInput(ns("preview_description"), i18n$t("preview"))
+              ),
+              br(),
+              div(id = ns("description_markdown_output"),
+                uiOutput(ns("description_markdown_result")), 
+                style = "width: 99%; border-style: dashed; border-width: 1px; padding:0px 8px 0px 8px; margin-right: 5px;"),
+              div(style = "display:none;", fileInput(ns("import_file_input"), label = "", multiple = FALSE, 
+                accept = c(".jpg", ".jpeg", ".png", ".svg", ".parquet", ".csv", ".xls", ".xlsx", ".toml", ".json", ".yaml", ".yml")))
+            )
+          ), br()
+        )
       ),
       
       # --- --- --- --- --- --- --- -
       # Vocabularies tables card ----
       # --- --- --- --- --- --- --- -
       
-      div(id = ns("vocabularies_tables_datatable_card"),
-        make_card(i18n$t("vocabularies_tables"),
-          div(
-            shiny.fluent::Stack(
-              horizontal = TRUE, tokens = list(childrenGap = 20),
-              make_dropdown(i18n = i18n, ns = ns, label = "table", id = "vocabularies_table", width = "300px",
-                options = list(
-                  list(key = "concept", text = "CONCEPT"),
-                  list(key = "domain", text = "DOMAIN"),
-                  list(key = "concept_class", text = "CONCEPT_CLASS"),
-                  list(key = "concept_relationship", text = "CONCEPT_RELATIONSHIP"),
-                  list(key = "relationship", text = "RELATIONSHIP"),
-                  list(key = "concept_synonym", text = "CONCEPT_SYNONYM"),
-                  list(key = "concept_ancestor", text = "CONCEPT_ANCESTOR"),
-                  list(key = "drug_strength", text = "DRUG_STRENGTH")
-                )),
-              conditionalPanel(condition = "['concept', 'concept_relationship', 'concept_synonym', 'concept_ancestor', 'drug_strength'].includes(input.vocabularies_table)", ns = ns,
-                make_combobox(i18n = i18n, ns = ns, label = "vocabulary", id = "vocabularies_table_vocabulary", allowFreeform = FALSE, multiSelect = FALSE, width = "300px"))
-            ),
-            shiny.fluent::Stack(
-              horizontal = TRUE, tokens = list(childrenGap = 20),
-              make_dropdown(i18n = i18n, ns = ns, label = "rows", id = "vocabularies_table_rows", width = "300px"),
-              make_dropdown(i18n = i18n, ns = ns, label = "columns", id = "vocabularies_table_cols", width = "300px", multiSelect = TRUE),
-              conditionalPanel(condition = "input.vocabularies_table == 'concept'", ns = ns,
-                div(shiny.fluent::Stack(horizontal = TRUE, tokens = list(childrenGap = 10),
-                  make_toggle(i18n = i18n, ns = ns, label = "vocabularies_datatable_show_mapped_concepts", inline = TRUE), style = "margin-top:45px;"))),
-              conditionalPanel(condition = "['concept_relationship', 'concept_synonym', 'concept_ancestor', 'drug_strength'].includes(input.vocabularies_table)", ns = ns,
-                div(shiny.fluent::Stack(horizontal = TRUE, tokens = list(childrenGap = 10),
-                  make_toggle(i18n = i18n, ns = ns, label = "vocabularies_datatable_show_row_details", inline = TRUE), style = "margin-top:45px;")))
-            ),
-            DT::DTOutput(ns("vocabularies_tables_datatable")), br(),
-            conditionalPanel(condition = "input.vocabularies_table == null", ns = ns, div(br(), br(), br())),
+      shinyjs::hidden(
+        div(id = ns("vocabularies_tables_datatable_card"),
+          make_card(i18n$t("vocabularies_tables"),
             div(
               shiny.fluent::Stack(
-                horizontal = TRUE, tokens = list(childrenGap = 10),
-                shiny.fluent::PrimaryButton.shinyInput(ns("vocabularies_tables_datatable_save"), i18n$t("save")),
-                shiny.fluent::DefaultButton.shinyInput(ns("vocabularies_tables_delete_selection"), i18n$t("delete_selection"))
+                horizontal = TRUE, tokens = list(childrenGap = 20),
+                make_dropdown(i18n = i18n, ns = ns, label = "table", id = "vocabularies_table", width = "300px",
+                  options = list(
+                    list(key = "concept", text = "CONCEPT"),
+                    list(key = "domain", text = "DOMAIN"),
+                    list(key = "concept_class", text = "CONCEPT_CLASS"),
+                    list(key = "concept_relationship", text = "CONCEPT_RELATIONSHIP"),
+                    list(key = "relationship", text = "RELATIONSHIP"),
+                    list(key = "concept_synonym", text = "CONCEPT_SYNONYM"),
+                    list(key = "concept_ancestor", text = "CONCEPT_ANCESTOR"),
+                    list(key = "drug_strength", text = "DRUG_STRENGTH")
+                  )),
+                conditionalPanel(condition = "['concept', 'concept_relationship', 'concept_synonym', 'concept_ancestor', 'drug_strength'].includes(input.vocabularies_table)", ns = ns,
+                  make_combobox(i18n = i18n, ns = ns, label = "vocabulary", id = "vocabularies_table_vocabulary", allowFreeform = FALSE, multiSelect = FALSE, width = "300px"))
               ),
-              style = "position:relative; margin-top:-50px; width:500px;"
-            ),
-            conditionalPanel(condition = "input.vocabularies_datatable_show_mapped_concepts == true && input.vocabularies_table == 'concept'", ns = ns, 
-              br(), hr(), br(),
-              DT::DTOutput(ns("vocabularies_tables_mapped_concepts_datatable"))
-            ),
-            conditionalPanel(condition = paste0("['concept_relationship', 'concept_synonym', 'concept_ancestor', 'drug_strength'].includes(input.vocabularies_table) && ",
-              "input.vocabularies_datatable_show_row_details == true"), ns = ns, 
-              br(),
-              div(uiOutput(ns("vocabularies_datatable_row_details")), 
-                style = "width: 99%; border-style: dashed; border-width: 1px; padding: 8px; margin-right: 5px;")
+              shiny.fluent::Stack(
+                horizontal = TRUE, tokens = list(childrenGap = 20),
+                make_dropdown(i18n = i18n, ns = ns, label = "rows", id = "vocabularies_table_rows", width = "300px"),
+                make_dropdown(i18n = i18n, ns = ns, label = "columns", id = "vocabularies_table_cols", width = "300px", multiSelect = TRUE),
+                conditionalPanel(condition = "input.vocabularies_table == 'concept'", ns = ns,
+                  div(shiny.fluent::Stack(horizontal = TRUE, tokens = list(childrenGap = 10),
+                    make_toggle(i18n = i18n, ns = ns, label = "vocabularies_datatable_show_mapped_concepts", inline = TRUE), style = "margin-top:45px;"))),
+                conditionalPanel(condition = "['concept_relationship', 'concept_synonym', 'concept_ancestor', 'drug_strength'].includes(input.vocabularies_table)", ns = ns,
+                  div(shiny.fluent::Stack(horizontal = TRUE, tokens = list(childrenGap = 10),
+                    make_toggle(i18n = i18n, ns = ns, label = "vocabularies_datatable_show_row_details", inline = TRUE), style = "margin-top:45px;")))
+              ),
+              DT::DTOutput(ns("vocabularies_tables_datatable")), br(),
+              conditionalPanel(condition = "input.vocabularies_table == null", ns = ns, div(br(), br(), br())),
+              div(
+                shiny.fluent::Stack(
+                  horizontal = TRUE, tokens = list(childrenGap = 10),
+                  shiny.fluent::PrimaryButton.shinyInput(ns("vocabularies_tables_datatable_save"), i18n$t("save")),
+                  shiny.fluent::DefaultButton.shinyInput(ns("vocabularies_tables_delete_selection"), i18n$t("delete_selection"))
+                ),
+                style = "position:relative; margin-top:-50px; width:500px;"
+              ),
+              conditionalPanel(condition = "input.vocabularies_datatable_show_mapped_concepts == true && input.vocabularies_table == 'concept'", ns = ns, 
+                br(), hr(), br(),
+                DT::DTOutput(ns("vocabularies_tables_mapped_concepts_datatable"))
+              ),
+              conditionalPanel(condition = paste0("['concept_relationship', 'concept_synonym', 'concept_ancestor', 'drug_strength'].includes(input.vocabularies_table) && ",
+                "input.vocabularies_datatable_show_row_details == true"), ns = ns, 
+                br(),
+                div(uiOutput(ns("vocabularies_datatable_row_details")), 
+                  style = "width: 99%; border-style: dashed; border-width: 1px; padding: 8px; margin-right: 5px;")
+              )
             )
-          )
-        ), br()
+          ), br()
+        )
       ),
       
       # --- --- --- --- --- --- ---
       # Import vocabulary card ----
       # --- --- --- --- --- --- ---
       
-      div(id = ns("import_vocabulary_card"),
-        make_card(i18n$t("import_vocabulary"),
-          div(
-            shiny.fluent::Pivot(
-              onLinkClick = htmlwidgets::JS(paste0("item => Shiny.setInputValue('", id, "-import_vocabulary_current_tab', item.props.id)")),
-              shiny.fluent::PivotItem(id = "vocabulary", itemKey = "vocabulary", headerText = i18n$t("vocabulary")),
-              shiny.fluent::PivotItem(id = "concepts", itemKey = "concepts", headerText = i18n$t("concepts"))
-            ),
-            conditionalPanel(condition = "input.import_vocabulary_current_tab == null || input.import_vocabulary_current_tab == 'vocabulary'", ns = ns,
-              import_div$vocabulary
-            ),
-            conditionalPanel(condition = "input.import_vocabulary_current_tab == 'concepts'", ns = ns, br(),
-              shiny.fluent::ChoiceGroup.shinyInput(ns("import_concepts_data_type"), value = "zip",
-                options = list(
-                  list(key = "zip", text = i18n$t("zip")),
-                  list(key = "csv", text = i18n$t("csv"))
-                ), className = "inline_choicegroup"
-              ), br(),
-              shiny.fluent::Stack(
-                horizontal = TRUE, tokens = list(childrenGap = 20),
-                div(
-                  conditionalPanel("input.import_concepts_data_type == 'zip'", ns = ns,
-                    shiny.fluent::DefaultButton.shinyInput(ns("import_concepts_browse_zip"), i18n$t("choose_zip_file"), style = "width:270px;")),
-                  conditionalPanel("input.import_concepts_data_type == 'csv'", ns = ns,
-                    shiny.fluent::DefaultButton.shinyInput(ns("import_concepts_browse_csv"), i18n$t("choose_csv_files"), style = "width:270px;"))
-                ),
-                uiOutput(ns("import_concepts_status"))
-              ), br(),
-              shiny.fluent::PrimaryButton.shinyInput(ns("import_concepts_button"), i18n$t("import_concepts"), iconProps = list(iconName = "Download"), style = "width:270px;"), br(),
-              shinyjs::hidden(
-                div(
-                  id = ns("imported_concepts_div"), br(),
-                  strong(i18n$t("imported_data")),
-                  div(DT::DTOutput(ns("imported_concepts")))
-                )
+      shinyjs::hidden(
+        div(id = ns("import_vocabulary_card"),
+          make_card(i18n$t("import_vocabulary"),
+            div(
+              shiny.fluent::Pivot(
+                onLinkClick = htmlwidgets::JS(paste0("item => Shiny.setInputValue('", id, "-import_vocabulary_current_tab', item.props.id)")),
+                shiny.fluent::PivotItem(id = "vocabulary", itemKey = "vocabulary", headerText = i18n$t("vocabulary")),
+                shiny.fluent::PivotItem(id = "concepts", itemKey = "concepts", headerText = i18n$t("concepts"))
               ),
-              div(style = "display:none;", fileInput(ns("import_concepts_upload_zip"), label = "", multiple = FALSE, accept = ".zip")),
-              div(style = "display:none;", fileInput(ns("import_concepts_upload_csv"), label = "", multiple = TRUE, accept = ".csv"))
+              conditionalPanel(condition = "input.import_vocabulary_current_tab == null || input.import_vocabulary_current_tab == 'vocabulary'", ns = ns,
+                import_div$vocabulary
+              ),
+              conditionalPanel(condition = "input.import_vocabulary_current_tab == 'concepts'", ns = ns, br(),
+                shiny.fluent::ChoiceGroup.shinyInput(ns("import_concepts_data_type"), value = "zip",
+                  options = list(
+                    list(key = "zip", text = i18n$t("zip")),
+                    list(key = "csv", text = i18n$t("csv"))
+                  ), className = "inline_choicegroup"
+                ), br(),
+                shiny.fluent::Stack(
+                  horizontal = TRUE, tokens = list(childrenGap = 20),
+                  div(
+                    conditionalPanel("input.import_concepts_data_type == 'zip'", ns = ns,
+                      shiny.fluent::DefaultButton.shinyInput(ns("import_concepts_browse_zip"), i18n$t("choose_zip_file"), style = "width:270px;")),
+                    conditionalPanel("input.import_concepts_data_type == 'csv'", ns = ns,
+                      shiny.fluent::DefaultButton.shinyInput(ns("import_concepts_browse_csv"), i18n$t("choose_csv_files"), style = "width:270px;"))
+                  ),
+                  uiOutput(ns("import_concepts_status"))
+                ), br(),
+                shiny.fluent::PrimaryButton.shinyInput(ns("import_concepts_button"), i18n$t("import_concepts"), iconProps = list(iconName = "Download"), style = "width:270px;"), br(),
+                shinyjs::hidden(
+                  div(
+                    id = ns("imported_concepts_div"), br(),
+                    strong(i18n$t("imported_data")),
+                    div(DT::DTOutput(ns("imported_concepts")))
+                  )
+                ),
+                div(style = "display:none;", fileInput(ns("import_concepts_upload_zip"), label = "", multiple = FALSE, accept = ".zip")),
+                div(style = "display:none;", fileInput(ns("import_concepts_upload_csv"), label = "", multiple = TRUE, accept = ".csv"))
+              )
             )
           )
         )
@@ -642,50 +660,52 @@ mod_settings_data_management_ui <- function(id = character(), i18n = character()
       # Export vocabulary card ----
       # --- --- --- --- --- --- ---
       
-      div(id = ns("export_vocabulary_card"),
-        make_shiny_ace_card(i18n$t("export_vocabularies"),
-          div(
-            shiny.fluent::Pivot(
-              onLinkClick = htmlwidgets::JS(paste0("item => Shiny.setInputValue('", id, "-export_vocabulary_current_tab', item.props.id)")),
-              shiny.fluent::PivotItem(id = "vocabulary", itemKey = "vocabulary", headerText = i18n$t("vocabulary")),
-              shiny.fluent::PivotItem(id = "concepts", itemKey = "concepts", headerText = i18n$t("concepts"))
-            ),
-            conditionalPanel(condition = "input.export_vocabulary_current_tab == null || input.export_vocabulary_current_tab == 'vocabulary'", ns = ns,
-              export_div$vocabulary
-            ),
-            conditionalPanel(condition = "input.export_vocabulary_current_tab == 'concepts'", ns = ns, br(),
-              shiny.fluent::Stack(
-                horizontal = TRUE, tokens = list(childrenGap = 10),
-                div(
-                  div(id = ns("concepts_vocabularies_to_export_title"), class = "input_title", i18n$t("vocabularies_to_export")),
-                  shiny.fluent::Dropdown.shinyInput(ns("concepts_vocabularies_to_export"), multiSelect = TRUE,
-                    onChanged = htmlwidgets::JS(paste0("item => Shiny.setInputValue('", id, "-concepts_vocabularies_to_export_trigger', Math.random())"))),
-                  style = "width:400px;"
-                ),
-                div(
-                  div(id = ns("concepts_tables_to_export_title"), class = "input_title", i18n$t("tables_to_export")),
-                  shiny.fluent::Dropdown.shinyInput(ns("concepts_tables_to_export"), 
-                    options = list(
-                      list(key = "concept", text = "CONCEPT"),
-                      list(key = "vocabulary", text = "VOCABULARY"),
-                      list(key = "domain", text = "DOMAIN"),
-                      list(key = "concept_class", text = "CONCEPT_CLASS"),
-                      list(key = "concept_relationship", text = "CONCEPT_RELATIONSHIP"),
-                      list(key = "relationship", text = "RELATIONSHIP"),
-                      list(key = "concept_synonym", text = "CONCEPT_SYNONYM"),
-                      list(key = "concept_ancestor", text = "CONCEPT_ANCESTOR"),
-                      list(key = "drug_strength", text = "DRUG_STRENGTH")
-                    ),
-                    value = c("concept", "vocabulary", "domain", "concept_class", "concept_relationship", "relationship", "concept_synonym", "concept_ancestor", "drug_strength"), multiSelect = TRUE),
-                  style = "width:400px;"
-                ),
-                div(shiny.fluent::PrimaryButton.shinyInput(ns("export_selected_concepts"), 
-                  i18n$t("export_concepts"), iconProps = list(iconName = "Upload")), style = "margin-top:39px;")
+      shinyjs::hidden(
+        div(id = ns("export_vocabulary_card"),
+          make_shiny_ace_card(i18n$t("export_vocabularies"),
+            div(
+              shiny.fluent::Pivot(
+                onLinkClick = htmlwidgets::JS(paste0("item => Shiny.setInputValue('", id, "-export_vocabulary_current_tab', item.props.id)")),
+                shiny.fluent::PivotItem(id = "vocabulary", itemKey = "vocabulary", headerText = i18n$t("vocabulary")),
+                shiny.fluent::PivotItem(id = "concepts", itemKey = "concepts", headerText = i18n$t("concepts"))
               ),
-              div(DT::DTOutput(ns("concepts_vocabularies_to_export_datatable"))),
-              div(style = "visibility:hidden;", downloadButton(ns("export_concepts_download"), label = ""))
-            )
-          ), br()
+              conditionalPanel(condition = "input.export_vocabulary_current_tab == null || input.export_vocabulary_current_tab == 'vocabulary'", ns = ns,
+                export_div$vocabulary
+              ),
+              conditionalPanel(condition = "input.export_vocabulary_current_tab == 'concepts'", ns = ns, br(),
+                shiny.fluent::Stack(
+                  horizontal = TRUE, tokens = list(childrenGap = 10),
+                  div(
+                    div(id = ns("concepts_vocabularies_to_export_title"), class = "input_title", i18n$t("vocabularies_to_export")),
+                    shiny.fluent::Dropdown.shinyInput(ns("concepts_vocabularies_to_export"), multiSelect = TRUE,
+                      onChanged = htmlwidgets::JS(paste0("item => Shiny.setInputValue('", id, "-concepts_vocabularies_to_export_trigger', Math.random())"))),
+                    style = "width:400px;"
+                  ),
+                  div(
+                    div(id = ns("concepts_tables_to_export_title"), class = "input_title", i18n$t("tables_to_export")),
+                    shiny.fluent::Dropdown.shinyInput(ns("concepts_tables_to_export"), 
+                      options = list(
+                        list(key = "concept", text = "CONCEPT"),
+                        list(key = "vocabulary", text = "VOCABULARY"),
+                        list(key = "domain", text = "DOMAIN"),
+                        list(key = "concept_class", text = "CONCEPT_CLASS"),
+                        list(key = "concept_relationship", text = "CONCEPT_RELATIONSHIP"),
+                        list(key = "relationship", text = "RELATIONSHIP"),
+                        list(key = "concept_synonym", text = "CONCEPT_SYNONYM"),
+                        list(key = "concept_ancestor", text = "CONCEPT_ANCESTOR"),
+                        list(key = "drug_strength", text = "DRUG_STRENGTH")
+                      ),
+                      value = c("concept", "vocabulary", "domain", "concept_class", "concept_relationship", "relationship", "concept_synonym", "concept_ancestor", "drug_strength"), multiSelect = TRUE),
+                    style = "width:400px;"
+                  ),
+                  div(shiny.fluent::PrimaryButton.shinyInput(ns("export_selected_concepts"), 
+                    i18n$t("export_concepts"), iconProps = list(iconName = "Upload")), style = "margin-top:39px;")
+                ),
+                div(DT::DTOutput(ns("concepts_vocabularies_to_export_datatable"))),
+                div(style = "visibility:hidden;", downloadButton(ns("export_concepts_download"), label = ""))
+              )
+            ), br()
+          )
         )
       )
       
@@ -872,7 +892,7 @@ mod_settings_data_management_server <- function(id = character(), r = shiny::rea
       }
     })
     
-    # When a script is selected
+    # When a dataset or vocab is selected
     
     observeEvent(input[[paste0("local_", get_plural(table), "_datatable_rows_selected")]], {
       if (debug) cat(paste0("\n", Sys.time(), " - mod_settings_data_management - observer input$local_.._datatable_rows_selected"))
@@ -897,7 +917,7 @@ mod_settings_data_management_server <- function(id = character(), r = shiny::rea
           r$app_folder, "/temp_files/markdowns')\n",
           "knitr::opts_chunk$set(root.dir = '", r$app_folder, "/temp_files/markdowns/', fig.path = '", r$app_folder, "/temp_files/markdowns/')\n```\n")
         
-        # For local scripts
+        # For local datasets or vocabs
         
         if (type == "local"){
           link_id <- r[[paste0("local_", get_plural(table))]][input[[paste0("local_", get_plural(table), "_datatable_rows_selected")]], ]$id
@@ -912,7 +932,7 @@ mod_settings_data_management_server <- function(id = character(), r = shiny::rea
           dataset_or_vocab_folder <- paste0(r$app_folder, "/", get_plural(table), "/", dataset_or_vocab_options %>% dplyr::filter(name == "unique_id") %>% dplyr::pull(value))
         }
         
-        # For remote_git scripts
+        # For remote_git datasets or vocabs
         
         if (type == "remote_git"){
           
@@ -1192,7 +1212,8 @@ mod_settings_data_management_server <- function(id = character(), r = shiny::rea
             "users_allowed_read_group", "everybody", 1,
             "user_allowed_read", "", r$user_id,
             "show_only_aggregated_data", "", 0,
-            "omop_version", dataset_or_vocab$omop_version, NA_integer_
+            "omop_version", dataset_or_vocab$omop_version, NA_integer_,
+            "activate_scripts_cache", "", 0
           )
         )
         new_data$options <- new_data$options %>%
@@ -1392,9 +1413,12 @@ mod_settings_data_management_server <- function(id = character(), r = shiny::rea
         #   creator_id = integer(), datetime = character(), deleted = integer(), modified = logical(), action = character())
         if (table == "datasets") data_management_datatable <- tibble::tibble(id = integer(), name = character(),
           data_source_id = integer(), creator_id = integer(), creation_datetime = character(), update_datetime = character(), deleted = integer(), modified = logical(), action = character())
-        if (table == "vocabulary") data_management_datatable <- tibble::tibble(id = integer(), vocabulary_id = character(), vocabulary_name = character(), 
-          vocabulary_reference = character(), vocabulary_version = character(), vocabulary_concept_id = integer(), data_source_id = character(), 
-          display_order = integer(), creator_id = integer(), creation_datetime = character(), update_datetime = character(), deleted = integer(), modified = logical(), action = character())
+        if (table == "vocabulary"){
+          data_management_datatable <- tibble::tibble(id = integer(), vocabulary_id = character(), vocabulary_name = character(), 
+            vocabulary_reference = character(), vocabulary_version = character(), vocabulary_concept_id = integer(), data_source_id = character(), 
+            display_order = integer(), creator_id = integer(), creation_datetime = character(), update_datetime = character(), deleted = integer(), modified = logical(), action = character())
+          data_export_concepts_datatable <- data_management_datatable
+        }
         data_export_datatable <- data_management_datatable
       }
       
@@ -1431,8 +1455,8 @@ mod_settings_data_management_server <- function(id = character(), r = shiny::rea
               dplyr::mutate(action = as.character(actionButton("export_concepts_add_item_%id%", "", icon = icon("plus"),
                 onclick = paste0("Shiny.setInputValue('", !!id, "-export_concepts_add_item", "', this.id, {priority: 'event'})")))) %>%
               dplyr::mutate(action = stringr::str_replace_all(action, "%id%", as.character(id)))
-            data_export_concepts_datatable <- r$export_concepts_datatable_temp   
           }
+          data_export_concepts_datatable <- r$export_concepts_datatable_temp
         }
       }
       
@@ -1461,7 +1485,7 @@ mod_settings_data_management_server <- function(id = character(), r = shiny::rea
       if (length(r[[paste0(table, "_datatable_proxy")]]) > 0){
         DT::replaceData(r[[paste0(table, "_datatable_proxy")]], data_management_datatable, resetPaging = FALSE, rownames = FALSE)
         DT::replaceData(r[[paste0(table, "_export_datatable_proxy")]], data_export_datatable, resetPaging = FALSE, rownames = FALSE)
-        DT::replaceData(r$concepts_export_datatable_proxy, data_export_datatable, resetPaging = FALSE, rownames = FALSE)
+        if (table == "vocabulary") DT::replaceData(r$concepts_export_datatable_proxy, data_export_concepts_datatable, resetPaging = FALSE, rownames = FALSE)
       }
       
       if (perf_monitoring) monitor_perf(r = r, action = "stop", task = paste0("mod_settings_data_management - observer r$", table, "_temp"))
@@ -3152,6 +3176,7 @@ mod_settings_data_management_server <- function(id = character(), r = shiny::rea
                 "user_allowed_read", "", r$user_id,
                 "show_only_aggregated_data", "", 0,
                 "omop_version", dataset_or_vocab$omop_version, NA_integer_,
+                "activate_scripts_cache", "", 0
                 )
               )
             

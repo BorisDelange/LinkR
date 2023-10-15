@@ -7,15 +7,54 @@
 #' @noRd 
 #'
 #' @importFrom shiny NS tagList 
-mod_my_studies_ui <- function(id = character(), i18n = character()){
+mod_my_studies_ui <- function(id = character(), i18n = character(), language = "en", languages = tibble::tibble()){
   ns <- NS(id)
   
-  cards <- c("studies_description_card", "studies_datatable_card", "studies_options_card")
+  cards <- c("all_studies_card", "studies_datatable_card", "studies_options_card", "import_study_card", "export_study_card")
   
   forbidden_cards <- tagList()
   sapply(cards, function(card){
     forbidden_cards <<- tagList(forbidden_cards, forbidden_card(ns = ns, name = card, i18n = i18n))
   })
+  
+  # Studies options & description divs (with distinct languages fields)
+  study_options_divs <- tagList()
+  study_description_divs <- tagList()
+  
+  for (lang in languages$code){
+    
+    study_options_div <- shiny.fluent::Stack(horizontal = TRUE, tokens = list(childrenGap = 20),
+      div(
+        div(class = "input_title", paste0(i18n$t("name"), " (", toupper(lang), ")")),
+        div(shiny.fluent::TextField.shinyInput(ns(paste0("study_name_", lang))), style = "width:320px;")
+      ),
+      div(
+        div(class = "input_title", paste0(i18n$t("category"), " (", toupper(lang), ")")),
+        div(shiny.fluent::TextField.shinyInput(ns(paste0("study_category_", lang))), style = "width:320px;")
+      )
+    )
+    
+    study_description_div <- div(
+      div(paste0(i18n$t("description"), " (", toupper(lang), ") :"), style = "font-weight:bold; margin-top:7px; margin-right:5px;"),
+      shinyAce::aceEditor(ns(paste0("study_description_", lang)), "", mode = "markdown", 
+        code_hotkeys = list(
+          "markdown", 
+          list(
+            save = list(win = "CTRL-S", mac = "CTRL-S|CMD-S"),
+            run_all = list(win = "CTRL-SHIFT-ENTER|CTRL-ENTER", mac = "CTRL-SHIFT-ENTER|CMD-SHIFT-ENTER|CTRL-ENTER|CMD-ENTER"),
+            comment = list(win = "CTRL-SHIFT-C", mac = "CTRL-SHIFT-C|CMD-SHIFT-C")
+          )
+        ),
+        autoScrollEditorIntoView = TRUE, minLines = 30, maxLines = 1000), style = "width: 100%;")
+    
+    if (lang == language) condition <- paste0("input.study_language == '", lang, "' || input.study_language == null")
+    else condition <- paste0("input.study_language == '", lang, "'")
+    
+    study_options_div <- conditionalPanel(condition = paste0("input.study_language == '", lang, "'"), ns = ns, study_options_div)
+    
+    study_options_divs <- tagList(study_options_divs, conditionalPanel(condition = condition, ns = ns, study_options_div))
+    study_description_divs <- tagList(study_description_divs, conditionalPanel(condition = condition, ns = ns, study_description_div))
+  }
   
   div(
     class = "main",
@@ -23,6 +62,7 @@ mod_my_studies_ui <- function(id = character(), i18n = character()){
     shiny.fluent::reactOutput(ns("help_panel")),
     shiny.fluent::reactOutput(ns("help_modal")),
     shiny.fluent::reactOutput(ns("study_delete_confirm")),
+    shiny.fluent::reactOutput(ns("study_image_delete_confirm")),
     shiny.fluent::Breadcrumb(items = list(
       list(key = "dataset_main", text = i18n$t("my_studies"))
     ), maxDisplayedItems = 3),
@@ -36,9 +76,11 @@ mod_my_studies_ui <- function(id = character(), i18n = character()){
         shiny.fluent::Pivot(
           id = ns("studies_pivot"),
           onLinkClick = htmlwidgets::JS(paste0("item => Shiny.setInputValue('", id, "-current_tab', item.props.id)")),
-          # shiny.fluent::PivotItem(id = "studies_description_card", itemKey = "studies_description_card", headerText = i18n$t("study_description")),
+          shiny.fluent::PivotItem(id = "all_studies_card", itemKey = "all_studies_card", headerText = i18n$t("all_studies")),
           shiny.fluent::PivotItem(id = "studies_datatable_card", itemKey = "studies_datatable_card", headerText = i18n$t("studies_management")),
-          shiny.fluent::PivotItem(id = "studies_options_card", itemKey = "studies_options_card", headerText = i18n$t("study_options"))
+          shiny.fluent::PivotItem(id = "studies_options_card", itemKey = "studies_options_card", headerText = i18n$t("study_options")),
+          shiny.fluent::PivotItem(id = "import_study_card", itemKey = "import_study_card", headerText = i18n$t("import_study")),
+          shiny.fluent::PivotItem(id = "export_study_card", itemKey = "export_study_card", headerText = i18n$t("export_study"))
         )
       )
     ),
@@ -48,21 +90,17 @@ mod_my_studies_ui <- function(id = character(), i18n = character()){
     ),
     forbidden_cards,
     
-    # --- --- --- --- --- --- ---
-    # Study description card ----
-    # --- --- --- --- --- --- ---
+    # --- --- --- --- --- -
+    # All studies card ----
+    # --- --- --- --- --- -
     
     shinyjs::hidden(
       div(
-        id = ns("studies_description_card"),
-        div(id = ns("studies_description_content"),
-          make_card(i18n$t("studies_description_card"),
-            # uiOutput(ns("studies_description_markdown_result"))
-          ), br()
-        ),
-        div(
-          id = ns("choose_a_study_card_description"),
-          make_card("", div(shiny.fluent::MessageBar(i18n$t("choose_a_study_left_side"), messageBarType = 5), style = "margin-top:10px;"))
+        id = ns("all_studies_card"),
+        make_card(i18n$t("all_studies"),
+          div(
+            
+          )
         )
       )
     ),
@@ -83,10 +121,10 @@ mod_my_studies_ui <- function(id = character(), i18n = character()){
             ),
             div(DT::DTOutput(ns("studies_datatable")), style = "margin-top:-30px; z-index:2"),
             div(
-              shiny.fluent::Stack(horizontal = TRUE, tokens = list(childrenGap = 10),
-                shiny.fluent::PrimaryButton.shinyInput(ns("save_studies_management"), i18n$t("save")),
-                shiny.fluent::DefaultButton.shinyInput(ns("delete_selection"), i18n$t("delete_selection"))
-              ),
+              # shiny.fluent::Stack(horizontal = TRUE, tokens = list(childrenGap = 10),
+                # shiny.fluent::PrimaryButton.shinyInput(ns("save_studies_management"), i18n$t("save")),
+                shiny.fluent::DefaultButton.shinyInput(ns("delete_selection"), i18n$t("delete_selection")),
+              # ),
               style = "position:relative; z-index:2; margin-top:-30px;"
             )
           )
@@ -108,17 +146,12 @@ mod_my_studies_ui <- function(id = character(), i18n = character()){
               shiny.fluent::Stack(horizontal = TRUE, tokens = list(childrenGap = 20),
                 make_combobox(i18n = i18n, ns = ns, label = "study", id = "options_selected_study",
                   width = "320px", allowFreeform = FALSE, multiSelect = FALSE),
-                make_textfield(i18n = i18n, ns = ns, label = "author", id = "study_author", width = "320px"),
-                make_textfield(i18n = i18n, ns = ns, label = "version", id = "study_version", width = "80px")
+                make_dropdown(i18n = i18n, ns = ns, label = "language", id = "study_language", 
+                  options = convert_tibble_to_list(languages, key_col = "code", text_col = "language"), value = language, width = "320px"),
+                make_textfield(i18n = i18n, ns = ns, label = "version", id = "study_version", width = "80px"),
               ), 
-              shiny.fluent::Stack(horizontal = TRUE, tokens = list(childrenGap = 20),
-                make_textfield(i18n = i18n, ns = ns, label = "name_fr", id = "study_name_fr", width = "320px"),
-                make_textfield(i18n = i18n, ns = ns, label = "name_en", id = "study_name_en", width = "320px")
-              ),
-              shiny.fluent::Stack(horizontal = TRUE, tokens = list(childrenGap = 20),
-                make_textfield(i18n = i18n, ns = ns, label = "category_fr", id = "study_category_fr", width = "320px"),
-                make_textfield(i18n = i18n, ns = ns, label = "category_en", id = "study_category_en", width = "320px")
-              ), br(),
+              make_textfield(i18n = i18n, ns = ns, label = "author_s", id = "study_author", width = "660px"), 
+              study_options_divs, br(),
               div(
                 div(class = "input_title", paste0(i18n$t("grant_access_to"), " :")),
                 shiny.fluent::ChoiceGroup.shinyInput(ns("users_allowed_read_group"), options = list(
@@ -129,44 +162,24 @@ mod_my_studies_ui <- function(id = character(), i18n = character()){
                   uiOutput(ns("users_allowed_read_div"))
                 )
               ), br(),
-              shiny.fluent::Stack(horizontal = TRUE, tokens = list(childrenGap = 10),
-                div(paste0(i18n$t("description"), " :"), style = "font-weight:bold; margin-top:7px; margin-right:5px;"),
-                shiny.fluent::ChoiceGroup.shinyInput(ns("study_description_language"), value = "fr", options = list(
-                  list(key = "fr", text = "FR"),
-                  list(key = "en", text = "EN")
-                ), className = "inline_choicegroup")
+              shiny.fluent::Stack(horizontal = TRUE, tokens = list(childrenGap = 20),
+                make_dropdown(i18n = i18n, ns = ns, label = "image", id = "study_image", width = "320px"),
+                div(shiny.fluent::DefaultButton.shinyInput(ns("delete_image"), i18n$t("delete_this_image")), style = "margin-top:39px;"),
+                div(shiny.fluent::DefaultButton.shinyInput(ns("import_image"), i18n$t("import_image")), style = "margin-top:39px;"),
               )
-            ),
-            conditionalPanel(condition = "input.study_description_language == 'fr'", ns = ns,
-              div(shinyAce::aceEditor(ns("study_description_fr"), "", mode = "markdown", 
-                code_hotkeys = list(
-                  "markdown", 
-                  list(
-                    save = list(win = "CTRL-S", mac = "CTRL-S|CMD-S"),
-                    run_all = list(win = "CTRL-SHIFT-ENTER|CTRL-ENTER", mac = "CTRL-SHIFT-ENTER|CMD-SHIFT-ENTER|CTRL-ENTER|CMD-ENTER") 
-                  )
-                ),
-                autoScrollEditorIntoView = TRUE, minLines = 30, maxLines = 1000), style = "width: 100%;")),
-            conditionalPanel(condition = "input.study_description_language == 'en'", ns = ns,
-              div(shinyAce::aceEditor(ns("study_description_en"), "", mode = "markdown", 
-                code_hotkeys = list(
-                  "markdown", 
-                  list(
-                    save = list(win = "CTRL-S", mac = "CTRL-S|CMD-S"),
-                    run_all = list(win = "CTRL-SHIFT-ENTER|CTRL-ENTER", mac = "CTRL-SHIFT-ENTER|CMD-SHIFT-ENTER|CTRL-ENTER|CMD-ENTER") 
-                  )
-                ),
-                autoScrollEditorIntoView = TRUE, minLines = 30, maxLines = 1000), style = "width: 100%;")),
+            ), br(),
+            study_description_divs,
             shiny.fluent::Stack(
               tokens = list(childrenGap = 5),
               shiny.fluent::Stack(horizontal = TRUE, tokens = list(childrenGap = 10),
-                shiny.fluent::PrimaryButton.shinyInput(ns("options_save"), i18n$t("save")),
+                shiny.fluent::PrimaryButton.shinyInput(ns("options_save"), i18n$t("save")), " ",
                 shiny.fluent::DefaultButton.shinyInput(ns("execute_options_description"), i18n$t("preview"))
               ),
               br(),
               div(id = ns("description_markdown_output"),
                 uiOutput(ns("description_markdown_result")), 
-                style = "width: 99%; border-style: dashed; border-width: 1px; padding: 0px 8px 0px 8px; margin-right: 5px;")
+                style = "width: 99%; border-style: dashed; border-width: 1px; padding:0px 8px 0px 8px; margin-right: 5px;"),
+              div(style = "display:none;", fileInput(ns("import_image_file"), label = "", multiple = FALSE, accept = c(".jpg", ".jpeg", ".png", ".svg")))
             )
           )
         )
@@ -181,22 +194,8 @@ mod_my_studies_ui <- function(id = character(), i18n = character()){
       div(
         id = ns("import_study_card"),
         make_card(i18n$t("import_study"),
-          div(br(),
-            div(shiny.fluent::MessageBar(i18n$t("in_progress"), messageBarType = 5)), br(),
-            div(shiny.fluent::MessageBar(
-              div(
-                strong("A faire"),
-                p("Importer une étude nécessite d'importer :",
-                  tags$ul(
-                    tags$li("Importer l'étude en elle-même (table études de la BDD)"),
-                    tags$li("Importer les données relatives à l'étude (tabs, données modifiées sur patients et sur tabs)"),
-                    tags$li("S'assurer que les plugins sont tous installés et à la bonne version")
-                  )
-                ),
-                p("Comment faire pour les correspondances entre membres ?")
-              ),
-              messageBarType = 0)
-            )
+          div(
+            
           )
         )
       )
@@ -210,15 +209,8 @@ mod_my_studies_ui <- function(id = character(), i18n = character()){
       div(
         id = ns("export_study_card"),
         make_card(i18n$t("export_study"),
-          div(br(),
-            div(shiny.fluent::MessageBar(i18n$t("in_progress"), messageBarType = 5)), br(),
-            div(shiny.fluent::MessageBar(
-              div(
-                strong("A faire"),
-                p("Même principe que pour l'import d'une étude")
-              ),
-              messageBarType = 0)
-            )
+          div(
+            
           )
         )
       )
@@ -243,7 +235,7 @@ mod_my_studies_server <- function(id = character(), r = shiny::reactiveValues(),
     # Show or hide cards ----
     # --- --- --- --- --- ---
     
-    cards <- c("studies_description_card", "studies_datatable_card", "studies_options_card")
+    cards <- c("all_studies_card", "studies_datatable_card", "studies_options_card", "import_study_card", "export_study_card")
     show_or_hide_cards(r = r, input = input, session = session, id = id, cards = cards)
 
     # --- --- --- --- --- -
@@ -297,8 +289,8 @@ mod_my_studies_server <- function(id = character(), r = shiny::reactiveValues(),
       shinyjs::hide("choose_a_dataset_card")
       shinyjs::show("menu")
       if (length(input$current_tab) == 0){
-        if ("studies_datatable_card" %in% r$user_accesses) shinyjs::show("studies_datatable_card")
-        else shinyjs::show("studies_datatable_card_forbidden")
+        if ("all_studies_card" %in% r$user_accesses) shinyjs::show("all_studies_card")
+        else shinyjs::show("all_studies_card_forbidden")
       }
       else{
         if (input$current_tab %in% r$user_accesses) shinyjs::show(input$current_tab)
@@ -375,6 +367,7 @@ mod_my_studies_server <- function(id = character(), r = shiny::reactiveValues(),
       # Save runned scripts and success status
       
       r$dataset_loaded_scripts <- tibble::tibble(id = integer(), status = character(), datetime = character())
+      r$dataset_loaded_scripts_cache <- tibble::tibble(table = character(), status = character(), datetime = character())
       
       if (nrow(r$scripts) > 0){
         
@@ -394,6 +387,16 @@ mod_my_studies_server <- function(id = character(), r = shiny::reactiveValues(),
           if(cache_activated){
             loaded_scripts_file_path <- paste0(r$app_folder, "/datasets_files/", r$selected_dataset, "/loaded_scripts.csv")
             if (!file.exists(loaded_scripts_file_path) | r$force_reload_scripts_cache) execute_scripts_files <- TRUE
+            
+            if (r$force_reload_scripts_cache){
+              # Try to load dataset
+              tryCatch(run_dataset_code(output, r = r, d = d, dataset_id = r$selected_dataset, i18n = i18n),
+                error = function(e){
+                  r$show_message_bar <- tibble::tibble(message = "fail_load_dataset", type = "severeWarning", trigger = Sys.time())
+                  report_bug(r = r, output = output, error_message = "fail_load_dataset",
+                    error_name = paste0(id, " - run server code"), category = "Error", error_report = toString(e), i18n = i18n)
+                })
+            }
           }
           
           # Else, run scripts
@@ -426,10 +429,11 @@ mod_my_studies_server <- function(id = character(), r = shiny::reactiveValues(),
           }
           
           if (cache_activated) r$reload_scripts_cache <- Sys.time()
-          
-          if (nrow(r$dataset_loaded_scripts %>% dplyr::filter(status == "failure")) > 0) r$show_message_bar <- 
-            tibble::tibble(message = "fail_load_scripts", type = "severeWarning", trigger = Sys.time())
-          else r$show_message_bar <- tibble::tibble(message = "run_scripts_success", type = "success", trigger = Sys.time())
+          else {
+            if (nrow(r$dataset_loaded_scripts %>% dplyr::filter(status == "failure")) > 0) r$show_message_bar <- 
+              tibble::tibble(message = "fail_load_scripts", type = "severeWarning", trigger = Sys.time())
+            else r$show_message_bar <- tibble::tibble(message = "run_scripts_success", type = "success", trigger = Sys.time()) 
+          }
         }
       }
       
@@ -444,6 +448,8 @@ mod_my_studies_server <- function(id = character(), r = shiny::reactiveValues(),
       if (debug) cat(paste0("\n", Sys.time(), " - mod_my_studies - observer r$reload_scripts_cache"))
       
       req(!is.na(r$selected_dataset))
+      
+      r$dataset_loaded_scripts_cache <- tibble::tibble(table = character(), status = character(), datetime = character())
       
       # If activate_scripts_cache option activated and if cache doesn't exists, save data as CSV files
       if(r$options %>% dplyr::filter(category == "dataset", name == "activate_scripts_cache", link_id == r$selected_dataset) %>% dplyr::pull(value_num) == 1){
@@ -462,12 +468,36 @@ mod_my_studies_server <- function(id = character(), r = shiny::reactiveValues(),
         # If cache doesn't exist, create cache
         if (!file.exists(loaded_scripts_file_path) | r$force_reload_scripts_cache){
           
-          # Save data as CSV files
+          # Save data as CSV or parquet files
+          
           for (table in tables){
+            
             if (d[[table]] %>% dplyr::count() %>% dplyr::pull() > 0){
-              # Select cols without merged cols
-              readr::write_csv(d[[table]] %>% dplyr::select(-dplyr::contains("concept_name"), -dplyr::contains("unit_concept_code")),
-                paste0(r$app_folder, "/datasets_files/", r$selected_dataset, "/", table, "_with_scripts.csv"))
+              
+              r$dataset_loaded_scripts_cache <- r$dataset_loaded_scripts_cache %>% dplyr::bind_rows(
+                tibble::tibble(table = table, status = "failure", datetime = as.character(Sys.time())))
+              
+              # Do the same as when the dataset was loaded : save as CSV if save_as = "csv" for import_dataset ...
+              save_as <- r$dataset_loaded_tables %>% dplyr::filter(table == !!table) %>% dplyr::pull(save_as)
+              if (save_as == "csv"){
+                tryCatch({
+                  readr::write_csv(d[[table]] %>% dplyr::collect(), paste0(r$app_folder, "/datasets_files/", r$selected_dataset, "/", table, "_with_scripts.csv"))
+                  r$dataset_loaded_scripts_cache <- r$dataset_loaded_scripts_cache %>% dplyr::mutate(status = dplyr::case_when(table == !!table ~ "success", TRUE ~ status))
+                },
+                  error = function(e)add_log_entry(r = r, category = "Error", name = paste0("reload_scripts_cache - error_saving_csv - id = ", r$selected_dataset), value = toString(e)))
+              }
+              else if (save_as == "parquet") {
+                if (!requireNamespace("arrow", quietly = TRUE)) add_log_entry(r = r, category = "Error", name = paste0("reload_scripts_cache - error_loading_parquet - id = ", r$selected_dataset), value = i18n$t("package_arrow_not_installed"))
+                else {
+                  tryCatch({
+                    arrow::write_parquet(d[[table]] %>% dplyr::collect(), paste0(r$app_folder, "/datasets_files/", r$selected_dataset, "/", table, "_with_scripts.parquet"))
+                    r$dataset_loaded_scripts_cache <- r$dataset_loaded_scripts_cache %>% dplyr::mutate(status = dplyr::case_when(table == !!table ~ "success", TRUE ~ status))
+                  },
+                  error = function(e)add_log_entry(r = r, category = "Error", name = paste0("reload_scripts_cache - error_saving_parquet - id = ", r$selected_dataset), value = toString(e)))
+                }
+              }
+              # readr::write_csv(d[[table]] %>% dplyr::select(-dplyr::contains("concept_name"), -dplyr::contains("unit_concept_code")),
+              #   paste0(r$app_folder, "/datasets_files/", r$selected_dataset, "/", table, "_with_scripts.csv"))
             }
           }
           
@@ -479,53 +509,137 @@ mod_my_studies_server <- function(id = character(), r = shiny::reactiveValues(),
         
         if (file.exists(loaded_scripts_file_path)){
           for (table in tables){
-            table_file_path <- paste0(r$app_folder, "/datasets_files/", r$selected_dataset, "/", table, "_with_scripts.csv")
+            table_args <- r$dataset_loaded_tables %>% dplyr::filter(table == !!table)
             
-            if (file.exists(table_file_path)){
-              
-              omop_version <- r$options %>% dplyr::filter(category == "dataset" & link_id == r$selected_dataset & name == "omop_version") %>% dplyr::pull(value)
-              
-              col_types <- switch(table, 
-                "person" = "iiiiiTTiiiiiccicici",
-                "observation_period" = "iiDDi",
-                "visit_occurrence" = "iiiDTDTiiiciicici",
-                "visit_detail" = "iiiDTDTiiiciiciciii",
-                "condition_occurrence" = "iiiDTDTiiciiicic",
-                "drug_exposure" = "iiiDTDTDiciniciciiicicc",
-                "procedure_occurrence" = "iiiDTiiiiiicic",
-                "device_exposure" = "iiiDTDTiciiiici",
-                "measurement" = "iiiDTciiniinniiicicc",
-                "observation" = "iiiDTinciiiiiicicciiT",
-                "death" = "iDTiici",
-                "note" = "iiiiDTiicciiiiic",
-                "note_nlp" = "iiiccciicDTccc",
-                "specimen" = "iiiiDTniiiccccc",
-                "fact_relationship" = "iiiii",
-                "location" = "icccccccnn",
-                "location_hisTory" = "iiciDD",
-                "care_site" = "iciicc",
-                "provider" = "iccciiiiccici",
-                "payer_plan_period" = "iiiDDiciiciiciicicici",
-                "cost" = "iiiiiiicinDDDiicci",
-                "drug_era" = "iiiTTii",
-                "dose_era" = "iiiinTT",
-                "condition_era" = "iiiTTi"
-              )
-              if (table == "person" & omop_version %in% c("5.3", "5.4")) col_types <- "iiiiiTiiiiiccicici"
-              if (table == "observation" & omop_version == "5.3") col_types <-  "iiiDTinciiiiiicicc"
-              if (table == "observation" & omop_version == "5.4") col_types <-  "iiiDTinciiiiiicicccii"
-              if (table == "location" & omop_version == "5.3") col_types <-  "iccccccc"
-              if (table == "drug_era" & omop_version %in% c("5.3", "5.4")) col_types <- "iiiDDii"
-              if (table == "dose_era" & omop_version %in% c("5.3", "5.4")) col_types <- "iiiinDD"
-              if (table == "condition_era" & omop_version %in% c("5.3", "5.4")) col_types <- "iiiDDi"
-              
-              d[[table]] <- vroom::vroom(table_file_path, col_types = col_types)
+            if (nrow(table_args) > 0){
+              if (table_args$save_as %in% c("csv", "parquet")){
+                dataset_folder <- paste0(r$app_folder, "/datasets_files/", r$selected_dataset)
+                table_file_path <- paste0(dataset_folder, "/", table, "_with_scripts.", table_args$save_as)
+                
+                if (file.exists(table_file_path)){
+                  
+                  omop_version <- r$options %>% dplyr::filter(category == "dataset" & link_id == r$selected_dataset & name == "omop_version") %>% dplyr::pull(value)
+                  
+                  if (table_args$save_as == "csv"){
+                    col_types <- switch(table, 
+                      "person" = "iiiiiTTiiiiiccicici",
+                      "observation_period" = "iiDDi",
+                      "visit_occurrence" = "iiiDTDTiiiciicici",
+                      "visit_detail" = "iiiDTDTiiiciiciciii",
+                      "condition_occurrence" = "iiiDTDTiiciiicic",
+                      "drug_exposure" = "iiiDTDTDiciniciciiicicc",
+                      "procedure_occurrence" = "iiiDTiiiiiicic",
+                      "device_exposure" = "iiiDTDTiciiiici",
+                      "measurement" = "iiiDTciiniinniiicicc",
+                      "observation" = "iiiDTinciiiiiicicciiT",
+                      "death" = "iDTiici",
+                      "note" = "iiiiDTiicciiiiic",
+                      "note_nlp" = "iiiccciicDTccc",
+                      "specimen" = "iiiiDTniiiccccc",
+                      "fact_relationship" = "iiiii",
+                      "location" = "icccccccnn",
+                      "location_hisTory" = "iiciDD",
+                      "care_site" = "iciicc",
+                      "provider" = "iccciiiiccici",
+                      "payer_plan_period" = "iiiDDiciiciiciicicici",
+                      "cost" = "iiiiiiicinDDDiicci",
+                      "drug_era" = "iiiTTii",
+                      "dose_era" = "iiiinTT",
+                      "condition_era" = "iiiTTi"
+                    )
+                    if (table == "person" & omop_version %in% c("5.3", "5.4")) col_types <- "iiiiiTiiiiiccicici"
+                    if (table == "observation" & omop_version == "5.3") col_types <-  "iiiDTinciiiiiicicc"
+                    if (table == "observation" & omop_version == "5.4") col_types <-  "iiiDTinciiiiiicicccii"
+                    if (table == "location" & omop_version == "5.3") col_types <-  "iccccccc"
+                    if (table == "drug_era" & omop_version %in% c("5.3", "5.4")) col_types <- "iiiDDii"
+                    if (table == "dose_era" & omop_version %in% c("5.3", "5.4")) col_types <- "iiiinDD"
+                    if (table == "condition_era" & omop_version %in% c("5.3", "5.4")) col_types <- "iiiDDi"
+                    
+                    tryCatch({
+                      if (table_args$read_with == "vroom") d[[table]] <- vroom::vroom(table_file_path, col_types = col_types) 
+                      else if (table_args$read_with == "duckdb"){
+                        if (!requireNamespace("duckdb", quietly = TRUE)) add_log_entry(r = r, category = "Error", name = paste0("reload_scripts_cache - error_loading_duckdb - id = ", dataset_id), value = i18n$t("package_duckdb_not_installed"))
+                        else {
+                          duckdb_drv <- duckdb::duckdb()
+                          if (length(r$duckdb_drv) == 0) r$duckdb_drv <- c(duckdb_drv)
+                          else r$duckdb_drv <- c(r$duckdb_drv, duckdb_drv)
+                          con <- DBI::dbConnect(duckdb_drv, dbdir = paste0(dataset_folder, "/dataset.duckdb"))
+                          
+                          table_exists <- table %in% DBI::dbListTables(con)
+                          if (table_exists){
+                            DBI::dbExecute(con, paste0("DROP TABLE ", table))
+                            request <- paste0("CREATE TABLE ", table, " AS SELECT * FROM read_csv_auto('", table_file_path, "');")
+                            DBI::dbExecute(con, request)
+                          }
+                          
+                          d[[table]] <- dplyr::tbl(con, table)
+                        }
+                      }
+                      else if (table_args$read_with == "spark"){
+                        if (!requireNamespace("sparklyr", quietly = TRUE)) add_log_entry(r = r, category = "Error", name = paste0("reload_scripts_cache - error_loading_sparklyr - id = ", dataset_id), value = i18n$t("package_sparklyr_not_installed"))
+                        else {
+                          con <- sparklyr::spark_connect(master = "local")
+                          
+                          table_exists <- table %in% dplyr::src_tbls(con)
+                          
+                          if (table_exists) DBI::dbExecute(con, paste0("DROP TABLE ", table))
+                          sparklyr::spark_read_csv(con, name = table, path = table_file_path)
+                          
+                          d[[table]] <- dplyr::tbl(con, table)
+                        }
+                      }
+                      
+                      r$dataset_loaded_scripts_cache <- r$dataset_loaded_scripts_cache %>% dplyr::mutate(status = dplyr::case_when(table == !!table ~ "success", TRUE ~ status))
+                    },
+                    error = function(e) add_log_entry(r = r, category = "Error", name = paste0("reload_scripts_cache - error_loading_csv - id = ", r$selected_dataset), value = toString(e)))
+                  }
+                  else if (table_args$save_as == "parquet"){
+                    tryCatch({
+                      if (table_args$read_with == "arrow") d[[table]] <- arrow::read_parquet(table_file_path)
+                      else if (table_args$read_with == "duckdb"){
+                        if (!requireNamespace("duckdb", quietly = TRUE)) add_log_entry(r = r, category = "Error", name = paste0("reload_scripts_cache - error_loading_duckdb - id = ", dataset_id), value = i18n$t("package_duckdb_not_installed"))
+                        else {
+                          duckdb_drv <- duckdb::duckdb()
+                          if (length(r$duckdb_drv) == 0) r$duckdb_drv <- c(duckdb_drv)
+                          else r$duckdb_drv <- c(r$duckdb_drv, duckdb_drv)
+                          con <- DBI::dbConnect(duckdb_drv, dbdir = paste0(dataset_folder, "/dataset.duckdb"))
+                          
+                          table_exists <- table %in% DBI::dbListTables(con)
+                          if (table_exists){
+                            DBI::dbExecute(con, paste0("DROP TABLE ", table))
+                            request <- paste0("CREATE TABLE ", table, " AS SELECT * FROM parquet_scan('", table_file_path, "');")
+                            DBI::dbExecute(con, request)
+                          }
+                          
+                          d[[table]] <- dplyr::tbl(con, table)
+                        }
+                      }
+                      else if (table_args$read_with == "spark"){
+                        if (!requireNamespace("sparklyr", quietly = TRUE)) add_log_entry(r = r, category = "Error", name = paste0("reload_scripts_cache - error_loading_sparklyr - id = ", dataset_id), value = i18n$t("package_sparklyr_not_installed"))
+                        else {
+                          con <- sparklyr::spark_connect(master = "local")
+                          
+                          table_exists <- table %in% dplyr::src_tbls(con)
+                          
+                          if (table_exists) DBI::dbExecute(con, paste0("DROP TABLE ", table))
+                          sparklyr::spark_read_parquet(con, name = table, path = table_file_path)
+                          
+                          d[[table]] <- dplyr::tbl(con, table)
+                        }
+                      }
+                      r$dataset_loaded_scripts_cache <- r$dataset_loaded_scripts_cache %>% dplyr::mutate(status = dplyr::case_when(table == !!table ~ "success", TRUE ~ status))
+                    },
+                    error = function(e) add_log_entry(r = r, category = "Error", name = paste0("reload_scripts_cache - error_loading_parquet - id = ", r$selected_dataset), value = toString(e)))
+                  }
+                } 
+              } 
             }
           }
         }
       }
       
-      if (nrow(r$dataset_loaded_scripts %>% dplyr::filter(status == "failure")) > 0) r$show_message_bar <- 
+      if (nrow(r$dataset_loaded_scripts %>% dplyr::filter(status == "failure")) > 0 |
+          nrow(r$dataset_loaded_scripts_cache %>% dplyr::filter(status == "failure")) > 0) r$show_message_bar <- 
         tibble::tibble(message = "fail_load_scripts", type = "severeWarning", trigger = Sys.time())
       else r$show_message_bar <- tibble::tibble(message = "run_scripts_success", type = "success", trigger = Sys.time())
       
@@ -698,13 +812,13 @@ mod_my_studies_server <- function(id = character(), r = shiny::reactiveValues(),
     # Action buttons for each tab / page
     action_buttons <- c("options", "delete")
     
-    studies_management_editable_cols <- c("name")
-    studies_management_sortable_cols <- c("id", "name", "dataset_id", "data_source_id", "study_id", "creator_id", "datetime")
+    studies_management_editable_cols <- ""
+    studies_management_sortable_cols <- c("id", "name", "dataset_id", "data_source_id", "study_id", "creator_id", "creation_datetime", "update_datetime")
     studies_management_column_widths <- c("id" = "80px", "creation_datetime" = "130px", "update_datetime" = "130px", "action" = "80px", "creator_id" = "200px")
     studies_management_centered_cols <- c("id", "creator", "creation_datetime", "update_datetime", "action")
     studies_management_searchable_cols <- c("name", "data_source_id", "dataset_id", "study_id", "creator_id")
     studies_management_factorize_cols <- c("dataset_id", "creator_id")
-    studies_management_hidden_cols <- c("id", "dataset_id", "patient_lvl_tab_group_id", "aggregated_tab_group_id", "deleted", "modified")
+    studies_management_hidden_cols <- c("id", "dataset_id", "patient_lvl_tab_group_id", "aggregated_tab_group_id", "deleted", "modified", "creator_id")
     studies_management_col_names <- get_col_names("studies", i18n)
     
     # Prepare data for datatable
@@ -919,16 +1033,27 @@ mod_my_studies_server <- function(id = character(), r = shiny::reactiveValues(),
           width = "100%", style = "padding-bottom:10px;")
       })
       
-      # Update other fields
+      # Study version, author, images and descriptions
       
-      for (field in c("version", "author", "name_fr", "name_en", "category_fr", "category_en")){
+      study_folder <- paste0(r$app_folder, "/studies/", options %>% dplyr::filter(name == "unique_id") %>% dplyr::pull(value))
+      files_list <- list.files(path = study_folder, pattern = "(?i)*.\\.(jpeg|jpg|JPG|JPEG|png|PNG|SVG|svg)$")
+      shiny.fluent::updateDropdown.shinyInput(session, "study_image", 
+        options = convert_tibble_to_list(tibble::tibble(text = c("", files_list), key = c("", files_list)), key_col = "key", text_col = "text"))
+      
+      for (field in c("version", "author", paste0("name_", r$languages$code), paste0("category_", r$languages$code))){
         value <- options %>% dplyr::filter(name == field) %>% dplyr::pull(value) %>% stringr::str_replace_all("''", "'")
-        if (is.na(value)) value <- ""
+        if (length(value) == 0) value <- ""
+        if (length(value) > 0) if (is.na(value)) value <- ""
+        
         shiny.fluent::updateTextField.shinyInput(session, paste0("study_", field), value = value)
-      }
+      } 
       
-      for (field in c("description_fr", "description_en")) shinyAce::updateAceEditor(session,
-        paste0("study_", field), value = options %>% dplyr::filter(name == field) %>% dplyr::pull(value)) %>% stringr::str_replace_all("''", "'")
+      for (field in c(paste0("description_", r$languages$code))){
+        value <- options %>% dplyr::filter(name == field) %>% dplyr::pull(value) %>% stringr::str_replace_all("''", "'")
+        if (length(value) == 0) value <- ""
+        if (length(value) > 0) if (is.na(value)) value <- ""
+        shinyAce::updateAceEditor(session, paste0("study_", field), value = value) 
+      }
     })
     
     # Save updates
@@ -976,12 +1101,11 @@ mod_my_studies_server <- function(id = character(), r = shiny::reactiveValues(),
       
       data <- list()
       for (field in c("study_version", "study_author", "users_allowed_read", "users_allowed_read_group",
-        "study_name_fr", "study_name_en", "study_category_fr", "study_category_en",
-        "study_description_fr", "study_description_en")) data[[stringr::str_replace(field, "study_", "")]] <- input[[field]]
+        paste0("study_name_", r$languages$code), paste0("study_category_", r$languages$code), paste0("study_description_", r$languages$code))) data[[stringr::str_replace(field, "study_", "")]] <- input[[field]]
       
       save_settings_options(output = output, r = r, id = id, category = "study", code_id_input = paste0("options_", link_id),
-        i18n = i18n, data = data, page_options = c("version", "author", "description_fr", "description_en",
-          "name_fr", "name_en", "category_fr", "category_en", "users_allowed_read"))
+        i18n = i18n, data = data, page_options = c("version", "author", "users_allowed_read", paste0("description_", r$languages$code),
+          paste0("name_", r$languages$code), paste0("category_", r$languages$code)))
       
       # Change study_name & update_datetime in studies table
       new_update_datetime <- as.character(Sys.time())
@@ -996,29 +1120,142 @@ mod_my_studies_server <- function(id = character(), r = shiny::reactiveValues(),
         dplyr::mutate_at(c("creation_datetime", "update_datetime"), format_datetime, language = language, sec = FALSE) %>%
         dplyr::mutate(modified = FALSE) %>% dplyr::arrange(name)
       
-      # req(input$options_selected_study)
-      # 
-      # if (length(input$options_selected_study) > 1) link_id <- input$options_selected_study$key
-      # else link_id <- input$options_selected_study
-      # 
-      # data <- list()
-      # data$users_allowed_read <- input$users_allowed_read
-      # data$users_allowed_read_group <- input$users_allowed_read_group
-      # data$markdown_description <- input$ace_options_description
-      # save_settings_options(output = output, r = r, id = id, category = "study", code_id_input = paste0("options_", link_id),
-      #   i18n = i18n, data = data, page_options = c("users_allowed_read", "markdown_description"))
-      
       if (perf_monitoring) monitor_perf(r = r, action = "stop", task = paste0("mod_my_studies - observer input$options_save"))
+    })
+    
+    # Delete an image
+    
+    observeEvent(input$delete_image, {
+      if (debug) cat(paste0("\n", Sys.time(), " - mod_studies - observer input$delete_image"))
+      req(length(input$study_image) > 0 & input$study_image != "")
+      r$studies_delete_image <- TRUE
+    })
+    
+    r$studies_delete_image <- FALSE
+    output$study_image_delete_confirm <- shiny.fluent::renderReact({
+      
+      if (debug) cat(paste0("\n", Sys.time(), " - mod_studies - output$study_image_delete_confirm"))
+      
+      shiny.fluent::Dialog(
+        hidden = !r$studies_delete_image,
+        onDismiss = htmlwidgets::JS("function() { Shiny.setInputValue('study_delete_image_hide_dialog', Math.random()); }"),
+        dialogContentProps = list(
+          type = 0,
+          title = i18n$t("study_image_delete"),
+          closeButtonAriaLabel = "Close",
+          subText = tagList(i18n$t("study_image_delete_subtext"), br(), br())
+        ),
+        modalProps = list(),
+        shiny.fluent::DialogFooter(
+          shiny.fluent::PrimaryButton.shinyInput(ns("study_delete_image_delete_confirmed"), text = i18n$t("delete")),
+          shiny.fluent::DefaultButton.shinyInput(ns("study_delete_image_delete_canceled"), text = i18n$t("dont_delete"))
+        )
+      )
+    })
+    
+    observeEvent(input$study_delete_image_hide_dialog, {
+      if (debug) cat(paste0("\n", Sys.time(), " - mod_studies - observer input$study_delete_image_hide_dialog"))
+      r$studies_delete_image <- FALSE
+    })
+    observeEvent(input$study_delete_image_delete_canceled, {
+      if (debug) cat(paste0("\n", Sys.time(), " - mod_studies - observer input$study_delete_image_delete_canceled"))
+      r$studies_delete_image <- FALSE
+    })
+    
+    observeEvent(input$study_delete_image_delete_confirmed, {
+      
+      if (debug) cat(paste0("\n", Sys.time(), " - mod_studies - observer input$study_delete_image_delete_confirmed"))
+      
+      req(input$study_image != "")
+      tryCatch({
+        if (length(input$options_selected_study) > 1) link_id <- input$options_selected_study$key
+        else link_id <- input$options_selected_study
+        
+        study <- r$studies %>% dplyr::filter(id == link_id) %>%
+          dplyr::left_join(r$options %>% dplyr::filter(category == "study", name == "unique_id") %>% dplyr::select(id = link_id, unique_id = value), by = "id")
+        
+        study_folder <- paste0(r$app_folder, "/studies/", study$unique_id)
+        unlink(paste0(study_folder, "/", input$study_image))
+        
+        files_list <- list.files(path = study_folder, pattern = "(?i)*.\\.(jpeg|jpg|JPG|JPEG|png|PNG|SVG|svg)$")
+        shiny.fluent::updateDropdown.shinyInput(session, "study_image",
+          options = convert_tibble_to_list(tibble::tibble(text = c("", files_list), key = c("", files_list)), key_col = "key", text_col = "text"), value = "")
+        
+        show_message_bar(output,  "image_deleted", "success", i18n = i18n, ns = ns)
+        
+      }, error = function(e) report_bug(r = r, output = output, error_message = "error_deleting_image",
+        error_name = paste0(id, " - delete study image"), category = "Error", error_report = toString(e), i18n = i18n))
+      
+      r$studies_delete_image <- FALSE
+    })
+    
+    # Import an image
+    
+    observeEvent(input$import_image, {
+      if (debug) cat(paste0("\n", Sys.time(), " - mod_studies - observer input$import_image"))
+      req(input$options_selected_study)
+      shinyjs::click("import_image_file")
+    })
+    
+    observeEvent(input$import_image_file, {
+      
+      if (debug) cat(paste0("\n", Sys.time(), " - mod_studies - observer input$import_image_file"))
+      
+      tryCatch({
+        
+        if (length(input$options_selected_study) > 1) link_id <- input$options_selected_study$key
+        else link_id <- input$options_selected_study
+        
+        study <- r$studies %>%
+          dplyr::filter(id == link_id) %>%
+          dplyr::left_join(r$options %>% dplyr::filter(category == "study", name == "unique_id") %>% dplyr::select(id = link_id, unique_id = value), by = "id")
+        
+        study_folder <- paste0(r$app_folder, "/studies/", study$unique_id)
+        
+        if (!dir.exists(study_folder)) dir.create(study_folder, recursive = TRUE)
+        
+        file.copy(input$import_image_file$datapath, paste0(study_folder, "/", input$import_image_file$name), overwrite = TRUE)
+        
+        # Update dropdown
+        
+        files_list <- list.files(path = study_folder, pattern = "(?i)*.\\.(jpeg|jpg|JPG|JPEG|png|PNG|SVG|svg)$")
+        shiny.fluent::updateDropdown.shinyInput(session, "study_image",
+          options = convert_tibble_to_list(tibble::tibble(text = c("", files_list), key = c("", files_list)), key_col = "key", text_col = "text"))
+        
+        show_message_bar(output,  "image_imported", "success", i18n = i18n, ns = ns)
+        
+      }, error = function(e) report_bug(r = r, output = output, error_message = "error_importing_image",
+        error_name = paste0(id, " - import study image"), category = "Error", error_report = toString(e), i18n = i18n))
     })
     
     # Render markdown
     
     observeEvent(input$execute_options_description, {
+      if (debug) cat(paste0("\n", Sys.time(), " - mod_studies - observer input$execute_options_description"))
+      r$study_options_description_trigger <- Sys.time()
+    })
+    
+    sapply(r$languages$code, function(lang){
+      observeEvent(input[[paste0("study_description_", lang, "_run_all")]], {
+        if (debug) cat(paste0("\n", Sys.time(), " - mod_studies - observer input$study_description_", lang, "_run_all"))
+        r$study_options_description_trigger <- Sys.time()
+      })
+    })
+    
+    observeEvent(r$study_options_description_trigger, {
       
       if (perf_monitoring) monitor_perf(r = r, action = "start")
-      if (debug) cat(paste0("\n", Sys.time(), " - mod_my_studies - observer input$execute_options_description"))
+      if (debug) cat(paste0("\n", Sys.time(), " - mod_my_studies - observer r$study_options_description_trigger"))
       
-      options_description <- isolate(input$ace_options_description %>% stringr::str_replace_all("\r", "\n"))
+      if (length(input$options_selected_study) > 1) link_id <- input$options_selected_study$key
+      else link_id <- input$options_selected_study
+      
+      options <- r$options %>% dplyr::filter(category == "study", link_id == !!link_id)
+      study_folder <- paste0(r$app_folder, "/studies/", options %>% dplyr::filter(name == "unique_id") %>% dplyr::pull(value))
+      
+      options_description <- isolate(input[[paste0("study_description_", input$study_language)]] %>% 
+        stringr::str_replace_all("\r", "\n")) %>%
+        stringr::str_replace_all("%study_folder%", study_folder)
       
       tryCatch({
         
@@ -1043,55 +1280,6 @@ mod_my_studies_server <- function(id = character(), r = shiny::reactiveValues(),
       }, error = function(e) "")
       
       if (perf_monitoring) monitor_perf(r = r, action = "stop", task = paste0("mod_my_studies - observer input$execute_options_description"))
-    })
-    
-    # Render markdown
-    
-    observeEvent(input$execute_options_description, {
-      if (debug) cat(paste0("\n", Sys.time(), " - mod_studies - observer input$execute_options_description"))
-      r$study_options_description_trigger <- Sys.time()
-    })
-    
-    observeEvent(input$study_description_fr_run_all, {
-      if (debug) cat(paste0("\n", Sys.time(), " - mod_studies - observer input$study_description_fr_run_all"))
-      r$study_options_description_trigger <- Sys.time()
-    })
-    
-    observeEvent(input$study_description_en_run_all, {
-      if (debug) cat(paste0("\n", Sys.time(), " - mod_studies - observer input$study_description_en_run_all"))
-      r$study_options_description_trigger <- Sys.time()
-    })
-    
-    observeEvent(r$study_options_description_trigger, {
-      
-      if (perf_monitoring) monitor_perf(r = r, action = "start")
-      if (debug) cat(paste0("\n", Sys.time(), " - mod_studies - observer input$execute_options_description"))
-      
-      options_description <- isolate(input[[paste0("study_description_", input$study_description_language)]] %>% stringr::str_replace_all("\r", "\n"))
-      
-      tryCatch({
-        
-        # Clear temp dir
-        # unlink(paste0(r$app_folder, "/temp_files"), recursive = TRUE, force = TRUE)
-        
-        markdown_settings <- paste0("```{r setup, include=FALSE}\nknitr::opts_knit$set(root.dir = '", 
-          r$app_folder, "/temp_files/markdowns')\n",
-          "knitr::opts_chunk$set(root.dir = '", r$app_folder, "/temp_files/markdowns', fig.path = '", r$app_folder, "/temp_files/markdowns')\n```\n")
-        
-        markdown_file <- paste0(markdown_settings, options_description)
-        
-        # Create temp dir
-        dir <- paste0(r$app_folder, "/temp_files/markdowns")
-        file <- paste0(dir, "/", paste0(sample(c(0:9, letters[1:6]), 8, TRUE), collapse = ''), "_", as.character(Sys.time()) %>% stringr::str_replace_all(":", "_"), ".Md")
-        if (!dir.exists(dir)) dir.create(dir)
-        
-        # Create the markdown file
-        knitr::knit(text = markdown_file, output = file, quiet = TRUE)
-        
-        output$description_markdown_result <- renderUI(div(class = "markdown", withMathJax(includeMarkdown(file))))
-      }, error = function(e) "")
-      
-      if (perf_monitoring) monitor_perf(r = r, action = "stop", task = paste0("mod_studies - observer input$execute_options_description"))
     })
     
     # --- --- --- --- ---

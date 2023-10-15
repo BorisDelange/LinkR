@@ -17,12 +17,12 @@
 insert_default_data <- function(output, r = shiny::reactiveValues(), m = shiny::reactiveValues(), 
   i18n = character(), language = "en", db_col_types = tibble::tibble(), users_accesses_toggles_options = tibble::tibble()){
   
+  error_loading_database <- FALSE
+  
   if (nrow(DBI::dbGetQuery(r$db, "SELECT * FROM users")) == 0) {
     
     # If internet connection, download default database
     if (r$has_internet){
-      
-      error_loading_database <- FALSE
       
       # Download csv files
       tryCatch({

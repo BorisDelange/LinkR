@@ -83,6 +83,7 @@ mapped_concept_id,Mapped concept ID
 reset,Reset
 all_plugins,All plugins
 all_scripts,All scripts
+all_studies,All studies
 create_plugin,Create a plugin
 plugins_management,Plugins management
 edit_plugin_code,Edit plugin code
@@ -383,7 +384,7 @@ console,Console
 table,Table
 output,Output
 script_description,Script description
-run_scripts_success,Scripts executed successfully
+run_scripts_success,Scripts successfully executed
 fail_load_dataset,Failed loading dataset
 fail_load_vocabulary,Failed loading vocabulary
 fail_load_vocabulary_code,Failed loading vocabulary code
@@ -670,6 +671,8 @@ plugin_image_delete,Delete an image
 plugin_image_delete_subtext,Confirm deletion of this image?
 script_image_delete,Delete an image
 script_image_delete_subtext,Confirm deletion of this image?
+study_image_delete,Delete an image
+study_image_delete_subtext,Confirm deletion of this image?
 no_available_plugin,No available plugin
 activate_scripts_cache,Activate cash memory
 last_cache_load_datetime,Date of last cache load
@@ -745,6 +748,9 @@ datasets_options_card_user_access_description,Edit datasets options
 datasets_edit_code_card_user_access_description,Edit datasets code
 studies_see_all_data_user_access_description,"Access to all studies, even if current user is not in authorized users for a study"
 studies_description_card_user_access_description,Access to studies descriptions
+all_studies_card_user_access_description,Access to 'All studies' card
+import_study_card_user_access_description,Import studies
+export_study_card_user_access_description,Export studies
 studies_datatable_card_user_access_description,"Manage studies (add, edit and delete)"
 studies_options_card_user_access_description,Edit studies options
 subsets_datatable_card_user_access_description,"Manage subsets (add, edit and delete)"
@@ -813,6 +819,7 @@ vocab_tables_empty_cols,Some cols are empty. See help to know which cols do not 
 vocabularies_datatable_show_row_details,Show selected row details
 vocabularies_datatable_show_mapped_concepts,Show mapped concepts
 show_mapped_concepts,Show mapped concepts
+show_only_dataset_vocabs,Show only vocabularies used in this dataset
 select_only_one_row_for_details,Select only one row to show row details
 load_concept_data_before,Load CONCEPT table before
 load_concept_relationship_data_before,Load CONCEPT_RELATIONSHIP data before

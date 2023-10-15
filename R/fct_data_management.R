@@ -393,6 +393,9 @@ remove_persons_from_subset <- function(output, r = shiny::reactiveValues(), m = 
 #' }
 run_dataset_code <- function(output, r = shiny::reactiveValues(), d = shiny::reactiveValues(), dataset_id = integer(), i18n = character()){
   
+  # Reset r$dataset_loaded_tables
+  r$dataset_loaded_tables <- tibble::tibble(table = character(), save_as = character(), read_with = character())
+  
   # Get code from dataset
   tryCatch(r$code %>% dplyr::filter(category == "dataset" & link_id == dataset_id) %>% dplyr::pull(code),
     error = function(e){

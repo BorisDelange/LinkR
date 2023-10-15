@@ -33,6 +33,10 @@ import_dataset <- function(output, ns = character(), i18n = character(), r = shi
   dataset_id = integer(), data = tibble::tibble(), type = "", omop_version = "6.0", 
   read_with = "none", save_as = "none", rewrite = FALSE){
   
+  # Keep a track of which table has been loaded, with which save_as and read_with args
+  if (length(r$dataset_loaded_tables) > 0) r$dataset_loaded_tables <- r$dataset_loaded_tables %>% 
+    dplyr::bind_rows(tibble::tibble(table = type, save_as = save_as, read_with = read_with))
+  
   # --- --- --- --- -- -
   # Check arguments ----
   # --- --- --- --- -- -
@@ -181,9 +185,9 @@ import_dataset <- function(output, ns = character(), i18n = character(), r = shi
     
     else if (read_with == "arrow" & save_as == "parquet"){
       error_read_with_save_as <- FALSE
-      if (!requireNamespace("arrow", quiet = TRUE)){
+      if (!requireNamespace("arrow", quietly = TRUE)){
         add_log_entry(r = r, category = "Error", name = paste0("import_dataset - error_loading_parquet - id = ", dataset_id), value = i18n$t("package_arrow_not_installed"))
-        cat(paste0(error_message, "<span style = 'font-weight:bold; color:red;'>**",  i18n$t("error"), "** ",
+        cat(paste0("<span style = 'font-weight:bold; color:red;'>**",  i18n$t("error"), "** ",
           i18n$t("package_arrow_not_installed"), "</span>\n"))
         return(NULL)
       }
@@ -213,9 +217,9 @@ import_dataset <- function(output, ns = character(), i18n = character(), r = shi
     else if (read_with == "duckdb" & save_as %in% c("csv", "parquet")){
       error_read_with_save_as <- FALSE
       
-      if (!requireNamespace("duckdb", quiet = TRUE)){
+      if (!requireNamespace("duckdb", quietly = TRUE)){
         add_log_entry(r = r, category = "Error", name = paste0("import_dataset - error_loading_duckdb - id = ", dataset_id), value = i18n$t("package_duckdb_not_installed"))
-        cat(paste0(error_message, "<span style = 'font-weight:bold; color:red;'>**",  i18n$t("error"), "** ",
+        cat(paste0("<span style = 'font-weight:bold; color:red;'>**",  i18n$t("error"), "** ",
           i18n$t("package_duckdb_not_installed"), "</span>\n"))
         return(NULL)
       }
@@ -256,9 +260,9 @@ import_dataset <- function(output, ns = character(), i18n = character(), r = shi
     else if (read_with == "spark" & save_as %in% c("csv", "parquet")){
       error_read_with_save_as <- FALSE
       
-      if (!requireNamespace("sparklyr", quiet = TRUE)){
+      if (!requireNamespace("sparklyr", quietly = TRUE)){
         add_log_entry(r = r, category = "Error", name = paste0("import_dataset - error_loading_sparklyr - id = ", dataset_id), value = i18n$t("package_sparklyr_not_installed"))
-        cat(paste0(error_message, "<span style = 'font-weight:bold; color:red;'>**",  i18n$t("error"), "** ",
+        cat(paste0("<span style = 'font-weight:bold; color:red;'>**",  i18n$t("error"), "** ",
           i18n$t("package_sparklyr_not_installed"), "</span>\n"))
         return(NULL)
       }
@@ -301,9 +305,9 @@ import_dataset <- function(output, ns = character(), i18n = character(), r = shi
     if (read_with == "duckdb"){
       error_read_with_save_as <- FALSE
       
-      if (!requireNamespace("duckdb", quiet = TRUE)){
+      if (!requireNamespace("duckdb", quietly = TRUE)){
         add_log_entry(r = r, category = "Error", name = paste0("import_dataset - error_loading_duckdb - id = ", dataset_id), value = i18n$t("package_duckdb_not_installed"))
-        cat(paste0(error_message, "<span style = 'font-weight:bold; color:red;'>**",  i18n$t("error"), "** ",
+        cat(paste0("<span style = 'font-weight:bold; color:red;'>**",  i18n$t("error"), "** ",
           i18n$t("package_duckdb_not_installed"), "</span>\n"))
         return(NULL)
       }
@@ -338,9 +342,9 @@ import_dataset <- function(output, ns = character(), i18n = character(), r = shi
     if (read_with == "spark"){
       error_read_with_save_as <- FALSE
       
-      if (!requireNamespace("sparklyr", quiet = TRUE)){
+      if (!requireNamespace("sparklyr", quietly = TRUE)){
         add_log_entry(r = r, category = "Error", name = paste0("import_dataset - error_loading_sparklyr - id = ", dataset_id), value = i18n$t("package_sparklyr_not_installed"))
-        cat(paste0(error_message, "<span style = 'font-weight:bold; color:red;'>**",  i18n$t("error"), "** ",
+        cat(paste0("<span style = 'font-weight:bold; color:red;'>**",  i18n$t("error"), "** ",
           i18n$t("package_sparklyr_not_installed"), "</span>\n"))
         return(NULL)
       }
@@ -1116,10 +1120,10 @@ import_dataset <- function(output, ns = character(), i18n = character(), r = shi
           if (read_with == "vroom") data <- data %>% dplyr::collect()
         }
         else if (save_as == "parquet"){
-          if (read_with %in% c("duckdb", "spark")) error_read_with_save_as <- FALSE
-          if (!requireNamespace("arrow", quiet = TRUE)){
+          if (read_with %in% c("duckdb", "spark", "arrow")) error_read_with_save_as <- FALSE
+          if (!requireNamespace("arrow", quietly = TRUE)){
             add_log_entry(r = r, category = "Error", name = paste0("import_dataset - error_saving_parquet - id = ", dataset_id), value = i18n$t("package_arrow_not_installed"))
-            cat(paste0(error_message, "<span style = 'font-weight:bold; color:red;'>**",  i18n$t("error"), "** ",
+            cat(paste0("<span style = 'font-weight:bold; color:red;'>**",  i18n$t("error"), "** ",
               i18n$t("package_arrow_not_installed"), "</span>\n"))
             return(NULL)
           }
@@ -1134,9 +1138,9 @@ import_dataset <- function(output, ns = character(), i18n = character(), r = shi
       
       if (read_with == "duckdb" & save_as %in% c("csv", "parquet")){
         
-        if (!requireNamespace("duckdb", quiet = TRUE)){
+        if (!requireNamespace("duckdb", quietly = TRUE)){
           add_log_entry(r = r, category = "Error", name = paste0("import_dataset - error_loading_duckdb - id = ", dataset_id), value = i18n$t("package_duckdb_not_installed"))
-          cat(paste0(error_message, "<span style = 'font-weight:bold; color:red;'>**",  i18n$t("error"), "** ",
+          cat(paste0("<span style = 'font-weight:bold; color:red;'>**",  i18n$t("error"), "** ",
             i18n$t("package_duckdb_not_installed"), "</span>\n"))
           return(NULL)
         }
@@ -1175,9 +1179,9 @@ import_dataset <- function(output, ns = character(), i18n = character(), r = shi
       
       if (read_with == "spark" & save_as %in% c("csv", "parquet")){
         
-        if (!requireNamespace("sparklyr", quiet = TRUE)){
+        if (!requireNamespace("sparklyr", quietly = TRUE)){
           add_log_entry(r = r, category = "Error", name = paste0("import_dataset - error_loading_sparklyr - id = ", dataset_id), value = i18n$t("package_sparklyr_not_installed"))
-          cat(paste0(error_message, "<span style = 'font-weight:bold; color:red;'>**",  i18n$t("error"), "** ",
+          cat(paste0("<span style = 'font-weight:bold; color:red;'>**",  i18n$t("error"), "** ",
             i18n$t("package_sparklyr_not_installed"), "</span>\n"))
           return(NULL)
         }

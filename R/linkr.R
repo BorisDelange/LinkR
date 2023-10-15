@@ -63,7 +63,7 @@ linkr <- function(
   # Load translations
   if (debug) cat(paste0("\n", Sys.time(), " - linkr - translation"))
   
-  languages <- c("en", "fr", "it")
+  languages <- c("en", "fr")
   if (language %not_in% languages){
     cat("\n")
     stop(paste0(paste("Language is not valid. Valid languages are", paste(languages, collapse = ", ")), "."))
@@ -79,8 +79,8 @@ linkr <- function(
   languages <- tibble::tribble(
     ~code, ~language, 
     "en", i18n$t("english"),
-    "fr", i18n$t("french"),
-    "it", i18n$t("italian")#,
+    "fr", i18n$t("french")#,
+    # "it", i18n$t("italian"),
     # "es", i18n$t("spanish")
   )
   
@@ -125,10 +125,11 @@ linkr <- function(
       "datasets_export_dataset_card"),
     "studies", c(
       "studies_see_all_data",
-      # "studies_messages_card",
-      # "studies_description_card",
+      "all_studies_card",
       "studies_datatable_card",
-      "studies_options_card"),
+      "studies_options_card",
+      "import_study_card",
+      "export_study_card"),
     "subsets", c(
       "subsets_datatable_card",
       "subsets_edit_code_card",

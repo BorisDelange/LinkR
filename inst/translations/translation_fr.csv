@@ -83,6 +83,7 @@ mapped_concept_id,ID du concept aligné
 reset,Remettre à zéro
 all_plugins,Tous les plugins
 all_scripts,Tous les scripts
+all_studies,Toutes les études
 create_plugin,Créer un plugin
 plugins_management,Gestion des plugins
 edit_plugin_code,Editer le code du plugin
@@ -670,6 +671,8 @@ plugin_image_delete,Supprimer une image
 plugin_image_delete_subtext,Confirmer la suppression de cette image ?
 script_image_delete,Supprimer une image
 script_image_delete_subtext,Confirmer la suppression de cette image ?
+study_image_delete,Supprimer une image
+study_image_delete_subtext,Confirmer la suppression de cette image ?
 no_available_plugin,Pas de plugin disponible
 activate_scripts_cache,Activer la mise en mémoire cache
 last_cache_load_datetime,Date du dernier chargement du cache
@@ -745,6 +748,9 @@ datasets_options_card_user_access_description,Editer les options des sets de don
 datasets_edit_code_card_user_access_description,Editer le code des sets de données
 studies_see_all_data_user_access_description,"Accéder à toutes les études, même celles pour lesquelles l'utilisateur n'est pas dans les utilisateurs autorisés"
 studies_description_card_user_access_description,Accéder aux descriptions des études
+all_studies_card_user_access_description,Accéder à l'onglet 'Toutes les études'
+import_study_card_user_access_description,Importer des études
+export_study_card_user_access_description,Exporter des études
 studies_datatable_card_user_access_description,"Gérer les études (ajouter, éditer et supprimer)"
 studies_options_card_user_access_description,Editer les options des études
 subsets_datatable_card_user_access_description,"Gérer les subsets (ajouter, éditer et supprimer)"
@@ -813,6 +819,7 @@ vocab_tables_empty_cols,Certaines colonnes ont des valeurs nulles. Voir l'aide p
 vocabularies_datatable_show_row_details,Afficher les détails de la ligne sélectionnée
 vocabularies_datatable_show_mapped_concepts,Afficher les concepts alignés
 show_mapped_concepts,Afficher les concepts alignés
+show_only_dataset_vocabs,N'afficher que les terminologies utilisées dans le set de données sélectionné
 select_only_one_row_for_details,Sélectionner une seule ligne pour afficher les détails de la ligne sélectionnée
 load_concept_data_before,Charger la table CONCEPT avant
 load_concept_relationship_data_before,Charger la table CONCEPT_RELATIONSHIP avant
