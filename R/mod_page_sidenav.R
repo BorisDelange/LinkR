@@ -538,9 +538,10 @@ mod_page_sidenav_server <- function(id = character(), r = shiny::reactiveValues(
           
           if (length(input$person$key) == 0){
             person_text <- input$person$text
-            person <- d$person %>% dplyr::filter(name_display == person_text) %>% dplyr::collect() %>%
+            person <- d$person %>%
               dplyr::left_join(d$dataset_all_concepts %>% dplyr::filter(is.na(relationship_id)) %>% dplyr::select(gender_concept_id = concept_id_1, gender_concept_name = concept_name_1), by = "gender_concept_id") %>%
-              dplyr::mutate(name_display = paste0(person_id, " - ", gender_concept_name))
+              dplyr::mutate(name_display = paste0(person_id, " - ", gender_concept_name)) %>%
+              dplyr::filter(name_display == person_text) %>% dplyr::collect()
           }
           if (length(input$person$key) > 0){
             person_key <- input$person$key

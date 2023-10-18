@@ -764,6 +764,8 @@ vocabularies_import_vocabulary_card_user_access_description,Import a vocabulary
 vocabularies_export_vocabulary_card_user_access_description,Export a vocabulary
 vocabularies_concepts_card_user_access_description,Access to vocabulary concepts (from the tab at the top of the page)
 vocabularies_mapping_card_user_access_description,Access to vocabulary concepts mapping
+vocabularies_evaluate_mapping_user_access_description,Evaluate mappings
+vocabularies_delete_mapping_user_access_description,Delete mappings
 study_messages_card_user_access_description,Access to studies conversations
 plugins_see_all_data_user_access_description,"Access to all plugins, even if current user is not in authorized users for a plugin"
 all_plugins_card_user_access_description,Access to 'All plugins' tab
@@ -971,3 +973,4 @@ export_datasets,Export datasets
 import_vocabularies,Import vocabularies
 export_vocabularies,Export vocabularies
 images,Images
+show_all_relationships,Show all relationships

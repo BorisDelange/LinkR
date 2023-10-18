@@ -408,10 +408,14 @@ run_dataset_code <- function(output, r = shiny::reactiveValues(), d = shiny::rea
   # Get OMOP version
   omop_version <- r$options %>% dplyr::filter(category == "dataset" & name == "omop_version" & link_id == dataset_id) %>% dplyr::pull(value)
   
+  # Get dataset unique_id
+  unique_id <- r$options %>% dplyr::filter(category == "dataset" & link_id == dataset_id & name == "unique_id") %>% dplyr::pull(value)
+  
   # Replace %dataset_id% with real dataset_id & %omop_version%
   code <- code %>% 
     stringr::str_replace_all("%dataset_id%", as.character(dataset_id)) %>%
     stringr::str_replace_all("%omop_version%", paste0("'", omop_version, "'")) %>%
+    stringr::str_replace_all("%dataset_folder%", paste0(r$app_folder, "/datasets/", unique_id)) %>%
     stringr::str_replace_all("\r", "\n") %>%
     stringr::str_replace_all("''", "'")
   

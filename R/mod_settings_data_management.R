@@ -914,8 +914,8 @@ mod_settings_data_management_server <- function(id = character(), r = shiny::rea
       tryCatch({
         
         markdown_settings <- paste0("```{r setup, include=FALSE}\nknitr::opts_knit$set(root.dir = '",
-          r$app_folder, "/temp_files/markdowns')\n",
-          "knitr::opts_chunk$set(root.dir = '", r$app_folder, "/temp_files/markdowns/', fig.path = '", r$app_folder, "/temp_files/markdowns/')\n```\n")
+          r$app_folder, "/temp_files/", r$user_id, "/markdowns')\n",
+          "knitr::opts_chunk$set(root.dir = '", r$app_folder, "/temp_files/", r$user_id, "/markdowns/', fig.path = '", r$app_folder, "/temp_files/", r$user_id, "/markdowns/')\n```\n")
         
         # For local datasets or vocabs
         
@@ -950,7 +950,7 @@ mod_settings_data_management_server <- function(id = character(), r = shiny::rea
           # If there's an API key, copy all images
           else {
             
-            dataset_or_vocab_folder <- paste0(r$app_folder, "/temp_files/", get_plural(table), "/", dataset_or_vocab$unique_id)
+            dataset_or_vocab_folder <- paste0(r$app_folder, "/temp_files/", r$user_id, "/", get_plural(table), "/", dataset_or_vocab$unique_id)
             if (!dir.exists(dataset_or_vocab_folder)) dir.create(dataset_or_vocab_folder)
             
             tryCatch({
@@ -976,7 +976,7 @@ mod_settings_data_management_server <- function(id = character(), r = shiny::rea
         markdown_file <- paste0(markdown_settings, dataset_or_vocab_description)
         
         # Create temp dir
-        dir <- paste0(r$app_folder, "/temp_files/markdowns")
+        dir <- paste0(r$app_folder, "/temp_files/", r$user_id, "/markdowns")
         file <- paste0(dir, "/", paste0(sample(c(0:9, letters[1:6]), 8, TRUE), collapse = ''), "_", as.character(Sys.time()) %>% stringr::str_replace_all(":", "_") %>% stringr::str_replace_all(" ", "_"), ".Md")
         if (!dir.exists(dir)) dir.create(dir)
         
@@ -1008,7 +1008,7 @@ mod_settings_data_management_server <- function(id = character(), r = shiny::rea
       r[[paste0(get_plural(table), "_api_key")]] <- api_key
       
       error_loading_remote_git <- TRUE
-      datasets_or_vocab_file <- paste0(r$app_folder, "/temp_files/", get_plural(table), "/", get_plural(table), ".xml")
+      datasets_or_vocab_file <- paste0(r$app_folder, "/temp_files/", r$user_id, "/", get_plural(table), "/", get_plural(table), ".xml")
       
       if (r$has_internet){
         
@@ -1946,16 +1946,16 @@ mod_settings_data_management_server <- function(id = character(), r = shiny::rea
         tryCatch({
           
           # Clear temp dir
-          # unlink(paste0(r$app_folder, "/temp_files"), recursive = TRUE, force = TRUE)
+          # unlink(paste0(r$app_folder, "/temp_files/", r$user_id), recursive = TRUE, force = TRUE)
           
           markdown_settings <- paste0("```{r setup, include=FALSE}\nknitr::opts_knit$set(root.dir = '", 
-            r$app_folder, "/temp_files/markdowns')\n",
-            "knitr::opts_chunk$set(root.dir = '", r$app_folder, "/temp_files/markdowns', fig.path = '", r$app_folder, "/temp_files/markdowns')\n```\n")
+            r$app_folder, "/temp_files/", r$user_id, "/markdowns')\n",
+            "knitr::opts_chunk$set(root.dir = '", r$app_folder, "/temp_files/", r$user_id, "/markdowns', fig.path = '", r$app_folder, "/temp_files/", r$user_id, "/markdowns')\n```\n")
           
           markdown_file <- paste0(markdown_settings, options_description)
           
           # Create temp dir
-          dir <- paste0(r$app_folder, "/temp_files/markdowns")
+          dir <- paste0(r$app_folder, "/temp_files/", r$user_id, "/markdowns")
           file <- paste0(dir, "/", paste0(sample(c(0:9, letters[1:6]), 8, TRUE), collapse = ''), "_", as.character(Sys.time()) %>% stringr::str_replace_all(":", "_"), ".Md")
           if (!dir.exists(dir)) dir.create(dir)
           
@@ -2048,10 +2048,10 @@ mod_settings_data_management_server <- function(id = character(), r = shiny::rea
         # Before, restart these variables
         r$dataset_id <- NA_integer_
         r$subset_id <- NA_integer_
-        r$vocabulary_id <- NA_character_
+        r$vocabulary_id <- NA_integer_
         
-        if (id == "settings_datasets") r$dataset_id <- link_id
-        if (id == "settings_vocabularies") r$vocabulary_id <- r$vocabulary %>% dplyr::filter(id == link_id) %>% dplyr::pull(vocabulary_id)
+        if (id %in% c("settings_datasets", "settings_vocabularies")) r[[paste0(get_singular(table), "_id")]] <- link_id
+        # if (id == "settings_vocabularies") r$vocabulary_id <- r$vocabulary %>% dplyr::filter(id == link_id) %>% dplyr::pull(vocabulary_id)
         
         category <- get_singular(id)
         
@@ -2160,6 +2160,9 @@ mod_settings_data_management_server <- function(id = character(), r = shiny::rea
         if (perf_monitoring) monitor_perf(r = r, action = "start")
         if (debug) cat(paste0("\n", Sys.time(), " - mod_settings_data_management - observer r$..code_trigger"))
         
+        edited_code <- r[[paste0(id, "_code")]] %>% 
+          stringr::str_replace_all("\r", "\n")
+        
         # Reset d variable
         if (table == "datasets"){
           main_tables <- c("condition_occurrence", "drug_exposure", "procedure_occurrence", "device_exposure", "measurement",
@@ -2167,9 +2170,20 @@ mod_settings_data_management_server <- function(id = character(), r = shiny::rea
             "drug_era", "dose_era", "condition_era",
             "person", "observation_period", "visit_occurrence", "visit_detail", "location", "care_site", "provider")
           sapply(main_tables, function(table) d[[table]] <- tibble::tibble())
+          
+          # Replace %dataset_folder%
+          unique_id <- r$options %>% dplyr::filter(category == "dataset" & link_id == r$dataset_id & name == "unique_id") %>% dplyr::pull(value)
+          edited_code <- edited_code %>%
+            stringr::str_replace_all("%dataset_folder%", paste0(r$app_folder, "/datasets/", unique_id))
         }
         
-        edited_code <- r[[paste0(id, "_code")]] %>% stringr::str_replace_all("\r", "\n")
+        if (table %in% c("datasets", "vocabulary")){
+          # Replace %.._folder%
+          unique_id <- r$options %>% dplyr::filter(category == get_singular(table) & link_id == r[[paste0(get_singular(table), "_id")]] & name == "unique_id") %>% dplyr::pull(value)
+          edited_code <- edited_code %>%
+            stringr::str_replace_all(paste0("%", get_singular(table), "_folder%"), paste0(r$app_folder, "/", get_plural(table), "/", unique_id))
+        }
+        
         # Prevent "NULL" at the end of console output
         edited_code <- paste0(edited_code, "\ncat()")
         
@@ -2942,7 +2956,7 @@ mod_settings_data_management_server <- function(id = character(), r = shiny::rea
             
             # Extract ZIP file
             
-            temp_dir <- paste0(r$app_folder, "/temp_files/vocabularies/", Sys.time() %>% stringr::str_replace_all(":| |-", ""), paste0(sample(c(0:9, letters[1:6]), 24, TRUE), collapse = ''))
+            temp_dir <- paste0(r$app_folder, "/temp_files/", r$user_id, "/vocabularies/", Sys.time() %>% stringr::str_replace_all(":| |-", ""), paste0(sample(c(0:9, letters[1:6]), 24, TRUE), collapse = ''))
             zip::unzip(input$import_concepts_upload_zip$datapath, exdir = temp_dir)
             
             csv_files <- zip::zip_list(input$import_concepts_upload_zip$datapath)
@@ -3058,7 +3072,7 @@ mod_settings_data_management_server <- function(id = character(), r = shiny::rea
 
         # Extract ZIP file
 
-        temp_dir <- paste0(r$app_folder, "/temp_files/", get_plural(table), "/", Sys.time() %>% stringr::str_replace_all(":| |-", ""), paste0(sample(c(0:9, letters[1:6]), 24, TRUE), collapse = ''))
+        temp_dir <- paste0(r$app_folder, "/temp_files/", r$user_id, "/", get_plural(table), "/", Sys.time() %>% stringr::str_replace_all(":| |-", ""), paste0(sample(c(0:9, letters[1:6]), 24, TRUE), collapse = ''))
         zip::unzip(input[[paste0("import_", get_plural(table), "_upload")]]$datapath, exdir = temp_dir)
 
         # Read XML file
@@ -3318,7 +3332,7 @@ mod_settings_data_management_server <- function(id = character(), r = shiny::rea
           owd <- setwd(tempdir())
           on.exit(setwd(owd))
 
-          temp_dir <- paste0(r$app_folder, "/temp_files/", get_plural(table), "/", Sys.time() %>% stringr::str_replace_all(":| |-", ""), paste0(sample(c(0:9, letters[1:6]), 24, TRUE), collapse = ''))
+          temp_dir <- paste0(r$app_folder, "/temp_files/", r$user_id, "/", get_plural(table), "/", Sys.time() %>% stringr::str_replace_all(":| |-", ""), paste0(sample(c(0:9, letters[1:6]), 24, TRUE), collapse = ''))
           dir.create(temp_dir, recursive = TRUE)
 
           for (dataset_or_vocab_id in r[[paste0("export_", get_plural(table), "_selected")]] %>% dplyr::pull(id)){
@@ -3478,7 +3492,7 @@ mod_settings_data_management_server <- function(id = character(), r = shiny::rea
           owd <- setwd(tempdir())
           on.exit(setwd(owd))
           
-          temp_dir <- paste0(r$app_folder, "/temp_files/vocabularies/", Sys.time() %>% stringr::str_replace_all(":| |-", ""), paste0(sample(c(0:9, letters[1:6]), 24, TRUE), collapse = ''))
+          temp_dir <- paste0(r$app_folder, "/temp_files/", r$user_id, "/vocabularies/", Sys.time() %>% stringr::str_replace_all(":| |-", ""), paste0(sample(c(0:9, letters[1:6]), 24, TRUE), collapse = ''))
           dir.create(temp_dir, recursive = TRUE)
           
           vocabularies_ids <- r$export_concepts_vocabularies_selected %>% dplyr::pull(vocabulary_id)

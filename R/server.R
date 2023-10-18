@@ -132,6 +132,8 @@ app_server <- function(language = "en", languages = tibble::tibble(), i18n = cha
     # i18n$set_translation_language(language)
     r$i18n <- i18n
     r$languages <- languages
+    r$language <- language
+    m$language <- language
     
     # Save currently opened toggles (used to reload cards when we load a page, restart reactivity)
     r$activated_toggles <- ""
@@ -216,6 +218,19 @@ app_server <- function(language = "en", languages = tibble::tibble(), i18n = cha
       # Show username on top of the page
       r$username <- r$users %>% dplyr::filter(id == r$user_id)
       r$username <- paste0(r$username$firstname, " ", r$username$lastname)
+      
+      # Clear temp dir
+      if (debug) cat(paste0("\n", Sys.time(), " - server - clear temp_files"))
+      
+      temp_files_folder <- paste0(app_folder, "/temp_files/", r$user_id)
+      unlink(temp_files_folder, recursive = TRUE, force = TRUE)
+      dir.create(temp_files_folder)
+      
+      for (folder in c("markdowns", "plugins", "scripts", "vocabularies", "datasets", "studies", "app_db", "git_repos")){
+        sub_folder <- paste0(app_folder, "/temp_files/", r$user_id, "/", folder)
+        unlink(sub_folder, recursive = TRUE, force = TRUE)
+        if (!dir.exists(sub_folder)) dir.create(sub_folder)
+      }
     })
     
     # Code style for help pages
@@ -228,14 +243,12 @@ app_server <- function(language = "en", languages = tibble::tibble(), i18n = cha
     shiny.router::router_server()
     # router$server(input, output, session)
     
-    # Clear temp dir
-    if (debug) cat(paste0("\n", Sys.time(), " - server - clear temp_files"))
-    for (folder in c("markdowns", "plugins", "scripts", "vocabularies", "datasets", "studies", "app_db")){
-      unlink(paste0(app_folder, "/temp_files/", folder), recursive = TRUE, force = TRUE)
-      if (!dir.exists(paste0(app_folder, "/temp_files/", folder))) dir.create(paste0(app_folder, "/temp_files/", folder))
-    }
+    # for (folder in c("markdowns", "plugins", "scripts", "vocabularies", "datasets", "studies", "app_db")){
+    #   unlink(paste0(app_folder, "/temp_files/", folder), recursive = TRUE, force = TRUE)
+    #   if (!dir.exists(paste0(app_folder, "/temp_files/", folder))) dir.create(paste0(app_folder, "/temp_files/", folder))
+    # }
     # Do not clear git_repos folder in temp_files
-    if (!dir.exists(paste0(app_folder, "/temp_files/git_repos"))) dir.create(paste0(app_folder, "/temp_files/git_repos"))
+    # if (!dir.exists(paste0(app_folder, "/temp_files/git_repos"))) dir.create(paste0(app_folder, "/temp_files/git_repos"))
     
     # Keep trace of loaded observers (not to have multiple identical observers)
     r$loaded_observers <- ""

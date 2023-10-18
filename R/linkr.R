@@ -57,7 +57,7 @@ linkr <- function(
     "home", "home/fr", "home/en", 
     "home/fr/home", "home/fr/get_started", "home/fr/tutorials", "home/fr/resources",
     "home/en/home", "home/en/get_started", "home/en/tutorials", "home/en/resources",
-    "messages", "plugins", "studies", "studies_files", "temp_files", "translations", "vocabularies")
+    "messages", "plugins", "plugins/patient_lvl", "plugins/aggregated", "studies", "studies_files", "temp_files", "translations", "vocabularies")
   for (sub_dir in sub_dirs) if (!dir.exists(paste0(app_folder, "/", sub_dir))) dir.create(paste0(app_folder, "/", sub_dir))
   
   # Load translations
@@ -139,6 +139,8 @@ linkr <- function(
     "vocabularies", c(
       "vocabularies_concepts_card",
       "vocabularies_mapping_card",
+      "vocabularies_evaluate_mapping",
+      "vocabularies_delete_mapping",
       "vocabularies_all_vocabularies_card",
       "vocabularies_datatable_card",
       "vocabularies_vocabularies_tables_datatable_card",

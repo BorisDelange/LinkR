@@ -775,15 +775,15 @@ mod_messages_server <- function(id = character(), r = shiny::reactiveValues(), d
             # unlink(paste0(r$app_folder, "/temp_files"), recursive = TRUE, force = TRUE)
 
             markdown_settings <- paste0("```{r setup, include=FALSE}\n",
-              "knitr::opts_knit$set(root.dir = '", r$app_folder, "/temp_files/markdowns/')\n",
-              "knitr::opts_chunk$set(root.dir = '", r$app_folder, "/temp_files/markdowns/', fig.path = '", r$app_folder, "/temp_files/markdowns/',",
+              "knitr::opts_knit$set(root.dir = '", r$app_folder, "/temp_files/", r$user_id, "/markdowns/')\n",
+              "knitr::opts_chunk$set(root.dir = '", r$app_folder, "/temp_files/", r$user_id, "/markdowns/', fig.path = '", r$app_folder, "/temp_files/", r$user_id, "/markdowns/',",
               "dpi = 600, out.width='600px')\n",
               "```\n")
 
             markdown_file <- paste0(markdown_settings, new_text)
 
             # Create temp dir
-            dir <- paste0(r$app_folder, "/temp_files/markdowns")
+            dir <- paste0(r$app_folder, "/temp_files/", r$user_id, "/markdowns")
             new_file <- paste0(dir, "/", paste0(sample(c(0:9, letters[1:6]), 8, TRUE), collapse = ''), "_", as.character(Sys.time()) %>% stringr::str_replace_all(":", "_"), ".Md")
             if (!dir.exists(dir)) dir.create(dir)
 

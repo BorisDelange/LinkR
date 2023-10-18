@@ -764,6 +764,8 @@ vocabularies_import_vocabulary_card_user_access_description,Importer une termino
 vocabularies_export_vocabulary_card_user_access_description,Exporter une terminologie
 vocabularies_concepts_card_user_access_description,Accéder aux concepts des terminologies (depuis l'onglet en haut de la page)
 vocabularies_mapping_card_user_access_description,Accéder aux alignements de concepts
+vocabularies_evaluate_mapping_user_access_description,Evaluer des alignements de concepts
+vocabularies_delete_mapping_user_access_description,Supprimer des alignements de concepts
 study_messages_card_user_access_description,Accéder aux conversations des études
 plugins_see_all_data_user_access_description,"Accéder à tous les plugins, même ceux pour lesquels l'utilisateur n'est pas dans les utilisateurs autorisés"
 all_plugins_card_user_access_description,Accéder à l'onglet 'Tous les plugins'
@@ -971,3 +973,4 @@ export_datasets,Exporter des sets
 import_vocabularies,Importer des terminologies
 export_vocabularies,Exporter des terminologies
 images,Images
+show_all_relationships,Afficher toutes les associations

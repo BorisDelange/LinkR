@@ -406,7 +406,7 @@ add_settings_new_data <- function(session, output, r = shiny::reactiveValues(), 
     
     # Add persons to subset
     tryCatch({
-      persons <- d$person %>% dplyr::select(person_id) %>% dplyr::collec %>% dplyr::mutate_at("person_id", as.integer)
+      persons <- d$person %>% dplyr::select(person_id) %>% dplyr::collect() %>% dplyr::mutate_at("person_id", as.integer)
       add_persons_to_subset(output = output, r = r, m = m, persons = persons, subset_id = last_row$subsets + 1, i18n = i18n, ns = ns)
     }, 
       error = function(e) if (nchar(e[1]) > 0) report_bug(r = r, output = output, error_message = "error_adding_patients_to_subset", 

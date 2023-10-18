@@ -18,7 +18,7 @@ mod_plugins_ui <- function(id = character(), i18n = character(), language = tibb
   })
   
   vocabulary_concepts_div <- div(
-    shiny.fluent::Stack(horizontal = TRUE, tokens = list(childrenGap = 50),
+    shiny.fluent::Stack(horizontal = TRUE, tokens = list(childrenGap = 20),
       make_combobox(i18n = i18n, ns = ns, label = "vocabulary", id = "vocabulary", allowFreeform = FALSE, multiSelect = FALSE, width = "300px"),
       make_dropdown(i18n = i18n, ns = ns, label = "columns_concepts", id = "vocabulary_concepts_table_cols", width = "300px", multiSelect = TRUE,
         options = list(
@@ -50,18 +50,18 @@ mod_plugins_ui <- function(id = character(), i18n = character(), language = tibb
         value = c(2, 3, 4, 5, 7, 8, 9)
       )
     ),
-    shiny.fluent::Stack(horizontal = TRUE, tokens = list(childrenGap = 20),
+    shiny.fluent::Stack(horizontal = TRUE, tokens = list(childrenGap = 0),
       div(
         shiny.fluent::Stack(horizontal = TRUE, tokens = list(childrenGap = 10),
-          div(shiny.fluent::Toggle.shinyInput(ns("show_mapped_concepts"), value = TRUE), style = "margin-top:30px; margin-bottom:5px;"),
-          div(i18n$t("show_mapped_concepts"), style = "font-weight:bold; margin-top:30px;; margin-bottom:5px;")
+          div(shiny.fluent::Toggle.shinyInput(ns("show_mapped_concepts"), value = FALSE), style = "margin-top:30px; margin-bottom:5px;"),
+          div(i18n$t("show_mapped_concepts"), style = "font-weight:bold; margin-top:30px; margin-bottom:5px;")
         ),
         style = "width:330px;"
       ),
       conditionalPanel(condition = "input.show_mapped_concepts == true", ns = ns, 
         div(
           shiny.fluent::Stack(horizontal = TRUE, tokens = list(childrenGap = 10),
-            div(shiny.fluent::Toggle.shinyInput(ns("merge_mapped_concepts"), value = TRUE), style = "margin-top:30px;; margin-bottom:5px;"),
+            div(shiny.fluent::Toggle.shinyInput(ns("merge_mapped_concepts"), value = TRUE), style = "margin-top:30px;; margin-bottom:5px; margin-left:-10px;"),
             div(i18n$t("merge_mapped_concepts"), style = "font-weight:bold; margin-top:30px;; margin-bottom:5px;")
           ),
           style = "width:330px;"
@@ -69,17 +69,17 @@ mod_plugins_ui <- function(id = character(), i18n = character(), language = tibb
       ),
       div(
         shiny.fluent::Stack(horizontal = TRUE, tokens = list(childrenGap = 10),
-          div(shiny.fluent::Toggle.shinyInput(ns("hide_concepts_datatables"), value = FALSE), style = "margin-top:30px;; margin-bottom:5px;"),
-          div(i18n$t("hide_concepts_datatables"), style = "font-weight:bold; margin-top:30px;; margin-bottom:5px;")
+          div(shiny.fluent::Toggle.shinyInput(ns("hide_concepts_datatables"), value = FALSE), style = "margin-top:30px;; margin-bottom:5px; margin-left:-20px;"),
+          div(i18n$t("hide_concepts_datatables"), style = "font-weight:bold; margin-top:30px; margin-bottom:5px;")
         )
       )
     ),
     shiny.fluent::Stack(
-      horizontal = TRUE, tokens = list(childrenGap = 50),
+      horizontal = TRUE, tokens = list(childrenGap = 20),
       div(
         div(id = ns("vocabulary_selected_concepts_title"), class = "input_title", i18n$t("vocabulary_selected_concepts")),
         div(shiny.fluent::Dropdown.shinyInput(ns("vocabulary_selected_concepts"), value = NULL, options = list(), multiSelect = TRUE,
-          onChanged = htmlwidgets::JS(paste0("item => Shiny.setInputValue('", id, "-vocabulary_selected_concepts_trigger', Math.random())"))), style = "width:650px;")
+          onChanged = htmlwidgets::JS(paste0("item => Shiny.setInputValue('", id, "-vocabulary_selected_concepts_trigger', Math.random())"))), style = "width:620px;")
       ),
       div(shiny.fluent::DefaultButton.shinyInput(ns("reset_vocabulary_concepts"), i18n$t("reset")), style = "margin-top:39px;")
     ),
@@ -583,7 +583,7 @@ mod_plugins_server <- function(id = character(), r = shiny::reactiveValues(), d 
       r$plugins_api_key <- api_key
       
       error_loading_remote_git <- TRUE
-      plugins_file <- paste0(r$app_folder, "/temp_files/plugins/plugins.xml")
+      plugins_file <- paste0(r$app_folder, "/temp_files/", r$user_id, "/plugins/plugins.xml")
       
       if (r$has_internet){
         
@@ -811,7 +811,7 @@ mod_plugins_server <- function(id = character(), r = shiny::reactiveValues(), d 
           if (is.na(r$plugins_api_key) | r$plugins_api_key == "") output[[paste0(row$id, "_image")]] <- renderUI(tags$img(src = row$image_url, width = 318, height = 200))
           else {
             if (row$image_url != ""){
-              local_folder <- paste0(r$app_folder, "/temp_files/plugins/", row$id)
+              local_folder <- paste0(r$app_folder, "/temp_files/", r$user_id, "/plugins/", row$id)
               local_path <- paste0(local_folder, "/", stringr::str_extract(row$image_url, "(?<=/)[^/]+$"))
               if (!dir.exists(local_folder)) dir.create(local_folder)
               response <- httr::GET(url = row$image_url, httr::authenticate("token", r$plugins_api_key, type = "basic"), httr::write_disk(path = local_path, overwrite = TRUE))
@@ -847,7 +847,7 @@ mod_plugins_server <- function(id = character(), r = shiny::reactiveValues(), d 
       
       # Render markdown description
       
-      dir <- paste0(r$app_folder, "/temp_files/markdowns")
+      dir <- paste0(r$app_folder, "/temp_files/", r$user_id, "/markdowns")
       
       markdown_settings <- paste0("```{r setup, include=FALSE}\nknitr::opts_knit$set(root.dir = '", dir, "')\n",
         "knitr::opts_chunk$set(root.dir = '", dir, "', fig.path = '", dir, "')\n```\n")
@@ -886,7 +886,7 @@ mod_plugins_server <- function(id = character(), r = shiny::reactiveValues(), d 
         # If there's an API key, copy all images
         else {
           
-          plugin_folder <- paste0(r$app_folder, "/temp_files/plugins/", plugin$unique_id)
+          plugin_folder <- paste0(r$app_folder, "/temp_files/", r$user_id, "/plugins/", plugin$unique_id)
           
           tryCatch({
             images <- stringr::str_split(plugin$images, ";;;")[[1]]
@@ -1797,16 +1797,16 @@ mod_plugins_server <- function(id = character(), r = shiny::reactiveValues(), d 
       tryCatch({
         
         # Clear temp dir
-        # unlink(paste0(r$app_folder, "/temp_files"), recursive = TRUE, force = TRUE)
+        # unlink(paste0(r$app_folder, "/temp_files/", r$user_id), recursive = TRUE, force = TRUE)
         
         markdown_settings <- paste0("```{r setup, include=FALSE}\nknitr::opts_knit$set(root.dir = '", 
-          r$app_folder, "/temp_files/markdowns')\n",
-          "knitr::opts_chunk$set(root.dir = '", r$app_folder, "/temp_files/markdowns', fig.path = '", r$app_folder, "/temp_files/markdowns')\n```\n")
+          r$app_folder, "/temp_files/", r$user_id, "/markdowns')\n",
+          "knitr::opts_chunk$set(root.dir = '", r$app_folder, "/temp_files/", r$user_id, "/markdowns', fig.path = '", r$app_folder, "/temp_files/", r$user_id, "/markdowns')\n```\n")
         
         markdown_file <- paste0(markdown_settings, options_description)
         
         # Create temp dir
-        dir <- paste0(r$app_folder, "/temp_files/markdowns")
+        dir <- paste0(r$app_folder, "/temp_files/", r$user_id, "/markdowns")
         file <- paste0(dir, "/", paste0(sample(c(0:9, letters[1:6]), 8, TRUE), collapse = ''), "_", as.character(Sys.time()) %>% stringr::str_replace_all(":", "_"), ".Md")
         if (!dir.exists(dir)) dir.create(dir)
         
@@ -1901,7 +1901,7 @@ mod_plugins_server <- function(id = character(), r = shiny::reactiveValues(), d 
       
       if (nrow(r$dataset_vocabularies) == 0) shiny.fluent::updateComboBox.shinyInput(session, "vocabulary", options = list(), value = NULL)
       if (nrow(r$dataset_vocabularies) > 0){
-        vocabulary_options <- convert_tibble_to_list(data = r$dataset_vocabularies, key_col = "vocabulary_id", text_col = "vocabulary_name", i18n = i18n)
+        vocabulary_options <- convert_tibble_to_list(data = r$dataset_vocabularies, key_col = "vocabulary_name", text_col = "vocabulary_name", i18n = i18n)
         shiny.fluent::updateComboBox.shinyInput(session, "vocabulary", options = vocabulary_options, value = NULL)
       }
     })
@@ -2471,7 +2471,7 @@ mod_plugins_server <- function(id = character(), r = shiny::reactiveValues(), d 
 
         # Extract ZIP file
 
-        temp_dir <- paste0(r$app_folder, "/temp_files/plugins/", Sys.time() %>% stringr::str_replace_all(":| |-", ""), paste0(sample(c(0:9, letters[1:6]), 24, TRUE), collapse = ''))
+        temp_dir <- paste0(r$app_folder, "/temp_files/", r$user_id, "/plugins/", Sys.time() %>% stringr::str_replace_all(":| |-", ""), paste0(sample(c(0:9, letters[1:6]), 24, TRUE), collapse = ''))
         zip::unzip(input$import_plugins_upload$datapath, exdir = temp_dir)
 
         # Read XML file
@@ -2723,7 +2723,7 @@ mod_plugins_server <- function(id = character(), r = shiny::reactiveValues(), d 
         owd <- setwd(tempdir())
         on.exit(setwd(owd))
 
-        temp_dir <- paste0(r$app_folder, "/temp_files/plugins/", Sys.time() %>% stringr::str_replace_all(":| |-", ""), paste0(sample(c(0:9, letters[1:6]), 24, TRUE), collapse = ''))
+        temp_dir <- paste0(r$app_folder, "/temp_files/", r$user_id, "/plugins/", Sys.time() %>% stringr::str_replace_all(":| |-", ""), paste0(sample(c(0:9, letters[1:6]), 24, TRUE), collapse = ''))
         dir.create(temp_dir, recursive = TRUE)
         
         for (plugin_id in r[[paste0(prefix, "_export_plugins_selected")]] %>% dplyr::pull(id)){

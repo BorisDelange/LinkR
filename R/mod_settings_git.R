@@ -229,7 +229,7 @@ mod_settings_git_server <- function(id = character(), r = shiny::reactiveValues(
       git_repos <- tibble::tibble()
       
       filename <- "https://framagit.org/interhop/linkr/LinkR-content/-/raw/main/git_repos/git_repos.csv"
-      filename_local <- paste0(r$app_folder, "/temp_files/git_repos/git_repos.csv")
+      filename_local <- paste0(r$app_folder, "/temp_files/", r$user_id, "/git_repos/git_repos.csv")
       
       # Get csv file from remote git
       tryCatch(download.file(filename, filename_local, quiet = TRUE),
@@ -388,7 +388,7 @@ mod_settings_git_server <- function(id = character(), r = shiny::reactiveValues(
       
       # Get README on git repo
       tryCatch({
-        dir <- paste0(r$app_folder, "/temp_files/git_repos")
+        dir <- paste0(r$app_folder, "/temp_files/", r$user_id, "/git_repos")
         new_file <- paste0(dir, "/", paste0(sample(c(0:9, letters[1:6]), 8, TRUE), collapse = ''), "_README.md")
         if (!dir.exists(dir)) dir.create(dir)
         
@@ -644,20 +644,20 @@ mod_settings_git_server <- function(id = character(), r = shiny::reactiveValues(
       # Copy locally git repo
       
       # Delete old files (> 24 hours)
-      git_repos_folder <- paste0(r$app_folder, "/temp_files/git_repos")
-      git_repos_dirs <- list.dirs(path = git_repos_folder, full.names = TRUE, recursive = FALSE)
-      
-      for (dir in git_repos_dirs) {
-        dir_time <- file.info(dir)$mtime
-        time_diff <- as.numeric(difftime(Sys.time(), dir_time, units = "hours"))
-        if (time_diff > 24) unlink(dir, recursive = TRUE, force = TRUE)
-      }
+      # git_repos_folder <- paste0(r$app_folder, "/temp_files/", r$user_id, "/git_repos")
+      # git_repos_dirs <- list.dirs(path = git_repos_folder, full.names = TRUE, recursive = FALSE)
+      # 
+      # for (dir in git_repos_dirs) {
+      #   dir_time <- file.info(dir)$mtime
+      #   time_diff <- as.numeric(difftime(Sys.time(), dir_time, units = "hours"))
+      #   if (time_diff > 24) unlink(dir, recursive = TRUE, force = TRUE)
+      # }
       
       if (length(input$edit_repo_selected_repo) > 1) link_id <- input$edit_repo_selected_repo$key
       else link_id <- input$edit_repo_selected_repo
       
       repo_url <- r$git_repos %>% dplyr::filter(id == link_id) %>% dplyr::pull(repo_url_address)
-      local_path <- paste0(r$app_folder, "/temp_files/git_repos/", paste0(sample(c(0:9, letters[1:6]), 64, TRUE), collapse = ''))
+      local_path <- paste0(r$app_folder, "/temp_files/", r$user_id, "/git_repos/", paste0(sample(c(0:9, letters[1:6]), 64, TRUE), collapse = ''))
       r$edit_git_local_path <- local_path
       
       error_loading_git_repo <- TRUE
@@ -1160,7 +1160,16 @@ mod_settings_git_server <- function(id = character(), r = shiny::reactiveValues(
         
         git2r::add(repo, ".")
         if (length(git2r::status(repo, unstaged = FALSE, untracked = FALSE, ignored = FALSE)$staged) > 0){
+          
           git2r::commit(repo, message = input$commit_message)
+          
+          # Create main branch if doesn't exist
+          git_branches <- names(git2r::branches(repo))
+          if (!"main" %in% git_branches){
+            git2r::branch_create(commit = git2r::last_commit(repo), name = "main")
+            git2r::checkout(repo, "main")
+          }
+          
           git2r::push(repo, "origin", "refs/heads/main", credentials = credentials)
         }
         

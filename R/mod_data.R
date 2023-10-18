@@ -75,11 +75,11 @@ mod_data_ui <- function(id = character(), i18n = character()){
       title = i18n$t(type),
       content = div(
         actionButton(ns(paste0(prefix, "_close_", type)), "", icon = icon("times"), style = "position:absolute; top:10px; right:10px;"),
-        shiny.fluent::Stack(horizontal = TRUE, tokens = list(childrenGap = 50),
+        shiny.fluent::Stack(horizontal = TRUE, tokens = list(childrenGap = 20),
           make_textfield(i18n = i18n, ns = ns, label = "name", id = paste0(type, "_name"), width = "300px"),
           plugin_div
         ),
-        shiny.fluent::Stack(horizontal = TRUE, tokens = list(childrenGap = 50),
+        shiny.fluent::Stack(horizontal = TRUE, tokens = list(childrenGap = 20),
           make_combobox(i18n = i18n, ns = ns, label = "vocabulary", id = paste0(type, "_vocabulary"), allowFreeform = FALSE, multiSelect = FALSE, width = "300px"),
           make_dropdown(i18n = i18n, ns = ns, label = "columns_concepts", id = paste0(type, "_vocabulary_concepts_table_cols"), width = "300px", multiSelect = TRUE,
             options = list(
@@ -111,7 +111,7 @@ mod_data_ui <- function(id = character(), i18n = character()){
             value = c(2, 3, 4, 5, 7, 8, 9)
           )
         ),
-        shiny.fluent::Stack(horizontal = TRUE, tokens = list(childrenGap = 20),
+        shiny.fluent::Stack(horizontal = TRUE, tokens = list(childrenGap = 0),
           div(
             shiny.fluent::Stack(horizontal = TRUE, tokens = list(childrenGap = 10),
               div(shiny.fluent::Toggle.shinyInput(ns(paste0(type, "_show_mapped_concepts")), value = FALSE), style = "margin-top:30px; margin-bottom:5px;"),
@@ -122,7 +122,7 @@ mod_data_ui <- function(id = character(), i18n = character()){
           conditionalPanel(condition = "input.widget_creation_show_mapped_concepts == true", ns = ns, 
             div(
               shiny.fluent::Stack(horizontal = TRUE, tokens = list(childrenGap = 10),
-                div(shiny.fluent::Toggle.shinyInput(ns(paste0(type, "_merge_mapped_concepts")), value = TRUE), style = "margin-top:30px;; margin-bottom:5px;"),
+                div(shiny.fluent::Toggle.shinyInput(ns(paste0(type, "_merge_mapped_concepts")), value = TRUE), style = "margin-top:30px;; margin-bottom:5px; margin-left:-10px;"),
                 div(i18n$t("merge_mapped_concepts"), style = "font-weight:bold; margin-top:30px;; margin-bottom:5px;")
               ),
               style = "width:330px;"
@@ -130,17 +130,17 @@ mod_data_ui <- function(id = character(), i18n = character()){
           ),
           div(
             shiny.fluent::Stack(horizontal = TRUE, tokens = list(childrenGap = 10),
-              div(shiny.fluent::Toggle.shinyInput(ns(paste0(type, "_hide_concepts_datatables")), value = FALSE), style = "margin-top:30px;; margin-bottom:5px;"),
+              div(shiny.fluent::Toggle.shinyInput(ns(paste0(type, "_hide_concepts_datatables")), value = FALSE), style = "margin-top:30px;; margin-bottom:5px; margin-left:-10px;"),
               div(i18n$t("hide_concepts_datatables"), style = "font-weight:bold; margin-top:30px;; margin-bottom:5px;")
             )
           )
         ),
         shiny.fluent::Stack(
-          horizontal = TRUE, tokens = list(childrenGap = 50),
+          horizontal = TRUE, tokens = list(childrenGap = 20),
           div(
             div(id = ns(paste0(type, "_vocabulary_selected_concepts_title")), class = "input_title", i18n$t("vocabulary_selected_concepts")),
             div(shiny.fluent::Dropdown.shinyInput(ns(paste0(type, "_vocabulary_selected_concepts")), value = NULL, options = list(), multiSelect = TRUE,
-              onChanged = htmlwidgets::JS(paste0("item => Shiny.setInputValue('", id, "-", type, "_vocabulary_selected_concepts_trigger', Math.random())"))), style = "width:650px;")
+              onChanged = htmlwidgets::JS(paste0("item => Shiny.setInputValue('", id, "-", type, "_vocabulary_selected_concepts_trigger', Math.random())"))), style = "width:620px;")
           ),
           div(shiny.fluent::DefaultButton.shinyInput(ns(paste0(type, "_reset_vocabulary_concepts")), i18n$t("reset")), style = "margin-top:39px;")
         ),
@@ -1889,7 +1889,7 @@ mod_data_server <- function(id = character(), r = shiny::reactiveValues(), d = s
       
       if (nrow(r$dataset_vocabularies) == 0) vocabulary_options = list()
       if (nrow(r$dataset_vocabularies) > 0) vocabulary_options <- convert_tibble_to_list(data = r$dataset_vocabularies, 
-        key_col = "vocabulary_id", text_col = "vocabulary_name", i18n = i18n)
+        key_col = "vocabulary_id", text_col = "vocabulary_id", i18n = i18n)
       
       for(name in c("widget_creation_vocabulary", "widget_settings_vocabulary")) shiny.fluent::updateComboBox.shinyInput(
         session, name, options = vocabulary_options, value = NULL)

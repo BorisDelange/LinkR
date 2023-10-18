@@ -827,7 +827,7 @@ mod_settings_app_database_server <- function(id = character(), r = shiny::reacti
       
       tryCatch({
         
-        exdir <- paste0(app_folder, "/temp_files/app_db/", as.character(Sys.time()) %>% stringr::str_replace_all(":| |-", "_"))
+        exdir <- paste0(app_folder, "/temp_files/", r$user_id, "/app_db/", as.character(Sys.time()) %>% stringr::str_replace_all(":| |-", "_"))
         dir.create(exdir)
         
         zip::unzip(input$db_restore$datapath, exdir = exdir)

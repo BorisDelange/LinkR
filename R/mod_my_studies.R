@@ -720,16 +720,16 @@ mod_my_studies_server <- function(id = character(), r = shiny::reactiveValues(),
       # tryCatch({
       #   
       #   # Clear temp dir
-      #   unlink(paste0(r$app_folder, "/temp_files"), recursive = TRUE, force = TRUE)
+      #   unlink(paste0(r$app_folder, "/temp_files/", r$user_id), recursive = TRUE, force = TRUE)
       #   
       #   markdown_settings <- paste0("```{r setup, include=FALSE}\nknitr::opts_knit$set(root.dir = '", 
-      #     r$app_folder, "/temp_files')\n",
-      #     "knitr::opts_chunk$set(root.dir = '", r$app_folder, "/temp_files/', fig.path = '", r$app_folder, "/temp_files/')\n```\n")
+      #     r$app_folder, "/temp_files/", r$user_id')\n",
+      #     "knitr::opts_chunk$set(root.dir = '", r$app_folder, "/temp_files/", r$user_id, "/', fig.path = '", r$app_folder, "/temp_files/')\n```\n")
       #   
       #   markdown_file <- paste0(markdown_settings, study_description)
       #   
       #   # Create temp dir
-      #   dir <- paste0(r$app_folder, "/temp_files")
+      #   dir <- paste0(r$app_folder, "/temp_files/", r$user_id)
       #   file <- paste0(dir, "/", as.character(Sys.time()) %>% stringr::str_replace_all(":", "_"), ".Md")
       #   if (!dir.exists(dir)) dir.create(dir)
       #   
@@ -1260,16 +1260,15 @@ mod_my_studies_server <- function(id = character(), r = shiny::reactiveValues(),
       tryCatch({
         
         # Clear temp dir
-        # unlink(paste0(r$app_folder, "/temp_files"), recursive = TRUE, force = TRUE)
         
         markdown_settings <- paste0("```{r setup, include=FALSE}\nknitr::opts_knit$set(root.dir = '", 
-          r$app_folder, "/temp_files/markdowns')\n",
-          "knitr::opts_chunk$set(root.dir = '", r$app_folder, "/temp_files/markdowns', fig.path = '", r$app_folder, "/temp_files/markdowns')\n```\n")
+          r$app_folder, "/temp_files/", r$user_id, "/markdowns')\n",
+          "knitr::opts_chunk$set(root.dir = '", r$app_folder, "/temp_files/", r$user_id, "/markdowns', fig.path = '", r$app_folder, "/temp_files/", r$user_id, "/markdowns')\n```\n")
         
         markdown_file <- paste0(markdown_settings, options_description)
         
         # Create temp dir
-        dir <- paste0(r$app_folder, "/temp_files/markdowns")
+        dir <- paste0(r$app_folder, "/temp_files", r$user_id, "//markdowns")
         file <- paste0(dir, "/", paste0(sample(c(0:9, letters[1:6]), 8, TRUE), collapse = ''), "_", as.character(Sys.time()) %>% stringr::str_replace_all(":", "_"), ".Md")
         if (!dir.exists(dir)) dir.create(dir)
         

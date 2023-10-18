@@ -803,11 +803,11 @@ mod_scripts_server <- function(id = character(), r = shiny::reactiveValues(), d 
       tryCatch({
 
         # Clear temp dir
-        # unlink(paste0(r$app_folder, "/temp_files"), recursive = TRUE, force = TRUE)
+        # unlink(paste0(r$app_folder, "/temp_files/", r$user_id), recursive = TRUE, force = TRUE)
 
         markdown_settings <- paste0("```{r setup, include=FALSE}\nknitr::opts_knit$set(root.dir = '",
-          r$app_folder, "/temp_files/markdowns')\n",
-          "knitr::opts_chunk$set(root.dir = '", r$app_folder, "/temp_files/markdowns/', fig.path = '", r$app_folder, "/temp_files/markdowns/')\n```\n")
+          r$app_folder, "/temp_files/", r$user_id, "/markdowns')\n",
+          "knitr::opts_chunk$set(root.dir = '", r$app_folder, "/temp_files/", r$user_id, "/markdowns/', fig.path = '", r$app_folder, "/temp_files/", r$user_id, "/markdowns/')\n```\n")
         
         # For local scripts
         
@@ -842,7 +842,7 @@ mod_scripts_server <- function(id = character(), r = shiny::reactiveValues(), d 
           # If there's an API key, copy all images
           else {
 
-            script_folder <- paste0(r$app_folder, "/temp_files/scripts/", script$unique_id)
+            script_folder <- paste0(r$app_folder, "/temp_files/", r$user_id, "/scripts/", script$unique_id)
             if (!dir.exists(script_folder)) dir.create(script_folder)
             
             tryCatch({
@@ -868,7 +868,7 @@ mod_scripts_server <- function(id = character(), r = shiny::reactiveValues(), d 
         markdown_file <- paste0(markdown_settings, script_description)
 
         # Create temp dir
-        dir <- paste0(r$app_folder, "/temp_files/markdowns")
+        dir <- paste0(r$app_folder, "/temp_files/", r$user_id, "/markdowns")
         file <- paste0(dir, "/", paste0(sample(c(0:9, letters[1:6]), 8, TRUE), collapse = ''), "_", as.character(Sys.time()) %>% stringr::str_replace_all(":", "_") %>% stringr::str_replace_all(" ", "_"), ".Md")
         if (!dir.exists(dir)) dir.create(dir)
 
@@ -900,7 +900,7 @@ mod_scripts_server <- function(id = character(), r = shiny::reactiveValues(), d 
       r$scripts_api_key <- api_key
       
       error_loading_remote_git <- TRUE
-      scripts_file <- paste0(r$app_folder, "/temp_files/scripts/scripts.xml")
+      scripts_file <- paste0(r$app_folder, "/temp_files/", r$user_id, "/scripts/scripts.xml")
       
       if (r$has_internet){
         
@@ -1769,16 +1769,16 @@ mod_scripts_server <- function(id = character(), r = shiny::reactiveValues(), d 
       tryCatch({
         
         # Clear temp dir
-        # unlink(paste0(r$app_folder, "/temp_files"), recursive = TRUE, force = TRUE)
+        # unlink(paste0(r$app_folder, "/temp_files/", r$user_id), recursive = TRUE, force = TRUE)
         
         markdown_settings <- paste0("```{r setup, include=FALSE}\nknitr::opts_knit$set(root.dir = '", 
-          r$app_folder, "/temp_files/markdowns')\n",
-          "knitr::opts_chunk$set(root.dir = '", r$app_folder, "/temp_files/markdowns', fig.path = '", r$app_folder, "/temp_files/markdowns')\n```\n")
+          r$app_folder, "/temp_files/", r$user_id, "/markdowns')\n",
+          "knitr::opts_chunk$set(root.dir = '", r$app_folder, "/temp_files/", r$user_id, "/markdowns', fig.path = '", r$app_folder, "/temp_files/", r$user_id, "/markdowns')\n```\n")
         
         markdown_file <- paste0(markdown_settings, options_description)
         
         # Create temp dir
-        dir <- paste0(r$app_folder, "/temp_files/markdowns")
+        dir <- paste0(r$app_folder, "/temp_files/", r$user_id, "/markdowns")
         file <- paste0(dir, "/", paste0(sample(c(0:9, letters[1:6]), 8, TRUE), collapse = ''), "_", as.character(Sys.time()) %>% stringr::str_replace_all(":", "_"), ".Md")
         if (!dir.exists(dir)) dir.create(dir)
         
@@ -1819,7 +1819,7 @@ mod_scripts_server <- function(id = character(), r = shiny::reactiveValues(), d 
         
         # Extract ZIP file
         
-        temp_dir <- paste0(r$app_folder, "/temp_files/scripts/", Sys.time() %>% stringr::str_replace_all(":| |-", ""), paste0(sample(c(0:9, letters[1:6]), 24, TRUE), collapse = ''))
+        temp_dir <- paste0(r$app_folder, "/temp_files/", r$user_id, "/scripts/", Sys.time() %>% stringr::str_replace_all(":| |-", ""), paste0(sample(c(0:9, letters[1:6]), 24, TRUE), collapse = ''))
         zip::unzip(input$import_scripts_upload$datapath, exdir = temp_dir)
         
         # Read XML file
@@ -2051,7 +2051,7 @@ mod_scripts_server <- function(id = character(), r = shiny::reactiveValues(), d 
         owd <- setwd(tempdir())
         on.exit(setwd(owd))
         
-        temp_dir <- paste0(r$app_folder, "/temp_files/scripts/", Sys.time() %>% stringr::str_replace_all(":| |-", ""), paste0(sample(c(0:9, letters[1:6]), 24, TRUE), collapse = ''))
+        temp_dir <- paste0(r$app_folder, "/temp_files/", r$user_id, "/scripts/", Sys.time() %>% stringr::str_replace_all(":| |-", ""), paste0(sample(c(0:9, letters[1:6]), 24, TRUE), collapse = ''))
         dir.create(temp_dir, recursive = TRUE)
         
         for (script_id in r$export_scripts_selected %>% dplyr::pull(id)){
