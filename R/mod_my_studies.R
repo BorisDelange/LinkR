@@ -208,9 +208,21 @@ mod_my_studies_ui <- function(id = character(), i18n = character(), language = "
     shinyjs::hidden(
       div(
         id = ns("export_study_card"),
-        make_card(i18n$t("export_study"),
+        make_shiny_ace_card(i18n$t("export_study"),
           div(
-            
+            shiny.fluent::Stack(
+              horizontal = TRUE, tokens = list(childrenGap = 10),
+              div(
+                div(id = ns("studies_to_export_title"), class = "input_title", i18n$t("studies_to_export")),
+                shiny.fluent::Dropdown.shinyInput(ns("studies_to_export"), multiSelect = TRUE,
+                  onChanged = htmlwidgets::JS(paste0("item => Shiny.setInputValue('", id, "-studies_to_export_trigger', Math.random())"))),
+                style = "width:400px;"
+              ),
+              div(shiny.fluent::PrimaryButton.shinyInput(ns("export_selected_studies"), 
+                i18n$t("export_studies"), iconProps = list(iconName = "Upload")), style = "margin-top:39px;")
+            ),
+            div(DT::DTOutput(ns("studies_to_export_datatable"))),
+            div(style = "visibility:hidden;", downloadButton(ns("export_studies_download"), label = ""))
           )
         )
       )
@@ -275,6 +287,21 @@ mod_my_studies_server <- function(id = character(), r = shiny::reactiveValues(),
     help_my_studies(output = output, r = r, id = id, language = language, i18n = i18n, ns = ns)
     
     observeEvent(input$copy_code_1, r$help_my_studies_copy_code_1 <- Sys.time())
+    
+    # --- --- --- --- --- -
+    # Update dropdowns ----
+    # --- --- --- --- --- -
+    
+    observeEvent(r$studies, {
+      
+      if (debug) cat(paste0("\n", Sys.time(), " - mod_my_studies - observer r$studies"))
+      
+      options <- convert_tibble_to_list(r$studies %>% dplyr::arrange(name), key_col = "id", text_col = "name")
+      
+      shiny.fluent::updateComboBox.shinyInput(session, "options_selected_study", options = options)
+      
+      r$reload_local_studies_datatable <- Sys.time()
+    })
     
     # --- --- --- --- --- --- --- --
     # When a dataset is selected ----
@@ -800,7 +827,8 @@ mod_my_studies_server <- function(id = character(), r = shiny::reactiveValues(),
         data = new_data, table = "studies", required_textfields = "study_name", req_unique_values = "name")
       
       # Reload datatable
-      r$studies_temp <- r$studies %>% dplyr::filter(dataset_id == r$selected_dataset) %>% dplyr::mutate(modified = FALSE) %>% dplyr::arrange(name)
+      r$reload_studies_datatable <- Sys.time()
+      # r$studies_temp <- r$studies %>% dplyr::filter(dataset_id == r$selected_dataset) %>% dplyr::mutate(modified = FALSE) %>% dplyr::arrange(name)
       
       if (perf_monitoring) monitor_perf(r = r, action = "stop", task = paste0("mod_my_studies - observer input$add_study"))
     })
@@ -833,7 +861,7 @@ mod_my_studies_server <- function(id = character(), r = shiny::reactiveValues(),
       
       if (nrow(r$studies) == 0) {
         
-        data <- tibble::tibble(id = integer(), name = character(), dataset_id = factor(),
+        data_studies_datatable <- tibble::tibble(id = integer(), name = character(), dataset_id = factor(),
           patient_lvl_tab_group_id = integer(), aggregated_tab_group_id = integer(), creator_id = factor(), 
           creation_datetime = character(), update_datetime = character(), deleted = integer(), modified = logical(), action = character())
       }
@@ -842,51 +870,69 @@ mod_my_studies_server <- function(id = character(), r = shiny::reactiveValues(),
         
         r$studies_temp <- r$studies %>% dplyr::mutate(modified = FALSE) %>% dplyr::arrange(name)
         
+        # Reset selected studies for export_studies and export_studies_selected
+        r$export_studies_temp <- r$studies_temp
+        r$export_studies_selected <- r$export_studies_temp %>% dplyr::slice(0)
+        
         # Prepare data for datatable
         
         r$studies_datatable_temp <- prepare_data_datatable(output = output, r = r, ns = ns, i18n = i18n, id = id,
           table = "studies", factorize_cols = studies_management_factorize_cols, action_buttons = action_buttons, data_input = r$studies_temp)
-        data <- r$studies_datatable_temp
+        data_studies_datatable <- r$studies_datatable_temp
+        
+        r$export_studies_datatable_temp <- prepare_data_datatable(output = output, r = r, ns = ns, i18n = i18n, id = id,
+          table = "studies", action_buttons = "add", data_input = r$export_studies_temp)
+        data_export_studies_datatable <- r$export_studies_datatable_temp
       }
         
       if (length(r$studies_datatable_proxy) == 0){
         
-        # Render datatable
+        # Render datatables
         
-        render_datatable(output = output, ns = ns, i18n = i18n, data = data,
+        render_datatable(output = output, ns = ns, i18n = i18n, data = data_studies_datatable,
           output_name = "studies_datatable", col_names = get_col_names("studies", i18n),
           editable_cols = studies_management_editable_cols, sortable_cols = studies_management_sortable_cols, centered_cols = studies_management_centered_cols, 
           column_widths = studies_management_column_widths, searchable_cols = studies_management_searchable_cols, 
           filter = TRUE, factorize_cols = studies_management_factorize_cols, hidden_cols = studies_management_hidden_cols,
           selection = "multiple")
         
+        render_datatable(output = output, ns = ns, i18n = i18n, data = data_export_studies_datatable,
+          output_name = "studies_to_export_datatable", col_names = get_col_names("studies", i18n),
+          sortable_cols = studies_management_sortable_cols, centered_cols = studies_management_centered_cols, 
+          column_widths = studies_management_column_widths, searchable_cols = studies_management_searchable_cols, 
+          filter = TRUE, hidden_cols = studies_management_hidden_cols)
+        
         # Create a proxy for datatable
         
         r$studies_datatable_proxy <- DT::dataTableProxy("studies_datatable", deferUntilFlush = FALSE)
+        r$studies_to_export_datatable_proxy <- DT::dataTableProxy("studies_to_export_datatable", deferUntilFlush = FALSE)
       }
       
-      if (length(r$studies_datatable_proxy) > 0) DT::replaceData(r$studies_datatable_proxy, data, resetPaging = FALSE, rownames = FALSE)
+      if (length(r$studies_datatable_proxy) > 0){
+        DT::replaceData(r$studies_datatable_proxy, data_studies_datatable, resetPaging = FALSE, rownames = FALSE)
+        DT::replaceData(r$studies_to_export_datatable_proxy, data_export_studies_datatable, resetPaging = FALSE, rownames = FALSE)
+      }
       
       if (perf_monitoring) monitor_perf(r = r, action = "stop", task = paste0("mod_my_studies - observer r$reload_studies_datatable"))
     })
     
     # Reload datatable
-    observeEvent(r$studies_temp, {
-      
-      if (debug) cat(paste0("\n", Sys.time(), " - mod_my_studies - observer r$studies_temp"))
-
-      # Reload datatable_temp variable
-      if (nrow(r$studies_temp) == 0) r$studies_datatable_temp <- tibble::tibble(id = integer(), name = character(), dataset_id = factor(),
-        patient_lvl_tab_group_id = integer(), aggregated_tab_group_id = integer(), creator_id = factor(),
-        creation_datetime = character(), update_datetime = character(), deleted = integer(), modified = logical(), action = character())
-      
-      if (nrow(r$studies_temp) > 0) r$studies_datatable_temp <- prepare_data_datatable(output = output, r = r, ns = ns, i18n = i18n, id = id,
-        table = "studies", factorize_cols = studies_management_factorize_cols, action_buttons = action_buttons, data_input = r$studies_temp)
-
-      # Reload data of datatable
-      if (length(r$studies_datatable_proxy) > 0) DT::replaceData(r$studies_datatable_proxy, 
-        r$studies_datatable_temp, resetPaging = FALSE, rownames = FALSE)
-    })
+    # observeEvent(r$studies_temp, {
+    #   
+    #   if (debug) cat(paste0("\n", Sys.time(), " - mod_my_studies - observer r$studies_temp"))
+    # 
+    #   # Reload datatable_temp variable
+    #   if (nrow(r$studies_temp) == 0) r$studies_datatable_temp <- tibble::tibble(id = integer(), name = character(), dataset_id = factor(),
+    #     patient_lvl_tab_group_id = integer(), aggregated_tab_group_id = integer(), creator_id = factor(),
+    #     creation_datetime = character(), update_datetime = character(), deleted = integer(), modified = logical(), action = character())
+    #   
+    #   if (nrow(r$studies_temp) > 0) r$studies_datatable_temp <- prepare_data_datatable(output = output, r = r, ns = ns, i18n = i18n, id = id,
+    #     table = "studies", factorize_cols = studies_management_factorize_cols, action_buttons = action_buttons, data_input = r$studies_temp)
+    # 
+    #   # Reload data of datatable
+    #   if (length(r$studies_datatable_proxy) > 0) DT::replaceData(r$studies_datatable_proxy, 
+    #     r$studies_datatable_temp, resetPaging = FALSE, rownames = FALSE)
+    # })
     
     # Updates on datatable data
     observeEvent(input$studies_datatable_cell_edit, {
@@ -964,6 +1010,7 @@ mod_my_studies_server <- function(id = character(), r = shiny::reactiveValues(),
       if (debug) cat(paste0("\n", Sys.time(), " - mod_my_studies - observer r$reload_studies"))
       
       r$studies_temp <- r$studies %>% dplyr::filter(dataset_id == r$selected_dataset) %>% dplyr::mutate(modified = FALSE) %>% dplyr::arrange(name)
+      r$reload_studies_datatable <- Sys.time()
       
       # Reset selected study
       m$selected_study <- NA_integer_
@@ -1119,6 +1166,7 @@ mod_my_studies_server <- function(id = character(), r = shiny::reactiveValues(),
       r$studies_temp <- r$studies %>%
         dplyr::mutate_at(c("creation_datetime", "update_datetime"), format_datetime, language = language, sec = FALSE) %>%
         dplyr::mutate(modified = FALSE) %>% dplyr::arrange(name)
+      r$reload_studies_datatable <- Sys.time()
       
       if (perf_monitoring) monitor_perf(r = r, action = "stop", task = paste0("mod_my_studies - observer input$options_save"))
     })
@@ -1289,5 +1337,335 @@ mod_my_studies_server <- function(id = character(), r = shiny::reactiveValues(),
     # Export a study ----
     # --- --- --- --- ---
     
+    # When add button is clicked
+    observeEvent(input$add_item, {
+      
+      if (debug) cat(paste0("\n", Sys.time(), " - mod_studies - observer input$add_item"))
+      
+      # Get ID of selected study
+      link_id <- as.integer(substr(input$add_item, nchar("add_item_") + 1, nchar(input$add_item)))
+      
+      # If this study is not already selected, add it to the selected items dropdown
+      
+      value <- integer(1)
+      if (nrow(r$export_studies_selected) > 0) value <- r$export_studies_selected %>% dplyr::pull(id)
+      
+      if (link_id %not_in% value){
+        
+        r$export_studies_selected <- r$export_studies_temp %>% dplyr::filter(id == link_id) %>%
+          dplyr::bind_rows(r$export_studies_selected)
+        
+        # Update dropdown of selected items
+        options <- convert_tibble_to_list(r$export_studies_selected, key_col = "id", text_col = "name", i18n = i18n)
+        value <- r$export_studies_selected %>% dplyr::pull(id)
+        shiny.fluent::updateDropdown.shinyInput(session, "studies_to_export",
+          options = options, value = value, multiSelect = TRUE, multiSelectDelimiter = " || ")
+      }
+      
+    })
+    
+    # When dropdown is modified
+    observeEvent(input$studies_to_export_trigger, {
+
+      if (debug) cat(paste0("\n", Sys.time(), " - mod_studies - observer input$studies_to_export"))
+
+      r$export_studies_selected <- r$export_studies_selected %>%
+        dplyr::filter(id %in% input$studies_to_export)
+
+      options <- convert_tibble_to_list(r$export_studies_selected, key_col = "id", text_col = "name", i18n = i18n)
+      value <- r$export_studies_selected %>% dplyr::pull(id)
+      shiny.fluent::updateDropdown.shinyInput(session, "studies_to_export",
+        options = options, value = value, multiSelect = TRUE, multiSelectDelimiter = " || ")
+    })
+    
+    # Export scripts
+    observeEvent(input$export_selected_studies, {
+
+      if (debug) cat(paste0("\n", Sys.time(), " - mod_studies - observer input$export_studies"))
+
+      req(nrow(r$export_studies_selected) > 0)
+
+      shinyjs::click("export_studies_download")
+    })
+    
+    output$export_studies_download <- downloadHandler(
+
+      filename = function() paste0("linkr_export_studies_",
+        Sys.time() %>% stringr::str_replace_all(" ", "_") %>% stringr::str_replace_all(":", "_") %>% as.character(), ".zip"),
+
+      content = function(file){
+        
+        if (perf_monitoring) monitor_perf(r = r, action = "start")
+        if (debug) cat(paste0("\n", Sys.time(), " - mod_studies - output$export_studies_download"))
+
+        owd <- setwd(tempdir())
+        on.exit(setwd(owd))
+
+        temp_dir <- paste0(r$app_folder, "/temp_files/", r$user_id, "/studies/", Sys.time() %>% stringr::str_replace_all(":| |-", ""), paste0(sample(c(0:9, letters[1:6]), 24, TRUE), collapse = ''))
+        dir.create(temp_dir, recursive = TRUE)
+
+        for (study_id in r$export_studies_selected %>% dplyr::pull(id)){
+
+          study <- r$studies %>% dplyr::filter(id == study_id)
+          options <- r$options %>% dplyr::filter(category == "study", link_id == study_id)
+
+          # Create folder if doesn't exist
+          study_dir <- paste0(r$app_folder, "/studies/", options %>% dplyr::filter(name == "unique_id") %>% dplyr::pull(value))
+          if (!dir.exists(study_dir)) dir.create(study_dir, recursive = TRUE)
+
+          # Create XML file
+          xml <- XML::newXMLDoc()
+          studies_node <- XML::newXMLNode("studies", doc = xml)
+          study_node <- XML::newXMLNode("study", parent = studies_node, doc = xml)
+          XML::newXMLNode("app_version", r$app_version, parent = study_node)
+          for(name in c("unique_id", "version", "author", paste0("name_", r$languages$code), paste0("category_", r$languages$code))) XML::newXMLNode(name,
+            options %>% dplyr::filter(name == !!name) %>% dplyr::pull(value), parent = study_node)
+          for(name in c(paste0("description_", r$languages$code))) XML::newXMLNode(name,
+            options %>% dplyr::filter(name == !!name) %>% dplyr::pull(value) %>% stringr::str_replace_all("''", "'"), parent = study_node)
+          for (name in c("creation_datetime", "update_datetime")) XML::newXMLNode(name, study %>% dplyr::pull(get(!!name)), parent = study_node)
+
+          list_of_files <- list.files(study_dir)
+
+          # Add images filenames in the XML
+          images <- list_of_files[grepl("\\.(png|jpg|jpeg|svg)$", tolower(list_of_files))]
+          images_node <- XML::newXMLNode("images", paste(images, collapse = ";;;"), parent = study_node)
+
+          # Create XML file
+          XML::saveXML(xml, file = paste0(study_dir, "/study.xml"))
+
+          # Copy files to temp dir
+          temp_dir_copy <- paste0(temp_dir, "/", options %>% dplyr::filter(name == "unique_id") %>% dplyr::pull(value))
+          if (!dir.exists(temp_dir_copy)) dir.create(temp_dir_copy, recursive = TRUE)
+          XML::saveXML(xml, file = paste0(temp_dir_copy, "/study.xml"))
+          file.copy(
+            paste0(study_dir, "/", list_of_files),
+            paste0(temp_dir_copy, "/", list_of_files),
+            overwrite = TRUE
+          )
+
+          # Export CSV files
+
+          # Tables :
+          # - patient_lvl_tabs_groups
+          # - patient_lvl_tabs
+          # - patient_lvl_widgets
+          # - patient_lvl_widgets_concepts
+          # - patient_lvl_widgets_options
+          # - aggregated_tabs_groups
+          # - aggregated_tabs
+          # - aggregated_widgets
+          # - aggregated_widgets_concepts
+          # - aggregated_widgets_options
+          # - plugins
+          # - code
+          # - options
+
+          corresponding_ids <- list()
+          for (table in c("plugins", "options", "code")) corresponding_ids[[table]] <- tibble::tibble(old_id = integer(), new_id = integer())
+          data <- list()
+
+          for (type in c("patient_lvl", "aggregated")){
+
+            # Get data
+            
+            ### tabs_groups
+            sql <- glue::glue_sql("SELECT * FROM {`paste0(type, '_tabs_groups')`} WHERE id = {study[[paste0(type, '_tab_group_id')]]} AND deleted IS FALSE", .con = r$db)
+            data[[paste0(type, "_tabs_groups")]] <- DBI::dbGetQuery(r$db, sql) %>% dplyr::mutate(creator_id = NA_integer_)
+            corresponding_ids[[paste0(type, "_tabs_groups")]] <- tibble::tibble(old_id = as.integer(data[[paste0(type, "_tabs_groups")]]$id), new_id = 1L)
+            
+            ### tabs
+            sql <- glue::glue_sql("SELECT * FROM {`paste0(type, '_tabs')`} WHERE tab_group_id = {study[[paste0(type, '_tab_group_id')]]} AND deleted IS FALSE", .con = r$db)
+            data[[paste0(type, "_tabs")]] <- DBI::dbGetQuery(r$db, sql) %>% dplyr::mutate(creator_id = NA_integer_)
+            if (nrow(data[[paste0(type, "_tabs")]]) > 0) corresponding_ids[[paste0(type, "_tabs")]] <- data[[paste0(type, "_tabs")]] %>% dplyr::select(old_id = id) %>% dplyr::mutate(new_id = 1:dplyr::n())
+            
+            ### widgets
+            sql <- glue::glue_sql("SELECT * FROM {`paste0(type, '_widgets')`} WHERE tab_id IN ({data[[paste0(type, '_tabs')]] %>% dplyr::pull(id)*}) AND deleted IS FALSE", .con = r$db)
+            data[[paste0(type, "_widgets")]] <- DBI::dbGetQuery(r$db, sql) %>% dplyr::mutate(creator_id = NA_integer_)
+            if (nrow(data[[paste0(type, "_widgets")]]) > 0) corresponding_ids[[paste0(type, "_widgets")]] <- data[[paste0(type, "_widgets")]] %>% dplyr::select(old_id = id) %>% dplyr::mutate(new_id = 1:dplyr::n())
+            
+            ### widgets_concepts
+            sql <- glue::glue_sql("SELECT * FROM {`paste0(type, '_widgets_concepts')`} WHERE widget_id IN ({data[[paste0(type, '_widgets')]] %>% dplyr::pull(id)*}) AND deleted IS FALSE", .con = m$db)
+            data[[paste0(type, "_widgets_concepts")]] <- DBI::dbGetQuery(m$db, sql) %>% dplyr::mutate(creator_id = NA_integer_)
+            if (nrow(data[[paste0(type, "_widgets_concepts")]]) > 0) corresponding_ids[[paste0(type, "_widgets_concepts")]] <- data[[paste0(type, "_widgets_concepts")]] %>% dplyr::select(old_id = id) %>% dplyr::mutate(new_id = 1:dplyr::n())
+            
+            ### widgets_options
+            sql <- glue::glue_sql("SELECT * FROM {`paste0(type, '_widgets_options')`} WHERE widget_id IN ({data[[paste0(type, '_widgets')]] %>% dplyr::pull(id)*}) AND deleted IS FALSE", .con = m$db)
+            data[[paste0(type, "_widgets_options")]] <- DBI::dbGetQuery(m$db, sql) %>% dplyr::mutate(creator_id = NA_integer_, person_id = NA_integer_)
+            if (nrow(data[[paste0(type, "_widgets_options")]]) > 0) corresponding_ids[[paste0(type, "_widgets_options")]] <- data[[paste0(type, "_widgets_options")]] %>% dplyr::select(old_id = id) %>% dplyr::mutate(new_id = 1:dplyr::n())
+            
+            ### plugins
+            if (type == "patient_lvl") tab_type_id <- 1L else tab_type_id <- 2L
+            sql <- glue::glue_sql("SELECT * FROM plugins WHERE tab_type_id = {tab_type_id} AND id IN ({data[[paste0(type, '_widgets')]] %>% dplyr::distinct(plugin_id) %>% dplyr::pull()*}) AND deleted IS FALSE", .con = r$db)
+            data[[paste0(type, "_plugins")]] <- DBI::dbGetQuery(r$db, sql)
+            if (nrow(data[[paste0(type, "_plugins")]]) > 0){
+              if (nrow(corresponding_ids$plugins) > 0) last_row <- max(corresponding_ids$plugins$new_id)
+              else last_row <- 0L
+              corresponding_ids$plugins <- corresponding_ids$plugins %>% dplyr::bind_rows(
+                data[[paste0(type, "_plugins")]] %>% dplyr::select(old_id = id) %>% dplyr::mutate(new_id = last_row + 1:dplyr::n()))
+            }
+            
+            ### options (for plugins)
+            sql <- glue::glue_sql("SELECT * FROM options WHERE category = 'plugin' AND link_id IN ({data[[paste0(type, '_plugins')]] %>% dplyr::distinct(id) %>% dplyr::pull()*}) AND deleted IS FALSE", .con = r$db)
+            data[[paste0(type, "_options")]] <- DBI::dbGetQuery(r$db, sql)
+            if (nrow(data[[paste0(type, "_options")]]) > 0){
+              if (nrow(corresponding_ids$options) > 0) last_row <- max(corresponding_ids$options$new_id)
+              else last_row <- 0L
+              corresponding_ids$options <- corresponding_ids$options %>% dplyr::bind_rows(
+                data[[paste0(type, "_options")]] %>% dplyr::select(old_id = id) %>% dplyr::mutate(new_id = last_row + 1:dplyr::n()))
+            }
+            
+            ### code (for plugins)
+            sql <- glue::glue_sql("SELECT * FROM code WHERE category = 'plugin' AND link_id IN ({data[[paste0(type, '_plugins')]] %>% dplyr::distinct(id) %>% dplyr::pull()*}) AND deleted IS FALSE", .con = r$db)
+            data[[paste0(type, "_code")]] <- DBI::dbGetQuery(r$db, sql)
+            if (nrow(data[[paste0(type, "_code")]]) > 0){
+              if (nrow(corresponding_ids$code) > 0) last_row <- max(corresponding_ids$code$new_id)
+              else last_row <- 0L
+              corresponding_ids$code <- corresponding_ids$code %>% dplyr::bind_rows(
+                data[[paste0(type, "_code")]] %>% dplyr::select(old_id = id) %>% dplyr::mutate(new_id = last_row + 1:dplyr::n()))
+            }
+            
+            # Change IDs
+            
+            ### tabs_groups
+            data[[paste0(type, "_tabs_groups")]] <- data[[paste0(type, "_tabs_groups")]] %>% dplyr::mutate(id = 1L)
+            
+            ### tabs
+            if (nrow(data[[paste0(type, "_tabs")]]) > 0) data[[paste0(type, "_tabs")]] <- data[[paste0(type, "_tabs")]] %>%
+              dplyr::left_join(corresponding_ids[[paste0(type, "_tabs")]] %>% dplyr::select(id = old_id, new_id), by = "id") %>%
+              dplyr::left_join(corresponding_ids[[paste0(type, "_tabs")]] %>% dplyr::select(parent_tab_id = old_id, new_parent_tab_id = new_id), by = "parent_tab_id") %>%
+              dplyr::select(-id, -parent_tab_id) %>%
+              dplyr::rename(id = new_id, parent_tab_id = new_parent_tab_id) %>%
+              dplyr::relocate(id, .before = "name") %>%
+              dplyr::relocate(parent_tab_id, .before = "display_order") %>%
+              dplyr::mutate(tab_group_id = 1L)
+            
+            ### widgets
+            if (nrow(data[[paste0(type, "_widgets")]]) > 0) data[[paste0(type, "_widgets")]] <- data[[paste0(type, "_widgets")]] %>%
+              dplyr::left_join(corresponding_ids[[paste0(type, "_widgets")]] %>% dplyr::select(id = old_id, new_id = new_id), by = "id") %>%
+              dplyr::left_join(corresponding_ids[[paste0(type, "_tabs")]] %>% dplyr::select(tab_id = old_id, new_tab_id = new_id), by = "tab_id") %>%
+              dplyr::left_join(corresponding_ids$plugins %>% dplyr::select(plugin_id = old_id, new_plugin_id = new_id), by = "plugin_id") %>%
+              dplyr::select(-id, -tab_id, -plugin_id) %>%
+              dplyr::rename(id = new_id, tab_id = new_tab_id, plugin_id = new_plugin_id) %>%
+              dplyr::relocate(id, .before = "name") %>%
+              dplyr::relocate(tab_id, .after = "name") %>%
+              dplyr::relocate(plugin_id, .before = "display_order")
+            
+            ### widgets_concepts
+            if (nrow(data[[paste0(type, "_widgets_concepts")]]) > 0) data[[paste0(type, "_widgets_concepts")]] <- data[[paste0(type, "_widgets_concepts")]] %>%
+              dplyr::left_join(corresponding_ids[[paste0(type, "_widgets_concepts")]] %>% dplyr::select(id = old_id, new_id = new_id), by = "id") %>%
+              dplyr::left_join(corresponding_ids[[paste0(type, "_widgets")]] %>% dplyr::select(widget_id = old_id, new_widget_id = new_id), by = "widget_id") %>%
+              dplyr::select(-id, -widget_id) %>%
+              dplyr::rename(id = new_id, widget_id = new_widget_id) %>%
+              dplyr::relocate(id, .before = "concept_id") %>%
+              dplyr::relocate(widget_id, .after = "id")
+            
+            ### widgets_options
+            if (nrow(data[[paste0(type, "_widgets_options")]]) > 0) data[[paste0(type, "_widgets_options")]] <- data[[paste0(type, "_widgets_options")]] %>%
+              dplyr::left_join(corresponding_ids[[paste0(type, "_widgets_options")]] %>% dplyr::select(id = old_id, new_id = new_id), by = "id") %>%
+              dplyr::left_join(corresponding_ids[[paste0(type, "_widgets")]] %>% dplyr::select(widget_id = old_id, new_widget_id = new_id), by = "widget_id") %>%
+              dplyr::select(-id, -widget_id) %>%
+              dplyr::rename(id = new_id, widget_id = new_widget_id) %>%
+              dplyr::relocate(id, .before = "person_id") %>%
+              dplyr::relocate(widget_id, .after = "id")
+            
+            ### plugins
+            if (nrow(data[[paste0(type, "_plugins")]]) > 0) data[[paste0(type, "_plugins")]] <- data[[paste0(type, "_plugins")]] %>%
+              dplyr::left_join(corresponding_ids$plugins %>% dplyr::select(id = old_id, new_id), by = "id") %>%
+              dplyr::select(-id) %>%
+              dplyr::rename(id = new_id) %>%
+              dplyr::relocate(id, .before = "name")
+            
+            ### options
+            if (nrow(data[[paste0(type, "_options")]]) > 0) data[[paste0(type, "_options")]] <- data[[paste0(type, "_options")]] %>%
+              dplyr::left_join(corresponding_ids$options %>% dplyr::select(id = old_id, new_id), by = "id") %>%
+              dplyr::left_join(corresponding_ids$plugins %>% dplyr::select(link_id = old_id, new_link_id = new_id), by = "link_id") %>%
+              dplyr::select(-id, -link_id) %>%
+              dplyr::rename(id = new_id, link_id = new_link_id) %>%
+              dplyr::relocate(id, .before = "category") %>%
+              dplyr::relocate(link_id, .before = "name")
+            
+            ### code
+            if (nrow(data[[paste0(type, "_code")]]) > 0) data[[paste0(type, "_code")]] <- data[[paste0(type, "_code")]] %>%
+              dplyr::left_join(corresponding_ids$code %>% dplyr::select(id = old_id, new_id), by = "id") %>%
+              dplyr::left_join(corresponding_ids$plugins %>% dplyr::select(link_id = old_id, new_link_id = new_id), by = "link_id") %>%
+              dplyr::select(-id, -link_id) %>%
+              dplyr::rename(id = new_id, link_id = new_link_id) %>%
+              dplyr::relocate(id, .before = "category") %>%
+              dplyr::relocate(link_id, .before = "code")
+          }
+          
+          # Put plugins, options & code together
+          data$plugins <- data$patient_lvl_plugins %>% dplyr::bind_rows(data$aggregated_plugins)
+          data$options <- data$patient_lvl_options %>% dplyr::bind_rows(data$aggregated_options)
+          data$code <- data$patient_lvl_code %>% dplyr::bind_rows(data$aggregated_code)
+          
+          # Create CSV files
+          dir.create(paste0(temp_dir_copy, "/app_database"))
+          for (csv_file in c("patient_lvl_tabs_groups", "patient_lvl_tabs", "patient_lvl_widgets", "patient_lvl_widgets_concepts", "patient_lvl_widgets_options", 
+            "aggregated_tabs_groups", "aggregated_tabs", "aggregated_widgets", "aggregated_widgets_concepts", "aggregated_widgets_options",
+            "plugins", "options", "code")) readr::write_csv(data[[csv_file]],  paste0(temp_dir_copy, "/app_database/", csv_file, ".csv"))
+          
+          # Copy plugins folders
+          dir.create(paste0(temp_dir_copy, "/plugins"))
+          dir.create(paste0(temp_dir_copy, "/plugins/patient_lvl"))
+          dir.create(paste0(temp_dir_copy, "/plugins/aggregated"))
+          
+          if (nrow(data$plugins) > 0){
+            for (i in 1:nrow(data$plugins)){
+              plugin <- data$plugins[i, ]
+              unique_id <- data$options %>% dplyr::filter(category == "plugin" & name == "unique_id" & link_id == plugin$id) %>% dplyr::pull(value)
+              if (plugin$tab_type_id == 1) type <- "patient_lvl" else type <- "aggregated"
+              
+              plugin_dir <- paste0(r$app_folder, "/plugins/", type, "/", unique_id)
+              if (dir.exists(plugin_dir)){
+                list_of_files <- list.files(plugin_dir)
+                dir.create(paste0(temp_dir_copy, "/plugins/", type, "/", unique_id))
+                file.copy(paste0(plugin_dir, "/", list_of_files), paste0(temp_dir_copy, "/plugins/", type, "/", unique_id, "/", list_of_files))
+              }
+            }
+          }
+        }
+
+        # Create XML file with all exported studies
+
+        studies_tibble <- tibble::tibble(app_version = character(), unique_id = character(), version = character(), author = character())
+        prefixes <- c("description", "name", "category")
+        new_cols <- outer(prefixes, r$languages$code, paste, sep = "_") %>% as.vector()
+        for(col in new_cols) if(!col %in% colnames(studies_tibble)) studies_tibble <- studies_tibble %>% dplyr::mutate(!!col := "")
+        studies_tibble <- studies_tibble %>% dplyr::mutate(creation_datetime = character(), update_datetime = character())
+
+        dirs <- list.dirs(temp_dir, full.names = TRUE)
+        for (dir in dirs){
+          if (dir != temp_dir & !grepl("/plugins", dir) & !grepl("/app_database", dir)){
+            studies_tibble <-
+              studies_tibble %>%
+              dplyr::bind_rows(
+                xml2::read_xml(paste0(dir, "/study.xml")) %>%
+                  XML::xmlParse() %>%
+                  XML::xmlToDataFrame(nodes = XML::getNodeSet(., "//study")) %>%
+                  tibble::as_tibble()
+              )
+          }
+        }
+
+        studies_xml <- XML::newXMLDoc()
+        studies_node <- XML::newXMLNode("studies", doc = studies_xml)
+
+        studies_nodes <- apply(studies_tibble, 1, function(x) {
+          study_node <- XML::newXMLNode("study")
+          XML::addChildren(study_node, lapply(names(x), function(y) XML::newXMLNode(y, x[y])))
+        })
+
+        XML::xmlParent(studies_nodes) <- studies_node
+
+        XML::saveXML(studies_xml, file = paste0(temp_dir, "/studies.xml"))
+
+        # Create a ZIP
+
+        zip::zipr(file, list.files(temp_dir, full.names = TRUE))
+
+        if (perf_monitoring) monitor_perf(r = r, action = "stop", task = paste0("mod_studies - output$export_studies_download"))
+      }
+    )
   })
 }

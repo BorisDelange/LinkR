@@ -56,62 +56,71 @@ mod_vocabularies_ui <- function(id = character(), i18n = character()){
         id = ns("vocabularies_concepts_card"),
         make_card(i18n$t("concepts"),
           div(
-            shiny.fluent::Stack(horizontal = TRUE, tokens = list(childrenGap = 10),
-              make_combobox(i18n = i18n, ns = ns, label = "vocabulary", id = "vocabulary", width = "300px", allowFreeform = FALSE, multiSelect = FALSE),
-              div(style = "width:20px;"),
-              make_dropdown(i18n = i18n, ns = ns, label = "columns", id = "vocabulary_table_cols", width = "300px", multiSelect = TRUE,
-                options = list(
-                  list(key = 1, text = i18n$t("vocabulary_id_1")),
-                  list(key = 2, text = i18n$t("concept_id_1")),
-                  list(key = 3, text = i18n$t("concept_name_1")),
-                  list(key = 4, text = i18n$t("concept_display_name_1")),
-                  list(key = 5, text = i18n$t("relationship_id")),
-                  list(key = 6, text = i18n$t("vocabulary_id_2")),
-                  list(key = 7, text = i18n$t("concept_id_2")),
-                  list(key = 8, text = i18n$t("concept_name_2")),
-                  list(key = 9, text = i18n$t("domain_id")),
-                  list(key = 10, text = i18n$t("concept_class_id")),
-                  list(key = 11, text = i18n$t("standard_concept")),
-                  list(key = 12, text = i18n$t("concept_code")),
-                  list(key = 13, text = i18n$t("valid_start_date")),
-                  list(key = 14, text = i18n$t("valid_end_date")),
-                  list(key = 15, text = i18n$t("invalid_reason")),
-                  list(key = 16, text = i18n$t("num_patients")),
-                  list(key = 17, text = i18n$t("num_rows"))
-                ),
-                value = c(2, 3, 4, 9, 16, 17)
-              ),
-              div(style = "width:10px;"),
-              div(shiny.fluent::Toggle.shinyInput(ns("vocabulary_show_mapped_concepts"), value = FALSE), style = "margin-top:45px;"),
-              div(i18n$t("show_mapped_concepts"), style = "font-weight:bold; margin-top:45px; margin-right:30px;")
-            ),
-            conditionalPanel(
-              condition = "input.vocabulary_concepts_pivot == null | input.vocabulary_concepts_pivot == 'vocabulary_concepts_table_view'", ns = ns,
-              DT::DTOutput(ns("vocabulary_concepts")),
-              conditionalPanel("input.vocabulary == null", ns = ns, br()),
-              shiny.fluent::Stack(horizontal = TRUE, tokens = list(childrenGap = 10),
-                shiny.fluent::DefaultButton.shinyInput(ns("reload_vocabulary_concepts_cache"), i18n$t("reload_cache")),
-                conditionalPanel(
-                  condition = "input.vocabulary != null", ns = ns,
-                  shiny.fluent::PrimaryButton.shinyInput(ns("save_vocabulary_concepts"), i18n$t("save"))
-                )
-              ), br(),
-              conditionalPanel(
-                condition = "input.vocabulary != null", ns = ns,
-                div(
-                  id = ns("vocabulary_datatable_selected_item_div"),
-                  div(uiOutput(ns("vocabulary_datatable_selected_item")), style = "display:relative; float:left; width:50%;"),
-                  div(
-                    shiny.fluent::Stack(horizontal = TRUE, tokens = list(childrenGap = 10),
-                      div(shiny.fluent::Dropdown.shinyInput(ns("vocabulary_datatable_selected_item_plot_variable")), style = "width:50%; margin-left:42px;")#,
-                      # div(shiny.fluent::Slider.shinyInput(ns("vocabulary_datatable_selected_item_plot_bins"), value = 30, min = 1, max = 100), style = "width:50%; margin-left:42px;")
+            shinyjs::hidden(
+              div(
+                id = ns("vocabularies_concepts_div"),
+                shiny.fluent::Stack(horizontal = TRUE, tokens = list(childrenGap = 10),
+                  make_combobox(i18n = i18n, ns = ns, label = "vocabulary", id = "vocabulary", width = "300px", allowFreeform = FALSE, multiSelect = FALSE),
+                  div(style = "width:20px;"),
+                  make_dropdown(i18n = i18n, ns = ns, label = "columns", id = "vocabulary_table_cols", width = "300px", multiSelect = TRUE,
+                    options = list(
+                      list(key = 1, text = i18n$t("vocabulary_id_1")),
+                      list(key = 2, text = i18n$t("concept_id_1")),
+                      list(key = 3, text = i18n$t("concept_name_1")),
+                      list(key = 4, text = i18n$t("concept_display_name_1")),
+                      list(key = 5, text = i18n$t("relationship_id")),
+                      list(key = 6, text = i18n$t("vocabulary_id_2")),
+                      list(key = 7, text = i18n$t("concept_id_2")),
+                      list(key = 8, text = i18n$t("concept_name_2")),
+                      list(key = 9, text = i18n$t("domain_id")),
+                      list(key = 10, text = i18n$t("concept_class_id")),
+                      list(key = 11, text = i18n$t("standard_concept")),
+                      list(key = 12, text = i18n$t("concept_code")),
+                      list(key = 13, text = i18n$t("valid_start_date")),
+                      list(key = 14, text = i18n$t("valid_end_date")),
+                      list(key = 15, text = i18n$t("invalid_reason")),
+                      list(key = 16, text = i18n$t("num_patients")),
+                      list(key = 17, text = i18n$t("num_rows"))
                     ),
-                    uiOutput(ns("vocabulary_datatable_selected_item_error_message")),
-                    plotly::plotlyOutput(ns("vocabulary_datatable_selected_item_plot"), height = "280px"), 
-                    style = "display:relative; float:right; width:50%;"
+                    value = c(2, 3, 4, 9, 16, 17)
+                  ),
+                  div(style = "width:10px;"),
+                  div(shiny.fluent::Toggle.shinyInput(ns("vocabulary_show_mapped_concepts"), value = FALSE), style = "margin-top:45px;"),
+                  div(i18n$t("show_mapped_concepts"), style = "font-weight:bold; margin-top:45px; margin-right:30px;")
+                ),
+                conditionalPanel(
+                  condition = "input.vocabulary_concepts_pivot == null | input.vocabulary_concepts_pivot == 'vocabulary_concepts_table_view'", ns = ns,
+                  DT::DTOutput(ns("vocabulary_concepts")),
+                  conditionalPanel("input.vocabulary == null", ns = ns, br()),
+                  shiny.fluent::Stack(horizontal = TRUE, tokens = list(childrenGap = 10),
+                    shiny.fluent::DefaultButton.shinyInput(ns("reload_vocabulary_concepts_cache"), i18n$t("reload_cache")),
+                    conditionalPanel(
+                      condition = "input.vocabulary != null", ns = ns,
+                      shiny.fluent::PrimaryButton.shinyInput(ns("save_vocabulary_concepts"), i18n$t("save"))
+                    )
+                  ), br(),
+                  conditionalPanel(
+                    condition = "input.vocabulary != null", ns = ns,
+                    div(
+                      id = ns("vocabulary_datatable_selected_item_div"),
+                      div(uiOutput(ns("vocabulary_datatable_selected_item")), style = "display:relative; float:left; width:50%;"),
+                      div(
+                        shiny.fluent::Stack(horizontal = TRUE, tokens = list(childrenGap = 10),
+                          div(shiny.fluent::Dropdown.shinyInput(ns("vocabulary_datatable_selected_item_plot_variable")), style = "width:50%; margin-left:42px;")#,
+                          # div(shiny.fluent::Slider.shinyInput(ns("vocabulary_datatable_selected_item_plot_bins"), value = 30, min = 1, max = 100), style = "width:50%; margin-left:42px;")
+                        ),
+                        uiOutput(ns("vocabulary_datatable_selected_item_error_message")),
+                        plotly::plotlyOutput(ns("vocabulary_datatable_selected_item_plot"), height = "280px"), 
+                        style = "display:relative; float:right; width:50%;"
+                      )
+                    )
                   )
                 )
               )
+            ),
+            div(
+              id = ns("choose_a_dataset_card"),
+              div(shiny.fluent::MessageBar(i18n$t("choose_a_damatart_left_side"), messageBarType = 5), style = "margin-top:10px;")
             )
           )
         )
@@ -374,7 +383,8 @@ mod_vocabularies_server <- function(id = character(), r = shiny::reactiveValues(
       if (debug) cat(paste0("\n", Sys.time(), " - mod_vocabularies - observer r$selected_dataset 1"))
       
       # Show first card & hide "choose a dataset" card
-      # shinyjs::hide("choose_a_dataset_card")
+      shinyjs::hide("choose_a_dataset_card")
+      if ("vocabularies_concepts_card" %in% r$user_accesses) shinyjs::show("vocabularies_concepts_div")
       # shinyjs::show("menu")
       # if (length(input$current_tab) == 0){
       #   if ("vocabularies_concepts_card" %in% r$user_accesses) shinyjs::show("vocabularies_concepts_card")

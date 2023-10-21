@@ -451,7 +451,7 @@ mod_scripts_server <- function(id = character(), r = shiny::reactiveValues(), d 
       
       shiny.fluent::updateComboBox.shinyInput(session, "code_selected_script", options = options)
       shiny.fluent::updateComboBox.shinyInput(session, "options_selected_script", options = options)
-      shiny.fluent::updateComboBox.shinyInput(session, "scripts_description_selected_script", options = options)
+      # shiny.fluent::updateComboBox.shinyInput(session, "scripts_description_selected_script", options = options)
       
       r$reload_local_scripts_datatable <- Sys.time()
     })
@@ -466,7 +466,7 @@ mod_scripts_server <- function(id = character(), r = shiny::reactiveValues(), d 
       
       shiny.fluent::updateComboBox.shinyInput(session, "code_selected_script", value = NULL)
       shiny.fluent::updateComboBox.shinyInput(session, "options_selected_script", value = NULL)
-      shiny.fluent::updateComboBox.shinyInput(session, "scripts_description_selected_script", value = NULL)
+      # shiny.fluent::updateComboBox.shinyInput(session, "scripts_description_selected_script", value = NULL)
       
       output$scripts_description_markdown_result <- renderUI("")
       shinyAce::updateAceEditor(session, "ace_edit_code", value = "")

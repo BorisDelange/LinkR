@@ -1286,7 +1286,8 @@ mod_data_server <- function(id = character(), r = shiny::reactiveValues(), d = s
       last_row_widgets_concepts <- get_last_row(m$db, paste0(prefix, "_widgets_concepts"))
       
       has_vocabulary_concepts <- TRUE
-      selected_concepts <- tibble::tibble()
+      selected_concepts <- tibble::tibble(concept_id = integer(), concept_name = character(), concept_display_name = character(), domain_id = character(),
+        mapped_to_concept_id = integer(), merge_mapped_concepts = logical())
       
       if (length(r[[paste0(prefix, "_widget_settings_vocabulary_selected_concepts")]]) == 0) has_vocabulary_concepts <- FALSE
       if (length(r[[paste0(prefix, "_widget_settings_vocabulary_selected_concepts")]]) > 0) if (nrow(r[[paste0(prefix, "_widget_settings_vocabulary_selected_concepts")]]) == 0) has_vocabulary_concepts <- FALSE
@@ -2386,7 +2387,8 @@ mod_data_server <- function(id = character(), r = shiny::reactiveValues(), d = s
       last_row_widgets_concepts <- get_last_row(m$db, paste0(prefix, "_widgets_concepts"))
       
       has_vocabulary_concepts <- TRUE
-      selected_concepts <- tibble::tibble()
+      selected_concepts <- tibble::tibble(concept_id = integer(), concept_name = character(), concept_display_name = character(), domain_id = character(),
+        mapped_to_concept_id = integer(), merge_mapped_concepts = logical())
       
       if (length(r[[paste0(prefix, "_widget_creation_vocabulary_selected_concepts")]]) == 0) has_vocabulary_concepts <- FALSE
       if (length(r[[paste0(prefix, "_widget_creation_vocabulary_selected_concepts")]]) > 0) if (nrow(r[[paste0(prefix, "_widget_creation_vocabulary_selected_concepts")]]) == 0) has_vocabulary_concepts <- FALSE

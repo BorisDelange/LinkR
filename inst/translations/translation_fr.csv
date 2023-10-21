@@ -97,6 +97,7 @@ import_script,Importer un script
 import_scripts,Importer des scripts
 export_script,Exporter un script
 export_scripts,Exporter des scripts
+export_studies,Exporter des études
 export_selected_scripts,Exporter les scripts
 export_plugins_remote_git,Exporter sur dépôt git distant
 import_and_export_plugins,Importer et exporter des plugins
@@ -434,6 +435,7 @@ replace_already_existing_datasets,Remplacer les sets de données déjà existant
 replace_already_existing_vocabularies,Remplacer les terminologies déjà existants
 plugins_to_export,Plugins à exporter
 scripts_to_export,Scripts à exporter
+studies_to_export,Etudes à exporter
 datasets_to_export,Sets de données à exporter
 vocabularies_to_export,Terminologies à exporter
 tables_to_export,Tables à exporter

@@ -180,12 +180,12 @@ db_create_tables <- function(db, type = character(), dbms = character()){
         creator_id = integer(), datetime = character(), deleted = logical()))
     
     db_create_table(db, "patient_lvl_widgets_options", primary_key_col = "id", dbms = dbms, text_cols = "value",
-      tibble::tibble(id = integer(), widget_id = integer(), patient_id = integer(), link_id = integer(),
+      tibble::tibble(id = integer(), widget_id = integer(), person_id = integer(), link_id = integer(),
         category = character(), name = character(), value = character(), value_num = numeric(),
         creator_id = integer(), datetime = character(), deleted = logical()))
     
     db_create_table(db, "aggregated_widgets_options", primary_key_col = "id", dbms = dbms, text_cols = "value",
-      tibble::tibble(id = integer(), widget_id = integer(), patient_id = integer(), link_id = integer(),
+      tibble::tibble(id = integer(), widget_id = integer(), person_id = integer(), link_id = integer(),
         category = character(), name = character(), value = character(), value_num = numeric(),
         creator_id = integer(), datetime = character(), deleted = logical()))
     

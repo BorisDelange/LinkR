@@ -226,7 +226,7 @@ mod_settings_app_database_ui <- function(id = character(), i18n = character()){
               tokens = list(childrenGap = 5),
               div(shiny.fluent::PrimaryButton.shinyInput(ns("request"), i18n$t("request")), style = "width:300px;"), br(), br(),
               div(textOutput(ns("datetime_request_execution")), style = "color:#878787;"), br(),
-              div(shiny::verbatimTextOutput(ns("request_result")), 
+              div(shiny::uiOutput(ns("request_result")), 
                 style = "width: 99%; border-style: dashed; border-width: 1px; padding: 0px 8px 0px 8px; margin-right: 5px;")
             )
           )
@@ -636,28 +636,26 @@ mod_settings_app_database_server <- function(id = character(), r = shiny::reacti
         
         # Capture console output of our code
         
-        captured_output <-
-          capture.output(tryCatch({
-            # dbSendStatement if it is not a select
-            if (!grepl("^select", tolower(request))) capture.output({
-              DBI::dbSendStatement(db, request) -> query
-              print(query)
-              DBI::dbClearResult(query)
-            }) -> result
-            
-            # Else, a dbGetQuery
-            else capture.output(DBI::dbGetQuery(db, request) %>% tibble::as_tibble() %>% print(n = 1000)) -> result
-            
-            # Render result
-            result
-            
-          }, error = function(e) print(e), warning = function(w) print(w)))
+        if (!grepl("^select", tolower(request))){
+            tryCatch({
+              captured_output <- capture.output({
+                DBI::dbSendStatement(db, request) -> query
+                print(query)
+                DBI::dbClearResult(query)
+              })
+            }, error = function(e) captured_output <<- e, warning = function(w) captured_output <<- w)
+        }
+        else tryCatch(captured_output <- capture.output(DBI::dbGetQuery(db, request) %>% tibble::as_tibble() %>% print(n = 1000)), 
+            error = function(e) captured_output <<- e, warning = function(w) captured_output <<- w)
         
         # Restore normal value
         options('cli.num_colors' = NULL)
+        
+        if (grepl("# A tibble:", toString(captured_output))) paste(captured_output, collapse = "\n") -> result
+        else paste(strwrap(captured_output, width = 150), collapse = "\n") -> result
           
         # Display result
-        output$request_result <- renderText(paste(captured_output, collapse = "\n"))
+        output$request_result <- renderUI(HTML(paste0("<pre>", result, "</pre>")))
       }
       else output$request_result <- renderText(i18n$t("fail_connect_remote_db"))
       

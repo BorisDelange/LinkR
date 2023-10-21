@@ -98,6 +98,7 @@ import_scripts,Import scripts
 export_script,Export a script
 export_selected_scripts,Export scripts
 export_scripts,Export scripts
+export_studies,Export studies
 export_plugins_remote_git,Export on remote git
 import_and_export_plugins,Import and export plugins
 import_and_export_scripts,Import and export scripts
@@ -434,6 +435,7 @@ replace_already_existing_datasets,Replace already existing datasets
 replace_already_existing_vocabularies,Replace already existing vocabularies
 plugins_to_export,Plugins to export
 scripts_to_export,Scripts to export
+studies_to_export,Studies to export
 datasets_to_export,Datasets to export
 vocabularies_to_export,Vocabularies to export
 tables_to_export,Tables to export
