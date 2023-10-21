@@ -1092,7 +1092,7 @@ mod_plugins_server <- function(id = character(), r = shiny::reactiveValues(), d 
           dplyr::mutate(creator_id = r$user_id, datetime = as.character(Sys.time()), deleted = FALSE)
         
         DBI::dbAppendTable(r$db, "options", new_options)
-        add_log_entry(r = r, category = paste0("code", " - ", i18n$t("insert_new_data")), name = i18n$t("sql_query"), value = toString(new_options))
+        add_log_entry(r = r, category = paste0("options - ", i18n$t("insert_new_data")), name = i18n$t("sql_query"), value = toString(new_options))
         r$options <- r$options %>% dplyr::bind_rows(new_options)
         
         # Code table
@@ -1124,7 +1124,7 @@ mod_plugins_server <- function(id = character(), r = shiny::reactiveValues(), d 
         )
         
         DBI::dbAppendTable(r$db, "code", new_code)
-        add_log_entry(r = r, category = paste0("code", " - ", i18n$t("insert_new_data")), name = i18n$t("sql_query"), value = toString(new_code))
+        add_log_entry(r = r, category = paste0("code - ", i18n$t("insert_new_data")), name = i18n$t("sql_query"), value = toString(new_code))
         r$code <- r$code %>% dplyr::bind_rows(new_code)
         
         # Copy images
@@ -2524,17 +2524,17 @@ mod_plugins_server <- function(id = character(), r = shiny::reactiveValues(), d 
 
             if (!is.na(plugin$id)){
 
-              sql <- glue::glue_sql("DELETE FROM plugins WHERE id = {plugin$id}", .con = r$db)
+              sql <- glue::glue_sql("UPDATE plugins SET deleted = TRUE WHERE id = {plugin$id}", .con = r$db)
               query <- DBI::dbSendStatement(r$db, sql)
               DBI::dbClearResult(query)
               r$plugins <- r$plugins %>% dplyr::filter(id != plugin$id)
 
-              sql <- glue::glue_sql("DELETE FROM options WHERE category = 'plugin' AND link_id = {plugin$id}", .con = r$db)
+              sql <- glue::glue_sql("UPDATE options SET deleted = TRUE WHERE category = 'plugin' AND link_id = {plugin$id}", .con = r$db)
               query <- DBI::dbSendStatement(r$db, sql)
               DBI::dbClearResult(query)
               r$options <- r$options %>% dplyr::filter(link_id != plugin$id | (link_id == plugin$id & category != "plugin"))
 
-              sql <- glue::glue_sql("DELETE FROM code WHERE category IN ('plugin_ui', 'plugin_server', 'plugin_translations') AND link_id = {plugin$id}", .con = r$db)
+              sql <- glue::glue_sql("UDPATE code SET deleted = TRUE WHERE category IN ('plugin_ui', 'plugin_server', 'plugin_translations') AND link_id = {plugin$id}", .con = r$db)
               query <- DBI::dbSendStatement(r$db, sql)
               DBI::dbClearResult(query)
               r$code <- r$code %>% dplyr::filter(link_id != plugin$id | (link_id == plugin$id & category %not_in% c("plugin_ui", "plugin_server", "plugin_translations")))
@@ -2585,7 +2585,7 @@ mod_plugins_server <- function(id = character(), r = shiny::reactiveValues(), d 
 
             DBI::dbAppendTable(r$db, "options", new_options)
             r$options <- r$options %>% dplyr::bind_rows(new_options)
-            add_log_entry(r = r, category = paste0("code", " - ", i18n$t("insert_new_data")), name = i18n$t("sql_query"), value = toString(new_options))
+            add_log_entry(r = r, category = paste0("options - ", i18n$t("insert_new_data")), name = i18n$t("sql_query"), value = toString(new_options))
 
             # Code table
 
@@ -2610,7 +2610,7 @@ mod_plugins_server <- function(id = character(), r = shiny::reactiveValues(), d 
 
             DBI::dbAppendTable(r$db, "code", new_code)
             r$code <- r$code %>% dplyr::bind_rows(new_code)
-            add_log_entry(r = r, category = paste0("code", " - ", i18n$t("insert_new_data")), name = i18n$t("sql_query"), value = toString(new_code))
+            add_log_entry(r = r, category = paste0("code - ", i18n$t("insert_new_data")), name = i18n$t("sql_query"), value = toString(new_code))
 
             # Copy files to temp dir
             list_of_files <- list.files(paste0(temp_dir, "/", prefix, "/", plugin$unique_id))

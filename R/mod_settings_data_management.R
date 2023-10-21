@@ -3200,7 +3200,7 @@ mod_settings_data_management_server <- function(id = character(), r = shiny::rea
 
             DBI::dbAppendTable(r$db, "options", new_options)
             r$options <- r$options %>% dplyr::bind_rows(new_options)
-            add_log_entry(r = r, category = paste0("code", " - ", i18n$t("insert_new_data")), name = i18n$t("sql_query"), value = toString(new_options))
+            add_log_entry(r = r, category = paste0("options - ", i18n$t("insert_new_data")), name = i18n$t("sql_query"), value = toString(new_options))
 
             # Code table
             last_row_code <- get_last_row(r$db, "code")
@@ -3211,7 +3211,7 @@ mod_settings_data_management_server <- function(id = character(), r = shiny::rea
 
             DBI::dbAppendTable(r$db, "code", new_code)
             r$code <- r$code %>% dplyr::bind_rows(new_code)
-            add_log_entry(r = r, category = paste0("code", " - ", i18n$t("insert_new_data")), name = i18n$t("sql_query"), value = toString(new_code))
+            add_log_entry(r = r, category = paste0("code - ", i18n$t("insert_new_data")), name = i18n$t("sql_query"), value = toString(new_code))
 
             # Copy files
             # Create folder if doesn't exist
@@ -3222,7 +3222,7 @@ mod_settings_data_management_server <- function(id = character(), r = shiny::rea
 
             # Copy files to temp dir
             file.copy(
-              paste0(paste0(temp_dir, "/", dataset_or_vocab$unique_id), "/", list_of_files),
+              paste0(temp_dir, "/", dataset_or_vocab$unique_id, "/", list_of_files),
               paste0(dataset_or_vocab_dir, "/", list_of_files),
               overwrite = TRUE
             )

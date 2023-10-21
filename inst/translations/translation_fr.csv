@@ -95,6 +95,7 @@ export_plugins,Exporter des plugins
 export_selected_plugins,Exporter les plugins
 import_script,Importer un script
 import_scripts,Importer des scripts
+import_studies,Importer des études
 export_script,Exporter un script
 export_scripts,Exporter des scripts
 export_studies,Exporter des études
@@ -431,6 +432,7 @@ updated_on,Modifié le
 vocabulary_selected_concepts,Concepts sélectionnés
 replace_already_existing_plugins,Remplacer les plugins déjà existants
 replace_already_existing_scripts,Remplacer les scripts déjà existants
+replace_already_existing_studies,Remplacer les études déjà existants
 replace_already_existing_datasets,Remplacer les sets de données déjà existants
 replace_already_existing_vocabularies,Remplacer les terminologies déjà existants
 plugins_to_export,Plugins à exporter
@@ -464,6 +466,7 @@ plugins_deleted,Plugin(s) supprimé(s)
 mapping_deleted,Alignement(s) de concepts supprimé(s)
 install_plugin,Installer ce plugin
 update_plugin,Mettre à jour ce plugin
+update_plugins,Mettre à jour les plugins
 plugin_up_to_date,Plugin à jour
 local_plugin_newer,Le plugin local est plus récent
 error_install_remote_git_plugin,Erreur lors de l'installation d'un plugin depuis le git distant
@@ -474,16 +477,19 @@ success_installing_remote_git_plugin,Plugin installé avec succès depuis le git
 choose_remote_git,Choisissez un dépôt de git distant
 success_importing_plugin,Plugin(s) importé(s) avec succès
 success_importing_script,Script(s) importé(s) avec succès
+success_importing_study,Etude(s) importée(s) avec succès
 error_importing_plugin,Erreur lors de l'importation du ou des plugin(s)
 error_importing_image,Erreur lors de l'importation de l'image
 error_importing_file,Erreur lors de l'importation du fichier
 error_importing_script,Erreur lors de l'importation du ou des script(s)
+error_importing_study,Erreur lors de l'importation de la ou des étude(s)
 unique_id,ID unique
 type,Type
 refresh,Rafraîchir
 delete_selection,Supprimer la sélection
 imported_plugins,Plugins importés
 imported_scripts,Scripts importés
+imported_studies,Etudes importées
 imported_datasets,Sets de données importés
 image_imported,Image importée
 file_imported,Fichier importé

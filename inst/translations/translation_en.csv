@@ -95,6 +95,7 @@ export_selected_plugins,Export plugins
 export_plugins,Export plugins
 import_script,Import a script
 import_scripts,Import scripts
+import_studies,Import studies
 export_script,Export a script
 export_selected_scripts,Export scripts
 export_scripts,Export scripts
@@ -431,6 +432,7 @@ updated_on,Updated on
 vocabulary_selected_concepts,Selected concepts
 replace_already_existing_plugins,Replace already existing plugins
 replace_already_existing_scripts,Replace already existing scripts
+replace_already_existing_studies,Replace already existing studies
 replace_already_existing_datasets,Replace already existing datasets
 replace_already_existing_vocabularies,Replace already existing vocabularies
 plugins_to_export,Plugins to export
@@ -464,6 +466,7 @@ plugins_deleted,Plugin(s) successfully deleted
 mapping_deleted,Mapping succesfully deleted
 install_plugin,Install plugin
 update_plugin,Update plugin
+update_plugins,Update plugins
 plugin_up_to_date,Plugin up to date
 local_plugin_newer,Local plugin is newer
 error_install_remote_git_plugin,Error installing a plugin from remote git
@@ -474,16 +477,19 @@ success_installing_remote_git_plugin,Plugin successfully installed from remote g
 choose_remote_git,Choose a remote git repository
 success_importing_plugin,Plugin(s) successfully imported
 success_importing_script,Script(s) successfully imported
+success_importing_study,Study/studies successfully imported
 error_importing_plugin,Error importing plugin(s)
 error_importing_image,Error importing image
 error_importing_file,,Error importing file
 error_importing_script,Error importing script(s)
+error_importing_study,Error importing study/studies
 unique_id,Unique ID
 type,Type
 refresh,Refresh
 delete_selection,Delete selection
 imported_plugins,Imported plugins
 imported_scripts,Imported scripts
+imported_studies,Imported studies
 imported_datasets,Imported datasets
 image_imported,Image successfully imported
 file_imported,File successfully imported

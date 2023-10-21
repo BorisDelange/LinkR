@@ -592,10 +592,12 @@ delete_element <- function(r = shiny::reactiveValues(), m = shiny::reactiveValue
     sql <- glue::glue_sql("UPDATE options SET deleted = TRUE WHERE category = {get_singular(table)} AND link_id IN ({r[[id_var_r]]*})" , .con = r$db)
     DBI::dbSendStatement(r$db, sql) -> query
     DBI::dbClearResult(query)
+    r$options <- r$options %>% dplyr::filter(category != get_singular(table) | (category == get_singular(table) & link_id %not_in% r[[id_var_r]]))
     
     sql <- glue::glue_sql("UPDATE code SET deleted = TRUE WHERE category = {get_singular(table)} AND link_id IN ({r[[id_var_r]]*})" , .con = r$db)
     DBI::dbSendStatement(r$db, sql) -> query
     DBI::dbClearResult(query)
+    r$code <- r$code %>% dplyr::filter(category != get_singular(table) | (category == get_singular(table) & link_id %not_in% r[[id_var_r]]))
     
     if (table %not_in% m_tables | table %in% c("vocabulary", "concept_relationship_user")){
       if (length(r_table) > 0) r[[r_table]] <- r[[r_table]] %>% dplyr::filter(get(id_var_sql) %not_in% r[[id_var_r]])

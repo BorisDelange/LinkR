@@ -1054,9 +1054,9 @@ mod_scripts_server <- function(id = character(), r = shiny::reactiveValues(), d 
         
         new_data <- list()
         
-        link_id <- last_row$scripts + 1
+        if (!script_updated) link_id <- last_row$scripts + 1
         
-        new_data$scripts <- tibble::tibble(id = last_row$scripts + 1, name = script[[paste0("name_", language)]], 
+        new_data$scripts <- tibble::tibble(id = link_id, name = script[[paste0("name_", language)]], 
           creation_datetime = script$creation_datetime, update_datetime = script$update_datetime, deleted = FALSE)
         
         for (name in c(paste0("description_", r$languages$code), "code")) script[[name]] <- script[[name]] %>% stringr::str_replace_all("'", "''")
@@ -1864,17 +1864,17 @@ mod_scripts_server <- function(id = character(), r = shiny::reactiveValues(), d 
             
             if (!is.na(script$id)){
               
-              sql <- glue::glue_sql("DELETE FROM scripts WHERE id = {script$id}", .con = r$db)
+              sql <- glue::glue_sql("UPDATE scripts SET deleted = TRUE WHERE id = {script$id}", .con = r$db)
               query <- DBI::dbSendStatement(r$db, sql)
               DBI::dbClearResult(query)
               r$scripts <- r$scripts %>% dplyr::filter(id != script$id)
               
-              sql <- glue::glue_sql("DELETE FROM options WHERE category = 'script' AND link_id = {script$id}", .con = r$db)
+              sql <- glue::glue_sql("UPDATE options SET deleted = TRUE WHERE category = 'script' AND link_id = {script$id}", .con = r$db)
               query <- DBI::dbSendStatement(r$db, sql)
               DBI::dbClearResult(query)
               r$options <- r$options %>% dplyr::filter(link_id != script$id | (link_id == script$id & category != "script"))
               
-              sql <- glue::glue_sql("DELETE FROM code WHERE category = 'script' AND link_id = {script$id}", .con = r$db)
+              sql <- glue::glue_sql("UPDATE code SET deleted = TRUE WHERE category = 'script' AND link_id = {script$id}", .con = r$db)
               query <- DBI::dbSendStatement(r$db, sql)
               DBI::dbClearResult(query)
               r$code <- r$code %>% dplyr::filter(link_id != script$id | (link_id == script$id & category == "script"))
@@ -1922,7 +1922,7 @@ mod_scripts_server <- function(id = character(), r = shiny::reactiveValues(), d 
             
             DBI::dbAppendTable(r$db, "options", new_options)
             r$options <- r$options %>% dplyr::bind_rows(new_options)
-            add_log_entry(r = r, category = paste0("code", " - ", i18n$t("insert_new_data")), name = i18n$t("sql_query"), value = toString(new_options))
+            add_log_entry(r = r, category = paste0("options - ", i18n$t("insert_new_data")), name = i18n$t("sql_query"), value = toString(new_options))
             
             # Code table
             last_row_code <- get_last_row(r$db, "code")
@@ -1933,18 +1933,18 @@ mod_scripts_server <- function(id = character(), r = shiny::reactiveValues(), d 
             
             DBI::dbAppendTable(r$db, "code", new_code)
             r$code <- r$code %>% dplyr::bind_rows(new_code)
-            add_log_entry(r = r, category = paste0("code", " - ", i18n$t("insert_new_data")), name = i18n$t("sql_query"), value = toString(new_code))
+            add_log_entry(r = r, category = paste0("code - ", i18n$t("insert_new_data")), name = i18n$t("sql_query"), value = toString(new_code))
             
             # Copy files
             # Create folder if doesn't exist
             script_dir <- paste0(r$app_folder, "/scripts/", script$unique_id)
             if (!dir.exists(script_dir)) dir.create(script_dir, recursive = TRUE)
             
-            list_of_files <- list.files(paste0(temp_dir, "/scripts/", script$unique_id))
+            list_of_files <- list.files(paste0(temp_dir, "/", script$unique_id))
             
             # Copy files to temp dir
             file.copy(
-              paste0(paste0(temp_dir, "/scripts/", script$unique_id), "/", list_of_files),
+              paste0(temp_dir, "/scripts/", script$unique_id, "/", list_of_files),
               paste0(script_dir, "/", list_of_files),
               overwrite = TRUE
             )

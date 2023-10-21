@@ -57,7 +57,7 @@ linkr <- function(
     "home", "home/fr", "home/en", 
     "home/fr/home", "home/fr/get_started", "home/fr/tutorials", "home/fr/resources",
     "home/en/home", "home/en/get_started", "home/en/tutorials", "home/en/resources",
-    "messages", "plugins", "plugins/patient_lvl", "plugins/aggregated", "studies", "studies_files", "temp_files", "translations", "vocabularies")
+    "messages", "plugins", "plugins/patient_lvl", "plugins/aggregated", "studies", "studies_files", "scripts", "temp_files", "translations", "vocabularies")
   for (sub_dir in sub_dirs) if (!dir.exists(paste0(app_folder, "/", sub_dir))) dir.create(paste0(app_folder, "/", sub_dir))
   
   # Load translations
