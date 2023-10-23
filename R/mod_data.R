@@ -293,6 +293,9 @@ mod_data_server <- function(id = character(), r = shiny::reactiveValues(), d = s
       # Refresh reactivity
       shinyjs::hide("study_cards")
       shinyjs::show("study_cards")
+      
+      # Refresh sortable
+      shinyjs::delay(1000, r[[paste0(prefix, "_initialize_sortable")]] <- Sys.time())
     })
     
     if (perf_monitoring) monitor_perf(r = r, action = "stop", task = paste0("mod_data - ", id, " - initiate vars"))
@@ -572,6 +575,9 @@ mod_data_server <- function(id = character(), r = shiny::reactiveValues(), d = s
     # --- --- --- --- --- --
     
     # Render menu
+    
+    r[[paste0(prefix, "initialize_sortable_vars")]] <- character()
+    
     observeEvent(r[[paste0(prefix, "_load_ui_menu")]], {
       if (debug) cat(paste0("\n", Sys.time(), " - mod_data - ", id, " - r$..load_ui_menu"))
       if (perf_monitoring) monitor_perf(r = r, action = "start")
@@ -581,6 +587,8 @@ mod_data_server <- function(id = character(), r = shiny::reactiveValues(), d = s
       # Create an ID per level / sub_group
       display_tabs <- r[[paste0(prefix, "_display_tabs")]]
       
+      r[[paste0(prefix, "_initialize_sortable_ids")]] <- character()
+      
       if (nrow(display_tabs) > 0){
         
         study_first_tab_id <- display_tabs %>% dplyr::filter(level == 1) %>% dplyr::slice(1) %>% dplyr::pull(id)
@@ -589,6 +597,7 @@ mod_data_server <- function(id = character(), r = shiny::reactiveValues(), d = s
         
         breadcrumbs <- tagList()
         pivots <- tagList()
+        # sortable_code <- tagList()
         
         i <- 1L
         
@@ -607,28 +616,51 @@ mod_data_server <- function(id = character(), r = shiny::reactiveValues(), d = s
           }
           
           pivot_id <- paste0(prefix, "_study_pivot_", tab_group_id, "_", tab_sub_group)
+          pivot_sub_div_id <- paste0(prefix, "_study_pivot_sub_div_", tab_group_id, "_", tab_sub_group)
           
-          pivot <- div(
-            id = ns(pivot_id),
-            shiny.fluent::Pivot(
-              onLinkClick = htmlwidgets::JS(paste0("item => {",
-                "Shiny.setInputValue('", id, "-study_current_tab', item.props.id);",
-                "Shiny.setInputValue('", id, "-study_current_tab_trigger', Math.random());",
-                "}"
-              )),
-              tabs_ui,
-              defaultSelectedKey = r[[paste0(prefix, "_selected_tab")]]
+          r[[paste0(prefix, "_initialize_sortable_ids")]] <- c(r[[paste0(prefix, "_initialize_sortable_ids")]], pivot_sub_div_id)
+          
+          pivot <- 
+            div(
+              id = ns(pivot_id),
+              shiny.fluent::Pivot(
+                id = ns(pivot_sub_div_id),
+                onLinkClick = htmlwidgets::JS(paste0("item => {",
+                  "Shiny.setInputValue('", id, "-study_current_tab', item.props.id);",
+                  "Shiny.setInputValue('", id, "-study_current_tab_trigger', Math.random());",
+                  "}"
+                )),
+                tabs_ui,
+                defaultSelectedKey = r[[paste0(prefix, "_selected_tab")]]
+              )
             )
-          )
           
           if (is.na(r[[paste0(prefix, "_selected_tab")]]) & i > 1) pivot <- shinyjs::hidden(pivot)
           if (!is.na(r[[paste0(prefix, "_selected_tab")]]) & r[[paste0(prefix, "_selected_tab")]] %not_in% tabs$id) pivot <- shinyjs::hidden(pivot)
+          pivot_tabs <- paste0(prefix, "_pivot_tabs_", tab_group_id, "_", tab_sub_group)
           
-          pivots <- tagList(pivots, pivot#,
+          pivots <- tagList(pivots, pivot,
             # A script to use sortable with PivotItems
-            # tags$script(paste0('$("#', pivot_id, '").children().first().attr("id", "', prefix, '_pivot_tabs_', tab_group_id, '_', tab_sub_group, '");')),
-            # sortable::sortable_js(paste0(prefix, "_pivot_tabs_", tab_group_id, "_", tab_sub_group), options = sortable::sortable_options(onUpdate = 
-            # htmlwidgets::JS(paste0("function(evt) { Shiny.setInputValue('", id, "-study_pivot_order', evt.from.innerText);}"))))
+            tags$script(HTML(paste0(
+              'Shiny.addCustomMessageHandler("initialize_sortable_', pivot_sub_div_id, '", function(message) {',
+              # 'Shiny.addCustomMessageHandler("initialize_sortable", function(message) {',
+              '  var pivotElement = $("#', id, '-', pivot_sub_div_id, '").children("div:first");',
+              '  pivotElement.attr("id", "', pivot_tabs, '");',
+              '  if (window.Sortable && pivotElement.length > 0) {',
+              '    new Sortable(pivotElement[0], {',
+              '      onUpdate: function(evt) {',
+              '        var order = [];',
+              '        $(evt.from).children().each(function() {', 
+              '          order.push($(this).text());',
+              '        });',
+              '        Shiny.setInputValue("', id, '-study_pivot_order", order);',
+              '      }',
+              '    });',
+              '  }',
+              '});'
+            ))),
+            sortable::sortable_js(pivot_tabs)#, options = sortable::sortable_options(onUpdate =
+              # htmlwidgets::JS(paste0("function(evt) { Shiny.setInputValue('", id, "-study_pivot_order', evt.from.innerText);}"))))
           )
           
           tab_sub_group_first_tab <- display_tabs %>% dplyr::filter(tab_sub_group == !!tab_sub_group) %>% dplyr::arrange(display_order) %>% dplyr::slice(1)
@@ -721,8 +753,8 @@ mod_data_server <- function(id = character(), r = shiny::reactiveValues(), d = s
       }
       
       output$study_menu <- renderUI(tagList(
-        breadcrumbs, 
-        shiny.fluent::Stack(horizontal = TRUE, tokens = list(childrenGap = 0),
+        breadcrumbs,
+        div(
           pivots,
           shiny.fluent::Pivot(
             shiny.fluent::PivotItem(id = paste0(prefix, "_add_tab"), headerText = span(i18n$t("add_tab"), style = "padding-left:5px;"), itemIcon = "Add"),
@@ -731,13 +763,25 @@ mod_data_server <- function(id = character(), r = shiny::reactiveValues(), d = s
               "}"
             )),
             selectedKey = NULL
-          )
+          ),
+          style = "display:flex;"
         )
       ))
       
       r[[paste0(prefix, "_hide_ui")]] <- Sys.time()
       
+      shinyjs::delay(2000, r[[paste0(prefix, "_initialize_sortable")]] <- Sys.time())
+      
       if (perf_monitoring) monitor_perf(r = r, action = "stop", task = paste0("mod_data - ", id, " - r$..display_tabs"))
+    })
+    
+    observeEvent(r[[paste0(prefix, "_initialize_sortable")]], {
+      if (debug) cat(paste0("\n", Sys.time(), " - mod_data - ", id, " - observer r$..initialize_sortable"))
+      invalidateLater(1000)
+      # session$sendCustomMessage(type = paste0(prefix, "_initialize_sortable"), message = paste0("init_", prefix))
+      # session$sendCustomMessage(type = "initialize_sortable", message = paste0("init_", prefix))
+      
+      for (pivot_sub_div_id in r[[paste0(prefix, "_initialize_sortable_ids")]]) session$sendCustomMessage(type = paste0("initialize_sortable_", pivot_sub_div_id), message = "init")
     })
     
     # shinyjs::hidden doesn't work, so delay shinyjs::hide to hide pivots
@@ -1441,40 +1485,45 @@ mod_data_server <- function(id = character(), r = shiny::reactiveValues(), d = s
     ## Sortable / change pivotitems order ----
     # --- --- --- --- --- --- --- --- --- -- -
     
-    # observeEvent(input$study_pivot_order, {
-    # 
-    #   if (debug) cat(paste0("\n", Sys.time(), " - mod_data - ", id, " - observer input$study_pivot_order"))
-    #   if (perf_monitoring) monitor_perf(r = r, action = "start")
-    # 
-    #   new_pivot_order <- tibble::tibble(name = stringr::str_split(input$study_pivot_order, "\n") %>% unlist()) %>%
-    #     dplyr::mutate(display_order = 1:dplyr::n())
-    # 
-    #   table <- paste0(prefix, "_tabs")
-    #   tab_group_id <- r[[table]] %>% dplyr::filter(id == r[[paste0(prefix, '_selected_tab')]]) %>% dplyr::pull(tab_group_id)
-    # 
-    #   if (is.na(tab_group_id)) all_tabs <- r[[table]] %>% dplyr::filter(is.na(tab_group_id))
-    #   else all_tabs <- r[[table]] %>% dplyr::filter(tab_group_id == !!tab_group_id)
-    # 
-    #   all_tabs <- all_tabs %>%
-    #     dplyr::select(-display_order) %>%
-    #     dplyr::inner_join(new_pivot_order, by = "name") %>%
-    #     dplyr::relocate(display_order, .after = "parent_tab_id")
-    # 
-    #   sql <- glue::glue_sql("DELETE FROM {`table`} WHERE id IN ({all_tabs %>% dplyr::pull(id)*})", .con = r$db)
-    #   query <- DBI::dbSendStatement(r$db, sql)
-    #   DBI::dbClearResult(query)
-    # 
-    #   DBI::dbAppendTable(r$db, table, all_tabs)
-    # 
-    #   r[[table]] <- r[[table]] %>%
-    #     dplyr::anti_join(all_tabs %>% dplyr::select(id), by = "id") %>%
-    #     dplyr::bind_rows(all_tabs) %>%
-    #     dplyr::arrange(id)
-    # 
-    #   r[[paste0(prefix, "_load_display_tabs")]] <- Sys.time()
-    # 
-    #   if (perf_monitoring) monitor_perf(r = r, action = "stop", task = paste0("mod_data - ", id, " - observer input$study_pivot_oder"))
-    # })
+    observeEvent(input$study_pivot_order, {
+
+      if (debug) cat(paste0("\n", Sys.time(), " - mod_data - ", id, " - observer input$study_pivot_order"))
+      if (perf_monitoring) monitor_perf(r = r, action = "start")
+      
+      new_pivot_order <- tibble::tibble(name = stringr::str_split(input$study_pivot_order, "\n") %>% unlist() %>% sub("^ ", "", .)) %>%
+        dplyr::mutate(display_order = 1:dplyr::n())
+
+      table <- paste0(prefix, "_tabs")
+      tab_group_id <- r[[table]] %>% dplyr::filter(id == r[[paste0(prefix, '_selected_tab')]]) %>% dplyr::pull(tab_group_id)
+      
+      if (is.na(tab_group_id)) all_tabs <- r[[table]] %>% dplyr::filter(is.na(tab_group_id))
+      else all_tabs <- r[[table]] %>% dplyr::filter(tab_group_id == !!tab_group_id)
+
+      all_tabs <- all_tabs %>%
+        dplyr::select(-display_order) %>%
+        dplyr::inner_join(new_pivot_order, by = "name") %>%
+        dplyr::relocate(display_order, .after = "parent_tab_id")
+      
+      r[[paste0(prefix, "_display_tabs")]] <- r[[paste0(prefix, "_display_tabs")]] %>%
+        dplyr::left_join(all_tabs %>% dplyr::select(id, new_display_order = display_order), by = "id") %>%
+        dplyr::mutate(display_order = dplyr::case_when(!is.na(new_display_order) ~ new_display_order, TRUE ~ display_order)) %>%
+        dplyr::select(-new_display_order)
+
+      sql <- glue::glue_sql("DELETE FROM {`table`} WHERE id IN ({all_tabs %>% dplyr::pull(id)*})", .con = r$db)
+      query <- DBI::dbSendStatement(r$db, sql)
+      DBI::dbClearResult(query)
+
+      DBI::dbAppendTable(r$db, table, all_tabs)
+
+      r[[table]] <- r[[table]] %>%
+        dplyr::anti_join(all_tabs %>% dplyr::select(id), by = "id") %>%
+        dplyr::bind_rows(all_tabs) %>%
+        dplyr::arrange(id)
+
+      r[[paste0(prefix, "_load_display_tabs")]] <- Sys.time()
+
+      if (perf_monitoring) monitor_perf(r = r, action = "stop", task = paste0("mod_data - ", id, " - observer input$study_pivot_oder"))
+    })
     
     # --- --- --- --- --- --- --- --- ---
     ## When a pivot item is selected ----

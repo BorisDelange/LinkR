@@ -284,13 +284,15 @@ mod_page_sidenav_server <- function(id = character(), r = shiny::reactiveValues(
         if (debug) cat(paste0("\n", Sys.time(), " - mod_page_sidenav - observer r$datasets"))
         
         # Update dropdown
-        shiny.fluent::updateComboBox.shinyInput(session, "dataset", 
-          options = convert_tibble_to_list(r$datasets %>% dplyr::arrange(name), key_col = "id", text_col = "name"), value = NULL)
-        
-        sapply(c("study", "subset", "person", "visit_detail", "person_status", "hr1", "hr2", "exclusion_reason_div"), function(element){
-          sapply(c(element, paste0(element, "_title"), paste0(element, "_page")), shinyjs::hide)
+        shinyjs::delay(100, {
+          shiny.fluent::updateComboBox.shinyInput(session, "dataset", 
+            options = convert_tibble_to_list(r$datasets %>% dplyr::arrange(name), key_col = "id", text_col = "name"), value = NULL)
+          
+          sapply(c("study", "subset", "person", "visit_detail", "person_status", "hr1", "hr2", "exclusion_reason_div"), function(element){
+            sapply(c(element, paste0(element, "_title"), paste0(element, "_page")), shinyjs::hide)
+          })
+          shinyjs::hide("exclusion_reason_div")
         })
-        shinyjs::hide("exclusion_reason_div")
       })
       
       observeEvent(input$dataset, {
