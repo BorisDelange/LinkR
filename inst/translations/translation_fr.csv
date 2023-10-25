@@ -784,7 +784,7 @@ import_plugin_card_user_access_description,Importer des plugins
 export_plugin_card_user_access_description,Exporter des plugins
 scripts_datatable_card_user_access_description,"Gérer les scripts (ajouter, éditer et supprimer)"
 all_scripts_card_user_access_description,Accéder à l'onglet 'Tous les scripts'
-dataset_scripts_card_user_access_description,Configurer les scripts des datasets (quels scripts seront exécutés au chargement d'un dataset)
+dataset_scripts_card_user_access_description,Configurer les scripts des sets de données (quels scripts seront exécutés au chargement d'un dataset)
 scripts_edit_code_card_user_access_description,Editer le code des scripts
 scripts_options_card_user_access_description,Editer les options des scripts
 import_script_card_user_access_description,Importer des scripts
@@ -982,3 +982,5 @@ import_vocabularies,Importer des terminologies
 export_vocabularies,Exporter des terminologies
 images,Images
 show_all_relationships,Afficher toutes les associations
+no_tabs_to_display_click_add_tab,Cette étude ne contient pas d'onglets. Cliquez sur 'ajouter un onglet'.
+studies_dataset,Set de données

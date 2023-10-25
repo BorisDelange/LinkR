@@ -476,7 +476,8 @@ add_settings_new_data <- function(session, output, r = shiny::reactiveValues(), 
   # Reset textfields
   if (table == "users") sapply(c("username", "firstname", "lastname", "password"), function(name) shiny.fluent::updateTextField.shinyInput(session, name, value = ""))
   else if (table == "vocabulary") sapply(c("vocabulary_id", "vocabulary_name"), function(name) shiny.fluent::updateTextField.shinyInput(session, name, value = ""))
-  else sapply(c("plugin_name", "script_name", "study_name", "subset_name", "name", "description", "raw_files_url_address", "repo_url_address"), function(name) shiny.fluent::updateTextField.shinyInput(session, name, value = ""))
+  else sapply(c("plugin_name", "script_name", "study_name", "subset_name", "name", "description", 
+    "raw_files_url_address", "repo_url_address", "api_key_git_repo_with_url"), function(name) shiny.fluent::updateTextField.shinyInput(session, name, value = ""))
 }
 
 #' Delete element

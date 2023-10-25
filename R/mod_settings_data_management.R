@@ -875,7 +875,7 @@ mod_settings_data_management_server <- function(id = character(), r = shiny::rea
         sortable_cols <- c("name", "creation_datetime", "update_datetime", "category")
         column_widths <- c("creation_datetime" = "130px", "update_datetime" = "130px", "author" = "100px", "version" = "80px")
         centered_cols <- c("author", "creation_datetime", "update_datetime", "version")
-        searchable_cols <- c("name", "category", "author")
+        searchable_cols <- c("name", "vocabulary_id", "category", "author")
         factorize_cols <- c("category", "author")
         hidden_cols <- c("id", "description", "unique_id")
         col_names <- get_col_names("local_datasets_or_vocabs", i18n)
@@ -1390,7 +1390,8 @@ mod_settings_data_management_server <- function(id = character(), r = shiny::rea
       
       if (debug) cat(paste0("\n", Sys.time(), " - mod_settings_data_management - observer r$", table, " - reload datatable"))
       
-      r[[paste0(table, "_temp")]] <- r[[table]] %>% dplyr::mutate(modified = FALSE)
+      if (table == "vocabulary") r[[paste0(table, "_temp")]] <- r[[table]] %>% dplyr::mutate(modified = FALSE) %>% dplyr::arrange(vocabulary_id)
+      else r[[paste0(table, "_temp")]] <- r[[table]] %>% dplyr::mutate(modified = FALSE) %>% dplyr::arrange(name)
       
       # Reset selected datasets or vocabularies for export_dataset_or_vocab and export_dataset_or_vocab_selected
       r[[paste0("export_", get_plural(table), "_temp")]] <- r[[paste0(table, "_temp")]]

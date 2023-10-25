@@ -200,6 +200,12 @@ mod_data_ui <- function(id = character(), i18n = character()){
         style = "position:relative;"
       )
     ),
+    shinyjs::hidden(
+      div(
+        id = ns(paste0(prefix, "_no_tabs_to_display")),
+        make_card(shiny.fluent::MessageBar(i18n$t("no_tabs_to_display_click_add_tab"), messageBarType = 5))
+      )
+    ),
     br()
   )
 }
@@ -591,6 +597,8 @@ mod_data_server <- function(id = character(), r = shiny::reactiveValues(), d = s
       
       if (nrow(display_tabs) > 0){
         
+        shinyjs::hide(paste0(prefix, "_no_tabs_to_display"))
+        
         study_first_tab_id <- display_tabs %>% dplyr::filter(level == 1) %>% dplyr::slice(1) %>% dplyr::pull(id)
         
         # Load Breadcrumb(s) & Pivot(s), one per level / subgroup
@@ -750,6 +758,8 @@ mod_data_server <- function(id = character(), r = shiny::reactiveValues(), d = s
           )),
           defaultSelectedKey = r[[paste0(prefix, "_selected_tab")]]
         )
+        
+        shinyjs::show(paste0(prefix, "_no_tabs_to_display"))
       }
       
       output$study_menu <- renderUI(tagList(
@@ -1590,6 +1600,7 @@ mod_data_server <- function(id = character(), r = shiny::reactiveValues(), d = s
       shinyjs::hide(paste0(prefix, "_edit_tab"))
       shinyjs::hide(paste0(prefix, "_widget_settings"))
       shinyjs::show(paste0(prefix, "_add_tab"))
+      shinyjs::hide(paste0(prefix, "_no_tabs_to_display"))
     })
     
     # Close creation div

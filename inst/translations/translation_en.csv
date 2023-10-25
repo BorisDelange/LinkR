@@ -982,3 +982,5 @@ import_vocabularies,Import vocabularies
 export_vocabularies,Export vocabularies
 images,Images
 show_all_relationships,Show all relationships
+no_tabs_to_display_click_add_tab,This study does not contain any tab. Click on 'Add a tab'.
+studies_dataset,Dataset

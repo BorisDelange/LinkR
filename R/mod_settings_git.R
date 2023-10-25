@@ -153,6 +153,9 @@ mod_settings_git_ui <- function(id = character(), i18n = character()){
                   list(key = "datasets", text = i18n$t("datasets")),
                   list(key = "vocabularies", text = i18n$t("vocabularies"))
                 ), value = "studies", width = "300px"),
+              conditionalPanel(condition = "input.repo_category == 'studies'", ns = ns,
+                make_dropdown(i18n = i18n, ns = ns, label = "studies_dataset", id = "edit_repo_studies_dataset", width = "300px")
+              ),
               make_dropdown(i18n = i18n, ns = ns, label = "add_files", id = "edit_repo_add_selected_files", width = "300px", multiSelect = TRUE),
               div(shiny.fluent::DefaultButton.shinyInput(ns("edit_repo_add_files"), i18n$t("add")), style = "margin-top:39px")
             ), br(),
@@ -365,7 +368,7 @@ mod_settings_git_server <- function(id = character(), r = shiny::reactiveValues(
       if (debug) cat(paste0("\n", Sys.time(), " - mod_settings_git - observer input$add_git_repo_with_url"))
       
       new_data <- list()
-      for (name in c("name", "api_key", "repo_url_address", "raw_files_url_address")) new_data[[name]] <- coalesce2(type = "char", x = input[[name]])
+      for (name in c("name", "api_key_git_repo_with_url", "repo_url_address", "raw_files_url_address")) new_data[[name]] <- coalesce2(type = "char", x = input[[name]])
       
       add_settings_new_data(session = session, output = output, r = r, m = m, i18n = i18n, id = id, 
         data = new_data, table = "git_repos", required_textfields = c("name", "repo_url_address", "raw_files_url_address"), req_unique_values = "name")
@@ -688,7 +691,7 @@ mod_settings_git_server <- function(id = character(), r = shiny::reactiveValues(
         readme_file_path <- paste0(local_path, "/README.md")
         if (!file.exists(readme_file_path)) file.create(readme_file_path)
         
-        # Create .gitignore
+        # Create .gitignore with .DS_Store in it
         writeLines(".DS_Store", paste0(local_path, "/.gitignore"))
         
         error_loading_git_repo <- FALSE
@@ -706,6 +709,9 @@ mod_settings_git_server <- function(id = character(), r = shiny::reactiveValues(
         
         # Trigger to render datatable
         r$edit_repo_datatable_trigger <- Sys.time()
+        
+        # Trigger to update dropdown of files
+        r$repo_category_trigger <- Sys.time() 
       }
     })
     
@@ -713,20 +719,48 @@ mod_settings_git_server <- function(id = character(), r = shiny::reactiveValues(
     observeEvent(input$repo_category, {
       
       if (debug) cat(paste0("\n", Sys.time(), " - mod_settings_git - observer input$repo_category"))
+      r$repo_category_trigger <- Sys.time() 
+    })
+    
+    observeEvent(r$repo_category_trigger, {
+      
+      if (debug) cat(paste0("\n", Sys.time(), " - mod_settings_git - observer r$repo_category_trigger"))
       
       req(input$edit_repo_selected_repo)
       
-      # Not working for studies for now
-      req(input$repo_category %in% c("datasets", "patient_lvl_plugins", "aggregated_plugins", "scripts", "vocabularies"))
+      # For studies, update studies_dataset dropdown
+      if (input$repo_category == "studies") shiny.fluent::updateDropdown.shinyInput(session, "edit_repo_studies_dataset", 
+        options = r$datasets %>% convert_tibble_to_list(key_col = "id", text_col = "name"))
+      
+      else {
+        # Update add_files dropdown
+        if (input$repo_category == "patient_lvl_plugins") dropdown_options <- r$plugins %>% dplyr::filter(tab_type_id == 1)
+        else if (input$repo_category == "aggregated_plugins") dropdown_options <- r$plugins %>% dplyr::filter(tab_type_id == 2)
+        else if (input$repo_category == "vocabularies") dropdown_options <- r$vocabulary
+        else dropdown_options <- r[[input$repo_category]]
+        
+        if (input$repo_category == "vocabularies") dropdown_options <- dropdown_options %>% convert_tibble_to_list(key_col = "id", text_col = "vocabulary_name")
+        else dropdown_options <- dropdown_options %>% convert_tibble_to_list(key_col = "id", text_col = "name")
+        
+        shiny.fluent::updateDropdown.shinyInput(session, "edit_repo_add_selected_files", options = dropdown_options)
+        shiny.fluent::updateDropdown.shinyInput(session, "edit_repo_studies_dataset", options = list(), value = NULL)
+      }
+      
+      # Trigger to render datatable
+      r$edit_repo_datatable_trigger <- Sys.time()
+    })
+    
+    # When a dataset is selected (for studies)
+    observeEvent(input$edit_repo_studies_dataset, {
+      
+      if (debug) cat(paste0("\n", Sys.time(), " - mod_settings_git - observer input$edit_repo_studies_dataset"))
+      
+      req(input$edit_repo_selected_repo)
       
       # Update add_files dropdown
-      if (input$repo_category == "patient_lvl_plugins") dropdown_options <- r$plugins %>% dplyr::filter(tab_type_id == 1)
-      else if (input$repo_category == "aggregated_plugins") dropdown_options <- r$plugins %>% dplyr::filter(tab_type_id == 2)
-      else if (input$repo_category == "vocabularies") dropdown_options <- r$vocabulary
-      else dropdown_options <- r[[input$repo_category]]
-      
-      if (input$repo_category == "vocabularies") dropdown_options <- dropdown_options %>% convert_tibble_to_list(key_col = "id", text_col = "vocabulary_name")
-      else dropdown_options <- dropdown_options %>% convert_tibble_to_list(key_col = "id", text_col = "name")
+      sql <- glue::glue_sql("SELECT * FROM studies WHERE dataset_id = {input$edit_repo_studies_dataset}", .con = r$db)
+      r$edit_repo_studies <- DBI::dbGetQuery(r$db, sql)
+      dropdown_options <- r$edit_repo_studies %>% convert_tibble_to_list(key_col = "id", text_col = "name")
       
       shiny.fluent::updateDropdown.shinyInput(session, "edit_repo_add_selected_files", options = dropdown_options)
       
@@ -848,13 +882,13 @@ mod_settings_git_server <- function(id = character(), r = shiny::reactiveValues(
       
       # Get unique_ids
       
-      ## Not working for studies, datasets & vocabularies for now
-      req(input$repo_category %in% c("datasets", "patient_lvl_plugins", "aggregated_plugins", "scripts", "vocabularies"))
+      req(input$repo_category %in% c("datasets", "patient_lvl_plugins", "aggregated_plugins", "scripts", "vocabularies", "studies"))
       
       # Category elements
       if (input$repo_category == "patient_lvl_plugins") category_elements <- r$plugins %>% dplyr::filter(tab_type_id == 1)
       else if (input$repo_category == "aggregated_plugins") category_elements <- r$plugins %>% dplyr::filter(tab_type_id == 2)
       else if (input$repo_category == "vocabularies") category_elements <- r$vocabulary
+      else if (input$repo_category == "studies") category_elements <- r$edit_repo_studies
       else category_elements <- r[[input$repo_category]]
       category_elements <- category_elements %>% dplyr::filter(id %in% input$edit_repo_add_selected_files)
       
@@ -919,7 +953,7 @@ mod_settings_git_server <- function(id = character(), r = shiny::reactiveValues(
             for (name in c("creation_datetime", "update_datetime")) XML::newXMLNode(name, category_element %>% dplyr::pull(get(!!name)), parent = category_node)
           }
           
-          else if (repo_category %in% c("datasets", "scripts", "vocabularies")){
+          else if (repo_category %in% c("datasets", "scripts", "vocabularies", "studies")){
             for(name in c("unique_id", "version", "author", paste0("name_", r$languages$code), paste0("category_", r$languages$code))) XML::newXMLNode(name, 
               options %>% dplyr::filter(name == !!name) %>% dplyr::pull(value), parent = category_node)
             for(name in c(paste0("description_", r$languages$code))) XML::newXMLNode(name,
@@ -933,7 +967,7 @@ mod_settings_git_server <- function(id = character(), r = shiny::reactiveValues(
           
           list_of_files <- list.files(local_category_element_dir)
           
-          if (repo_category %in% c("datasets", "plugins", "scripts", "vocabularies")){
+          if (repo_category %in% c("datasets", "plugins", "scripts", "vocabularies", "studies")){
             # Add images filenames in the XML
             images <- list_of_files[grepl("\\.(png|jpg|jpeg|svg)$", tolower(list_of_files))]
             images_node <- XML::newXMLNode("images", paste(images, collapse = ";;;"), parent = category_node)
@@ -948,6 +982,178 @@ mod_settings_git_server <- function(id = character(), r = shiny::reactiveValues(
           if (repo_category == "plugins") files_to_copy <- list_of_files[grepl("(\\.(png|jpg|jpeg|svg|r|xml)$)|(^translations\\.csv$)", tolower(list_of_files))]
           else files_to_copy <- list_of_files[grepl("\\.(png|jpg|jpeg|svg|r|xml)$", tolower(list_of_files))]
           
+          # For studies, add csv files & plugins files
+          
+          if (repo_category == "studies"){
+            
+            study <- category_element
+            
+            corresponding_ids <- list()
+            for (table in c("plugins", "options", "code")) corresponding_ids[[table]] <- tibble::tibble(old_id = integer(), new_id = integer())
+            data <- list()
+            
+            for (type in c("patient_lvl", "aggregated")){
+              
+              # Get data
+              
+              ### tabs_groups
+              sql <- glue::glue_sql("SELECT * FROM {`paste0(type, '_tabs_groups')`} WHERE id = {study[[paste0(type, '_tab_group_id')]]} AND deleted IS FALSE", .con = r$db)
+              data[[paste0(type, "_tabs_groups")]] <- DBI::dbGetQuery(r$db, sql) %>% dplyr::mutate(creator_id = NA_integer_)
+              corresponding_ids[[paste0(type, "_tabs_groups")]] <- tibble::tibble(old_id = as.integer(data[[paste0(type, "_tabs_groups")]]$id), new_id = 1L)
+              
+              ### tabs
+              sql <- glue::glue_sql("SELECT * FROM {`paste0(type, '_tabs')`} WHERE tab_group_id = {study[[paste0(type, '_tab_group_id')]]} AND deleted IS FALSE", .con = r$db)
+              data[[paste0(type, "_tabs")]] <- DBI::dbGetQuery(r$db, sql) %>% dplyr::mutate(creator_id = NA_integer_)
+              if (nrow(data[[paste0(type, "_tabs")]]) > 0) corresponding_ids[[paste0(type, "_tabs")]] <- data[[paste0(type, "_tabs")]] %>% dplyr::select(old_id = id) %>% dplyr::mutate(new_id = 1:dplyr::n())
+              
+              ### widgets
+              sql <- glue::glue_sql("SELECT * FROM {`paste0(type, '_widgets')`} WHERE tab_id IN ({data[[paste0(type, '_tabs')]] %>% dplyr::pull(id)*}) AND deleted IS FALSE", .con = r$db)
+              data[[paste0(type, "_widgets")]] <- DBI::dbGetQuery(r$db, sql) %>% dplyr::mutate(creator_id = NA_integer_)
+              if (nrow(data[[paste0(type, "_widgets")]]) > 0) corresponding_ids[[paste0(type, "_widgets")]] <- data[[paste0(type, "_widgets")]] %>% dplyr::select(old_id = id) %>% dplyr::mutate(new_id = 1:dplyr::n())
+              
+              ### widgets_concepts
+              sql <- glue::glue_sql("SELECT * FROM {`paste0(type, '_widgets_concepts')`} WHERE widget_id IN ({data[[paste0(type, '_widgets')]] %>% dplyr::pull(id)*}) AND deleted IS FALSE", .con = m$db)
+              data[[paste0(type, "_widgets_concepts")]] <- DBI::dbGetQuery(m$db, sql) %>% dplyr::mutate(creator_id = NA_integer_)
+              if (nrow(data[[paste0(type, "_widgets_concepts")]]) > 0) corresponding_ids[[paste0(type, "_widgets_concepts")]] <- data[[paste0(type, "_widgets_concepts")]] %>% dplyr::select(old_id = id) %>% dplyr::mutate(new_id = 1:dplyr::n())
+              
+              ### widgets_options
+              sql <- glue::glue_sql("SELECT * FROM {`paste0(type, '_widgets_options')`} WHERE widget_id IN ({data[[paste0(type, '_widgets')]] %>% dplyr::pull(id)*}) AND deleted IS FALSE", .con = m$db)
+              data[[paste0(type, "_widgets_options")]] <- DBI::dbGetQuery(m$db, sql) %>% dplyr::mutate(creator_id = NA_integer_, person_id = NA_integer_)
+              if (nrow(data[[paste0(type, "_widgets_options")]]) > 0) corresponding_ids[[paste0(type, "_widgets_options")]] <- data[[paste0(type, "_widgets_options")]] %>% dplyr::select(old_id = id) %>% dplyr::mutate(new_id = 1:dplyr::n())
+              
+              ### plugins
+              if (type == "patient_lvl") tab_type_id <- 1L else tab_type_id <- 2L
+              sql <- glue::glue_sql("SELECT * FROM plugins WHERE tab_type_id = {tab_type_id} AND id IN ({data[[paste0(type, '_widgets')]] %>% dplyr::distinct(plugin_id) %>% dplyr::pull()*}) AND deleted IS FALSE", .con = r$db)
+              data[[paste0(type, "_plugins")]] <- DBI::dbGetQuery(r$db, sql)
+              if (nrow(data[[paste0(type, "_plugins")]]) > 0){
+                if (nrow(corresponding_ids$plugins) > 0) last_row <- max(corresponding_ids$plugins$new_id)
+                else last_row <- 0L
+                corresponding_ids$plugins <- corresponding_ids$plugins %>% dplyr::bind_rows(
+                  data[[paste0(type, "_plugins")]] %>% dplyr::select(old_id = id) %>% dplyr::mutate(new_id = last_row + 1:dplyr::n()))
+              }
+              
+              ### options (for plugins)
+              sql <- glue::glue_sql("SELECT * FROM options WHERE category = 'plugin' AND link_id IN ({data[[paste0(type, '_plugins')]] %>% dplyr::distinct(id) %>% dplyr::pull()*}) AND deleted IS FALSE", .con = r$db)
+              data[[paste0(type, "_options")]] <- DBI::dbGetQuery(r$db, sql)
+              if (nrow(data[[paste0(type, "_options")]]) > 0){
+                if (nrow(corresponding_ids$options) > 0) last_row <- max(corresponding_ids$options$new_id)
+                else last_row <- 0L
+                corresponding_ids$options <- corresponding_ids$options %>% dplyr::bind_rows(
+                  data[[paste0(type, "_options")]] %>% dplyr::select(old_id = id) %>% dplyr::mutate(new_id = last_row + 1:dplyr::n()))
+              }
+              
+              ### code (for plugins)
+              sql <- glue::glue_sql("SELECT * FROM code WHERE category IN ('plugin_ui', 'plugin_server', 'plugin_translations') AND link_id IN ({data[[paste0(type, '_plugins')]] %>% dplyr::distinct(id) %>% dplyr::pull()*}) AND deleted IS FALSE", .con = r$db)
+              data[[paste0(type, "_code")]] <- DBI::dbGetQuery(r$db, sql)
+              if (nrow(data[[paste0(type, "_code")]]) > 0){
+                if (nrow(corresponding_ids$code) > 0) last_row <- max(corresponding_ids$code$new_id)
+                else last_row <- 0L
+                corresponding_ids$code <- corresponding_ids$code %>% dplyr::bind_rows(
+                  data[[paste0(type, "_code")]] %>% dplyr::select(old_id = id) %>% dplyr::mutate(new_id = last_row + 1:dplyr::n()))
+              }
+              
+              # Change IDs
+              
+              ### tabs_groups
+              data[[paste0(type, "_tabs_groups")]] <- data[[paste0(type, "_tabs_groups")]] %>% dplyr::mutate(id = 1L)
+              
+              ### tabs
+              if (nrow(data[[paste0(type, "_tabs")]]) > 0) data[[paste0(type, "_tabs")]] <- data[[paste0(type, "_tabs")]] %>%
+                dplyr::left_join(corresponding_ids[[paste0(type, "_tabs")]] %>% dplyr::select(id = old_id, new_id), by = "id") %>%
+                dplyr::left_join(corresponding_ids[[paste0(type, "_tabs")]] %>% dplyr::select(parent_tab_id = old_id, new_parent_tab_id = new_id), by = "parent_tab_id") %>%
+                dplyr::select(-id, -parent_tab_id) %>%
+                dplyr::rename(id = new_id, parent_tab_id = new_parent_tab_id) %>%
+                dplyr::relocate(id, .before = "name") %>%
+                dplyr::relocate(parent_tab_id, .before = "display_order") %>%
+                dplyr::mutate(tab_group_id = 1L)
+              
+              ### widgets
+              if (nrow(data[[paste0(type, "_widgets")]]) > 0) data[[paste0(type, "_widgets")]] <- data[[paste0(type, "_widgets")]] %>%
+                dplyr::left_join(corresponding_ids[[paste0(type, "_widgets")]] %>% dplyr::select(id = old_id, new_id = new_id), by = "id") %>%
+                dplyr::left_join(corresponding_ids[[paste0(type, "_tabs")]] %>% dplyr::select(tab_id = old_id, new_tab_id = new_id), by = "tab_id") %>%
+                dplyr::left_join(corresponding_ids$plugins %>% dplyr::select(plugin_id = old_id, new_plugin_id = new_id), by = "plugin_id") %>%
+                dplyr::select(-id, -tab_id, -plugin_id) %>%
+                dplyr::rename(id = new_id, tab_id = new_tab_id, plugin_id = new_plugin_id) %>%
+                dplyr::relocate(id, .before = "name") %>%
+                dplyr::relocate(tab_id, .after = "name") %>%
+                dplyr::relocate(plugin_id, .before = "display_order")
+              
+              ### widgets_concepts
+              if (nrow(data[[paste0(type, "_widgets_concepts")]]) > 0) data[[paste0(type, "_widgets_concepts")]] <- data[[paste0(type, "_widgets_concepts")]] %>%
+                dplyr::left_join(corresponding_ids[[paste0(type, "_widgets_concepts")]] %>% dplyr::select(id = old_id, new_id = new_id), by = "id") %>%
+                dplyr::left_join(corresponding_ids[[paste0(type, "_widgets")]] %>% dplyr::select(widget_id = old_id, new_widget_id = new_id), by = "widget_id") %>%
+                dplyr::select(-id, -widget_id) %>%
+                dplyr::rename(id = new_id, widget_id = new_widget_id) %>%
+                dplyr::relocate(id, .before = "concept_id") %>%
+                dplyr::relocate(widget_id, .after = "id")
+              
+              ### widgets_options
+              if (nrow(data[[paste0(type, "_widgets_options")]]) > 0) data[[paste0(type, "_widgets_options")]] <- data[[paste0(type, "_widgets_options")]] %>%
+                dplyr::left_join(corresponding_ids[[paste0(type, "_widgets_options")]] %>% dplyr::select(id = old_id, new_id = new_id), by = "id") %>%
+                dplyr::left_join(corresponding_ids[[paste0(type, "_widgets")]] %>% dplyr::select(widget_id = old_id, new_widget_id = new_id), by = "widget_id") %>%
+                dplyr::select(-id, -widget_id) %>%
+                dplyr::rename(id = new_id, widget_id = new_widget_id) %>%
+                dplyr::relocate(id, .before = "person_id") %>%
+                dplyr::relocate(widget_id, .after = "id")
+              
+              ### plugins
+              if (nrow(data[[paste0(type, "_plugins")]]) > 0) data[[paste0(type, "_plugins")]] <- data[[paste0(type, "_plugins")]] %>%
+                dplyr::left_join(corresponding_ids$plugins %>% dplyr::select(id = old_id, new_id), by = "id") %>%
+                dplyr::select(-id) %>%
+                dplyr::rename(id = new_id) %>%
+                dplyr::relocate(id, .before = "name")
+              
+              ### options
+              if (nrow(data[[paste0(type, "_options")]]) > 0) data[[paste0(type, "_options")]] <- data[[paste0(type, "_options")]] %>%
+                dplyr::left_join(corresponding_ids$options %>% dplyr::select(id = old_id, new_id), by = "id") %>%
+                dplyr::left_join(corresponding_ids$plugins %>% dplyr::select(link_id = old_id, new_link_id = new_id), by = "link_id") %>%
+                dplyr::select(-id, -link_id) %>%
+                dplyr::rename(id = new_id, link_id = new_link_id) %>%
+                dplyr::relocate(id, .before = "category") %>%
+                dplyr::relocate(link_id, .before = "name")
+              
+              ### code
+              if (nrow(data[[paste0(type, "_code")]]) > 0) data[[paste0(type, "_code")]] <- data[[paste0(type, "_code")]] %>%
+                dplyr::left_join(corresponding_ids$code %>% dplyr::select(id = old_id, new_id), by = "id") %>%
+                dplyr::left_join(corresponding_ids$plugins %>% dplyr::select(link_id = old_id, new_link_id = new_id), by = "link_id") %>%
+                dplyr::select(-id, -link_id) %>%
+                dplyr::rename(id = new_id, link_id = new_link_id) %>%
+                dplyr::relocate(id, .before = "category") %>%
+                dplyr::relocate(link_id, .before = "code")
+            }
+            
+            # Put plugins, options & code together
+            data$plugins <- data$patient_lvl_plugins %>% dplyr::bind_rows(data$aggregated_plugins)
+            data$options <- data$patient_lvl_options %>% dplyr::bind_rows(data$aggregated_options)
+            data$code <- data$patient_lvl_code %>% dplyr::bind_rows(data$aggregated_code)
+            
+            # Create CSV files
+            dir.create(paste0(git_category_element_dir, "/app_database"))
+            for (csv_file in c("patient_lvl_tabs_groups", "patient_lvl_tabs", "patient_lvl_widgets", "patient_lvl_widgets_concepts", "patient_lvl_widgets_options", 
+              "aggregated_tabs_groups", "aggregated_tabs", "aggregated_widgets", "aggregated_widgets_concepts", "aggregated_widgets_options",
+              "plugins", "options", "code")) readr::write_csv(data[[csv_file]],  paste0(git_category_element_dir, "/app_database/", csv_file, ".csv"))
+            
+            # Copy plugins folders
+            dir.create(paste0(git_category_element_dir, "/plugins"))
+            dir.create(paste0(git_category_element_dir, "/plugins/patient_lvl"))
+            dir.create(paste0(git_category_element_dir, "/plugins/aggregated"))
+            
+            if (nrow(data$plugins) > 0){
+              for (i in 1:nrow(data$plugins)){
+                plugin <- data$plugins[i, ]
+                unique_id <- data$options %>% dplyr::filter(category == "plugin" & name == "unique_id" & link_id == plugin$id) %>% dplyr::pull(value)
+                if (plugin$tab_type_id == 1) type <- "patient_lvl" else type <- "aggregated"
+                
+                plugin_dir <- paste0(r$app_folder, "/plugins/", type, "/", unique_id)
+                if (dir.exists(plugin_dir)){
+                  list_of_files <- list.files(plugin_dir)
+                  dir.create(paste0(git_category_element_dir, "/plugins/", type, "/", unique_id))
+                  file.copy(paste0(plugin_dir, "/", list_of_files), paste0(git_category_element_dir, "/plugins/", type, "/", unique_id, "/", list_of_files))
+                }
+              }
+            }
+          }
+          
           # Copy all files in temp git folder
           file.copy(paste0(local_category_element_dir, "/", files_to_copy),  paste0(git_category_element_dir, "/", files_to_copy), overwrite = TRUE)
         }
@@ -955,9 +1161,11 @@ mod_settings_git_server <- function(id = character(), r = shiny::reactiveValues(
         error_name = paste0(id, " - create git repo XML files"), category = "Error", error_report = toString(e), i18n = i18n))
       
       # Clear dropdown
+      
       if (input$repo_category == "patient_lvl_plugins") dropdown_options <- r$plugins %>% dplyr::filter(tab_type_id == 1)
       else if (input$repo_category == "aggregated_plugins") dropdown_options <- r$plugins %>% dplyr::filter(tab_type_id == 2)
       else if (input$repo_category == "vocabularies") dropdown_options <- r$vocabulary
+      else if (input$repo_category == "studies") dropdown_options <- r$edit_repo_studies
       else dropdown_options <- r[[input$repo_category]]
       
       if (input$repo_category == "vocabularies") dropdown_options <- dropdown_options %>% convert_tibble_to_list(key_col = "id", text_col = "vocabulary_name")
@@ -1043,6 +1251,7 @@ mod_settings_git_server <- function(id = character(), r = shiny::reactiveValues(
     # Fields are the same for scripts, datasets & vocabularies
     repo_category_xml_fields$datasets <- repo_category_xml_fields$scripts
     repo_category_xml_fields$vocabularies <- repo_category_xml_fields$scripts
+    repo_category_xml_fields$studies <- repo_category_xml_fields$scripts
     
     observeEvent(input$delete_edit_git_repo_delete_confirmed, {
       
@@ -1055,7 +1264,7 @@ mod_settings_git_server <- function(id = character(), r = shiny::reactiveValues(
           dplyr::pull(unique_id)
         
         # Not working for studies, datasets & vocabularies for now
-        req(input$repo_category %in% c("datasets", "patient_lvl_plugins", "aggregated_plugins", "scripts", "vocabularies"))
+        req(input$repo_category %in% c("datasets", "patient_lvl_plugins", "aggregated_plugins", "scripts", "vocabularies", "studies"))
         
         if (input$repo_category %in% c("patient_lvl_plugins", "aggregated_plugins")){
           repo_category <- "plugins" 
@@ -1106,9 +1315,10 @@ mod_settings_git_server <- function(id = character(), r = shiny::reactiveValues(
       category_tibble <- repo_category_xml_fields[[repo_category]]
       
       for (dir in dirs){
-        if ((repo_category != "plugins" & dir != repo_category_path) |
-            (repo_category == "plugins" & dir != paste0(repo_category_path, "/patient_lvl") & dir != paste0(repo_category_path, "/aggregated"))){
-          
+        if ((repo_category %not_in% c("plugins", "studies") & dir != repo_category_path) |
+            (repo_category == "plugins" & dir != paste0(repo_category_path, "/patient_lvl") & dir != paste0(repo_category_path, "/aggregated")) |
+            (repo_category == "studies" & dir != repo_category_path & !grepl("app_database$", dir) & !grepl("plugins$", dir)
+              & !grepl("aggregated", dir) & !grepl("patient_lvl", dir))){
           category_tibble <-
             category_tibble %>%
             dplyr::bind_rows(

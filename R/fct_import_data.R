@@ -33,6 +33,8 @@ import_dataset <- function(output, ns = character(), i18n = character(), r = shi
   dataset_id = integer(), data = tibble::tibble(), type = "", omop_version = "6.0", 
   read_with = "none", save_as = "none", rewrite = FALSE){
   
+  error_flag <- FALSE
+  
   # Keep a track of which table has been loaded, with which save_as and read_with args
   if (length(r$dataset_loaded_tables) > 0) r$dataset_loaded_tables <- r$dataset_loaded_tables %>% 
     dplyr::bind_rows(tibble::tibble(table = type, save_as = save_as, read_with = read_with))
@@ -171,12 +173,13 @@ import_dataset <- function(output, ns = character(), i18n = character(), r = shi
         error = function(e){
           add_log_entry(r = r, category = "Error", name = paste0("import_dataset - error_loading_csv - id = ", dataset_id), value = toString(e))
           cat(paste0("<span style = 'font-weight:bold; color:red;'>**", i18n$t("error"), "** ", i18n$t("error_loading_csv"), "</span>\n"))
-          return(NULL)},
+          error_flag <<- TRUE},
         warning = function(w){
           add_log_entry(r = r, category = "Error", name = paste0("import_dataset - error_loading_csv - id = ", dataset_id), value = toString(w))
           cat(paste0("<span style = 'font-weight:bold; color:red;'>**", i18n$t("error"), "** ", i18n$t("error_loading_csv"), "</span>\n"))
-          return(NULL)}
+          error_flag <<- TRUE}
       )
+      if (error_flag) return(NULL)
     }
     
     # --- --- --- --- --- -
@@ -201,12 +204,13 @@ import_dataset <- function(output, ns = character(), i18n = character(), r = shi
           error = function(e){
             add_log_entry(r = r, category = "Error", name = paste0("import_dataset - error_loading_parquet - id = ", dataset_id), value = toString(e))
             cat(paste0("<span style = 'font-weight:bold; color:red;'>**", i18n$t("error"), "** ", i18n$t("error_loading_parquet"), "</span>\n"))
-            return(NULL)},
+            error_flag <<- TRUE},
           warning = function(w){
             add_log_entry(r = r, category = "Error", name = paste0("import_dataset - error_loading_parquet - id = ", dataset_id), value = toString(w))
             cat(paste0("<span style = 'font-weight:bold; color:red;'>**", i18n$t("error"), "** ", i18n$t("error_loading_parquet"), "</span>\n"))
-            return(NULL)}
-        ) 
+            error_flag <<- TRUE}
+        )
+        if (error_flag) return(NULL)
       }
     }
     
@@ -244,12 +248,13 @@ import_dataset <- function(output, ns = character(), i18n = character(), r = shi
           error = function(e){
             add_log_entry(r = r, category = "Error", name = paste0("import_dataset - error_loading_duckdb - id = ", dataset_id), value = toString(e))
             cat(paste0("<span style = 'font-weight:bold; color:red;'>**", i18n$t("error"), "** ", i18n$t("error_loading_duckdb"), "</span>\n"))
-            return(NULL)},
+            error_flag <<- TRUE},
           warning = function(w){
             add_log_entry(r = r, category = "Error", name = paste0("import_dataset - error_loading_duckdb - id = ", dataset_id), value = toString(w))
             cat(paste0("<span style = 'font-weight:bold; color:red;'>**", i18n$t("error"), "** ", i18n$t("error_loading_duckdb"), "</span>\n"))
-            return(NULL)}  
+            error_flag <<- TRUE}  
         )
+        if (error_flag) return(NULL)
       }
     }
     
@@ -284,12 +289,13 @@ import_dataset <- function(output, ns = character(), i18n = character(), r = shi
           error = function(e){
             add_log_entry(r = r, category = "Error", name = paste0("import_dataset - error_loading_sparklyr - id = ", dataset_id), value = toString(e))
             cat(paste0("<span style = 'font-weight:bold; color:red;'>**", i18n$t("error"), "** ", i18n$t("error_loading_sparklyr"), "</span>\n"))
-            return(NULL)},
+            error_flag <<- TRUE},
           warning = function(w){
             add_log_entry(r = r, category = "Error", name = paste0("import_dataset - error_loading_sparklyr - id = ", dataset_id), value = toString(w))
             cat(paste0("<span style = 'font-weight:bold; color:red;'>**", i18n$t("error"), "** ", i18n$t("error_loading_sparklyr"), "</span>\n"))
-            return(NULL)}  
+            error_flag <<- TRUE}  
         )
+        if (error_flag) return(NULL)
       }
     }
   }
@@ -330,12 +336,13 @@ import_dataset <- function(output, ns = character(), i18n = character(), r = shi
           error = function(e){
             add_log_entry(r = r, category = "Error", name = paste0("import_dataset - error_loading_duckdb - id = ", dataset_id), value = toString(e))
             cat(paste0("<span style = 'font-weight:bold; color:red;'>**", i18n$t("error"), "** ", i18n$t("error_loading_duckdb"), "</span>\n"))
-            return(NULL)},
+            error_flag <<- TRUE},
           warning = function(w){
             add_log_entry(r = r, category = "Error", name = paste0("import_dataset - error_loading_duckdb - id = ", dataset_id), value = toString(w))
             cat(paste0("<span style = 'font-weight:bold; color:red;'>**", i18n$t("error"), "** ", i18n$t("error_loading_duckdb"), "</span>\n"))
-            return(NULL)}  
+            error_flag <<- TRUE}  
         )
+        if (error_flag) return(NULL)
       }
     }
     
@@ -365,12 +372,13 @@ import_dataset <- function(output, ns = character(), i18n = character(), r = shi
           error = function(e){
             add_log_entry(r = r, category = "Error", name = paste0("import_dataset - error_loading_sparklyr - id = ", dataset_id), value = toString(e))
             cat(paste0("<span style = 'font-weight:bold; color:red;'>**", i18n$t("error"), "** ", i18n$t("error_loading_sparklyr"), "</span>\n"))
-            return(NULL)},
+            error_flag <<- TRUE},
           warning = function(w){
             add_log_entry(r = r, category = "Error", name = paste0("import_dataset - error_loading_sparklyr - id = ", dataset_id), value = toString(w))
             cat(paste0("<span style = 'font-weight:bold; color:red;'>**", i18n$t("error"), "** ", i18n$t("error_loading_sparklyr"), "</span>\n"))
-            return(NULL)}  
+            error_flag <<- TRUE}  
         )
+        if (error_flag) return(NULL)
       }
     }
   }
@@ -1133,8 +1141,9 @@ import_dataset <- function(output, ns = character(), i18n = character(), r = shi
         error = function(e){
           add_log_entry(r = r, category = "Error", name = paste0("import_dataset - ", error_message, " - id = ", dataset_id), value = toString(e))
           cat(paste0("<span style = 'font-weight:bold; color:red;'>", i18n$t(error_message), "</span>\n"))
-          return(NULL)}
+          error_flag <<- TRUE}
       )
+      if (error_flag) return(NULL)
       
       if (read_with == "duckdb" & save_as %in% c("csv", "parquet")){
         
@@ -1168,12 +1177,13 @@ import_dataset <- function(output, ns = character(), i18n = character(), r = shi
             error = function(e){
               add_log_entry(r = r, category = "Error", name = paste0("import_dataset - error_loading_duckdb - id = ", dataset_id), value = toString(e))
               cat(paste0("<span style = 'font-weight:bold; color:red;'>**", i18n$t("error"), "** ", i18n$t("error_loading_duckdb"), "</span>\n"))
-              return(NULL)},
+              error_flag <<- TRUE},
             warning = function(w){
               add_log_entry(r = r, category = "Error", name = paste0("import_dataset - error_loading_duckdb - id = ", dataset_id), value = toString(w))
               cat(paste0("<span style = 'font-weight:bold; color:red;'>**", i18n$t("error"), "** ", i18n$t("error_loading_duckdb"), "</span>\n"))
-              return(NULL)}
+              error_flag <<- TRUE}
           )
+          if (error_flag) return(NULL)
         }
       }
       
@@ -1204,12 +1214,13 @@ import_dataset <- function(output, ns = character(), i18n = character(), r = shi
             error = function(e){
               add_log_entry(r = r, category = "Error", name = paste0("import_dataset - error_loading_sparklyr - id = ", dataset_id), value = toString(e))
               cat(paste0("<span style = 'font-weight:bold; color:red;'>**", i18n$t("error"), "** ", i18n$t("error_loading_sparklyr"), "</span>\n"))
-              return(NULL)},
+              error_flag <<- TRUE},
             warning = function(w){
               add_log_entry(r = r, category = "Error", name = paste0("import_dataset - error_loading_duckdb - id = ", dataset_id), value = toString(w))
               cat(paste0("<span style = 'font-weight:bold; color:red;'>**", i18n$t("error"), "** ", i18n$t("error_loading_duckdb"), "</span>\n"))
-              return(NULL)}  
+              error_flag <<- TRUE}  
           )
+          if (error_flag) return(NULL)
         }
       }
     }
@@ -1237,6 +1248,7 @@ import_dataset <- function(output, ns = character(), i18n = character(), r = shi
 #' @param m A shiny::reactiveValues object, used to communicate between modules
 #' @param table_name Name of the vocabulary table we import (concept, concept_relationship or other) (character)
 #' @param data A tibble containing the data
+#' @param add_vocabulary If concepts are imported, should the corresponding terminologies be added? (logical)
 #' @details The function is used in a vocabulary code, it is launched only when you click on "Run code" on the vocabulary page.\cr\cr
 #' See \href{https://ohdsi.github.io/CommonDataModel/cdm60.html}{\strong{OMOP common data model}} for more information.
 #' @examples
@@ -1249,8 +1261,10 @@ import_dataset <- function(output, ns = character(), i18n = character(), r = shi
 #'   table_name = "concept", data = concept)
 #' }
 import_vocabulary_table <- function(output, ns = character(), i18n = character(), r = shiny::reactiveValues(), m = shiny::reactiveValues(),
-  table_name = character(), data = tibble::tibble()){
+  table_name = character(), data = tibble::tibble(), add_vocabulary = FALSE){
  
+  error_flag <- FALSE
+  
   # Create var to count rows if doesn't exist
   if (length(r$import_concepts_count_rows) == 0) r$import_concepts_count_rows <- tibble::tibble(table_name = character(), n_rows = integer())
   
@@ -1419,8 +1433,9 @@ import_vocabulary_table <- function(output, ns = character(), i18n = character()
       error = function(e){
         if (nchar(e[1]) > 0) add_log_entry(r = r, category = "Error", name = paste0("import_vocabulary_table - error_get_actual_primary_keys"), value = toString(e))
         cat(paste0("<span style = 'font-weight:bold; color:red;'>**", i18n$t("error"), "** ", i18n$t("error_get_actual_primary_keys"), "</span>\n"))
-        return(NULL)}
+        error_flag <<- TRUE}
     )
+    if (error_flag) return(NULL)
 
     # Get items to insert with an anti-join
     data_to_insert <- data %>% dplyr::anti_join(actual_data, by = paste0(table_name, "_id"))
@@ -1453,8 +1468,9 @@ import_vocabulary_table <- function(output, ns = character(), i18n = character()
       error = function(e){
         if (nchar(e[1]) > 0) add_log_entry(r = r, category = "Error", name = paste0("import_vocabulary_table - error_get_actual_primary_keys"), value = toString(e))
         cat(paste0("<span style = 'font-weight:bold; color:red;'>**", i18n$t("error"), "** ", i18n$t("error_get_actual_primary_keys"), "</span>\n"))
-        return(NULL)}
+        error_flag <<- TRUE}
     )
+    if (error_flag) return(NULL)
     
     # Get items to insert with an anti-join
     data_to_insert <- data %>% dplyr::anti_join(actual_data, by = data_duplicates_cols)
@@ -1531,11 +1547,72 @@ import_vocabulary_table <- function(output, ns = character(), i18n = character()
           }
         }
       }
+      
+      # Add vocabulary from vocabulary_id of concept table
+      if (table_name == "concept" & add_vocabulary){
+        vocabulary_ids <- data_to_insert %>% dplyr::distinct(vocabulary_id)
+        
+        # Actual vocabulary_id
+        sql <- glue::glue_sql("SELECT vocabulary_id FROM vocabulary WHERE deleted IS FALSE", .con = m$db)
+        actual_vocabulary_ids <- DBI::dbGetQuery(m$db, sql) %>% dplyr::pull(vocabulary_id)
+        vocabulary_ids <- vocabulary_ids %>% dplyr::filter(vocabulary_id %not_in% actual_vocabulary_ids)
+        
+        if (nrow(vocabulary_ids) > 0){
+          
+          new_vocabulary <- vocabulary_ids %>% 
+            dplyr::mutate(id = get_last_row(m$db, "vocabulary") + dplyr::row_number(), .before = "vocabulary_id") %>%
+            dplyr::mutate(vocabulary_name = vocabulary_id, vocabulary_reference = "", vocabulary_version = "",
+              vocabulary_concept_id = NA_integer_, data_source_id = NA_character_, display_order = NA_integer_, creator_id = r$user_id,
+              creation_datetime = as.character(Sys.time()), update_datetime = as.character(Sys.time()), deleted = FALSE)
+        
+          DBI::dbAppendTable(m$db, "vocabulary", new_vocabulary)
+          r$vocabulary <- r$vocabulary %>% dplyr::bind_rows(new_vocabulary)
+          
+          for (i in 1:nrow(new_vocabulary)){
+            row <- new_vocabulary[i, ]
+            
+            new_data <- list()
+            last_row <- list()
+            last_row$options <- get_last_row(r$db, "options")
+            last_row$code <- get_last_row(r$db, "code")
+            
+            new_data$options <- tibble::tribble(
+              ~name, ~value, ~value_num,
+              "version", "0.0.1", NA_integer_,
+              "unique_id", paste0(sample(c(0:9, letters[1:6]), 64, TRUE), collapse = ''), NA_integer_,
+              "author", "", NA_integer_,
+              "downloaded_from", "", NA_integer_,
+              "downloaded_from_url", "", NA_integer_
+            ) %>%
+              dplyr::bind_rows(
+                r$languages %>%
+                  tidyr::crossing(name = c("description", "category", "name")) %>%
+                  dplyr::mutate(
+                    name = paste0(name, "_", code),
+                    value = ifelse(grepl("name_", name), as.character(row$vocabulary_name), ""),
+                    value_num = NA_integer_
+                  ) %>%
+                  dplyr::select(-code, -language)
+              ) %>%
+              dplyr::mutate(id = last_row$options + dplyr::row_number(), category = "vocabulary", link_id = row$id, .before = "name") %>%
+              dplyr::mutate(creator_id = r$user_id, datetime = as.character(Sys.time()), deleted = FALSE)
+            
+            new_data$code <- tibble::tribble(~id, ~category, ~link_id, ~code, ~creator_id, ~datetime, ~deleted,
+              last_row$code + 1, "vocabulary", row$id, "", r$user_id, as.character(Sys.time()), FALSE)
+            
+            for (var in c("options", "code")){
+              DBI::dbAppendTable(r$db, var, new_data[[var]])
+              r[[var]] <- r[[var]] %>% dplyr::bind_rows(new_data[[var]])
+            }
+          }
+        }
+      }
     }, error = function(e){
       if (nchar(e[1]) > 0) add_log_entry(r = r, category = "Error", name = paste0("import_vocabulary_table - vocabulary_error_append_table"), value = toString(e))
       cat(paste0("<span style = 'font-weight:bold; color:red;'>**", i18n$t("error"), "** ", i18n$t("vocabulary_error_append_table"), "</span>\n"))
-      return(NULL)}
+      error_flag <<- TRUE}
     )
+    if (error_flag) return(NULL)
   }
   
   cat(paste0("<span style = 'font-weight:bold; color:#0078D4;'>", i18n$t("import_vocabulary_table_success"), ". ", nrow(data_to_insert), " ", tolower(i18n$t("rows_inserted")), ".</span>\n"))
