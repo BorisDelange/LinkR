@@ -858,7 +858,8 @@ mod_settings_data_management_server <- function(id = character(), r = shiny::rea
           dplyr::left_join(r$options %>% dplyr::filter(category == get_singular(table), name == "version") %>% dplyr::select(id = link_id, version = value), by = "id") %>%
           dplyr::left_join(r$options %>% dplyr::filter(category == get_singular(table), name == paste0("category_", language)) %>% dplyr::select(id = link_id, category = value), by = "id") %>%
           dplyr::left_join(r$options %>% dplyr::filter(category == get_singular(table), name == paste0("description_", language)) %>% dplyr::select(id = link_id, description = value), by = "id") %>%
-          dplyr::left_join(r$options %>% dplyr::filter(category == get_singular(table), name == "unique_id") %>% dplyr::select(id = link_id, unique_id = value), by = "id")
+          dplyr::left_join(r$options %>% dplyr::filter(category == get_singular(table), name == "unique_id") %>% dplyr::select(id = link_id, unique_id = value), by = "id") %>%
+          dplyr::mutate_at(c("creation_datetime", "update_datetime"), format_datetime, language = language, sec = FALSE)
         
         if (table == "datasets") r[[paste0("local_", get_plural(table))]] <- r[[paste0("local_", get_plural(table))]] %>%
           dplyr::relocate(unique_id, description, category, author, version, unique_id, .after = "name") %>%
@@ -1025,19 +1026,20 @@ mod_settings_data_management_server <- function(id = character(), r = shiny::rea
           error_name = paste0(get_plural(table), "_catalog load ", get_plural(table), ".xml"), category = "Error", error_report = toString(e), i18n = i18n, ns = ns))
       }
       
-      if (error_loading_remote_git) r[[paste0("remote_git_", get_plural(table))]] <- tibble::tibble(name = character(), unique_id = character(), description = character(),
+      r[[paste0("remote_git_", get_plural(table))]] <- tibble::tibble(name = character(), unique_id = character(), description = character(),
         category = character(), author = character(), version = character(), images = character(), creation_datetime = character(), update_datetime = character(), action = character())
       
-      else {
+      if (!error_loading_remote_git) {
         r[[paste0("remote_git_", get_plural(table), "_full")]] <-
           xml2::read_xml(datasets_or_vocab_file) %>%
           XML::xmlParse() %>%
           XML::xmlToDataFrame(nodes = XML::getNodeSet(., paste0("//", get_singular(table)))) %>%
           tibble::as_tibble()
         
-        r[[paste0("remote_git_", get_plural(table))]] <- r[[paste0("remote_git_", get_plural(table), "_full")]] %>%
+        if (nrow(r[[paste0("remote_git_", get_plural(table), "_full")]]) > 0) r[[paste0("remote_git_", get_plural(table))]] <- r[[paste0("remote_git_", get_plural(table), "_full")]] %>%
           dplyr::select(name = paste0("name_", language), unique_id, description = paste0("description_", language),
-            category = paste0("category_", language), author, version, images, creation_datetime, update_datetime)
+            category = paste0("category_", language), author, version, images, creation_datetime, update_datetime) %>%
+          dplyr::mutate_at(c("creation_datetime", "update_datetime"), format_datetime, language = language, sec = FALSE)
       }
       
       r[[paste0("update_remote_git_", get_plural(table), "_datatable")]] <- Sys.time()
@@ -1052,10 +1054,7 @@ mod_settings_data_management_server <- function(id = character(), r = shiny::rea
       
       # Merge with local datasets or vocabularies, to know if a dataset / vocab is already installed
       
-      if (nrow(r[[paste0("remote_git_", get_plural(table))]]) == 0){
-        remote_git_datasets_or_vocab <- tibble::tibble(name = character(), unique_id = character(), description = character(),
-          category = character(), author = character(), version = character(), images = character(), creation_datetime = character(), update_datetime = character())
-      }
+      if (nrow(r[[paste0("remote_git_", get_plural(table))]]) == 0) remote_git_datasets_or_vocab <- r[[paste0("remote_git_", get_plural(table))]]
       
       if (nrow(r[[paste0("remote_git_", get_plural(table))]]) > 0){
         
@@ -1176,7 +1175,7 @@ mod_settings_data_management_server <- function(id = character(), r = shiny::rea
         link_id <- last_row[[table]] + 1
         
         new_data[[table]] <- tibble::tibble(id = last_row[[table]] + 1, name = dataset_or_vocab[[paste0("name_", language)]],
-          creation_datetime = dataset_or_vocab$creation_datetime, update_datetime = dataset_or_vocab$update_datetime, deleted = FALSE)
+          creation_datetime = dataset_or_vocab$creation_datetime, update_datetime = as.character(Sys.time()), deleted = FALSE)
         
         if (table == "vocabulary") new_data$vocabulary <- new_data$vocabulary %>% 
           dplyr::rename(vocabulary_name = name) %>%

@@ -366,6 +366,7 @@ subset_added,New subset added
 script_added,New script added
 script_updated,Script updated
 script_imported,Script imported
+study_imported,Study imported
 dataset_updated,Dataset updated
 dataset_imported,Dataset imported
 vocabulary_updated,Vocabulary updated
@@ -471,6 +472,7 @@ plugin_up_to_date,Plugin up to date
 local_plugin_newer,Local plugin is newer
 error_install_remote_git_plugin,Error installing a plugin from remote git
 error_install_remote_git_script,Error installing a script from remote git
+error_install_remote_git_study,Error installing a study from remote git
 error_install_remote_git_dataset,Error installing a dataset from remote git
 error_install_remote_git_vocabulary,Error installing a vocabulary from remote git
 success_installing_remote_git_plugin,Plugin successfully installed from remote git
@@ -894,6 +896,7 @@ vocabulary_show_mapping_details,Show details of selected mapping
 add_git_repo,Add a repository
 git_repos_management,Repositories management
 git_repo_options,Repository options
+git_repos_see_all_data_user_access_description,See all repositories
 git_add_repo_card_user_access_description,Add a repository
 git_repos_management_card_user_access_description,Repositories management
 git_repo_options_card_user_access_description,Repository options
@@ -984,3 +987,7 @@ images,Images
 show_all_relationships,Show all relationships
 no_tabs_to_display_click_add_tab,This study does not contain any tab. Click on 'Add a tab'.
 studies_dataset,Dataset
+files,Files
+readme,README
+generate_content,Generate content
+error_update_readme,Error update README

@@ -123,7 +123,7 @@ update_r <- function(r = shiny::reactiveValues(), m = shiny::reactiveValues(), t
       
       # For studies, filter to data user has access to
       if ("studies_see_all_data" %not_in% r$user_accesses){
-        if (nrow(r$studies > 0)){
+        if (nrow(r$studies) > 0){
           r$studies <- get_authorized_data(r = r, table = "studies")
           r$studies_temp <- r$studies %>% dplyr::mutate(modified = FALSE)
         }
@@ -285,6 +285,16 @@ get_col_names <- function(table_name = character(), i18n = character()){
   }
   
   else if (table_name == "remote_git_scripts"){
+    result <- c(i18n$t("name"), i18n$t("unique_id"), i18n$t("description"), i18n$t("category"), i18n$t("author"), i18n$t("version"),
+      i18n$t("images"), i18n$t("created_on"), i18n$t("updated_on"), i18n$t("action"))
+  }
+  
+  else if (table_name == "local_studies"){
+    result <- c(i18n$t("id"), i18n$t("name"), i18n$t("unique_id"), i18n$t("description"), i18n$t("category"), i18n$t("author"), i18n$t("version"),
+      i18n$t("created_on"), i18n$t("updated_on"))
+  }
+  
+  else if (table_name == "remote_git_studies"){
     result <- c(i18n$t("name"), i18n$t("unique_id"), i18n$t("description"), i18n$t("category"), i18n$t("author"), i18n$t("version"),
       i18n$t("images"), i18n$t("created_on"), i18n$t("updated_on"), i18n$t("action"))
   }

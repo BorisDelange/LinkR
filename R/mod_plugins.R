@@ -600,9 +600,9 @@ mod_plugins_server <- function(id = character(), r = shiny::reactiveValues(), d 
           error_name = "plugins_catalog load plugins.xml", category = "Error", error_report = toString(e), i18n = i18n, ns = ns))
       }
       
-      if (error_loading_remote_git) r$remote_git_plugins <- tibble::tibble(type = integer(), unique_id = character())
+      r$remote_git_plugins <- tibble::tibble(type = integer(), unique_id = character())
       
-      else r$remote_git_plugins <-
+      if (!error_loading_remote_git) r$remote_git_plugins <-
         xml2::read_xml(plugins_file) %>%
         XML::xmlParse() %>%
         XML::xmlToDataFrame(nodes = XML::getNodeSet(., "//plugin")) %>%
@@ -672,7 +672,10 @@ mod_plugins_server <- function(id = character(), r = shiny::reactiveValues(), d 
       if (length(r$error_loading_remote_git) > 0) error_loading_remote_git <- r$error_loading_remote_git
 
       plugins <- list()
-      plugins$remote_git <- r$remote_git_plugins %>% dplyr::filter(type == tab_type_id) %>% dplyr::mutate(id = unique_id)
+      
+      if (nrow(r$remote_git_plugins) == 0) plugins$remote_git <- tibble::tibble()
+      if (nrow(r$remote_git_plugins) > 0) plugins$remote_git <- r$remote_git_plugins %>% dplyr::filter(type == tab_type_id) %>% dplyr::mutate(id = unique_id)
+      
       if (nrow(plugins$remote_git) > 0) plugins$remote_git <- plugins$remote_git %>% dplyr::arrange(get(paste0("name_", language)))
       plugins$local <- r$plugins %>% dplyr::filter(tab_type_id == !!tab_type_id) %>% dplyr::arrange(name)
       r[[paste0(prefix, "_plugins_images")]] <- tibble::tibble(type = character(), id = character(), image_url = character())
@@ -685,7 +688,7 @@ mod_plugins_server <- function(id = character(), r = shiny::reactiveValues(), d 
         dplyr::filter(category == input$local_plugins_category)
 
       # Filter remote plugins on category
-      if (length(input$remote_git_plugins_category) > 0) if (input$remote_git_plugins_category != "all") plugins$remote_git <- plugins$remote_git %>%
+      if (length(input$remote_git_plugins_category) > 0) if (input$remote_git_plugins_category != "all" & nrow(plugins$remote_git) > 0) plugins$remote_git <- plugins$remote_git %>%
         dplyr::filter(get(paste0("category_", language)) == input$remote_git_plugins_category)
 
       sapply(c("remote_git", "local"), function(type){
@@ -1056,7 +1059,7 @@ mod_plugins_server <- function(id = character(), r = shiny::reactiveValues(), d 
         
         new_data <- tibble::tribble(
           ~id, ~name, ~tab_type_id, ~creation_datetime, ~update_datetime, ~deleted,
-          new_row, as.character(plugin[[paste0("name_", language)]]), as.integer(tab_type_id), plugin$creation_datetime, plugin$update_datetime, FALSE)
+          new_row, as.character(plugin[[paste0("name_", language)]]), as.integer(tab_type_id), plugin$creation_datetime, as.character(Sys.time()), FALSE)
         
         DBI::dbAppendTable(r$db, "plugins", new_data)
         add_log_entry(r = r, category = paste0("plugins - ", i18n$t("insert_new_data")), name = i18n$t("sql_query"), value = toString(new_data))

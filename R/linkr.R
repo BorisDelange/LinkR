@@ -100,6 +100,7 @@ linkr <- function(
       "db_save_card",
       "db_restore_card"),
     "remote_git_repos", c(
+      "git_repos_see_all_data",
       "git_add_repo_card", 
       "git_repos_management_card",
       "git_repo_options_card",

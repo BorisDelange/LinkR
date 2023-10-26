@@ -331,7 +331,8 @@ mod_my_subsets_server <- function(id = character(), r = shiny::reactiveValues(),
       
       if (debug) cat(paste0("\n", Sys.time(), " - mod_my_subsets - observer m$subsets"))
       
-      m$subsets_temp <- m$subsets %>% dplyr::mutate(modified = FALSE) %>% dplyr::arrange(name)
+      m$subsets_temp <- m$subsets %>% dplyr::mutate(modified = FALSE) %>% dplyr::arrange(name) %>%
+        dplyr::mutate_at("datetime", format_datetime, language = language, sec = FALSE)
     })
     
     # Reload datatable

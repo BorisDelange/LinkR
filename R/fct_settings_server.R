@@ -443,16 +443,24 @@ add_settings_new_data <- function(session, output, r = shiny::reactiveValues(), 
   
   if (table == "git_repos"){
     # Add options rows
-    new_data$options <-
-      r$languages %>%
-        tidyr::crossing(name = "name") %>%
-        dplyr::mutate(
-          name = paste0(name, "_", code),
-          value = ifelse(grepl("name_", name), as.character(data$name), ""),
-          value_num = NA_integer_
-        ) %>%
-        dplyr::select(-code, -language) %>%
-      dplyr::mutate(id = last_row$options + dplyr::row_number(), category = "git_repo", link_id = last_row$data + 1, .before = "name")
+    new_data$options <- 
+      tibble::tribble(
+        ~name, ~value, ~value_num,
+        "users_allowed_read_group", "everybody", 1,
+        "user_allowed_read", "", r$user_id
+      ) %>%
+      dplyr::bind_rows(
+        r$languages %>%
+          tidyr::crossing(name = "name") %>%
+          dplyr::mutate(
+            name = paste0(name, "_", code),
+            value = ifelse(grepl("name_", name), as.character(data$name), ""),
+            value_num = NA_integer_
+          ) %>%
+          dplyr::select(-code, -language)
+      ) %>%
+      dplyr::mutate(id = last_row$options + dplyr::row_number(), category = "git_repo", link_id = last_row$data + 1, .before = "name") %>%
+      dplyr::mutate(creator_id = r$user_id, datetime = as.character(Sys.time()), deleted = FALSE)
   }
   
   # Add new data to r variables and database
@@ -581,7 +589,9 @@ delete_element <- function(r = shiny::reactiveValues(), m = shiny::reactiveValue
     if (table %in% c("plugins", "scripts", "datasets", "vocabulary", "studies")){
       for (element_id in r[[id_var_r]]){
         element_options <- r$options %>% dplyr::filter(category == get_singular(table), link_id == element_id)
-        unlink(paste0(r$app_folder, "/", get_plural(table), "/", element_options %>% dplyr::filter(name == "unique_id") %>% dplyr::pull(value)), recursive = TRUE)
+        if (table == "plugins") element_dir <- paste0(r$app_folder, "/", get_plural(table), "/", prefix, "/", element_options %>% dplyr::filter(name == "unique_id") %>% dplyr::pull(value))
+        else element_dir <- paste0(r$app_folder, "/", get_plural(table), "/", element_options %>% dplyr::filter(name == "unique_id") %>% dplyr::pull(value))
+        unlink(element_dir, recursive = TRUE)
       }
     }
     

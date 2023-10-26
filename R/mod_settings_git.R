@@ -122,7 +122,17 @@ mod_settings_git_ui <- function(id = character(), i18n = character()){
             make_combobox(i18n = i18n, ns = ns, label = "git_repo", id = "options_selected_repo", width = "300px", allowFreeform = FALSE, multiSelect = FALSE),
             make_textfield(i18n = i18n, ns = ns, label = "repo_url_address", id = "options_repo_url_address", width = "600px"),
             make_textfield(i18n = i18n, ns = ns, label = "raw_files_url_address", id = "options_raw_files_url_address", width = "600px"),
-            make_textfield(i18n = i18n, ns = ns, label = "api_key", id = "options_api_key", width = "600px"), br(),
+            make_textfield(i18n = i18n, ns = ns, label = "api_key", id = "options_api_key", width = "600px"), 
+            div(
+              div(class = "input_title", paste0(i18n$t("grant_access_to"), " :")),
+              shiny.fluent::ChoiceGroup.shinyInput(ns("users_allowed_read_group"), options = list(
+                list(key = "everybody", text = i18n$t("everybody_who_has_access_to_dataset")),
+                list(key = "people_picker", text = i18n$t("choose_users"))
+              ), className = "inline_choicegroup"),
+              conditionalPanel(condition = "input.users_allowed_read_group == 'people_picker'", ns = ns,
+                uiOutput(ns("users_allowed_read_div"))
+              )
+            ), br(),
             shiny.fluent::PrimaryButton.shinyInput(ns("save_git_repo_options"), i18n$t("save")),
           )
         ), br()
@@ -135,43 +145,73 @@ mod_settings_git_ui <- function(id = character(), i18n = character()){
     
     shinyjs::hidden(
       div(id = ns("git_edit_repo_card"),
-        make_card(i18n$t("edit_git_repo"),
+        make_shiny_ace_card(i18n$t("edit_git_repo"),
           div(
+            shiny.fluent::Pivot(
+              id = ns("git_edit_repo_pivot"),
+              onLinkClick = htmlwidgets::JS(paste0("item => Shiny.setInputValue('", id, "-git_edit_repo_current_tab', item.props.id)")),
+              shiny.fluent::PivotItem(id = "git_edit_repo_files", itemKey = "git_edit_repo_files", headerText = i18n$t("files")),
+              shiny.fluent::PivotItem(id = "git_edit_repo_readme", itemKey = "git_edit_repo_readme", headerText = i18n$t("readme"))
+            ),
             shiny.fluent::Stack(horizontal = TRUE, tokens = list(childrenGap = 20),
               make_combobox(i18n = i18n, ns = ns, label = "git_repo", id = "edit_repo_selected_repo", width = "300px", allowFreeform = FALSE, multiSelect = FALSE),
               # make_textfield(i18n = i18n, ns = ns, label = "username", id = "edit_repo_username", width = "300px"),
               make_textfield(i18n = i18n, ns = ns, label = "api_key", id = "edit_repo_api_key", width = "300px"),
               div(shiny.fluent::PrimaryButton.shinyInput(ns("edit_repo_load_repo"), i18n$t("load")), style = "margin-top:39px")
             ),
-            shiny.fluent::Stack(horizontal = TRUE, tokens = list(childrenGap = 20),
-              make_dropdown(i18n = i18n, ns = ns, label = "category", id = "repo_category",
-                options = list(
-                  list(key = "studies", text = i18n$t("studies")),
-                  list(key = "patient_lvl_plugins", text = i18n$t("patient_lvl_plugins")),
-                  list(key = "aggregated_plugins", text = i18n$t("aggregated_plugins")),
-                  list(key = "scripts", text = i18n$t("scripts")),
-                  list(key = "datasets", text = i18n$t("datasets")),
-                  list(key = "vocabularies", text = i18n$t("vocabularies"))
-                ), value = "studies", width = "300px"),
-              conditionalPanel(condition = "input.repo_category == 'studies'", ns = ns,
-                make_dropdown(i18n = i18n, ns = ns, label = "studies_dataset", id = "edit_repo_studies_dataset", width = "300px")
-              ),
-              make_dropdown(i18n = i18n, ns = ns, label = "add_files", id = "edit_repo_add_selected_files", width = "300px", multiSelect = TRUE),
-              div(shiny.fluent::DefaultButton.shinyInput(ns("edit_repo_add_files"), i18n$t("add")), style = "margin-top:39px")
-            ), br(),
-            uiOutput(ns("edit_repo_error_message")),
-            DT::DTOutput(ns("edit_repo_files")),
-            shinyjs::hidden(div(
-              id = ns("edit_repo_repo_files_div"),
-              div(
-                shiny.fluent::DefaultButton.shinyInput(ns("edit_repo_delete_selection"), i18n$t("delete_selection")),
-                style = "margin-top:-30px;"
-              ), br(),
+            conditionalPanel(condition = "input.git_edit_repo_current_tab == 'git_edit_repo_files' || input.git_edit_repo_current_tab == null", ns = ns, br(),
               shiny.fluent::Stack(horizontal = TRUE, tokens = list(childrenGap = 20),
-                make_textfield(i18n = i18n, ns = ns, label = "commit_message", id = "commit_message", width = "620px"),
-                div(shiny.fluent::PrimaryButton.shinyInput(ns("commit_and_push"), i18n$t("commit_and_push")), style = "margin-top:39px")
-              )
-            ))
+                make_dropdown(i18n = i18n, ns = ns, label = "category", id = "repo_category",
+                  options = list(
+                    list(key = "studies", text = i18n$t("studies")),
+                    list(key = "patient_lvl_plugins", text = i18n$t("patient_lvl_plugins")),
+                    list(key = "aggregated_plugins", text = i18n$t("aggregated_plugins")),
+                    list(key = "scripts", text = i18n$t("scripts")),
+                    list(key = "datasets", text = i18n$t("datasets")),
+                    list(key = "vocabularies", text = i18n$t("vocabularies"))
+                  ), value = "studies", width = "300px"),
+                conditionalPanel(condition = "input.repo_category == 'studies'", ns = ns,
+                  make_dropdown(i18n = i18n, ns = ns, label = "studies_dataset", id = "edit_repo_studies_dataset", width = "300px")
+                ),
+                make_dropdown(i18n = i18n, ns = ns, label = "add_files", id = "edit_repo_add_selected_files", width = "300px", multiSelect = TRUE),
+                div(shiny.fluent::DefaultButton.shinyInput(ns("edit_repo_add_files"), i18n$t("add")), style = "margin-top:39px")
+              ), br(),
+              uiOutput(ns("edit_repo_error_message")),
+              DT::DTOutput(ns("edit_repo_files")),
+              shinyjs::hidden(div(
+                id = ns("edit_repo_repo_files_div"),
+                div(
+                  shiny.fluent::DefaultButton.shinyInput(ns("edit_repo_delete_selection"), i18n$t("delete_selection")),
+                  style = "margin-top:-30px;"
+                )
+              ))
+            ),
+            conditionalPanel(condition = "input.git_edit_repo_current_tab == 'git_edit_repo_readme'", ns = ns, br(),
+              div(
+                div("README", style = "font-weight:bold; margin-top:7px; margin-right:5px;"),
+                shinyAce::aceEditor(ns("git_repo_readme"), "", mode = "markdown", 
+                  code_hotkeys = list(
+                    "markdown", 
+                    list(
+                      save = list(win = "CTRL-S", mac = "CTRL-S|CMD-S"),
+                      run_all = list(win = "CTRL-SHIFT-ENTER|CTRL-ENTER", mac = "CTRL-SHIFT-ENTER|CMD-SHIFT-ENTER|CTRL-ENTER|CMD-ENTER"),
+                      comment = list(win = "CTRL-SHIFT-C", mac = "CTRL-SHIFT-C|CMD-SHIFT-C")
+                    )
+                  ),
+                  autoScrollEditorIntoView = TRUE, minLines = 30, maxLines = 1000), style = "width: 100%;"),
+              shiny.fluent::Stack(horizontal = TRUE, tokens = list(childrenGap = 10),
+                shiny.fluent::PrimaryButton.shinyInput(ns("git_repo_readme_save"), i18n$t("save")), " ",
+                shiny.fluent::DefaultButton.shinyInput(ns("git_repo_readme_preview"), i18n$t("preview")), " ",
+                shiny.fluent::DefaultButton.shinyInput(ns("git_repo_readme_generate"), i18n$t("generate_content"))
+              ), br(),
+              div(id = ns("description_markdown_output"),
+                uiOutput(ns("description_markdown_result")), 
+                style = "width: 99%; border-style: dashed; border-width: 1px; padding:0px 8px 0px 8px; margin-right: 5px;")
+            ), br(),
+            shiny.fluent::Stack(horizontal = TRUE, tokens = list(childrenGap = 20),
+              make_textfield(i18n = i18n, ns = ns, label = "commit_message", id = "commit_message", width = "620px"),
+              div(shiny.fluent::PrimaryButton.shinyInput(ns("commit_and_push"), i18n$t("commit_and_push")), style = "margin-top:39px")
+            )
           )
         ), br()
       )
@@ -577,6 +617,39 @@ mod_settings_git_server <- function(id = character(), r = shiny::reactiveValues(
       
       sapply(c("options_repo_url_address", "options_raw_files_url_address", "options_api_key"), function(field) shiny.fluent::updateTextField.shinyInput(session, 
         field, value = git_repo_options[[sub("options_", "", field)]]))
+      
+      options <- r$options %>% dplyr::filter(category == "git_repo", link_id == !!link_id)
+      
+      picker_options <-
+        r$users %>%
+        dplyr::left_join(r$users_statuses %>% dplyr::select(user_status_id = id, user_status = name), by = "user_status_id") %>%
+        dplyr::transmute(
+          key = id, 
+          imageInitials = paste0(substr(firstname, 0, 1), substr(lastname, 0, 1)),
+          text = paste0(firstname, " ", lastname), 
+          secondaryText = user_status)
+      
+      picker_value <-
+        picker_options %>%
+        dplyr::mutate(n = 1:dplyr::n()) %>%
+        dplyr::inner_join(
+          options %>%
+            dplyr::filter(name == "user_allowed_read") %>%
+            dplyr::select(key = value_num),
+          by = "key"
+        ) %>%
+        dplyr::pull(key)
+      
+      # Users allowed read group
+      value_group <- options %>% dplyr::filter(name == "users_allowed_read_group") %>% dplyr::pull(value)
+      
+      shiny.fluent::updateChoiceGroup.shinyInput(session, "users_allowed_read_group",
+        value = options %>% dplyr::filter(name == "users_allowed_read_group") %>% dplyr::pull(value))
+      output$users_allowed_read_div <- renderUI({
+        make_people_picker(
+          i18n = i18n, ns = ns, id = "users_allowed_read", label = "users", options = picker_options, value = picker_value,
+          width = "100%", style = "padding-bottom:10px;")
+      })
     })
     
     # Save updates
@@ -600,6 +673,13 @@ mod_settings_git_server <- function(id = character(), r = shiny::reactiveValues(
       
       req(!empty_field$repo_url_address, !empty_field$raw_files_url_address)
       
+      data <- list()
+      data$users_allowed_read <- input$users_allowed_read
+      data$users_allowed_read_group <- input$users_allowed_read_group
+      
+      save_settings_options(output = output, r = r, id = id, category = "git_repo", code_id_input = paste0("options_", link_id),
+        i18n = i18n, data = data, page_options = "users_allowed_read")
+      
       # Save updates in db
       sql <- glue::glue_sql(paste0("UPDATE git_repos SET repo_url_address = {input$options_repo_url_address}, ",
         "raw_files_url_address = {input$options_raw_files_url_address}, api_key = {input$options_api_key} WHERE id = {link_id}"), .con = r$db)
@@ -614,8 +694,6 @@ mod_settings_git_server <- function(id = character(), r = shiny::reactiveValues(
           raw_files_url_address = dplyr::case_when(id == link_id ~ input$options_raw_files_url_address, TRUE ~ raw_files_url_address),
           api_key = dplyr::case_when(id == link_id ~ new_api_key, TRUE ~ api_key)
         )
-      
-      show_message_bar(output, "modif_saved", "success", i18n = i18n, ns = ns)
     })
     
     # --- --- --- --- --
@@ -691,6 +769,9 @@ mod_settings_git_server <- function(id = character(), r = shiny::reactiveValues(
         readme_file_path <- paste0(local_path, "/README.md")
         if (!file.exists(readme_file_path)) file.create(readme_file_path)
         
+        # Update shinyAce for README
+        shinyAce::updateAceEditor(session, "git_repo_readme", value = readLines(readme_file_path, warn = FALSE))
+        
         # Create .gitignore with .DS_Store in it
         writeLines(".DS_Store", paste0(local_path, "/.gitignore"))
         
@@ -758,7 +839,7 @@ mod_settings_git_server <- function(id = character(), r = shiny::reactiveValues(
       req(input$edit_repo_selected_repo)
       
       # Update add_files dropdown
-      sql <- glue::glue_sql("SELECT * FROM studies WHERE dataset_id = {input$edit_repo_studies_dataset}", .con = r$db)
+      sql <- glue::glue_sql("SELECT * FROM studies WHERE dataset_id = {input$edit_repo_studies_dataset} AND deleted IS FALSE", .con = r$db)
       r$edit_repo_studies <- DBI::dbGetQuery(r$db, sql)
       dropdown_options <- r$edit_repo_studies %>% convert_tibble_to_list(key_col = "id", text_col = "name")
       
@@ -927,7 +1008,7 @@ mod_settings_git_server <- function(id = character(), r = shiny::reactiveValues(
           if (dir.exists(git_category_element_dir)) unlink(git_category_element_dir, recursive = TRUE, force = TRUE)
           if (!dir.exists(git_category_element_dir)) dir.create(git_category_element_dir, recursive = TRUE)
           
-          # Create ui.R & server.R for plugins
+          # Create ui.R, server.R & translations.csv for plugins
           if (repo_category == "plugins"){
             sapply(c("ui", "server"), function(name) writeLines(code %>% dplyr::filter(category == paste0("plugin_", name)) %>%
                 dplyr::pull(code) %>% stringr::str_replace_all("''", "'"), paste0(local_category_element_dir, "/", name, ".R")))
@@ -1141,15 +1222,38 @@ mod_settings_git_server <- function(id = character(), r = shiny::reactiveValues(
             if (nrow(data$plugins) > 0){
               for (i in 1:nrow(data$plugins)){
                 plugin <- data$plugins[i, ]
-                unique_id <- data$options %>% dplyr::filter(category == "plugin" & name == "unique_id" & link_id == plugin$id) %>% dplyr::pull(value)
+                options <- data$options %>% dplyr::filter(category == "plugin" & link_id == plugin$id)
+                unique_id <- options %>% dplyr::filter(name == "unique_id") %>% dplyr::pull(value)
                 if (plugin$tab_type_id == 1) type <- "patient_lvl" else type <- "aggregated"
                 
-                plugin_dir <- paste0(r$app_folder, "/plugins/", type, "/", unique_id)
-                if (dir.exists(plugin_dir)){
-                  list_of_files <- list.files(plugin_dir)
-                  dir.create(paste0(git_category_element_dir, "/plugins/", type, "/", unique_id))
-                  file.copy(paste0(plugin_dir, "/", list_of_files), paste0(git_category_element_dir, "/plugins/", type, "/", unique_id, "/", list_of_files))
+                # Create XML file
+                
+                xml <- XML::newXMLDoc()
+                plugins_node <- XML::newXMLNode("plugins", doc = xml)
+                plugin_node <- XML::newXMLNode("plugin", parent = plugins_node)
+                XML::newXMLNode("app_version", r$app_version, parent = plugin_node)
+                XML::newXMLNode("type", plugin$tab_type_id, parent = plugin_node)
+                for(name in c("unique_id", "version", "author", "image", paste0("name_", r$languages$code), paste0("category_", r$languages$code))){
+                  XML::newXMLNode(name, options %>% dplyr::filter(name == !!name) %>% dplyr::pull(value), parent = plugin_node)
                 }
+                for(name in c(paste0("description_", r$languages$code))) XML::newXMLNode(name, options %>% dplyr::filter(name == !!name) %>%
+                    dplyr::pull(value) %>% stringr::str_replace_all("''", "'"), parent = plugin_node)
+                for (name in c("creation_datetime", "update_datetime")) XML::newXMLNode(name, plugin %>% dplyr::pull(get(!!name)), parent = plugin_node)
+                
+                plugin_dir <- paste0(r$app_folder, "/plugins/", type, "/", unique_id)
+                if (!dir.exists(plugin_dir)) dir.create(plugin_dir)
+                
+                list_of_files <- list.files(plugin_dir)
+                images <- list_of_files[grepl("\\.(png|jpg|jpeg|svg)$", tolower(list_of_files))]
+                images_node <- XML::newXMLNode("images", paste(images, collapse = ";;;"), parent = plugin_node)
+                
+                XML::saveXML(xml, file = paste0(plugin_dir, "/plugin.xml"))
+                
+                # Copy files
+                
+                list_of_files <- list.files(plugin_dir)
+                dir.create(paste0(git_category_element_dir, "/plugins/", type, "/", unique_id))
+                file.copy(paste0(plugin_dir, "/", list_of_files), paste0(git_category_element_dir, "/plugins/", type, "/", unique_id, "/", list_of_files))
               }
             }
           }
@@ -1348,7 +1452,60 @@ mod_settings_git_server <- function(id = character(), r = shiny::reactiveValues(
       r$edit_repo_datatable_trigger <- Sys.time()
     })
     
+    # Save README
+    
+    observeEvent(input$git_repo_readme_save, {
+      
+      if (debug) cat(paste0("\n", Sys.time(), " - mod_settings_git - observer input$git_repo_readme_save"))
+      
+      tryCatch({
+          writeLines(input$git_repo_readme, paste0(r$edit_git_local_path, "/README.md"))
+          show_message_bar(output,  "modif_saved", "success", i18n, ns = ns)
+        },
+        error = function(e) report_bug(r = r, output = output, error_message = "error_update_readme",
+          error_name = "settings_git update README", category = "Error", error_report = toString(e), i18n = i18n, ns = ns))
+    })
+    
+    # Preview README
+    
+    observeEvent(input$git_repo_readme_preview, {
+      if (debug) cat(paste0("\n", Sys.time(), " - mod_settings_git - observer input$git_repo_readme_preview"))
+      r$git_repo_readme_preview_trigger <- Sys.time()
+    })
+    
+    observeEvent(input$git_repo_readme_run_all, {
+      if (debug) cat(paste0("\n", Sys.time(), " - mod_settings_git - observer input$git_repo_readme_run_all"))
+      r$git_repo_readme_preview_trigger <- Sys.time()
+    })
+    
+    observeEvent(r$git_repo_readme_preview_trigger, {
+      
+      if (debug) cat(paste0("\n", Sys.time(), " - mod_settings_git - observer r$git_repo_readme_preview_trigger"))
+      
+      tryCatch({
+        
+        # Clear temp dir
+        
+        markdown_settings <- paste0("```{r setup, include=FALSE}\nknitr::opts_knit$set(root.dir = '", 
+          r$app_folder, "/temp_files/", r$user_id, "/markdowns')\n",
+          "knitr::opts_chunk$set(root.dir = '", r$app_folder, "/temp_files/", r$user_id, "/markdowns', fig.path = '", r$app_folder, "/temp_files/", r$user_id, "/markdowns')\n```\n")
+        
+        markdown_file <- paste0(markdown_settings, input$git_repo_readme)
+        
+        # Create temp dir
+        dir <- paste0(r$app_folder, "/temp_files/", r$user_id, "/markdowns")
+        file <- paste0(dir, "/", paste0(sample(c(0:9, letters[1:6]), 8, TRUE), collapse = ''), "_", as.character(Sys.time()) %>% stringr::str_replace_all(":", "_"), ".Md")
+        if (!dir.exists(dir)) dir.create(dir)
+        
+        # Create the markdown file
+        knitr::knit(text = markdown_file, output = file, quiet = TRUE)
+        
+        output$description_markdown_result <- renderUI(div(class = "markdown", withMathJax(includeMarkdown(file))))
+      }, error = function(e) "")
+    })
+    
     # Commit & push
+    
     observeEvent(input$commit_and_push, {
       
       if (debug) cat(paste0("\n", Sys.time(), " - mod_settings_git - observer input$commit_and_push"))
