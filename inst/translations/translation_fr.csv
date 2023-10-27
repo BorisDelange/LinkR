@@ -991,3 +991,4 @@ files,Fichiers
 readme,README
 generate_content,Générer le contenu
 error_update_readme,Erreur lors de la modification du README
+error_generate_readme,Erreur lors de la génération du README

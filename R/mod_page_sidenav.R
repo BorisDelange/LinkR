@@ -564,7 +564,7 @@ mod_page_sidenav_server <- function(id = character(), r = shiny::reactiveValues(
   
           if (!no_stay_available){
             
-            visit_detail <- d$visit_detail %>% dplyr::filter(person_id == !!person_id) %>% dplyr::collect() %>% 
+            visit_detail <- d$visit_detail %>% dplyr::filter(person_id == !!person_id, is.na(visit_detail_parent_id)) %>% dplyr::collect() %>% 
               dplyr::left_join(d$dataset_all_concepts %>% dplyr::filter(is.na(relationship_id)) %>% dplyr::select(visit_detail_concept_id = concept_id_1, visit_detail_concept_name = concept_name_1), by = "visit_detail_concept_id") %>%
               dplyr::arrange(visit_detail_start_datetime)
             

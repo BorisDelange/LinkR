@@ -189,16 +189,24 @@ mod_settings_git_ui <- function(id = character(), i18n = character()){
             conditionalPanel(condition = "input.git_edit_repo_current_tab == 'git_edit_repo_readme'", ns = ns, br(),
               div(
                 div("README", style = "font-weight:bold; margin-top:7px; margin-right:5px;"),
-                shinyAce::aceEditor(ns("git_repo_readme"), "", mode = "markdown", 
-                  code_hotkeys = list(
-                    "markdown", 
-                    list(
-                      save = list(win = "CTRL-S", mac = "CTRL-S|CMD-S"),
-                      run_all = list(win = "CTRL-SHIFT-ENTER|CTRL-ENTER", mac = "CTRL-SHIFT-ENTER|CMD-SHIFT-ENTER|CTRL-ENTER|CMD-ENTER"),
-                      comment = list(win = "CTRL-SHIFT-C", mac = "CTRL-SHIFT-C|CMD-SHIFT-C")
-                    )
-                  ),
-                  autoScrollEditorIntoView = TRUE, minLines = 30, maxLines = 1000), style = "width: 100%;"),
+                shiny.fluent::Stack(horizontal = TRUE, tokens = list(childrenGap = 10),
+                  div(shiny.fluent::Toggle.shinyInput(ns("hide_readme_editor"), value = FALSE), style = "margin-top:9px;"),
+                  div(i18n$t("hide_editor"), style = "font-weight:bold; margin-top:9px; margin-right:30px;")
+                ),
+                conditionalPanel(condition = "input.hide_readme_editor == false || input.hide_readme_editor == null", ns = ns,
+                  shinyAce::aceEditor(ns("git_repo_readme"), "", mode = "markdown", 
+                    code_hotkeys = list(
+                      "markdown", 
+                      list(
+                        save = list(win = "CTRL-S", mac = "CTRL-S|CMD-S"),
+                        run_all = list(win = "CTRL-SHIFT-ENTER|CTRL-ENTER", mac = "CTRL-SHIFT-ENTER|CMD-SHIFT-ENTER|CTRL-ENTER|CMD-ENTER"),
+                        comment = list(win = "CTRL-SHIFT-C", mac = "CTRL-SHIFT-C|CMD-SHIFT-C")
+                      )
+                    ),
+                    autoScrollEditorIntoView = TRUE, minLines = 30, maxLines = 1000)
+                ),
+                style = "width: 100%;"),
+              conditionalPanel(condition = "input.hide_readme_editor == true", ns = ns, br()),
               shiny.fluent::Stack(horizontal = TRUE, tokens = list(childrenGap = 10),
                 shiny.fluent::PrimaryButton.shinyInput(ns("git_repo_readme_save"), i18n$t("save")), " ",
                 shiny.fluent::DefaultButton.shinyInput(ns("git_repo_readme_preview"), i18n$t("preview")), " ",
@@ -770,7 +778,8 @@ mod_settings_git_server <- function(id = character(), r = shiny::reactiveValues(
         if (!file.exists(readme_file_path)) file.create(readme_file_path)
         
         # Update shinyAce for README
-        shinyAce::updateAceEditor(session, "git_repo_readme", value = readLines(readme_file_path, warn = FALSE))
+        content <- paste(readLines(readme_file_path, warn = FALSE), collapse = "\n")
+        shinyAce::updateAceEditor(session, "git_repo_readme", value = content)
         
         # Create .gitignore with .DS_Store in it
         writeLines(".DS_Store", paste0(local_path, "/.gitignore"))
@@ -1478,6 +1487,103 @@ mod_settings_git_server <- function(id = character(), r = shiny::reactiveValues(
       r$git_repo_readme_preview_trigger <- Sys.time()
     })
     
+    # Generate README
+    
+    observeEvent(input$git_repo_readme_generate, {
+      if (debug) cat(paste0("\n", Sys.time(), " - mod_settings_git - observer input$git_repo_readme_generate"))
+      
+      git_repo_raw_files_url_address <- r$git_repos %>% dplyr::filter(id == input$edit_repo_selected_repo$key) %>% dplyr::pull(raw_files_url_address)
+      if (substr(git_repo_raw_files_url_address, nchar(git_repo_raw_files_url_address), nchar(git_repo_raw_files_url_address)) != "/") git_repo_raw_files_url_address <- paste0(git_repo_raw_files_url_address, "/")
+      
+      # readme <- paste0("## ", input$edit_repo_selected_repo$text)
+      readme <- ""
+      
+      for (category in c("studies", "plugins_patient_lvl", "plugins_aggregated", "scripts", "datasets", "vocabularies")){
+        
+        if (category == "plugins_patient_lvl"){
+          category <- "plugins"
+          plugins_type <- 1
+        }
+        if (category == "plugins_aggregated"){
+          category <- "plugins"
+          plugins_type <- 2
+        }
+        
+        icon <- switch(category, "studies" = "file-alt", "plugins" = "terminal", "scripts" = "code", "datasets" = "database", "vocabularies" = "list")
+        readme_category <- paste0("\n\n## <i class='fa fa-", icon, "' style='color: steelblue;'></i> ", stringr::str_to_title(category))
+        if (category == "studies") readme_category <- ""
+        
+        if (category == "plugins"){
+          if (plugins_type == 1) readme_category <- paste0(readme_category, " - Patient-level data")
+          if (plugins_type == 2) readme_category <- paste0(readme_category, " - Aggregated data")
+        }
+        readme_category <- paste0(readme_category, "\n\n")
+        
+        tryCatch({
+          # Load XML
+          xml_path <- paste0(r$edit_git_local_path, "/", category, "/", category, ".xml") 
+          
+          category_elements <-
+            xml2::read_xml(xml_path) %>%
+            XML::xmlParse() %>%
+            XML::xmlToDataFrame(nodes = XML::getNodeSet(., paste0("//", get_singular(category)))) %>%
+            tibble::as_tibble()
+          
+          if (category == "plugins") category_elements <- category_elements %>% dplyr::filter(type == plugins_type)
+          
+          if (nrow(category_elements) > 0){
+            for (i in 1:nrow(category_elements)){
+              
+              category_element <- category_elements[i, ]
+              
+              category_folder <- paste0(git_repo_raw_files_url_address, category, "/")
+              if (category == "plugins"){
+                if (plugins_type == 1) category_folder <- paste0(category_folder, "patient_lvl/")
+                if (plugins_type == 2) category_folder <- paste0(category_folder, "aggregated/")
+              }
+              category_folder <- paste0(category_folder, category_element$unique_id)
+              
+              description <- category_element$description_en %>%
+                stringr::str_replace_all(paste0("%", get_singular(category), "_folder%"), category_folder)
+              
+              readme_category <- paste0(
+                readme_category,
+                "<details style = 'border:solid 1px; padding:10px;'>\n",
+                "<summary><span style = 'font-size:15px;'>", category_element$name_en, "</summary>\n\n",
+                description, "\n",
+                "</details>\n\n"
+              )
+            }
+            readme_category <- paste0(readme_category, "\n")
+          }
+          
+          if (nrow(category_elements) == 0) readme_category <- paste0(readme_category, "No ", category, " available.")
+          
+        }, error = function(e) report_bug(r = r, output = output, error_message = "error_generate_readme",
+          error_name = "settings_git generate readme", category = "Error", error_report = toString(e), i18n = i18n, ns = ns))
+        
+        readme <- paste0(readme, readme_category)
+      }
+      
+      # Keep intro if an intro was written
+      intro <- paste0(
+        "## ", input$edit_repo_selected_repo$text ,"\n\n",
+        "## <i class='fa fa-file-alt' style='color: steelblue;'></i> Studies")
+      
+      regex <- "(## InterHop\n+)(.*?)(\n+## <i class='fa fa-file-alt' style='color: steelblue;'></i> Studies)"
+      
+      if (grepl(regex, input$git_repo_readme)){
+        start_pos <- stringr::str_locate(input$git_repo_readme, paste0("## ", input$edit_repo_selected_repo$text))[1]
+        end_pos <- stringr::str_locate(input$git_repo_readme, "<i class='fa fa-file-alt' style='color: steelblue;'></i> Studies")[2]
+        
+        intro <- substr(input$git_repo_readme, start_pos, end_pos)
+      }
+      
+      readme <- paste0(intro, readme)
+      
+      shinyAce::updateAceEditor(session, "git_repo_readme", value = readme)
+    })
+    
     observeEvent(r$git_repo_readme_preview_trigger, {
       
       if (debug) cat(paste0("\n", Sys.time(), " - mod_settings_git - observer r$git_repo_readme_preview_trigger"))
@@ -1526,6 +1632,7 @@ mod_settings_git_server <- function(id = character(), r = shiny::reactiveValues(
         credentials <- r$edit_git_repo_credentials
         
         git2r::add(repo, ".")
+        
         if (length(git2r::status(repo, unstaged = FALSE, untracked = FALSE, ignored = FALSE)$staged) > 0){
           
           git2r::commit(repo, message = input$commit_message)
