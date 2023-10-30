@@ -303,7 +303,8 @@ mod_settings_git_server <- function(id = character(), r = shiny::reactiveValues(
         
         leaflet::leaflet(git_repos) %>%
           leaflet::addTiles() %>%
-          leaflet::addProviderTiles("Stadia.Outdoors") %>%
+          # leaflet::addProviderTiles("Stadia.Outdoors") %>%
+          leaflet::addProviderTiles("CartoDB.Voyager") %>%
           leaflet::addMarkers(
             lng = ~lng, lat = ~lat,
             clusterOptions = leaflet::markerClusterOptions(),

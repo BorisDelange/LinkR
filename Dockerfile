@@ -14,9 +14,16 @@ RUN apt-get update && apt-get install --no-install-recommends -y \
     libssh2-1-dev \
     libssl1.1 \
     && rm -rf /var/lib/apt/lists/*
+    
+# Install remotes
+RUN R -e "install.packages('remotes', repos='https://cloud.r-project.org/')"
 
 # Install R packages required for the app
-RUN R -e "install.packages(c('clipr', 'curl', 'DBI', 'dplyr', 'DT', 'ggplot2', 'golem', 'glue', 'knitr', 'magick', 'magrittr', 'pkgload', 'plotly', 'pryr', 'readr', 'remotes', 'rlang', 'rlist', 'rmarkdown', 'RPostgres', 'RSQLite', 'shiny.fluent', 'shiny.i18n', 'shinymanager', 'shiny.react', 'shiny.router', 'shinyAce', 'shinybusy', 'shinyjs', 'sortable', 'stringr', 'tidyr', 'XML', 'zip'), repos='https://cloud.r-project.org/')"
+RUN R -e "install.packages(c('arrow', 'clipr', 'curl', 'DBI', 'dplyr', 'DT', 'ggplot2', 'golem', \
+'glue', 'knitr', 'leaflet', 'magick', 'magrittr', 'pkgload', 'plotly', 'pryr', 'readr', 'rlang', \
+'rlist', 'rmarkdown', 'RPostgres', 'RSQLite', 'shiny.fluent', 'shiny.i18n', 'shinymanager', \
+'shiny.react', 'shiny.router', 'shinyAce', 'shinybusy', 'shinyjs', 'sortable', 'stringr', \
+'tidyr', 'XML', 'zip'), repos='https://cloud.r-project.org/')"
 
 # Install shiny version 1.7.4.1 specifically (last version working with LinkR)
 RUN R -e "remotes::install_github('rstudio/shiny@f5b3954')"
