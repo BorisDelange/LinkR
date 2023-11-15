@@ -1157,7 +1157,7 @@ save_settings_options <- function(output, r = shiny::reactiveValues(), id = char
     }
   }
   
-  show_message_bar(output,  "modif_saved", "success", i18n = i18n, ns = ns)
+  show_message_bar(output, "modif_saved", "success", i18n = i18n, ns = ns)
 }
 
 #' Save updates in datatable

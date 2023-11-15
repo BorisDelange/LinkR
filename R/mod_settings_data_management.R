@@ -1033,7 +1033,7 @@ mod_settings_data_management_server <- function(id = character(), r = shiny::rea
         r[[paste0("remote_git_", get_plural(table), "_full")]] <-
           xml2::read_xml(datasets_or_vocab_file) %>%
           XML::xmlParse() %>%
-          XML::xmlToDataFrame(nodes = XML::getNodeSet(., paste0("//", get_singular(table)))) %>%
+          XML::xmlToDataFrame(nodes = XML::getNodeSet(., paste0("//", get_singular(table))), stringsAsFactors = FALSE) %>%
           tibble::as_tibble()
         
         if (nrow(r[[paste0("remote_git_", get_plural(table), "_full")]]) > 0) r[[paste0("remote_git_", get_plural(table))]] <- r[[paste0("remote_git_", get_plural(table), "_full")]] %>%
@@ -2814,7 +2814,7 @@ mod_settings_data_management_server <- function(id = character(), r = shiny::rea
         
         DBI::dbAppendTable(m$db, input$vocabularies_table, data)
         
-        show_message_bar(output,  "modif_saved", "success", i18n = i18n, ns = ns)
+        show_message_bar(output, "modif_saved", "success", i18n = i18n, ns = ns)
       })
       
     }
@@ -3080,7 +3080,7 @@ mod_settings_data_management_server <- function(id = character(), r = shiny::rea
         datasets_or_vocabs <-
           xml2::read_xml(paste0(temp_dir, "/", get_plural(table), ".xml")) %>%
           XML::xmlParse() %>%
-          XML::xmlToDataFrame(nodes = XML::getNodeSet(., paste0("//", get_singular(table)))) %>%
+          XML::xmlToDataFrame(nodes = XML::getNodeSet(., paste0("//", get_singular(table))), stringsAsFactors = FALSE) %>%
           tibble::as_tibble() %>%
           dplyr::left_join(
             r[[table]] %>%
@@ -3403,7 +3403,7 @@ mod_settings_data_management_server <- function(id = character(), r = shiny::rea
                 dplyr::bind_rows(
                   xml2::read_xml(paste0(dir, "/", get_singular(table), ".xml")) %>%
                     XML::xmlParse() %>%
-                    XML::xmlToDataFrame(nodes = XML::getNodeSet(., paste0("//", get_singular(table)))) %>%
+                    XML::xmlToDataFrame(nodes = XML::getNodeSet(., paste0("//", get_singular(table))), stringsAsFactors = FALSE) %>%
                     tibble::as_tibble()
                 )
             }

@@ -404,7 +404,7 @@ mod_settings_git_server <- function(id = character(), r = shiny::reactiveValues(
       
       r$show_git_repo_description_trigger <- Sys.time()
       r$show_git_repo_description_type <- "url"
-      r$show_git_repo_description_url <- input$repo_url_address
+      r$show_git_repo_description_url <- input$raw_files_url_address
       
       if (substr(r$show_git_repo_description_url, nchar(r$show_git_repo_description_url), 
         nchar(r$show_git_repo_description_url)) != "/") r$show_git_repo_description_url <- paste0(r$show_git_repo_description_url, "/")
@@ -883,7 +883,7 @@ mod_settings_git_server <- function(id = character(), r = shiny::reactiveValues(
           repo_category_elements <-
             xml2::read_xml(xml_path) %>%
             XML::xmlParse() %>%
-            XML::xmlToDataFrame(nodes = XML::getNodeSet(., paste0("//", get_singular(repo_category)))) %>%
+            XML::xmlToDataFrame(nodes = XML::getNodeSet(., paste0("//", get_singular(repo_category))), stringsAsFactors = FALSE) %>%
             tibble::as_tibble()
           
           if (nrow(repo_category_elements) == 0){
@@ -1438,7 +1438,7 @@ mod_settings_git_server <- function(id = character(), r = shiny::reactiveValues(
             dplyr::bind_rows(
               xml2::read_xml(paste0(dir, "/", get_singular(repo_category), ".xml")) %>%
                 XML::xmlParse() %>%
-                XML::xmlToDataFrame(nodes = XML::getNodeSet(., paste0("//", get_singular(repo_category)))) %>%
+                XML::xmlToDataFrame(nodes = XML::getNodeSet(., paste0("//", get_singular(repo_category))), stringsAsFactors = FALSE) %>%
                 tibble::as_tibble()
             )
         }
@@ -1527,12 +1527,15 @@ mod_settings_git_server <- function(id = character(), r = shiny::reactiveValues(
           category_elements <-
             xml2::read_xml(xml_path) %>%
             XML::xmlParse() %>%
-            XML::xmlToDataFrame(nodes = XML::getNodeSet(., paste0("//", get_singular(category)))) %>%
+            XML::xmlToDataFrame(nodes = XML::getNodeSet(., paste0("//", get_singular(category))), stringsAsFactors = FALSE) %>%
             tibble::as_tibble()
           
           if (category == "plugins") category_elements <- category_elements %>% dplyr::filter(type == plugins_type)
           
           if (nrow(category_elements) > 0){
+            
+            category_elements <- category_elements %>% dplyr::arrange(name_en)
+            
             for (i in 1:nrow(category_elements)){
               
               category_element <- category_elements[i, ]
@@ -1549,7 +1552,7 @@ mod_settings_git_server <- function(id = character(), r = shiny::reactiveValues(
               
               readme_category <- paste0(
                 readme_category,
-                "<details style = 'border:solid 1px; padding:10px;'>\n",
+                "<details style = 'border:solid 1px; padding:10px; margin:5px 0px 5px 0px;'>\n",
                 "<summary><span style = 'font-size:15px;'>", category_element$name_en, "</summary>\n\n",
                 description, "\n",
                 "</details>\n\n"
@@ -1571,13 +1574,12 @@ mod_settings_git_server <- function(id = character(), r = shiny::reactiveValues(
         "## ", input$edit_repo_selected_repo$text ,"\n\n",
         "## <i class='fa fa-file-alt' style='color: steelblue;'></i> Studies")
       
-      regex <- "(## InterHop\n+)(.*?)(\n+## <i class='fa fa-file-alt' style='color: steelblue;'></i> Studies)"
+      regex <- "(.*?)(\n+## <i class='fa fa-file-alt' style='color: steelblue;'></i> Studies)"
       
       if (grepl(regex, input$git_repo_readme)){
-        start_pos <- stringr::str_locate(input$git_repo_readme, paste0("## ", input$edit_repo_selected_repo$text))[1]
         end_pos <- stringr::str_locate(input$git_repo_readme, "<i class='fa fa-file-alt' style='color: steelblue;'></i> Studies")[2]
         
-        intro <- substr(input$git_repo_readme, start_pos, end_pos)
+        intro <- substr(input$git_repo_readme, 1, end_pos)
       }
       
       readme <- paste0(intro, readme)

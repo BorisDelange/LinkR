@@ -266,7 +266,7 @@ app_server <- function(language = "en", languages = tibble::tibble(), i18n = cha
       
       sapply(c("datasets", "plugins", "git_repos"), function(table){
         if (paste0(table, "_see_all_data") %not_in% r$user_accesses){
-          if (nrow(r[[table]] > 0)){
+          if (nrow(r[[table]]) > 0){
             r[[table]] <- get_authorized_data(r = r, table = table)
             r[[paste0(table, "_temp")]] <- r[[table]] %>% dplyr::mutate(modified = FALSE)
           }

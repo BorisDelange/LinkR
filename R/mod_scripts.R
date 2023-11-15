@@ -924,7 +924,7 @@ mod_scripts_server <- function(id = character(), r = shiny::reactiveValues(), d 
         r$remote_git_scripts_full <-
           xml2::read_xml(scripts_file) %>%
           XML::xmlParse() %>%
-          XML::xmlToDataFrame(nodes = XML::getNodeSet(., "//script")) %>%
+          XML::xmlToDataFrame(nodes = XML::getNodeSet(., "//script"), stringsAsFactors = FALSE) %>%
           tibble::as_tibble()
         
         if (nrow(r$remote_git_scripts_full) > 0) r$remote_git_scripts <- r$remote_git_scripts_full %>%
@@ -1821,7 +1821,7 @@ mod_scripts_server <- function(id = character(), r = shiny::reactiveValues(), d 
         scripts <-
           xml2::read_xml(paste0(temp_dir, "/scripts.xml")) %>%
           XML::xmlParse() %>%
-          XML::xmlToDataFrame(nodes = XML::getNodeSet(., "//script")) %>%
+          XML::xmlToDataFrame(nodes = XML::getNodeSet(., "//script"), stringsAsFactors = FALSE) %>%
           tibble::as_tibble() %>%
           dplyr::left_join(
             r$scripts %>%
@@ -2109,7 +2109,7 @@ mod_scripts_server <- function(id = character(), r = shiny::reactiveValues(), d 
               dplyr::bind_rows(
                 xml2::read_xml(paste0(dir, "/script.xml")) %>%
                   XML::xmlParse() %>%
-                  XML::xmlToDataFrame(nodes = XML::getNodeSet(., "//script")) %>%
+                  XML::xmlToDataFrame(nodes = XML::getNodeSet(., "//script"), stringsAsFactors = FALSE) %>%
                   tibble::as_tibble()
               )
           }

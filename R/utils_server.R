@@ -73,7 +73,7 @@ update_r <- function(r = shiny::reactiveValues(), m = shiny::reactiveValues(), t
       # Filter to data user has access to
       
       if (paste0(table, "_see_all_data") %not_in% r$user_accesses){
-        if (nrow(r[[table]] > 0)){
+        if (nrow(r[[table]]) > 0){
           r[[table]] <- DBI::dbGetQuery(db, paste0("SELECT * FROM ", table, " WHERE deleted IS FALSE ORDER BY id"))
           r[[table]] <- get_authorized_data(r = r, table = table)
           r[[paste0(table, "_temp")]] <- r[[table]] %>% dplyr::mutate(modified = FALSE)

@@ -1063,7 +1063,7 @@ mod_my_studies_server <- function(id = character(), r = shiny::reactiveValues(),
         r$remote_git_studies_full <-
           xml2::read_xml(studies_file) %>%
           XML::xmlParse() %>%
-          XML::xmlToDataFrame(nodes = XML::getNodeSet(., "//study")) %>%
+          XML::xmlToDataFrame(nodes = XML::getNodeSet(., "//study"), stringsAsFactors = FALSE) %>%
           tibble::as_tibble()
 
         if (nrow(r$remote_git_studies_full) > 0) r$remote_git_studies <- r$remote_git_studies_full %>%
@@ -1447,7 +1447,7 @@ mod_my_studies_server <- function(id = character(), r = shiny::reactiveValues(),
             
             plugin_images <- xml2::read_xml(paste0(plugin_dir, "/plugin.xml")) %>%
               XML::xmlParse() %>%
-              XML::xmlToDataFrame(nodes = XML::getNodeSet(., "//plugin")) %>%
+              XML::xmlToDataFrame(nodes = XML::getNodeSet(., "//plugin"), stringsAsFactors = FALSE) %>%
               tibble::as_tibble() %>%
               dplyr::pull(images)
             
@@ -2041,7 +2041,7 @@ mod_my_studies_server <- function(id = character(), r = shiny::reactiveValues(),
         studies <-
           xml2::read_xml(paste0(temp_dir, "/studies.xml")) %>%
           XML::xmlParse() %>%
-          XML::xmlToDataFrame(nodes = XML::getNodeSet(., "//study")) %>%
+          XML::xmlToDataFrame(nodes = XML::getNodeSet(., "//study"), stringsAsFactors = FALSE) %>%
           tibble::as_tibble() %>%
           dplyr::left_join(
             r$studies %>%
@@ -2674,7 +2674,7 @@ mod_my_studies_server <- function(id = character(), r = shiny::reactiveValues(),
               dplyr::bind_rows(
                 xml2::read_xml(paste0(dir, "/study.xml")) %>%
                   XML::xmlParse() %>%
-                  XML::xmlToDataFrame(nodes = XML::getNodeSet(., "//study")) %>%
+                  XML::xmlToDataFrame(nodes = XML::getNodeSet(., "//study"), stringsAsFactors = FALSE) %>%
                   tibble::as_tibble()
               )
           }

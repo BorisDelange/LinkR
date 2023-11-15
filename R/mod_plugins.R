@@ -605,7 +605,7 @@ mod_plugins_server <- function(id = character(), r = shiny::reactiveValues(), d 
       if (!error_loading_remote_git) r$remote_git_plugins <-
         xml2::read_xml(plugins_file) %>%
         XML::xmlParse() %>%
-        XML::xmlToDataFrame(nodes = XML::getNodeSet(., "//plugin")) %>%
+        XML::xmlToDataFrame(nodes = XML::getNodeSet(., "//plugin"), stringsAsFactors = FALSE) %>%
         tibble::as_tibble()
       
       r$error_loading_remote_git <- error_loading_remote_git
@@ -838,13 +838,13 @@ mod_plugins_server <- function(id = character(), r = shiny::reactiveValues(), d 
     
     observeEvent(input$show_plugin_details, {
       if (debug) cat(paste0("\n", Sys.time(), " - mod_plugins - observer input$show_plugin_details"))
-      r$show_plugin_details <- Sys.time()
+      r[[paste0(prefix, "_show_plugin_details")]] <- Sys.time()
     })
     
-    observeEvent(r$show_plugin_details, {
+    observeEvent(r[[paste0(prefix, "_show_plugin_details")]], {
       
       if (perf_monitoring) monitor_perf(r = r, action = "start")
-      if (debug) cat(paste0("\n", Sys.time(), " - mod_plugins - observer r$show_plugin_details"))
+      if (debug) cat(paste0("\n", Sys.time(), " - mod_plugins - observer r.._show_plugin_details"))
       
       req(input$show_plugin_details)
       
@@ -879,7 +879,7 @@ mod_plugins_server <- function(id = character(), r = shiny::reactiveValues(), d 
         plugin$name <- plugin[[paste0("name_", language)]]
         
         plugin_description <- paste0(
-          "**", i18n$t("author_s"), "** : ", plugin$name, "<br />",
+          "**", i18n$t("author_s"), "** : ", plugin$author, "<br />",
           "**", i18n$t("version"), "** : ", plugin$version, "\n\n",
           plugin %>% dplyr::pull(paste0("description_", tolower(language)))
         )
@@ -975,7 +975,7 @@ mod_plugins_server <- function(id = character(), r = shiny::reactiveValues(), d 
       shinyjs::hide("all_plugins_document_cards")
       shinyjs::show("all_plugins_plugin_details")
       
-      if (perf_monitoring) monitor_perf(r = r, action = "stop", task = paste0("mod_plugins - observer r$show_plugin_details"))
+      if (perf_monitoring) monitor_perf(r = r, action = "stop", task = paste0("mod_plugins - observer r.._show_plugin_details"))
     })
     
     observeEvent(input$all_plugins_show_document_cards, {
@@ -988,20 +988,20 @@ mod_plugins_server <- function(id = character(), r = shiny::reactiveValues(), d 
     
     observeEvent(input$install_plugin, {
       if (debug) cat(paste0("\n", Sys.time(), " - mod_plugins - observer input$install_plugin"))
-      r$install_update_plugin <- "install"
-      r$install_update_plugin_trigger <- Sys.time()
+      r[[paste0(prefix, "_install_update_plugin")]] <- "install"
+      r[[paste0(prefix, "_install_update_plugin_trigger")]] <- Sys.time()
     })
     
     observeEvent(input$update_plugin, {
       if (debug) cat(paste0("\n", Sys.time(), " - mod_plugins - observer input$update_plugin"))
-      r$install_update_plugin <- "update"
-      r$install_update_plugin_trigger <- Sys.time()
+      r[[paste0(prefix, "_install_update_plugin")]] <- "update"
+      r[[paste0(prefix, "_install_update_plugin_trigger")]] <- Sys.time()
     })
     
-    observeEvent(r$install_update_plugin_trigger, {
+    observeEvent(r[[paste0(prefix, "_install_update_plugin_trigger")]], {
       
       if (perf_monitoring) monitor_perf(r = r, action = "start")
-      if (debug) cat(paste0("\n", Sys.time(), " - mod_plugins - observer r$install_update_plugin_trigger"))
+      if (debug) cat(paste0("\n", Sys.time(), " - mod_plugins - observer r$.._install_update_plugin_trigger"))
       
       req(isTruthy(input$install_plugin) || isTruthy(input$update_plugin))
       
@@ -1027,9 +1027,9 @@ mod_plugins_server <- function(id = character(), r = shiny::reactiveValues(), d 
         
         # Delete old rows
         
-        if (r$install_update_plugin == "install") new_row <- get_last_row(r$db, "plugins") + 1
+        if (r[[paste0(prefix, "_install_update_plugin")]] == "install") new_row <- get_last_row(r$db, "plugins") + 1
         
-        if (r$install_update_plugin == "update"){
+        if (r[[paste0(prefix, "_install_update_plugin")]] == "update"){
           
           new_row <- r$options %>% dplyr::filter(category == "plugin", name == "unique_id", value == plugin$unique_id) %>% 
             dplyr::select(id = link_id, value) %>%
@@ -1146,7 +1146,7 @@ mod_plugins_server <- function(id = character(), r = shiny::reactiveValues(), d 
           }
         }
         
-        r$show_plugin_details <- Sys.time()
+        r[[paste0(prefix, "_show_plugin_details")]] <- Sys.time()
         
         # Reload datatable
         r[[paste0(prefix, "_plugins_temp")]] <- r$plugins %>% dplyr::filter(tab_type_id == !!tab_type_id) %>% 
@@ -1158,7 +1158,7 @@ mod_plugins_server <- function(id = character(), r = shiny::reactiveValues(), d 
       }, error = function(e) if (nchar(e[1]) > 0) report_bug(r = r, output = output, error_message = "error_install_remote_git_plugin", 
         error_name = paste0("install_remote_git_plugin - id = ", plugin$unique_id), category = "Error", error_report = toString(e), i18n = i18n, ns = ns))
       
-      if (perf_monitoring) monitor_perf(r = r, action = "stop", task = paste0("mod_plugins - observer r$install_update_plugin_trigger"))
+      if (perf_monitoring) monitor_perf(r = r, action = "stop", task = paste0("mod_plugins - observer r$.._install_update_plugin_trigger"))
     })
     
     # --- --- --- --- -- -
@@ -1414,7 +1414,7 @@ mod_plugins_server <- function(id = character(), r = shiny::reactiveValues(), d 
         dplyr::mutate(modified = FALSE) %>% dplyr::arrange(name)
       
       # Reload remote_git description if opened
-      r$show_plugin_details <- Sys.time()
+      r[[paste0(prefix, "_show_plugin_details")]] <- Sys.time()
       
       # Reload export plugin datatable
       
@@ -1643,7 +1643,7 @@ mod_plugins_server <- function(id = character(), r = shiny::reactiveValues(), d 
         dplyr::mutate_at(c("creation_datetime", "update_datetime"), format_datetime, language = language, sec = FALSE) %>%
         dplyr::mutate(modified = FALSE) %>% dplyr::arrange(name)
       
-      r$show_plugin_details <- Sys.time()
+      r[[paste0(prefix, "_show_plugin_details")]] <- Sys.time()
       
       if (perf_monitoring) monitor_perf(r = r, action = "stop", task = paste0("mod_plugins - observer r$..save_options"))
     })
@@ -2482,7 +2482,7 @@ mod_plugins_server <- function(id = character(), r = shiny::reactiveValues(), d 
         plugins <-
           xml2::read_xml(paste0(temp_dir, "/plugins.xml")) %>%
           XML::xmlParse() %>%
-          XML::xmlToDataFrame(nodes = XML::getNodeSet(., "//plugin")) %>%
+          XML::xmlToDataFrame(nodes = XML::getNodeSet(., "//plugin"), stringsAsFactors = FALSE) %>%
           tibble::as_tibble() %>%
           dplyr::left_join(
             r$plugins %>%
@@ -2494,6 +2494,7 @@ mod_plugins_server <- function(id = character(), r = shiny::reactiveValues(), d 
               dplyr::select(id, unique_id),
             by = "unique_id"
           )
+        print(plugins)
         
         prefixes <- c("description", "name", "category")
         new_cols <- outer(prefixes, r$languages$code, paste, sep = "_") %>% as.vector()
@@ -2624,7 +2625,7 @@ mod_plugins_server <- function(id = character(), r = shiny::reactiveValues(), d 
               overwrite = TRUE
             )
 
-            r$show_plugin_details <- Sys.time()
+            r[[paste0(prefix, "_show_plugin_details")]] <- Sys.time()
 
             # Reload datatable
             r[[paste0(prefix, "_plugins_temp")]] <- r$plugins %>% dplyr::filter(tab_type_id == !!tab_type_id) %>%
@@ -2795,7 +2796,7 @@ mod_plugins_server <- function(id = character(), r = shiny::reactiveValues(), d 
 
               df <- xml_file %>%
                 XML::xmlParse() %>%
-                XML::xmlToDataFrame(nodes = XML::getNodeSet(., "//plugin")) %>%
+                XML::xmlToDataFrame(nodes = XML::getNodeSet(., "//plugin"), stringsAsFactors = FALSE) %>%
                 tibble::as_tibble()
               df$images <- paste(images, collapse = ";;;")
 
