@@ -52,38 +52,45 @@ mod_settings_git_ui <- function(id = character(), i18n = character()){
             shiny.fluent::PivotItem(id = "git_add_repo_map", itemKey = "git_add_repo_map", headerText = i18n$t("with_map")),
             shiny.fluent::PivotItem(id = "git_add_repo_url", itemKey = "git_add_repo_url", headerText = i18n$t("with_url")),
           ),
-          conditionalPanel(condition = "input.add_repo_tab == null || input.add_repo_tab == 'git_add_repo_map'", ns = ns, br(),
+          div(
+            id = ns("git_add_repo_map_div"),
             leaflet::leafletOutput(ns("git_repos_map"), height = 500),
-            conditionalPanel(condition = "input.git_repos_map_marker_click != null", ns = ns,
-              shiny.fluent::Stack(horizontal = TRUE, tokens = list(childrenGap = 10), br(),
-                div(
-                  id = ns("api_key_git_repo_with_map_div"),
-                  shiny.fluent::Stack(horizontal = TRUE, tokens = list(childrenGap = 10),
-                    div(strong(i18n$t("api_key")), style = "margin-top:5px;"),
-                    div(shiny.fluent::TextField.shinyInput(ns("api_key_git_repo_with_map")), style = "width:600px;")
-                  ),
-                  style = "margin-top:15px; margin-left:0px;"
-                ),
-                div(shiny.fluent::PrimaryButton.shinyInput(ns("add_git_repo_with_map"), i18n$t("add")), style = "margin-top:15px;")
-              ), br(),
+            shinyjs::hidden(
               div(
-                uiOutput(ns("render_git_repo_description_with_map")),
-                style = "width: 99%; border-style: dashed; border-width: 1px; padding: 0px 8px 0px 8px; margin-right: 5px; padding-top: 10px;"
+                id = ns("git_add_repo_map_details_div"),
+                shiny.fluent::Stack(horizontal = TRUE, tokens = list(childrenGap = 10), br(),
+                  div(
+                    id = ns("api_key_git_repo_with_map_div"),
+                    shiny.fluent::Stack(horizontal = TRUE, tokens = list(childrenGap = 10),
+                      div(strong(i18n$t("api_key")), style = "margin-top:5px;"),
+                      div(shiny.fluent::TextField.shinyInput(ns("api_key_git_repo_with_map")), style = "width:600px;")
+                    ),
+                    style = "margin-top:15px; margin-left:0px;"
+                  ),
+                  div(shiny.fluent::PrimaryButton.shinyInput(ns("add_git_repo_with_map"), i18n$t("add")), style = "margin-top:15px;")
+                ), br(),
+                div(
+                  uiOutput(ns("render_git_repo_description_with_map")),
+                  style = "width: 99%; border-style: dashed; border-width: 1px; padding: 0px 8px 0px 8px; margin-right: 5px; padding-top: 10px;"
+                )
               )
             )
           ),
-          conditionalPanel(condition = "input.add_repo_tab == 'git_add_repo_url'", ns = ns,
-            make_textfield(i18n = i18n, ns = ns, label = "name", id = "name", width = "300px"),
-            make_textfield(i18n = i18n, ns = ns, label = "repo_url_address", id = "repo_url_address", width = "600px"),
-            make_textfield(i18n = i18n, ns = ns, label = "raw_files_url_address", id = "raw_files_url_address", width = "600px"),
-            make_textfield(i18n = i18n, ns = ns, label = "api_key", id = "api_key_git_repo_with_url", width = "600px"), br(),
-            shiny.fluent::Stack(horizontal = TRUE, tokens = list(childrenGap = 10),
-              shiny.fluent::PrimaryButton.shinyInput(ns("add_git_repo_with_url"), i18n$t("add")),
-              shiny.fluent::DefaultButton.shinyInput(ns("show_git_repo_description"), i18n$t("show_description"))
-            ), br(),
+          shinyjs::hidden(
             div(
-              uiOutput(ns("render_git_repo_description_with_url")),
-              style = "width: 99%; border-style: dashed; border-width: 1px; padding: 0px 8px 0px 8px; margin-right: 5px; padding-top: 10px;"
+              id = ns("git_add_repo_url_div"),
+              make_textfield(i18n = i18n, ns = ns, label = "name", id = "name", width = "300px"),
+              make_textfield(i18n = i18n, ns = ns, label = "repo_url_address", id = "repo_url_address", width = "600px"),
+              make_textfield(i18n = i18n, ns = ns, label = "raw_files_url_address", id = "raw_files_url_address", width = "600px"),
+              make_textfield(i18n = i18n, ns = ns, label = "api_key", id = "api_key_git_repo_with_url", width = "600px"), br(),
+              shiny.fluent::Stack(horizontal = TRUE, tokens = list(childrenGap = 10),
+                shiny.fluent::PrimaryButton.shinyInput(ns("add_git_repo_with_url"), i18n$t("add")),
+                shiny.fluent::DefaultButton.shinyInput(ns("show_git_repo_description"), i18n$t("show_description"))
+              ), br(),
+              div(
+                uiOutput(ns("render_git_repo_description_with_url")),
+                style = "width: 99%; border-style: dashed; border-width: 1px; padding: 0px 8px 0px 8px; margin-right: 5px; padding-top: 10px;"
+              )
             )
           )
         ))
@@ -129,9 +136,7 @@ mod_settings_git_ui <- function(id = character(), i18n = character()){
                 list(key = "everybody", text = i18n$t("everybody_who_has_access_to_dataset")),
                 list(key = "people_picker", text = i18n$t("choose_users"))
               ), className = "inline_choicegroup"),
-              conditionalPanel(condition = "input.users_allowed_read_group == 'people_picker'", ns = ns,
-                uiOutput(ns("users_allowed_read_div"))
-              )
+              shinyjs::hidden(uiOutput(ns("users_allowed_read_div")))
             ), br(),
             shiny.fluent::PrimaryButton.shinyInput(ns("save_git_repo_options"), i18n$t("save")),
           )
@@ -159,7 +164,8 @@ mod_settings_git_ui <- function(id = character(), i18n = character()){
               make_textfield(i18n = i18n, ns = ns, label = "api_key", id = "edit_repo_api_key", width = "300px"),
               div(shiny.fluent::PrimaryButton.shinyInput(ns("edit_repo_load_repo"), i18n$t("load")), style = "margin-top:39px")
             ),
-            conditionalPanel(condition = "input.git_edit_repo_current_tab == 'git_edit_repo_files' || input.git_edit_repo_current_tab == null", ns = ns, br(),
+            div(
+              id = ns("git_edit_repo_files_div"), br(),
               shiny.fluent::Stack(horizontal = TRUE, tokens = list(childrenGap = 20),
                 make_dropdown(i18n = i18n, ns = ns, label = "category", id = "repo_category",
                   options = list(
@@ -170,9 +176,7 @@ mod_settings_git_ui <- function(id = character(), i18n = character()){
                     list(key = "datasets", text = i18n$t("datasets")),
                     list(key = "vocabularies", text = i18n$t("vocabularies"))
                   ), value = "studies", width = "300px"),
-                conditionalPanel(condition = "input.repo_category == 'studies'", ns = ns,
-                  make_dropdown(i18n = i18n, ns = ns, label = "studies_dataset", id = "edit_repo_studies_dataset", width = "300px")
-                ),
+                shinyjs::hidden(make_dropdown(i18n = i18n, ns = ns, label = "studies_dataset", id = "edit_repo_studies_dataset", width = "300px")),
                 make_dropdown(i18n = i18n, ns = ns, label = "add_files", id = "edit_repo_add_selected_files", width = "300px", multiSelect = TRUE),
                 div(shiny.fluent::DefaultButton.shinyInput(ns("edit_repo_add_files"), i18n$t("add")), style = "margin-top:39px")
               ), br(),
@@ -186,14 +190,16 @@ mod_settings_git_ui <- function(id = character(), i18n = character()){
                 )
               ))
             ),
-            conditionalPanel(condition = "input.git_edit_repo_current_tab == 'git_edit_repo_readme'", ns = ns, br(),
+            shinyjs::hidden(
               div(
-                div("README", style = "font-weight:bold; margin-top:7px; margin-right:5px;"),
-                shiny.fluent::Stack(horizontal = TRUE, tokens = list(childrenGap = 10),
-                  div(shiny.fluent::Toggle.shinyInput(ns("hide_readme_editor"), value = FALSE), style = "margin-top:9px;"),
-                  div(i18n$t("hide_editor"), style = "font-weight:bold; margin-top:9px; margin-right:30px;")
-                ),
-                conditionalPanel(condition = "input.hide_readme_editor == false || input.hide_readme_editor == null", ns = ns,
+                id = ns("git_edit_repo_readme_div"),
+                br(),
+                div(
+                  div("README", style = "font-weight:bold; margin-top:7px; margin-right:5px;"),
+                  shiny.fluent::Stack(horizontal = TRUE, tokens = list(childrenGap = 10),
+                    div(shiny.fluent::Toggle.shinyInput(ns("hide_readme_editor"), value = FALSE), style = "margin-top:9px;"),
+                    div(i18n$t("hide_editor"), style = "font-weight:bold; margin-top:9px; margin-right:30px;")
+                  ),
                   shinyAce::aceEditor(ns("git_repo_readme"), "", mode = "markdown", 
                     code_hotkeys = list(
                       "markdown", 
@@ -203,18 +209,18 @@ mod_settings_git_ui <- function(id = character(), i18n = character()){
                         comment = list(win = "CTRL-SHIFT-C", mac = "CTRL-SHIFT-C|CMD-SHIFT-C")
                       )
                     ),
-                    autoScrollEditorIntoView = TRUE, minLines = 30, maxLines = 1000)
-                ),
-                style = "width: 100%;"),
-              conditionalPanel(condition = "input.hide_readme_editor == true", ns = ns, br()),
-              shiny.fluent::Stack(horizontal = TRUE, tokens = list(childrenGap = 10),
-                shiny.fluent::PrimaryButton.shinyInput(ns("git_repo_readme_save"), i18n$t("save")), " ",
-                shiny.fluent::DefaultButton.shinyInput(ns("git_repo_readme_preview"), i18n$t("preview")), " ",
-                shiny.fluent::DefaultButton.shinyInput(ns("git_repo_readme_generate"), i18n$t("generate_content"))
-              ), br(),
-              div(id = ns("description_markdown_output"),
-                uiOutput(ns("description_markdown_result")), 
-                style = "width: 99%; border-style: dashed; border-width: 1px; padding:0px 8px 0px 8px; margin-right: 5px;")
+                    autoScrollEditorIntoView = TRUE, minLines = 30, maxLines = 1000),
+                  style = "width: 100%;"),
+                shinyjs::hidden(div(id = ns("br_div"), br())),
+                shiny.fluent::Stack(horizontal = TRUE, tokens = list(childrenGap = 10),
+                  shiny.fluent::PrimaryButton.shinyInput(ns("git_repo_readme_save"), i18n$t("save")), " ",
+                  shiny.fluent::DefaultButton.shinyInput(ns("git_repo_readme_preview"), i18n$t("preview")), " ",
+                  shiny.fluent::DefaultButton.shinyInput(ns("git_repo_readme_generate"), i18n$t("generate_content"))
+                ), br(),
+                div(id = ns("description_markdown_output"),
+                  uiOutput(ns("description_markdown_result")), 
+                  style = "width: 99%; border-style: dashed; border-width: 1px; padding:0px 8px 0px 8px; margin-right: 5px;")
+              )
             ), br(),
             shiny.fluent::Stack(horizontal = TRUE, tokens = list(childrenGap = 20),
               make_textfield(i18n = i18n, ns = ns, label = "commit_message", id = "commit_message", width = "620px"),
@@ -271,6 +277,20 @@ mod_settings_git_server <- function(id = character(), r = shiny::reactiveValues(
     # Create a git repo ----
     # --- --- --- --- --- --
     
+    # Show / hide divs
+    observeEvent(input$add_repo_tab, {
+      if (debug) cat(paste0("\n", Sys.time(), " - mod_settings_git - observer input$add_repo_tab"))
+      
+      if (input$add_repo_tab == "git_add_repo_map"){
+        shinyjs::show("git_add_repo_map_div")
+        shinyjs::hide("git_add_repo_url_div")
+      }
+      else {
+        shinyjs::hide("git_add_repo_map_div")
+        shinyjs::show("git_add_repo_url_div")
+      }
+    })
+    
     # Add with map
     
     if (r$has_internet){
@@ -315,6 +335,9 @@ mod_settings_git_server <- function(id = character(), r = shiny::reactiveValues(
       ## When a repo is selected on the map
       observeEvent(input$git_repos_map_marker_click, {
         if (debug) cat(paste0("\n", Sys.time(), " - mod_settings_git - observer input$git_repos_map_marker_click"))
+        
+        # Show div
+        shinyjs::show("git_add_repo_map_details_div")
         
         # Update API key field
         shiny.fluent::updateTextField.shinyInput(session = session, "api_key_git_repo_with_map", errorMessage = NULL, value = "")
@@ -593,6 +616,15 @@ mod_settings_git_server <- function(id = character(), r = shiny::reactiveValues(
     # Git repo options ----
     # --- --- --- --- --- -
     
+    # Show / hide people picker input
+    observeEvent(input$users_allowed_read_group, {
+      
+      if (debug) cat(paste0("\n", Sys.time(), " - mod_settings_git - observer input$users_allowed_read_group"))
+      
+      if (input$users_allowed_read_group == "people_picker") shinyjs::show("users_allowed_read_div")
+      else shinyjs::hide("users_allowed_read_div")
+    })
+    
     # When a repo is selected
     observeEvent(input$options, {
       
@@ -709,6 +741,35 @@ mod_settings_git_server <- function(id = character(), r = shiny::reactiveValues(
     # Edit git repo ----
     # --- --- --- --- --
     
+    # Show / hide divs
+    observeEvent(input$git_edit_repo_current_tab, {
+      
+      if (debug) cat(paste0("\n", Sys.time(), " - mod_settings_git - observer input$git_edit_repo_current_tab"))
+      
+      if (input$git_edit_repo_current_tab == "git_edit_repo_files"){
+        shinyjs::show("git_edit_repo_files_div")
+        shinyjs::hide("git_edit_repo_readme_div")
+      }
+      else {
+        shinyjs::hide("git_edit_repo_files_div")
+        shinyjs::show("git_edit_repo_readme_div")
+      }
+    })
+    
+    observeEvent(input$hide_readme_editor, {
+      
+      if (debug) cat(paste0("\n", Sys.time(), " - mod_settings_git - observer input$hide_readme_editor"))
+      
+      if (input$hide_readme_editor){
+        shinyjs::hide("git_repo_readme")
+        shinyjs::show("br_div")
+      } 
+      else {
+        shinyjs::show("git_repo_readme")
+        shinyjs::hide("br_div")
+      }
+    })
+    
     # When a repo is selected
     observeEvent(input$edit_repo_load_repo, {
       
@@ -811,6 +872,9 @@ mod_settings_git_server <- function(id = character(), r = shiny::reactiveValues(
       
       if (debug) cat(paste0("\n", Sys.time(), " - mod_settings_git - observer input$repo_category"))
       r$repo_category_trigger <- Sys.time() 
+      
+      if (input$repo_category == "studies") shinyjs::show("studies_dataset")
+      else shinyjs::hide("studies_dataset")
     })
     
     observeEvent(r$repo_category_trigger, {

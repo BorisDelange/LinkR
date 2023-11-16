@@ -91,21 +91,24 @@ mod_my_subsets_ui <- function(id = character(), i18n = character()){
                 style = "position:relative; z-index:1; margin-top:-30px; width:500px;"
               )
             ), br(),
-            conditionalPanel(condition = "input.persons_selected_subset == null | input.persons_selected_subset == ''", ns = ns, br())
+            div(id = ns("br_div"), br())
           )
         ),
-        conditionalPanel(condition = "input.persons_selected_subset != null & input.persons_selected_subset != ''", ns = ns,
-          make_card(i18n$t("add_persons_to_subset"),
-            div(
-              div(DT::DTOutput(ns("subset_add_persons_datatable")), style = "margin-top:-30px; z-index:2"),
-              shinyjs::hidden(
-                div(
-                  id = ns("subset_add_persons_buttons"),
-                  shiny.fluent::PrimaryButton.shinyInput(ns("subset_add_persons"), i18n$t("add")),
-                  style = "position:relative; z-index:1; margin-top:-30px; width:500px;"
-                )
-              ), br()
-            )  
+        shinyjs::hidden(
+          div(
+            id = ns("add_persons_to_subset_div"),
+            make_card(i18n$t("add_persons_to_subset"),
+              div(
+                div(DT::DTOutput(ns("subset_add_persons_datatable")), style = "margin-top:-30px; z-index:2"),
+                shinyjs::hidden(
+                  div(
+                    id = ns("subset_add_persons_buttons"),
+                    shiny.fluent::PrimaryButton.shinyInput(ns("subset_add_persons"), i18n$t("add")),
+                    style = "position:relative; z-index:1; margin-top:-30px; width:500px;"
+                  )
+                ), br()
+              )  
+            )
           )
         )
       )
@@ -129,22 +132,21 @@ mod_my_subsets_ui <- function(id = character(), i18n = character()){
                 div(i18n$t("hide_editor"), style = "font-weight:bold; margin-top:9px; margin-right:30px;")
               )
             ),
-            conditionalPanel(condition = "input.hide_editor == false", ns = ns,
-              div(shinyAce::aceEditor(
-                ns("ace_edit_code"), "", mode = "r", 
-                code_hotkeys = list(
-                  "r", list(
-                    run_selection = list(win = "CTRL-ENTER", mac = "CTRL-ENTER|CMD-ENTER"),
-                    run_all = list(win = "CTRL-SHIFT-ENTER", mac = "CTRL-SHIFT-ENTER|CMD-SHIFT-ENTER"),
-                    save = list(win = "CTRL-S", mac = "CTRL-S|CMD-S"),
-                    comment = list(win = "CTRL-SHIFT-C", mac = "CTRL-SHIFT-C|CMD-SHIFT-C")
-                  )
-                ),
-                autoScrollEditorIntoView = TRUE, minLines = 30, maxLines = 1000))
+            div(shinyAce::aceEditor(
+              ns("ace_edit_code"), "", mode = "r", 
+              code_hotkeys = list(
+                "r", list(
+                  run_selection = list(win = "CTRL-ENTER", mac = "CTRL-ENTER|CMD-ENTER"),
+                  run_all = list(win = "CTRL-SHIFT-ENTER", mac = "CTRL-SHIFT-ENTER|CMD-SHIFT-ENTER"),
+                  save = list(win = "CTRL-S", mac = "CTRL-S|CMD-S"),
+                  comment = list(win = "CTRL-SHIFT-C", mac = "CTRL-SHIFT-C|CMD-SHIFT-C")
+                )
+              ),
+              autoScrollEditorIntoView = TRUE, minLines = 30, maxLines = 1000)
             ),
+            shinyjs::hidden(div(id = ns("br_div_2"), br())),
             shiny.fluent::Stack(
               tokens = list(childrenGap = 5),
-              conditionalPanel(condition = "input.hide_editor == true", ns = ns, br()),
               shiny.fluent::Stack(horizontal = TRUE, tokens = list(childrenGap = 10),
                 shiny.fluent::PrimaryButton.shinyInput(ns("execute_code"), i18n$t("run_code")),
                 shiny.fluent::DefaultButton.shinyInput(ns("save_code"), i18n$t("save"))
@@ -455,6 +457,20 @@ mod_my_subsets_server <- function(id = character(), r = shiny::reactiveValues(),
     # Edit subset code ----
     # --- --- --- --- --- -
     
+    # Hide ace aditor
+    observeEvent(input$hide_editor, {
+      
+      if (debug) cat(paste0("\n", Sys.time(), " - mod_my_subsets - observer input$hide_editor"))
+      if (input$hide_editor){
+        shinyjs::hide("ace_edit_code")
+        shinyjs::show("br_div_2")
+      }
+      else {
+        shinyjs::show("ace_edit_code")
+        shinyjs::hide("br_div_2")
+      }
+    })
+    
     # Button "Edit code" is clicked on the datatable
     observeEvent(input$edit_code, {
       
@@ -664,6 +680,9 @@ mod_my_subsets_server <- function(id = character(), r = shiny::reactiveValues(),
         else subset_code_link_id <- input$code_selected_subset
       }
       else subset_code_link_id <- 0L
+      
+      if (length(input$persons_selected_subset) > 0) sapply(c("add_persons_to_subset_div", "br_div"), shinyjs::show)
+      else sapply(c("add_persons_to_subset_div", "br_div"), shinyjs::hide)
       
       if (link_id != subset_code_link_id){
         options <- convert_tibble_to_list(m$subsets %>% dplyr::arrange(name), key_col = "id", text_col = "name")

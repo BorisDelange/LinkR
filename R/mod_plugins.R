@@ -58,8 +58,9 @@ mod_plugins_ui <- function(id = character(), i18n = character(), language = tibb
         ),
         style = "width:330px;"
       ),
-      conditionalPanel(condition = "input.show_mapped_concepts == true", ns = ns, 
+      shinyjs::hidden(
         div(
+          id = ns("merge_mapped_concepts_div"),
           shiny.fluent::Stack(horizontal = TRUE, tokens = list(childrenGap = 10),
             div(shiny.fluent::Toggle.shinyInput(ns("merge_mapped_concepts"), value = TRUE), style = "margin-top:30px;; margin-bottom:5px; margin-left:-10px;"),
             div(i18n$t("merge_mapped_concepts"), style = "font-weight:bold; margin-top:30px;; margin-bottom:5px;")
@@ -95,18 +96,22 @@ mod_plugins_ui <- function(id = character(), i18n = character(), language = tibb
   
   for (lang in languages$code){
     
-    plugin_options_div <- shiny.fluent::Stack(horizontal = TRUE, tokens = list(childrenGap = 20),
-      div(
-        div(class = "input_title", paste0(i18n$t("name"), " (", toupper(lang), ")")),
-        div(shiny.fluent::TextField.shinyInput(ns(paste0("plugin_name_", lang))), style = "width:320px;")
-      ),
-      div(
-        div(class = "input_title", paste0(i18n$t("category"), " (", toupper(lang), ")")),
-        div(shiny.fluent::TextField.shinyInput(ns(paste0("plugin_category_", lang))), style = "width:320px;")
+    plugin_options_div <- div(
+      id = ns(paste0("plugin_options_", lang, "_div")),
+      shiny.fluent::Stack(horizontal = TRUE, tokens = list(childrenGap = 20),
+        div(
+          div(class = "input_title", paste0(i18n$t("name"), " (", toupper(lang), ")")),
+          div(shiny.fluent::TextField.shinyInput(ns(paste0("plugin_name_", lang))), style = "width:320px;")
+        ),
+        div(
+          div(class = "input_title", paste0(i18n$t("category"), " (", toupper(lang), ")")),
+          div(shiny.fluent::TextField.shinyInput(ns(paste0("plugin_category_", lang))), style = "width:320px;")
+        )
       )
     )
     
     plugin_description_div <- div(
+      id = ns(paste0("plugin_description_", lang, "_div")),
       div(paste0(i18n$t("description"), " (", toupper(lang), ") :"), style = "font-weight:bold; margin-top:7px; margin-right:5px;"),
       shinyAce::aceEditor(ns(paste0("plugin_description_", lang)), "", mode = "markdown", 
         code_hotkeys = list(
@@ -119,13 +124,8 @@ mod_plugins_ui <- function(id = character(), i18n = character(), language = tibb
         ),
       autoScrollEditorIntoView = TRUE, minLines = 30, maxLines = 1000), style = "width: 100%;")
     
-    if (lang == language) condition <- paste0("input.plugin_language == '", lang, "' || input.plugin_language == null")
-    else condition <- paste0("input.plugin_language == '", lang, "'")
-    
-    plugin_options_div <- conditionalPanel(condition = paste0("input.plugin_language == '", lang, "'"), ns = ns, plugin_options_div)
-    
-    plugin_options_divs <- tagList(plugin_options_divs, conditionalPanel(condition = condition, ns = ns, plugin_options_div))
-    plugin_description_divs <- tagList(plugin_description_divs, conditionalPanel(condition = condition, ns = ns, plugin_description_div))
+    plugin_options_divs <- tagList(plugin_options_divs, plugin_options_div)
+    plugin_description_divs <- tagList(plugin_description_divs, plugin_description_div)
   }
   
   div(
@@ -173,8 +173,9 @@ mod_plugins_ui <- function(id = character(), i18n = character(), language = tibb
                   ), className = "inline_choicegroup"),
                   style = "width:322px;"
                 ),
-                conditionalPanel(condition = "input.all_plugins_source == 'remote_git'", ns = ns,
+                shinyjs::hidden(
                   div(
+                    id = ns("remote_git_repo_div"),
                     shiny.fluent::Stack(horizontal = TRUE, tokens = list(childrenGap = 10),
                       div(strong(i18n$t("remote_git_repo")), style = "margin-top:8px;"),
                       div(shiny.fluent::Dropdown.shinyInput(ns("remote_git_repo")), style = "width:322px;margin-top:3px;")
@@ -182,12 +183,16 @@ mod_plugins_ui <- function(id = character(), i18n = character(), language = tibb
                   )
                 )
               ),
-              conditionalPanel(condition = "input.all_plugins_source == 'local'", ns = ns,
+              div(
+                id = ns("all_plugins_local_div"),
                 make_dropdown(i18n = i18n, ns = ns, label = "category", id = "local_plugins_category", width = "322px"),
-                uiOutput(ns("all_plugins_local"))),
-              conditionalPanel(condition = "input.all_plugins_source == 'remote_git'", ns = ns,
+                uiOutput(ns("all_plugins_local"))
+              ),
+              div(
+                id = ns("all_plugins_remote_git_div"),
                 make_dropdown(i18n = i18n, ns = ns, label = "category", id = "remote_git_plugins_category", width = "322px"),
-                uiOutput(ns("all_plugins_remote_git"))), br(),
+                uiOutput(ns("all_plugins_remote_git"))
+              ), br(),
               div(shiny.fluent::DefaultButton.shinyInput(ns("reload_plugins_document_cards"), i18n$t("refresh")), style = "margin-top:2px; width:320px;")
             )
           )
@@ -253,11 +258,13 @@ mod_plugins_ui <- function(id = character(), i18n = character(), language = tibb
                 ),
                 style = "z-index:2"
               ),
-              conditionalPanel(condition = "input.hide_editor == true", ns = ns, br())
+              shinyjs::hidden(div(id = ns("br_div"), br()))
             ),
-            conditionalPanel(condition = "input.hide_editor == false", ns = ns,
-              conditionalPanel(condition = "input.edit_code_ui_server == 'ui'", ns = ns,
-                div(shinyAce::aceEditor(
+            div(
+              id = ns("ace_editor_div"),
+                div(
+                  id = ns("ace_edit_code_ui_div"),
+                  shinyAce::aceEditor(
                   ns("ace_edit_code_ui"), "", mode = "r", 
                   code_hotkeys = list(
                     "r", list(
@@ -268,22 +275,31 @@ mod_plugins_ui <- function(id = character(), i18n = character(), language = tibb
                     )
                   ),
                   autoScrollEditorIntoView = TRUE, minLines = 30, maxLines = 1000
-                ), style = "width: 100%;")),
-              conditionalPanel(condition = "input.edit_code_ui_server == 'server'", ns = ns,
-                div(shinyAce::aceEditor(
-                  ns("ace_edit_code_server"), "", mode = "r", 
-                  code_hotkeys = list(
-                    "r", list(
-                      run_selection = list(win = "CTRL-ENTER", mac = "CTRL-ENTER|CMD-ENTER"),
-                      run_all = list(win = "CTRL-SHIFT-ENTER", mac = "CTRL-SHIFT-ENTER|CMD-SHIFT-ENTER"),
-                      save = list(win = "CTRL-S", mac = "CTRL-S|CMD-S"),
-                      comment = list(win = "CTRL-SHIFT-C", mac = "CTRL-SHIFT-C|CMD-SHIFT-C")
-                    )
-                  ),
-                  autoScrollEditorIntoView = TRUE, minLines = 30, maxLines = 1000
-                ), style = "width: 100%;")),
-              conditionalPanel(condition = "input.edit_code_ui_server == 'translations'", ns = ns,
-                div(shinyAce::aceEditor(
+                ), 
+                style = "width: 100%;"
+              ),
+              shinyjs::hidden(
+                div(
+                  id = ns("ace_edit_code_server_div"),
+                  shinyAce::aceEditor(
+                    ns("ace_edit_code_server"), "", mode = "r", 
+                    code_hotkeys = list(
+                      "r", list(
+                        run_selection = list(win = "CTRL-ENTER", mac = "CTRL-ENTER|CMD-ENTER"),
+                        run_all = list(win = "CTRL-SHIFT-ENTER", mac = "CTRL-SHIFT-ENTER|CMD-SHIFT-ENTER"),
+                        save = list(win = "CTRL-S", mac = "CTRL-S|CMD-S"),
+                        comment = list(win = "CTRL-SHIFT-C", mac = "CTRL-SHIFT-C|CMD-SHIFT-C")
+                      )
+                    ),
+                    autoScrollEditorIntoView = TRUE, minLines = 30, maxLines = 1000
+                  ), 
+                  style = "width: 100%;"
+                )
+              ),
+              shinyjs::hidden(
+                div(
+                  id = ns("ace_edit_code_translations_div"),
+                  shinyAce::aceEditor(
                   ns("ace_edit_code_translations"), "", mode = "text",
                   code_hotkeys = list("r", 
                     list(
@@ -292,7 +308,9 @@ mod_plugins_ui <- function(id = character(), i18n = character(), language = tibb
                     )
                   ),
                   autoScrollEditorIntoView = TRUE, minLines = 30, maxLines = 1000
-                ), style = "width: 100%;"))
+                ), 
+                style = "width: 100%;")
+              )
             ),
             shiny.fluent::Stack(
               tokens = list(childrenGap = 5),
@@ -336,9 +354,7 @@ mod_plugins_ui <- function(id = character(), i18n = character(), language = tibb
                   list(key = "everybody", text = i18n$t("everybody")),
                   list(key = "people_picker", text = i18n$t("choose_users"))
                 ), className = "inline_choicegroup"),
-                conditionalPanel(condition = "input.users_allowed_read_group == 'people_picker'", ns = ns,
-                  uiOutput(ns("users_allowed_read_div"))
-                )
+                shinyjs::hidden(uiOutput(ns("users_allowed_read_div")))
               ), br(),
               shiny.fluent::Stack(horizontal = TRUE, tokens = list(childrenGap = 20),
                 make_dropdown(i18n = i18n, ns = ns, label = "image", id = "plugin_image", width = "320px"),
@@ -350,9 +366,12 @@ mod_plugins_ui <- function(id = character(), i18n = character(), language = tibb
                 style = "margin-top:44px;"),
               ), 
               br(),
-              conditionalPanel(condition = "input.plugin_image != null & input.plugin_image != ''", ns = ns,
-                div(imageOutput(ns("render_image")), style = "border:solid #ECEBE9 1px; width:318px; height:200px;"), br()
-              ),
+              shinyjs::hidden(
+                div(
+                  id = ns("render_image_div"),
+                  div(imageOutput(ns("render_image")), style = "border:solid #ECEBE9 1px; width:318px; height:200px;"), br()
+                )
+              )
             ),
             plugin_description_divs,
             shiny.fluent::Stack(
@@ -557,6 +576,19 @@ mod_plugins_server <- function(id = character(), r = shiny::reactiveValues(), d 
     # Plugins catalog ----
     # --- --- --- --- -- -
     
+    # Show / hide divs
+    observeEvent(input$all_plugins_source, {
+      if (debug) cat(paste0("\n", Sys.time(), " - mod_plugins - observer input$all_plugins_source"))
+      if (input$all_plugins_source == "local"){
+        shinyjs::show("all_plugins_local_div")
+        sapply(c("remote_git_repo_div", "all_plugins_remote_git_div"), shinyjs::hide)
+      }
+      if (input$all_plugins_source == "remote_git"){
+        shinyjs::hide("all_plugins_local_div")
+        sapply(c("remote_git_repo_div", "all_plugins_remote_git_div"), shinyjs::show)
+      }
+    })
+    
     # Update dropdown of remote git repos
     
     observeEvent(r$git_repos, {
@@ -694,7 +726,6 @@ mod_plugins_server <- function(id = character(), r = shiny::reactiveValues(), d 
       sapply(c("remote_git", "local"), function(type){
 
         all_plugins <- tagList()
-        all_plugins_document_cards <- tagList()
 
         if (type == "remote_git" & length(r$error_loading_remote_git) == 0) renderUI(tagList(br(), shiny.fluent::MessageBar(i18n$t("choose_remote_git"), messageBarType = 5)))
         else if (type == "remote_git" & error_loading_remote_git) output$all_plugins_remote_git <- renderUI(tagList(br(), shiny.fluent::MessageBar(i18n$t("error_connection_remote_git"), messageBarType = 3)))
@@ -702,7 +733,7 @@ mod_plugins_server <- function(id = character(), r = shiny::reactiveValues(), d 
 
         else if (nrow(plugins[[type]]) > 0){
 
-          i <- 0
+          # i <- 0
 
           for(plugin_id in plugins[[type]] %>% dplyr::pull(id)){
 
@@ -741,7 +772,7 @@ mod_plugins_server <- function(id = character(), r = shiny::reactiveValues(), d 
             if (choice_image_div == "image_output") image_div <- imageOutput(ns(paste0(plugin_id, "_image")), width = "320px", height = "200px")
             if (choice_image_div == "ui_output") image_div <- uiOutput(ns(paste0(plugin_id, "_image")))
             
-            all_plugins_document_cards <- tagList(all_plugins_document_cards,
+            all_plugins <- tagList(all_plugins,
 
               shiny.fluent::Link(
                 div(
@@ -765,33 +796,14 @@ mod_plugins_server <- function(id = character(), r = shiny::reactiveValues(), d 
                   "}"))
               )
             )
-
-            i <- i + 1
-
-            if (i %% 3 == 0){
-              all_plugins <- tagList(all_plugins, br(),
-                div(
-                  shiny.fluent::Stack(horizontal = TRUE, tokens = list(childrenGap = 20),
-                    all_plugins_document_cards
-                  )
-                )
-              )
-
-              all_plugins_document_cards <- tagList()
-            }
           }
+          
+          all_plugins <- div(
+            all_plugins,
+            style = "display:grid; grid-template-columns: repeat(auto-fill, minmax(318px, 1fr)); gap:20px;"
+          )
 
-          if (i %% 3 != 0){
-            all_plugins <- tagList(all_plugins, br(),
-              div(
-                shiny.fluent::Stack(horizontal = TRUE, tokens = list(childrenGap = 20),
-                  all_plugins_document_cards
-                )
-              )
-            )
-          }
-
-          output[[paste0("all_plugins_", type)]] <- renderUI(tagList(all_plugins))
+          output[[paste0("all_plugins_", type)]] <- renderUI(tagList(br(), all_plugins))
         }
       })
 
@@ -1481,6 +1493,38 @@ mod_plugins_server <- function(id = character(), r = shiny::reactiveValues(), d 
     # Plugin options ----
     # --- --- --- -- -- -
     
+    # Show / hide options & description divs depending on selected language
+    observeEvent(input$plugin_language, {
+      
+      if (debug) cat(paste0("\n", Sys.time(), " - mod_my_plugins - observer input$plugin_language"))
+      
+      for (lang in r$languages$code){
+        if (lang == input$plugin_language) sapply(c(paste0("plugin_options_", lang, "_div"), paste0("plugin_description_", lang, "_div")), shinyjs::show)
+        else sapply(c(paste0("plugin_options_", lang, "_div"), paste0("plugin_description_", lang, "_div")), shinyjs::hide)
+      }
+    })
+    
+    # Show / hide people picker input
+    observeEvent(input$users_allowed_read_group, {
+      
+      if (debug) cat(paste0("\n", Sys.time(), " - mod_my_plugins - observer input$users_allowed_read_group"))
+      
+      if (input$users_allowed_read_group == "people_picker") shinyjs::show("users_allowed_read_div")
+      else shinyjs::hide("users_allowed_read_div")
+    })
+    
+    # Show / hide plugin image div
+    observeEvent(input$plugin_image, {
+      
+      if (debug) cat(paste0("\n", Sys.time(), " - mod_my_plugins - observer input$plugin_image"))
+      
+      if (length(input$plugin_image) == 0) shinyjs::hide("render_image_div")
+      if (length(input$plugin_image) > 0){
+        if (input$plugin_image == "") shinyjs::hide("render_image_div")
+        else shinyjs::show("render_image_div")
+      }
+    })
+    
     observeEvent(input$options_selected_plugin, {
       
       if (perf_monitoring) monitor_perf(r = r, action = "start")
@@ -1826,6 +1870,30 @@ mod_plugins_server <- function(id = character(), r = shiny::reactiveValues(), d 
     # Edit plugin code ----
     # --- --- --- --- --- -
     
+    # Show / hide ace editors
+    
+    observeEvent(input$hide_editor, {
+      
+      if (debug) cat(paste0("\n", Sys.time(), " - mod_plugins - observer input$hide_editor"))
+      
+      if (input$hide_editor){
+        shinyjs::hide("ace_editor_div")
+        shinyjs::show("br_div") 
+      }
+      else {
+        shinyjs::show("ace_editor_div")
+        shinyjs::hide("br_div") 
+      }
+    })
+    
+    observeEvent(input$edit_code_ui_server, {
+      
+      if (debug) cat(paste0("\n", Sys.time(), " - mod_plugins - observer input$edit_code_ui_server"))
+      
+      sapply(c("ui", "server", "translations"), function(name) shinyjs::hide(paste0("ace_edit_code_", name, "_div")))
+      shinyjs::show(paste0("ace_edit_code_", input$edit_code_ui_server, "_div"))
+    })
+    
     observeEvent(input$code_selected_plugin, {
       
       if (perf_monitoring) monitor_perf(r = r, action = "start")
@@ -1919,8 +1987,8 @@ mod_plugins_server <- function(id = character(), r = shiny::reactiveValues(), d 
     observeEvent(input$show_mapped_concepts, {
       if (debug) cat(paste0("\n", Sys.time(), " - mod_plugins - observer input$show_mapped_concepts"))
       r[[paste0(prefix, "_reload_plugin_vocabulary_concepts")]] <- Sys.time()
-      if (input$show_mapped_concepts & !input$hide_concepts_datatables) shinyjs::show("plugin_vocabulary_mapped_concepts")
-      else shinyjs::hide("plugin_vocabulary_mapped_concepts")
+      if (input$show_mapped_concepts & !input$hide_concepts_datatables) sapply(c("merge_mapped_concepts_div", "plugin_vocabulary_mapped_concepts"), shinyjs::show)
+      else sapply(c("merge_mapped_concepts_div", "plugin_vocabulary_mapped_concepts"), shinyjs::hide)
     })
     
     observeEvent(r[[paste0(prefix, "_reload_plugin_vocabulary_concepts")]], {

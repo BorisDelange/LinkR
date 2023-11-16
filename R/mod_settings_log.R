@@ -123,8 +123,11 @@ mod_settings_log_server <- function(id = character(), r = shiny::reactiveValuess
             list(key = "only_me", text = i18n$t("only_me")),
             list(key = "people_picker", text = i18n$t("people_picker"))
           ), className = "inline_choicegroup"),
-          conditionalPanel(condition = "input.see_log_of == 'people_picker'", ns = ns,
-            make_people_picker(i18n = i18n, ns = ns, label = "users", options = options)
+          shinyjs::hidden(
+            div(
+              id = ns("log_users_div"),
+              make_people_picker(i18n = i18n, ns = ns, label = "users", id = "log_users", options = options)
+            )
           ), br()
         ) -> result
       }
@@ -172,7 +175,7 @@ mod_settings_log_server <- function(id = character(), r = shiny::reactiveValuess
       }
       
       if (input$see_log_of == "people_picker"){
-        sql <- glue::glue_sql("SELECT id, category, name, value, creator_id, datetime FROM log WHERE creator_id IN ({input$users*}) ORDER BY datetime DESC", .con = r$db)
+        sql <- glue::glue_sql("SELECT id, category, name, value, creator_id, datetime FROM log WHERE creator_id IN ({input$log_users*}) ORDER BY datetime DESC", .con = r$db)
         r$log <- DBI::dbGetQuery(r$db, sql)
       }
       
@@ -200,9 +203,19 @@ mod_settings_log_server <- function(id = character(), r = shiny::reactiveValuess
       if (perf_monitoring) monitor_perf(r = r, action = "stop", task = paste0("mod_settings_log - observer input$reload_log"))
     })
     
+    # Show / hide people picker div
+    observeEvent(input$see_log_of, {
+      if (debug) cat(paste0("\n", Sys.time(), " - mod_settings_log - observer input$see_log_of"))
+      
+      if (input$see_log_of == "only_me") shinyjs::hide("log_users_div")
+      else if (input$see_log_of == "people_picker") shinyjs::show("log_users_div")
+    })
+    
     # When a row is selected
     
     observeEvent(input$log_datatable_rows_selected, {
+      
+      if (debug) cat(paste0("\n", Sys.time(), " - mod_settings_log - observer input$log_datatable_rows_selected"))
       
       output$log_details <- renderText({
         paste0(

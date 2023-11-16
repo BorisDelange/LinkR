@@ -20,14 +20,17 @@ mod_my_studies_ui <- function(id = character(), i18n = character(), language = "
   all_studies_cards <- list()
   for (name in c("local", "remote_git")){
     all_studies_cards[[name]] <- tagList(
-      conditionalPanel(condition = paste0("input.all_studies_source == '", name, "'"), ns = ns, 
-        DT::DTOutput(ns(paste0(name, "_studies_datatable"))), br(),
-        shinyjs::hidden(
-          div(id = ns(paste0(name, "_selected_study_markdown_div")),
-            uiOutput(ns(paste0(name, "_selected_study_markdown"))),
-            style = "width:99%; border-style: dashed; border-width: 1px; padding: 0px 8px 0px 8px; margin-right: 5px;")
+      shinyjs::hidden(
+        div(
+          id = ns(paste0("all_studies_", name, "_div")),
+          DT::DTOutput(ns(paste0(name, "_studies_datatable"))), br(),
+          shinyjs::hidden(
+            div(id = ns(paste0(name, "_selected_study_markdown_div")),
+              uiOutput(ns(paste0(name, "_selected_study_markdown"))),
+              style = "width:99%; border-style: dashed; border-width: 1px; padding: 0px 8px 0px 8px; margin-right: 5px;")
+          )
         )
-      )   
+      )
     )
   }
   
@@ -37,18 +40,22 @@ mod_my_studies_ui <- function(id = character(), i18n = character(), language = "
   
   for (lang in languages$code){
     
-    study_options_div <- shiny.fluent::Stack(horizontal = TRUE, tokens = list(childrenGap = 20),
-      div(
-        div(class = "input_title", paste0(i18n$t("name"), " (", toupper(lang), ")")),
-        div(shiny.fluent::TextField.shinyInput(ns(paste0("study_name_", lang))), style = "width:320px;")
-      ),
-      div(
-        div(class = "input_title", paste0(i18n$t("category"), " (", toupper(lang), ")")),
-        div(shiny.fluent::TextField.shinyInput(ns(paste0("study_category_", lang))), style = "width:320px;")
+    study_options_div <- div(
+      id = ns(paste0("study_options_", lang, "_div")),
+      shiny.fluent::Stack(horizontal = TRUE, tokens = list(childrenGap = 20),
+        div(
+          div(class = "input_title", paste0(i18n$t("name"), " (", toupper(lang), ")")),
+          div(shiny.fluent::TextField.shinyInput(ns(paste0("study_name_", lang))), style = "width:320px;")
+        ),
+        div(
+          div(class = "input_title", paste0(i18n$t("category"), " (", toupper(lang), ")")),
+          div(shiny.fluent::TextField.shinyInput(ns(paste0("study_category_", lang))), style = "width:320px;")
+        )
       )
     )
     
     study_description_div <- div(
+      id = ns(paste0("study_description_", lang, "_div")),
       div(paste0(i18n$t("description"), " (", toupper(lang), ") :"), style = "font-weight:bold; margin-top:7px; margin-right:5px;"),
       shinyAce::aceEditor(ns(paste0("study_description_", lang)), "", mode = "markdown", 
         code_hotkeys = list(
@@ -61,13 +68,8 @@ mod_my_studies_ui <- function(id = character(), i18n = character(), language = "
         ),
         autoScrollEditorIntoView = TRUE, minLines = 30, maxLines = 1000), style = "width: 100%;")
     
-    if (lang == language) condition <- paste0("input.study_language == '", lang, "' || input.study_language == null")
-    else condition <- paste0("input.study_language == '", lang, "'")
-    
-    study_options_div <- conditionalPanel(condition = paste0("input.study_language == '", lang, "'"), ns = ns, study_options_div)
-    
-    study_options_divs <- tagList(study_options_divs, conditionalPanel(condition = condition, ns = ns, study_options_div))
-    study_description_divs <- tagList(study_description_divs, conditionalPanel(condition = condition, ns = ns, study_description_div))
+    study_options_divs <- tagList(study_options_divs, study_options_div)
+    study_description_divs <- tagList(study_description_divs, study_description_div)
   }
   
   div(
@@ -121,15 +123,18 @@ mod_my_studies_ui <- function(id = character(), i18n = character(), language = "
                 ), className = "inline_choicegroup"),
                 style = "width:322px;"
               ),
-              conditionalPanel(condition = "input.all_studies_source == 'remote_git'", ns = ns,
+              shinyjs::hidden(
                 div(
-                  shiny.fluent::Stack(horizontal = TRUE, tokens = list(childrenGap = 10),
-                    div(strong(i18n$t("remote_git_repo")), style = "margin-top:8px;"),
-                    div(shiny.fluent::Dropdown.shinyInput(ns("remote_git_repo")), style = "width:322px;margin-top:3px;"),
-                    div(
-                      shiny.fluent::Stack(horizontal = TRUE, tokens = list(childrenGap = 10),
-                        make_toggle(i18n = i18n, ns = ns, label = "update_plugins", id = "remote_git_update_plugins", inline = TRUE, value = TRUE)),
-                      style = "margin:8px 0 0 20px;"
+                  id = ns("all_studies_remote_git_choice_div"),
+                  div(
+                    shiny.fluent::Stack(horizontal = TRUE, tokens = list(childrenGap = 10),
+                      div(strong(i18n$t("remote_git_repo")), style = "margin-top:8px;"),
+                      div(shiny.fluent::Dropdown.shinyInput(ns("remote_git_repo")), style = "width:322px;margin-top:3px;"),
+                      div(
+                        shiny.fluent::Stack(horizontal = TRUE, tokens = list(childrenGap = 10),
+                          make_toggle(i18n = i18n, ns = ns, label = "update_plugins", id = "remote_git_update_plugins", inline = TRUE, value = TRUE)),
+                        style = "margin:8px 0 0 20px;"
+                      )
                     )
                   )
                 )
@@ -195,9 +200,7 @@ mod_my_studies_ui <- function(id = character(), i18n = character(), language = "
                   list(key = "everybody", text = i18n$t("everybody_who_has_access_to_dataset")),
                   list(key = "people_picker", text = i18n$t("choose_users"))
                 ), className = "inline_choicegroup"),
-                conditionalPanel(condition = "input.users_allowed_read_group == 'people_picker'", ns = ns,
-                  uiOutput(ns("users_allowed_read_div"))
-                )
+                shinyjs::hidden(uiOutput(ns("users_allowed_read_div")))
               ), br(),
               shiny.fluent::Stack(horizontal = TRUE, tokens = list(childrenGap = 20),
                 make_dropdown(i18n = i18n, ns = ns, label = "image", id = "study_image", width = "320px"),
@@ -870,6 +873,20 @@ mod_my_studies_server <- function(id = character(), r = shiny::reactiveValues(),
     # --- --- --- --- -- -
     # Studies catalog ----
     # --- --- --- --- -- -
+    
+    # Hide / show div
+    observeEvent(input$all_studies_source, {
+      if (debug) cat(paste0("\n", Sys.time(), " - mod_studies - observer input$all_studies_source"))
+      
+      if (input$all_studies_source == "local"){
+        shinyjs::show("all_studies_local_div")
+        sapply(c("all_studies_remote_git_div", "all_studies_emote_git_choice_div"), shinyjs::hide)
+      }
+      else if (input$all_studies_source == "remote_git"){
+        shinyjs::hide("all_studies_local_div")
+        sapply(c("all_studies_remote_git_div", "all_studies_remote_git_choice_div"), shinyjs::show)
+      } 
+    })
     
     # Update dropdown of remote git repos
     
@@ -1695,6 +1712,26 @@ mod_my_studies_server <- function(id = character(), r = shiny::reactiveValues(),
     # --- --- --- --- --
     # Study options ----
     # --- --- --- --- --
+    
+    # Show / hide options & description divs depending on selected language
+    observeEvent(input$study_language, {
+      
+      if (debug) cat(paste0("\n", Sys.time(), " - mod_my_studies - observer input$study_language"))
+      
+      for (lang in r$languages$code){
+        if (lang == input$study_language) sapply(c(paste0("study_options_", lang, "_div"), paste0("study_description_", lang, "_div")), shinyjs::show)
+        else sapply(c(paste0("study_options_", lang, "_div"), paste0("study_description_", lang, "_div")), shinyjs::hide)
+      }
+    })
+    
+    # Show / hide people picker input
+    observeEvent(input$users_allowed_read_group, {
+      
+      if (debug) cat(paste0("\n", Sys.time(), " - mod_my_studies - observer input$users_allowed_read_group"))
+      
+      if (input$users_allowed_read_group == "people_picker") shinyjs::show("users_allowed_read_div")
+      else shinyjs::hide("users_allowed_read_div")
+    })
     
     observeEvent(input$options, {
       

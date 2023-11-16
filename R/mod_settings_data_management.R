@@ -31,7 +31,7 @@ mod_settings_data_management_ui <- function(id = character(), i18n = character()
   all_dataset_or_vocab_cards <- list()
   for (name in c("local", "remote_git")){
     all_dataset_or_vocab_cards[[name]] <- tagList(
-      conditionalPanel(condition = paste0("input.all_", get_plural(table), "_source == '", name, "'"), ns = ns,
+      div(id = ns(paste0("all_dataset_or_vocabs_", name, "_div")),
         DT::DTOutput(ns(paste0(name, "_", get_plural(table), "_datatable"))), br(),
         shinyjs::hidden(
           div(id = ns(paste0(name, "_selected_", get_singular(table), "_markdown_div")),
@@ -41,6 +41,7 @@ mod_settings_data_management_ui <- function(id = character(), i18n = character()
       )
     )
   }
+  all_dataset_or_vocab_cards$remote_git <- shinyjs::hidden(all_dataset_or_vocab_cards$remote_git)
   
   # Scripts options & description divs (with distinct languages fields)
   options_divs <- list()
@@ -56,18 +57,22 @@ mod_settings_data_management_ui <- function(id = character(), i18n = character()
     
     for (lang in languages$code){
       
-      options_div[[type]] <- shiny.fluent::Stack(horizontal = TRUE, tokens = list(childrenGap = 20),
-        div(
-          div(class = "input_title", paste0(i18n$t("name"), " (", toupper(lang), ")")),
-          div(shiny.fluent::TextField.shinyInput(ns(paste0(type, "_name_", lang))), style = "width:320px;")
-        ),
-        div(
-          div(class = "input_title", paste0(i18n$t("category"), " (", toupper(lang), ")")),
-          div(shiny.fluent::TextField.shinyInput(ns(paste0(type, "_category_", lang))), style = "width:320px;")
+      options_div[[type]] <- div(
+          id = ns(paste0(get_singular(table), "_options_", lang, "_div")),
+          shiny.fluent::Stack(horizontal = TRUE, tokens = list(childrenGap = 20),
+          div(
+            div(class = "input_title", paste0(i18n$t("name"), " (", toupper(lang), ")")),
+            div(shiny.fluent::TextField.shinyInput(ns(paste0(type, "_name_", lang))), style = "width:320px;")
+          ),
+          div(
+            div(class = "input_title", paste0(i18n$t("category"), " (", toupper(lang), ")")),
+            div(shiny.fluent::TextField.shinyInput(ns(paste0(type, "_category_", lang))), style = "width:320px;")
+          )
         )
       )
       
       description_div[[type]] <- div(
+        id = ns(paste0(get_singular(table), "_description_", lang, "_div")),
         div(paste0(i18n$t("description"), " (", toupper(lang), ") :"), style = "font-weight:bold; margin-top:7px; margin-right:5px;"),
         shinyAce::aceEditor(ns(paste0(type, "_description_", lang)), "", mode = "markdown", 
           code_hotkeys = list(
@@ -80,16 +85,12 @@ mod_settings_data_management_ui <- function(id = character(), i18n = character()
           ),
           autoScrollEditorIntoView = TRUE, minLines = 30, maxLines = 1000), style = "width: 100%;")
       
-      if (lang == language) condition <- paste0("input.", type, "_language == '", lang, "' || input.", type, "_language == null")
-      else condition <- paste0("input.", type, "_language == '", lang, "'")
-      
-      options_div[[type]] <- conditionalPanel(condition = paste0("input.", type, "_language == '", lang, "'"), ns = ns, options_div[[type]])
-      
-      options_divs[[type]] <- tagList(options_divs[[type]], conditionalPanel(condition = condition, ns = ns, options_div[[type]]))
-      description_divs[[type]] <- tagList(description_divs[[type]], conditionalPanel(condition = condition, ns = ns, description_div[[type]]))
+      options_divs[[type]] <- tagList(options_divs[[type]], options_div[[type]])
+      description_divs[[type]] <- tagList(description_divs[[type]], description_div[[type]])
     }
     
     export_div[[type]] <- div(
+      id = ns(paste0("export_", type, "_div")),
       br(),
       shiny.fluent::Stack(
         horizontal = TRUE, tokens = list(childrenGap = 10),
@@ -107,6 +108,7 @@ mod_settings_data_management_ui <- function(id = character(), i18n = character()
     )
     
     import_div[[type]] <- div(
+      id = ns(paste0("import_", type, "_div")),
       br(),
       shiny.fluent::Stack(horizontal = TRUE, tokens = list(childrenGap = 10), 
         make_toggle(i18n = i18n, ns = ns, label = paste0("replace_already_existing_", get_plural(table)), inline = TRUE)), br(),
@@ -205,11 +207,14 @@ mod_settings_data_management_ui <- function(id = character(), i18n = character()
                   ), className = "inline_choicegroup"),
                   style = "width:322px;"
                 ),
-                conditionalPanel(condition = "input.all_datasets_source == 'remote_git'", ns = ns,
+                shinyjs::hidden(
                   div(
-                    shiny.fluent::Stack(horizontal = TRUE, tokens = list(childrenGap = 10),
-                      div(strong(i18n$t("remote_git_repo")), style = "margin-top:8px;"),
-                      div(shiny.fluent::Dropdown.shinyInput(ns("remote_git_repo")), style = "width:322px;margin-top:3px;")
+                    id = ns("remote_git_repo_div"),
+                    div(
+                      shiny.fluent::Stack(horizontal = TRUE, tokens = list(childrenGap = 10),
+                        div(strong(i18n$t("remote_git_repo")), style = "margin-top:8px;"),
+                        div(shiny.fluent::Dropdown.shinyInput(ns("remote_git_repo")), style = "width:322px;margin-top:3px;")
+                      )
                     )
                   )
                 )
@@ -245,20 +250,20 @@ mod_settings_data_management_ui <- function(id = character(), i18n = character()
                   div(shiny.fluent::Toggle.shinyInput(ns("hide_editor"), value = FALSE), style = "margin-top:45px;"),
                   div(i18n$t("hide_editor"), style = "font-weight:bold; margin-top:45px; margin-right:30px;")
                 ),
-                conditionalPanel(condition = "input.hide_editor == true", ns = ns, br())
+                shinyjs::hidden(div(id = ns("br_div"), br()))
               ),
-              conditionalPanel(condition = "input.hide_editor == false", ns = ns,
-                div(shinyAce::aceEditor(
-                  ns("ace_edit_code"), "", mode = "r", 
-                  code_hotkeys = list("r", list(
-                    run_selection = list(win = "CTRL-ENTER", mac = "CTRL-ENTER|CMD-ENTER"),
-                    run_all = list(win = "CTRL-SHIFT-ENTER", mac = "CTRL-SHIFT-ENTER|CMD-SHIFT-ENTER"),
-                    save = list(win = "CTRL-S", mac = "CTRL-S|CMD-S"),
-                    comment = list(win = "CTRL-SHIFT-C", mac = "CTRL-SHIFT-C|CMD-SHIFT-C"))
-                  ),
-                  autoScrollEditorIntoView = TRUE, minLines = 30, maxLines = 1000),
-                  style = "width: 100%;"
-                )
+              div(
+                id = ns("ace_editor_div"),
+                shinyAce::aceEditor(
+                ns("ace_edit_code"), "", mode = "r", 
+                code_hotkeys = list("r", list(
+                  run_selection = list(win = "CTRL-ENTER", mac = "CTRL-ENTER|CMD-ENTER"),
+                  run_all = list(win = "CTRL-SHIFT-ENTER", mac = "CTRL-SHIFT-ENTER|CMD-SHIFT-ENTER"),
+                  save = list(win = "CTRL-S", mac = "CTRL-S|CMD-S"),
+                  comment = list(win = "CTRL-SHIFT-C", mac = "CTRL-SHIFT-C|CMD-SHIFT-C"))
+                ),
+                autoScrollEditorIntoView = TRUE, minLines = 30, maxLines = 1000),
+                style = "width: 100%;"
               ),
               shiny.fluent::Stack(
                 tokens = list(childrenGap = 5),
@@ -274,8 +279,7 @@ mod_settings_data_management_ui <- function(id = character(), i18n = character()
                   shiny.fluent::Toggle.shinyInput(ns("show_imported_data"), value = FALSE),
                   div(i18n$t("show_imported_data"), style = "font-weight:bold;"),
                 ),
-                conditionalPanel(condition = "input.show_imported_data == true", ns = ns,
-                  DT::DTOutput(ns("code_datatable")))
+                shinyjs::hidden(DT::DTOutput(ns("code_datatable")))
               )
             )
           ), br()
@@ -316,9 +320,7 @@ mod_settings_data_management_ui <- function(id = character(), i18n = character()
                     list(key = "everybody", text = i18n$t("everybody")),
                     list(key = "people_picker", text = i18n$t("choose_users"))
                   ), className = "inline_choicegroup"),
-                  conditionalPanel(condition = "input.users_allowed_read_group == 'people_picker'", ns = ns,
-                    uiOutput(ns("users_allowed_read_div"))
-                  )
+                  shinyjs::hidden(uiOutput(ns("users_allowed_read_div")))
                 )
               ),
               shiny.fluent::Stack(horizontal = TRUE, tokens = list(childrenGap = 20),
@@ -419,11 +421,14 @@ mod_settings_data_management_ui <- function(id = character(), i18n = character()
                   ), className = "inline_choicegroup"),
                   style = "width:322px;"
                 ),
-                conditionalPanel(condition = "input.all_vocabularies_source == 'remote_git'", ns = ns,
+                shinyjs::hidden(
                   div(
-                    shiny.fluent::Stack(horizontal = TRUE, tokens = list(childrenGap = 10),
-                      div(strong(i18n$t("remote_git_repo")), style = "margin-top:8px;"),
-                      div(shiny.fluent::Dropdown.shinyInput(ns("remote_git_repo")), style = "width:322px;margin-top:3px;")
+                    id = ns("remote_git_repo_div"),
+                    div(
+                      shiny.fluent::Stack(horizontal = TRUE, tokens = list(childrenGap = 10),
+                        div(strong(i18n$t("remote_git_repo")), style = "margin-top:8px;"),
+                        div(shiny.fluent::Dropdown.shinyInput(ns("remote_git_repo")), style = "width:322px;margin-top:3px;")
+                      )
                     )
                   )
                 )
@@ -477,21 +482,21 @@ mod_settings_data_management_ui <- function(id = character(), i18n = character()
                   div(shiny.fluent::Toggle.shinyInput(ns("hide_editor"), value = FALSE), style = "margin-top:45px;"),
                   div(i18n$t("hide_editor"), style = "font-weight:bold; margin-top:45px; margin-right:30px;"), 
                 ),
-                conditionalPanel(condition = "input.hide_editor == true", ns = ns, br())
+                shinyjs::hidden(div(id = ns("br_div"), br()))
               ),
-              conditionalPanel(condition = "input.hide_editor == false", ns = ns,
-                div(shinyAce::aceEditor(
-                  ns("ace_edit_code"), "", mode = "r", 
-                  code_hotkeys = list(
-                    "r", list(
-                      run_selection = list(win = "CTRL-ENTER", mac = "CTRL-ENTER|CMD-ENTER"),
-                      run_all = list(win = "CTRL-SHIFT-ENTER", mac = "CTRL-SHIFT-ENTER|CMD-SHIFT-ENTER"),
-                      save = list(win = "CTRL-S", mac = "CTRL-S|CMD-S"),
-                      comment = list(win = "CTRL-SHIFT-C", mac = "CTRL-SHIFT-C|CMD-SHIFT-C"))
-                  ),
-                  autoScrollEditorIntoView = TRUE, minLines = 30, maxLines = 1000), 
-                  style = "width: 100%;")
-              ),
+              div(
+                id = ns("ace_editor_div"),
+                shinyAce::aceEditor(
+                ns("ace_edit_code"), "", mode = "r", 
+                code_hotkeys = list(
+                  "r", list(
+                    run_selection = list(win = "CTRL-ENTER", mac = "CTRL-ENTER|CMD-ENTER"),
+                    run_all = list(win = "CTRL-SHIFT-ENTER", mac = "CTRL-SHIFT-ENTER|CMD-SHIFT-ENTER"),
+                    save = list(win = "CTRL-S", mac = "CTRL-S|CMD-S"),
+                    comment = list(win = "CTRL-SHIFT-C", mac = "CTRL-SHIFT-C|CMD-SHIFT-C"))
+                ),
+                autoScrollEditorIntoView = TRUE, minLines = 30, maxLines = 1000), 
+                style = "width: 100%;"),
               shiny.fluent::Stack(
                 tokens = list(childrenGap = 5),
                 shiny.fluent::Stack(horizontal = TRUE, tokens = list(childrenGap = 10),
@@ -568,22 +573,24 @@ mod_settings_data_management_ui <- function(id = character(), i18n = character()
                     list(key = "concept_ancestor", text = "CONCEPT_ANCESTOR"),
                     list(key = "drug_strength", text = "DRUG_STRENGTH")
                   )),
-                conditionalPanel(condition = "['concept', 'concept_relationship', 'concept_synonym', 'concept_ancestor', 'drug_strength'].includes(input.vocabularies_table)", ns = ns,
-                  make_combobox(i18n = i18n, ns = ns, label = "vocabulary", id = "vocabularies_table_vocabulary", allowFreeform = FALSE, multiSelect = FALSE, width = "300px"))
+                make_combobox(i18n = i18n, ns = ns, label = "vocabulary", id = "vocabularies_table_vocabulary", allowFreeform = FALSE, multiSelect = FALSE, width = "300px")
               ),
               shiny.fluent::Stack(
                 horizontal = TRUE, tokens = list(childrenGap = 20),
                 make_dropdown(i18n = i18n, ns = ns, label = "rows", id = "vocabularies_table_rows", width = "300px"),
                 make_dropdown(i18n = i18n, ns = ns, label = "columns", id = "vocabularies_table_cols", width = "300px", multiSelect = TRUE),
-                conditionalPanel(condition = "input.vocabularies_table == 'concept'", ns = ns,
-                  div(shiny.fluent::Stack(horizontal = TRUE, tokens = list(childrenGap = 10),
-                    make_toggle(i18n = i18n, ns = ns, label = "vocabularies_datatable_show_mapped_concepts", inline = TRUE), style = "margin-top:45px;"))),
-                conditionalPanel(condition = "['concept_relationship', 'concept_synonym', 'concept_ancestor', 'drug_strength'].includes(input.vocabularies_table)", ns = ns,
-                  div(shiny.fluent::Stack(horizontal = TRUE, tokens = list(childrenGap = 10),
-                    make_toggle(i18n = i18n, ns = ns, label = "vocabularies_datatable_show_row_details", inline = TRUE), style = "margin-top:45px;")))
+                div(
+                  id = ns("vocabularies_datatable_show_mapped_concepts_div"),
+                  shiny.fluent::Stack(horizontal = TRUE, tokens = list(childrenGap = 10),
+                  make_toggle(i18n = i18n, ns = ns, label = "vocabularies_datatable_show_mapped_concepts", inline = TRUE), style = "margin-top:45px;")
+                ),
+                div(
+                  id = ns("vocabularies_datatable_show_row_details_div"),
+                  shiny.fluent::Stack(horizontal = TRUE, tokens = list(childrenGap = 10),
+                  make_toggle(i18n = i18n, ns = ns, label = "vocabularies_datatable_show_row_details", inline = TRUE), style = "margin-top:45px;"))
               ),
               DT::DTOutput(ns("vocabularies_tables_datatable")), br(),
-              conditionalPanel(condition = "input.vocabularies_table == null", ns = ns, div(br(), br(), br())),
+              div(id = ns("br_div_2"), br(), br(), br()),
               div(
                 shiny.fluent::Stack(
                   horizontal = TRUE, tokens = list(childrenGap = 10),
@@ -592,15 +599,15 @@ mod_settings_data_management_ui <- function(id = character(), i18n = character()
                 ),
                 style = "position:relative; margin-top:-50px; width:500px;"
               ),
-              conditionalPanel(condition = "input.vocabularies_datatable_show_mapped_concepts == true && input.vocabularies_table == 'concept'", ns = ns, 
+              div(
+                id = ns("vocabularies_tables_mapped_concepts_datatable_div"),
                 br(), hr(), br(),
                 DT::DTOutput(ns("vocabularies_tables_mapped_concepts_datatable"))
               ),
-              conditionalPanel(condition = paste0("['concept_relationship', 'concept_synonym', 'concept_ancestor', 'drug_strength'].includes(input.vocabularies_table) && ",
-                "input.vocabularies_datatable_show_row_details == true"), ns = ns, 
+              div(
+                id = ns("vocabularies_datatable_row_details_div"),
                 br(),
-                div(uiOutput(ns("vocabularies_datatable_row_details")), 
-                  style = "width: 99%; border-style: dashed; border-width: 1px; padding: 8px; margin-right: 5px;")
+                div(uiOutput(ns("vocabularies_datatable_row_details")), style = "width: 99%; border-style: dashed; border-width: 1px; padding: 8px; margin-right: 5px;")
               )
             )
           ), br()
@@ -620,36 +627,36 @@ mod_settings_data_management_ui <- function(id = character(), i18n = character()
                 shiny.fluent::PivotItem(id = "vocabulary", itemKey = "vocabulary", headerText = i18n$t("vocabulary")),
                 shiny.fluent::PivotItem(id = "concepts", itemKey = "concepts", headerText = i18n$t("concepts"))
               ),
-              conditionalPanel(condition = "input.import_vocabulary_current_tab == null || input.import_vocabulary_current_tab == 'vocabulary'", ns = ns,
-                import_div$vocabulary
-              ),
-              conditionalPanel(condition = "input.import_vocabulary_current_tab == 'concepts'", ns = ns, br(),
-                shiny.fluent::ChoiceGroup.shinyInput(ns("import_concepts_data_type"), value = "zip",
-                  options = list(
-                    list(key = "zip", text = i18n$t("zip")),
-                    list(key = "csv", text = i18n$t("csv"))
-                  ), className = "inline_choicegroup"
-                ), br(),
-                shiny.fluent::Stack(
-                  horizontal = TRUE, tokens = list(childrenGap = 20),
-                  div(
-                    conditionalPanel("input.import_concepts_data_type == 'zip'", ns = ns,
-                      shiny.fluent::DefaultButton.shinyInput(ns("import_concepts_browse_zip"), i18n$t("choose_zip_file"), style = "width:270px;")),
-                    conditionalPanel("input.import_concepts_data_type == 'csv'", ns = ns,
-                      shiny.fluent::DefaultButton.shinyInput(ns("import_concepts_browse_csv"), i18n$t("choose_csv_files"), style = "width:270px;"))
+              import_div$vocabulary,
+              shinyjs::hidden(
+                div(
+                  id = ns("import_concepts_div"),
+                  br(),
+                  shiny.fluent::ChoiceGroup.shinyInput(ns("import_concepts_data_type"), value = "zip",
+                    options = list(
+                      list(key = "zip", text = i18n$t("zip")),
+                      list(key = "csv", text = i18n$t("csv"))
+                    ), className = "inline_choicegroup"
+                  ), br(),
+                  shiny.fluent::Stack(
+                    horizontal = TRUE, tokens = list(childrenGap = 20),
+                    div(
+                      shiny.fluent::DefaultButton.shinyInput(ns("import_concepts_browse_zip"), i18n$t("choose_zip_file"), style = "width:270px;"),
+                      shinyjs::hidden(shiny.fluent::DefaultButton.shinyInput(ns("import_concepts_browse_csv"), i18n$t("choose_csv_files"), style = "width:270px;"))
+                    ),
+                    uiOutput(ns("import_concepts_status"))
+                  ), br(),
+                  shiny.fluent::PrimaryButton.shinyInput(ns("import_concepts_button"), i18n$t("import_concepts"), iconProps = list(iconName = "Download"), style = "width:270px;"), br(),
+                  shinyjs::hidden(
+                    div(
+                      id = ns("imported_concepts_div"), br(),
+                      strong(i18n$t("imported_data")),
+                      div(DT::DTOutput(ns("imported_concepts")))
+                    )
                   ),
-                  uiOutput(ns("import_concepts_status"))
-                ), br(),
-                shiny.fluent::PrimaryButton.shinyInput(ns("import_concepts_button"), i18n$t("import_concepts"), iconProps = list(iconName = "Download"), style = "width:270px;"), br(),
-                shinyjs::hidden(
-                  div(
-                    id = ns("imported_concepts_div"), br(),
-                    strong(i18n$t("imported_data")),
-                    div(DT::DTOutput(ns("imported_concepts")))
-                  )
-                ),
-                div(style = "display:none;", fileInput(ns("import_concepts_upload_zip"), label = "", multiple = FALSE, accept = ".zip")),
-                div(style = "display:none;", fileInput(ns("import_concepts_upload_csv"), label = "", multiple = TRUE, accept = ".csv"))
+                  div(style = "display:none;", fileInput(ns("import_concepts_upload_zip"), label = "", multiple = FALSE, accept = ".zip")),
+                  div(style = "display:none;", fileInput(ns("import_concepts_upload_csv"), label = "", multiple = TRUE, accept = ".csv"))
+                )
               )
             )
           )
@@ -669,40 +676,42 @@ mod_settings_data_management_ui <- function(id = character(), i18n = character()
                 shiny.fluent::PivotItem(id = "vocabulary", itemKey = "vocabulary", headerText = i18n$t("vocabulary")),
                 shiny.fluent::PivotItem(id = "concepts", itemKey = "concepts", headerText = i18n$t("concepts"))
               ),
-              conditionalPanel(condition = "input.export_vocabulary_current_tab == null || input.export_vocabulary_current_tab == 'vocabulary'", ns = ns,
-                export_div$vocabulary
-              ),
-              conditionalPanel(condition = "input.export_vocabulary_current_tab == 'concepts'", ns = ns, br(),
-                shiny.fluent::Stack(
-                  horizontal = TRUE, tokens = list(childrenGap = 10),
-                  div(
-                    div(id = ns("concepts_vocabularies_to_export_title"), class = "input_title", i18n$t("vocabularies_to_export")),
-                    shiny.fluent::Dropdown.shinyInput(ns("concepts_vocabularies_to_export"), multiSelect = TRUE,
-                      onChanged = htmlwidgets::JS(paste0("item => Shiny.setInputValue('", id, "-concepts_vocabularies_to_export_trigger', Math.random())"))),
-                    style = "width:400px;"
+              export_div$vocabulary,
+              shinyjs::hidden(
+                div(
+                  id = ns("export_concepts_div"),
+                  br(),
+                  shiny.fluent::Stack(
+                    horizontal = TRUE, tokens = list(childrenGap = 10),
+                    div(
+                      div(id = ns("concepts_vocabularies_to_export_title"), class = "input_title", i18n$t("vocabularies_to_export")),
+                      shiny.fluent::Dropdown.shinyInput(ns("concepts_vocabularies_to_export"), multiSelect = TRUE,
+                        onChanged = htmlwidgets::JS(paste0("item => Shiny.setInputValue('", id, "-concepts_vocabularies_to_export_trigger', Math.random())"))),
+                      style = "width:400px;"
+                    ),
+                    div(
+                      div(id = ns("concepts_tables_to_export_title"), class = "input_title", i18n$t("tables_to_export")),
+                      shiny.fluent::Dropdown.shinyInput(ns("concepts_tables_to_export"), 
+                        options = list(
+                          list(key = "concept", text = "CONCEPT"),
+                          list(key = "vocabulary", text = "VOCABULARY"),
+                          list(key = "domain", text = "DOMAIN"),
+                          list(key = "concept_class", text = "CONCEPT_CLASS"),
+                          list(key = "concept_relationship", text = "CONCEPT_RELATIONSHIP"),
+                          list(key = "relationship", text = "RELATIONSHIP"),
+                          list(key = "concept_synonym", text = "CONCEPT_SYNONYM"),
+                          list(key = "concept_ancestor", text = "CONCEPT_ANCESTOR"),
+                          list(key = "drug_strength", text = "DRUG_STRENGTH")
+                        ),
+                        value = c("concept", "vocabulary", "domain", "concept_class", "concept_relationship", "relationship", "concept_synonym", "concept_ancestor", "drug_strength"), multiSelect = TRUE),
+                      style = "width:400px;"
+                    ),
+                    div(shiny.fluent::PrimaryButton.shinyInput(ns("export_selected_concepts"), 
+                      i18n$t("export_concepts"), iconProps = list(iconName = "Upload")), style = "margin-top:39px;")
                   ),
-                  div(
-                    div(id = ns("concepts_tables_to_export_title"), class = "input_title", i18n$t("tables_to_export")),
-                    shiny.fluent::Dropdown.shinyInput(ns("concepts_tables_to_export"), 
-                      options = list(
-                        list(key = "concept", text = "CONCEPT"),
-                        list(key = "vocabulary", text = "VOCABULARY"),
-                        list(key = "domain", text = "DOMAIN"),
-                        list(key = "concept_class", text = "CONCEPT_CLASS"),
-                        list(key = "concept_relationship", text = "CONCEPT_RELATIONSHIP"),
-                        list(key = "relationship", text = "RELATIONSHIP"),
-                        list(key = "concept_synonym", text = "CONCEPT_SYNONYM"),
-                        list(key = "concept_ancestor", text = "CONCEPT_ANCESTOR"),
-                        list(key = "drug_strength", text = "DRUG_STRENGTH")
-                      ),
-                      value = c("concept", "vocabulary", "domain", "concept_class", "concept_relationship", "relationship", "concept_synonym", "concept_ancestor", "drug_strength"), multiSelect = TRUE),
-                    style = "width:400px;"
-                  ),
-                  div(shiny.fluent::PrimaryButton.shinyInput(ns("export_selected_concepts"), 
-                    i18n$t("export_concepts"), iconProps = list(iconName = "Upload")), style = "margin-top:39px;")
-                ),
-                div(DT::DTOutput(ns("concepts_vocabularies_to_export_datatable"))),
-                div(style = "visibility:hidden;", downloadButton(ns("export_concepts_download"), label = ""))
+                  div(DT::DTOutput(ns("concepts_vocabularies_to_export_datatable"))),
+                  div(style = "visibility:hidden;", downloadButton(ns("export_concepts_download"), label = ""))
+                )
               )
             ), br()
           )
@@ -834,6 +843,23 @@ mod_settings_data_management_server <- function(id = character(), r = shiny::rea
     # --- --- --- --- --- --- --- -
     # Datasets & vocab catalog ----
     # --- --- --- --- --- --- --- -
+    
+    # Show / hide divs
+    
+    name <- get_plural(table)
+    observeEvent(input[[paste0("all_", name, "_source")]], {
+      
+      if (debug) cat(paste0("\n", Sys.time(), " - mod_settings_data_management - observer input$all_", name, "_source"))
+      
+      if (input[[paste0("all_", name, "_source")]] == "local"){
+        shinyjs::show("all_dataset_or_vocabs_local_div")
+        sapply(c("remote_git_repo_div", "all_dataset_or_vocabs_remote_git_div"), shinyjs::hide)
+      }
+      if (input[[paste0("all_", name, "_source")]] == "remote_git"){
+        shinyjs::hide("all_dataset_or_vocabs_local_div")
+        sapply(c("remote_git_repo_div", "all_dataset_or_vocabs_remote_git_div"), shinyjs::show)
+      }
+    })
     
     # Update dropdown of remote git repos
     
@@ -1583,9 +1609,32 @@ mod_settings_data_management_server <- function(id = character(), r = shiny::rea
       r[[settings_delete_variable]] <- TRUE
     })
     
-    # --- --- --- --- --- --- --- --- -- -
-    # Edit options by selecting a row ----
-    # --- --- --- --- --- --- --- --- -- -
+    # --- --- --- --- -
+    # Edit options ----
+    # --- --- --- --- -
+    
+    # Show / hide options & description divs depending on selected language
+    observeEvent(input[[paste0(get_singular(table), "_language")]], {
+      
+      if (debug) cat(paste0("\n", Sys.time(), " - mod_settings_data_management - observer input$.._language"))
+      
+      for (lang in r$languages$code){
+        if (lang == input[[paste0(get_singular(table), "_language")]]) sapply(c(paste0(get_singular(table), "_options_", lang, "_div"), 
+          paste0(get_singular(table), "_description_", lang, "_div")), shinyjs::show)
+        else sapply(c(paste0(get_singular(table), "_options_", lang, "_div"), paste0(get_singular(table), "_description_", lang, "_div")), shinyjs::hide)
+      }
+    })
+    
+    # Show / hide people picker input
+    if (table == "datasets"){
+      observeEvent(input$users_allowed_read_group, {
+        
+        if (debug) cat(paste0("\n", Sys.time(), " - mod_settings_data_management - observer input$users_allowed_read_group"))
+        
+        if (input$users_allowed_read_group == "people_picker") shinyjs::show("users_allowed_read_div")
+        else shinyjs::hide("users_allowed_read_div")
+      })
+    }
     
     if (table %in% c("datasets", "vocabulary")){
       
@@ -1970,6 +2019,32 @@ mod_settings_data_management_server <- function(id = character(), r = shiny::rea
     # --- --- --- --- --- --- --- -- --
     # Edit code by selecting a row ----
     # --- --- --- --- --- --- --- -- --
+    
+    # Show / hide ace editor
+    
+    observeEvent(input$hide_editor, {
+      
+      if (debug) cat(paste0("\n", Sys.time(), " - mod_settings_data_management - observer input$hide_editor"))
+      
+      if (input$hide_editor){
+        shinyjs::hide("ace_editor_div")
+        shinyjs::show("br_div") 
+      }
+      else {
+        shinyjs::show("ace_editor_div")
+        shinyjs::hide("br_div") 
+      }
+    })
+    
+    # Show / hide divs
+    
+    observeEvent(input$show_imported_data, {
+      
+      if (debug) cat(paste0("\n", Sys.time(), " - mod_settings_data_management - observer input$show_imported_data"))
+      
+      if (input$show_imported_data) shinyjs::show("code_datatable")
+      else shinyjs::hide("code_datatable")
+    })
     
     if (table %in% c("datasets", "vocabulary")){
       
@@ -2406,6 +2481,18 @@ mod_settings_data_management_server <- function(id = character(), r = shiny::rea
         
         if (debug) cat(paste0("\n", Sys.time(), " - mod_settings_data_management - observer input$vocabularies_table"))
         
+        shinyjs::hide("br_div_2")
+        
+        # Show / hide combobox
+        if (input$vocabularies_table %in% c("concept", "concept_relationship", "concept_synonym", "concept_ancestor", "drug_strength")) shinyjs::show("vocabularies_table_vocabulary")
+        else shinyjs::hide("vocabularies_table_vocabulary")
+        
+        if (input$vocabularies_table %in% c("concept_relationship", "concept_synonym", "concept_ancestor", "drug_strength")) shinyjs::show("vocabularies_datatable_show_row_details_div")
+        else shinyjs::hide("vocabularies_datatable_show_row_details_div")
+        
+        if (input$vocabularies_table == "concept") shinyjs::show("vocabularies_datatable_show_mapped_concepts_div")
+        else shinyjs::hide("vocabularies_datatable_show_mapped_concepts_div")
+        
         # Reset vocabularies_datatable_row_details div
         output$vocabularies_datatable_row_details <- renderUI("")
         
@@ -2583,6 +2670,15 @@ mod_settings_data_management_server <- function(id = character(), r = shiny::rea
         req(input$vocabularies_table, input$vocabularies_table_rows, input$vocabularies_table_vocabulary)
         if (length(input$vocabularies_table_vocabulary) > 1) vocabularies_table_vocabulary <- input$vocabularies_table_vocabulary$key
         else vocabularies_table_vocabulary <- input$vocabularies_table_vocabulary
+        
+        # Show / hide datatable
+        if (input$vocabularies_datatable_show_mapped_concepts & input$vocabularies_table == "concept") shinyjs::show("vocabularies_tables_mapped_concepts_datatable_div")
+        else shinyjs::hide("vocabularies_tables_mapped_concepts_datatable_div")
+        
+        # Show / hide vocabularies_datatable_row_details_div
+        if (input$vocabularies_datatable_show_row_details & input$vocabularies_table %in% c("concept_relationship", 
+          "concept_synonym", "concept_ancestor", "drug_strength")) shinyjs::show("vocabularies_datatable_row_details_div")
+        else shinyjs::hide("vocabularies_datatable_row_details_div")
         
         # Reset vocabularies_datatable_row_details output
         output$vocabularies_datatable_row_details <- renderUI("")
@@ -2899,6 +2995,20 @@ mod_settings_data_management_server <- function(id = character(), r = shiny::rea
     
     if (table == "vocabulary"){
       
+      # Show / hide divs
+      observeEvent(input$import_vocabulary_current_tab, {
+        if (debug) cat(paste0("\n", Sys.time(), " - mod_settings_data_management - observer input$import_vocabulary_current_tab"))
+        
+        if (input$import_vocabulary_current_tab == "vocabulary"){
+          shinyjs::show("import_vocabulary_div")
+          shinyjs::hide("import_concepts_div")
+        }
+        else {
+          shinyjs::hide("import_vocabulary_div")
+          shinyjs::show("import_concepts_div")
+        }
+      })
+      
       # Import a zip file
       observeEvent(input$import_concepts_browse_zip, {
         if (debug) cat(paste0("\n", Sys.time(), " - mod_settings_data_management - observer input$import_concepts_browse_zip"))
@@ -3047,6 +3157,20 @@ mod_settings_data_management_server <- function(id = character(), r = shiny::rea
     # --- --- --- --- --- --- --- --- -
     # Import vocabulary of dataset ----
     # --- --- --- --- --- --- --- --- -
+    
+    # Show / hide div
+    observeEvent(input$import_concepts_data_type, {
+      if (debug) cat(paste0("\n", Sys.time(), " - mod_settings_data_management - observer input$import_concepts_data_type"))
+      
+      if (input$import_concepts_data_type == "zip"){
+        shinyjs::show("import_concepts_browse_zip")
+        shinyjs::hide("import_concepts_browse_csv")
+      }
+      else {
+        shinyjs::hide("import_concepts_browse_zip")
+        shinyjs::show("import_concepts_browse_csv")
+      }
+    })
     
     observeEvent(input[[paste0("import_", get_plural(table), "_browse")]], {
       if (debug) cat(paste0("\n", Sys.time(), " - mod_settings_data_management - observer input$import_.._browse"))
@@ -3261,6 +3385,148 @@ mod_settings_data_management_server <- function(id = character(), r = shiny::rea
       if (perf_monitoring) monitor_perf(r = r, action = "stop", task = paste0("mod_settings_data_management - observer input$import_.._button"))
     })
     
+    # --- --- --- --- --- --- --- ---
+    # Export vocabulary concepts ----
+    # --- --- --- --- --- --- --- ---
+    
+    if (table == "vocabulary"){
+      
+      # Show / hide divs
+      observeEvent(input$export_vocabulary_current_tab, {
+        if (debug) cat(paste0("\n", Sys.time(), " - mod_settings_data_management - observer input$export_vocabulary_current_tab"))
+        
+        if (input$export_vocabulary_current_tab == "vocabulary"){
+          shinyjs::show("export_vocabulary_div")
+          shinyjs::hide("export_concepts_div")
+        }
+        else {
+          shinyjs::hide("export_vocabulary_div")
+          shinyjs::show("export_concepts_div")
+        }
+      })
+      
+      # When add button is clicked
+      observeEvent(input$export_concepts_add_item, {
+        
+        if (debug) cat(paste0("\n", Sys.time(), " - mod_settings_data_management - observer input$export_concepts_add_item"))
+        
+        link_id <- as.integer(substr(input$export_concepts_add_item, nchar("export_concepts_add_item_") + 1, nchar(input$export_concepts_add_item)))
+        
+        value <- integer(1)
+        if (nrow(r$export_concepts_vocabularies_selected) > 0) value <- r$export_concepts_vocabularies_selected %>% dplyr::pull(id)
+        
+        if (link_id %not_in% value){
+          
+          r$export_concepts_vocabularies_selected <- r$export_concepts_vocabularies_temp %>% dplyr::filter(id == link_id) %>%
+            dplyr::bind_rows(r$export_concepts_vocabularies_selected)
+          
+          options <- convert_tibble_to_list(r$export_concepts_vocabularies_selected, key_col = "id", text_col = "vocabulary_id", i18n = i18n)
+          value <- r$export_concepts_vocabularies_selected %>% dplyr::pull(id)
+          shiny.fluent::updateDropdown.shinyInput(session, "concepts_vocabularies_to_export", options = options, value = value, multiSelect = TRUE, multiSelectDelimiter = " || ")
+        }
+      }) 
+      
+      # When dropdown is modified
+      observeEvent(input$concepts_vocabularies_to_export_trigger, {
+        
+        if (debug) cat(paste0("\n", Sys.time(), " - mod_settings_data_management - observer input$concepts_vocabularies_to_export_trigger"))
+        
+        r$export_concepts_vocabularies_selected <- r$export_concepts_vocabularies_selected %>% dplyr::filter(id %in% input$concepts_vocabularies_to_export)
+        
+        options <- convert_tibble_to_list(r$export_concepts_vocabularies_selected, key_col = "id", text_col = "vocabulary_id", i18n = i18n)
+        value <- r$export_concepts_vocabularies_selected %>% dplyr::pull(id)
+        shiny.fluent::updateDropdown.shinyInput(session, "concepts_vocabularies_to_export", options = options, value = value, multiSelect = TRUE, multiSelectDelimiter = " || ")
+      })
+      
+      # Export datasets or vocabularies
+      observeEvent(input$export_selected_concepts, {
+        
+        if (debug) cat(paste0("\n", Sys.time(), " - mod_settings_data_management - observer input$export_selected_concepts"))
+        
+        req(nrow(r$export_concepts_vocabularies_selected) > 0)
+        req(length(input$concepts_tables_to_export) > 0)
+        shinyjs::click("export_concepts_download")
+      })
+      
+      output$export_concepts_download <- downloadHandler(
+        
+        filename = function() paste0("linkr_export_vocabularies_concepts_",
+          Sys.time() %>% stringr::str_replace_all(" ", "_") %>% stringr::str_replace_all(":", "_") %>% as.character(), ".zip"),
+        
+        content = function(file){
+          
+          if (perf_monitoring) monitor_perf(r = r, action = "start")
+          if (debug) cat(paste0("\n", Sys.time(), " - mod_settings_data_management - output$export_concepts_download"))
+          
+          owd <- setwd(tempdir())
+          on.exit(setwd(owd))
+          
+          temp_dir <- paste0(r$app_folder, "/temp_files/", r$user_id, "/vocabularies/", Sys.time() %>% stringr::str_replace_all(":| |-", ""), paste0(sample(c(0:9, letters[1:6]), 24, TRUE), collapse = ''))
+          dir.create(temp_dir, recursive = TRUE)
+          
+          vocabularies_ids <- r$export_concepts_vocabularies_selected %>% dplyr::pull(vocabulary_id)
+          
+          data <- list()
+          
+          data$vocabulary <- r$export_concepts_vocabularies_selected %>% 
+            dplyr::select(vocabulary_id, vocabulary_name, vocabulary_reference, vocabulary_version, vocabulary_concept_id)
+          
+          # Select concepts of selected vocabularies
+          sql <- glue::glue_sql("SELECT * FROM concept WHERE vocabulary_id IN ({vocabularies_ids*})", .con = m$db)
+          data$concept <- DBI::dbGetQuery(m$db, sql)
+          
+          domain_ids <- data$concept %>% dplyr::distinct(domain_id) %>% dplyr::pull()
+          concept_class_ids <- data$concept %>% dplyr::distinct(concept_class_id) %>% dplyr::pull()
+          
+          sql <- glue::glue_sql("SELECT * FROM domain WHERE domain_id IN ({domain_ids*})", .con = m$db)
+          data$domain <- DBI::dbGetQuery(m$db, sql)
+          
+          sql <- glue::glue_sql("SELECT * FROM concept_class WHERE concept_class_id IN ({concept_class_ids*})", .con = m$db)
+          data$concept_class <- DBI::dbGetQuery(m$db, sql)
+          
+          if ("concept_relationship" %in% input$concepts_tables_to_export | "relationship" %in% input$concepts_tables_to_export){
+            # sql <- glue::glue_sql(paste0("WITH selected_concept AS (SELECT * FROM concept WHERE vocabulary_id IN ({vocabularies_ids*})) ",
+            #   "SELECT * FROM concept_relationship cr INNER JOIN selected_concept c ON (cr.concept_id_1 = c.concept_id OR cr.concept_id_2 = c.concept_id)"), .con = m$db)
+            sql <- glue::glue_sql("SELECT * FROM concept_relationship WHERE concept_id_1 IN ({data$concept$concept_id*}) OR concept_id_2 IN ({data$concept$concept_id*})", .con = m$db)
+            data$concept_relationship <- DBI::dbGetQuery(m$db, sql)
+            
+            relationship_ids <- data$concept_relationship %>% dplyr::distinct(relationship_id) %>% dplyr::pull()
+            
+            sql <- glue::glue_sql("SELECT * FROM relationship WHERE relationship_id IN ({relationship_ids*})", .con = m$db)
+            data$relationship <- DBI::dbGetQuery(m$db, sql)
+          }
+          
+          if ("concept_synonym" %in% input$concepts_tables_to_export){
+            # sql <- glue::glue_sql(paste0("WITH selected_concept AS (SELECT * FROM concept WHERE vocabulary_id IN ({vocabularies_ids*})) ",
+            #   "SELECT * FROM concept_synonym cs INNER JOIN selected_concept c ON cs.concept_id = c.concept_id"), .con = m$db)
+            sql <- glue::glue_sql("SELECT * FROM concept_synonym WHERE concept_id IN ({data$concept$concept_id*})", .con = m$db)
+            data$concept_synonym <- DBI::dbGetQuery(m$db, sql)
+          }
+          
+          if ("concept_ancestor" %in% input$concepts_tables_to_export){
+            # sql <- glue::glue_sql(paste0("WITH selected_concept AS (SELECT * FROM concept WHERE vocabulary_id IN ({vocabularies_ids*})) ",
+            #   "SELECT * FROM concept_ancestor ca INNER JOIN selected_concept c ON (ancestor_concept_id = c.concept_id OR descendant_concept_id = c.concept_id)"), .con = m$db)
+            sql <- glue::glue_sql("SELECT * FROM concept_ancestor WHERE ancestor_concept_id IN ({data$concept$concept_id*}) OR descendant_concept_id IN ({data$concept$concept_id*})", .con = m$db)
+            data$concept_ancestor <- DBI::dbGetQuery(m$db, sql)
+          }
+          
+          if ("drug_strength" %in% input$concepts_tables_to_export){
+            # sql <- glue::glue_sql(paste0("WITH selected_concept AS (SELECT * FROM concept WHERE vocabulary_id IN ({vocabularies_ids*})) ",
+            #   "SELECT * FROM drug_strength ds INNER JOIN selected_concept c ON ds.drug_concept_id = c.concept_id"), .con = m$db)
+            sql <- glue::glue_sql("SELECT * FROM drug_strength WHERE drug_concept_id IN ({data$concept$concept_id*})", .con = m$db)
+            data$drug_strength <- DBI::dbGetQuery(m$db, sql)
+          }
+          
+          # Write tables
+          for (vocab_table in input$concepts_tables_to_export) readr::write_csv(data[[vocab_table]], paste0(temp_dir, "/", toupper(vocab_table), ".csv"))
+          
+          zip::zipr(file, list.files(temp_dir, full.names = TRUE))
+          
+          if (perf_monitoring) monitor_perf(r = r, action = "stop", task = paste0("mod_settings_data_management - output$export_.._download"))
+        }
+      )
+    }
+    
     # --- --- --- --- --- --- --- --- -
     # Export vocabulary of dataset ----
     # --- --- --- --- --- --- --- --- -
@@ -3425,134 +3691,6 @@ mod_settings_data_management_server <- function(id = character(), r = shiny::rea
 
           zip::zipr(file, list.files(temp_dir, full.names = TRUE))
 
-          if (perf_monitoring) monitor_perf(r = r, action = "stop", task = paste0("mod_settings_data_management - output$export_.._download"))
-        }
-      )
-    }
-    
-    # --- --- --- --- --- --- --- ---
-    # Export vocabulary concepts ----
-    # --- --- --- --- --- --- --- ---
-    
-    if (table == "vocabulary"){
-      
-      # When add button is clicked
-      observeEvent(input$export_concepts_add_item, {
-        
-        if (debug) cat(paste0("\n", Sys.time(), " - mod_settings_data_management - observer input$export_concepts_add_item"))
-        
-        link_id <- as.integer(substr(input$export_concepts_add_item, nchar("export_concepts_add_item_") + 1, nchar(input$export_concepts_add_item)))
-        
-        value <- integer(1)
-        if (nrow(r$export_concepts_vocabularies_selected) > 0) value <- r$export_concepts_vocabularies_selected %>% dplyr::pull(id)
-        
-        if (link_id %not_in% value){
-          
-          r$export_concepts_vocabularies_selected <- r$export_concepts_vocabularies_temp %>% dplyr::filter(id == link_id) %>%
-            dplyr::bind_rows(r$export_concepts_vocabularies_selected)
-          
-          options <- convert_tibble_to_list(r$export_concepts_vocabularies_selected, key_col = "id", text_col = "vocabulary_id", i18n = i18n)
-          value <- r$export_concepts_vocabularies_selected %>% dplyr::pull(id)
-          shiny.fluent::updateDropdown.shinyInput(session, "concepts_vocabularies_to_export", options = options, value = value, multiSelect = TRUE, multiSelectDelimiter = " || ")
-        }
-      }) 
-      
-      # When dropdown is modified
-      observeEvent(input$concepts_vocabularies_to_export_trigger, {
-        
-        if (debug) cat(paste0("\n", Sys.time(), " - mod_settings_data_management - observer input$concepts_vocabularies_to_export_trigger"))
-        
-        r$export_concepts_vocabularies_selected <- r$export_concepts_vocabularies_selected %>% dplyr::filter(id %in% input$concepts_vocabularies_to_export)
-        
-        options <- convert_tibble_to_list(r$export_concepts_vocabularies_selected, key_col = "id", text_col = "vocabulary_id", i18n = i18n)
-        value <- r$export_concepts_vocabularies_selected %>% dplyr::pull(id)
-        shiny.fluent::updateDropdown.shinyInput(session, "concepts_vocabularies_to_export", options = options, value = value, multiSelect = TRUE, multiSelectDelimiter = " || ")
-      })
-      
-      # Export datasets or vocabularies
-      observeEvent(input$export_selected_concepts, {
-        
-        if (debug) cat(paste0("\n", Sys.time(), " - mod_settings_data_management - observer input$export_selected_concepts"))
-        
-        req(nrow(r$export_concepts_vocabularies_selected) > 0)
-        req(length(input$concepts_tables_to_export) > 0)
-        shinyjs::click("export_concepts_download")
-      })
-      
-      output$export_concepts_download <- downloadHandler(
-        
-        filename = function() paste0("linkr_export_vocabularies_concepts_",
-          Sys.time() %>% stringr::str_replace_all(" ", "_") %>% stringr::str_replace_all(":", "_") %>% as.character(), ".zip"),
-        
-        content = function(file){
-          
-          if (perf_monitoring) monitor_perf(r = r, action = "start")
-          if (debug) cat(paste0("\n", Sys.time(), " - mod_settings_data_management - output$export_concepts_download"))
-          
-          owd <- setwd(tempdir())
-          on.exit(setwd(owd))
-          
-          temp_dir <- paste0(r$app_folder, "/temp_files/", r$user_id, "/vocabularies/", Sys.time() %>% stringr::str_replace_all(":| |-", ""), paste0(sample(c(0:9, letters[1:6]), 24, TRUE), collapse = ''))
-          dir.create(temp_dir, recursive = TRUE)
-          
-          vocabularies_ids <- r$export_concepts_vocabularies_selected %>% dplyr::pull(vocabulary_id)
-          
-          data <- list()
-          
-          data$vocabulary <- r$export_concepts_vocabularies_selected %>% 
-            dplyr::select(vocabulary_id, vocabulary_name, vocabulary_reference, vocabulary_version, vocabulary_concept_id)
-          
-          # Select concepts of selected vocabularies
-          sql <- glue::glue_sql("SELECT * FROM concept WHERE vocabulary_id IN ({vocabularies_ids*})", .con = m$db)
-          data$concept <- DBI::dbGetQuery(m$db, sql)
-          
-          domain_ids <- data$concept %>% dplyr::distinct(domain_id) %>% dplyr::pull()
-          concept_class_ids <- data$concept %>% dplyr::distinct(concept_class_id) %>% dplyr::pull()
-          
-          sql <- glue::glue_sql("SELECT * FROM domain WHERE domain_id IN ({domain_ids*})", .con = m$db)
-          data$domain <- DBI::dbGetQuery(m$db, sql)
-          
-          sql <- glue::glue_sql("SELECT * FROM concept_class WHERE concept_class_id IN ({concept_class_ids*})", .con = m$db)
-          data$concept_class <- DBI::dbGetQuery(m$db, sql)
-          
-          if ("concept_relationship" %in% input$concepts_tables_to_export | "relationship" %in% input$concepts_tables_to_export){
-            # sql <- glue::glue_sql(paste0("WITH selected_concept AS (SELECT * FROM concept WHERE vocabulary_id IN ({vocabularies_ids*})) ",
-            #   "SELECT * FROM concept_relationship cr INNER JOIN selected_concept c ON (cr.concept_id_1 = c.concept_id OR cr.concept_id_2 = c.concept_id)"), .con = m$db)
-            sql <- glue::glue_sql("SELECT * FROM concept_relationship WHERE concept_id_1 IN ({data$concept$concept_id*}) OR concept_id_2 IN ({data$concept$concept_id*})", .con = m$db)
-            data$concept_relationship <- DBI::dbGetQuery(m$db, sql)
-            
-            relationship_ids <- data$concept_relationship %>% dplyr::distinct(relationship_id) %>% dplyr::pull()
-            
-            sql <- glue::glue_sql("SELECT * FROM relationship WHERE relationship_id IN ({relationship_ids*})", .con = m$db)
-            data$relationship <- DBI::dbGetQuery(m$db, sql)
-          }
-          
-          if ("concept_synonym" %in% input$concepts_tables_to_export){
-            # sql <- glue::glue_sql(paste0("WITH selected_concept AS (SELECT * FROM concept WHERE vocabulary_id IN ({vocabularies_ids*})) ",
-            #   "SELECT * FROM concept_synonym cs INNER JOIN selected_concept c ON cs.concept_id = c.concept_id"), .con = m$db)
-            sql <- glue::glue_sql("SELECT * FROM concept_synonym WHERE concept_id IN ({data$concept$concept_id*})", .con = m$db)
-            data$concept_synonym <- DBI::dbGetQuery(m$db, sql)
-          }
-          
-          if ("concept_ancestor" %in% input$concepts_tables_to_export){
-            # sql <- glue::glue_sql(paste0("WITH selected_concept AS (SELECT * FROM concept WHERE vocabulary_id IN ({vocabularies_ids*})) ",
-            #   "SELECT * FROM concept_ancestor ca INNER JOIN selected_concept c ON (ancestor_concept_id = c.concept_id OR descendant_concept_id = c.concept_id)"), .con = m$db)
-            sql <- glue::glue_sql("SELECT * FROM concept_ancestor WHERE ancestor_concept_id IN ({data$concept$concept_id*}) OR descendant_concept_id IN ({data$concept$concept_id*})", .con = m$db)
-            data$concept_ancestor <- DBI::dbGetQuery(m$db, sql)
-          }
-          
-          if ("drug_strength" %in% input$concepts_tables_to_export){
-            # sql <- glue::glue_sql(paste0("WITH selected_concept AS (SELECT * FROM concept WHERE vocabulary_id IN ({vocabularies_ids*})) ",
-            #   "SELECT * FROM drug_strength ds INNER JOIN selected_concept c ON ds.drug_concept_id = c.concept_id"), .con = m$db)
-            sql <- glue::glue_sql("SELECT * FROM drug_strength WHERE ds.drug_concept_id IN ({data$concept$concept_id*})", .con = m$db)
-            data$drug_strength <- DBI::dbGetQuery(m$db, sql)
-          }
-          
-          # Write tables
-          for (vocab_table in input$concepts_tables_to_export) readr::write_csv(data[[vocab_table]], paste0(temp_dir, "/", toupper(vocab_table), ".csv"))
-          
-          zip::zipr(file, list.files(temp_dir, full.names = TRUE))
-          
           if (perf_monitoring) monitor_perf(r = r, action = "stop", task = paste0("mod_settings_data_management - output$export_.._download"))
         }
       )

@@ -21,7 +21,7 @@ mod_scripts_ui <- function(id = character(), i18n = character(), language = "en"
   all_scripts_cards <- list()
   for (name in c("local", "remote_git")){
     all_scripts_cards[[name]] <- tagList(
-      conditionalPanel(condition = paste0("input.all_scripts_source == '", name, "'"), ns = ns, 
+      div(id = ns(paste0("all_scripts_", name, "_div")),
         DT::DTOutput(ns(paste0(name, "_scripts_datatable"))), br(),
         shinyjs::hidden(
           div(id = ns(paste0(name, "_selected_script_markdown_div")),
@@ -31,6 +31,7 @@ mod_scripts_ui <- function(id = character(), i18n = character(), language = "en"
       )   
     )
   }
+  all_scripts_cards$remote_git <- shinyjs::hidden(all_scripts_cards$remote_git)
   
   # Scripts options & description divs (with distinct languages fields)
   script_options_divs <- tagList()
@@ -38,18 +39,22 @@ mod_scripts_ui <- function(id = character(), i18n = character(), language = "en"
   
   for (lang in languages$code){
     
-    script_options_div <- shiny.fluent::Stack(horizontal = TRUE, tokens = list(childrenGap = 20),
-      div(
-        div(class = "input_title", paste0(i18n$t("name"), " (", toupper(lang), ")")),
-        div(shiny.fluent::TextField.shinyInput(ns(paste0("script_name_", lang))), style = "width:320px;")
-      ),
-      div(
-        div(class = "input_title", paste0(i18n$t("category"), " (", toupper(lang), ")")),
-        div(shiny.fluent::TextField.shinyInput(ns(paste0("script_category_", lang))), style = "width:320px;")
+    script_options_div <- div(
+        id = ns(paste0("script_options_", lang, "_div")),
+        shiny.fluent::Stack(horizontal = TRUE, tokens = list(childrenGap = 20),
+        div(
+          div(class = "input_title", paste0(i18n$t("name"), " (", toupper(lang), ")")),
+          div(shiny.fluent::TextField.shinyInput(ns(paste0("script_name_", lang))), style = "width:320px;")
+        ),
+        div(
+          div(class = "input_title", paste0(i18n$t("category"), " (", toupper(lang), ")")),
+          div(shiny.fluent::TextField.shinyInput(ns(paste0("script_category_", lang))), style = "width:320px;")
+        )
       )
     )
     
     script_description_div <- div(
+      id = ns(paste0("script_description_", lang, "_div")),
       div(paste0(i18n$t("description"), " (", toupper(lang), ") :"), style = "font-weight:bold; margin-top:7px; margin-right:5px;"),
       shinyAce::aceEditor(ns(paste0("script_description_", lang)), "", mode = "markdown", 
         code_hotkeys = list(
@@ -62,13 +67,8 @@ mod_scripts_ui <- function(id = character(), i18n = character(), language = "en"
         ),
         autoScrollEditorIntoView = TRUE, minLines = 30, maxLines = 1000), style = "width: 100%;")
     
-    if (lang == language) condition <- paste0("input.script_language == '", lang, "' || input.script_language == null")
-    else condition <- paste0("input.script_language == '", lang, "'")
-    
-    script_options_div <- conditionalPanel(condition = paste0("input.script_language == '", lang, "'"), ns = ns, script_options_div)
-    
-    script_options_divs <- tagList(script_options_divs, conditionalPanel(condition = condition, ns = ns, script_options_div))
-    script_description_divs <- tagList(script_description_divs, conditionalPanel(condition = condition, ns = ns, script_description_div))
+    script_options_divs <- tagList(script_options_divs, script_options_div)
+    script_description_divs <- tagList(script_description_divs, script_description_div)
   }
   
   div(
@@ -126,11 +126,13 @@ mod_scripts_ui <- function(id = character(), i18n = character(), language = "en"
                 ), className = "inline_choicegroup"),
                 style = "width:322px;"
               ),
-              conditionalPanel(condition = "input.all_scripts_source == 'remote_git'", ns = ns,
-                div(
-                  shiny.fluent::Stack(horizontal = TRUE, tokens = list(childrenGap = 10),
-                    div(strong(i18n$t("remote_git_repo")), style = "margin-top:8px;"),
-                    div(shiny.fluent::Dropdown.shinyInput(ns("remote_git_repo")), style = "width:322px;margin-top:3px;")
+              shinyjs::hidden(
+                div(id = ns("remote_git_repo_div"),
+                  div(
+                    shiny.fluent::Stack(horizontal = TRUE, tokens = list(childrenGap = 10),
+                      div(strong(i18n$t("remote_git_repo")), style = "margin-top:8px;"),
+                      div(shiny.fluent::Dropdown.shinyInput(ns("remote_git_repo")), style = "width:322px;margin-top:3px;")
+                    )
                   )
                 )
               )
@@ -161,11 +163,10 @@ mod_scripts_ui <- function(id = character(), i18n = character(), language = "en"
             br(),
             shiny.fluent::Stack(horizontal = TRUE, tokens = list(childrenGap = 10),
               make_toggle(i18n = i18n, ns = ns, id = "activate_scripts_cache", label = "activate_scripts_cache", inline = TRUE)),
-            conditionalPanel(condition = "input.activate_scripts_cache == true", ns = ns, uiOutput(ns("scripts_cache_infos"))), br(),
+            shinyjs::hidden(uiOutput(ns("scripts_cache_infos"))), br(),
             shiny.fluent::Stack(horizontal = TRUE, tokens = list(childrenGap = 10), 
               shiny.fluent::PrimaryButton.shinyInput(ns("save_cache_settings"), i18n$t("save")),
-              conditionalPanel(condition = "input.activate_scripts_cache == true", ns = ns, 
-                shiny.fluent::DefaultButton.shinyInput(ns("reload_cache"), i18n$t("reload_cache")))
+              shinyjs::hidden(shiny.fluent::DefaultButton.shinyInput(ns("reload_cache"), i18n$t("reload_cache")))
             )
           )
         ), br()
@@ -216,7 +217,7 @@ mod_scripts_ui <- function(id = character(), i18n = character(), language = "en"
                 div(shiny.fluent::Toggle.shinyInput(ns("hide_code_editor"), value = FALSE), style = "margin-top:9px;"),
                 div(i18n$t("hide_editor"), style = "font-weight:bold; margin-top:9px; margin-right:30px;")
               ),
-              shinyjs::hidden(div(id = ns("div_br"), br()))
+              shinyjs::hidden(div(id = ns("br_div"), br()))
             ),
             div(shinyAce::aceEditor(ns("ace_edit_code"), "", mode = "r",
               code_hotkeys = list(
@@ -538,6 +539,13 @@ mod_scripts_server <- function(id = character(), r = shiny::reactiveValues(), d 
     # Dataset scripts ----
     # --- --- --- --- --- -
     
+    # Show / hide divs
+    observeEvent(input$activate_scripts_cache, {
+      if (debug) cat(paste0("\n", Sys.time(), " - mod_scripts - observer input$activate_scripts_cache"))
+      if (input$activate_scripts_cache) sapply(c("scripts_cache_infos", "reload_cache"), shinyjs::show)
+      else if (input$activate_scripts_cache) sapply(c("scripts_cache_infos", "reload_cache"), shinyjs::hide)
+    })
+    
     # Select scripts category
     
     observeEvent(input$dataset_scripts_category, {
@@ -731,6 +739,20 @@ mod_scripts_server <- function(id = character(), r = shiny::reactiveValues(), d 
     # --- --- --- --- -- -
     # Scripts catalog ----
     # --- --- --- --- -- -
+    
+    # Show / hide divs
+    
+    observeEvent(input$all_scripts_source, {
+      if (debug) cat(paste0("\n", Sys.time(), " - mod_scripts - observer input$all_scripts_source"))
+      if (input$all_scripts_source == "local"){
+        shinyjs::show("all_scripts_local_div")
+        sapply(c("remote_git_repo_div", "all_scripts_remote_git_div"), shinyjs::hide)
+      }
+      if (input$all_scripts_source == "remote_git"){
+        shinyjs::hide("all_scripts_local_div")
+        sapply(c("remote_git_repo_div", "all_scripts_remote_git_div"), shinyjs::show)
+      }
+    })
     
     # Update dropdown of remote git repos
     
@@ -1486,11 +1508,11 @@ mod_scripts_server <- function(id = character(), r = shiny::reactiveValues(), d 
       
       if (input$hide_code_editor){
         shinyjs::hide("ace_edit_code")
-        shinyjs::show("div_br") 
+        shinyjs::show("br_div") 
       }
       else {
         shinyjs::show("ace_edit_code")
-        shinyjs::hide("div_br") 
+        shinyjs::hide("br_div") 
       }
     })
     
@@ -1518,6 +1540,17 @@ mod_scripts_server <- function(id = character(), r = shiny::reactiveValues(), d 
     # --- --- --- --- -- -- --
     # Edit script options ----
     # --- --- --- --- -- -- --
+    
+    # Show / hide options & description divs depending on selected language
+    observeEvent(input$script_language, {
+      
+      if (debug) cat(paste0("\n", Sys.time(), " - mod_my_scripts - observer input$script_language"))
+      
+      for (lang in r$languages$code){
+        if (lang == input$script_language) sapply(c(paste0("script_options_", lang, "_div"), paste0("script_description_", lang, "_div")), shinyjs::show)
+        else sapply(c(paste0("script_options_", lang, "_div"), paste0("script_description_", lang, "_div")), shinyjs::hide)
+      }
+    })
     
     observeEvent(input$options_selected_script, {
       

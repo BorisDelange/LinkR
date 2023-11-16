@@ -88,31 +88,24 @@ mod_vocabularies_ui <- function(id = character(), i18n = character()){
                   div(shiny.fluent::Toggle.shinyInput(ns("vocabulary_show_mapped_concepts"), value = FALSE), style = "margin-top:45px;"),
                   div(i18n$t("show_mapped_concepts"), style = "font-weight:bold; margin-top:45px; margin-right:30px;")
                 ),
-                conditionalPanel(
-                  condition = "input.vocabulary_concepts_pivot == null | input.vocabulary_concepts_pivot == 'vocabulary_concepts_table_view'", ns = ns,
+                div(
+                  id = ns("vocabulary_concepts_table_view_div"),
                   DT::DTOutput(ns("vocabulary_concepts")),
-                  conditionalPanel("input.vocabulary == null", ns = ns, br()),
+                  div(id = ns("br_div"), br()),
                   shiny.fluent::Stack(horizontal = TRUE, tokens = list(childrenGap = 10),
                     shiny.fluent::DefaultButton.shinyInput(ns("reload_vocabulary_concepts_cache"), i18n$t("reload_cache")),
-                    conditionalPanel(
-                      condition = "input.vocabulary != null", ns = ns,
-                      shiny.fluent::PrimaryButton.shinyInput(ns("save_vocabulary_concepts"), i18n$t("save"))
-                    )
+                    shiny.fluent::PrimaryButton.shinyInput(ns("save_vocabulary_concepts"), i18n$t("save"))
                   ), br(),
-                  conditionalPanel(
-                    condition = "input.vocabulary != null", ns = ns,
+                  div(
+                    id = ns("vocabulary_datatable_selected_item_div"),
+                    div(uiOutput(ns("vocabulary_datatable_selected_item")), style = "display:relative; float:left; width:50%;"),
                     div(
-                      id = ns("vocabulary_datatable_selected_item_div"),
-                      div(uiOutput(ns("vocabulary_datatable_selected_item")), style = "display:relative; float:left; width:50%;"),
-                      div(
-                        shiny.fluent::Stack(horizontal = TRUE, tokens = list(childrenGap = 10),
-                          div(shiny.fluent::Dropdown.shinyInput(ns("vocabulary_datatable_selected_item_plot_variable")), style = "width:50%; margin-left:42px;")#,
-                          # div(shiny.fluent::Slider.shinyInput(ns("vocabulary_datatable_selected_item_plot_bins"), value = 30, min = 1, max = 100), style = "width:50%; margin-left:42px;")
-                        ),
-                        uiOutput(ns("vocabulary_datatable_selected_item_error_message")),
-                        plotly::plotlyOutput(ns("vocabulary_datatable_selected_item_plot"), height = "280px"), 
-                        style = "display:relative; float:right; width:50%;"
-                      )
+                      shiny.fluent::Stack(horizontal = TRUE, tokens = list(childrenGap = 10),
+                        div(shiny.fluent::Dropdown.shinyInput(ns("vocabulary_datatable_selected_item_plot_variable")), style = "width:50%; margin-left:42px;")
+                      ),
+                      uiOutput(ns("vocabulary_datatable_selected_item_error_message")),
+                      plotly::plotlyOutput(ns("vocabulary_datatable_selected_item_plot"), height = "280px"), 
+                      style = "display:relative; float:right; width:50%;"
                     )
                   )
                 )
@@ -145,7 +138,6 @@ mod_vocabularies_ui <- function(id = character(), i18n = character()){
                 shiny.fluent::PivotItem(id = "vocabularies_mapping_management", itemKey = "vocabularies_mapping_management", headerText = i18n$t("evaluate_and_edit"))
               )
             ),
-            # conditionalPanel(condition = "input.mapping_current_tab == null || input.mapping_current_tab == 'vocabularies_mapping_add'", ns = ns,
             div(
               id = ns("vocabularies_mapping_add_div"),
               div(
@@ -169,35 +161,36 @@ mod_vocabularies_ui <- function(id = character(), i18n = character()){
                 ),
                 style = "width:100%; display:grid; grid-template-columns:1fr 1fr; grid-gap:20px;"
               ), br(),
-              conditionalPanel(condition = "input.vocabulary_mapping_1 != null || input.vocabulary_mapping_2 != null", ns = ns, 
-                br(),
+              shinyjs::hidden(
                 div(
-                  div(uiOutput(ns("vocabulary_mapping_selected_concept_1")), style = "border:dashed 1px; padding:10px;"),
+                  id = ns("vocabulary_mapping_selected_concepts_div"),
+                  br(),
                   div(
-                    shiny.fluent::Stack(horizontal = TRUE, tokens = list(childrenGap = 10),
-                      div(shiny.fluent::Toggle.shinyInput(ns("show_all_relationships"), value = FALSE), style = "margin-top:30px; margin-bottom:5px;"),
-                      div(i18n$t("show_all_relationships"), style = "font-weight:bold; margin-top:30px; margin-bottom:5px;")
-                    ),
-                    make_combobox(i18n = i18n, ns = ns, label = "concept_1_is_to_concept_2", id = "relationship_id", width = "300px", multiSelect = FALSE, allowFreeform = FALSE,
-                      options = list(
-                        list(key = "Maps to", text = i18n$t("maps_to")),
-                        list(key = "Mapped from", text = i18n$t("mapped_from")),
-                        list(key = "Is a", text = i18n$t("is_a")),
-                        list(key = "Subsumes", text = i18n$t("subsumes"))
+                    div(uiOutput(ns("vocabulary_mapping_selected_concept_1")), style = "border:dashed 1px; padding:10px;"),
+                    div(
+                      shiny.fluent::Stack(horizontal = TRUE, tokens = list(childrenGap = 10),
+                        div(shiny.fluent::Toggle.shinyInput(ns("show_all_relationships"), value = FALSE), style = "margin-top:30px; margin-bottom:5px;"),
+                        div(i18n$t("show_all_relationships"), style = "font-weight:bold; margin-top:30px; margin-bottom:5px;")
                       ),
-                      value = "Maps to")
+                      make_combobox(i18n = i18n, ns = ns, label = "concept_1_is_to_concept_2", id = "relationship_id", width = "300px", multiSelect = FALSE, allowFreeform = FALSE,
+                        options = list(
+                          list(key = "Maps to", text = i18n$t("maps_to")),
+                          list(key = "Mapped from", text = i18n$t("mapped_from")),
+                          list(key = "Is a", text = i18n$t("is_a")),
+                          list(key = "Subsumes", text = i18n$t("subsumes"))
+                        ),
+                        value = "Maps to")
+                    ),
+                    div(uiOutput(ns("vocabulary_mapping_selected_concept_2")), style = "border:dashed 1px; padding:10px;"),
+                    style = "width:100%; display:grid; grid-template-columns:2fr 1fr 2fr; grid-gap:20px;"
                   ),
-                  div(uiOutput(ns("vocabulary_mapping_selected_concept_2")), style = "border:dashed 1px; padding:10px;"),
-                  style = "width:100%; display:grid; grid-template-columns:2fr 1fr 2fr; grid-gap:20px;"
-                ),
-                make_textfield(label = "comment", id = "mapping_comment", i18n = i18n, ns = ns), br(),
-                shiny.fluent::PrimaryButton.shinyInput(ns("add_mapping"), i18n$t("add")),
-                br(),
-                DT::DTOutput(ns("vocabulary_added_mappings"))
+                  make_textfield(label = "comment", id = "mapping_comment", i18n = i18n, ns = ns), br(),
+                  shiny.fluent::PrimaryButton.shinyInput(ns("add_mapping"), i18n$t("add")),
+                  br(),
+                  DT::DTOutput(ns("vocabulary_added_mappings"))
+                )
               )
             ),
-            # ),
-            # conditionalPanel(condition = "input.mapping_current_tab == 'vocabularies_mapping_management'", ns = ns,
             div(
               id = ns("vocabularies_mapping_management_div"),
               shiny.fluent::Stack(horizontal = TRUE, tokens = list(childrenGap = 10),
@@ -229,14 +222,16 @@ mod_vocabularies_ui <- function(id = character(), i18n = character()){
                   shiny.fluent::DefaultButton.shinyInput(ns("mapping_delete_selection"), i18n$t("delete_selection"))
                 ),
                 style = "position:relative; z-index:1; margin-top:-30px; width:500px;"), br(),
-              conditionalPanel(condition = "input.vocabulary_show_mapping_details == true", ns = ns,
-                div(
-                  div(uiOutput(ns("vocabulary_mapping_details_left")), style = "border:dashed 1px; padding:10px; margin:10px; flex:1;"),
-                  div(uiOutput(ns("vocabulary_mapping_details_center")), style = "border:dashed 1px; padding:10px; margin:10px; flex:1;"),
-                  div(uiOutput(ns("vocabulary_mapping_details_right")), style = "border:dashed 1px; padding:10px; margin:10px; flex:1;"),
-                  style = "display:flex;"
+                shinyjs::hidden(
+                  div(
+                    id = ns("vocabulary_mapping_details_div"),
+                    div(uiOutput(ns("vocabulary_mapping_details_left")), style = "border:dashed 1px; padding:10px; margin:10px; flex:1;"),
+                    div(uiOutput(ns("vocabulary_mapping_details_center")), style = "border:dashed 1px; padding:10px; margin:10px; flex:1;"),
+                    div(uiOutput(ns("vocabulary_mapping_details_right")), style = "border:dashed 1px; padding:10px; margin:10px; flex:1;"),
+                    style = "display:flex;"
+                  )
                 )
-              )
+              # )
             )
             # )
           )
@@ -343,6 +338,13 @@ mod_vocabularies_server <- function(id = character(), r = shiny::reactiveValues(
     # Vocabulary concepts ----
     # --- --- --- --- --- -- -
     
+    # Show / hide vocabulary_concepts_table_view_div
+    observeEvent(input$vocabulary_concepts_pivot, {
+      if (debug) cat(paste0("\n", Sys.time(), " - mod_vocabularies - observer r$vocabulary_concepts_pivot"))
+      if (input$vocabulary_concepts_pivot == "vocabulary_concepts_table_view") shinyjs::show("vocabulary_concepts_table_view_div")
+      else shinyjs::hide("vocabulary_concepts_table_view_div")
+    })
+    
     observeEvent(r$vocabulary, {
       if (debug) cat(paste0("\n", Sys.time(), " - mod_vocabularies - observer r$vocabulary 1"))
       # r$reload_vocabulary_dropdown <- Sys.time()
@@ -350,32 +352,6 @@ mod_vocabularies_server <- function(id = character(), r = shiny::reactiveValues(
       vocabulary_options <- r$vocabulary %>% convert_tibble_to_list(key_col = "vocabulary_id", text_col = "vocabulary_id")
       for (var in c("vocabulary_mapping_1", "vocabulary_mapping_2")) shiny.fluent::updateComboBox.shinyInput(session, var, options = vocabulary_options, value = NULL)
     })
-    # 
-    # observeEvent(input$vocabulary_show_only_dataset_vocabs, {
-    #   if (debug) cat(paste0("\n", Sys.time(), " - mod_vocabularies - observer input$vocabulary_show_only_dataset_vocabs"))
-    #   r$reload_vocabulary_dropdown <- Sys.time()
-    # })
-    # 
-    # observeEvent(r$reload_vocabulary_dropdown, {
-    #   if (debug) cat(paste0("\n", Sys.time(), " - mod_vocabularies - observer r$reload_vocabulary_dropdown"))
-    #   
-    #   show_only_dataset_vocabs <- FALSE
-    #   if (length(input$vocabulary_show_only_dataset_vocabs) > 0) show_only_dataset_vocabs <- input$vocabulary_show_only_dataset_vocabs
-    #   
-    #   vocabulary_options <- r$vocabulary
-    #   
-    #   if (show_only_dataset_vocabs){
-    #     if (length(r$selected_dataset) > 0){
-    #       if (nrow(d$dataset_all_concepts) > 0){
-    #         vocabulary_options <- vocabulary_options %>% dplyr::filter(
-    #           vocabulary_id %in% unique(c(unique(d$dataset_all_concepts$vocabulary_id_1), unique(d$dataset_all_concepts$vocabulary_id_2)))
-    #         )
-    #       }
-    #     }
-    #   }
-    #   shiny.fluent::updateComboBox.shinyInput(session, "vocabulary", 
-    #     options = convert_tibble_to_list(vocabulary_options, key_col = "id", text_col = "vocabulary_id"), value = NULL)
-    # })
     
     observeEvent(r$selected_dataset, {
       
@@ -385,28 +361,6 @@ mod_vocabularies_server <- function(id = character(), r = shiny::reactiveValues(
       # Show first card & hide "choose a dataset" card
       shinyjs::hide("choose_a_dataset_card")
       if ("vocabularies_concepts_card" %in% r$user_accesses) shinyjs::show("vocabularies_concepts_div")
-      # shinyjs::show("menu")
-      # if (length(input$current_tab) == 0){
-      #   if ("vocabularies_concepts_card" %in% r$user_accesses) shinyjs::show("vocabularies_concepts_card")
-      #   else shinyjs::show("vocabularies_concepts_card_forbidden")
-      # }
-      
-      # data_source <- r$datasets %>% dplyr::filter(id == r$selected_dataset) %>% dplyr::pull(data_source_id)
-      
-      # Multiple cases
-      # Only one ID, so it's the beginning and the end
-      # Last ID, so it's the end
-      # ID between begin and last, so separated by commas
-      # r$dataset_vocabularies <- r$vocabulary %>% 
-      #   dplyr::filter(
-      #     grepl(paste0("^", data_source, "$"), data_source_id) | 
-      #       grepl(paste0(", ", data_source, "$"), data_source_id) | 
-      #       grepl(paste0("^", data_source, ","), data_source_id) |
-      #       grepl(paste0(", ", data_source, ","), data_source_id)
-      #   ) %>% dplyr::arrange(vocabulary_name)
-      # vocabulary_options <- convert_tibble_to_list(data = r$dataset_vocabularies, key_col = "vocabulary_id", text_col = "vocabulary_name", i18n = i18n)
-      # 
-      # for (var in c("vocabulary", "vocabulary_mapping_1", "vocabulary_mapping_2")) shiny.fluent::updateComboBox.shinyInput(session, var, options = vocabulary_options, value = NULL)
       
       r$load_dataset_all_concepts <- Sys.time()
       
@@ -724,20 +678,10 @@ mod_vocabularies_server <- function(id = character(), r = shiny::reactiveValues(
       if (length(r$dataset_vocabulary_concepts_datatable_proxy) > 0) DT::replaceData(r$dataset_vocabulary_concepts_datatable_proxy,
         r$dataset_vocabulary_concepts %>% dplyr::slice(0), resetPaging = FALSE, rownames = FALSE)
       
-      # Update vocabulary dropdown
-      # shiny.fluent::updateComboBox.shinyInput(session, "vocabulary", 
-      #   options = convert_tibble_to_list(data = r$dataset_vocabularies, key_col = "id", text_col = "vocabulary_name", i18n = i18n), value = NULL)
-      
       r$dataset_vocabularies <-
         r$vocabulary %>% 
           dplyr::filter(vocabulary_id %in% unique(c(unique(d$dataset_all_concepts$vocabulary_id_1), unique(d$dataset_all_concepts$vocabulary_id_2)))) %>%
           dplyr::arrange(vocabulary_id)
-      #   dplyr::filter(
-      #     grepl(paste0("^", data_source, "$"), data_source_id) | 
-      #       grepl(paste0(", ", data_source, "$"), data_source_id) | 
-      #       grepl(paste0("^", data_source, ","), data_source_id) |
-      #       grepl(paste0(", ", data_source, ","), data_source_id)
-      #   ) %>% dplyr::arrange(vocabulary_name)
       
       # Join d$person, d$visit_occurrence & d$visit_detail with d$dataset_all_concepts
       r$merge_concepts_and_d_vars <- Sys.time()
@@ -837,90 +781,15 @@ mod_vocabularies_server <- function(id = character(), r = shiny::reactiveValues(
       if (perf_monitoring) monitor_perf(r = r, action = "stop", task = paste0("mod_vocabularies - observer r$load_dataset_drug_strength"))
     })
     
-    # Join concepts cols of d$ vars with d$dataset_all_concepts
-    
-    # observeEvent(r$merge_concepts_and_d_vars, {
-    #   
-    #   if (perf_monitoring) monitor_perf(r = r, action = "start")
-    #   if (debug) cat(paste0("\n", Sys.time(), " - mod_vocabularies - observer r$merge_concepts_and_d_vars"))
-    #   
-    #   req(d$person %>% dplyr::count() %>% dplyr::pull() > 0)
-    #   
-    #   omop_version <- r$options %>% dplyr::filter(category == "dataset" & link_id == r$selected_dataset & name == "omop_version") %>% dplyr::pull(value)
-    #   
-    #   # Don't reload if already done
-    #   
-    #   if ("gender_concept_name" %not_in% colnames(d$person)){
-    #     
-    #     # Do that only for small tables
-    #     
-    #     cols <- list(
-    #       "person" = c("gender", "race", "ethnicity")#,
-    #       # "condition_occurrence" = c("condition", "condition_type", "condition_status"),
-    #       # "drug_exposure" = c("drug", "drug_type", "route"),
-    #       # "procedure_occurrence" = c("procedure", "procedure_type", "modifier"),
-    #       # "device_exposure" = c("device", "device_type"),
-    #       # "measurement" = c("measurement", "measurement_type", "value_as", "unit"),
-    #       # "observation" = c("observation", "observation_type", "qualifier", "value_as", "unit"),
-    #       # "note" = c("note_type", "note_class", "encoding", "language"),
-    #       # "note_nlp" = c("section", "note_nlp"),
-    #       # "specimen" = c("specimen", "specimen_type", "unit", "anatomic_site", "disease_status"),
-    #       # "drug_era" = "drug",
-    #       # "dose_era" = c("drug", "unit"),
-    #       # "condition_era" = "condition"
-    #     )
-    #     
-    #     if (omop_version == "5.3"){
-    #       cols <- rlist::list.append(cols, 
-    #         "visit_occurrence" = c("visit", "visit_type", "admitting_source", "discharge_to"),
-    #         "visit_detail" = c("visit_detail", "visit_detail_type", "admitting_source", "discharge_to")) 
-    #     }
-    #     else if (omop_version %in% c("5.4", "6.0")){
-    #       cols <- rlist::list.append(cols, 
-    #         "visit_occurrence" = c("visit", "visit_type", "admitted_from", "discharge_to"),
-    #         "visit_detail" = c("visit_detail", "visit_detail_type", "admitted_from", "discharge_to")) 
-    #     }
-    #     
-    #     if (omop_version %in% c("5.3", "5.0")) cols <- rlist::list.append(cols, "death" = c("death_type", "cause"))
-    #     
-    #     dataset_all_concepts <- d$dataset_all_concepts %>% 
-    #       dplyr::group_by(concept_id_1, concept_name_1, concept_code) %>%
-    #       dplyr::slice(1) %>%
-    #       dplyr::ungroup()
-    #     
-    #     for (table in names(cols)){
-    #       table_cols <- cols[[table]]
-    #       for (col in table_cols){
-    #         if (d[[table]] %>% dplyr::count() %>% dplyr::pull() > 0){
-    #           if (paste0(col, "_concept_id") %in% colnames(d[[table]])){
-    #             if (grepl("unit", col)) merge_col <- c("concept_code", "concept_code") else merge_col <- c("concept_name", "concept_name_1")
-    #             
-    #             d[[table]] <- d[[table]] %>%
-    #               dplyr::left_join(
-    #                 dataset_all_concepts %>%
-    #                   dplyr::select(!!paste0(col, "_concept_id") := concept_id_1, !!paste0(col, "_", merge_col[1]) := !!merge_col[2]),
-    #                 by = paste0(col, "_concept_id"),
-    #                 copy = TRUE
-    #               ) %>%
-    #               dplyr::relocate(!!paste0(col, "_", merge_col[1]), .after = !!paste0(col, "_concept_id"))
-    #           }
-    #           else report_bug(r = r, output = output, error_message = "error_calculating_num_rows_concepts_dataset", 
-    #             error_name = paste0("mod_vocabularies - observer r$merge_concepts_and_d_vars - dataset_id = ", r$selected_dataset), 
-    #             category = "Error", error_report = paste0("table = ", table, " / col = ", col, "_concept_id"), i18n = i18n, ns = ns)
-    #         } 
-    #       }
-    #     }
-    #   }
-    #   
-    #   if (perf_monitoring) monitor_perf(r = r, action = "stop", task = paste0("mod_vocabularies - observer r$merge_concepts_and_d_vars"))
-    # })
-    
     # When a vocabulary is selected, filter on it
     
     observeEvent(input$vocabulary, {
       if (debug) cat(paste0("\n", Sys.time(), " - mod_vocabularies - observer input$vocabulary"))
       
       r$reload_vocabulary_datatable <- Sys.time()
+      
+      shinyjs::hide("br_div")
+      sapply(c("vocabulary_datatable_selected_item_div", "save_vocabulary_concepts"), shinyjs::show)
     })
     
     # Update which cols are hidden
@@ -1432,10 +1301,12 @@ mod_vocabularies_server <- function(id = character(), r = shiny::reactiveValues(
     observeEvent(input$vocabulary_mapping_1, {
       if (debug) cat(paste0("\n", Sys.time(), " - mod_vocabularies - observer input$vocabulary_mapping_1"))
       r$vocabulary_mapping_reload <- paste0(Sys.time(), "_mapping_1")
+      shinyjs::show("vocabulary_mapping_selected_concepts_div")
     })
     observeEvent(input$vocabulary_mapping_2, {
       if (debug) cat(paste0("\n", Sys.time(), " - mod_vocabularies - observer input$vocabulary_mapping_2"))
       r$vocabulary_mapping_reload <- paste0(Sys.time(), "_mapping_2")
+      shinyjs::show("vocabulary_mapping_selected_concepts_div")
     })
     observeEvent(input$vocabulary_show_only_not_mapped_concepts, {
       if (debug) cat(paste0("\n", Sys.time(), " - mod_vocabularies - observer input$show_only_not_mapped_concepts"))
@@ -1714,6 +1585,14 @@ mod_vocabularies_server <- function(id = character(), r = shiny::reactiveValues(
       r$reload_vocabulary_evaluate_mappings_datatable <- Sys.time()
       r$reload_vocabulary_evaluate_mappings_datatable_type <- "reload_data"
       
+      sapply(c("vocabulary_mapping_1", "vocabulary_mapping_2"), function(input_id) shiny.fluent::updateComboBox.shinyInput(
+        session, input_id, options = r$vocabulary %>% convert_tibble_to_list(key_col = "vocabulary_id", text_col = "vocabulary_id"), value = NULL))
+      
+      sapply(c(1, 2), function(num) output[[paste0("vocabulary_mapping_selected_concept_", num)]] <- renderUI(""))
+      
+      shinyjs::show("br_div")
+      sapply(c("vocabulary_datatable_selected_item_div", "save_vocabulary_concepts", "vocabulary_mapping_selected_concepts_div"), shinyjs::hide)
+      
       if (perf_monitoring) monitor_perf(r = r, action = "stop", task = paste0("mod_vocabularies - observer r$selected_dataset 1"))
     })
     
@@ -1924,6 +1803,8 @@ mod_vocabularies_server <- function(id = character(), r = shiny::reactiveValues(
       
       # Reload UI outputs
       for(position in c("left", "center", "right")) output[[paste0("vocabulary_mapping_details_", position)]] <- renderUI("")
+      
+      shinyjs::show("vocabulary_mapping_details_div")
       
       r$reload_vocabulary_evaluate_mappings_datatable <- Sys.time()
       r$reload_vocabulary_evaluate_mappings_datatable_type <- "reload_datatable"

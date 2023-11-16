@@ -105,9 +105,11 @@ mod_settings_sub_users_ui <- function(id = character(), i18n = character(), user
         
       label <- users_accesses_toggles_options[[i, "name"]]
       
+      sub_results <- tagList(br(), sub_results, hr())
+      
       users_accesses_toggles_options_result <- tagList(users_accesses_toggles_options_result, br(), shiny.fluent::Stack(horizontal = TRUE, tokens = list(childrenGap = 10),
         make_toggle(i18n = i18n, ns = ns, label = label, id = paste0("toggle_", label), inline = TRUE, value = FALSE)),
-        conditionalPanel(condition = paste0("input.toggle_", label, " == 1"), ns = ns, br(), sub_results), hr()
+        div(id = ns(paste0("sub_results_", label, "_div")), sub_results)
       )
     }
     
@@ -477,6 +479,19 @@ mod_settings_users_server <- function(id = character(), r = shiny::reactiveValue
     }
     
     if (page == "users_accesses_options"){
+      
+      # Show or hide toggles
+      sapply(1:nrow(users_accesses_toggles_options), function(i){
+        
+        # Show or hide toggles
+        label <- users_accesses_toggles_options[[i, "name"]]
+        
+        observeEvent(input[[paste0("toggle_", label)]], {
+          if (debug) cat(paste0("\n", Sys.time(), " - mod_settings_users - observer input$toggle_", label))
+          if (input[[paste0("toggle_", label)]]) shinyjs::show(paste0("sub_results_", label, "_div"))
+          else shinyjs::hide(paste0("sub_results_", label, "_div"))
+        })
+      })
       
       observeEvent(r$users_statuses_options, {
         

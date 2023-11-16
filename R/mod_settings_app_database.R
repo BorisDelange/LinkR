@@ -114,8 +114,8 @@ mod_settings_app_database_ui <- function(id = character(), i18n = character()){
                   list(key = "remote", text = i18n$t("remote"))
                 ), className = "inline_choicegroup")
             ),
-            shiny::conditionalPanel(
-              condition = "input.connection_type == 'remote'", ns = ns,
+            div(
+              id = ns("connection_infos_div"),
               shiny.fluent::Stack(horizontal = TRUE, tokens = list(childrenGap = 30),
                 make_dropdown(i18n = i18n, ns = ns, label = "sql_lib", options = list(
                   list(key = "postgres", text = "PostgreSQL"),
@@ -125,26 +125,47 @@ mod_settings_app_database_ui <- function(id = character(), i18n = character()){
               ),
               shiny.fluent::Stack(horizontal = TRUE, tokens = list(childrenGap = 30),
                 make_textfield(i18n, ns, "main_db_name", width = "300px"),
-                shiny::conditionalPanel(condition = "input.connection_type == 'remote'", ns = ns, 
-                  div(shiny::textOutput(ns("test_connection_main_db_success")), style = "margin-top:44px; font-weight:bold; color:#0078D4;")),
-                shiny::conditionalPanel(condition = "input.connection_type == 'remote'", ns = ns, 
-                  div(shiny::textOutput(ns("test_connection_main_db_failure")), style = "margin-top:44px; margin-left:-30px; color:red;"))
+                shinyjs::hidden(
+                  div(
+                    id = ns("test_connection_main_db_success_div"),
+                    shiny::textOutput(ns("test_connection_main_db_success")),
+                    style = "margin-top:44px; font-weight:bold; color:#0078D4;"
+                  )
+                ),
+                shinyjs::hidden(
+                  div(
+                    id = ns("test_connection_main_db_failure_div"),
+                    shiny::textOutput(ns("test_connection_main_db_failure")), 
+                    style = "margin-top:44px; padding-left:30px; margin-left:-30px; color:red;"
+                  )
+                )
               ),
               shiny.fluent::Stack(horizontal = TRUE, tokens = list(childrenGap = 30),
                 make_textfield(i18n, ns, "public_db_name", width = "300px"),
-                shiny::conditionalPanel(condition = "input.connection_type == 'remote'", ns = ns, 
-                  div(shiny::textOutput(ns("test_connection_public_db_success")), style = "margin-top:44px; font-weight:bold; color:#0078D4;")),
-                shiny::conditionalPanel(condition = "input.connection_type == 'remote'", ns = ns, 
-                  div(shiny::textOutput(ns("test_connection_public_db_failure")), style = "margin-top:44px; margin-left:-30px; color:red;"))
+                shinyjs::hidden(
+                div(
+                    id = ns("test_connection_public_db_success_div"),
+                    shiny::textOutput(ns("test_connection_public_db_success")), 
+                    style = "margin-top:44px; padding-left:30px; font-weight:bold; color:#0078D4;"
+                  )
+                ),
+                shinyjs::hidden(
+                  div(
+                    id = ns("test_connection_public_db_failure_div"),
+                    shiny::textOutput(ns("test_connection_public_db_failure")), 
+                    style = "margin-top:44px; margin-left:-30px; color:red;"
+                  )
+                )
               ),
               shiny.fluent::Stack(horizontal = TRUE, tokens = list(childrenGap = 30),
                 make_textfield(i18n, ns, "port", width = "300px"),
                 make_textfield(i18n, ns, "user", width = "300px"),
                 make_textfield(i18n, ns, "password", type = "password", canRevealPassword = TRUE, width = "300px")
-              )), htmltools::br(),
+              )
+            ), br(),
             shiny.fluent::Stack(horizontal = TRUE, tokens = list(childrenGap = 20),
               shiny.fluent::PrimaryButton.shinyInput(ns("db_connection_save"), i18n$t("save")), " ",
-              shiny::conditionalPanel(condition = "input.connection_type == 'remote'", ns = ns, shiny.fluent::DefaultButton.shinyInput(ns("test_connection"), i18n$t("test_connection")))
+              shiny.fluent::DefaultButton.shinyInput(ns("test_connection"), i18n$t("test_connection"))
             ),
           )
         )
@@ -356,6 +377,11 @@ mod_settings_app_database_server <- function(id = character(), r = shiny::reacti
       shiny.fluent::updateChoiceGroup.shinyInput(session, "connection_type", value = r$db_connection_type)
       shiny.fluent::updateChoiceGroup.shinyInput(session, "app_db_request_connection_type", value = r$db_connection_type)
       shiny.fluent::updateChoiceGroup.shinyInput(session, "app_db_tables_connection_type", value = r$db_connection_type)
+      
+      divs <- c("connection_infos_div", "test_connection_main_db_success_div", "test_connection_main_db_failure_div", "test_connection_public_db_success_div", 
+        "test_connection_public_db_failure_div", "test_connection")
+      if (r$db_connection_type == "remote") sapply(divs, shinyjs::show)
+      else sapply(divs, shinyjs::hide)
     })
     
     observeEvent(input$connection_type, r$db_connection_type <- input$connection_type)

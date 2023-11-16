@@ -119,8 +119,9 @@ mod_data_ui <- function(id = character(), i18n = character()){
             ),
             style = "width:330px;"
           ),
-          conditionalPanel(condition = "input.widget_creation_show_mapped_concepts == true", ns = ns, 
+          shinyjs::hidden(
             div(
+              id = ns("widget_creation_show_mapped_concepts_div"),
               shiny.fluent::Stack(horizontal = TRUE, tokens = list(childrenGap = 10),
                 div(shiny.fluent::Toggle.shinyInput(ns(paste0(type, "_merge_mapped_concepts")), value = TRUE), style = "margin-top:30px;; margin-bottom:5px; margin-left:-10px;"),
                 div(i18n$t("merge_mapped_concepts"), style = "font-weight:bold; margin-top:30px;; margin-bottom:5px;")
@@ -1976,6 +1977,8 @@ mod_data_server <- function(id = character(), r = shiny::reactiveValues(), d = s
       r[[paste0(prefix, "_reload_widget_vocabulary_concepts_type")]] <- "widget_creation"
       if (input$widget_creation_show_mapped_concepts & !input$widget_creation_hide_concepts_datatables) shinyjs::show("widget_creation_vocabulary_mapped_concepts")
       else shinyjs::hide("widget_creation_vocabulary_mapped_concepts")
+      if (input$widget_creation_show_mapped_concepts) shinyjs::show("widget_creation_show_mapped_concepts_div")
+      else shinyjs::hide("widget_creation_show_mapped_concepts_div")
     })
     
     observeEvent(input$widget_settings_show_mapped_concepts, {
@@ -1995,8 +1998,8 @@ mod_data_server <- function(id = character(), r = shiny::reactiveValues(), d = s
       
       type <- r[[paste0(prefix, "_reload_widget_vocabulary_concepts_type")]]
       
-      if (type == "widget_creation") vocabulary_id <- input$widget_creation_vocabulary$key
-      if (type == "widget_settings") vocabulary_id <- input$widget_settings_vocabulary$key
+      if (type == "widget_creation") vocabulary_id <- input[[paste0(type, "_vocabulary")]]$key
+      req(length(vocabulary_id) > 0)
       
       widget_vocabulary_concepts <- d$dataset_all_concepts %>%
         dplyr::filter(vocabulary_id_1 == vocabulary_id) %>%
