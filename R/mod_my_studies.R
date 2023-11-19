@@ -422,7 +422,7 @@ mod_my_studies_server <- function(id = character(), r = shiny::reactiveValues(),
       # Try to load dataset
       tryCatch({
         
-        captured_output <- capture.output(run_dataset_code(output, r = r, d = d, dataset_id = r$selected_dataset, i18n = i18n))
+        captured_output <- capture.output(run_dataset_code(output, r = r, d = d, m = m, dataset_id = r$selected_dataset, i18n = i18n))
         
         # If an error occured
         if (grepl(paste0("\\*\\*", i18n$t("error"), "\\*\\*"), toString(captured_output))){
@@ -480,7 +480,7 @@ mod_my_studies_server <- function(id = character(), r = shiny::reactiveValues(),
             
             if (r$force_reload_scripts_cache){
               # Try to load dataset
-              tryCatch(run_dataset_code(output, r = r, d = d, dataset_id = r$selected_dataset, i18n = i18n),
+              tryCatch(run_dataset_code(output, r = r, d = d, m = m, dataset_id = r$selected_dataset, i18n = i18n),
                 error = function(e){
                   r$show_message_bar <- tibble::tibble(message = "fail_load_dataset", type = "severeWarning", trigger = Sys.time())
                   report_bug(r = r, output = output, error_message = "fail_load_dataset",

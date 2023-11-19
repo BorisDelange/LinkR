@@ -139,9 +139,6 @@
     <loc>https://framagit.org/interhop/LinkR/reference/render_datatable.html</loc>
   </url>
   <url>
-    <loc>https://framagit.org/interhop/LinkR/reference/render_settings_code_card.html</loc>
-  </url>
-  <url>
     <loc>https://framagit.org/interhop/LinkR/reference/render_settings_creation_card.html</loc>
   </url>
   <url>
@@ -152,6 +149,9 @@
   </url>
   <url>
     <loc>https://framagit.org/interhop/LinkR/reference/report_bug.html</loc>
+  </url>
+  <url>
+    <loc>https://framagit.org/interhop/LinkR/reference/resize_and_pad_image.html</loc>
   </url>
   <url>
     <loc>https://framagit.org/interhop/LinkR/reference/run_dataset_code.html</loc>

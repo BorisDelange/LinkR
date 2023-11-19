@@ -8,6 +8,7 @@ run_dataset_code(
   output,
   r = shiny::reactiveValues(),
   d = shiny::reactiveValues(),
+  m = shiny::reactiveValues(),
   dataset_id = integer(),
   i18n = character()
 )
@@ -18,6 +19,8 @@ run_dataset_code(
 \item{r}{A shiny::reactiveValues object, used to communicate between modules}
 
 \item{d}{A shiny::reactiveValues object, used to communicate between modules. Contains data loaded from dataset code (d$patients, d$labs_vitals...).}
+
+\item{m}{A shiny::reactiveValues object, used to communicate between modules}
 
 \item{dataset_id}{ID of the dataset we want to load (integer)}
 

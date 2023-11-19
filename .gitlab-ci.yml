@@ -1,4 +1,4 @@
-image: rocker/r-ver:4.0.0
+image: rocker/verse:latest
 
 pages:
   script:

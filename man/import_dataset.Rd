@@ -13,7 +13,7 @@ import_dataset(
   dataset_id = integer(),
   data = tibble::tibble(),
   type = "",
-  omop_version = 6,
+  omop_version = "6.0",
   read_with = "none",
   save_as = "none",
   rewrite = FALSE
@@ -36,7 +36,7 @@ import_dataset(
 
 \item{type}{Name of the OMOP table to import (character)}
 
-\item{omop_version}{OMOP versions of the imported data, accepts 5.3, 5.4 or 6.0 (numeric)}
+\item{omop_version}{OMOP versions of the imported data, accepts "5.3", "5.4" or "6.0" (character)}
 
 \item{read_with}{The library used to read the data. Accepted values = c("none", "vroom", "duckdb", "spark", "arrow") (character)}
 
@@ -64,6 +64,6 @@ persons <- tibble::tibble(person_id = 1L, gender_concept_id = 8532L, year_of_bir
   person_source_value = NA_character_, gender_source_value = "F", race_source_value = NA_character_, ethnicity_source_value = NA_character_)
     
 import_dataset(output = output, ns = ns, i18n = i18n, r = r, d = d, dataset_id = 5, data = persons, type = "persons", 
-  omop_versions = 5.4, save_as_csv = FALSE, rewrite = FALSE)
+  omop_versions = "5.4", save_as_csv = FALSE, rewrite = FALSE)
 }
 }

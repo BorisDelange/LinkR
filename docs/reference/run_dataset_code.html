@@ -10,7 +10,7 @@
     
     <a class="navbar-brand me-2" href="../index.html">linkr</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.2.0.9052</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.2.0.9053</small>
 
     
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -46,6 +46,7 @@
 <span>  <span class="va">output</span>,</span>
 <span>  r <span class="op">=</span> <span class="fu">shiny</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/shiny/man/reactiveValues.html" class="external-link">reactiveValues</a></span><span class="op">(</span><span class="op">)</span>,</span>
 <span>  d <span class="op">=</span> <span class="fu">shiny</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/shiny/man/reactiveValues.html" class="external-link">reactiveValues</a></span><span class="op">(</span><span class="op">)</span>,</span>
+<span>  m <span class="op">=</span> <span class="fu">shiny</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/shiny/man/reactiveValues.html" class="external-link">reactiveValues</a></span><span class="op">(</span><span class="op">)</span>,</span>
 <span>  dataset_id <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/integer.html" class="external-link">integer</a></span><span class="op">(</span><span class="op">)</span>,</span>
 <span>  i18n <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/character.html" class="external-link">character</a></span><span class="op">(</span><span class="op">)</span></span>
 <span><span class="op">)</span></span></code></pre></div>
@@ -63,6 +64,10 @@
 
 <dt>d</dt>
 <dd><p>A shiny::reactiveValues object, used to communicate between modules. Contains data loaded from dataset code (d$patients, d$labs_vitals...).</p></dd>
+
+
+<dt>m</dt>
+<dd><p>A shiny::reactiveValues object, used to communicate between modules</p></dd>
 
 
 <dt>dataset_id</dt>

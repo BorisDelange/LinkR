@@ -37,6 +37,7 @@ reference:
   - monitor_perf
   - prepare_data_datatable
   - report_bug
+  - resize_and_pad_image
   - save_settings_code
   - save_settings_datatable_updates
   - save_settings_options

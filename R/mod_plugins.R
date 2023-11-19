@@ -709,7 +709,7 @@ mod_plugins_server <- function(id = character(), r = shiny::reactiveValues(), d 
       if (nrow(r$remote_git_plugins) > 0) plugins$remote_git <- r$remote_git_plugins %>% dplyr::filter(type == tab_type_id) %>% dplyr::mutate(id = unique_id)
       
       if (nrow(plugins$remote_git) > 0) plugins$remote_git <- plugins$remote_git %>% dplyr::arrange(get(paste0("name_", language)))
-      plugins$local <- r$plugins %>% dplyr::filter(tab_type_id == !!tab_type_id) %>% dplyr::arrange(name)
+      plugins$local <- r$plugins %>% dplyr::filter(tab_type_id == !!tab_type_id)
       r[[paste0(prefix, "_plugins_images")]] <- tibble::tibble(type = character(), id = character(), image_url = character())
 
       # Filter local plugins on category
@@ -734,8 +734,11 @@ mod_plugins_server <- function(id = character(), r = shiny::reactiveValues(), d 
         else if (nrow(plugins[[type]]) > 0){
 
           # i <- 0
-
-          for(plugin_id in plugins[[type]] %>% dplyr::pull(id)){
+          
+          if (type == "local") ordered_plugins <- plugins[[type]] %>% dplyr::arrange(tolower(name))
+          else if (type == "remote_git") ordered_plugins <- plugins[[type]] %>% dplyr::arrange(tolower(name_en))
+          
+          for(plugin_id in ordered_plugins %>% dplyr::pull(id)){
 
             if (type == "local"){
               plugin <- list()

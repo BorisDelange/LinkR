@@ -11,7 +11,8 @@ render_settings_datatable_card(
   output_id = "management_datatable",
   title = character(),
   inputs = character(),
-  dropdown_multiselect = FALSE
+  dropdown_multiselect = FALSE,
+  save_button = TRUE
 )
 }
 \arguments{
@@ -24,6 +25,8 @@ render_settings_datatable_card(
 \item{output_id}{ID of div & DTOutput, allows to have multiple management_datatable in one tab, default = "management_datatable" (character)}
 
 \item{title}{Title used to create the card, it will be translated with translate function (character)}
+
+\item{save_button}{Add a save button (logical)}
 }
 \description{
 Render UI of settings datatable card

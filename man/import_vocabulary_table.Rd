@@ -12,7 +12,7 @@ import_vocabulary_table(
   m = shiny::reactiveValues(),
   table_name = character(),
   data = tibble::tibble(),
-  vocabulary_id = character()
+  add_vocabulary = FALSE
 )
 }
 \arguments{
@@ -30,7 +30,7 @@ import_vocabulary_table(
 
 \item{data}{A tibble containing the data}
 
-\item{vocabulary_id}{ID of the vocabulary, for example LOINC (character)}
+\item{add_vocabulary}{If concepts are imported, should the corresponding terminologies be added? (logical)}
 }
 \description{
 Import an OMOP vocabulary and save it in app database
@@ -46,6 +46,6 @@ concept <- tibble::tibble(concept_id = 3027018, concept_name = "Heart rate", dom
   valid_start_date = "1970-01-01", valid_end_date = "2099-12-31", invalid_reason = NA_character_)
   
 import_vocabulary_table(output = output, ns = ns, i18n = i18n, r = r, m = m,
-  table_name = "concept", data = concept, vocabulary_id = "LOINC")
+  table_name = "concept", data = concept)
 }
 }

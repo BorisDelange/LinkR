@@ -30,7 +30,7 @@
     
     <a class="navbar-brand me-2" href="index.html">linkr</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.2.0.9052</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.2.0.9053</small>
 
     
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -97,18 +97,22 @@
 <div class="section level2">
 <h2 id="installation">Installation<a class="anchor" aria-label="anchor" href="#installation"></a>
 </h2>
-<p>You can install the development version from Github, with:</p>
-<div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu">remotes</span><span class="fu">::</span><span class="fu"><a href="https://remotes.r-lib.org/reference/install_github.html" class="external-link">install_github</a></span><span class="op">(</span><span class="st">"BorisDelange/linkr"</span><span class="op">)</span></span></code></pre></div>
 <p>The <code>remotes</code> library must be installed, you can install it with:</p>
-<div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/utils/install.packages.html" class="external-link">install.packages</a></span><span class="op">(</span><span class="st">"remotes"</span><span class="op">)</span></span></code></pre></div>
+<p>Please note that your version of shiny must be <strong>earlier than version 1.7.5</strong>, which causes significant application slowdowns.</p>
+<p>You can install version 1.7.4.1 with the following code.</p>
+<div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu">remotes</span><span class="fu">::</span><span class="fu"><a href="https://remotes.r-lib.org/reference/install_github.html" class="external-link">install_github</a></span><span class="op">(</span><span class="st">"rstudio/shiny@f5b3954"</span><span class="op">)</span></span></code></pre></div>
+<p>You can install the development version from Framagit, with:</p>
+<div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu">remotes</span><span class="fu">::</span><span class="fu"><a href="https://remotes.r-lib.org/reference/install_gitlab.html" class="external-link">install_gitlab</a></span><span class="op">(</span><span class="st">"interhop/linkr/linkr"</span>, host <span class="op">=</span> <span class="st">"framagit.org"</span><span class="op">)</span></span></code></pre></div>
 </div>
 <div class="section level2">
 <h2 id="launch-the-app">Launch the app<a class="anchor" aria-label="anchor" href="#launch-the-app"></a>
 </h2>
 <p>To launch the Shiny app, run:</p>
-<div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu">linkr</span><span class="fu">::</span><span class="fu"><a href="reference/linkr.html">linkr</a></span><span class="op">(</span>language <span class="op">=</span> <span class="st">"en"</span><span class="op">)</span></span></code></pre></div>
 <p>You can use the following arguments in the linkr function :</p>
 <ul>
@@ -121,7 +125,7 @@
 <li>
 <em>show_home_page</em>: TRUE or FALSE to show home pages (Overview, News, Tutorials… pages)</li>
 </ul>
-<p>See <code><a href="reference/linkr.html">?linkr</a></code> for more informations.</p>
+<p>See <code><a href="reference/linkr.html">?linkr::linkr</a></code> for more informations.</p>
 <p>The first load may take a few minutes to create the application database and download the default data.</p>
 <p>Use “admin” as <strong>ID &amp; password</strong> for your first connection.</p>
 </div>

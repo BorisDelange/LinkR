@@ -10,7 +10,7 @@
     
     <a class="navbar-brand me-2" href="../index.html">linkr</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.2.0.9052</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.2.0.9053</small>
 
     
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -50,8 +50,7 @@
 <span>  m <span class="op">=</span> <span class="fu">shiny</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/shiny/man/reactiveValues.html" class="external-link">reactiveValues</a></span><span class="op">(</span><span class="op">)</span>,</span>
 <span>  table_name <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/character.html" class="external-link">character</a></span><span class="op">(</span><span class="op">)</span>,</span>
 <span>  data <span class="op">=</span> <span class="fu">tibble</span><span class="fu">::</span><span class="fu"><a href="https://tibble.tidyverse.org/reference/tibble.html" class="external-link">tibble</a></span><span class="op">(</span><span class="op">)</span>,</span>
-<span>  vocabulary_id <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/character.html" class="external-link">character</a></span><span class="op">(</span><span class="op">)</span>,</span>
-<span>  messages_bars <span class="op">=</span> <span class="cn">FALSE</span></span>
+<span>  add_vocabulary <span class="op">=</span> <span class="cn">FALSE</span></span>
 <span><span class="op">)</span></span></code></pre></div>
     </div>
 
@@ -85,12 +84,8 @@
 <dd><p>A tibble containing the data</p></dd>
 
 
-<dt>vocabulary_id</dt>
-<dd><p>ID of the vocabulary, for example LOINC (character)</p></dd>
-
-
-<dt>message_bars</dt>
-<dd><p>Render messages in message bars or not (logical)</p></dd>
+<dt>add_vocabulary</dt>
+<dd><p>If concepts are imported, should the corresponding terminologies be added? (logical)</p></dd>
 
 </dl></div>
     <div class="section level2">
@@ -107,7 +102,7 @@ See <a href="https://ohdsi.github.io/CommonDataModel/cdm60.html" class="external
 <span class="r-in"><span>  valid_start_date <span class="op">=</span> <span class="st">"1970-01-01"</span>, valid_end_date <span class="op">=</span> <span class="st">"2099-12-31"</span>, invalid_reason <span class="op">=</span> <span class="cn">NA_character_</span><span class="op">)</span></span></span>
 <span class="r-in"><span>  </span></span>
 <span class="r-in"><span><span class="fu">import_vocabulary_table</span><span class="op">(</span>output <span class="op">=</span> <span class="va">output</span>, ns <span class="op">=</span> <span class="va">ns</span>, i18n <span class="op">=</span> <span class="va">i18n</span>, r <span class="op">=</span> <span class="va">r</span>, m <span class="op">=</span> <span class="va">m</span>,</span></span>
-<span class="r-in"><span>  table_name <span class="op">=</span> <span class="st">"concept"</span>, data <span class="op">=</span> <span class="va">concept</span>, vocabulary_id <span class="op">=</span> <span class="st">"LOINC"</span>, message_bars <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span></span>
+<span class="r-in"><span>  table_name <span class="op">=</span> <span class="st">"concept"</span>, data <span class="op">=</span> <span class="va">concept</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="op">}</span></span></span>
 </code></pre></div>
     </div>

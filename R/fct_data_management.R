@@ -385,13 +385,14 @@ remove_persons_from_subset <- function(output, r = shiny::reactiveValues(), m = 
 #' @param output Shiny output variable
 #' @param r A shiny::reactiveValues object, used to communicate between modules
 #' @param d A shiny::reactiveValues object, used to communicate between modules. Contains data loaded from dataset code (d$patients, d$labs_vitals...).
+#' @param m A shiny::reactiveValues object, used to communicate between modules
 #' @param dataset_id ID of the dataset we want to load (integer)
 #' @param i18n Translator object from shiny.i18n library
 #' @examples 
 #' \dontrun{
 #' run_dataset_code(output = output, r = r, d = d, dataset_id = 3, i18n = i18n)
 #' }
-run_dataset_code <- function(output, r = shiny::reactiveValues(), d = shiny::reactiveValues(), dataset_id = integer(), i18n = character()){
+run_dataset_code <- function(output, r = shiny::reactiveValues(), d = shiny::reactiveValues(), m = shiny::reactiveValues(), dataset_id = integer(), i18n = character()){
   
   # Reset r$dataset_loaded_tables
   r$dataset_loaded_tables <- tibble::tibble(table = character(), save_as = character(), read_with = character())
