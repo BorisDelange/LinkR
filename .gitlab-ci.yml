@@ -1,19 +1,12 @@
-# The Docker image that will be used to build your app
-image: r-base
-# Functions that should be executed before the build script is run
-before_script:
-  - apt-get update -qq && apt-get install -y libxml2-dev pandoc
-  - R -e "install.packages('remotes')"
-  - R -e "install.packages('pkgdown')"
+image: rocker/r-ver:4.0.0
+
 pages:
   script:
-    - R -e "pkgdown::build_site()"
+    - Rscript -e "install.packages('pkgdown')"
+    - Rscript -e "pkgdown::build_site()"
     - mv docs public
   artifacts:
     paths:
-      # The folder that contains the files to be exposed at the Page URL
       - public
-  rules:
-    # This ensures that only pushes to the default branch will trigger
-    # a pages deploy
-    - if: $CI_COMMIT_REF_NAME == $CI_DEFAULT_BRANCH
+  only:
+    - master
