@@ -1,10 +1,10 @@
-help_data <- function(output, r = shiny::reactiveValues(), id = character(), prefix = character(), language = "en", i18n = character(), ns = character()){
+help_data <- function(output, r = shiny::reactiveValues(), id = character(), category = character(), language = "en", i18n = character(), ns = character()){
   
   output$help_panel <- shiny.fluent::renderReact({
   
     shiny.fluent::Panel(
       headerText = i18n$t("help"),
-      isOpen = r[[paste0("help_data_", prefix, "_open_panel")]],
+      isOpen = r[[paste0("help_data_", category, "_open_panel")]],
       br(),
       strong(i18n$t("data")), br(), br(),
       shiny.fluent::Link(i18n$t("load_data"), onClick = htmlwidgets::JS(paste0("function() { Shiny.setInputValue('", id, "-help_page_1', Math.random()); }"))), br(), br(),
@@ -16,8 +16,8 @@ help_data <- function(output, r = shiny::reactiveValues(), id = character(), pre
       strong(i18n$t("widgets")), br(), br(),
       shiny.fluent::Link(i18n$t("whats_a_widget"), onClick = htmlwidgets::JS(paste0("function() { Shiny.setInputValue('", id, "-help_page_6', Math.random()); }"))), br(), br(),
       shiny.fluent::Link(i18n$t("add_a_widget"), onClick = htmlwidgets::JS(paste0("function() { Shiny.setInputValue('", id, "-help_page_7', Math.random()); }"))), br(), br(),
-      isLightDismiss = r[[paste0("help_data_", prefix, "_open_panel_light_dismiss")]],
-      isBlocking = r[[paste0("help_data_", prefix, "_open_panel_light_dismiss")]],
+      isLightDismiss = r[[paste0("help_data_", category, "_open_panel_light_dismiss")]],
+      isBlocking = r[[paste0("help_data_", category, "_open_panel_light_dismiss")]],
       onDismiss = htmlwidgets::JS(paste0("function() { Shiny.setInputValue('", id, "-hide_panel', Math.random()); }")),
       onLightDismissClick = htmlwidgets::JS(paste0("function() { Shiny.setInputValue('", id, "-hide_panel', Math.random()); }"))
     )
@@ -26,38 +26,38 @@ help_data <- function(output, r = shiny::reactiveValues(), id = character(), pre
   output$help_modal <- shiny.fluent::renderReact({
 
     shiny.fluent::Modal(
-      isOpen = r[[paste0("help_data_", prefix, "_open_modal")]],
+      isOpen = r[[paste0("help_data_", category, "_open_modal")]],
       dragOptions = TRUE, isModeless = FALSE, topOffsetFixed = TRUE,
       onLightDismissClick = htmlwidgets::JS(paste0("function() { Shiny.setInputValue('", id, "-hide_modal_2', Math.random()); }")),
       div(
         style = "width: 1000px; padding: 15px 10px 0px 15px;",
         shiny.fluent::Stack(tokens = list(childrenGap = "10px"),
           div(style = list(display = "flex"),
-            shiny.fluent::Text(r[[paste0("help_data_", prefix, "_modal_title")]], variant = "large"),
+            shiny.fluent::Text(r[[paste0("help_data_", category, "_modal_title")]], variant = "large"),
             div(style = list(flexGrow = 1)),
             shiny.fluent::IconButton.shinyInput(ns("hide_modal"), iconProps = list(iconName = "Cancel")),
           ),
-          r[[paste0("help_data_", prefix, "_modal_text")]]
+          r[[paste0("help_data_", category, "_modal_text")]]
         )
       )
     )
   })
   
   load_help_page <- function(r){
-    r[[paste0("help_data_", prefix, "_open_modal")]] <- TRUE
-    r[[paste0("help_data_", prefix, "_open_panel_light_dismiss")]] <- FALSE
+    r[[paste0("help_data_", category, "_open_modal")]] <- TRUE
+    r[[paste0("help_data_", category, "_open_panel_light_dismiss")]] <- FALSE
   }
   
   # Load data
   
-  observeEvent(r[[paste0("help_data_", prefix, "_page_1")]], {
+  observeEvent(r[[paste0("help_data_", category, "_page_1")]], {
 
     load_help_page(r)
     
-    r[[paste0("help_data_", prefix, "_modal_title")]] <- i18n$t("load_data")
+    r[[paste0("help_data_", category, "_modal_title")]] <- i18n$t("load_data")
     
     if (language == "fr"){
-      r[[paste0("help_data_", prefix, "_modal_text")]] <- div(
+      r[[paste0("help_data_", category, "_modal_text")]] <- div(
         tags$h3(tags$i(class = "fa fa-database", style = "color: steelblue;"), " ", strong("Choisir un set de données")),
         p("Un set de données contient les données d'un ", strong("groupe de patients"), "."),
         p("Un même set de données peut contenir ", strong("plusieurs études"), "."),
@@ -78,7 +78,7 @@ help_data <- function(output, r = shiny::reactiveValues(), id = character(), pre
     }
     
     if (language == "en"){
-      r[[paste0("help_data_", prefix, "_modal_text")]] <- div(
+      r[[paste0("help_data_", category, "_modal_text")]] <- div(
         tags$h3(tags$i(class = "fa fa-database", style = "color: steelblue;"), " ", strong("Choose a dataset")),
         p("A dataset contains the data of a ", strong("group of patients"), "."),
         p("The same dataset can contain ", strong("multiple studies"), "."),
@@ -101,14 +101,14 @@ help_data <- function(output, r = shiny::reactiveValues(), id = character(), pre
   
   # Data model
   
-  observeEvent(r[[paste0("help_data_", prefix, "_page_2")]], {
+  observeEvent(r[[paste0("help_data_", category, "_page_2")]], {
     
     load_help_page(r)
     
-    r[[paste0("help_data_", prefix, "_modal_title")]] <- i18n$t("data_model")
+    r[[paste0("help_data_", category, "_modal_title")]] <- i18n$t("data_model")
     
     if (language == "fr"){
-      r[[paste0("help_data_", prefix, "_modal_text")]] <- div(
+      r[[paste0("help_data_", category, "_modal_text")]] <- div(
         p(tags$i(class = "fa fa-check", style = "color: steelblue;"), " ",
           "Le modèle de données utilisé par l'application est le ", strong("modèle standard OMOP"), "."),
         p(tags$i(class = "fa fa-check", style = "color: steelblue;"), " ",
@@ -157,7 +157,7 @@ help_data <- function(output, r = shiny::reactiveValues(), id = character(), pre
     }
     
     if (language == "en"){
-      r[[paste0("help_data_", prefix, "_modal_text")]] <- div(
+      r[[paste0("help_data_", category, "_modal_text")]] <- div(
         p(tags$i(class = "fa fa-check", style = "color: steelblue;"), " ",
           "The data model used by the application is the ", strong("OMOP standard model"), "."),
         p(tags$i(class = "fa fa-check", style = "color: steelblue;"), " ",
@@ -208,14 +208,14 @@ help_data <- function(output, r = shiny::reactiveValues(), id = character(), pre
   
   # Patient-level or aggregated data
   
-  observeEvent(r[[paste0("help_data_", prefix, "_page_3")]], {
+  observeEvent(r[[paste0("help_data_", category, "_page_3")]], {
     
     load_help_page(r)
     
-    r[[paste0("help_data_", prefix, "_modal_title")]] <- i18n$t("patient_lvl_or_aggregated_data")
+    r[[paste0("help_data_", category, "_modal_title")]] <- i18n$t("patient_lvl_or_aggregated_data")
     
     if (language == "fr"){
-      r[[paste0("help_data_", prefix, "_modal_text")]] <- div(
+      r[[paste0("help_data_", category, "_modal_text")]] <- div(
         p("Vous pouvez choisir dans le menu à gauche de charger les données individuelles ou agrégées."),
         p(tags$i(class = "fa fa-check", style = "color: steelblue;"), " ", strong("Modules & plugins différents")),
         p("Selon que vous choisissez les données individuelles ou agrégées, les tabs & widgets chargés diffèrent."),
@@ -290,7 +290,7 @@ help_data <- function(output, r = shiny::reactiveValues(), id = character(), pre
     }
     
     if (language == "en"){
-      r[[paste0("help_data_", prefix, "_modal_text")]] <- div(
+      r[[paste0("help_data_", category, "_modal_text")]] <- div(
         p("You can choose in the left menu to load patient-level or aggregated data."),
         p(tags$i(class = "fa fa-check", style = "color: steelblue;"), " ", strong("Different modules & plugins")),
         p("Depending on whether you choose patient-level or aggregated data, the tabs & widgets loaded differ."),
@@ -367,14 +367,14 @@ help_data <- function(output, r = shiny::reactiveValues(), id = character(), pre
   
   # What is a tab
   
-  observeEvent(r[[paste0("help_data_", prefix, "_page_4")]], {
+  observeEvent(r[[paste0("help_data_", category, "_page_4")]], {
     
     load_help_page(r)
     
-    r[[paste0("help_data_", prefix, "_modal_title")]] <- i18n$t("whats_a_tab")
+    r[[paste0("help_data_", category, "_modal_title")]] <- i18n$t("whats_a_tab")
     
     if (language == "fr"){
-      r[[paste0("help_data_", prefix, "_modal_text")]] <- div(
+      r[[paste0("help_data_", category, "_modal_text")]] <- div(
         p("Une étude est ", strong("structurée autour d'onglets"), ", qui sont des ", strong("pages personnalisées"),
           " sur lesquelles je choisis ", strong("quelles données afficher et sous quelle forme"), "."),
         tags$h3(tags$i(class = "fa fa-user", style = "color: steelblue;"), " ", strong("Onglets de données individuelles")),
@@ -390,7 +390,7 @@ help_data <- function(output, r = shiny::reactiveValues(), id = character(), pre
     }
     
     if (language == "en"){
-      r[[paste0("help_data_", prefix, "_modal_text")]] <- div(
+      r[[paste0("help_data_", category, "_modal_text")]] <- div(
         p("An study is ", strong("structured around tabs"), ", which are ", strong("custom pages"),
           " where I choose ", strong("which data to display and in what form"), "."),
         tags$h3(tags$i(class = "fa fa-user", style = "color: steelblue;"), " ", strong("Individual data tabs")),
@@ -408,14 +408,14 @@ help_data <- function(output, r = shiny::reactiveValues(), id = character(), pre
   
   # Add a tab
   
-  observeEvent(r[[paste0("help_data_", prefix, "_page_5")]], {
+  observeEvent(r[[paste0("help_data_", category, "_page_5")]], {
     
     load_help_page(r)
     
-    r[[paste0("help_data_", prefix, "_modal_title")]] <- i18n$t("add_a_tab")
+    r[[paste0("help_data_", category, "_modal_title")]] <- i18n$t("add_a_tab")
     
     if (language == "fr"){
-      r[[paste0("help_data_", prefix, "_modal_text")]] <- div(
+      r[[paste0("help_data_", category, "_modal_text")]] <- div(
         p("Pour ajouter un onglet, il faut ", strong("avoir chargé une étude"), " dans le menu déroulant à gauche de l'écran."),
         p("Il faut ensuite cliquer sur l'icône :"),
         div(shiny.fluent::Icon(iconName = "Add"), span(i18n$t("add_a_tab"), style = "padding:0px 0px 10px 10px;")),
@@ -431,7 +431,7 @@ help_data <- function(output, r = shiny::reactiveValues(), id = character(), pre
     }
     
     if (language == "en"){
-      r[[paste0("help_data_", prefix, "_modal_text")]] <- div(
+      r[[paste0("help_data_", category, "_modal_text")]] <- div(
         p("To add a tab, you must ", strong("have loaded a study"), " in the dropdown menu on the left side of the screen."),
         p("Then click on the icon:"),
         div(shiny.fluent::Icon(iconName = "Add"), span(i18n$t("add_a_tab"), style = "padding:0px 0px 10px 10px;")),
@@ -449,14 +449,14 @@ help_data <- function(output, r = shiny::reactiveValues(), id = character(), pre
   
   # What is a widget
   
-  observeEvent(r[[paste0("help_data_", prefix, "_page_6")]], {
+  observeEvent(r[[paste0("help_data_", category, "_page_6")]], {
     
     load_help_page(r)
     
-    r[[paste0("help_data_", prefix, "_modal_title")]] <- i18n$t("whats_a_widget")
+    r[[paste0("help_data_", category, "_modal_title")]] <- i18n$t("whats_a_widget")
     
     if (language == "fr"){
-      r[[paste0("help_data_", prefix, "_modal_text")]] <- div(
+      r[[paste0("help_data_", category, "_modal_text")]] <- div(
         p("Un onglet est ", strong("composé de widgets"), ", qui sont des plugins appliqués à des données."),
         tags$h3(tags$i(class = "fa fa-code", style = "color: steelblue;"), " ", strong("Plugins")),
         p("Les plugins sont des scripts écrits en R - Shiny permettant ", strong("d'ajouter des fonctionnalités à l'application"), "."),
@@ -476,7 +476,7 @@ help_data <- function(output, r = shiny::reactiveValues(), id = character(), pre
     }
     
     if (language == "en"){
-      r[[paste0("help_data_", prefix, "_modal_text")]] <- div(
+      r[[paste0("help_data_", category, "_modal_text")]] <- div(
         p("A tab is ", strong("composed of widgets"), ", which are plugins applied to data."),
         tags$h3(tags$i(class = "fa fa-code", style = "color: steelblue;"), " ", strong("Plugins")),
         p("Plugins are R scripts - Shiny allowing ", strong("to add features to the application"), "."),
@@ -498,18 +498,18 @@ help_data <- function(output, r = shiny::reactiveValues(), id = character(), pre
   
   # Add a widget
   
-  observeEvent(r[[paste0("help_data_", prefix, "_page_7")]], {
+  observeEvent(r[[paste0("help_data_", category, "_page_7")]], {
     
     load_help_page(r)
     
-    r[[paste0("help_data_", prefix, "_modal_title")]] <- i18n$t("add_a_widget")
+    r[[paste0("help_data_", category, "_modal_title")]] <- i18n$t("add_a_widget")
     
     if (language == "fr"){
-      r[[paste0("help_data_", prefix, "_modal_text")]] <- div(
+      r[[paste0("help_data_", category, "_modal_text")]] <- div(
         p(tags$i(class = "fa fa-check", style = "color: steelblue;"), " ", "Pour ajouter un widget, il faut ", strong("avoir chargé une étude "), " dans le menu déroulant à gauche de l'écran puis ",
         strong("avoir sélectionné un onglet"), "."),
         p("Il faut ensuite cliquer sur :"),
-          div(shiny.fluent::ActionButton.shinyInput(ns(paste0(prefix, "_add_widget_help")),
+          div(shiny.fluent::ActionButton.shinyInput(ns(paste0(category, "_add_widget_help")),
             i18n$t("add_a_widget"), iconProps = list(iconName = "Add"))),
         p("Ensuite, :"),
         tags$ul(
@@ -531,7 +531,7 @@ help_data <- function(output, r = shiny::reactiveValues(), id = character(), pre
         p(tags$i(class = "fa fa-check", style = "color: steelblue;"), " ", "Vous pouvez afficher les ", strong("concepts alignés"), " en cochant ", tags$em("Afficher les concepts alignés"), "."),
         p("Un deuxième tableau s'affiche, ", strong("listant les concepts alignés"), " avec le concept sélectionné dans le tableau du haut."),
         p(tags$i(class = "fa fa-check", style = "color: steelblue;"), " ", 
-          "Ajoutez ensuite les concepts en cliquant sur l'icône ", actionButton(ns(paste0(prefix, "_add_concept_help")), "", icon = icon("plus")),
+          "Ajoutez ensuite les concepts en cliquant sur l'icône ", actionButton(ns(paste0(category, "_add_concept_help")), "", icon = icon("plus")),
         " dans la dernière colonne du tableau."),
         p(tags$i(class = "fa fa-check", style = "color: steelblue;"), " ", 
           "Si le bouton ", tags$em("Fusionner les concepts alignés"), " est activé, les différents concepts liés seront fusionnés dans le widget."),
@@ -546,11 +546,11 @@ help_data <- function(output, r = shiny::reactiveValues(), id = character(), pre
     }
     
     if (language == "en"){
-      r[[paste0("help_data_", prefix, "_modal_text")]] <- div(
+      r[[paste0("help_data_", category, "_modal_text")]] <- div(
         p(tags$i(class = "fa fa-check", style = "color: steelblue;"), " ", "To add a widget, you must ", strong("have loaded a study "), " in the dropdown menu on the left of the screen then ",
           strong("have selected a tab"), "."),
         p("Then you need to click on:"),
-        div(shiny.fluent::ActionButton.shinyInput(ns(paste0(prefix, "_add_widget_help")),
+        div(shiny.fluent::ActionButton.shinyInput(ns(paste0(category, "_add_widget_help")),
           i18n$t("add_a_widget"), iconProps = list(iconName = "Add"))),
         p("Next, :"),
         tags$ul(
@@ -572,7 +572,7 @@ help_data <- function(output, r = shiny::reactiveValues(), id = character(), pre
         p(tags$i(class = "fa fa-check", style = "color: steelblue;"), " ", "You can display the ", strong("aligned concepts"), " by checking ", tags$em("Show aligned concepts"), "."),
         p("A second table is displayed, ", strong("listing the mapped concepts"), " with the concept selected in the top table."),
         p(tags$i(class = "fa fa-check", style = "color: steelblue;"), " ",
-          "Then add the concepts by clicking on the icon ", actionButton(ns(paste0(prefix, "_add_concept_help")), "", icon = icon("plus")),
+          "Then add the concepts by clicking on the icon ", actionButton(ns(paste0(category, "_add_concept_help")), "", icon = icon("plus")),
           " in the last column of the table."),
         p(tags$i(class = "fa fa-check", style = "color: steelblue;"), " ",
           "If the ", tags$em("Merge mapped concepts"), " button is activated, the different linked concepts will be merged in the widget."),

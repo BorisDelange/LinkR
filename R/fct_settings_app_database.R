@@ -118,29 +118,41 @@ db_create_tables <- function(db, type = character(), dbms = character()){
       tibble::tibble(id = integer(), name = character(),
         creation_datetime = character(), update_datetime = character(), deleted = logical()))
     
-    db_create_table(db, "patient_lvl_tabs_groups", primary_key_col = "id", dbms = dbms, text_cols = "description",
-      tibble::tibble(id = integer(), name = character(), description = character(), creator_id = integer(), datetime = character(),
-        deleted = logical()))
+    db_create_table(db, "tabs_groups", primary_key_col = "id", dbms = dbms, text_cols = "description",
+      tibble::tibble(id = integer(), category = character(), name = character(), description = character(), 
+        creator_id = integer(), datetime = character(), deleted = logical()))
     
-    db_create_table(db, "patient_lvl_tabs", primary_key_col = "id", dbms = dbms, text_cols = "description",
-      tibble::tibble(id = integer(), name = character(), description = character(), tab_group_id = integer(), parent_tab_id = integer(),
+    db_create_table(db, "tabs", primary_key_col = "id", dbms = dbms, text_cols = "description",
+      tibble::tibble(id = integer(), category = character(), name = character(), description = character(), 
+        tab_group_id = integer(), parent_tab_id = integer(), display_order = integer(), creator_id = integer(), datetime = character(), deleted = logical()))
+    
+    db_create_table(db, "widgets", primary_key_col = "id", dbms = dbms,
+      tibble::tibble(id = integer(), category = character(), name = character(), tab_id = integer(), plugin_id = integer(), 
         display_order = integer(), creator_id = integer(), datetime = character(), deleted = logical()))
     
-    db_create_table(db, "patient_lvl_widgets", primary_key_col = "id", dbms = dbms,
-      tibble::tibble(id = integer(), name = character(), tab_id = integer(), plugin_id = integer(), 
-        display_order = integer(), creator_id = integer(), datetime = character(), deleted = logical()))
-    
-    db_create_table(db, "aggregated_tabs_groups", primary_key_col = "id", dbms = dbms, text_cols = "description",
-      tibble::tibble(id = integer(), name = character(), description = character(), creator_id = integer(), datetime = character(),
-        deleted = logical()))
-    
-    db_create_table(db, "aggregated_tabs", primary_key_col = "id", dbms = dbms, text_cols = "description",
-      tibble::tibble(id = integer(), name = character(), description = character(), tab_group_id = integer(), parent_tab_id = integer(),
-        display_order = integer(), creator_id = integer(), datetime = character(), deleted = logical()))
-    
-    db_create_table(db, "aggregated_widgets", primary_key_col = "id", dbms = dbms,
-      tibble::tibble(id = integer(), name = character(), tab_id = integer(), plugin_id = integer(), 
-        display_order = integer(), creator_id = integer(), datetime = character(), deleted = logical()))
+    # db_create_table(db, "patient_lvl_tabs_groups", primary_key_col = "id", dbms = dbms, text_cols = "description",
+    #   tibble::tibble(id = integer(), name = character(), description = character(), creator_id = integer(), datetime = character(),
+    #     deleted = logical()))
+    # 
+    # db_create_table(db, "patient_lvl_tabs", primary_key_col = "id", dbms = dbms, text_cols = "description",
+    #   tibble::tibble(id = integer(), name = character(), description = character(), tab_group_id = integer(), parent_tab_id = integer(),
+    #     display_order = integer(), creator_id = integer(), datetime = character(), deleted = logical()))
+    # 
+    # db_create_table(db, "patient_lvl_widgets", primary_key_col = "id", dbms = dbms,
+    #   tibble::tibble(id = integer(), name = character(), tab_id = integer(), plugin_id = integer(), 
+    #     display_order = integer(), creator_id = integer(), datetime = character(), deleted = logical()))
+    # 
+    # db_create_table(db, "aggregated_tabs_groups", primary_key_col = "id", dbms = dbms, text_cols = "description",
+    #   tibble::tibble(id = integer(), name = character(), description = character(), creator_id = integer(), datetime = character(),
+    #     deleted = logical()))
+    # 
+    # db_create_table(db, "aggregated_tabs", primary_key_col = "id", dbms = dbms, text_cols = "description",
+    #   tibble::tibble(id = integer(), name = character(), description = character(), tab_group_id = integer(), parent_tab_id = integer(),
+    #     display_order = integer(), creator_id = integer(), datetime = character(), deleted = logical()))
+    # 
+    # db_create_table(db, "aggregated_widgets", primary_key_col = "id", dbms = dbms,
+    #   tibble::tibble(id = integer(), name = character(), tab_id = integer(), plugin_id = integer(), 
+    #     display_order = integer(), creator_id = integer(), datetime = character(), deleted = logical()))
     
     db_create_table(db, "code", primary_key_col = "id", dbms = dbms, text_cols = "code",
       tibble::tibble(id = integer(), category = character(), link_id = integer(), code = character(), creator_id = integer(),
@@ -179,15 +191,20 @@ db_create_tables <- function(db, type = character(), dbms = character()){
         category = character(), link_id = integer(), name = character(), value = character(), value_num = numeric(), 
         creator_id = integer(), datetime = character(), deleted = logical()))
     
-    db_create_table(db, "patient_lvl_widgets_options", primary_key_col = "id", dbms = dbms, text_cols = "value",
+    db_create_table(db, "widgets_options", primary_key_col = "id", dbms = dbms, text_cols = "value",
       tibble::tibble(id = integer(), widget_id = integer(), person_id = integer(), link_id = integer(),
         category = character(), name = character(), value = character(), value_num = numeric(),
         creator_id = integer(), datetime = character(), deleted = logical()))
     
-    db_create_table(db, "aggregated_widgets_options", primary_key_col = "id", dbms = dbms, text_cols = "value",
-      tibble::tibble(id = integer(), widget_id = integer(), person_id = integer(), link_id = integer(),
-        category = character(), name = character(), value = character(), value_num = numeric(),
-        creator_id = integer(), datetime = character(), deleted = logical()))
+    # db_create_table(db, "patient_lvl_widgets_options", primary_key_col = "id", dbms = dbms, text_cols = "value",
+    #   tibble::tibble(id = integer(), widget_id = integer(), person_id = integer(), link_id = integer(),
+    #     category = character(), name = character(), value = character(), value_num = numeric(),
+    #     creator_id = integer(), datetime = character(), deleted = logical()))
+    # 
+    # db_create_table(db, "aggregated_widgets_options", primary_key_col = "id", dbms = dbms, text_cols = "value",
+    #   tibble::tibble(id = integer(), widget_id = integer(), person_id = integer(), link_id = integer(),
+    #     category = character(), name = character(), value = character(), value_num = numeric(),
+    #     creator_id = integer(), datetime = character(), deleted = logical()))
     
     db_create_table(db, "subsets", primary_key_col = "id", dbms = dbms, text_cols = "description",
       tibble::tibble(id = integer(), name = character(), description = character(), study_id = integer(), creator_id = integer(),
@@ -248,17 +265,23 @@ db_create_tables <- function(db, type = character(), dbms = character()){
         denominator_value = numeric(), denominator_unit_concept_id = integer(), box_size = integer(),
         valid_start_date = character(), valid_end_date = character(), invalid_reason = character()))
     
-    db_create_table(db, "patient_lvl_widgets_concepts", primary_key_col = "id", dbms = dbms,
+    db_create_table(db, "widgets_concepts", primary_key_col = "id", dbms = dbms,
       tibble::tibble(id = integer(), widget_id = integer(), concept_id = integer(),
         concept_name = character(), concept_display_name = character(), domain_id = character(), 
         mapped_to_concept_id = integer(), merge_mapped_concepts = logical(),
         creator_id = integer(), datetime = character(), deleted = logical()))
     
-    db_create_table(db, "aggregated_widgets_concepts", primary_key_col = "id", dbms = dbms,
-      tibble::tibble(id = integer(), widget_id = integer(), concept_id = integer(),
-        concept_name = character(), concept_display_name = character(), domain_id = character(), 
-        mapped_to_concept_id = integer(), merge_mapped_concepts = logical(),
-        creator_id = integer(), datetime = character(), deleted = logical()))
+    # db_create_table(db, "patient_lvl_widgets_concepts", primary_key_col = "id", dbms = dbms,
+    #   tibble::tibble(id = integer(), widget_id = integer(), concept_id = integer(),
+    #     concept_name = character(), concept_display_name = character(), domain_id = character(), 
+    #     mapped_to_concept_id = integer(), merge_mapped_concepts = logical(),
+    #     creator_id = integer(), datetime = character(), deleted = logical()))
+    # 
+    # db_create_table(db, "aggregated_widgets_concepts", primary_key_col = "id", dbms = dbms,
+    #   tibble::tibble(id = integer(), widget_id = integer(), concept_id = integer(),
+    #     concept_name = character(), concept_display_name = character(), domain_id = character(), 
+    #     mapped_to_concept_id = integer(), merge_mapped_concepts = logical(),
+    #     creator_id = integer(), datetime = character(), deleted = logical()))
   }
 }
 

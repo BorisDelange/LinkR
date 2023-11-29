@@ -32,6 +32,9 @@ add_settings_new_data <- function(session, output, r = shiny::reactiveValues(), 
   if (table %in% m_tables) db <- m$db
   else db <- r$db
   
+  # For patient_lvl & aggregated tables
+  if (grepl("patient_lvl", table)) category <- "patient_lvl" else category <- "aggregated"
+  
   # --- --- --- --- --- --- --- --- -
   # Check textfields & dropdowns ----
   # --- --- --- --- --- --- --- --- -
@@ -57,10 +60,10 @@ add_settings_new_data <- function(session, output, r = shiny::reactiveValues(), 
     
     # If it is a new tab, group by tab family, so a name musn't be unique in distinct tabs families
     if (table %in% c("patient_lvl_tabs", "aggregated_tabs")){
-      if (is.na(data$parent_tab)) sql <- glue::glue_sql("SELECT DISTINCT({`field`}) FROM {`table`} WHERE deleted IS FALSE 
-        AND tab_group_id = {data$tab_group} AND parent_tab_id IS NULL", .con = db)
-      if (!is.na(data$parent_tab)) sql <- glue::glue_sql("SELECT DISTINCT({`field`}) FROM {`table`} WHERE deleted IS FALSE
-        AND tab_group_id = {data$tab_group} AND parent_tab_id = {data$parent_tab}", .con = db)
+      if (is.na(data$parent_tab)) sql <- glue::glue_sql("SELECT DISTINCT({`field`}) FROM tabs WHERE deleted IS FALSE 
+        AND category = {category} AND tab_group_id = {data$tab_group} AND parent_tab_id IS NULL", .con = db)
+      if (!is.na(data$parent_tab)) sql <- glue::glue_sql("SELECT DISTINCT({`field`}) FROM tabs WHERE deleted IS FALSE
+        AND category = {category} AND tab_group_id = {data$tab_group} AND parent_tab_id = {data$parent_tab}", .con = db)
     }
     else if (table == "studies") sql <- glue::glue_sql("SELECT DISTINCT({`field`}) FROM {`table`} WHERE deleted IS FALSE
       AND dataset_id = {data$dataset}", .con = db)
@@ -118,7 +121,10 @@ add_settings_new_data <- function(session, output, r = shiny::reactiveValues(), 
     if (var == "subsets") last_row[[var]] <- get_last_row(m$db, "subsets")
     else last_row[[var]] <- get_last_row(r$db, var)
   }
-  last_row$data <- get_last_row(db, table)
+  
+  if (table %in% c("patient_lvl_tabs", "aggregated_tabs")) last_row$data <- get_last_row(db, "tabs")
+  # if (table %in% c("patient_lvl_tabs_groups", "aggregated_tabs_groups")) last_row$data <- get_last_row(db, "tabs_groups")
+  else last_row$data <- get_last_row(db, table)
   
   # Create a list with all new data
   new_data <- list()
@@ -194,15 +200,15 @@ add_settings_new_data <- function(session, output, r = shiny::reactiveValues(), 
   }
   
   else if (table %in% c("patient_lvl_tabs", "aggregated_tabs")){
-    new_data$data <- tibble::tribble(~id, ~name,  ~description, ~tab_group_id, ~parent_tab_id,  ~display_order, ~creator_id, ~datetime, ~deleted,
-      last_row$data + 1, as.character(data$name), as.character(data$description), as.integer(data$tab_group), as.integer(data$parent_tab),
+    new_data$data <- tibble::tribble(~id, ~category, ~name,  ~description, ~tab_group_id, ~parent_tab_id,  ~display_order, ~creator_id, ~datetime, ~deleted,
+      last_row$data + 1, category, as.character(data$name), as.character(data$description), as.integer(data$tab_group), as.integer(data$parent_tab),
       as.integer(data$display_order), r$user_id, as.character(Sys.time()), FALSE)
   }
   
-  else if (table %in% c("patient_lvl_tabs_groups", "aggregated_tabs_groups")){
-    new_data$data <- tibble::tribble(~id, ~name,  ~description, ~creator_id, ~datetime, ~deleted,
-      last_row$data + 1, as.character(data$name), as.character(data$description), r$user_id, as.character(Sys.time()), FALSE)
-  }
+  # else if (table %in% c("patient_lvl_tabs_groups", "aggregated_tabs_groups")){
+  #   new_data$data <- tibble::tribble(~id, ~category, ~name,  ~description, ~creator_id, ~datetime, ~deleted,
+  #     last_row$data + 1, category, as.character(data$name), as.character(data$description), r$user_id, as.character(Sys.time()), FALSE)
+  # }
   
   else if (table == "git_repos"){
     if (length(data$unique_id) > 0) unique_id <- data$unique_id
@@ -213,14 +219,16 @@ add_settings_new_data <- function(session, output, r = shiny::reactiveValues(), 
   }
   
   # Append data to the table and to r / m variables
-  DBI::dbAppendTable(db, table, new_data$data)
+  if (table %in% c("patient_lvl_tabs", "aggregated_tabs")) DBI::dbAppendTable(db, "tabs", new_data$data)
+  # else if (table %in% c("patient_lvl_tabs_groups", "aggregated_tabs_groups")) DBI::dbAppendTable(db, "tabs_groups", new_data$data)
+  else DBI::dbAppendTable(db, table, new_data$data)
 
   if (table %not_in% m_tables | table == "vocabulary") r[[table]] <- r[[table]] %>% dplyr::bind_rows(new_data$data)
   else m[[table]] <- m[[table]] %>% dplyr::bind_rows(new_data$data)
   add_log_entry(r = r, category = paste0(table, " - ", i18n$t("insert_new_data")), name = i18n$t("sql_query"), value = toString(new_data$data))
   
   # Empty new variables
-  new_data_vars <- c("options", "subsets", "code", "patient_lvl_tabs_groups", "aggregated_tabs_groups")
+  new_data_vars <- c("options", "subsets", "code", "tabs_groups")
   for(var in new_data_vars) new_data[[var]] <- tibble::tibble()
 
   # --- --- --- --- --- --- --- --- --- --
@@ -398,11 +406,12 @@ add_settings_new_data <- function(session, output, r = shiny::reactiveValues(), 
     
     # Add patient_lvl & aggregated tabs families
     
-    new_data$patient_lvl_tabs_groups <- tibble::tribble(~id, ~name, ~description, ~creator_id, ~datetime, ~deleted,
-      get_last_row(r$db, "patient_lvl_tabs_groups") + 1, data$name, "", r$user_id, as.character(Sys.time()), FALSE)
+    new_data$tabs_groups <- tibble::tribble(~id, ~category, ~name, ~description, ~creator_id, ~datetime, ~deleted,
+      get_last_row(r$db, "tabs_groups") + 1, "patient_lvl", data$name, "", r$user_id, as.character(Sys.time()), FALSE,
+      get_last_row(r$db, "tabs_groups") + 2, "aggregated", data$name, "", r$user_id, as.character(Sys.time()), FALSE)
     
-    new_data$aggregated_tabs_groups <- tibble::tribble(~id, ~name, ~description, ~creator_id, ~datetime, ~deleted,
-      get_last_row(r$db, "aggregated_tabs_groups") + 1, data$name, "", r$user_id, as.character(Sys.time()), FALSE)
+    # new_data$aggregated_tabs_groups <- tibble::tribble(~id, ~name, ~description, ~creator_id, ~datetime, ~deleted,
+    #   get_last_row(r$db, "aggregated_tabs_groups") + 1, data$name, "", r$user_id, as.character(Sys.time()), FALSE)
     
     # Add persons to subset
     tryCatch({
@@ -427,11 +436,11 @@ add_settings_new_data <- function(session, output, r = shiny::reactiveValues(), 
   }
   
   # For options of patient_lvl & aggregated tabs families, need to add two rows, for users accesses
-  if (table %in% c("patient_lvl_tabs_groups", "aggregated_tabs_groups")){
-    new_data$options <- tibble::tribble(~id, ~category, ~link_id, ~name, ~value, ~value_num, ~creator_id, ~datetime, ~deleted,
-      last_row$options + 1, get_singular(word = table), last_row$data + 1, "users_allowed_read_group", "everybody", 1, r$user_id, as.character(Sys.time()), FALSE,
-      last_row$options + 2, get_singular(word = table), last_row$data + 1, "user_allowed_read", "", r$user_id, r$user_id, as.character(Sys.time()), FALSE)
-  }
+  # if (table %in% c("patient_lvl_tabs_groups", "aggregated_tabs_groups")){
+  #   new_data$options <- tibble::tribble(~id, ~category, ~link_id, ~name, ~value, ~value_num, ~creator_id, ~datetime, ~deleted,
+  #     last_row$options + 1, get_singular(word = table), last_row$data + 1, "users_allowed_read_group", "everybody", 1, r$user_id, as.character(Sys.time()), FALSE,
+  #     last_row$options + 2, get_singular(word = table), last_row$data + 1, "user_allowed_read", "", r$user_id, r$user_id, as.character(Sys.time()), FALSE)
+  # }
   
   # Hide creation card & options card, show management card
   # Except for tabs (we usually add several tabs)
@@ -472,7 +481,11 @@ add_settings_new_data <- function(session, output, r = shiny::reactiveValues(), 
       } 
       else {
         DBI::dbAppendTable(r$db, var, new_data[[var]])
-        r[[var]] <- r[[var]] %>% dplyr::bind_rows(new_data[[var]]) 
+        if (var == "tabs_groups"){
+          r$patient_lvl_tabs_groups <- r$patient_lvl_tabs_groups %>% dplyr::bind_rows(new_data$tabs_groups %>% dplyr::filter(category == "patient_lvl"))
+          r$aggregated_tabs_groups <- r$aggregated_tabs_groups %>% dplyr::bind_rows(new_data$tabs_groups %>% dplyr::filter(category == "aggregated"))
+        }
+        else r[[var]] <- r[[var]] %>% dplyr::bind_rows(new_data[[var]]) 
       }
       add_log_entry(r = r, category = paste0(var, " - ", i18n$t("insert_new_data")), name = i18n$t("sql_query"), value = toString(new_data[[var]]))
     }

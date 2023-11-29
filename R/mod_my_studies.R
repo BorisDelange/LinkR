@@ -1509,8 +1509,8 @@ mod_my_studies_server <- function(id = character(), r = shiny::reactiveValues(),
       new_data <- list()
       new_data$name <- coalesce2(type = "char", x = input$study_name)
       new_data$study_name <- new_data$name
-      new_data$patient_lvl_tab_group <- get_last_row(r$db, "patient_lvl_tabs_groups") + 1
-      new_data$aggregated_tab_group <- get_last_row(r$db, "aggregated_tabs_groups") + 1
+      new_data$patient_lvl_tab_group <- get_last_row(r$db, "tabs_groups") + 1
+      new_data$aggregated_tab_group <- get_last_row(r$db, "tabs_groups") + 2
       new_data$dataset <- r$selected_dataset
       
       add_settings_new_data(session = session, output = output, r = r, d = d, m = m, i18n = i18n, id = "my_studies", 
