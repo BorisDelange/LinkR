@@ -1998,7 +1998,7 @@ mod_data_server <- function(id = character(), r = shiny::reactiveValues(), d = s
       
       type <- r[[paste0(prefix, "_reload_widget_vocabulary_concepts_type")]]
       
-      if (type == "widget_creation") vocabulary_id <- input[[paste0(type, "_vocabulary")]]$key
+      vocabulary_id <- input[[paste0(type, "_vocabulary")]]$key
       req(length(vocabulary_id) > 0)
       
       widget_vocabulary_concepts <- d$dataset_all_concepts %>%

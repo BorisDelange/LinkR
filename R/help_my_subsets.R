@@ -141,9 +141,9 @@ help_my_subsets <- function(output, r = shiny::reactiveValues(), id = character(
         p(tags$i(class = "fa fa-check", style = "color: steelblue;"), " ",
           "Vous pouvez ici ajouter ou supprimer des patients d'un subset en utilisant les fonctions :"),
         tags$ul(
-          tags$li(strong(tags$a(href = "https://borisdelange.github.io/LinkR/reference/add_persons_to_subset.html", "add_persons_to_subset", target = "_blank")),
+          tags$li(strong(tags$a(href = "https://interhop.frama.io/linkr/linkr/reference/add_persons_to_subset.html", "add_persons_to_subset", target = "_blank")),
             " pour ajouter des patients à un subset"),
-          tags$li(strong(tags$a(href = "https://borisdelange.github.io/LinkR/reference/remove_persons_from_subset.html", "remove_persons_from_subset", target = "_blank")),
+          tags$li(strong(tags$a(href = "https://interhop.frama.io/linkr/linkr/reference/remove_persons_from_subset.html", "remove_persons_from_subset", target = "_blank")),
             " pour retirer des patients d'un subset")
         ),
         p(tags$i(class = "fa fa-check", style = "color: steelblue;"), " ",
@@ -161,9 +161,9 @@ help_my_subsets <- function(output, r = shiny::reactiveValues(), id = character(
         p(tags$i(class = "fa fa-check", style = "color: steelblue;"), " ",
           "Here you can add or remove patients from a subset using the following functions:"),
         tags$ul(
-          tags$li(strong(tags$a(href = "https://borisdelange.github.io/LinkR/reference/add_persons_to_subset.html", "add_persons_to_subset", target = "_blank")), 
+          tags$li(strong(tags$a(href = "https://interhop.frama.io/linkr/linkr/reference/add_persons_to_subset.html", "add_persons_to_subset", target = "_blank")), 
             " to add patients to a subset"),
-          tags$li(strong(tags$a(href = "https://borisdelange.github.io/LinkR/reference/remove_persons_from_subset.html", "remove_persons_from_subset", target = "_blank")), " to remove patients from a subset")
+          tags$li(strong(tags$a(href = "https://interhop.frama.io/linkr/linkr/reference/remove_persons_from_subset.html", "remove_persons_from_subset", target = "_blank")), " to remove patients from a subset")
         ),
         p(tags$i(class = "fa fa-check", style = "color: steelblue;"), " ",
           "This allows you to select patients in a ", strong("more targeted way"), " than with the table listing all patients in the ", tags$em("Subset patients"), " tab."),

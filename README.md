@@ -8,7 +8,7 @@
 [![Lifecycle:
 experimental](https://img.shields.io/badge/lifecycle-experimental-orange.svg)](https://lifecycle.r-lib.org/articles/stages.html#experimental)
 ![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)
-![version](https://img.shields.io/badge/version-0.2.0.9053-blue)
+![version](https://img.shields.io/badge/version-0.2.0.9054-blue)
 <!-- badges: end -->
 
 ## Introduction
@@ -62,7 +62,7 @@ Please note that your version of shiny must be **earlier than version
 You can install version 1.7.4.1 with the following code.
 
 ``` r
-remotes::install_github("rstudio/shiny@f5b3954")
+install.packages("https://cran.r-project.org/src/contrib/Archive/shiny/shiny_1.7.4.1.tar.gz", repos = NULL, type = "source")
 ```
 
 You can install the development version from Framagit, with:

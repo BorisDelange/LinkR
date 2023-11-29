@@ -779,7 +779,7 @@ mod_plugins_server <- function(id = character(), r = shiny::reactiveValues(), d 
 
               shiny.fluent::Link(
                 div(
-                  div(image_div, style = "height:200px; width:320px; background-color:#FAF9F8;"),
+                  div(image_div, style = "height:200px; width:320px; background-color:white; border-bottom: solid 2px #ECEBE9;"),
                   div(style = "height:20px;"),
                   div(shiny.fluent::Text(plugin$name, variant = "large"), style = "margin-left:10px; margin-top:-10px; margin-bottom:5px;"),
                   div(
@@ -791,7 +791,7 @@ mod_plugins_server <- function(id = character(), r = shiny::reactiveValues(), d 
                       style = "float:left; margin-top:5px;"
                     )
                   ),
-                  style = "height:290px; width:320px; border:solid 1px #ECEBE9; img:hover{border:5px;}"
+                  style = "height:290px; width:320px; border:solid 2px #ECEBE9; img:hover{border:5px;}"
                 ),
                 onClick = htmlwidgets::JS(paste0("function() { ",
                   "Shiny.setInputValue('", id, "-show_plugin_details', Math.random());",
@@ -1975,7 +1975,7 @@ mod_plugins_server <- function(id = character(), r = shiny::reactiveValues(), d 
       
       if (nrow(r$dataset_vocabularies) == 0) shiny.fluent::updateComboBox.shinyInput(session, "vocabulary", options = list(), value = NULL)
       if (nrow(r$dataset_vocabularies) > 0){
-        vocabulary_options <- convert_tibble_to_list(data = r$dataset_vocabularies, key_col = "vocabulary_name", text_col = "vocabulary_name", i18n = i18n)
+        vocabulary_options <- convert_tibble_to_list(data = r$dataset_vocabularies, key_col = "vocabulary_id", text_col = "vocabulary_id", i18n = i18n)
         shiny.fluent::updateComboBox.shinyInput(session, "vocabulary", options = vocabulary_options, value = NULL)
       }
     })

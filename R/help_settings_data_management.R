@@ -280,10 +280,10 @@ help_settings_data_management <- function(output, r = shiny::reactiveValues(), i
         tags$ul(
           tags$li(strong("Créez une fonction"), " qui chargera les données une fois éxécutée, variable par variable (", tags$em("person, measurement"), "...)"),
           tags$li(strong("Importez les données"), " avec la fonction ", 
-            strong(tags$a(href = "https://borisdelange.github.io/LinkR/reference/import_dataset.html", "import_dataset", target = "_blank")))
+            strong(tags$a(href = "https://interhop.frama.io/linkr/linkr/reference/import_dataset.html", "import_dataset", target = "_blank")))
         ),
         p(tags$i(class = "fa fa-code", style = "color: steelblue;"), " ", 
-          "La fonction ", tags$em(tags$a(href = "https://borisdelange.github.io/LinkR/reference/import_dataset.html", "import_dataset", target = "_blank")), 
+          "La fonction ", tags$em(tags$a(href = "https://interhop.frama.io/linkr/linkr/reference/import_dataset.html", "import_dataset", target = "_blank")), 
           " comprend les arguments suivants :"),
         tags$ul(
           tags$li(tags$em("output, ns, i18n, r, d"), " : qui sont les variables permettant le fonctionnement de l'application"),
@@ -327,10 +327,10 @@ help_settings_data_management <- function(output, r = shiny::reactiveValues(), i
         tags$ul(
           tags$li(strong("Create a function"), " that will load the data once executed, variable by variable (", tags$em("person, measurement"), "...)."),
           tags$li(strong("Import the data"), " with the function ",
-            tags$em(tags$a(href = "https://borisdelange.github.io/LinkR/reference/import_dataset.html", "import_dataset", target = "_blank")))
+            tags$em(tags$a(href = "https://interhop.frama.io/linkr/linkr/reference/import_dataset.html", "import_dataset", target = "_blank")))
         ),
         p(tags$i(class = "fa fa-code", style = "color: steelblue;"), " ", 
-          "The function ", strong(tags$a(href = "https://borisdelange.github.io/LinkR/reference/import_dataset.html", "import_dataset", target = "_blank")), 
+          "The function ", strong(tags$a(href = "https://interhop.frama.io/linkr/linkr/reference/import_dataset.html", "import_dataset", target = "_blank")), 
           " includes the following arguments:"),
         tags$ul(
           tags$li(tags$em("output, ns, i18n, r, d"), ": which are the variables allowing the application to function"),
@@ -455,7 +455,7 @@ help_settings_data_management <- function(output, r = shiny::reactiveValues(), i
           "Dans cette rubrique, vous pouvez ", strong("écrire le code"), " qui permettra de charger les données d'une terminologie."),
         p(tags$i(class = "fa fa-check", style = "color: steelblue;"), " ", 
           "Pour charger une terminologie, ", strong("importez les données"), " avec la fonction ", 
-          strong(tags$a(href = "https://borisdelange.github.io/LinkR/reference/import_vocabulary_table.html", "import_vocabulary_table", target = "_blank"))),
+          strong(tags$a(href = "https://interhop.frama.io/linkr/linkr/reference/import_vocabulary_table.html", "import_vocabulary_table", target = "_blank"))),
         p(tags$i(class = "fa fa-code", style = "color: steelblue;"), " ", 
           "La fonction comprend les arguments suivants :"),
         tags$ul(
@@ -487,7 +487,7 @@ help_settings_data_management <- function(output, r = shiny::reactiveValues(), i
           "In this section, you can ", strong("write the code"), " that will allow loading the data of a vocabulary."),
         p(tags$i(class = "fa fa-check", style = "color: steelblue;"), " ", 
           "To load a vocabulary, ", strong("import the data"), " with the function ", 
-          strong(tags$a(href = "https://borisdelange.github.io/LinkR/reference/import_vocabulary_table.html", "import_vocabulary_table", target = "_blank"))),
+          strong(tags$a(href = "https://interhop.frama.io/linkr/linkr/reference/import_vocabulary_table.html", "import_vocabulary_table", target = "_blank"))),
         p(tags$i(class = "fa fa-code", style = "color: steelblue;"), " ", 
           "The function includes the following arguments:"),
         tags$ul(

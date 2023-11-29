@@ -558,7 +558,7 @@ mod_page_sidenav_server <- function(id = character(), r = shiny::reactiveValues(
           
           no_stay_available <- FALSE
           if (d$visit_detail %>% dplyr::count() %>% dplyr::pull() == 0) no_stay_available <- TRUE
-          if (d$visit_detail %>% dplyr::count() %>% dplyr::pull() > 0) if (d$visit_detail %>% dplyr::filter(person_id == person_key) %>% dplyr::count() %>% dplyr::pull() == 0) no_stay_available <- TRUE
+          if (d$visit_detail %>% dplyr::count() %>% dplyr::pull() > 0) if (d$visit_detail %>% dplyr::filter(person_id == !!person_id) %>% dplyr::count() %>% dplyr::pull() == 0) no_stay_available <- TRUE
           
           if (no_stay_available) shiny.fluent::updateComboBox.shinyInput(session, "visit_detail", options = list(), value = NULL, errorMessage = i18n$t("no_stay_available"))
   
