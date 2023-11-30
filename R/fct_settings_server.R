@@ -609,7 +609,9 @@ delete_element <- function(r = shiny::reactiveValues(), m = shiny::reactiveValue
     }
     
     # Delete row in DB table and associated tables
-    sql <- glue::glue_sql("UPDATE {`table`} SET deleted = TRUE WHERE {`id_var_sql`} IN ({r[[id_var_r]]*})" , .con = db)
+    if (table %in% c("patient_lvl_tabs", "aggregated_tabs")) sql <- glue::glue_sql("UPDATE tabs SET deleted = TRUE WHERE {`id_var_sql`} IN ({r[[id_var_r]]*})" , .con = db)
+    else if (table %in% c("patient_lvl_widgets", "aggregated_widgets")) sql <- glue::glue_sql("UPDATE widgets SET deleted = TRUE WHERE {`id_var_sql`} IN ({r[[id_var_r]]*})" , .con = db)
+    else sql <- glue::glue_sql("UPDATE {`table`} SET deleted = TRUE WHERE {`id_var_sql`} IN ({r[[id_var_r]]*})" , .con = db)
     DBI::dbSendStatement(db, sql) -> query
     DBI::dbClearResult(query)
     

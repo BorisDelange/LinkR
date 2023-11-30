@@ -1851,7 +1851,7 @@ mod_data_server <- function(id = character(), r = shiny::reactiveValues(), d = s
     tab_dialog_title <- paste0(category, "_tabs_delete")
     tab_dialog_subtext <- paste0(category, "_tabs_delete_subtext")
     tab_react_variable <- "tab_delete_confirm"
-    tab_table <- "tabs"
+    tab_table <- paste0(category, "_tabs")
     tab_id_var_sql <- "id"
     tab_id_var_r <- paste0(category, "_selected_tab")
     tab_delete_message <- paste0(category, "_tab_deleted")
@@ -2036,8 +2036,8 @@ mod_data_server <- function(id = character(), r = shiny::reactiveValues(), d = s
       widget_vocabulary_concepts <- widget_vocabulary_concepts %>%
         dplyr::select(-relationship_id) %>%
         dplyr::mutate_at(c("add_concept_input"), stringr::str_replace_all, "%ns%", id) %>%
-        dplyr::mutate_at("add_concept_input", stringr::str_replace_all, "%input_category%", paste0(type, "_add_concept")) %>%
-        dplyr::mutate_at("add_concept_input", stringr::str_replace_all, "%input_category_2%", paste0(type, "_")) %>%
+        dplyr::mutate_at("add_concept_input", stringr::str_replace_all, "%input_prefix%", paste0(type, "_add_concept")) %>%
+        dplyr::mutate_at("add_concept_input", stringr::str_replace_all, "%input_prefix_2%", paste0(type, "_")) %>%
         dplyr::mutate_at("concept_id", as.character) %>%
         dplyr::mutate(add_concept_input = stringr::str_replace_all(add_concept_input, "%concept_id_1%", concept_id))
       
@@ -2192,6 +2192,7 @@ mod_data_server <- function(id = character(), r = shiny::reactiveValues(), d = s
       
       selected_concept <- r[[paste0(category, "_", type, "_vocabulary_concepts")]][input[[paste0(type, "_vocabulary_concepts_rows_selected")]], ]
       
+      
       r[[paste0(category, "_", type, "_vocabulary_mapped_concepts")]] <- d$dataset_all_concepts %>%
         dplyr::filter(concept_id_1 == selected_concept$concept_id, !is.na(relationship_id)) %>%
         dplyr::transmute(concept_id_1, relationship_id, concept_id_2, concept_name_2,
@@ -2209,8 +2210,8 @@ mod_data_server <- function(id = character(), r = shiny::reactiveValues(), d = s
         r[[paste0(category, "_", type, "_vocabulary_mapped_concepts")]] %>%
         dplyr::group_by_all() %>% dplyr::slice(1) %>% dplyr::ungroup() %>%
         dplyr::mutate_at(c("add_concept_input"), stringr::str_replace_all, "%ns%", id) %>%
-        dplyr::mutate_at("add_concept_input", stringr::str_replace_all, "%input_category%", paste0(type, "_add_mapped_concept")) %>%
-        dplyr::mutate_at("add_concept_input", stringr::str_replace_all, "%input_category_2%", paste0(type, "_")) %>%
+        dplyr::mutate_at("add_concept_input", stringr::str_replace_all, "%input_prefix%", paste0(type, "_add_mapped_concept")) %>%
+        dplyr::mutate_at("add_concept_input", stringr::str_replace_all, "%input_prefix_2%", paste0(type, "_")) %>%
         dplyr::mutate_at(c("concept_id_1", "concept_id_2"), as.character) %>%
         # Add a unique id (rows are not unique with only concept_id_2, cause there can be multiple concept_relationship)
         dplyr::mutate(id = 1:dplyr::n()) %>%
@@ -2423,7 +2424,7 @@ mod_data_server <- function(id = character(), r = shiny::reactiveValues(), d = s
       
       table <- paste0(category, "_widgets")
       
-      sql <- glue::glue_sql("SELECT DISTINCT(name) FROM {`table`} WHERE deleted IS FALSE AND tab_id = {new_data$tab_new_element}", .con = r$db)
+      sql <- glue::glue_sql("SELECT DISTINCT(name) FROM widgets WHERE deleted IS FALSE AND tab_id = {new_data$tab_new_element}", .con = r$db)
       distinct_values <- DBI::dbGetQuery(r$db, sql) %>% dplyr::pull()
       if (new_data$name %in% distinct_values) show_message_bar(output, "name_already_used", "severeWarning", i18n = i18n, ns = ns)
       req(new_data$name %not_in% distinct_values)

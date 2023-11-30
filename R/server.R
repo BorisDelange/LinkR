@@ -55,12 +55,9 @@ app_server <- function(language = "en", languages = tibble::tibble(), i18n = cha
       "studies", "iciiiiccl", "main",
       "plugins", "iciccl", "main",
       "scripts", "icccl", "main",
-      "patient_lvl_tabs_groups", "iccicl", "main",
-      "patient_lvl_tabs", "icciiiicl", "main",
-      "patient_lvl_widgets", "iciiiicl", "main",
-      "aggregated_tabs_groups", "iccicl", "main",
-      "aggregated_tabs", "icciiiicl", "main",
-      "aggregated_widgets", "iciiiicl", "main",
+      "tabs_groups", "icccicl", "main",
+      "tabs", "iccciiiicl", "main",
+      "widgets", "icciiiicl", "main",
       "code", "icicicl", "main",
       "options", "iciccnicl", "main",
       "messages", "iiicccicl", "main",
@@ -70,8 +67,7 @@ app_server <- function(language = "en", languages = tibble::tibble(), i18n = cha
       "log", "icccic", "main",
       "git_repos", "icccccicl", "main",
       "persons_options", "iiiiiiciccnicl", "public",
-      "patient_lvl_widgets_options", "iiiicccnicl", "public",
-      "aggregated_widgets_options", "iiiicccnicl", "public",
+      "widgets_options", "iiiicccnicl", "public",
       "subsets", "icciicl", "public",
       "subset_persons", "iiiicl", "public",
       "concept", "iiccccccccc", "public",
@@ -87,8 +83,7 @@ app_server <- function(language = "en", languages = tibble::tibble(), i18n = cha
       "concept_synonym", "iici", "public",
       "concept_ancestor", "iiiii", "public",
       "drug_strength", "iiinininiiccc", "public",
-      "patient_lvl_widgets_concepts", "iiicccilicl", "public",
-      "aggregated_widgets_concepts", "iiicccilicl", "public"
+      "widgets_concepts", "iiicccilicl", "public"
     )
     
     # Test internet connection

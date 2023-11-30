@@ -696,7 +696,7 @@ mod_plugins_server <- function(id = character(), r = shiny::reactiveValues(), d 
       if (debug) cat(paste0("\n", Sys.time(), " - mod_plugins - observer r$reload_plugins_document_cards"))
 
       req(input$local_plugins_category)
-
+      
       if (length(r$error_loading_remote_git) == 0){
         r$remote_git_plugins <- tibble::tibble(type = integer(), unique_id = character())
         error_loading_remote_git <- TRUE
@@ -748,12 +748,9 @@ mod_plugins_server <- function(id = character(), r = shiny::reactiveValues(), d 
               plugin$author <- plugin$options %>% dplyr::filter(name == "author") %>% dplyr::pull(value)
               plugin$version <- plugin$options %>% dplyr::filter(name == "version") %>% dplyr::pull(value)
               plugin$category <- plugin$options %>% dplyr::filter(name == paste0("category_", language)) %>% dplyr::pull(value)
-
-              if (plugin$options %>% dplyr::filter(name == "image") %>% dplyr::pull(value) != ""){
-                plugin$image_url <- paste0(r$app_folder, "/plugins/", prefix, "/",
-                  plugin$options %>% dplyr::filter(name == "unique_id") %>% dplyr::pull(value), "/",
-                  plugin$options %>% dplyr::filter(name == "image") %>% dplyr::pull(value))
-              }
+              plugin$image <- plugin$options %>% dplyr::filter(name == "image") %>% dplyr::pull(value)
+              
+              if (!is.na(plugin$image) & plugin$image != "") plugin$image_url <- paste0(r$app_folder, "/plugins/", prefix, "/", plugin$unique_id, "/", plugin$image)
               else plugin$image_url <- ""
             }
 

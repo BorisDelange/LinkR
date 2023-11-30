@@ -27,12 +27,9 @@ mod_settings_app_database_ui <- function(id = character(), i18n = character()){
     list(key = "studies", text = "studies"),
     list(key = "plugins", text = "plugins"),
     list(key = "scripts", text = "scripts"),
-    list(key = "patient_lvl_tabs_groups", text = "patient_lvl_tabs_groups"),
-    list(key = "patient_lvl_tabs", text = "patient_lvl_tabs"),
-    list(key = "patient_lvl_widgets", text = "patient_lvl_widgets"),
-    list(key = "aggregated_tabs_groups", text = "aggregated_tabs_groups"),
-    list(key = "aggregated_tabs", text = "aggregated_tabs"),
-    list(key = "aggregated_widgets", text = "aggregated_widgets"),
+    list(key = "tabs_groups", text = "tabs_groups"),
+    list(key = "tabs", text = "tabs"),
+    list(key = "widgets", text = "widgets"),
     list(key = "code", text = "code"),
     list(key = "options", text = "options"),
     list(key = "messages", text = "messages"),
@@ -44,13 +41,11 @@ mod_settings_app_database_ui <- function(id = character(), i18n = character()){
   )
   
   main_db_values <- c("users", "users_accesses", "users_statuses", "data_sources", "datasets", "studies", "plugins", "scripts",
-    "patient_lvl_tabs_groups", "patient_lvl_tabs", "patient_lvl_widgets", "aggregated_tabs_groups", "aggregated_tabs", "aggregated_widgets",
-    "code", "options", "messages", "conversations", "user_deleted_conversations", "inbox_messages", "git_repos")
+    "tabs_groups", "tabs", "widgets", "code", "options", "messages", "conversations", "user_deleted_conversations", "inbox_messages", "git_repos")
   
   public_db_tables <- list(
     list(key = "persons_options", text = "persons_options"),
-    list(key = "patient_lvl_widgets_options", text = "patient_lvl_widgets_options"),
-    list(key = "aggregated_widgets_options", text = "aggregated_widgets_options"),
+    list(key = "widgets_options", text = "widgets_options"),
     list(key = "subsets", text = "subsets"),
     list(key = "subset_persons", text = "subset_persons"),
     list(key = "concept", text = "concept"),
@@ -66,13 +61,12 @@ mod_settings_app_database_ui <- function(id = character(), i18n = character()){
     list(key = "concept_synonym", text = "concept_synonym"),
     list(key = "concept_ancestor", text = "concept_ancestor"),
     list(key = "drug_strength", text = "drug_strength"),
-    list(key = "patient_lvl_widgets_concepts", text = "patient_lvl_widgets_concepts"),
-    list(key = "aggregated_widgets_concepts", text = "aggregated_widgets_concepts")
+    list(key = "widgets_concepts", text = "widgets_concepts")
   )
   
-  public_db_values <- c("persons_options", "patient_lvl_widgets_options", "aggregated_widgets_options", "subsets", "subset_persons", "concept", "concept_dataset",
+  public_db_values <- c("persons_options", "widgets_options", "subsets", "subset_persons", "concept", "concept_dataset",
     "concept_user", "vocabulary", "domain", "concept_class", "concept_relationship", "concept_relationship_user", "concept_relationship_evals",
-    "relationship", "concept_synonym", "concept_ancestor", "drug_strength", "patient_lvl_widgets_concepts", "aggregated_widgets_concepts")
+    "relationship", "concept_synonym", "concept_ancestor", "drug_strength", "widgets_concepts")
   
   div(class = "main",
     render_settings_default_elements(ns = ns),
@@ -690,9 +684,9 @@ mod_settings_app_database_server <- function(id = character(), r = shiny::reacti
       if (perf_monitoring) monitor_perf(r = r, action = "stop", task = paste0("mod_settings_app_database - observer r$app_db_request_trigger_code"))
     })
     
-    # --- --- -- -
-    # Save DB ----
-    # --- --- -- -
+    # --- --- --- --
+    # Export DB ----
+    # --- --- --- --
 
     observeEvent(r$options, {
       

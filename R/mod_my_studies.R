@@ -1195,7 +1195,7 @@ mod_my_studies_server <- function(id = character(), r = shiny::reactiveValues(),
         if (study[[paste0("name_", language)]] == "") study[[paste0("name_", language)]] <- study$name_en
 
         last_row <- list()
-        for (name in c("studies", "options", "patient_lvl_tabs_groups", "aggregated_tabs_groups")) last_row[[name]] <- get_last_row(r$db, name)
+        for (name in c("studies", "options", "tabs_groups")) last_row[[name]] <- get_last_row(r$db, name)
         
         # if (!study_updated) link_id <- last_row$studies + 1
         link_id <- last_row$studies + 1
@@ -1265,16 +1265,11 @@ mod_my_studies_server <- function(id = character(), r = shiny::reactiveValues(),
         # Update database
         
         # Tables :
-        # - patient_lvl_tabs_groups
-        # - patient_lvl_tabs
-        # - patient_lvl_widgets
-        # - patient_lvl_widgets_concepts
-        # - patient_lvl_widgets_options
-        # - aggregated_tabs_groups
-        # - aggregated_tabs
-        # - aggregated_widgets
-        # - aggregated_widgets_concepts
-        # - aggregated_widgets_options
+        # - tabs_groups
+        # - tabs
+        # - widgets
+        # - widgets_concepts
+        # - widgets_options
         # - plugins
         # - code
         # - options
@@ -1288,9 +1283,7 @@ mod_my_studies_server <- function(id = character(), r = shiny::reactiveValues(),
         if (!dir.exists(temp_study_folder)) dir.create(temp_study_folder)
         if (!dir.exists(paste0(temp_study_folder, "/app_database"))) dir.create(paste0(temp_study_folder, "/app_database"))
         
-        for (csv_file in c("patient_lvl_tabs_groups", "patient_lvl_tabs", "patient_lvl_widgets", "patient_lvl_widgets_concepts", "patient_lvl_widgets_options", 
-          "aggregated_tabs_groups", "aggregated_tabs", "aggregated_widgets", "aggregated_widgets_concepts", "aggregated_widgets_options",
-          "plugins", "options", "code")){
+        for (csv_file in c("tabs_groups", "tabs", "widgets", "widgets_concepts", "widgets_options", "plugins", "options", "code")){
           
           # Copy file locally
           url <- paste0(r$studies_raw_files_url_address, study$unique_id, "/app_database/", csv_file, ".csv")
@@ -1304,7 +1297,7 @@ mod_my_studies_server <- function(id = character(), r = shiny::reactiveValues(),
           
           data[[csv_file]] <- vroom::vroom(destfile, col_types = db_col_types %>% dplyr::filter(table == csv_file) %>% dplyr::pull(col_types), progress = FALSE)
           
-          if (grepl("widgets_concepts|widgets_options", csv_file)) last_row$id <- get_last_row(m$db, csv_file)
+          if (csv_file %in% c("widgets_concepts", "widgets_options")) last_row$id <- get_last_row(m$db, csv_file)
           else last_row$id <- get_last_row(r$db, csv_file)
           
           if (csv_file != "plugins") data[[csv_file]] <- data[[csv_file]] %>% dplyr::mutate(id = id + last_row$id)
@@ -1347,32 +1340,29 @@ mod_my_studies_server <- function(id = character(), r = shiny::reactiveValues(),
           )) %>%
           dplyr::select(-unique_id, -local_id)
         
-        for (type in c("patient_lvl", "aggregated")){
-          
-          ### tabs
-          last_row$tab_group_id <- get_last_row(r$db, paste0(type, "_tabs_groups"))
-          last_row$tab_id <- get_last_row(r$db, paste0(type, "_tabs"))
-          
-          data[[paste0(type, "_tabs")]] <- data[[paste0(type, "_tabs")]] %>% dplyr::mutate(
-            tab_group_id = tab_group_id + last_row$tab_group_id,
-            parent_tab_id = parent_tab_id + last_row$tab_id
-          )
-          
-          ### widgets
-          data[[paste0(type, "_widgets")]] <- data[[paste0(type, "_widgets")]] %>% 
-            dplyr::mutate(tab_id = tab_id + last_row$tab_id) %>%
-            dplyr::left_join(data$plugins %>% dplyr::select(plugin_id = id, new_plugin_id = new_id), by = "plugin_id") %>%
-            dplyr::select(-plugin_id) %>%
-            dplyr::rename(plugin_id = new_plugin_id) %>%
-            dplyr::relocate(plugin_id, .after = "tab_id")
-          
-          ### widgets_concepts
-          last_row$widget_id <- get_last_row(r$db, paste0(type, "_widgets"))
-          data[[paste0(type, "_widgets_concepts")]] <- data[[paste0(type, "_widgets_concepts")]] %>% dplyr::mutate(widget_id = widget_id + last_row$widget_id)
-          
-          ### widgets_options
-          data[[paste0(type, "_widgets_options")]] <- data[[paste0(type, "_widgets_options")]] %>% dplyr::mutate(widget_id = widget_id + last_row$widget_id)
-        }
+        ### tabs
+        last_row$tab_group_id <- get_last_row(r$db, "tabs_groups")
+        last_row$tab_id <- get_last_row(r$db, "tabs")
+        
+        data$tabs <- data$tabs %>% dplyr::mutate(
+          tab_group_id = tab_group_id + last_row$tab_group_id,
+          parent_tab_id = parent_tab_id + last_row$tab_id
+        )
+        
+        ### widgets
+        data$widgets <- data$widgets %>% 
+          dplyr::mutate(tab_id = tab_id + last_row$tab_id) %>%
+          dplyr::left_join(data$plugins %>% dplyr::select(plugin_id = id, new_plugin_id = new_id), by = "plugin_id") %>%
+          dplyr::select(-plugin_id) %>%
+          dplyr::rename(plugin_id = new_plugin_id) %>%
+          dplyr::relocate(plugin_id, .after = "tab_id")
+        
+        ### widgets_concepts
+        last_row$widget_id <- get_last_row(r$db, "widgets")
+        data$widgets_concepts <- data$widgets_concepts %>% dplyr::mutate(widget_id = widget_id + last_row$widget_id)
+        
+        ### widgets_options
+        data$widgets_options <- data$widgets_options %>% dplyr::mutate(widget_id = widget_id + last_row$widget_id)
         
         for (table in c("options", "code")) data[[table]] <- data[[table]] %>% 
           dplyr::left_join(data$plugins %>% dplyr::select(link_id = id, new_link_id = new_id), by = "link_id") %>%
@@ -1418,11 +1408,9 @@ mod_my_studies_server <- function(id = character(), r = shiny::reactiveValues(),
             (category %in% c("plugin_ui", "plugin_server", "plugin_translations") & link_id %in% data$plugins$id))
         
         # Copy data in app database
-        for (table in c("patient_lvl_tabs_groups", "patient_lvl_tabs", "patient_lvl_widgets", "patient_lvl_widgets_concepts", "patient_lvl_widgets_options", 
-          "aggregated_tabs_groups", "aggregated_tabs", "aggregated_widgets", "aggregated_widgets_concepts", "aggregated_widgets_options",
-          "plugins", "options", "code")){
+        for (table in c("tabs_groups", "tabs", "widgets", "widgets_concepts", "widgets_options", "plugins", "options", "code")){
           
-          if (grepl("widgets_concepts|widgets_options", table)) db <- m$db
+          if (table %in% c("widgets_concepts", "widgets_options")) db <- m$db
           else db <- r$db
           DBI::dbAppendTable(db, table, data[[table]])
           
@@ -2131,11 +2119,11 @@ mod_my_studies_server <- function(id = character(), r = shiny::reactiveValues(),
             # studies table
             
             last_row <- list()
-            for (table in c("studies", "options", "patient_lvl_tabs_groups", "aggregated_tabs_groups")) last_row[[table]] <- get_last_row(r$db, table) 
+            for (table in c("studies", "options", "tabs_groups")) last_row[[table]] <- get_last_row(r$db, table) 
             
             new_data <- tibble::tribble(
               ~id, ~name, ~dataset_id, ~patient_lvl_tab_group_id, ~aggregated_tab_group_id, ~creator_id, ~creation_datetime, ~update_datetime, ~deleted,
-              last_row$studies + 1, as.character(study[[paste0("name_", language)]]), as.integer(r$selected_dataset), last_row$patient_lvl_tabs_groups + 1, last_row$aggregated_tabs_groups + 1, as.integer(r$user_id),
+              last_row$studies + 1, as.character(study[[paste0("name_", language)]]), as.integer(r$selected_dataset), last_row$tabs_groups + 1, last_row$tabs_groups + 2, as.integer(r$user_id),
               study$creation_datetime, study$update_datetime, FALSE)
 
             DBI::dbAppendTable(r$db, "studies", new_data)
@@ -2192,16 +2180,11 @@ mod_my_studies_server <- function(id = character(), r = shiny::reactiveValues(),
             # Update database
             
             # Tables :
-            # - patient_lvl_tabs_groups
-            # - patient_lvl_tabs
-            # - patient_lvl_widgets
-            # - patient_lvl_widgets_concepts
-            # - patient_lvl_widgets_options
-            # - aggregated_tabs_groups
-            # - aggregated_tabs
-            # - aggregated_widgets
-            # - aggregated_widgets_concepts
-            # - aggregated_widgets_options
+            # - tabs_groups
+            # - tabs
+            # - widgets
+            # - widgets_concepts
+            # - widgets_options
             # - plugins
             # - code
             # - options
@@ -2210,14 +2193,12 @@ mod_my_studies_server <- function(id = character(), r = shiny::reactiveValues(),
             last_row <- list()
             last_row$plugins <- get_last_row(r$db, "plugins")
             
-            for (csv_file in c("patient_lvl_tabs_groups", "patient_lvl_tabs", "patient_lvl_widgets", "patient_lvl_widgets_concepts", "patient_lvl_widgets_options", 
-              "aggregated_tabs_groups", "aggregated_tabs", "aggregated_widgets", "aggregated_widgets_concepts", "aggregated_widgets_options",
-              "plugins", "options", "code")){
+            for (csv_file in c("tabs_groups", "tabs", "widgets", "widgets_concepts", "widgets_options", "plugins", "options", "code")){
               
               data[[csv_file]] <- vroom::vroom(paste0(temp_dir, "/", study$unique_id, "/app_database/", csv_file, ".csv"),
                 col_types = db_col_types %>% dplyr::filter(table == csv_file) %>% dplyr::pull(col_types), progress = FALSE)
               
-              if (grepl("widgets_concepts|widgets_options", csv_file)) last_row$id <- get_last_row(m$db, csv_file)
+              if (csv_file %in% c("widgets_concepts", "widgets_options")) last_row$id <- get_last_row(m$db, csv_file)
               else last_row$id <- get_last_row(r$db, csv_file)
               
               if (csv_file != "plugins") data[[csv_file]] <- data[[csv_file]] %>% dplyr::mutate(id = id + last_row$id)
@@ -2259,33 +2240,30 @@ mod_my_studies_server <- function(id = character(), r = shiny::reactiveValues(),
                 TRUE ~ new_id
               )) %>%
               dplyr::select(-unique_id, -local_id)
+              
+            ### tabs
+            last_row$tab_group_id <- get_last_row(r$db, "tabs_groups")
+            last_row$tab_id <- get_last_row(r$db, "tabs")
             
-            for (type in c("patient_lvl", "aggregated")){
-              
-              ### tabs
-              last_row$tab_group_id <- get_last_row(r$db, paste0(type, "_tabs_groups"))
-              last_row$tab_id <- get_last_row(r$db, paste0(type, "_tabs"))
-              
-              data[[paste0(type, "_tabs")]] <- data[[paste0(type, "_tabs")]] %>% dplyr::mutate(
-                tab_group_id = tab_group_id + last_row$tab_group_id,
-                parent_tab_id = parent_tab_id + last_row$tab_id
-              )
-              
-              ### widgets
-              data[[paste0(type, "_widgets")]] <- data[[paste0(type, "_widgets")]] %>% 
-                dplyr::mutate(tab_id = tab_id + last_row$tab_id) %>%
-                dplyr::left_join(data$plugins %>% dplyr::select(plugin_id = id, new_plugin_id = new_id), by = "plugin_id") %>%
-                dplyr::select(-plugin_id) %>%
-                dplyr::rename(plugin_id = new_plugin_id) %>%
-                dplyr::relocate(plugin_id, .after = "tab_id")
-              
-              ### widgets_concepts
-              last_row$widget_id <- get_last_row(r$db, paste0(type, "_widgets"))
-              data[[paste0(type, "_widgets_concepts")]] <- data[[paste0(type, "_widgets_concepts")]] %>% dplyr::mutate(widget_id = widget_id + last_row$widget_id)
-              
-              ### widgets_options
-              data[[paste0(type, "_widgets_options")]] <- data[[paste0(type, "_widgets_options")]] %>% dplyr::mutate(widget_id = widget_id + last_row$widget_id)
-            }
+            data$tabs <- data$tabs %>% dplyr::mutate(
+              tab_group_id = tab_group_id + last_row$tab_group_id,
+              parent_tab_id = parent_tab_id + last_row$tab_id
+            )
+            
+            ### widgets
+            data$widgets <- data$widgets %>% 
+              dplyr::mutate(tab_id = tab_id + last_row$tab_id) %>%
+              dplyr::left_join(data$plugins %>% dplyr::select(plugin_id = id, new_plugin_id = new_id), by = "plugin_id") %>%
+              dplyr::select(-plugin_id) %>%
+              dplyr::rename(plugin_id = new_plugin_id) %>%
+              dplyr::relocate(plugin_id, .after = "tab_id")
+            
+            ### widgets_concepts
+            last_row$widget_id <- get_last_row(r$db, "widgets")
+            data$widgets_concepts <- data$widgets_concepts %>% dplyr::mutate(widget_id = widget_id + last_row$widget_id)
+            
+            ### widgets_options
+            data$widgets_options <- data$widgets_options %>% dplyr::mutate(widget_id = widget_id + last_row$widget_id)
             
             for (table in c("options", "code")) data[[table]] <- data[[table]] %>% 
               dplyr::left_join(data$plugins %>% dplyr::select(link_id = id, new_link_id = new_id), by = "link_id") %>%
@@ -2331,16 +2309,16 @@ mod_my_studies_server <- function(id = character(), r = shiny::reactiveValues(),
                 (category %in% c("plugin_ui", "plugin_server", "plugin_translations") & link_id %in% data$plugins$id))
             
             # Copy data in app database
-            for (table in c("patient_lvl_tabs_groups", "patient_lvl_tabs", "patient_lvl_widgets", "patient_lvl_widgets_concepts", "patient_lvl_widgets_options", 
-              "aggregated_tabs_groups", "aggregated_tabs", "aggregated_widgets", "aggregated_widgets_concepts", "aggregated_widgets_options",
-              "plugins", "options", "code")){
+            for (table in c("tabs_groups", "tabs", "widgets", "widgets_concepts", "widgets_options", "plugins", "options", "code")){
               
-              if (grepl("widgets_concepts|widgets_options", table)) db <- m$db
+              if (table %in% c("widgets_concepts", "widgets_options")) db <- m$db
               else db <- r$db
               DBI::dbAppendTable(db, table, data[[table]])
-              
-              # Update r vars
-              if (table %in% c("plugins", "options", "code")) r[[table]] <- r[[table]] %>% dplyr::bind_rows(data[[table]])
+            }
+            
+            for (table in c("plugins", "options", "code")){
+              DBI::dbAppendTable(db <- r$db, table, data[[table]])
+              r[[table]] <- r[[table]] %>% dplyr::bind_rows(data[[table]])
             }
             
             # Reload plugins datatable
@@ -2385,7 +2363,7 @@ mod_my_studies_server <- function(id = character(), r = shiny::reactiveValues(),
 
         data <- studies %>% dplyr::select(name, version, author, creation_datetime, update_datetime) %>%
           dplyr::mutate_at(c("creation_datetime", "update_datetime"), format_datetime, language = language, sec = FALSE)
-
+        
         render_datatable(output = output, ns = ns, i18n = i18n, data = data,
           output_name = "imported_studies", col_names = col_names, centered_cols = centered_cols, column_widths = column_widths,
           filter = FALSE, datatable_dom = "")
@@ -2515,16 +2493,11 @@ mod_my_studies_server <- function(id = character(), r = shiny::reactiveValues(),
           # Export CSV files
 
           # Tables :
-          # - patient_lvl_tabs_groups
-          # - patient_lvl_tabs
-          # - patient_lvl_widgets
-          # - patient_lvl_widgets_concepts
-          # - patient_lvl_widgets_options
-          # - aggregated_tabs_groups
-          # - aggregated_tabs
-          # - aggregated_widgets
-          # - aggregated_widgets_concepts
-          # - aggregated_widgets_options
+          # - tabs_groups
+          # - tabs
+          # - widgets
+          # - widgets_concepts
+          # - widgets_options
           # - plugins
           # - code
           # - options
@@ -2532,147 +2505,138 @@ mod_my_studies_server <- function(id = character(), r = shiny::reactiveValues(),
           corresponding_ids <- list()
           for (table in c("plugins", "options", "code")) corresponding_ids[[table]] <- tibble::tibble(old_id = integer(), new_id = integer())
           data <- list()
-
-          for (type in c("patient_lvl", "aggregated")){
-
-            # Get data
-            
-            ### tabs_groups
-            sql <- glue::glue_sql("SELECT * FROM {`paste0(type, '_tabs_groups')`} WHERE id = {study[[paste0(type, '_tab_group_id')]]} AND deleted IS FALSE", .con = r$db)
-            data[[paste0(type, "_tabs_groups")]] <- DBI::dbGetQuery(r$db, sql) %>% dplyr::mutate(creator_id = NA_integer_)
-            corresponding_ids[[paste0(type, "_tabs_groups")]] <- tibble::tibble(old_id = as.integer(data[[paste0(type, "_tabs_groups")]]$id), new_id = 1L)
-            
-            ### tabs
-            sql <- glue::glue_sql("SELECT * FROM {`paste0(type, '_tabs')`} WHERE tab_group_id = {study[[paste0(type, '_tab_group_id')]]} AND deleted IS FALSE", .con = r$db)
-            data[[paste0(type, "_tabs")]] <- DBI::dbGetQuery(r$db, sql) %>% dplyr::mutate(creator_id = NA_integer_)
-            if (nrow(data[[paste0(type, "_tabs")]]) > 0) corresponding_ids[[paste0(type, "_tabs")]] <- data[[paste0(type, "_tabs")]] %>% dplyr::select(old_id = id) %>% dplyr::mutate(new_id = 1:dplyr::n())
-            
-            ### widgets
-            sql <- glue::glue_sql("SELECT * FROM {`paste0(type, '_widgets')`} WHERE tab_id IN ({data[[paste0(type, '_tabs')]] %>% dplyr::pull(id)*}) AND deleted IS FALSE", .con = r$db)
-            data[[paste0(type, "_widgets")]] <- DBI::dbGetQuery(r$db, sql) %>% dplyr::mutate(creator_id = NA_integer_)
-            if (nrow(data[[paste0(type, "_widgets")]]) > 0) corresponding_ids[[paste0(type, "_widgets")]] <- data[[paste0(type, "_widgets")]] %>% dplyr::select(old_id = id) %>% dplyr::mutate(new_id = 1:dplyr::n())
-            
-            ### widgets_concepts
-            sql <- glue::glue_sql("SELECT * FROM {`paste0(type, '_widgets_concepts')`} WHERE widget_id IN ({data[[paste0(type, '_widgets')]] %>% dplyr::pull(id)*}) AND deleted IS FALSE", .con = m$db)
-            data[[paste0(type, "_widgets_concepts")]] <- DBI::dbGetQuery(m$db, sql) %>% dplyr::mutate(creator_id = NA_integer_)
-            if (nrow(data[[paste0(type, "_widgets_concepts")]]) > 0) corresponding_ids[[paste0(type, "_widgets_concepts")]] <- data[[paste0(type, "_widgets_concepts")]] %>% dplyr::select(old_id = id) %>% dplyr::mutate(new_id = 1:dplyr::n())
-            
-            ### widgets_options
-            sql <- glue::glue_sql("SELECT * FROM {`paste0(type, '_widgets_options')`} WHERE widget_id IN ({data[[paste0(type, '_widgets')]] %>% dplyr::pull(id)*}) AND deleted IS FALSE", .con = m$db)
-            data[[paste0(type, "_widgets_options")]] <- DBI::dbGetQuery(m$db, sql) %>% dplyr::mutate(creator_id = NA_integer_, person_id = NA_integer_)
-            if (nrow(data[[paste0(type, "_widgets_options")]]) > 0) corresponding_ids[[paste0(type, "_widgets_options")]] <- data[[paste0(type, "_widgets_options")]] %>% dplyr::select(old_id = id) %>% dplyr::mutate(new_id = 1:dplyr::n())
-            
-            ### plugins
-            if (type == "patient_lvl") tab_type_id <- 1L else tab_type_id <- 2L
-            sql <- glue::glue_sql("SELECT * FROM plugins WHERE tab_type_id = {tab_type_id} AND id IN ({data[[paste0(type, '_widgets')]] %>% dplyr::distinct(plugin_id) %>% dplyr::pull()*}) AND deleted IS FALSE", .con = r$db)
-            data[[paste0(type, "_plugins")]] <- DBI::dbGetQuery(r$db, sql)
-            if (nrow(data[[paste0(type, "_plugins")]]) > 0){
-              if (nrow(corresponding_ids$plugins) > 0) last_row <- max(corresponding_ids$plugins$new_id)
-              else last_row <- 0L
-              corresponding_ids$plugins <- corresponding_ids$plugins %>% dplyr::bind_rows(
-                data[[paste0(type, "_plugins")]] %>% dplyr::select(old_id = id) %>% dplyr::mutate(new_id = last_row + 1:dplyr::n()))
-            }
-            
-            ### options (for plugins)
-            sql <- glue::glue_sql("SELECT * FROM options WHERE category = 'plugin' AND link_id IN ({data[[paste0(type, '_plugins')]] %>% dplyr::distinct(id) %>% dplyr::pull()*}) AND deleted IS FALSE", .con = r$db)
-            data[[paste0(type, "_options")]] <- DBI::dbGetQuery(r$db, sql)
-            if (nrow(data[[paste0(type, "_options")]]) > 0){
-              if (nrow(corresponding_ids$options) > 0) last_row <- max(corresponding_ids$options$new_id)
-              else last_row <- 0L
-              corresponding_ids$options <- corresponding_ids$options %>% dplyr::bind_rows(
-                data[[paste0(type, "_options")]] %>% dplyr::select(old_id = id) %>% dplyr::mutate(new_id = last_row + 1:dplyr::n()))
-            }
-            
-            ### code (for plugins)
-            sql <- glue::glue_sql("SELECT * FROM code WHERE category IN ('plugin_ui', 'plugin_server', 'plugin_translations') AND link_id IN ({data[[paste0(type, '_plugins')]] %>% dplyr::distinct(id) %>% dplyr::pull()*}) AND deleted IS FALSE", .con = r$db)
-            data[[paste0(type, "_code")]] <- DBI::dbGetQuery(r$db, sql)
-            if (nrow(data[[paste0(type, "_code")]]) > 0){
-              if (nrow(corresponding_ids$code) > 0) last_row <- max(corresponding_ids$code$new_id)
-              else last_row <- 0L
-              corresponding_ids$code <- corresponding_ids$code %>% dplyr::bind_rows(
-                data[[paste0(type, "_code")]] %>% dplyr::select(old_id = id) %>% dplyr::mutate(new_id = last_row + 1:dplyr::n()))
-            }
-            
-            # Change IDs
-            
-            ### tabs_groups
-            data[[paste0(type, "_tabs_groups")]] <- data[[paste0(type, "_tabs_groups")]] %>% dplyr::mutate(id = 1L)
-            
-            ### tabs
-            if (nrow(data[[paste0(type, "_tabs")]]) > 0) data[[paste0(type, "_tabs")]] <- data[[paste0(type, "_tabs")]] %>%
-              dplyr::left_join(corresponding_ids[[paste0(type, "_tabs")]] %>% dplyr::select(id = old_id, new_id), by = "id") %>%
-              dplyr::left_join(corresponding_ids[[paste0(type, "_tabs")]] %>% dplyr::select(parent_tab_id = old_id, new_parent_tab_id = new_id), by = "parent_tab_id") %>%
-              dplyr::select(-id, -parent_tab_id) %>%
-              dplyr::rename(id = new_id, parent_tab_id = new_parent_tab_id) %>%
-              dplyr::relocate(id, .before = "name") %>%
-              dplyr::relocate(parent_tab_id, .before = "display_order") %>%
-              dplyr::mutate(tab_group_id = 1L)
-            
-            ### widgets
-            if (nrow(data[[paste0(type, "_widgets")]]) > 0) data[[paste0(type, "_widgets")]] <- data[[paste0(type, "_widgets")]] %>%
-              dplyr::left_join(corresponding_ids[[paste0(type, "_widgets")]] %>% dplyr::select(id = old_id, new_id = new_id), by = "id") %>%
-              dplyr::left_join(corresponding_ids[[paste0(type, "_tabs")]] %>% dplyr::select(tab_id = old_id, new_tab_id = new_id), by = "tab_id") %>%
-              dplyr::left_join(corresponding_ids$plugins %>% dplyr::select(plugin_id = old_id, new_plugin_id = new_id), by = "plugin_id") %>%
-              dplyr::select(-id, -tab_id, -plugin_id) %>%
-              dplyr::rename(id = new_id, tab_id = new_tab_id, plugin_id = new_plugin_id) %>%
-              dplyr::relocate(id, .before = "name") %>%
-              dplyr::relocate(tab_id, .after = "name") %>%
-              dplyr::relocate(plugin_id, .before = "display_order")
-            
-            ### widgets_concepts
-            if (nrow(data[[paste0(type, "_widgets_concepts")]]) > 0) data[[paste0(type, "_widgets_concepts")]] <- data[[paste0(type, "_widgets_concepts")]] %>%
-              dplyr::left_join(corresponding_ids[[paste0(type, "_widgets_concepts")]] %>% dplyr::select(id = old_id, new_id = new_id), by = "id") %>%
-              dplyr::left_join(corresponding_ids[[paste0(type, "_widgets")]] %>% dplyr::select(widget_id = old_id, new_widget_id = new_id), by = "widget_id") %>%
-              dplyr::select(-id, -widget_id) %>%
-              dplyr::rename(id = new_id, widget_id = new_widget_id) %>%
-              dplyr::relocate(id, .before = "concept_id") %>%
-              dplyr::relocate(widget_id, .after = "id")
-            
-            ### widgets_options
-            if (nrow(data[[paste0(type, "_widgets_options")]]) > 0) data[[paste0(type, "_widgets_options")]] <- data[[paste0(type, "_widgets_options")]] %>%
-              dplyr::left_join(corresponding_ids[[paste0(type, "_widgets_options")]] %>% dplyr::select(id = old_id, new_id = new_id), by = "id") %>%
-              dplyr::left_join(corresponding_ids[[paste0(type, "_widgets")]] %>% dplyr::select(widget_id = old_id, new_widget_id = new_id), by = "widget_id") %>%
-              dplyr::select(-id, -widget_id) %>%
-              dplyr::rename(id = new_id, widget_id = new_widget_id) %>%
-              dplyr::relocate(id, .before = "person_id") %>%
-              dplyr::relocate(widget_id, .after = "id")
-            
-            ### plugins
-            if (nrow(data[[paste0(type, "_plugins")]]) > 0) data[[paste0(type, "_plugins")]] <- data[[paste0(type, "_plugins")]] %>%
-              dplyr::left_join(corresponding_ids$plugins %>% dplyr::select(id = old_id, new_id), by = "id") %>%
-              dplyr::select(-id) %>%
-              dplyr::rename(id = new_id) %>%
-              dplyr::relocate(id, .before = "name")
-            
-            ### options
-            if (nrow(data[[paste0(type, "_options")]]) > 0) data[[paste0(type, "_options")]] <- data[[paste0(type, "_options")]] %>%
-              dplyr::left_join(corresponding_ids$options %>% dplyr::select(id = old_id, new_id), by = "id") %>%
-              dplyr::left_join(corresponding_ids$plugins %>% dplyr::select(link_id = old_id, new_link_id = new_id), by = "link_id") %>%
-              dplyr::select(-id, -link_id) %>%
-              dplyr::rename(id = new_id, link_id = new_link_id) %>%
-              dplyr::relocate(id, .before = "category") %>%
-              dplyr::relocate(link_id, .before = "name")
-            
-            ### code
-            if (nrow(data[[paste0(type, "_code")]]) > 0) data[[paste0(type, "_code")]] <- data[[paste0(type, "_code")]] %>%
-              dplyr::left_join(corresponding_ids$code %>% dplyr::select(id = old_id, new_id), by = "id") %>%
-              dplyr::left_join(corresponding_ids$plugins %>% dplyr::select(link_id = old_id, new_link_id = new_id), by = "link_id") %>%
-              dplyr::select(-id, -link_id) %>%
-              dplyr::rename(id = new_id, link_id = new_link_id) %>%
-              dplyr::relocate(id, .before = "category") %>%
-              dplyr::relocate(link_id, .before = "code")
+          
+          # Get data
+          
+          ### tabs_groups
+          sql <- glue::glue_sql("SELECT * FROM tabs_groups WHERE id IN ({c(study$patient_lvl_tab_group_id, study$aggregated_tab_group_id)*}) AND deleted IS FALSE", .con = r$db)
+          data$tabs_groups <- DBI::dbGetQuery(r$db, sql) %>% dplyr::mutate(creator_id = NA_integer_)
+          corresponding_ids$tabs_groups <- tibble::tibble(old_id = as.integer(data$tabs_groups$id), new_id = c(1L, 2L))
+          
+          ### tabs
+          sql <- glue::glue_sql("SELECT * FROM tabs WHERE tab_group_id IN ({c(study$patient_lvl_tab_group_id, study$aggregated_tab_group_id)*}) AND deleted IS FALSE", .con = r$db)
+          data$tabs <- DBI::dbGetQuery(r$db, sql) %>% dplyr::mutate(creator_id = NA_integer_)
+          if (nrow(data$tabs) > 0) corresponding_ids$tabs <- data$tabs %>% dplyr::select(old_id = id) %>% dplyr::mutate(new_id = 1:dplyr::n())
+          
+          ### widgets
+          sql <- glue::glue_sql("SELECT * FROM widgets WHERE tab_id IN ({data$tabs$id*}) AND deleted IS FALSE", .con = r$db)
+          data$widgets <- DBI::dbGetQuery(r$db, sql) %>% dplyr::mutate(creator_id = NA_integer_)
+          if (nrow(data$widgets) > 0) corresponding_ids$widgets <- data$widgets %>% dplyr::select(old_id = id) %>% dplyr::mutate(new_id = 1:dplyr::n())
+          
+          ### widgets_concepts
+          sql <- glue::glue_sql("SELECT * FROM widgets_concepts WHERE widget_id IN ({data$widgets$id*}) AND deleted IS FALSE", .con = m$db)
+          data$widgets_concepts <- DBI::dbGetQuery(m$db, sql) %>% dplyr::mutate(creator_id = NA_integer_)
+          if (nrow(data$widgets_concept) > 0) corresponding_ids$widgets_concepts <- data$widgets_concepts %>% dplyr::select(old_id = id) %>% dplyr::mutate(new_id = 1:dplyr::n())
+          
+          ### widgets_options
+          sql <- glue::glue_sql("SELECT * FROM widgets_options WHERE widget_id IN ({data$widgets$id*}) AND deleted IS FALSE", .con = m$db)
+          data$widgets_options <- DBI::dbGetQuery(m$db, sql) %>% dplyr::mutate(creator_id = NA_integer_, person_id = NA_integer_)
+          if (nrow(data$widgets_options) > 0) corresponding_ids$widgets_options <- data$widgets_options %>% dplyr::select(old_id = id) %>% dplyr::mutate(new_id = 1:dplyr::n())
+          
+          ### plugins
+          sql <- glue::glue_sql("SELECT * FROM plugins WHERE id IN ({data$widgets %>% dplyr::distinct(plugin_id) %>% dplyr::pull()*}) AND deleted IS FALSE", .con = r$db)
+          data$plugins <- DBI::dbGetQuery(r$db, sql)
+          if (nrow(data$plugins) > 0){
+            if (nrow(corresponding_ids$plugins) > 0) last_row <- max(corresponding_ids$plugins$new_id)
+            else last_row <- 0L
+            corresponding_ids$plugins <- corresponding_ids$plugins %>% dplyr::bind_rows(
+              data$plugins %>% dplyr::select(old_id = id) %>% dplyr::mutate(new_id = last_row + 1:dplyr::n()))
           }
           
-          # Put plugins, options & code together
-          data$plugins <- data$patient_lvl_plugins %>% dplyr::bind_rows(data$aggregated_plugins)
-          data$options <- data$patient_lvl_options %>% dplyr::bind_rows(data$aggregated_options)
-          data$code <- data$patient_lvl_code %>% dplyr::bind_rows(data$aggregated_code)
+          ### options (for plugins)
+          sql <- glue::glue_sql("SELECT * FROM options WHERE category = 'plugin' AND link_id IN ({data$plugins %>% dplyr::distinct(id) %>% dplyr::pull()*}) AND deleted IS FALSE", .con = r$db)
+          data$options <- DBI::dbGetQuery(r$db, sql)
+          if (nrow(data$options) > 0){
+            if (nrow(corresponding_ids$options) > 0) last_row <- max(corresponding_ids$options$new_id)
+            else last_row <- 0L
+            corresponding_ids$options <- corresponding_ids$options %>% dplyr::bind_rows(
+              data$options %>% dplyr::select(old_id = id) %>% dplyr::mutate(new_id = last_row + 1:dplyr::n()))
+          }
+          
+          ### code (for plugins)
+          sql <- glue::glue_sql("SELECT * FROM code WHERE category IN ('plugin_ui', 'plugin_server', 'plugin_translations') AND link_id IN ({data$plugins %>% dplyr::distinct(id) %>% dplyr::pull()*}) AND deleted IS FALSE", .con = r$db)
+          data$code <- DBI::dbGetQuery(r$db, sql)
+          if (nrow(data$code) > 0){
+            if (nrow(corresponding_ids$code) > 0) last_row <- max(corresponding_ids$code$new_id)
+            else last_row <- 0L
+            corresponding_ids$code <- corresponding_ids$code %>% dplyr::bind_rows(
+              data$code %>% dplyr::select(old_id = id) %>% dplyr::mutate(new_id = last_row + 1:dplyr::n()))
+          }
+          
+          # Change IDs
+          
+          ### tabs_groups
+          data$tabs_groups <- data$tabs_groups %>% dplyr::mutate(id = c(1L, 2L), .before = "category")
+          
+          ### tabs
+          if (nrow(data$tabs) > 0) data$tabs <- data$tabs %>%
+            dplyr::left_join(corresponding_ids$tabs %>% dplyr::select(id = old_id, new_id), by = "id") %>%
+            dplyr::left_join(corresponding_ids$tabs %>% dplyr::select(parent_tab_id = old_id, new_parent_tab_id = new_id), by = "parent_tab_id") %>%
+            dplyr::left_join(corresponding_ids$tabs_groups %>% dplyr::select(tab_group_id = old_id, new_tab_group_id = new_id), by = "tab_group_id") %>%
+            dplyr::select(-id, -parent_tab_id, -tab_group_id) %>%
+            dplyr::rename(id = new_id, parent_tab_id = new_parent_tab_id, tab_group_id = new_tab_group_id) %>%
+            dplyr::relocate(id, .before = "category") %>%
+            dplyr::relocate(parent_tab_id, .before = "display_order") %>%
+            dplyr::relocate(tab_group_id, .before = "parent_tab_id")
+          
+          ### widgets
+          if (nrow(data$widgets) > 0) data$widgets <- data$widgets %>%
+            dplyr::left_join(corresponding_ids$widgets %>% dplyr::select(id = old_id, new_id = new_id), by = "id") %>%
+            dplyr::left_join(corresponding_ids$tabs %>% dplyr::select(tab_id = old_id, new_tab_id = new_id), by = "tab_id") %>%
+            dplyr::left_join(corresponding_ids$plugins %>% dplyr::select(plugin_id = old_id, new_plugin_id = new_id), by = "plugin_id") %>%
+            dplyr::select(-id, -tab_id, -plugin_id) %>%
+            dplyr::rename(id = new_id, tab_id = new_tab_id, plugin_id = new_plugin_id) %>%
+            dplyr::relocate(id, .before = "category") %>%
+            dplyr::relocate(tab_id, .after = "name") %>%
+            dplyr::relocate(plugin_id, .before = "display_order")
+          
+          ### widgets_concepts
+          if (nrow(data$widgets_concepts) > 0) data$widgets_concepts <- data$widgets_concepts %>%
+            dplyr::left_join(corresponding_ids$widgets_concepts %>% dplyr::select(id = old_id, new_id = new_id), by = "id") %>%
+            dplyr::left_join(corresponding_ids$widgets %>% dplyr::select(widget_id = old_id, new_widget_id = new_id), by = "widget_id") %>%
+            dplyr::select(-id, -widget_id) %>%
+            dplyr::rename(id = new_id, widget_id = new_widget_id) %>%
+            dplyr::relocate(id, .before = "concept_id") %>%
+            dplyr::relocate(widget_id, .after = "id")
+          
+          ### widgets_options
+          if (nrow(data$widgets_options) > 0) data$widgets_options <- data$widgets_options %>%
+            dplyr::left_join(corresponding_ids$widgets_options %>% dplyr::select(id = old_id, new_id = new_id), by = "id") %>%
+            dplyr::left_join(corresponding_ids$widgets %>% dplyr::select(widget_id = old_id, new_widget_id = new_id), by = "widget_id") %>%
+            dplyr::select(-id, -widget_id) %>%
+            dplyr::rename(id = new_id, widget_id = new_widget_id) %>%
+            dplyr::relocate(id, .before = "person_id") %>%
+            dplyr::relocate(widget_id, .after = "id")
+          
+          ### plugins
+          if (nrow(data$plugins) > 0) data$plugins <- data$plugins %>%
+            dplyr::left_join(corresponding_ids$plugins %>% dplyr::select(id = old_id, new_id), by = "id") %>%
+            dplyr::select(-id) %>%
+            dplyr::rename(id = new_id) %>%
+            dplyr::relocate(id, .before = "name")
+          
+          ### options
+          if (nrow(data$options) > 0) data$options <- data$options %>%
+            dplyr::left_join(corresponding_ids$options %>% dplyr::select(id = old_id, new_id), by = "id") %>%
+            dplyr::left_join(corresponding_ids$plugins %>% dplyr::select(link_id = old_id, new_link_id = new_id), by = "link_id") %>%
+            dplyr::select(-id, -link_id) %>%
+            dplyr::rename(id = new_id, link_id = new_link_id) %>%
+            dplyr::relocate(id, .before = "category") %>%
+            dplyr::relocate(link_id, .before = "name")
+          
+          ### code
+          if (nrow(data$code) > 0) data$code <- data$code %>%
+            dplyr::left_join(corresponding_ids$code %>% dplyr::select(id = old_id, new_id), by = "id") %>%
+            dplyr::left_join(corresponding_ids$plugins %>% dplyr::select(link_id = old_id, new_link_id = new_id), by = "link_id") %>%
+            dplyr::select(-id, -link_id) %>%
+            dplyr::rename(id = new_id, link_id = new_link_id) %>%
+            dplyr::relocate(id, .before = "category") %>%
+            dplyr::relocate(link_id, .before = "code")
           
           # Create CSV files
           dir.create(paste0(temp_dir_copy, "/app_database"))
-          for (csv_file in c("patient_lvl_tabs_groups", "patient_lvl_tabs", "patient_lvl_widgets", "patient_lvl_widgets_concepts", "patient_lvl_widgets_options", 
-            "aggregated_tabs_groups", "aggregated_tabs", "aggregated_widgets", "aggregated_widgets_concepts", "aggregated_widgets_options",
-            "plugins", "options", "code")) readr::write_csv(data[[csv_file]],  paste0(temp_dir_copy, "/app_database/", csv_file, ".csv"))
+          for (csv_file in c("tabs_groups", "tabs", "widgets", "widgets_concepts", "widgets_options",
+            "plugins", "options", "code")) readr::write_csv(data[[csv_file]], paste0(temp_dir_copy, "/app_database/", csv_file, ".csv"))
           
           # Copy plugins folders
           dir.create(paste0(temp_dir_copy, "/plugins"))
