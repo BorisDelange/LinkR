@@ -762,6 +762,12 @@ mod_my_subsets_server <- function(id = character(), r = shiny::reactiveValues(),
         dplyr::collect() %>%
         dplyr::anti_join(r$subset_persons_temp %>% dplyr::select(person_id) %>% dplyr::mutate_at("person_id", as.integer), by = "person_id") %>%
         dplyr::mutate_at("person_id", as.character)
+      
+      # If this subset is actually loaded in patient-lvl data page, update patients dropdown
+      if (length(input$persons_selected_subset) > 1) link_id <- input$persons_selected_subset$key
+      else link_id <- input$persons_selected_subset
+      if (m$selected_subset == link_id) m$subset_persons <- r$subset_persons_temp %>% dplyr::select(id, subset_id, person_id, creator_id, datetime, deleted)
+      
     })
     
     # Prepare data for subset_add_persons_datatable

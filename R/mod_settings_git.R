@@ -160,7 +160,6 @@ mod_settings_git_ui <- function(id = character(), i18n = character()){
             ),
             shiny.fluent::Stack(horizontal = TRUE, tokens = list(childrenGap = 20),
               make_combobox(i18n = i18n, ns = ns, label = "git_repo", id = "edit_repo_selected_repo", width = "300px", allowFreeform = FALSE, multiSelect = FALSE),
-              # make_textfield(i18n = i18n, ns = ns, label = "username", id = "edit_repo_username", width = "300px"),
               make_textfield(i18n = i18n, ns = ns, label = "api_key", id = "edit_repo_api_key", width = "300px"),
               div(shiny.fluent::PrimaryButton.shinyInput(ns("edit_repo_load_repo"), i18n$t("load")), style = "margin-top:39px")
             ),
@@ -899,8 +898,8 @@ mod_settings_git_server <- function(id = character(), r = shiny::reactiveValues(
         else if (input$repo_category == "vocabularies") dropdown_options <- r$vocabulary
         else dropdown_options <- r[[input$repo_category]]
         
-        if (input$repo_category == "vocabularies") dropdown_options <- dropdown_options %>% convert_tibble_to_list(key_col = "id", text_col = "vocabulary_name")
-        else dropdown_options <- dropdown_options %>% convert_tibble_to_list(key_col = "id", text_col = "name")
+        if (input$repo_category == "vocabularies") dropdown_options <- dropdown_options %>% dplyr::arrange(tolower(vocabulary_name)) %>% convert_tibble_to_list(key_col = "id", text_col = "vocabulary_name")
+        else dropdown_options <- dropdown_options %>% dplyr::arrange(tolower(name)) %>% convert_tibble_to_list(key_col = "id", text_col = "name")
         
         shiny.fluent::updateDropdown.shinyInput(session, "edit_repo_add_selected_files", options = dropdown_options)
         shiny.fluent::updateDropdown.shinyInput(session, "edit_repo_studies_dataset", options = list(), value = NULL)
@@ -920,7 +919,7 @@ mod_settings_git_server <- function(id = character(), r = shiny::reactiveValues(
       # Update add_files dropdown
       sql <- glue::glue_sql("SELECT * FROM studies WHERE dataset_id = {input$edit_repo_studies_dataset} AND deleted IS FALSE", .con = r$db)
       r$edit_repo_studies <- DBI::dbGetQuery(r$db, sql)
-      dropdown_options <- r$edit_repo_studies %>% convert_tibble_to_list(key_col = "id", text_col = "name")
+      dropdown_options <- r$edit_repo_studies %>% dplyr::arrange(tolower(name)) %>% convert_tibble_to_list(key_col = "id", text_col = "name")
       
       shiny.fluent::updateDropdown.shinyInput(session, "edit_repo_add_selected_files", options = dropdown_options)
       
@@ -1342,8 +1341,8 @@ mod_settings_git_server <- function(id = character(), r = shiny::reactiveValues(
       else if (input$repo_category == "studies") dropdown_options <- r$edit_repo_studies
       else dropdown_options <- r[[input$repo_category]]
       
-      if (input$repo_category == "vocabularies") dropdown_options <- dropdown_options %>% convert_tibble_to_list(key_col = "id", text_col = "vocabulary_name")
-      else dropdown_options <- dropdown_options %>% convert_tibble_to_list(key_col = "id", text_col = "name")
+      if (input$repo_category == "vocabularies") dropdown_options <- dropdown_options %>% dplyr::arrange(tolower(vocabulary_name)) %>% convert_tibble_to_list(key_col = "id", text_col = "vocabulary_name")
+      else dropdown_options <- dropdown_options %>% dplyr::arrange(tolower(name)) %>% convert_tibble_to_list(key_col = "id", text_col = "name")
       
       shiny.fluent::updateDropdown.shinyInput(session, "edit_repo_add_selected_files", options = dropdown_options, value = NULL)
       

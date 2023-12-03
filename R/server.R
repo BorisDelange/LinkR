@@ -236,14 +236,6 @@ app_server <- function(language = "en", languages = tibble::tibble(), i18n = cha
     # Route pages
     if (debug) cat(paste0("\n", Sys.time(), " - server - shiny.router"))
     shiny.router::router_server()
-    # router$server(input, output, session)
-    
-    # for (folder in c("markdowns", "plugins", "scripts", "vocabularies", "datasets", "studies", "app_db")){
-    #   unlink(paste0(app_folder, "/temp_files/", folder), recursive = TRUE, force = TRUE)
-    #   if (!dir.exists(paste0(app_folder, "/temp_files/", folder))) dir.create(paste0(app_folder, "/temp_files/", folder))
-    # }
-    # Do not clear git_repos folder in temp_files
-    # if (!dir.exists(paste0(app_folder, "/temp_files/git_repos"))) dir.create(paste0(app_folder, "/temp_files/git_repos"))
     
     # Keep trace of loaded observers (not to have multiple identical observers)
     r$loaded_observers <- ""

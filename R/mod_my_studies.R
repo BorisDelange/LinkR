@@ -376,8 +376,15 @@ mod_my_studies_server <- function(id = character(), r = shiny::reactiveValues(),
       if (debug) cat(paste0("\n", Sys.time(), " - mod_my_studies - observer r$selected_dataset"))
       
       # Show first card & hide "choose a dataset" card
-      shinyjs::hide("choose_a_dataset_card")
-      shinyjs::show("menu")
+      if (is.na(r$selected_dataset)){
+        shinyjs::show("choose_a_dataset_card")
+        shinyjs::hide("menu")
+      }
+      else {
+        shinyjs::hide("choose_a_dataset_card")
+        shinyjs::show("menu")
+      }
+      
       if (length(input$current_tab) == 0){
         if ("all_studies_card" %in% r$user_accesses) shinyjs::show("all_studies_card")
         else shinyjs::show("all_studies_card_forbidden")
@@ -1158,6 +1165,8 @@ mod_my_studies_server <- function(id = character(), r = shiny::reactiveValues(),
       link_id <- integer(0)
 
       study <- r$remote_git_studies_full %>% dplyr::filter(unique_id == !!unique_id)
+      print("study")
+      print(study)
 
       tryCatch({
         study_dir <- paste0(r$app_folder, "/studies/", study$unique_id)
@@ -1166,7 +1175,7 @@ mod_my_studies_server <- function(id = character(), r = shiny::reactiveValues(),
 
         # Delete old study if exists
         if (nrow(r$options %>% dplyr::filter(category == "study" & name == "unique_id" & value == unique_id)) > 0){
-
+          print("1")
           link_id <- r$options %>% dplyr::filter(category == "study" & name == "unique_id" & value == unique_id) %>% dplyr::pull(link_id)
 
           sql <- glue::glue_sql("DELETE FROM options WHERE category = 'study' AND link_id = {link_id}", .con = r$db)
@@ -1184,7 +1193,7 @@ mod_my_studies_server <- function(id = character(), r = shiny::reactiveValues(),
 
           study_updated <- TRUE
         }
-
+        
         # Add new study
 
         # Add columns that don't exist (if a language has been added after the creation of the study)
@@ -1203,8 +1212,8 @@ mod_my_studies_server <- function(id = character(), r = shiny::reactiveValues(),
         new_data <- list()
         
         new_data$studies <- tibble::tibble(id = link_id, name = study[[paste0("name_", language)]],
-          dataset_id = as.integer(r$selected_dataset), patient_lvl_tab_group_id = last_row$patient_lvl_tabs_groups + 1, 
-          aggregated_tab_group_id = last_row$aggregated_tabs_groups + 1, creator_id = as.integer(r$user_id),
+          dataset_id = as.integer(r$selected_dataset), patient_lvl_tab_group_id = last_row$tabs_groups + 1, 
+          aggregated_tab_group_id = last_row$tabs_groups + 2, creator_id = as.integer(r$user_id),
           creation_datetime = study$creation_datetime, update_datetime = as.character(Sys.time()), deleted = FALSE)
 
         for (name in c(paste0("description_", r$languages$code), "code")) study[[name]] <- study[[name]] %>% stringr::str_replace_all("'", "''")
@@ -1232,6 +1241,8 @@ mod_my_studies_server <- function(id = character(), r = shiny::reactiveValues(),
           ) %>%
           dplyr::mutate(id = last_row$options + dplyr::row_number(), category = "study", link_id = !!link_id, .before = "name") %>%
           dplyr::mutate(creator_id = r$user_id, datetime = as.character(Sys.time()), deleted = FALSE)
+        
+        print(new_data)
         
         for (name in c("studies", "options")){
           DBI::dbAppendTable(r$db, name, new_data[[name]])

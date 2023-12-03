@@ -27,16 +27,13 @@ mod_page_header_ui <- function(id = character(), i18n = character()){
           shiny.fluent::CommandBarItem(i18n$t("data"), "OfflineStorage",
             subMenuProps = list(items = list(
               list(text = i18n$t("access_to_data"), iconProps = list(iconName = "BIDashboard"), href = shiny.router::route_link("data")),
+              list(text = i18n$t("data_cleaning"), iconProps = list(iconName = "CodeEdit"), href = shiny.router::route_link("scripts")),
               list(text = i18n$t("my_studies"), iconProps = list(iconName = "CustomList"), href = shiny.router::route_link("my_studies")),
               list(text = i18n$t("my_subsets"), iconProps = list(iconName = "People"), href = shiny.router::route_link("my_subsets"))
           ))),
-          shiny.fluent::CommandBarItem(i18n$t("vocabularies"), "AllApps", href = shiny.router::route_link("vocabularies")),
           shiny.fluent::CommandBarItem(i18n$t("messages"), "Chat", href = shiny.router::route_link("messages")),
-          shiny.fluent::CommandBarItem(text = i18n$t("scripts_and_plugins"), "Code",
-            subMenuProps = list(items = list(
-              list(text = i18n$t("scripts"), iconProps = list(iconName = "CodeEdit"), href = shiny.router::route_link("scripts")),
-              list(text = i18n$t("plugins"), iconProps = list(iconName = "Code"), href = shiny.router::route_link("plugins"))
-          )))
+          shiny.fluent::CommandBarItem(i18n$t("vocabularies"), "AllApps", href = shiny.router::route_link("vocabularies")),
+          shiny.fluent::CommandBarItem(i18n$t("plugins"), "Code", href = shiny.router::route_link("plugins"))
         )
       )
     ),

@@ -923,9 +923,10 @@ mod_vocabularies_server <- function(id = character(), r = shiny::reactiveValues(
       
       file.remove(paste0(r$app_folder, "/datasets_files/", r$selected_dataset, "/dataset_all_concepts.csv"))
       
-      r$load_dataset_all_concepts <- Sys.time()
-      
-      show_message_bar(output, "cache_reloaded", type = "success", i18n = i18n, ns = ns)
+      shinyjs::delay(100, {
+        r$load_dataset_all_concepts <- Sys.time()
+        show_message_bar(output, "cache_reloaded", type = "success", i18n = i18n, ns = ns)
+      })
     })
     
     # Updates on datatable data

@@ -285,8 +285,13 @@ mod_page_sidenav_server <- function(id = character(), r = shiny::reactiveValues(
         
         # Update dropdown
         shinyjs::delay(100, {
+          
+          value <- NULL
+          if (length(r$selected_dataset) > 0) if (nrow(r$datasets %>% dplyr::filter(id == r$selected_dataset)) > 0) value <- list(
+            key = r$selected_dataset, text = r$datasets %>% dplyr::filter(id == r$selected_dataset) %>% dplyr::pull(name))
+          
           shiny.fluent::updateComboBox.shinyInput(session, "dataset", 
-            options = convert_tibble_to_list(r$datasets %>% dplyr::arrange(name), key_col = "id", text_col = "name"), value = NULL)
+            options = convert_tibble_to_list(r$datasets %>% dplyr::arrange(name), key_col = "id", text_col = "name"), value = value)
           
           sapply(c("study", "subset", "person", "visit_detail", "person_status", "hr1", "hr2", "exclusion_reason_div"), function(element){
             sapply(c(element, paste0(element, "_title"), paste0(element, "_page")), shinyjs::hide)
@@ -403,6 +408,19 @@ mod_page_sidenav_server <- function(id = character(), r = shiny::reactiveValues(
           # Update subset dropdown
           if (nrow(m$subsets) == 0) shiny.fluent::updateComboBox.shinyInput(session, "subset", options = list(), value = NULL, errorMessage = i18n$t("no_subset_available"))
           if (nrow(m$subsets) > 0) shiny.fluent::updateComboBox.shinyInput(session, "subset", options = convert_tibble_to_list(m$subsets, key_col = "id", text_col = "name"), value = NULL)
+          
+          # Reset other dropdowns & uiOutput
+          shiny.fluent::updateComboBox.shinyInput(session, "person", options = list(), value = NULL)
+          shiny.fluent::updateComboBox.shinyInput(session, "visit_detail", options = list(), value = NULL)
+          shiny.fluent::updateComboBox.shinyInput(session, "person_status", options = list(), value = NULL)
+          shiny.fluent::updateComboBox.shinyInput(session, "exclusion_reason", options = list(), value = NULL)
+          
+          sapply(c("person", "visit_detail", "person_status", "hr1", "hr2", "exclusion_reason_div"), function(element){
+            sapply(c(element, paste0(element, "_title"), paste0(element, "_page")), shinyjs::hide)
+          })
+          sapply(c("subset"), function(element) sapply(c(element, paste0(element, "_title"), paste0(element, "_page")), shinyjs::show))
+          shinyjs::hide("exclusion_reason_div")
+          output$person_info <- renderUI("")
         })
       }
       
@@ -435,7 +453,7 @@ mod_page_sidenav_server <- function(id = character(), r = shiny::reactiveValues(
           if (is.na(m$selected_subset)) m$selected_subset <- input$subset$key
           if (!is.na(m$selected_subset) & m$selected_subset != input$subset$key) m$selected_subset <- input$subset$key
   
-          # Reset dropdown & uiOutput
+          # Reset dropdowns & uiOutput
           shiny.fluent::updateComboBox.shinyInput(session, "visit_detail", options = list(), value = NULL)
           shiny.fluent::updateComboBox.shinyInput(session, "person_status", options = list(), value = NULL)
           shiny.fluent::updateComboBox.shinyInput(session, "exclusion_reason", options = list(), value = NULL)
@@ -488,6 +506,17 @@ mod_page_sidenav_server <- function(id = character(), r = shiny::reactiveValues(
               options = convert_tibble_to_list(data = persons %>% dplyr::slice_head(n = 100) %>% dplyr::mutate(name_display = paste0(person_id, " - ", gender_concept_name)),
                 key_col = "person_id", text_col = "name_display"), value = NULL)
           }
+          
+          # Reset other dropdowns & uiOutput
+          shiny.fluent::updateComboBox.shinyInput(session, "visit_detail", options = list(), value = NULL)
+          shiny.fluent::updateComboBox.shinyInput(session, "person_status", options = list(), value = NULL)
+          shiny.fluent::updateComboBox.shinyInput(session, "exclusion_reason", options = list(), value = NULL)
+          sapply(c("visit_detail", "person_status", "hr2", "exclusion_reason_div"), function(element){
+            sapply(c(element, paste0(element, "_title"), paste0(element, "_page")), shinyjs::hide)
+          })
+          sapply(c("person", "hr1"), function(element) sapply(c(element, paste0(element, "_title"), paste0(element, "_page")), shinyjs::show))
+          shinyjs::hide("exclusion_reason_div")
+          output$person_info <- renderUI("")
           
         })
       }

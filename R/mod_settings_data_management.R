@@ -632,6 +632,8 @@ mod_settings_data_management_ui <- function(id = character(), i18n = character()
                 div(
                   id = ns("import_concepts_div"),
                   br(),
+                  shiny.fluent::Stack(horizontal = TRUE, tokens = list(childrenGap = 10), 
+                    make_toggle(i18n = i18n, ns = ns, label = "add_all_vocabularies", inline = TRUE)), br(),
                   shiny.fluent::ChoiceGroup.shinyInput(ns("import_concepts_data_type"), value = "zip",
                     options = list(
                       list(key = "zip", text = i18n$t("zip")),
@@ -1453,15 +1455,6 @@ mod_settings_data_management_server <- function(id = character(), r = shiny::rea
         r[[paste0(table, "_datatable_temp")]] <- prepare_data_datatable(output = output, r = r, ns = ns, i18n = i18n, id = id,
           table = table, dropdowns = dropdowns_datatable, dropdowns_multiselect = dropdowns_multiselect, factorize_cols = factorize_cols,
           action_buttons = action_buttons, data_input = r[[paste0(table, "_temp")]])
-        
-        # Replace empty data_source_id by "deleted data source"
-        # if (table == "datasets"){
-        #   r[[paste0(table, "_datatable_temp")]] <- r[[paste0(table, "_datatable_temp")]] %>%
-        #     dplyr::mutate_at("data_source_id", as.character) %>%
-        #     dplyr::mutate(data_source_id = dplyr::case_when(
-        #       data_source_id == "" ~ i18n$t("deleted_data_source"), TRUE ~ data_source_id
-        #     ))
-        # }
         
         if (table %in% c("datasets", "vocabulary")){
           r[[paste0(table, "_datatable_temp")]] <- r[[paste0(table, "_datatable_temp")]] %>%
@@ -3087,7 +3080,9 @@ mod_settings_data_management_server <- function(id = character(), r = shiny::rea
                   if ("valid_start_date" %in% names(data)) data <- data %>% dplyr::mutate_at(c("valid_start_date", "valid_end_date"), lubridate::ymd)
                   
                   # Import vocabulary with import_vocabulary_table
-                  capture.output(import_vocabulary_table(output = output, ns = ns, i18n = i18n, r = r, m = m, table_name = table_name, data = data))
+                  add_vocabulary <- FALSE
+                  if (length(input$add_all_vocabularies) > 0) if (input$add_all_vocabularies) add_vocabulary <- TRUE
+                  capture.output(import_vocabulary_table(output = output, ns = ns, i18n = i18n, r = r, m = m, table_name = table_name, data = data, add_vocabulary = add_vocabulary))
                 }
               }
             })
@@ -3129,7 +3124,9 @@ mod_settings_data_management_server <- function(id = character(), r = shiny::rea
                   if ("valid_start_date" %in% names(data)) data <- data %>% dplyr::mutate_at(c("valid_start_date", "valid_end_date"), lubridate::ymd)
                   
                   # Import vocabulary with import_vocabulary_table
-                  capture.output(import_vocabulary_table(output = output, ns = ns, i18n = i18n, r = r, m = m, table_name = table_name, data = data))
+                  add_vocabulary <- FALSE
+                  if (length(input$add_all_vocabularies) > 0) if (input$add_all_vocabularies) add_vocabulary <- TRUE
+                  capture.output(import_vocabulary_table(output = output, ns = ns, i18n = i18n, r = r, m = m, table_name = table_name, data = data, add_vocabulary = add_vocabulary))
                 }
               }
               

@@ -79,7 +79,7 @@ mod_scripts_ui <- function(id = character(), i18n = character(), language = "en"
     shiny.fluent::reactOutput(ns("script_delete_confirm")),
     shiny.fluent::reactOutput(ns("script_image_delete_confirm")),
     shiny.fluent::Breadcrumb(items = list(
-      list(key = id, text = i18n$t("scripts"))
+      list(key = id, text = i18n$t("data_cleaning_scripts"))
     ), maxDisplayedItems = 3),
     
     # --- --- -- -- --

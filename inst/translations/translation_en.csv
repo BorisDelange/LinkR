@@ -366,6 +366,7 @@ subset_added,New subset added
 script_added,New script added
 script_updated,Script updated
 script_imported,Script imported
+study_updated,Study updated
 study_imported,Study imported
 dataset_updated,Dataset updated
 dataset_imported,Dataset imported
@@ -992,3 +993,6 @@ readme,README
 generate_content,Generate content
 error_update_readme,Error update README
 error_generate_readme,Error generate README
+add_all_vocabularies,Add all vocabularies found in files
+data_cleaning,Data cleaning
+data_cleaning_scripts,Data cleaning scripts
