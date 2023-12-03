@@ -11,6 +11,9 @@ RUN R -e "install.packages('remotes', repos='https://cloud.r-project.org/')"
 # Install shiny version 1.7.4.1 specifically (last version working with LinkR)
 RUN R -e "install.packages('https://cran.r-project.org/src/contrib/Archive/shiny/shiny_1.7.4.1.tar.gz', repos=NULL, type='source')"
 
+# Install additional packages
+RUN R -e "install.packages(c('xts', 'dygraphs', 'duckdb', 'sparklyr'), repos='https://cloud.r-project.org/')"
+
 # Install LinkR from GitHub
 RUN R -e "remotes::install_gitlab('interhop/linkr/linkr', host = 'framagit.org')"
 

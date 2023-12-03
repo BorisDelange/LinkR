@@ -1270,7 +1270,8 @@ mod_data_server <- function(id = character(), r = shiny::reactiveValues(), d = s
       shinyjs::show(paste0(category, "_widget_settings"))
       r[[paste0(category, "_widget_card_selected_type")]] <- "widget_settings"
       
-      widget_infos <- r[[paste0(category, "_widgets")]] %>% dplyr::filter(id == r[[paste0(category, "_widget_settings")]])
+      widget_id <- r[[paste0(category, "_widget_settings")]]
+      widget_infos <- r[[paste0(category, "_widgets")]] %>% dplyr::filter(id == widget_id)
       req(nrow(widget_infos) > 0)
       
       # Update name & plugin textfields
@@ -1323,7 +1324,7 @@ mod_data_server <- function(id = character(), r = shiny::reactiveValues(), d = s
       
       # Check if values required to be unique are unique
       
-      sql <- glue::glue_sql("SELECT DISTINCT(name) FROM widgets WHERE deleted IS FALSE AND category = {category} AND tab_id = {ids$tab_id} AND id != {widget_id}", .con = r$db)
+      sql <- glue::glue_sql("SELECT DISTINCT(name) FROM widgets WHERE deleted IS FALSE AND tab_id = {ids$tab_id} AND id != {widget_id}", .con = r$db)
       distinct_values <- DBI::dbGetQuery(r$db, sql) %>% dplyr::pull()
       if (new_data$name %in% distinct_values) show_message_bar(output,  "name_already_used", "severeWarning", i18n = i18n, ns = ns)
       req(new_data$name %not_in% distinct_values)
@@ -1334,7 +1335,7 @@ mod_data_server <- function(id = character(), r = shiny::reactiveValues(), d = s
           id == widget_id ~ new_data$name,
           TRUE ~ name
         ))
-      sql <- glue::glue_sql("UPDATE widgets SET name = {new_data$name} WHERE category = {category} AND id = {widget_id}", .con = r$db)
+      sql <- glue::glue_sql("UPDATE widgets SET name = {new_data$name} WHERE id = {widget_id}", .con = r$db)
       query <- DBI::dbSendStatement(r$db, sql)
       DBI::dbClearResult(query)
       
@@ -1359,7 +1360,7 @@ mod_data_server <- function(id = character(), r = shiny::reactiveValues(), d = s
           )
         
         # Remove old data
-        sql <- glue::glue_sql("UPDATE widgets_concepts SET deleted = TRUE WHERE category = {category} AND widget_id = {widget_id}", .con = m$db)
+        sql <- glue::glue_sql("UPDATE widgets_concepts SET deleted = TRUE WHERE widget_id = {widget_id}", .con = m$db)
         query <- DBI::dbSendStatement(m$db, sql)
         DBI::dbClearResult(query)
         r[[paste0(category, "_widgets_concepts")]] <- r[[paste0(category, "_widgets_concepts")]] %>% dplyr::filter(widget_id != !!widget_id)
@@ -1659,9 +1660,9 @@ mod_data_server <- function(id = character(), r = shiny::reactiveValues(), d = s
         
         # Calculate display order
         if (!is.na(new_data$parent_tab)) sql <- glue::glue_sql("SELECT COALESCE(MAX(display_order), 0) FROM tabs
-            WHERE category = {category} AND tab_group_id = {new_data$tab_group} AND parent_tab_id = {new_data$parent_tab}", .con = r$db)
+            WHERE tab_group_id = {new_data$tab_group} AND parent_tab_id = {new_data$parent_tab}", .con = r$db)
         if (is.na(new_data$parent_tab)) sql <- glue::glue_sql("SELECT COALESCE(MAX(display_order), 0) FROM tabs
-            WHERE category = {category} AND tab_group_id = {new_data$tab_group} AND parent_tab_id IS NULL", .con = r$db)
+            WHERE tab_group_id = {new_data$tab_group} AND parent_tab_id IS NULL", .con = r$db)
         
         new_data$display_order <- DBI::dbGetQuery(r$db, sql) %>% dplyr::pull() + 1
         
@@ -2445,7 +2446,7 @@ mod_data_server <- function(id = character(), r = shiny::reactiveValues(), d = s
       # Get last_row nb
       # last_row_widgets <- get_last_row(r$db, paste0(category, "_widgets"))
       widget_id <- get_last_row(r$db, "widgets") + 1
-      sql <- glue::glue_sql("SELECT COALESCE(MAX(display_order), 0) FROM widgets WHERE tab_id = {new_data$tab_new_element} AND category = {category}", .con = r$db)
+      sql <- glue::glue_sql("SELECT COALESCE(MAX(display_order), 0) FROM widgets WHERE tab_id = {new_data$tab_new_element}", .con = r$db)
       last_display_order <- DBI::dbGetQuery(r$db, sql) %>% dplyr::pull() %>% as.integer()
       
       new_data <- tibble::tribble(~id, ~name, ~category, ~tab_id, ~plugin_id, ~display_order, ~creator_id, ~datetime, ~deleted,

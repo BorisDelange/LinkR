@@ -2355,7 +2355,7 @@ mod_plugins_server <- function(id = character(), r = shiny::reactiveValues(), d 
       ui_code <- r[[paste0(id, "_ui_code")]]
       server_code <- r[[paste0(id, "_server_code")]]
       
-      widget_id <- get_last_row(r$db, paste0(prefix, "_widgets")) + 10^6 %>% as.integer()
+      widget_id <- get_last_row(r$db, "widgets") + 10^6 %>% as.integer()
       
       # Create a session number, to inactivate older observers
       # Reset all older observers
