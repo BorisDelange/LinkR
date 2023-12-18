@@ -1,12 +1,13 @@
 Package: linkr
 Title: LinkR
-Version: 0.2.0.9057
+Version: 0.2.0.9058
 Authors@R: person('Boris', 'Delange', email = 'linkr-app@pm.me', role = c('cre', 'aut', 'cph'))
 Description: LinkR package gives some tools to help clinicians without advanced programmation skills, 
   statisticiants and data scientists use their clinical data warehouse, from patient-level data visualization 
   to pooled patient data analytics, using a web application created with {shiny}.
 License: GPL (>= 3)
 Imports: 
+    bit64 (>= 4.0.5),
     clipr (>= 0.8.0),
     curl (>= 5.0.0),
     DBI (>= 1.1.1),

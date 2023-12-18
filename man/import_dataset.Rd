@@ -58,12 +58,12 @@ See help pages in the app for more informations.
 }
 \examples{
 \dontrun{
-persons <- tibble::tibble(person_id = 1L, gender_concept_id = 8532L, year_of_birth = NA_integer_, month_of_birth = NA_integer_,
+person <- tibble::tibble(person_id = 1L, gender_concept_id = 8532L, year_of_birth = NA_integer_, month_of_birth = NA_integer_,
   day_of_birth = NA_integer_, birth_datetime = lubridate::ymd_hms("1990-01-03 00:00:00"), race_concept_id = NA_integer_,
   ethnicity_concept_id = NA_integer_, location_id = NA_integer_, provider_id = NA_integer_, care_site_id = NA_integer_,
   person_source_value = NA_character_, gender_source_value = "F", race_source_value = NA_character_, ethnicity_source_value = NA_character_)
     
-import_dataset(output = output, ns = ns, i18n = i18n, r = r, d = d, dataset_id = 5, data = persons, type = "persons", 
-  omop_versions = "5.4", save_as_csv = FALSE, rewrite = FALSE)
+import_dataset(output = output, ns = ns, i18n = i18n, r = r, d = d, dataset_id = 5, data = person, type = "person", 
+  omop_version = "5.4", read_with = "vroom", save_as = "csv", rewrite = FALSE)
 }
 }

@@ -112,6 +112,15 @@ resize_and_pad_image <- function(input_path, output_path, target_width = 318, ta
   magick::image_write(img_final, output_path)
 }
 
+#' Is integer
+#' 
+#' @description Test if a number is an integer or an integer64
+#' @param x Number to test (int / int64 / numeric)
+#' @examples is_integer_or_integer64(634L)
+is_integer_or_integer64 <- function(x) {
+  is.integer(x) || bit64::is.integer64(x)
+}
+
 `%not_in%` <- Negate(`%in%`)
 
 not_null <- Negate(is.null)

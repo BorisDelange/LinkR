@@ -2228,6 +2228,8 @@ mod_settings_data_management_server <- function(id = character(), r = shiny::rea
         if (perf_monitoring) monitor_perf(r = r, action = "start")
         if (debug) cat(paste0("\n", Sys.time(), " - mod_settings_data_management - observer r$..code_trigger"))
         
+        req(length(input$code_selected_dataset_or_vocabulary) > 0)
+        
         edited_code <- r[[paste0(id, "_code")]] %>% 
           stringr::str_replace_all("\r", "\n")
         
@@ -2253,12 +2255,16 @@ mod_settings_data_management_server <- function(id = character(), r = shiny::rea
         }
         
         # Prevent "NULL" at the end of console output
-        edited_code <- paste0(edited_code, "\ncat()")
+        # edited_code <- paste0(edited_code, "\ncat()")
         
         output$datetime_code_execution <- renderText(format_datetime(Sys.time(), language))
         
         console_result <- isolate(execute_settings_code(input = input, output = output, session = session, id = id, ns = ns, 
-          i18n = i18n, r = r, d = d, m = m, edited_code = edited_code))
+          i18n = i18n, r = r, d = d, m = m, edited_code = edited_code)) %>%
+          stringr::str_replace_all(paste0("<(lgl|int|dbl|chr|cpl|raw|list|named list|fct|ord|date|dttm|drtn|time",
+            "|int64|blob|df\\[\\,1\\]|tibble\\[\\,1\\]|I|\\?\\?\\?|vctrs_vc|prtl_fctr|prtl|fn|sym|expression|quos)>"), 
+            function(x) sprintf("&lt;%s&gt;", substr(x, 2, nchar(x) - 1))) %>%
+          gsub("NULL$", "", .)
         
         output$code_result <- renderUI(HTML(paste0("<pre>", console_result, "</pre>")))
         

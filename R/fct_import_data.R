@@ -21,13 +21,13 @@
 #' See help pages in the app for more informations.
 #' @examples
 #' \dontrun{
-#' persons <- tibble::tibble(person_id = 1L, gender_concept_id = 8532L, year_of_birth = NA_integer_, month_of_birth = NA_integer_,
+#' person <- tibble::tibble(person_id = 1L, gender_concept_id = 8532L, year_of_birth = NA_integer_, month_of_birth = NA_integer_,
 #'   day_of_birth = NA_integer_, birth_datetime = lubridate::ymd_hms("1990-01-03 00:00:00"), race_concept_id = NA_integer_,
 #'   ethnicity_concept_id = NA_integer_, location_id = NA_integer_, provider_id = NA_integer_, care_site_id = NA_integer_,
 #'   person_source_value = NA_character_, gender_source_value = "F", race_source_value = NA_character_, ethnicity_source_value = NA_character_)
 #'     
-#' import_dataset(output = output, ns = ns, i18n = i18n, r = r, d = d, dataset_id = 5, data = persons, type = "persons", 
-#'   omop_versions = "5.4", save_as_csv = FALSE, rewrite = FALSE)
+#' import_dataset(output = output, ns = ns, i18n = i18n, r = r, d = d, dataset_id = 5, data = person, type = "person", 
+#'   omop_version = "5.4", read_with = "vroom", save_as = "csv", rewrite = FALSE)
 #' }
 import_dataset <- function(output, ns = character(), i18n = character(), r = shiny::reactiveValues(), d = shiny::reactiveValues(), 
   dataset_id = integer(), data = tibble::tibble(), type = "", omop_version = "6.0", 
@@ -1047,7 +1047,7 @@ import_dataset <- function(output, ns = character(), i18n = character(), r = shi
   var_cols <- data_cols %>% dplyr::filter(var == type) %>% dplyr::pull(cols)
   var_cols <- var_cols[[1]]
   
-  if (!identical(names(data), var_cols %>% dplyr::pull(name))){
+  if (!identical(colnames(data), var_cols %>% dplyr::pull(name))){
     add_log_entry(r = r, category = "Error", name = paste0("import_dataset - invalid_col_names - id = ", dataset_id), value = paste0(i18n$t("valid_col_names_are"), "</span>\n", toString(var_cols %>% dplyr::pull(name))))
     cat(paste0("<span style = 'font-weight:bold; color:red;'>**", i18n$t("error"), "** ", i18n$t("valid_col_names_are"), "</span>\n", toString(var_cols %>% dplyr::pull(name)), "\n"))
     return(NULL)
@@ -1059,7 +1059,7 @@ import_dataset <- function(output, ns = character(), i18n = character(), r = shi
   var_types <- c("integer", "character", "numeric", "datetime", "date")
   
   conversion_functions <- list(
-    "integer" = as.integer,
+    "integer" = bit64::as.integer64,
     "character" = as.character,
     "numeric" = as.numeric,
     "datetime" = as.POSIXct,
@@ -1067,14 +1067,14 @@ import_dataset <- function(output, ns = character(), i18n = character(), r = shi
   )
   
   check_functions <- list(
-    "integer" = is.integer,
+    "integer" = is_integer_or_integer64,
     "character" = is.character,
     "numeric" = is.numeric,
     "datetime" = lubridate::is.POSIXct,
     "date" = lubridate::is.Date
   )
   
-  data_test <- data %>% dplyr::slice_sample(n = 1) %>% dplyr::collect()
+  data_test <- data %>% head(1) %>% dplyr::collect()
   
   for (i in 1:nrow(var_cols)){
     
@@ -1355,7 +1355,7 @@ import_vocabulary_table <- function(output, ns = character(), i18n = character()
 
   # Check columns var types & names
   
-  if (!identical(names(data), var_cols$name)){
+  if (!identical(colnames(data), var_cols$name)){
     add_log_entry(r = r, category = "Error", name = paste0("import_vocabulary_table - invalid_col_names"), value = paste0(i18n$t("valid_col_names_are"), "</span>\n", toString(var_cols %>% dplyr::pull(name))))
     cat(paste0("<span style = 'font-weight:bold; color:red;'>**", i18n$t("error"), "** ", i18n$t("valid_col_names_are"), "</span>\n", toString(var_cols %>% dplyr::pull(name)), "\n"))
     return(NULL)
@@ -1368,7 +1368,7 @@ import_vocabulary_table <- function(output, ns = character(), i18n = character()
   
   for (i in 1:nrow(var_cols)){
     var_name <- var_cols[[i, "name"]]
-    if (var_cols[[i, "type"]] == "integer" & !is.integer(data[[var_name]])){
+    if (var_cols[[i, "type"]] == "integer" & !is_integer_or_integer64(data[[var_name]])){
       add_log_entry(r = r, category = "Error", name = paste0("import_vocabulary_table - invalid_col_types"), value = paste0(i18n$t("column"), " ", var_name, " ", i18n$t("type_must_be_integer")))
       error_message <- paste0(error_message, "<span style = 'font-weight:bold; color:red;'>**", i18n$t("error"), "** ", i18n$t("column"), " ", var_name, " ", i18n$t("type_must_be_integer"), "</span>\n")
     }
