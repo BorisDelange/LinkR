@@ -605,6 +605,7 @@ negative_evals,Negative evals
 plus_symbol,+
 minus_symbol,-
 error_connection_remote_git,Couldn't connect to remote git
+error_reading_xml_file,Error reading XML file
 user_evaluation_id,User evaluation ID
 only_aggregated_data_authorized,Only aggregated data are available for this dataset
 remove_tab,Remove tab

@@ -615,6 +615,8 @@ mod_plugins_server <- function(id = character(), r = shiny::reactiveValues(), d 
       r$plugins_api_key <- api_key
       
       error_loading_remote_git <- TRUE
+      error_reading_xml_file <- TRUE
+      
       plugins_file <- paste0(r$app_folder, "/temp_files/", r$user_id, "/plugins/plugins.xml")
       
       if (r$has_internet){
@@ -634,13 +636,22 @@ mod_plugins_server <- function(id = character(), r = shiny::reactiveValues(), d 
       
       r$remote_git_plugins <- tibble::tibble(type = integer(), unique_id = character())
       
-      if (!error_loading_remote_git) r$remote_git_plugins <-
-        xml2::read_xml(plugins_file) %>%
-        XML::xmlParse() %>%
-        XML::xmlToDataFrame(nodes = XML::getNodeSet(., "//plugin"), stringsAsFactors = FALSE) %>%
-        tibble::as_tibble()
+      if (!error_loading_remote_git){
+        tryCatch({
+          r$remote_git_plugins <-
+            xml2::read_xml(plugins_file) %>%
+            XML::xmlParse() %>%
+            XML::xmlToDataFrame(nodes = XML::getNodeSet(., "//plugin"), stringsAsFactors = FALSE) %>%
+            tibble::as_tibble()
+          error_reading_xml_file <- FALSE
+        },
+          error = function(e) if (nchar(e[1]) > 0) report_bug(r = r, output = output, error_message = "error_reading_xml_file", 
+            error_name = "plugins_catalog load plugins.xml", category = "Error", error_report = toString(e), i18n = i18n, ns = ns)
+        )
+      }
       
-      r$error_loading_remote_git <- error_loading_remote_git
+      if (!error_reading_xml_file & !error_loading_remote_git) r$error_loading_remote_git <- FALSE
+      else r$error_loading_remote_git <- TRUE
       
       # Update dropdown of other page (patient_lvl or aggregated)
       if (prefix == "patient_lvl") r$aggregated_remote_git_repo <- input$remote_git_repo

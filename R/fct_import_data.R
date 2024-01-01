@@ -12,7 +12,9 @@
 #' @param omop_version OMOP versions of the imported data, accepts "5.3", "5.4" or "6.0" (character)
 #' @param read_with The library used to read the data. Accepted values = c("none", "vroom", "duckdb", "spark", "arrow") (character)
 #' @param save_as Save the data locally. Accepted values = c("none", "csv", "parquet") (character)
-#' @param rewrite If save_as_csv is TRUE, rewrite or not existing CSV file (logical)-
+#' @param rewrite If save_as_csv is TRUE, rewrite or not existing CSV file (logical)
+#' @param allow_numeric_instead_integer Allow columns that should be of type integer to be of type numeric (logical)
+#' @param allow_dttm_instead_date Allow columns that should be of type datetime to be of type date (logical)
 #' @description Load +/- save data when a dataset is selected by the user.
 #' @details The function is used in a dataset code and is launched each time a user selects a dataset. \cr\cr
 #' You can choose to \strong{load data each time} the function is used with save_as_csv set to FALSE (eg when dataset is small and the
@@ -31,7 +33,7 @@
 #' }
 import_dataset <- function(output, ns = character(), i18n = character(), r = shiny::reactiveValues(), d = shiny::reactiveValues(), 
   dataset_id = integer(), data = tibble::tibble(), type = "", omop_version = "6.0", 
-  read_with = "none", save_as = "none", rewrite = FALSE){
+  read_with = "none", save_as = "none", rewrite = FALSE, allow_numeric_instead_integer = FALSE, allow_dttm_instead_date = FALSE){
   
   error_flag <- FALSE
   
@@ -507,8 +509,8 @@ import_dataset <- function(output, ns = character(), i18n = character(), r = shi
         "care_site_id", "integer",
         "visit_detail_source_value", "character",
         "visit_detail_source_concept_id", "integer",
-        "admitted_from_concept_id", "integer",
         "admitted_from_source_value", "character",
+        "admitted_from_concept_id", "integer",
         "discharge_to_source_value", "character",
         "discharge_to_concept_id", "integer",
         "preceding_visit_detail_id", "integer",
@@ -1085,7 +1087,14 @@ import_dataset <- function(output, ns = character(), i18n = character(), r = shi
     for (var_type in var_types) {
       if (var_cols[[i, "type"]] == var_type) {
         
-        if (do.call(check_functions[[var_type]], list(data_test[[var_name]]))) error <- FALSE
+        if (allow_numeric_instead_integer & var_type == "numeric"){
+          if (is.numeric(data_test[[var_name]])) error <- FALSE
+        }
+        else if (allow_dttm_instead_date & var_type == "date"){
+          if (lubridate::is.Date(data_test[[var_name]])) error <- FALSE
+          else if (lubridate::is.POSIXct(data_test[[var_name]])) error <- FALSE
+        }
+        else if (do.call(check_functions[[var_type]], list(data_test[[var_name]]))) error <- FALSE
         
         if (error) {
           type_error_msg <- paste0("type_must_be_", var_type)

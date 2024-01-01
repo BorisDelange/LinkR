@@ -198,17 +198,19 @@ mod_vocabularies_ui <- function(id = character(), i18n = character()){
                   options = list(
                     list(key = 1, text = i18n$t("vocabulary_id_1")),
                     list(key = 2, text = i18n$t("concept_id_1")),
-                    list(key = 3, text = i18n$t("relationship_id")),
-                    list(key = 4, text = i18n$t("vocabulary_id_2")),
-                    list(key = 5, text = i18n$t("concept_id_2")),
-                    list(key = 6, text = i18n$t("comment")),
-                    list(key = 7, text = i18n$t("creator")),
-                    list(key = 8, text = i18n$t("datetime")),
-                    list(key = 9, text = i18n$t("positive_evals")),
-                    list(key = 10, text = i18n$t("negative_evals")),
-                    list(key = 11, text = i18n$t("action"))
+                    list(key = 3, text = i18n$t("concept_name_1")),
+                    list(key = 4, text = i18n$t("relationship_id")),
+                    list(key = 5, text = i18n$t("vocabulary_id_2")),
+                    list(key = 6, text = i18n$t("concept_id_2")),
+                    list(key = 7, text = i18n$t("concept_name_2")),
+                    list(key = 8, text = i18n$t("comment")),
+                    list(key = 9, text = i18n$t("creator")),
+                    list(key = 10, text = i18n$t("datetime")),
+                    list(key = 11, text = i18n$t("positive_evals")),
+                    list(key = 12, text = i18n$t("negative_evals")),
+                    list(key = 13, text = i18n$t("action"))
                   ),
-                  value = c(2, 3, 5, 8, 9, 10, 11)
+                  value = c(2, 4, 6, 10, 11, 12, 13)
                 ), div(style = "width:10px;"),
                 div(shiny.fluent::Toggle.shinyInput(ns("vocabulary_show_only_not_evaluated_concepts"), value = FALSE), style = "margin-top:45px;"),
                 div(i18n$t("vocabulary_show_only_not_evaluated_concepts"), style = "font-weight:bold; margin-top:45px; margin-right:30px;"),
@@ -349,7 +351,7 @@ mod_vocabularies_server <- function(id = character(), r = shiny::reactiveValues(
       if (debug) cat(paste0("\n", Sys.time(), " - mod_vocabularies - observer r$vocabulary 1"))
       # r$reload_vocabulary_dropdown <- Sys.time()
       
-      vocabulary_options <- r$vocabulary %>% convert_tibble_to_list(key_col = "vocabulary_id", text_col = "vocabulary_id")
+      vocabulary_options <- r$vocabulary %>% dplyr::arrange(vocabulary_id) %>% convert_tibble_to_list(key_col = "vocabulary_id", text_col = "vocabulary_id")
       for (var in c("vocabulary_mapping_1", "vocabulary_mapping_2")) shiny.fluent::updateComboBox.shinyInput(session, var, options = vocabulary_options, value = NULL)
     })
     
@@ -431,6 +433,8 @@ mod_vocabularies_server <- function(id = character(), r = shiny::reactiveValues(
           
           concept_ids <- d[[table]] %>%
             dplyr::select(dplyr::contains("concept_id")) %>%
+            dplyr::distinct() %>%
+            dplyr::collect() %>%
             unlist(use.names = FALSE) %>%
             as.character() %>%
             purrr::discard(~is.na(.) | !grepl("^[0-9]+$", .)) %>%
@@ -1475,10 +1479,12 @@ mod_vocabularies_server <- function(id = character(), r = shiny::reactiveValues(
         "Maps to" = "Mapped from", "Mapped from" = "Maps to", "Is a" = "Subsumes", "Subsumes" = "Is a")
       else reverse_relationship_id <- d$relationship %>% dplyr::filter(relationship_id == !!relationship_id) %>% dplyr::pull(reverse_relationship_id)
       
-      new_row_db <- tibble::tribble(
-        ~id, ~concept_id_1, ~concept_id_2, ~relationship_id, ~valid_start_date, ~valid_end_date, ~invalid_reason,
-        last_row_concept_relationship + 2, concept_1$concept_id, concept_2$concept_id, relationship_id, as.character(Sys.Date()), "2099-12-31", NA_character_,
-        last_row_concept_relationship + 1, concept_2$concept_id, concept_1$concept_id, reverse_relationship_id, as.character(Sys.Date()), "2099-12-31", NA_character_)
+      new_row_r_var <- tibble::tribble(
+        ~id, ~concept_id_1, ~concept_name_1, ~concept_id_2, ~concept_name_2, ~relationship_id, ~valid_start_date, ~valid_end_date, ~invalid_reason,
+        last_row_concept_relationship + 2, concept_1$concept_id, concept_1$concept_name, concept_2$concept_id, concept_2$concept_name, relationship_id, as.character(Sys.Date()), "2099-12-31", NA_character_,
+        last_row_concept_relationship + 1, concept_2$concept_id, concept_2$concept_name, concept_1$concept_id, concept_1$concept_name, reverse_relationship_id, as.character(Sys.Date()), "2099-12-31", NA_character_)
+      
+      new_row_db <- new_row_r_var %>% dplyr::select(-concept_name_1, -concept_name_2)
       
       new_row_datatable <- new_row_db %>%
         dplyr::mutate(relationship_id = dplyr::case_when(
@@ -1521,11 +1527,11 @@ mod_vocabularies_server <- function(id = character(), r = shiny::reactiveValues(
 
       r$dataset_vocabulary_concepts_evaluate_mappings <- r$dataset_vocabulary_concepts_evaluate_mappings %>%
         dplyr::bind_rows(
-          new_row_db %>%
+          new_row_r_var %>%
             dplyr::transmute(
               concept_relationship_id = id,
-              vocabulary_id_1 = c(input$vocabulary_mapping_1$key, input$vocabulary_mapping_2$key), concept_id_1, relationship_id,
-              vocabulary_id_2 = c(input$vocabulary_mapping_2$key, input$vocabulary_mapping_1$key), concept_id_2,
+              vocabulary_id_1 = c(input$vocabulary_mapping_1$key, input$vocabulary_mapping_2$key), concept_id_1, concept_name_1, relationship_id,
+              vocabulary_id_2 = c(input$vocabulary_mapping_2$key, input$vocabulary_mapping_1$key), concept_id_2, concept_name_2,
               creator_name = r$users %>% dplyr::filter(id == r$user_id) %>% dplyr::mutate(creator_name = paste0(firstname, " ", lastname)) %>% dplyr::pull(creator_name),
               datetime = as.character(Sys.time()), positive_evals = 0L, negative_evals = 0L) %>%
             dplyr::mutate(
@@ -1648,8 +1654,8 @@ mod_vocabularies_server <- function(id = character(), r = shiny::reactiveValues(
         #   ) %>% dplyr::pull(vocabulary_id)
   
         sql <- glue::glue_sql(paste0("SELECT cr.id AS concept_relationship_id, ",
-          "c1.vocabulary_id AS vocabulary_id_1, cr.concept_id_1, cr.relationship_id, ",
-          "c2.vocabulary_id AS vocabulary_id_2, cr.concept_id_2, cru.comment, cru.creator_id, cru.datetime ",
+          "c1.vocabulary_id AS vocabulary_id_1, cr.concept_id_1, c1.concept_name AS concept_name_1, cr.relationship_id, ",
+          "c2.vocabulary_id AS vocabulary_id_2, cr.concept_id_2, c2.concept_name AS concept_name_2, cru.comment, cru.creator_id, cru.datetime ",
           "FROM concept_relationship_user cru ",
           "INNER JOIN concept_relationship cr ON cru.concept_relationship_id = cr.id ",
           "INNER JOIN concept c1 ON cr.concept_id_1 = c1.concept_id ",
@@ -1672,7 +1678,7 @@ mod_vocabularies_server <- function(id = character(), r = shiny::reactiveValues(
             relationship_id == "Subsumes" ~ i18n$t("subsumes"),
             TRUE ~ relationship_id)) %>%
           dplyr::left_join(vocabulary_mapping_evals %>% dplyr::select(eval_id = id, concept_relationship_id, evaluation_id), by = "concept_relationship_id") %>%
-          dplyr::group_by(concept_relationship_id, vocabulary_id_1, concept_id_1, relationship_id, vocabulary_id_2, concept_id_2, comment, creator_id, datetime) %>%
+          dplyr::group_by(concept_relationship_id, vocabulary_id_1, concept_id_1, concept_name_1, relationship_id, vocabulary_id_2, concept_id_2, concept_name_2, comment, creator_id, datetime) %>%
           dplyr::summarize(
             positive_evals = sum(evaluation_id == 1, na.rm = TRUE),
             negative_evals = sum(evaluation_id == 2, na.rm = TRUE)
@@ -1761,13 +1767,13 @@ mod_vocabularies_server <- function(id = character(), r = shiny::reactiveValues(
       r$dataset_vocabulary_concepts_evaluate_mappings <- r$dataset_vocabulary_concepts_evaluate_mappings %>%
         dplyr::arrange(dplyr::desc(concept_relationship_id)) %>% dplyr::mutate(modified = FALSE)
 
-      searchable_cols <- c("concept_id_1", "concept_id_2", "relationship_id", "creator_name", "positive_evals", "negative_evals", "vocabulary_id_1", "vocabulary_id_2")
+      searchable_cols <- c("concept_id_1", "concept_name_1", "concept_id_2", "concept_name_2", "relationship_id", "creator_name", "positive_evals", "negative_evals", "vocabulary_id_1", "vocabulary_id_2")
       # Remove factorize_cols : bug with evaluation if a filter is made
       # factorize_cols <- c("relationship_id", "creator_name", "vocabulary_id_1", "vocabulary_id_2")
       sortable_cols <- c("concept_id_1", "concept_id_2", "relationship_id", "creator_name", "datetime", "positive_evals", "negative_evals", "vocabulary_id_1", "vocabulary_id_2")
       centered_cols <- c("datetime", "action", "vocabulary_id_1", "concept_id_1", "vocabulary_id_2", "concept_id_2", "relationship_id", "creator_name", "positive_evals", "negative_evals")
       col_names <- get_col_names(table_name = "dataset_vocabulary_concepts_mapping_evals", i18n = i18n)
-      hidden_cols <- c("concept_relationship_id", "modified", "user_evaluation_id", "comment", "creator_name", "vocabulary_id_1", "vocabulary_id_2")
+      hidden_cols <- c("concept_relationship_id", "modified", "user_evaluation_id", "comment", "creator_name", "vocabulary_id_1", "vocabulary_id_2", "concept_name_1", "concept_name_2")
       column_widths <- c("action" = "100px", "datetime" = "130px", "positive_evals" = "80px", "negative_evals" = "80px")
 
       selection <- "multiple"

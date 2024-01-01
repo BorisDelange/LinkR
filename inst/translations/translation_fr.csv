@@ -605,6 +605,7 @@ negative_evals,Evals négatives
 plus_symbol,+
 minus_symbol,-
 error_connection_remote_git,Impossible de se connecter au git distant
+error_reading_xml_file,Erreur lors de la lecture du fichier XML
 user_evaluation_id,ID évaluation utilisateur
 only_aggregated_data_authorized,Seules les données agrégées sont autorisées pour ce set de données
 remove_tab,Supprimer l'onglet

@@ -240,7 +240,8 @@ get_col_names <- function(table_name = character(), i18n = character()){
   }
   
   else if (table_name == "dataset_vocabulary_concepts_mapping_evals"){
-    result <- c(i18n$t("id"), i18n$t("vocabulary_id_1"), i18n$t("concept_id_1"), i18n$t("relationship_id"), i18n$t("vocabulary_id_2"), i18n$t("concept_id_2"),
+    result <- c(i18n$t("id"), i18n$t("vocabulary_id_1"), i18n$t("concept_id_1"), i18n$t("concept_name_1"), 
+      i18n$t("relationship_id"), i18n$t("vocabulary_id_2"), i18n$t("concept_id_2"), i18n$t("concept_name_2"),
       i18n$t("comment"), i18n$t("creator"), i18n$t("datetime"), i18n$t("positive_evals_short"), i18n$t("negative_evals_short"), 
       i18n$t("action"), i18n$t("user_evaluation_id"), i18n$t("modified"))
   }
