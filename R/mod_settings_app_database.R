@@ -157,8 +157,8 @@ mod_settings_app_database_ui <- function(id = character(), i18n = character()){
                 make_textfield(i18n, ns, "password", type = "password", canRevealPassword = TRUE, width = "300px")
               )
             ), br(),
-            shiny.fluent::Stack(horizontal = TRUE, tokens = list(childrenGap = 20),
-              shiny.fluent::PrimaryButton.shinyInput(ns("db_connection_save"), i18n$t("save")), " ",
+            shiny.fluent::Stack(horizontal = TRUE, tokens = list(childrenGap = 10),
+              shiny.fluent::PrimaryButton.shinyInput(ns("db_connection_save"), i18n$t("save")),
               shiny.fluent::DefaultButton.shinyInput(ns("test_connection"), i18n$t("test_connection"))
             ),
           )

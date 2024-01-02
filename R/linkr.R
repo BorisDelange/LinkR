@@ -92,7 +92,9 @@ linkr <- function(
   
   users_accesses_toggles_options <- tibble::tribble(
     ~name, ~toggles,
-    "general_settings", "change_password_card",
+    "general_settings", c(
+      "change_password_card",
+      "configure_python_card"),
     "app_db", c(
       "db_connection_infos_card",
       "db_datatable_card",
@@ -112,7 +114,8 @@ linkr <- function(
       "users_accesses_options_card",
       "users_statuses_management_card"),
     "dev", c(
-      "dev_edit_code_card",
+      "dev_edit_r_code_card",
+      "dev_edit_python_code_card",
       "dev_perf_monitoring_card"),
     "data_sources", c(
       "data_sources_datatable_card"),

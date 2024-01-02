@@ -11,7 +11,12 @@
 mod_settings_general_ui <- function(id = character(), i18n = character()){
   ns <- NS(id)
   
-  forbidden_cards <- forbidden_card(ns = ns, name = "change_password_card", i18n = i18n)
+  cards <- c("change_password_card", "configure_python_card")
+  
+  forbidden_cards <- tagList()
+  sapply(cards, function(card){
+    forbidden_cards <<- tagList(forbidden_cards, forbidden_card(ns = ns, name = card, i18n = i18n))
+  })
   
   div(class = "main",
     render_settings_default_elements(ns = ns),
@@ -22,7 +27,8 @@ mod_settings_general_ui <- function(id = character(), i18n = character()){
     ), maxDisplayedItems = 3),
     shiny.fluent::Pivot(
       onLinkClick = htmlwidgets::JS(paste0("item => Shiny.setInputValue('", id, "-current_tab', item.props.id)")),
-      shiny.fluent::PivotItem(id = "change_password_card", itemKey = "change_password", headerText = i18n$t("change_password"))
+      shiny.fluent::PivotItem(id = "change_password_card", itemKey = "change_password", headerText = i18n$t("change_password")),
+      shiny.fluent::PivotItem(id = "configure_python_card", itemKey = "configure_python", headerText = i18n$t("configure_python"))
     ),
     forbidden_cards,
     
@@ -40,6 +46,25 @@ mod_settings_general_ui <- function(id = character(), i18n = character()){
               make_textfield(i18n = i18n, ns = ns, label = "new_password", id = "new_password_bis", type = "password", canRevealPassword = TRUE, width = "300px")
             ), br(),
             shiny.fluent::PrimaryButton.shinyInput(ns("save"), i18n$t("save"))
+          )
+        )
+      )
+    ),
+    
+    # --- --- --- --- --- -
+    # Configure Python ----
+    # --- --- --- --- --- -
+    
+    shinyjs::hidden(
+      div(id = ns("configure_python_card"),
+        make_card(i18n$t("configure_python"),
+          div(
+            make_textfield(i18n = i18n, ns = ns, label = "python_path", width = "600px"), br(),
+            uiOutput(ns("python_path_test_result")),
+            shiny.fluent::Stack(horizontal = TRUE, tokens = list(childrenGap = 10),
+              shiny.fluent::PrimaryButton.shinyInput(ns("save_python_path"), i18n$t("save")),
+              shiny.fluent::DefaultButton.shinyInput(ns("test_python_path"), i18n$t("test_python_path"))
+            )
           )
         )
       )
@@ -62,7 +87,7 @@ mod_settings_general_server <- function(id = character(), r = shiny::reactiveVal
     # Show or hide cards ----
     # --- --- --- --- --- ---
     
-    cards <- c("change_password_card")
+    cards <- c("change_password_card", "configure_python_card")
     
     show_or_hide_cards(r = r, input = input, session = session, id = id, cards = cards)
     
@@ -101,9 +126,9 @@ mod_settings_general_server <- function(id = character(), r = shiny::reactiveVal
     
     help_settings_general(output = output, r = r, id = id, language = language, i18n = i18n, ns = ns)
     
-    # --- --- --- -- -- --
+    # --- --- --- --- -- -
     # Change password ----
-    # --- --- --- -- -- --
+    # --- --- --- --- -- -
     
     observeEvent(input$save, {
       
@@ -168,5 +193,54 @@ mod_settings_general_server <- function(id = character(), r = shiny::reactiveVal
       
     })
     
+    # --- --- --- --- --- -
+    # Configure Python ----
+    # --- --- --- --- --- -
+    
+    observeEvent(r$db, {
+      if (debug) cat(paste0("\n", Sys.time(), " - mod_settings_general - observer r$db"))
+      
+      sql <- glue::glue_sql("SELECT * FROM options WHERE category = 'python_config' AND name = 'python_path'")
+      python_path <- DBI::dbGetQuery(r$db, sql) %>% dplyr::pull(value)
+      
+      shiny.fluent::updateTextField.shinyInput(session, "python_path", value = python_path)
+      
+      r$python_path_trigger <- Sys.time()
+    })
+    
+    observeEvent(input$test_python_path, {
+      
+      if (debug) cat(paste0("\n", Sys.time(), " - mod_settings_general - observer input$test_python_path"))
+      
+      success <- FALSE
+      error_message <- ""
+      
+      tryCatch({
+        reticulate::use_python(input$python_path)
+        success <- TRUE
+      },
+        error = function(e) error_message <<- e)
+      
+      if (success) output$python_path_test_result <- renderUI(HTML(paste0("<span style = 'margin-top:44px; font-weight:bold; color:#0078D4;'>", i18n$t("success"), "</span><br /><br />")))
+      else output$python_path_test_result <- renderUI(HTML(paste0("<span style = 'margin-top:44px; font-weight:bold; color:red;'>", i18n$t("failure"), " - ", error_message, "</span><br /><br />")))
+    })
+    
+    observeEvent(input$save_python_path, {
+      
+      if (debug) cat(paste0("\n", Sys.time(), " - mod_settings_general - observer input$save_python_path"))
+      
+      sql <- glue::glue_sql("DELETE FROM options WHERE category = 'python_config' AND name = 'python_path'", .con = r$db)
+      query <- DBI::dbSendStatement(r$db, sql)
+      DBI::dbClearResult(query)
+      
+      new_row <- tibble::tibble(id = get_last_row(r$db, "options") + 1, category = "python_config", link_id = NA_integer_,
+        name = "python_path", value = input$python_path, value_num = NA_integer_, creator_id = r$user_id, 
+        datetime = as.character(Sys.time()), deleted = FALSE)
+      DBI::dbAppendTable(r$db, "options", new_row)
+      
+      show_message_bar(output, message = "modif_saved", type = "success", i18n = i18n, ns = ns)
+      
+      r$python_path_trigger <- Sys.time()
+    })
   })
 }

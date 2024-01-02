@@ -59,6 +59,7 @@ stay,Stay
 visit_detail,Stay
 patient_status,Patient status
 r_console,R console
+python_console,Python console
 subset,Subset
 study,Study
 run_code,Run code
@@ -741,6 +742,7 @@ local_and_remote_plugins,Local & remote plugins
 local_and_remote_scripts,Local & remote scripts
 access_log,Access the log
 change_password_card_user_access_description,Change password of current account
+configure_python_card_user_access_description,Configure Python access
 db_connection_infos_card_user_access_description,Configure app database connections
 db_datatable_card_user_access_description,Access to app database tables list
 db_request_card_user_access_description,Request app database
@@ -751,7 +753,8 @@ users_management_card_user_access_description,Manage users (edit and delete)
 users_accesses_management_card_user_access_description,"Manage users accesses (add, edit and delete)"
 users_accesses_options_card_user_access_description,Configure users accesses
 users_statuses_management_card_user_access_description,"Manage user statuses (add, edit and delete)"
-dev_edit_code_card_user_access_description,Execute code on R console without data restriction
+dev_edit_r_code_card_user_access_description,Execute code on R console without data restriction
+dev_edit_python_code_card_user_access_description,Execute code on Python console
 dev_perf_monitoring_card_user_access_description,Access to performances monitoring
 data_sources_datatable_card_user_access_description,"Manage data sources (add, edit and delete)"
 datasets_see_all_data_user_access_description,"Access to all datasets, even if current user is not in authorized users for a dataset"
@@ -997,3 +1000,7 @@ error_generate_readme,Error generate README
 add_all_vocabularies,Add all vocabularies found in files
 data_cleaning,Data cleaning
 data_cleaning_scripts,Data cleaning scripts
+configure_python,Python config
+python_path,Python path
+test_python_path,Test
+failure,Failure

@@ -11,7 +11,7 @@
 mod_settings_dev_ui <- function(id = character(), i18n = character()){
   ns <- NS(id)
   
-  cards <- c("dev_edit_code_card", "dev_perf_monitoring_card", "dev_to_do_list_card")
+  cards <- c("dev_edit_r_code_card", "dev_edit_python_code_card", "dev_perf_monitoring_card", "dev_to_do_list_card")
   
   forbidden_cards <- tagList()
   sapply(cards, function(card){
@@ -26,18 +26,19 @@ mod_settings_dev_ui <- function(id = character(), i18n = character()){
     ), maxDisplayedItems = 3),
     shiny.fluent::Pivot(
       onLinkClick = htmlwidgets::JS(paste0("item => Shiny.setInputValue('", id, "-current_tab', item.props.id)")),
-      shiny.fluent::PivotItem(id = "dev_edit_code_card", itemKey = "dev_edit_code_card", headerText = i18n$t("r_console")),
+      shiny.fluent::PivotItem(id = "dev_edit_r_code_card", itemKey = "dev_edit_r_code_card", headerText = i18n$t("r_console")),
+      shiny.fluent::PivotItem(id = "dev_edit_python_code_card", itemKey = "dev_edit_python_code_card", headerText = i18n$t("python_console")),
       shiny.fluent::PivotItem(id = "dev_perf_monitoring_card", itemKey = "dev_perf_monitoring_card", headerText = i18n$t("perf_monitoring"))
     ),
     forbidden_cards,
     
     shinyjs::hidden(
-      div(id = ns("dev_edit_code_card"),
+      div(id = ns("dev_edit_r_code_card"),
         make_shiny_ace_card(i18n$t("r_console"),
           div(
             div(
               shinyAce::aceEditor(
-                outputId = ns("ace_code"), value = "", mode = "r",
+                outputId = ns("r_code"), value = "", mode = "r",
                 code_hotkeys = list("r", list(
                     run_selection = list(win = "CTRL-ENTER", mac = "CTRL-ENTER|CMD-ENTER"),
                     run_all = list(win = "CTRL-SHIFT-ENTER", mac = "CTRL-SHIFT-ENTER|CMD-SHIFT-ENTER"),
@@ -49,9 +50,36 @@ mod_settings_dev_ui <- function(id = character(), i18n = character()){
               ),
               style = "width: 100%;"
             ),
-            shiny.fluent::PrimaryButton.shinyInput(ns("execute_code"), i18n$t("run_code")), br(),
-            div(textOutput(ns("datetime_code_execution")), style = "color:#878787;"), br(),
-            div(uiOutput(ns("code_result")),
+            shiny.fluent::PrimaryButton.shinyInput(ns("execute_r_code"), i18n$t("run_code")), br(),
+            div(textOutput(ns("datetime_r_code_execution")), style = "color:#878787;"), br(),
+            div(uiOutput(ns("r_code_result")),
+              style = "width: 99%; border-style: dashed; border-width: 1px; padding: 0px 8px 0px 8px; margin-right: 5px;")
+          )
+        )
+      )
+    ),
+    
+    shinyjs::hidden(
+      div(id = ns("dev_edit_python_code_card"),
+        make_shiny_ace_card(i18n$t("python_console"),
+          div(
+            div(
+              shinyAce::aceEditor(
+                outputId = ns("python_code"), value = "", mode = "r",
+                code_hotkeys = list("r", list(
+                  run_selection = list(win = "CTRL-ENTER", mac = "CTRL-ENTER|CMD-ENTER"),
+                  run_all = list(win = "CTRL-SHIFT-ENTER", mac = "CTRL-SHIFT-ENTER|CMD-SHIFT-ENTER"),
+                  comment = list(win = "CTRL-SHIFT-C", mac = "CTRL-SHIFT-C|CMD-SHIFT-C")
+                )
+                ),
+                wordWrap = TRUE, debounce = 10,
+                autoScrollEditorIntoView = TRUE, minLines = 30, maxLines = 1000
+              ),
+              style = "width: 100%;"
+            ),
+            shiny.fluent::PrimaryButton.shinyInput(ns("execute_python_code"), i18n$t("run_code")), br(),
+            div(textOutput(ns("datetime_python_code_execution")), style = "color:#878787;"), br(),
+            div(uiOutput(ns("python_code_result")),
               style = "width: 99%; border-style: dashed; border-width: 1px; padding: 0px 8px 0px 8px; margin-right: 5px;")
           )
         )
@@ -88,21 +116,21 @@ mod_settings_dev_server <- function(id = character(), r = shiny::reactiveValues(
     # Show or hide cards ----
     # --- --- --- --- --- ---
     
-    cards <- c("dev_edit_code_card", "dev_perf_monitoring_card", "dev_to_do_list_card")
+    cards <- c("dev_edit_r_code_card", "dev_edit_python_code_card", "dev_perf_monitoring_card", "dev_to_do_list_card")
     show_or_hide_cards(r = r, input = input, session = session, id = id, cards = cards)
-    if ("dev_edit_code_card" %in% r$user_accesses) shinyjs::show("dev_edit_code_card")
-    else shinyjs::show("dev_edit_code_card_forbidden")
+    if ("dev_edit_r_code_card" %in% r$user_accesses) shinyjs::show("dev_edit_r_code_card")
+    else shinyjs::show("dev_edit_r_code_card_forbidden")
     
     # observe({
     #   shiny.router::get_query_param()
     # 
     #   if ("r_console_edit_code_card" %in% r$user_accesses){
-    #     shinyjs::show("dev_edit_code_card")
-    #     shinyjs::hide("dev_edit_code_card_forbidden")
+    #     shinyjs::show("dev_edit_r_code_card")
+    #     shinyjs::hide("dev_edit_r_code_card_forbidden")
     #   }
     #   else {
-    #     shinyjs::show("dev_edit_code_card_forbidden")
-    #     shinyjs::hide("dev_edit_code_card")
+    #     shinyjs::show("dev_edit_r_code_card_forbidden")
+    #     shinyjs::hide("dev_edit_r_code_card")
     #   }
     # })
     
@@ -137,32 +165,32 @@ mod_settings_dev_server <- function(id = character(), r = shiny::reactiveValues(
     observeEvent(input$copy_code_1, r$help_settings_dev_copy_code_1 <- Sys.time())
     observeEvent(input$copy_code_2, r$help_settings_dev_copy_code_2 <- Sys.time())
   
-    # --- --- --- --- -
-    # Execute code ----
-    # --- --- --- --- -
+    # --- --- --- --- ---
+    # Execute R code ----
+    # --- --- --- --- ---
     
-    observeEvent(input$execute_code, {
+    observeEvent(input$execute_r_code, {
       
-      if (debug) cat(paste0("\n", Sys.time(), " - mod_settings_dev - observer input$execute_code"))
+      if (debug) cat(paste0("\n", Sys.time(), " - mod_settings_dev - observer input$execute_r_code"))
       
-      r$r_console_code <- input$ace_code
+      r$r_console_code <- input$r_code
       r$r_console_code_trigger <- Sys.time()
     })
     
-    observeEvent(input$ace_code_run_selection, {
+    observeEvent(input$r_code_run_selection, {
       
-      if (debug) cat(paste0("\n", Sys.time(), " - mod_settings_dev - observer input$ace_code_run_selection"))
+      if (debug) cat(paste0("\n", Sys.time(), " - mod_settings_dev - observer input$r_code_run_selection"))
       
-      if(!shinyAce::is.empty(input$ace_code_run_selection$selection)) r$r_console_code <- input$ace_code_run_selection$selection
-      else r$r_console_code <- input$ace_code_run_selection$line
+      if(!shinyAce::is.empty(input$r_code_run_selection$selection)) r$r_console_code <- input$r_code_run_selection$selection
+      else r$r_console_code <- input$r_code_run_selection$line
       r$r_console_code_trigger <- Sys.time()
     })
 
-    observeEvent(input$ace_code_run_all, {
+    observeEvent(input$r_code_run_all, {
       
-      if (debug) cat(paste0("\n", Sys.time(), " - mod_settings_dev - observer input$ace_code_run_all"))
+      if (debug) cat(paste0("\n", Sys.time(), " - mod_settings_dev - observer input$r_code_run_all"))
       
-      r$r_console_code <- input$ace_code
+      r$r_console_code <- input$r_code
       r$r_console_code_trigger <- Sys.time()
     })
 
@@ -170,7 +198,7 @@ mod_settings_dev_server <- function(id = character(), r = shiny::reactiveValues(
       
       if (debug) cat(paste0("\n", Sys.time(), " - mod_settings_dev - observer r$r_console_code_trigger"))
       
-      if ("dev_edit_code_card" %in% r$user_accesses){
+      if ("dev_edit_r_code_card" %in% r$user_accesses){
         edited_code <- r$r_console_code %>% stringr::str_replace_all("\r", "\n")
         
         console_result <- isolate(execute_settings_code(input = input, output = output, session = session, id = id, ns = ns, i18n = i18n, r = r, d = d, m = m,
@@ -180,30 +208,103 @@ mod_settings_dev_server <- function(id = character(), r = shiny::reactiveValues(
             function(x) sprintf("&lt;%s&gt;", substr(x, 2, nchar(x) - 1))) %>%
           gsub("NULL$", "", .)
         
-        output$code_result <- renderUI(HTML(paste0("<pre>", console_result, "</pre>")))
-        output$datetime_code_execution <- renderText(format_datetime(Sys.time(), language))
+        output$r_code_result <- renderUI(HTML(paste0("<pre>", console_result, "</pre>")))
+        output$datetime_r_code_execution <- renderText(format_datetime(Sys.time(), language))
       }
     })
     
     # Comment text
-    observeEvent(input$ace_code_comment, {
-      if (debug) cat(paste0("\n", Sys.time(), " - mod_settings_dev - observer input$ace_code_comment"))
+    observeEvent(input$r_code_comment, {
+      if (debug) cat(paste0("\n", Sys.time(), " - mod_settings_dev - observer input$r_code_comment"))
       
-      lines <- strsplit(input$ace_code, "\n")[[1]]
+      lines <- strsplit(input$r_code, "\n")[[1]]
       req(length(lines) > 0)
       
-      start_row <- input$ace_code_comment$range$start$row + 1
-      end_row <- input$ace_code_comment$range$end$row + 1
+      start_row <- input$r_code_comment$range$start$row + 1
+      end_row <- input$r_code_comment$range$end$row + 1
       
       for (i in start_row:end_row) if (startsWith(lines[i], "# ")) lines[i] <- substr(lines[i], 3, nchar(lines[i])) else lines[i] <- paste0("# ", lines[i])
       
-      shinyAce::updateAceEditor(session, "ace_code", value = paste0(lines, collapse = "\n"))
+      shinyAce::updateAceEditor(session, "r_code", value = paste0(lines, collapse = "\n"))
       
       shinyjs::runjs(sprintf("
-        var editor = ace.edit('%s-ace_code');
+        var editor = ace.edit('%s-r_code');
         editor.moveCursorTo(%d, %d);
         editor.focus();
-          ", id, input$ace_code_comment$range$end$row, input$ace_code_comment$range$end$column))
+          ", id, input$r_code_comment$range$end$row, input$r_code_comment$range$end$column))
+    })
+    
+    # --- --- --- --- --- -- -
+    # Execute Python code ----
+    # --- --- --- --- --- -- -
+    
+    observeEvent(r$python_path_trigger, {
+      sql <- glue::glue_sql("SELECT * FROM options WHERE category = 'python_config' AND name = 'python_path'")
+      python_path <- DBI::dbGetQuery(r$db, sql) %>% dplyr::pull(value)
+      
+      tryCatch({
+        reticulate::use_python(python_path)
+      }, error = function(e) "")
+    })
+    
+    observeEvent(input$execute_python_code, {
+      
+      if (debug) cat(paste0("\n", Sys.time(), " - mod_settings_dev - observer input$execute_python_code"))
+      
+      r$python_console_code <- input$python_code
+      r$python_console_code_trigger <- Sys.time()
+    })
+    
+    observeEvent(input$python_code_run_selection, {
+      
+      if (debug) cat(paste0("\n", Sys.time(), " - mod_settings_dev - observer input$python_code_run_selection"))
+      
+      if(!shinyAce::is.empty(input$python_code_run_selection$selection)) r$python_console_code <- input$python_code_run_selection$selection
+      else r$python_console_code <- input$python_code_run_selection$line
+      r$python_console_code_trigger <- Sys.time()
+    })
+    
+    observeEvent(input$python_code_run_all, {
+      
+      if (debug) cat(paste0("\n", Sys.time(), " - mod_settings_dev - observer input$python_code_run_all"))
+      
+      r$python_console_code <- input$python_code
+      r$python_console_code_trigger <- Sys.time()
+    })
+    
+    observeEvent(r$python_console_code_trigger, {
+      
+      if (debug) cat(paste0("\n", Sys.time(), " - mod_settings_dev - observer r$python_console_code_trigger"))
+      
+      if ("dev_edit_python_code_card" %in% r$user_accesses){
+        edited_code <- r$python_console_code %>% stringr::str_replace_all("\r", "\n")
+        
+        console_result <- capture_python_output(edited_code)
+        
+        output$python_code_result <- renderUI(HTML(paste0("<pre>", console_result, "</pre>")))
+        output$datetime_python_code_execution <- renderText(format_datetime(Sys.time(), language))
+      }
+    })
+    
+    # Comment text
+    observeEvent(input$python_code_comment, {
+      if (debug) cat(paste0("\n", Sys.time(), " - mod_settings_dev - observer input$python_code_comment"))
+      
+      lines <- strsplit(input$python_code, "\n")[[1]]
+      req(length(lines) > 0)
+      
+      start_row <- input$python_code_comment$range$start$row + 1
+      end_row <- input$python_code_comment$range$end$row + 1
+      
+      for (i in start_row:end_row) if (startsWith(lines[i], "# ")) lines[i] <- substr(lines[i], 3, nchar(lines[i])) else lines[i] <- paste0("# ", lines[i])
+      
+      shinyAce::updateAceEditor(session, "python_code", value = paste0(lines, collapse = "\n"))
+      
+      shinyjs::runjs(sprintf("
+        var editor = ace.edit('%s-python_code');
+        editor.moveCursorTo(%d, %d);
+        editor.focus();
+          ", id, input$python_code_comment$range$end$row, input$python_code_comment$range$end$column))
     })
     
     # --- --- --- --- -- -

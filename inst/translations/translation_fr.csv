@@ -59,6 +59,7 @@ stay,Séjour
 visit_detail,Séjour
 patient_status,Statut du patient
 r_console,Console R
+python_console,Console Python
 subset,Subset
 study,Etude
 run_code,Exécuter
@@ -741,6 +742,7 @@ local_and_remote_plugins,Plugins locaux et distants
 local_and_remote_scripts,Scripts locaux et distants
 access_log,Accéder au log
 change_password_card_user_access_description,Changer le mot de passe du compte actuel
+configure_python_card_user_access_description,Configurer l'accès à Python
 db_connection_infos_card_user_access_description,Configurer les connexions à la base de données de l'application
 db_datatable_card_user_access_description,Accéder à la liste des tables de la BDD de l'application
 db_request_card_user_access_description,Requêter la BDD de l'application
@@ -751,7 +753,8 @@ users_management_card_user_access_description,Gérer les utilisateurs (éditer e
 users_accesses_management_card_user_access_description,"Gérer les accès utilisateurs (ajouter, éditer et supprimer)"
 users_accesses_options_card_user_access_description,Configurer les accès utilisateurs
 users_statuses_management_card_user_access_description,"Gérer les statuts des utilisateurs (ajouter, éditer et supprimer)"
-dev_edit_code_card_user_access_description,Exécuter du code dans la console R sans restriction d'accès aux données
+dev_edit_r_code_card_user_access_description,Exécuter du code dans la console R sans restriction d'accès aux données
+dev_edit_python_code_card_user_access_description,Exécuter du code dans la console Python
 dev_perf_monitoring_card_user_access_description,Accéder aux mesures des performances
 data_sources_datatable_card_user_access_description,"Gérer les sources de données (ajouter, éditer et supprimer)"
 datasets_see_all_data_user_access_description,"Accéder à tous les sets de données, même ceux pour lesquels l'utilisateur n'est pas dans les utilisateurs autorisés"
@@ -997,3 +1000,7 @@ error_generate_readme,Erreur lors de la génération du README
 add_all_vocabularies,Ajouter toutes les terminologies retrouvées dans les fichiers
 data_cleaning,Data cleaning
 data_cleaning_scripts,Scripts de data cleaning
+configure_python,Configurer Python
+python_path,Chemin d'accès à Python
+test_python_path,Tester
+failure,Echec
