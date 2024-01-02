@@ -2395,7 +2395,21 @@ mod_plugins_server <- function(id = character(), r = shiny::reactiveValues(), d 
       
       if (prefix == "patient_lvl") server_code <- server_code %>% stringr::str_replace_all("%patient_id%", as.character(m$selected_person))
       
-      output$code_result_ui <- renderUI(make_shiny_ace_card("", tryCatch(eval(parse(text = ui_code)), error = function(e) p(toString(e)), warning = function(w) p(toString(w)))))
+      output$code_result_ui <- renderUI(make_shiny_ace_card("",
+        div(
+          div(tryCatch(eval(parse(text = ui_code)), error = function(e) p(toString(e)), warning = function(w) p(toString(w)))),
+          div(
+            id = ns(paste0("plugins_widget_settings_remove_buttons_", widget_id)),
+            shiny.fluent::Stack(horizontal = TRUE, tokens = list(childrenGap = 2),
+              uiOutput(ns(paste0("additional_buttons_", widget_id))),
+              actionButton(ns(paste0("plugins_widget_settings_", widget_id)), "", icon = icon("cog")),
+              actionButton(ns(paste0("plugins_remove_widget_", widget_id)), "", icon = icon("trash-alt"))
+            ),
+            style = "position:absolute; top:8px; right: 10px;"
+          )
+        ),
+        style = "position:relative;"
+      ))
       
       # Create translations file
       

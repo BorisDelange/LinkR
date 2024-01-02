@@ -157,8 +157,8 @@ mod_my_subsets_ui <- function(id = character(), i18n = character()){
             )
           )
         )
-      )
-    ), br()
+      ), br()
+    )
   )
 }
     

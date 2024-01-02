@@ -17,24 +17,28 @@ mod_page_sidenav_ui <- function(id = character(), i18n = character()){
   # --- --- -
   
   if (grepl("^home", id)){
-    div(class = "sidenav",
-      shiny.fluent::Nav(
-        groups = list(
-          list(links = list(
-            list(name = i18n$t("home"), key = "home", url = shiny.router::route_link("/")),
-            list(name = i18n$t("get_started"), key = "home_get_started", url = shiny.router::route_link("home/get_started")),
-            list(name = i18n$t("tutorials"), key = "home_tutorials", url = shiny.router::route_link("home/tutorials")),
-            list(name = i18n$t("resources"), key = "home_resources", url = shiny.router::route_link("home/resources"))
+    div(
+      class = "sidenav",
+      div(class = "reduced_sidenav"),
+      div(class = "extended_sidenav",
+        shiny.fluent::Nav(
+          groups = list(
+            list(links = list(
+              list(name = i18n$t("home"), key = "home", url = shiny.router::route_link("/")),
+              list(name = i18n$t("get_started"), key = "home_get_started", url = shiny.router::route_link("home/get_started")),
+              list(name = i18n$t("tutorials"), key = "home_tutorials", url = shiny.router::route_link("home/tutorials")),
+              list(name = i18n$t("resources"), key = "home_resources", url = shiny.router::route_link("home/resources"))
+              )
             )
-          )
-        ),
-        initialSelectedKey = id,
-        selectedKey = id,
-        styles = list(
-          root = list(
-            height = "100%",
-            boxSizing = "border-box",
-            overflowY = "auto"
+          ),
+          initialSelectedKey = id,
+          selectedKey = id,
+          styles = list(
+            root = list(
+              height = "100%",
+              boxSizing = "border-box",
+              overflowY = "auto"
+            )
           )
         )
       )
@@ -80,31 +84,31 @@ mod_page_sidenav_ui <- function(id = character(), i18n = character()){
   # My studies ----
   # --- --- --- ---
   
-  if (id == "my_studies") div(class = "sidenav", dropdowns(c("dataset"))) -> result
+  if (id == "my_studies") div(class = "sidenav", div(class = "reduced_sidenav"), div(class = "extended_sidenav", dropdowns(c("dataset")))) -> result
   
   # --- --- --- ---
   # My subsets ----
   # --- --- --- ---
   
-  if (id == "my_subsets") div(class = "sidenav", dropdowns(c("dataset", "study"))) -> result
+  if (id == "my_subsets") div(class = "sidenav", div(class = "reduced_sidenav"), div(class = "extended_sidenav", dropdowns(c("dataset", "study")))) -> result
   
   # --- --- --- -
   # Messages ----
   # --- --- --- -
   
-  if (id == "messages") div(class = "sidenav", dropdowns(c("dataset", "study"))) -> result
+  if (id == "messages") div(class = "sidenav", div(class = "reduced_sidenav"), div(class = "extended_sidenav", dropdowns(c("dataset", "study")))) -> result
   
   # --- --- --- --- -
   # Vocabularies ----
   # --- --- --- --- -
   
-  if (id == "vocabularies") div(class = "sidenav", dropdowns(c("dataset"))) -> result
+  if (id == "vocabularies") div(class = "sidenav", div(class = "reduced_sidenav"), div(class = "extended_sidenav", dropdowns(c("dataset")))) -> result
   
   # --- --- -- -
   # Scripts ----
   # --- --- -- -
   
-  if (id == "scripts") div(class = "sidenav", dropdowns(c("dataset"))) -> result
+  if (id == "scripts") div(class = "sidenav", div(class = "reduced_sidenav"), div(class = "extended_sidenav", dropdowns(c("dataset")))) -> result
   
   # --- --- --- --- --- ---
   # Patient-level data ----
@@ -112,18 +116,21 @@ mod_page_sidenav_ui <- function(id = character(), i18n = character()){
   
   if (id == "patient_level_data"){
     div(class = "sidenav",
-      div(i18n$t("data"), class = "input_title", style = "font-size:14.5px;"),
-      div(
-        shiny.fluent::Stack(horizontal = TRUE, tokens = list(childrenGap = 0),
-          shiny.fluent::PrimaryButton.shinyInput(ns("data_page_ind"), i18n$t("individual"), style = "width:125px;"), 
-          shiny.fluent::DefaultButton.shinyInput(ns("data_page_agg"), i18n$t("aggregated"), style = "width:125px;")
-        ), style = "width:250px;"
-      ),
-      dropdowns(c("dataset", "study", "subset")),
-      br(), div(id = ns("hr1"), hr()),
-      dropdowns(c("person", "visit_detail")),
-      br(), div(id = ns("hr2"), hr()),
-      uiOutput(ns("person_info"))
+      div(class = "reduced_sidenav"),
+      div(class = "extended_sidenav",
+        div(i18n$t("data"), class = "input_title", style = "font-size:14.5px;"),
+        div(
+          shiny.fluent::Stack(horizontal = TRUE, tokens = list(childrenGap = 0),
+            shiny.fluent::PrimaryButton.shinyInput(ns("data_page_ind"), i18n$t("individual"), style = "width:125px;"), 
+            shiny.fluent::DefaultButton.shinyInput(ns("data_page_agg"), i18n$t("aggregated"), style = "width:125px;")
+          ), style = "width:250px;"
+        ),
+        dropdowns(c("dataset", "study", "subset")),
+        br(), div(id = ns("hr1"), hr()),
+        dropdowns(c("person", "visit_detail")),
+        br(), div(id = ns("hr2"), hr()),
+        uiOutput(ns("person_info"))
+      )
     ) -> result
   }
   
@@ -132,15 +139,18 @@ mod_page_sidenav_ui <- function(id = character(), i18n = character()){
   # --- --- --- --- -- -
   
   if (id == "aggregated_data") div(
-    class = "sidenav", 
-    div(i18n$t("data"), class = "input_title", style = "font-size:14.5px;"),
-    div(
-      shiny.fluent::Stack(horizontal = TRUE, tokens = list(childrenGap = 0),
-        shiny.fluent::DefaultButton.shinyInput(ns("data_page_ind"), i18n$t("individual"), style = "width:125px;"), 
-        shiny.fluent::PrimaryButton.shinyInput(ns("data_page_agg"), i18n$t("aggregated"), style = "width:125px;")
-      ), style = "width:250px;"
-    ),                               
-    dropdowns(c("dataset", "study", "subset"))
+    class = "sidenav",
+    div(class = "reduced_sidenav"),
+    div(class = "extended_sidenav",
+      div(i18n$t("data"), class = "input_title", style = "font-size:14.5px;"),
+      div(
+        shiny.fluent::Stack(horizontal = TRUE, tokens = list(childrenGap = 0),
+          shiny.fluent::DefaultButton.shinyInput(ns("data_page_ind"), i18n$t("individual"), style = "width:125px;"), 
+          shiny.fluent::PrimaryButton.shinyInput(ns("data_page_agg"), i18n$t("aggregated"), style = "width:125px;")
+        ), style = "width:250px;"
+      ),                               
+      dropdowns(c("dataset", "study", "subset"))
+    )
   ) -> result
   
   # --- --- --- --- --- --- --
@@ -150,13 +160,16 @@ mod_page_sidenav_ui <- function(id = character(), i18n = character()){
   if (id == "plugins_patient_lvl"){
     
     div(
-      class = "sidenav", 
-      div(i18n$t("data"), class = "input_title", style = "font-size:14.5px;"),
-      div(
-        shiny.fluent::Stack(horizontal = TRUE, tokens = list(childrenGap = 0),
-          shiny.fluent::PrimaryButton.shinyInput(ns("plugins_page_ind"), i18n$t("individual"), style = "width:125px;"), 
-          shiny.fluent::DefaultButton.shinyInput(ns("plugins_page_agg"), i18n$t("aggregated"), style = "width:125px;")
-        ), style = "width:250px;"
+      class = "sidenav",
+      div(class = "reduced_sidenav"),
+      div(class = "extended_sidenav",
+        div(i18n$t("data"), class = "input_title", style = "font-size:14.5px;"),
+        div(
+          shiny.fluent::Stack(horizontal = TRUE, tokens = list(childrenGap = 0),
+            shiny.fluent::PrimaryButton.shinyInput(ns("plugins_page_ind"), i18n$t("individual"), style = "width:125px;"), 
+            shiny.fluent::DefaultButton.shinyInput(ns("plugins_page_agg"), i18n$t("aggregated"), style = "width:125px;")
+          ), style = "width:250px;"
+        )
       )
     ) -> result
   }
@@ -168,13 +181,16 @@ mod_page_sidenav_ui <- function(id = character(), i18n = character()){
   if (id == "plugins_aggregated"){
     
     div(
-      class = "sidenav", 
-      div(i18n$t("data"), class = "input_title", style = "font-size:14.5px;"),
-      div(
-        shiny.fluent::Stack(horizontal = TRUE, tokens = list(childrenGap = 0),
-          shiny.fluent::DefaultButton.shinyInput(ns("plugins_page_ind"), i18n$t("individual"), style = "width:125px;"), 
-          shiny.fluent::PrimaryButton.shinyInput(ns("plugins_page_agg"), i18n$t("aggregated"), style = "width:125px;")
-        ), style = "width:250px;"
+      class = "sidenav",
+      div(class = "reduced_sidenav"),
+      div(class = "extended_sidenav",
+        div(i18n$t("data"), class = "input_title", style = "font-size:14.5px;"),
+        div(
+          shiny.fluent::Stack(horizontal = TRUE, tokens = list(childrenGap = 0),
+            shiny.fluent::DefaultButton.shinyInput(ns("plugins_page_ind"), i18n$t("individual"), style = "width:125px;"), 
+            shiny.fluent::PrimaryButton.shinyInput(ns("plugins_page_agg"), i18n$t("aggregated"), style = "width:125px;")
+          ), style = "width:250px;"
+        )
       )
     ) -> result
   }
@@ -186,10 +202,7 @@ mod_page_sidenav_ui <- function(id = character(), i18n = character()){
   if (grepl("^settings", id)){
     
     links_data_management <- list()
-    # lapply(c("data_sources", "datasets", "vocabularies"), function(page){
-    #   links_data_management <<- rlist::list.append(links_data_management, list(name = i18n$t(page),
-    #     id = ns(page), key = page, url = shiny.router::route_link(paste0("settings/", page))))
-    # })
+    
     lapply(c("datasets", "vocabularies"), function(page){
       links_data_management <<- rlist::list.append(links_data_management, list(name = i18n$t(page),
         id = ns(page), key = page, url = shiny.router::route_link(paste0("settings/", page))))
@@ -206,17 +219,20 @@ mod_page_sidenav_ui <- function(id = character(), i18n = character()){
       else links <- rlist::list.append(links, list(name = i18n$t(page), id = ns(page), key = page, url = shiny.router::route_link(paste0("settings/", page))))
     }
     
-    div(class = "sidenav", 
-      shiny.fluent::Nav(
-        groups = list(
-          list(links = links)
-        ),
-        selectedKey = substr(id, nchar("settings") + 2, 100),
-        styles = list(
-          root = list(
-            height = "100%",
-            boxSizing = "border-box",
-            overflowY = "auto"
+    div(class = "sidenav",
+      div(class = "reduced_sidenav"),
+      div(class = "extended_sidenav",
+        shiny.fluent::Nav(
+          groups = list(
+            list(links = links)
+          ),
+          selectedKey = substr(id, nchar("settings") + 2, 100),
+          styles = list(
+            root = list(
+              height = "100%",
+              boxSizing = "border-box",
+              overflowY = "auto"
+            )
           )
         )
       )
@@ -235,6 +251,15 @@ mod_page_sidenav_server <- function(id = character(), r = shiny::reactiveValues(
     ns <- session$ns
     
     if (debug) cat(paste0("\n", Sys.time(), " - mod_page_sidenav (", id, ") - start"))
+    
+    # Show / hide sidenav
+    
+    # observeEvent(r$show_hide_sidenav, {
+    #   if (debug) cat(paste0("\n", Sys.time(), " - mod_page_sidenav - observer r$show_hide_sidenav"))
+    # 
+    #   if (r$show_hide_sidenav == "hide") shinyjs::hide("sidenav")
+    #   else shinyjs::show("sidenav")
+    # })
     
     # --- --- -- -
     # Plugins ----

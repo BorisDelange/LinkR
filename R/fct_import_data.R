@@ -1087,7 +1087,7 @@ import_dataset <- function(output, ns = character(), i18n = character(), r = shi
     for (var_type in var_types) {
       if (var_cols[[i, "type"]] == var_type) {
         
-        if (allow_numeric_instead_integer & var_type == "numeric"){
+        if (allow_numeric_instead_integer & var_type == "integer"){
           if (is.numeric(data_test[[var_name]])) error <- FALSE
         }
         else if (allow_dttm_instead_date & var_type == "date"){

@@ -35,7 +35,7 @@ mod_data_ui <- function(id = character(), i18n = character()){
   tab_creation_card <- make_card(
     title = i18n$t("add_tab"),
     content = div(
-      actionButton(ns(paste0(category, "_close_add_tab")), "", icon = icon("times"), style = "position:absolute; top:10px; right:10px;"),
+      actionButton(ns(paste0(category, "_close_add_tab")), "", icon = icon("xmark"), style = "position:absolute; top:10px; right:10px;"),
       shiny.fluent::Stack(horizontal = TRUE, tokens = list(childrenGap = 50),
         make_textfield(ns = ns, label = "name", id = "tab_name", width = "300px", i18n = i18n),
         div(shiny.fluent::ChoiceGroup.shinyInput(ns("add_tab_type"), value = "same_level", 
@@ -52,7 +52,7 @@ mod_data_ui <- function(id = character(), i18n = character()){
   tab_edition_card <- make_card(
     title = i18n$t("edit_tab"),
     content = div(
-      actionButton(ns(paste0(category, "_close_edit_tab")), "", icon = icon("times"), style = "position:absolute; top:10px; right:10px;"),
+      actionButton(ns(paste0(category, "_close_edit_tab")), "", icon = icon("xmark"), style = "position:absolute; top:10px; right:10px;"),
       make_textfield(ns = ns, label = "name", id = "edit_tab_name", width = "300px", i18n = i18n), br(),
       shiny.fluent::Stack(horizontal = TRUE, tokens = list(childrenGap = 10),
         shiny.fluent::PrimaryButton.shinyInput(ns("edit_tab_save"), i18n$t("save")),
@@ -74,7 +74,7 @@ mod_data_ui <- function(id = character(), i18n = character()){
     widget_card <- make_card(
       title = i18n$t(type),
       content = div(
-        actionButton(ns(paste0(category, "_close_", type)), "", icon = icon("times"), style = "position:absolute; top:10px; right:10px;"),
+        actionButton(ns(paste0(category, "_close_", type)), "", icon = icon("xmark"), style = "position:absolute; top:10px; right:10px;"),
         shiny.fluent::Stack(horizontal = TRUE, tokens = list(childrenGap = 20),
           make_textfield(i18n = i18n, ns = ns, label = "name", id = paste0(type, "_name"), width = "300px"),
           plugin_div
@@ -1001,6 +1001,7 @@ mod_data_server <- function(id = character(), r = shiny::reactiveValues(), d = s
                   div(
                     id = ns(paste0(category, "_widget_settings_remove_buttons_", widget_id)),
                     shiny.fluent::Stack(horizontal = TRUE, tokens = list(childrenGap = 2),
+                      uiOutput(ns(paste0("additional_buttons_", widget_id))),
                       settings_widget_button,
                       actionButton(ns(paste0(category, "_remove_widget_", widget_id)), "", icon = icon("trash-alt"))
                     ),
@@ -2649,6 +2650,7 @@ mod_data_server <- function(id = character(), r = shiny::reactiveValues(), d = s
             div(
               id = ns(paste0(category, "_widget_settings_remove_buttons_", widget_id)),
               shiny.fluent::Stack(horizontal = TRUE, tokens = list(childrenGap = 2),
+                uiOutput(ns(paste0("additional_buttons_", widget_id))),
                 actionButton(ns(paste0(category, "_widget_settings_", widget_id)), "", icon = icon("cog")),
                 actionButton(ns(paste0(category, "_remove_widget_", widget_id)), "", icon = icon("trash-alt"))
               ),

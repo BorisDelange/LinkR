@@ -511,17 +511,18 @@ show_message_bar <- function(output, message = character(), type = "severeWarnin
   
   if (length(ns) > 0){
     output[[paste0("message_bar", id)]] <- renderUI(div(
-      div(shiny.fluent::MessageBar(output_message, messageBarType = type), style = "z-index:1; margin-top:10px; height:30px; margin-bottom:-30px; max-width:calc(100% - 330px);"),
+      class = "message_bar_container",
+      div(shiny.fluent::MessageBar(output_message, messageBarType = type), class = "message_bar"),
       div(
         shiny.fluent::IconButton.shinyInput(ns(paste0("close_message_bar_", id)), "", iconProps = list(iconName = "Cancel")), 
-        style = "position:sticky; z-index:2; margin-left:calc(100% - 362px);"
+        class = "message_bar_close_button"
       ))
     )
   }
   else {
     output[[paste0("message_bar", id)]] <- renderUI(div(
-      shiny.fluent::MessageBar(output_message, messageBarType = type),
-      style = "margin-top:10px; max-width:calc(100% - 330px);")
-    )
+      class = "message_bar_container",
+      div(shiny.fluent::MessageBar(output_message, messageBarType = type), class = "message_bar")
+    ))
   }
 }

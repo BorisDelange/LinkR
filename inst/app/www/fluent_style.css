@@ -8,15 +8,31 @@
   padding: 2px 10px 0px 10px;
   color: #737373;
   margin: 10px 0px 0px 0px;
-  width: 190px;
+  width: 145px;
 }
 
 .logo {
   margin: 15px 0px 0px 25px;
 }
 
+.link_image_container:hover {
+  background-color: #f0f0f0; /* Couleur de fond grisé */
+}
+
+.link_image_container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 35px;
+  width: 32px;
+  padding: 3px 3px 0px 3px;
+  margin: -5px 0px 0px 3px;
+  z-index:10;
+}
+
 .header_left_bar {
-  padding: 5px 0px 0px 0px;
+  margin: 5px 0px 0px -3px;
+  z-index:5;
 }
 
 .header_right_bar {
@@ -37,9 +53,12 @@ body {
 
 .grid-container {
   display: grid;
-  grid-template-columns: 290px 1fr;
+  grid-template-columns: 60px 240px 1fr;
   grid-template-rows: 54px 1fr 45px;
-  grid-template-areas: "header header" "sidenav main" "footer footer";
+  grid-template-areas:
+    "header header header"
+    "sidenav sidenav main"
+    "footer footer footer";
   height: 100vh;
 }
 
@@ -49,8 +68,8 @@ body {
   padding-left: 0px;
   padding-right: 30px;
   max-width: calc(100% - 40px);
-  /*max-height: calc(100% - 200px);*/
-  overflow: auto;0
+  overflow: auto;
+  position:relative;
 }
 
 .footer {
@@ -59,11 +78,36 @@ body {
   padding: 12px 20px;
 }
 
+.main_right_side {
+  position: absolute;
+  right: 0;
+  width: 100%;
+}
+
 .sidenav {
+  grid-area: sidenav;
+  height: 100%;
+  position: relative;
+}
+
+.extended_sidenav {
   grid-area: sidenav;
   background-color: #fff;
   padding: 10px 20px 20px 20px;
-  width:240px;
+  width: 240px;
+  height: 100%;
+  position: absolute;
+  left: 0;
+}
+
+.reduced_sidenav {
+  grid-area: sidenav;
+  background-color: white;
+  display: none;
+  width: 65px;
+  height: 100%;
+  position: absolute;
+  right: 0;
 }
 
 .page-title {
@@ -211,7 +255,27 @@ a:hover {
 
 .message_bars {
   overflow-y: scroll; 
-  width: 100%; 
+  width: 100%;
   position: fixed; 
   z-index: 100;
+}
+
+.message_bar_container {
+  position: relative;
+  margin-top: 10px;
+  width: calc(100% - 330px);
+  height: 35px;
+  z-index: 1;
+}
+
+.message_bar {
+  width: 100%;
+  height: 100%;
+}
+
+.message_bar_close_button {
+  position: absolute;
+  top: 0px;
+  right: 0px;
+  z-index: 2;
 }

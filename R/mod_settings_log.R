@@ -12,7 +12,6 @@ mod_settings_log_ui <- function(id = character(), i18n = character()){
   ns <- NS(id)
   
   div(class = "main",
-      
     shiny.fluent::reactOutput(ns("help_panel")),
     shiny.fluent::reactOutput(ns("help_modal")),
     shiny.fluent::Breadcrumb(items = list(

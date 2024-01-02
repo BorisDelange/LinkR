@@ -281,8 +281,7 @@ mod_my_studies_ui <- function(id = character(), i18n = character(), language = "
           )
         )
       )
-    ),
-    br()
+    ), br()
   )
 }
     
@@ -1345,6 +1344,7 @@ mod_my_studies_server <- function(id = character(), r = shiny::reactiveValues(),
         data$plugins <- data$plugins %>%
           dplyr::left_join(imported_plugins %>% dplyr::select(id, unique_id), by = "id") %>%
           dplyr::left_join(local_plugins %>% dplyr::select(local_id = id, unique_id), by = "unique_id") %>%
+          dplyr::mutate_at(c("local_id", "new_id"), as.integer) %>%
           dplyr::mutate(new_id = dplyr::case_when(
             !is.na(local_id) ~ local_id,
             TRUE ~ new_id
@@ -2246,6 +2246,7 @@ mod_my_studies_server <- function(id = character(), r = shiny::reactiveValues(),
             data$plugins <- data$plugins %>%
               dplyr::left_join(imported_plugins %>% dplyr::select(id, unique_id), by = "id") %>%
               dplyr::left_join(local_plugins %>% dplyr::select(local_id = id, unique_id), by = "unique_id") %>%
+              dplyr::mutate_at(c("local_id", "new_id"), as.integer) %>%
               dplyr::mutate(new_id = dplyr::case_when(
                 !is.na(local_id) ~ local_id,
                 TRUE ~ new_id

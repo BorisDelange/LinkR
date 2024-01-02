@@ -15,11 +15,18 @@ mod_page_header_ui <- function(id = character(), i18n = character()){
   # result <- div()
   
   # print(i18n$t("scripts_and_plugins"))
-
+  
   div(class = "header",
-    
-    div(htmltools::img(src = "www/logo.png", style = "height: 25px;"), class = "logo"),
+    div(htmltools::img(src = "www/logo.png", style = "height:25px;"), class = "logo"),
     div(class = "title", shiny.fluent::Text(variant = "xLarge", "LinkR")),
+    div(
+      tags$a(
+        tags$img(src = "www/sidebar.png", style = "width:16px; height:auto; display:block; margin-top:8px; margin-left:8px;"), 
+        href = "javascript:void(0);", 
+        onclick = paste0("event.preventDefault(); Shiny.setInputValue('", id, "-show_hide_sidenav', Math.random()); return false;"),
+        style = "display: block; width:100%; height:100%;"
+      ), 
+      class = "link_image_container", style = "margin-top:10px;"),
     div(class = "header_left_bar", 
       shiny.fluent::CommandBar(
         items = list(
@@ -52,9 +59,33 @@ mod_page_header_ui <- function(id = character(), i18n = character()){
 #' page_header Server Functions
 #'
 #' @noRd 
-mod_page_header_server <- function(id = character(), r = shiny::reactiveValues(), language = "EN", i18n = character()){
+mod_page_header_server <- function(id = character(), r = shiny::reactiveValues(), language = "en", i18n = character(),
+  perf_monitoring = FALSE, debug = FALSE){
   moduleServer(id, function(input, output, session){
     ns <- session$ns
+    
+    # Show / hide sidenav
+    
+    r$show_hide_sidenav <- "hide"
+  
+    observeEvent(input$show_hide_sidenav, {
+      if (debug) cat(paste0("\n", Sys.time(), " - mod_page_header - observer input$show_hide_sidenav"))
+      
+      if (r$show_hide_sidenav == "hide"){
+        r$show_hide_sidenav <- "show"
+        shinyjs::runjs(paste0("$('.extended_sidenav').css('display', 'none');"))
+        shinyjs::runjs(paste0("$('.reduced_sidenav').css('display', 'block');"))
+        shinyjs::runjs(paste0("$('.grid-container').css('grid-template-areas', '\"header header header\" \"sidenav main main\" \"footer footer footer\"');"))
+        shinyjs::runjs(paste0("$('.main').css('left', '10px');"))
+      }
+      else {
+        r$show_hide_sidenav <- "hide"
+        shinyjs::runjs(paste0("$('.extended_sidenav').css('display', 'block');"))
+        shinyjs::runjs(paste0("$('.reduced_sidenav').css('display', 'none');"))
+        shinyjs::runjs(paste0("$('.grid-container').css('grid-template-areas', '\"header header header\" \"sidenav sidenav main\" \"footer footer footer\"');"))
+        shinyjs::runjs(paste0("$('.main').css('left', '0px');"))
+      }
+    })
     
     output$username <- renderUI(r$username)
   })

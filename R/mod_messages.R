@@ -140,8 +140,7 @@ mod_messages_ui <- function(id = character(), i18n = character()){
           make_card("", div(shiny.fluent::MessageBar(i18n$t("choose_a_study_left_side"), messageBarType = 5), style = "margin-top:10px;"))
         )
       )
-    ),
-    br()
+    ), br()
   )
 }
     

@@ -367,7 +367,6 @@ mod_settings_data_management_ui <- function(id = character(), i18n = character()
           )
         )
       )
-      
     ) -> result
   }
   
@@ -719,7 +718,6 @@ mod_settings_data_management_ui <- function(id = character(), i18n = character()
           )
         )
       )
-      
     ) -> result
   }
   result

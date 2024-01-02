@@ -435,9 +435,9 @@ updated_on,Modifié le
 vocabulary_selected_concepts,Concepts sélectionnés
 replace_already_existing_plugins,Remplacer les plugins déjà existants
 replace_already_existing_scripts,Remplacer les scripts déjà existants
-replace_already_existing_studies,Remplacer les études déjà existants
+replace_already_existing_studies,Remplacer les études déjà existantes
 replace_already_existing_datasets,Remplacer les sets de données déjà existants
-replace_already_existing_vocabularies,Remplacer les terminologies déjà existants
+replace_already_existing_vocabularies,Remplacer les terminologies déjà existantes
 plugins_to_export,Plugins à exporter
 scripts_to_export,Scripts à exporter
 studies_to_export,Etudes à exporter

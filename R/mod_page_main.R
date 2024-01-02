@@ -19,7 +19,7 @@ mod_page_main_ui <- function(id = character(), language = "en", languages = tibb
   if (grepl("^home", id)){
     sapply(c("home", "home_get_started", "home_tutorials", "home_resources", "home_dev"), function(page){
       if (id == page) mod_home_ui(id = page, i18n = i18n) ->> result
-    }) 
+    })
   }
   
   # --- --- --- --- --- --- -
