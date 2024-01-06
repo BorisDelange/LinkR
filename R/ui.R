@@ -79,32 +79,38 @@ golem_add_external_resources <- function(css){
       app_title = 'LinkR'
     ),
     # Link to CSS file
-    htmltools::tags$link(href = css, rel = "stylesheet", type = "text/css"),
+    tags$link(href = css, rel = "stylesheet", type = "text/css"),
     
     # Add highlight.js
-    # tags$head(
-    #   tags$link(rel = "stylesheet", href = "https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/a11y-light.min.css"),
-    #   tags$script(src = "https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js")
-    # ),
-    # tags$script(
-    #   HTML("
-    #   document.addEventListener('DOMContentLoaded', function() {
-    #     document.querySelectorAll('pre code').forEach(function(block) {
-    #       hljs.highlightBlock(block);
-    #     });
-    #   });
-    # ")
-    # ),
-    
-    # Script for make an input when a text is entered in the person ComboBox.shinyInput
-    tags$head(tags$script("
-      $(document).on('keyup', '#patient_level_data-person-input', function() {
-        Shiny.setInputValue('patient_level_data-person_trigger', $(this).val());
+    tags$link(rel = "stylesheet", href = "https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.3.1/styles/tomorrow-night-blue.min.css"),
+    tags$script(src = "https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.3.1/highlight.min.js"),
+    tags$script(HTML("
+      document.addEventListener('DOMContentLoaded', function() {
+        var observer = new MutationObserver(function(mutations) {
+          mutations.forEach(function(mutation) {
+            if (mutation.addedNodes.length > 0) {
+              document.querySelectorAll('.code_highlight:not(.hljs)').forEach((block) => {
+                hljs.highlightElement(block);
+                block.classList.add('hljs'); // Ajoute une classe pour marquer que le highlight a été appliqué
+              });
+            }
+          });
+        });
+
+        var target = document.querySelector('body'); // Observez tout le body pour les changements
+        observer.observe(target, { childList: true, subtree: true });
       });
     ")),
     
+    # Script for make an input when a text is entered in the person ComboBox.shinyInput
+    tags$script("
+      $(document).on('keyup', '#patient_level_data-person-input', function() {
+        Shiny.setInputValue('patient_level_data-person_trigger', $(this).val());
+      });
+    "),
+    
     # Add fontawesome icons
-    htmltools::tags$link(
+    tags$link(
       rel = "stylesheet",
       href = "https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css",
       integrity = "sha384-cmES2APjF1Ar8dUWeaROssI2FTx2MFqjMq9u2p89A/QD5/dZqk3bxDi1y5w2AWiS",

@@ -155,7 +155,7 @@ create_study,Créer une étude
 studies_management,Gestion des études
 import_study,Importer une étude
 export_study,Exporter une étude
-dataset_options,Options du set de données
+dataset_options,Options du set
 vocabulary_options,Options de la terminologie
 create_data_source,Créer une source de données
 data_sources_management,Gestion des sources de données
@@ -164,7 +164,7 @@ mapping,Alignement de concepts
 vocabularies_management,Gestion des terminologies
 show_only_used_concepts,N'afficher que les concepts utilisés
 create_dataset,Créer un set de données
-datasets_management,Gestion des sets de données
+datasets_management,Gestion des sets
 messages,Messages
 study_options,Options de l'étude
 overview,Présentation
@@ -410,7 +410,7 @@ columns_concepts,Colonnes des concepts
 columns_mapped_concepts,Colonnes des concepts alignés
 import_vocabulary_table_success,Table de terminologie ajoutée avec succès
 scripts_cache_memory,Mémoire cache
-edit_dataset_code,Editer le code du set de données
+edit_dataset_code,Editer le code du set
 edit_vocabulary_code,Editer le code de la terminologie
 data_source,Source de données
 data_source_id,ID de la source de données
@@ -504,6 +504,7 @@ add_a_tab,Ajouter un onglet
 edit_a_tab,Editer un onglet
 invalid_dataset_id_value,La variable dataset_id doit être de type integer
 var_type_not_valid,La variable type n'est pas valide
+var_omop_table_not_valid,La variable omop_table n'est pas valide
 error_loading_csv,Erreur lors du chargement du fichier CSV
 error_transforming_tibble,Erreur dans la conversion de la variable au format tibble
 valid_col_names_are,Noms de colonnes non valides. Les noms requis sont : 
@@ -953,7 +954,7 @@ input_image_doesnt_exist,Le fichier de l'image n'existe pas
 error,Erreur
 show_imported_data,Afficher les données importées
 dataset_invalid_save_as,"Value non valide pour le paramètre 'save as'. Valeurs acceptées : 'none', 'csv' et 'parquet'."
-dataset_invalid_read_with,"Valeur non valid pour le paramètre 'read_with'. Valeurs acceptées : 'none', 'vroom', 'duckdb', 'spark'."
+dataset_invalid_read_with,"Valeur non valide pour le paramètre 'read_with'. Valeurs acceptées : 'none', 'vroom', 'duckdb', 'spark'."
 wrong_association_read_with_and_save_as,"L'association entre les paramètres 'read_with' et 'save_as' n'est pas valide."
 error_loading_duckdb,Erreur lors du chargement de la base de données duckdb
 error_loading_sparklyr,Erreur lors du chargement des données avec sparklyr
@@ -1004,3 +1005,5 @@ configure_python,Configurer Python
 python_path,Chemin d'accès à Python
 test_python_path,Tester
 failure,Echec
+app_data_structure,Structure des données
+import_export_datasets,Importer / exporter des sets

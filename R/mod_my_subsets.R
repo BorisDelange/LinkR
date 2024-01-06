@@ -730,7 +730,7 @@ mod_my_subsets_server <- function(id = character(), r = shiny::reactiveValues(),
       if (debug) cat(paste0("\n", Sys.time(), " - mod_my_subsets - observer r$subset_persons_temp"))
       
       # Subset persons datatable
-
+      
       if (length(r$subset_persons_datatable_proxy) == 0){
 
         # Render datatable
@@ -766,8 +766,7 @@ mod_my_subsets_server <- function(id = character(), r = shiny::reactiveValues(),
       # If this subset is actually loaded in patient-lvl data page, update patients dropdown
       if (length(input$persons_selected_subset) > 1) link_id <- input$persons_selected_subset$key
       else link_id <- input$persons_selected_subset
-      if (m$selected_subset == link_id) m$subset_persons <- r$subset_persons_temp %>% dplyr::select(id, subset_id, person_id, creator_id, datetime, deleted)
-      
+      if (!is.na(m$selected_subset) & m$selected_subset == link_id) m$subset_persons <- r$subset_persons_temp %>% dplyr::select(id, subset_id, person_id, creator_id, datetime, deleted)
     })
     
     # Prepare data for subset_add_persons_datatable

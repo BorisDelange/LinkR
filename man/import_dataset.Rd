@@ -12,15 +12,17 @@ import_dataset(
   d = shiny::reactiveValues(),
   dataset_id = integer(),
   data = tibble::tibble(),
-  type = "",
+  omop_table = "",
   omop_version = "6.0",
   read_with = "none",
   save_as = "none",
-  rewrite = FALSE
+  rewrite = FALSE,
+  allow_numeric_instead_integer = FALSE,
+  allow_dttm_instead_date = FALSE
 )
 }
 \arguments{
-\item{output}{variable from Shiny, used to render messages on the message bar}
+\item{output}{Shiny output variable}
 
 \item{ns}{Shiny namespace}
 
@@ -30,40 +32,92 @@ import_dataset(
 
 \item{d}{A shiny::reactiveValues object, used to communicate between modules}
 
-\item{dataset_id}{ID of the dataset, used to create directory in data folder (integer)}
+\item{dataset_id}{ID of the dataset, used to create a specific dataset folder in the application folders (integer)}
 
 \item{data}{Data variable (data.frame or tibble)}
 
-\item{type}{Name of the OMOP table to import (character)}
+\item{omop_table}{Name of the OMOP table to import (character)}
 
-\item{omop_version}{OMOP versions of the imported data, accepts "5.3", "5.4" or "6.0" (character)}
+\item{omop_version}{OMOP version of the imported data, accepts "5.3", "5.4" and "6.0" (character)}
 
-\item{read_with}{The library used to read the data. Accepted values = c("none", "vroom", "duckdb", "spark", "arrow") (character)}
+\item{read_with}{The library used to read the data. Accepted values: "none", "vroom", "duckdb", "spark", "arrow" (character)}
 
-\item{save_as}{Save the data locally. Accepted values = c("none", "csv", "parquet") (character)}
+\item{save_as}{Save the data locally. Accepted values: "none", "csv", "parquet" (character)}
 
-\item{rewrite}{If save_as_csv is TRUE, rewrite or not existing CSV file (logical)-}
+\item{rewrite}{If save_as is different from 'none', rewrite or not existing data file (logical)}
+
+\item{allow_numeric_instead_integer}{Allow columns that should be of type integer to be of type numeric (logical)}
+
+\item{allow_dttm_instead_date}{Allow columns that should be of type datetime to be of type date (logical)}
 }
 \description{
-Import a dataset in the application, with OMOP CDM
-
-Load +/- save data when a dataset is selected by the user.
+Import a dataset in the application, with the OMOP Common Data Model
 }
 \details{
-The function is used in a dataset code and is launched each time a user selects a dataset. \cr\cr
-You can choose to \strong{load data each time} the function is used with save_as_csv set to FALSE (eg when dataset is small and the
-data is loaded from a data warehouse) or you can \strong{save the data in a CSV file} with save_as_csv set to TRUE. \cr\cr
-The data you import must respect the format of \href{https://ohdsi.github.io/CommonDataModel/cdm60.html}{\strong{OMOP common data model}}.\cr\cr
-See help pages in the app for more informations.
+This function is used within a dataset code and is invoked each time a user selects a dataset.
+
+For \strong{each OMOP table} you wish to import, you must \strong{create a function} that, when called,
+loads the data from the specified table.
+
+Then, utilize the \strong{import_dataset} function to load data into the application.
+
+Data can be loaded from several sources, including:
+\itemize{
+  \item CSV files
+  \item Excel files
+  \item Parquet files
+  \item Local database connections
+  \item Remote database connections
+}
+
+Select the R library for \strong{reading the file} using the \strong{read_with} argument (options include vroom, duckdb, spark, or arrow).
+If read_with is set to "none", the data is loaded as is.
+
+Choose the \strong{format} for \strong{saving the data} after import using the save_as argument (options are csv or parquet).
+
+When loading data from a database, it's \strong{common to not save the data locally}, 
+in order to enhance application performance through \strong{partial data loading} (lazy data reading).
+
+If you wish to \strong{modify your data after loading}, saving it locally may be beneficial to preserve your changes.
+In such cases, we recommend using the \strong{parquet} storage format and loading the data with \strong{duckdb} for efficient lazy reading.
+
+The data you import must adhere to the \href{https://ohdsi.github.io/CommonDataModel/cdm60.html}{\strong{OMOP common data model}} format.
+For more information, refer to the help pages in the app.
 }
 \examples{
 \dontrun{
-person <- tibble::tibble(person_id = 1L, gender_concept_id = 8532L, year_of_birth = NA_integer_, month_of_birth = NA_integer_,
-  day_of_birth = NA_integer_, birth_datetime = lubridate::ymd_hms("1990-01-03 00:00:00"), race_concept_id = NA_integer_,
-  ethnicity_concept_id = NA_integer_, location_id = NA_integer_, provider_id = NA_integer_, care_site_id = NA_integer_,
-  person_source_value = NA_character_, gender_source_value = "F", race_source_value = NA_character_, ethnicity_source_value = NA_character_)
+person <- function() tibble::tibble(
+    person_id = 1:100,
+    gender_concept_id = sample(c(8507L, 8532L), 100, replace = TRUE),
+    year_of_birth = sample(1920:2010, 100, replace = TRUE),
+    month_of_birth = sample(1:12, 100, replace = TRUE),
+    day_of_birth = sample(1:28, 100, replace = TRUE),
+    race_concept_id = NA_integer_,
+    ethnicity_concept_id = NA_integer_,
+    location_id = sample(1:10, 100, replace = TRUE),
+    provider_id = sample(1:10, 100, replace = TRUE),
+    care_site_id = sample(1:10, 100, replace = TRUE),
+    person_source_value = paste("Source", 1:100),
+    gender_source_value = NA_character_,
+    gender_source_concept_id = NA_integer_,
+    race_source_value = NA_character_,
+    race_source_concept_id = NA_integer_,
+    ethnicity_source_value = NA_character_,
+    ethnicity_source_concept_id = NA_integer_
+    ) \%>\%
+    dplyr::mutate(
+        birth_datetime = lubridate::ymd_hms(paste0(paste(year_of_birth, month_of_birth, day_of_birth, sep = "-"), " 00:00:00")),
+        death_datetime = dplyr::case_when(runif(100) < 2/3 ~ as.POSIXct(NA), TRUE ~ birth_datetime + lubridate::years(sample(30:80, 100, replace = TRUE))),
+        .after = "day_of_birth"
+   )
     
-import_dataset(output = output, ns = ns, i18n = i18n, r = r, d = d, dataset_id = 5, data = person, type = "person", 
-  omop_version = "5.4", read_with = "vroom", save_as = "csv", rewrite = FALSE)
+import_dataset(
+    data = person(), omop_table = "person", omop_version = "6.0", read_with = "none", save_as = "none", rewrite = FALSE,
+    output = output, ns = ns, i18n = i18n, r = r, d = d, dataset_id = 5, 
+)
+
+cat("\n")
+
+d$person \%>\% nrow() # n = 100
 }
 }

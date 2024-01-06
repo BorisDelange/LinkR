@@ -388,7 +388,7 @@ mod_my_studies_server <- function(id = character(), r = shiny::reactiveValues(),
         if ("all_studies_card" %in% r$user_accesses) shinyjs::show("all_studies_card")
         else shinyjs::show("all_studies_card_forbidden")
       }
-      else{
+      else {
         if (input$current_tab %in% r$user_accesses) shinyjs::show(input$current_tab)
         else shinyjs::show(paste0(input$current_tab, "_forbidden"))
       }
@@ -424,6 +424,10 @@ mod_my_studies_server <- function(id = character(), r = shiny::reactiveValues(),
       update_r(r = r, m = m, table = "studies")
       
       r$force_reload_scripts_cache <- FALSE
+      
+      # Get OMOP version for this dataset
+      omop_version <- r$options %>% dplyr::filter(category == "dataset" & link_id == r$selected_dataset & name == "omop_version") %>% dplyr::pull(value)
+      m$omop_version <- omop_version
       
       # Try to load dataset
       tryCatch({

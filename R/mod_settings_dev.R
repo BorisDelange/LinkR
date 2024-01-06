@@ -202,11 +202,7 @@ mod_settings_dev_server <- function(id = character(), r = shiny::reactiveValues(
         edited_code <- r$r_console_code %>% stringr::str_replace_all("\r", "\n")
         
         console_result <- isolate(execute_settings_code(input = input, output = output, session = session, id = id, ns = ns, i18n = i18n, r = r, d = d, m = m,
-          edited_code = edited_code, code_type = "server")) %>%
-          stringr::str_replace_all(paste0("<(lgl|int|dbl|chr|cpl|raw|list|named list|fct|ord|date|dttm|drtn|time",
-            "|int64|blob|df\\[\\,1\\]|tibble\\[\\,1\\]|I|\\?\\?\\?|vctrs_vc|prtl_fctr|prtl|fn|sym|expression|quos)>"), 
-            function(x) sprintf("&lt;%s&gt;", substr(x, 2, nchar(x) - 1))) %>%
-          gsub("NULL$", "", .)
+          edited_code = edited_code, code_type = "server")) %>% gsub("NULL$", "", .)
         
         output$r_code_result <- renderUI(HTML(paste0("<pre>", console_result, "</pre>")))
         output$datetime_r_code_execution <- renderText(format_datetime(Sys.time(), language))

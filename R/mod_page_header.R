@@ -26,7 +26,7 @@ mod_page_header_ui <- function(id = character(), i18n = character()){
         onclick = paste0("event.preventDefault(); Shiny.setInputValue('", id, "-show_hide_sidenav', Math.random()); return false;"),
         style = "display: block; width:100%; height:100%;"
       ), 
-      class = "link_image_container", style = "margin-top:10px;"),
+      class = "link_image_container"),
     div(class = "header_left_bar", 
       shiny.fluent::CommandBar(
         items = list(
@@ -76,7 +76,7 @@ mod_page_header_server <- function(id = character(), r = shiny::reactiveValues()
         shinyjs::runjs(paste0("$('.extended_sidenav').css('display', 'none');"))
         shinyjs::runjs(paste0("$('.reduced_sidenav').css('display', 'block');"))
         shinyjs::runjs(paste0("$('.grid-container').css('grid-template-areas', '\"header header header\" \"sidenav main main\" \"footer footer footer\"');"))
-        shinyjs::runjs(paste0("$('.main').css('left', '10px');"))
+        shinyjs::runjs(paste0("$('.main').css('left', '20px');"))
       }
       else {
         r$show_hide_sidenav <- "hide"

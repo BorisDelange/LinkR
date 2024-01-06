@@ -20,6 +20,7 @@ reference:
   contents:
   - add_log_entry
   - add_settings_new_data
+  - capture_python_output
   - check_authentification
   - coalesce2
   - convert_tibble_to_list
@@ -33,6 +34,7 @@ reference:
   - get_last_row
   - get_remote_db
   - insert_default_data
+  - is_integer_or_integer64
   - load_database
   - monitor_perf
   - prepare_data_datatable

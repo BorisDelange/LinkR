@@ -16,7 +16,7 @@ knitr::opts_chunk$set(
 # LinkR <a href="https://framagit.org/interhop/linkr/linkr"><img src="man/figures/hex.png" align="right" width = "123" height="140" /></a>
 
 <!-- badges: start -->
-[![Lifecycle: experimental](https://img.shields.io/badge/lifecycle-experimental-orange.svg)](https://lifecycle.r-lib.org/articles/stages.html#experimental) ![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg) ![version](https://img.shields.io/badge/version-0.2.0.9061-blue)
+[![Lifecycle: experimental](https://img.shields.io/badge/lifecycle-experimental-orange.svg)](https://lifecycle.r-lib.org/articles/stages.html#experimental) ![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg) ![version](https://img.shields.io/badge/version-0.2.0.9062-blue)
 <!-- badges: end -->
 
 ## Introduction
@@ -45,20 +45,11 @@ It contributes to **open science** by allowing the sharing of:
 - *scripts*: share interoperable scripts, thanks to the use of the common OMOP data model
 - *plugins*: help improve the application by creating plugins and sharing them
 
-
 ## Installation
 
 The `remotes` library must be installed, you can install it with:
 ``` r
 install.packages("remotes")
-```
-
-Please note that your version of shiny must be **earlier than version 1.7.5**, which causes significant application slowdowns.
-
-You can install version 1.7.4.1 with the following code.
-
-``` r
-install.packages("https://cran.r-project.org/src/contrib/Archive/shiny/shiny_1.7.4.1.tar.gz", repos = NULL, type = "source")
 ```
 
 You can install the development version from Framagit, with:

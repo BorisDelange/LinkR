@@ -127,38 +127,6 @@ mod_settings_data_management_ui <- function(id = character(), i18n = character()
     )
   }
   
-  # --- --- --- --- --- --
-  # Data sources card ----
-  # --- --- --- --- --- --
-  
-  if (id == "settings_data_sources"){
-    div(class = "main",
-      render_settings_default_elements(ns = ns),
-      shiny.fluent::reactOutput(ns("help_panel")),
-      shiny.fluent::reactOutput(ns("help_modal")),
-      shiny.fluent::Breadcrumb(items = list(
-        list(key = "data_sources", text = i18n$t("data_sources"))
-      ), maxDisplayedItems = 3),
-      
-      # --- --- --- --- -
-      ## Pivot items ----
-      # --- --- --- --- -
-      
-      shiny.fluent::Pivot(
-        onLinkClick = htmlwidgets::JS(paste0("item => Shiny.setInputValue('", id, "-current_tab', item.props.id)")),
-        shiny.fluent::PivotItem(id = "datatable_card", itemKey = "datatable_card", headerText = i18n$t("data_sources_management"))
-      ),
-      
-      forbidden_cards,
-      
-      # --- --- --- --- -- -
-      # Management card ----
-      # --- --- --- --- -- -
-      
-      render_settings_datatable_card(i18n = i18n, ns = ns, div_id = "datatable_card", title = "data_sources_management", inputs = c("name" = "textfield"))
-    ) -> result
-  }
-  
   # --- --- --- --- ---
   # Datasets card ----
   # --- --- --- --- ---
@@ -831,7 +799,7 @@ mod_settings_data_management_server <- function(id = character(), r = shiny::rea
       })
     }
     
-    sapply(1:10, function(i){
+    sapply(1:11, function(i){
       observeEvent(input[[paste0("help_page_", i)]], r[[paste0("help_settings_data_management_", table, "_page_", i)]] <- Sys.time())
     })
     
@@ -1973,6 +1941,7 @@ mod_settings_data_management_server <- function(id = character(), r = shiny::rea
         
         if (debug) cat(paste0("\n", Sys.time(), " - mod_settings_data_management - observer r$..preview_description_trigger"))
         
+        req(length(input$options_selected_dataset_or_vocabulary) > 0)
         if (length(input$options_selected_dataset_or_vocabulary) > 1) link_id <- input$options_selected_dataset_or_vocabulary$key
         else link_id <- input$options_selected_dataset_or_vocabulary
         
@@ -2240,9 +2209,9 @@ mod_settings_data_management_server <- function(id = character(), r = shiny::rea
           sapply(main_tables, function(table) d[[table]] <- tibble::tibble())
           
           # Replace %dataset_folder%
-          unique_id <- r$options %>% dplyr::filter(category == "dataset" & link_id == r$dataset_id & name == "unique_id") %>% dplyr::pull(value)
-          edited_code <- edited_code %>%
-            stringr::str_replace_all("%dataset_folder%", paste0(r$app_folder, "/datasets/", unique_id))
+          # unique_id <- r$options %>% dplyr::filter(category == "dataset" & link_id == r$dataset_id & name == "unique_id") %>% dplyr::pull(value)
+          # edited_code <- edited_code %>%
+          #   stringr::str_replace_all("%dataset_folder%", paste0(r$app_folder, "/datasets/", unique_id))
         }
         
         if (table %in% c("datasets", "vocabulary")){
@@ -2258,11 +2227,7 @@ mod_settings_data_management_server <- function(id = character(), r = shiny::rea
         output$datetime_code_execution <- renderText(format_datetime(Sys.time(), language))
         
         console_result <- isolate(execute_settings_code(input = input, output = output, session = session, id = id, ns = ns, 
-          i18n = i18n, r = r, d = d, m = m, edited_code = edited_code)) %>%
-          stringr::str_replace_all(paste0("<(lgl|int|dbl|chr|cpl|raw|list|named list|fct|ord|date|dttm|drtn|time",
-            "|int64|blob|df\\[\\,1\\]|tibble\\[\\,1\\]|I|\\?\\?\\?|vctrs_vc|prtl_fctr|prtl|fn|sym|expression|quos)>"), 
-            function(x) sprintf("&lt;%s&gt;", substr(x, 2, nchar(x) - 1))) %>%
-          gsub("NULL$", "", .)
+          i18n = i18n, r = r, d = d, m = m, edited_code = edited_code)) %>% gsub("NULL$", "", .)
         
         output$code_result <- renderUI(HTML(paste0("<pre>", console_result, "</pre>")))
         

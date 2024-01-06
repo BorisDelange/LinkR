@@ -504,6 +504,7 @@ add_tab,Add a tab
 edit_a_tab,Edit a tab
 invalid_dataset_id_value,Variable dataset_id must be of integer type
 var_type_not_valid,Variable type is not valid
+var_omop_table_not_valid,Variable omop_table is not valid
 error_loading_csv,Error loading CSV file
 error_transforming_tibble,Error transforming data to tibble
 valid_col_names_are,Column names are not valid. Valid col names are :
@@ -1004,3 +1005,5 @@ configure_python,Python config
 python_path,Python path
 test_python_path,Test
 failure,Failure
+app_data_structure,Data structure
+import_export_datasets,Importe / export datasets

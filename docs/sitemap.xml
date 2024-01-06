@@ -31,6 +31,9 @@
     <loc>https://framagit.org/interhop/LinkR/reference/add_vocabulary_concept.html</loc>
   </url>
   <url>
+    <loc>https://framagit.org/interhop/LinkR/reference/capture_python_output.html</loc>
+  </url>
+  <url>
     <loc>https://framagit.org/interhop/LinkR/reference/check_authentification.html</loc>
   </url>
   <url>
@@ -92,6 +95,9 @@
   </url>
   <url>
     <loc>https://framagit.org/interhop/LinkR/reference/insert_default_data.html</loc>
+  </url>
+  <url>
+    <loc>https://framagit.org/interhop/LinkR/reference/is_integer_or_integer64.html</loc>
   </url>
   <url>
     <loc>https://framagit.org/interhop/LinkR/reference/linkr.html</loc>
