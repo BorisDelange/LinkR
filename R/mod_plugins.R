@@ -18,6 +18,7 @@ mod_plugins_ui <- function(id = character(), i18n = character(), language = tibb
   })
   
   vocabulary_concepts_div <- div(
+    id = ns("concepts_div"),
     shiny.fluent::Stack(horizontal = TRUE, tokens = list(childrenGap = 20),
       make_combobox(i18n = i18n, ns = ns, label = "vocabulary", id = "vocabulary", allowFreeform = FALSE, multiSelect = FALSE, width = "300px"),
       make_dropdown(i18n = i18n, ns = ns, label = "columns_concepts", id = "vocabulary_concepts_table_cols", width = "300px", multiSelect = TRUE,
@@ -35,43 +36,51 @@ mod_plugins_ui <- function(id = character(), i18n = character(), language = tibb
         ),
         value = c(0, 1, 2, 7, 8, 9)
       ),
-      make_dropdown(i18n = i18n, ns = ns, label = "columns_mapped_concepts", id = "vocabulary_mapped_concepts_table_cols", width = "300px", multiSelect = TRUE,
-        options = list(
-          list(key = 1, text = i18n$t("concept_id")),
-          list(key = 2, text = i18n$t("relationship_id")),
-          list(key = 3, text = i18n$t("mapped_concept_id")),
-          list(key = 4, text = i18n$t("concept_name_2")),
-          list(key = 5, text = i18n$t("concept_display_name_2")),
-          list(key = 6, text = i18n$t("domain_id")),
-          list(key = 7, text = i18n$t("num_patients")),
-          list(key = 8, text = i18n$t("num_rows")),
-          list(key = 10, text = i18n$t("action"))
-        ),
-        value = c(2, 3, 4, 5, 7, 8, 9)
+      # Not used for the moment
+      shinyjs::hidden(
+        make_dropdown(i18n = i18n, ns = ns, label = "columns_mapped_concepts", id = "vocabulary_mapped_concepts_table_cols", width = "300px", multiSelect = TRUE,
+          options = list(
+            list(key = 1, text = i18n$t("concept_id")),
+            list(key = 2, text = i18n$t("relationship_id")),
+            list(key = 3, text = i18n$t("mapped_concept_id")),
+            list(key = 4, text = i18n$t("concept_name_2")),
+            list(key = 5, text = i18n$t("concept_display_name_2")),
+            list(key = 6, text = i18n$t("domain_id")),
+            list(key = 7, text = i18n$t("num_patients")),
+            list(key = 8, text = i18n$t("num_rows")),
+            list(key = 10, text = i18n$t("action"))
+          ),
+          value = c(2, 3, 4, 5, 7, 8, 9)
+        )
       )
     ),
-    shiny.fluent::Stack(horizontal = TRUE, tokens = list(childrenGap = 0),
+    # Not used for the moment
+    shinyjs::hidden(
       div(
-        shiny.fluent::Stack(horizontal = TRUE, tokens = list(childrenGap = 10),
-          div(shiny.fluent::Toggle.shinyInput(ns("show_mapped_concepts"), value = FALSE), style = "margin-top:30px; margin-bottom:5px;"),
-          div(i18n$t("show_mapped_concepts"), style = "font-weight:bold; margin-top:30px; margin-bottom:5px;")
-        ),
-        style = "width:330px;"
-      ),
-      shinyjs::hidden(
-        div(
-          id = ns("merge_mapped_concepts_div"),
-          shiny.fluent::Stack(horizontal = TRUE, tokens = list(childrenGap = 10),
-            div(shiny.fluent::Toggle.shinyInput(ns("merge_mapped_concepts"), value = TRUE), style = "margin-top:30px;; margin-bottom:5px; margin-left:-10px;"),
-            div(i18n$t("merge_mapped_concepts"), style = "font-weight:bold; margin-top:30px;; margin-bottom:5px;")
+        shiny.fluent::Stack(horizontal = TRUE, tokens = list(childrenGap = 0),
+          div(
+            shiny.fluent::Stack(horizontal = TRUE, tokens = list(childrenGap = 10),
+              div(shiny.fluent::Toggle.shinyInput(ns("show_mapped_concepts"), value = FALSE), style = "margin-top:30px; margin-bottom:5px;"),
+              div(i18n$t("show_mapped_concepts"), style = "font-weight:bold; margin-top:30px; margin-bottom:5px;")
+            ),
+            style = "width:330px;"
           ),
-          style = "width:330px;"
-        )
-      ),
-      div(
-        shiny.fluent::Stack(horizontal = TRUE, tokens = list(childrenGap = 10),
-          div(shiny.fluent::Toggle.shinyInput(ns("hide_concepts_datatables"), value = FALSE), style = "margin-top:30px;; margin-bottom:5px; margin-left:-20px;"),
-          div(i18n$t("hide_concepts_datatables"), style = "font-weight:bold; margin-top:30px; margin-bottom:5px;")
+          shinyjs::hidden(
+            div(
+              id = ns("merge_mapped_concepts_div"),
+              shiny.fluent::Stack(horizontal = TRUE, tokens = list(childrenGap = 10),
+                div(shiny.fluent::Toggle.shinyInput(ns("merge_mapped_concepts"), value = TRUE), style = "margin-top:30px;; margin-bottom:5px; margin-left:-10px;"),
+                div(i18n$t("merge_mapped_concepts"), style = "font-weight:bold; margin-top:30px;; margin-bottom:5px;")
+              ),
+              style = "width:330px;"
+            )
+          ),
+          div(
+            shiny.fluent::Stack(horizontal = TRUE, tokens = list(childrenGap = 10),
+              div(shiny.fluent::Toggle.shinyInput(ns("hide_concepts_datatables"), value = FALSE), style = "margin-top:30px;; margin-bottom:5px; margin-left:-20px;"),
+              div(i18n$t("hide_concepts_datatables"), style = "font-weight:bold; margin-top:30px; margin-bottom:5px;")
+            )
+          )
         )
       )
     ),
@@ -163,7 +172,7 @@ mod_plugins_ui <- function(id = character(), i18n = character(), language = tibb
       div(
         id = ns("all_plugins_card"),
         div(id = ns("all_plugins_document_cards"),
-          make_card(i18n$t("all_plugins"),
+          make_card("",#i18n$t("all_plugins"),
             div(
               shiny.fluent::Stack(horizontal = TRUE, tokens = list(childrenGap = 20),
                 div(
@@ -215,7 +224,7 @@ mod_plugins_ui <- function(id = character(), i18n = character(), language = tibb
     shinyjs::hidden(
       div(
         id = ns("plugins_datatable_card"),
-        make_card(i18n$t("plugins_management"),
+        make_card("",#i18n$t("plugins_management"),
           div(
             shiny.fluent::Stack(horizontal = TRUE, tokens = list(childrenGap = 20),
               make_textfield(i18n = i18n, ns = ns, label = "name", id = "plugin_name", width = "300px"),
@@ -239,50 +248,41 @@ mod_plugins_ui <- function(id = character(), i18n = character(), language = tibb
     shinyjs::hidden(
       div(
         id = ns("plugins_edit_code_card"),
-        make_shiny_ace_card(i18n$t("edit_plugin_code"),
+        make_shiny_ace_card("",#i18n$t("edit_plugin_code"),
           div(
             shiny.fluent::Stack(
               tokens = list(childrenGap = 5),
-              make_combobox(i18n = i18n, ns = ns, label = "plugin", id = "code_selected_plugin",
-                width = "300px", allowFreeform = FALSE, multiSelect = FALSE),
-              vocabulary_concepts_div,
               div(
-                shiny.fluent::Stack(horizontal = TRUE, tokens = list(childrenGap = 10),
-                  shiny.fluent::ChoiceGroup.shinyInput(ns("edit_code_ui_server"), value = "ui", options = list(
-                    list(key = "ui", text = i18n$t("ui")),
-                    list(key = "server", text = i18n$t("server")),
-                    list(key = "translations", text = i18n$t("translations"))
-                  ), className = "inline_choicegroup"),
-                  div(shiny.fluent::Toggle.shinyInput(ns("hide_editor"), value = FALSE), style = "margin-top:9px;"),
-                  div(i18n$t("hide_editor"), style = "font-weight:bold; margin-top:9px; margin-right:30px;")
-                ),
-                style = "z-index:2"
+                id = ns("plugin_div"),
+                make_combobox(i18n = i18n, ns = ns, label = "plugin", id = "code_selected_plugin",
+                  width = "300px", allowFreeform = FALSE, multiSelect = FALSE)
               ),
-              shinyjs::hidden(div(id = ns("br_div"), br()))
-            ),
-            div(
-              id = ns("ace_editor_div"),
-                div(
-                  id = ns("ace_edit_code_ui_div"),
-                  shinyAce::aceEditor(
-                  ns("ace_edit_code_ui"), "", mode = "r", 
-                  code_hotkeys = list(
-                    "r", list(
-                      run_selection = list(win = "CTRL-ENTER", mac = "CTRL-ENTER|CMD-ENTER"),
-                      run_all = list(win = "CTRL-SHIFT-ENTER", mac = "CTRL-SHIFT-ENTER|CMD-SHIFT-ENTER"),
-                      save = list(win = "CTRL-S", mac = "CTRL-S|CMD-S"),
-                      comment = list(win = "CTRL-SHIFT-C", mac = "CTRL-SHIFT-C|CMD-SHIFT-C")
-                    )
-                  ),
-                  autoScrollEditorIntoView = TRUE, minLines = 30, maxLines = 1000
-                ), 
-                style = "width: 100%;"
-              ),
+              vocabulary_concepts_div,
               shinyjs::hidden(
                 div(
-                  id = ns("ace_edit_code_server_div"),
-                  shinyAce::aceEditor(
-                    ns("ace_edit_code_server"), "", mode = "r", 
+                  shiny.fluent::Stack(horizontal = TRUE, tokens = list(childrenGap = 10),
+                    shiny.fluent::ChoiceGroup.shinyInput(ns("edit_code_ui_server"), value = "ui", options = list(
+                      list(key = "ui", text = i18n$t("ui")),
+                      list(key = "server", text = i18n$t("server")),
+                      list(key = "translations", text = i18n$t("translations"))
+                    ), className = "inline_choicegroup"),
+                    div(shiny.fluent::Toggle.shinyInput(ns("hide_editor"), value = FALSE), style = "margin-top:9px;"),
+                    div(i18n$t("hide_editor"), style = "font-weight:bold; margin-top:9px; margin-right:30px;")
+                  ),
+                  style = "z-index:2"
+                )
+              )#,
+              # shinyjs::hidden(div(id = ns("br_div"), br()))
+            ),
+            div(
+              id = ns("edit_and_result_div"),
+              style = "display:block;",
+              div(
+                id = ns("editor_div"),
+                  div(
+                    id = ns("ace_edit_code_ui_div"),
+                    shinyAce::aceEditor(
+                    ns("ace_edit_code_ui"), "", mode = "r", 
                     code_hotkeys = list(
                       "r", list(
                         run_selection = list(win = "CTRL-ENTER", mac = "CTRL-ENTER|CMD-ENTER"),
@@ -291,37 +291,60 @@ mod_plugins_ui <- function(id = character(), i18n = character(), language = tibb
                         comment = list(win = "CTRL-SHIFT-C", mac = "CTRL-SHIFT-C|CMD-SHIFT-C")
                       )
                     ),
-                    autoScrollEditorIntoView = TRUE, minLines = 30, maxLines = 1000
+                    autoScrollEditorIntoView = TRUE, minLines = 30, maxLines = 45
                   ), 
                   style = "width: 100%;"
-                )
+                ),
+                shinyjs::hidden(
+                  div(
+                    id = ns("ace_edit_code_server_div"),
+                    shinyAce::aceEditor(
+                      ns("ace_edit_code_server"), "", mode = "r", 
+                      code_hotkeys = list(
+                        "r", list(
+                          run_selection = list(win = "CTRL-ENTER", mac = "CTRL-ENTER|CMD-ENTER"),
+                          run_all = list(win = "CTRL-SHIFT-ENTER", mac = "CTRL-SHIFT-ENTER|CMD-SHIFT-ENTER"),
+                          save = list(win = "CTRL-S", mac = "CTRL-S|CMD-S"),
+                          comment = list(win = "CTRL-SHIFT-C", mac = "CTRL-SHIFT-C|CMD-SHIFT-C")
+                        )
+                      ),
+                      autoScrollEditorIntoView = TRUE, minLines = 30, maxLines = 45
+                    ), 
+                    style = "width: 100%;"
+                  )
+                ),
+                shinyjs::hidden(
+                  div(
+                    id = ns("ace_edit_code_translations_div"),
+                    shinyAce::aceEditor(
+                    ns("ace_edit_code_translations"), "", mode = "text",
+                    code_hotkeys = list("r", 
+                      list(
+                        save = list(win = "CTRL-S", mac = "CTRL-S|CMD-S"),
+                        comment = list(win = "CTRL-SHIFT-C", mac = "CTRL-SHIFT-C|CMD-SHIFT-C")
+                      )
+                    ),
+                    autoScrollEditorIntoView = TRUE, minLines = 30, maxLines = 45
+                  ), 
+                  style = "width: 100%;")
+                ),
+                style = "padding-right:10px; width:50%;",
               ),
-              shinyjs::hidden(
-                div(
-                  id = ns("ace_edit_code_translations_div"),
-                  shinyAce::aceEditor(
-                  ns("ace_edit_code_translations"), "", mode = "text",
-                  code_hotkeys = list("r", 
-                    list(
-                      save = list(win = "CTRL-S", mac = "CTRL-S|CMD-S"),
-                      comment = list(win = "CTRL-SHIFT-C", mac = "CTRL-SHIFT-C|CMD-SHIFT-C")
-                    )
-                  ),
-                  autoScrollEditorIntoView = TRUE, minLines = 30, maxLines = 1000
-                ), 
-                style = "width: 100%;")
+              div(
+                id = ns("code_result_div"),
+                shiny.fluent::Stack(
+                  tokens = list(childrenGap = 5),
+                  # shiny.fluent::Stack(horizontal = TRUE, tokens = list(childrenGap = 10),
+                  #   shiny.fluent::PrimaryButton.shinyInput(ns("execute_code"), i18n$t("run_code")),
+                  #   shiny.fluent::DefaultButton.shinyInput(ns("save_code"), i18n$t("save"))
+                  # ), br(),
+                  div(textOutput(ns("datetime_code_execution")), style = "color:#878787;"),
+                  shiny::uiOutput(ns("code_result_ui")), br(),
+                  div(verbatimTextOutput(ns("code_result_server")), 
+                    style = "width: 99%; border-style: dashed; border-width: 1px; padding: 0px 8px 0px 8px; margin-right: 5px;")
+                ),
+                style = "padding-left:10px; width:50%;",
               )
-            ),
-            shiny.fluent::Stack(
-              tokens = list(childrenGap = 5),
-              shiny.fluent::Stack(horizontal = TRUE, tokens = list(childrenGap = 10),
-                shiny.fluent::PrimaryButton.shinyInput(ns("execute_code"), i18n$t("run_code")),
-                shiny.fluent::DefaultButton.shinyInput(ns("save_code"), i18n$t("save")),
-              ), br(),
-              div(textOutput(ns("datetime_code_execution")), style = "color:#878787;"),
-              shiny::uiOutput(ns("code_result_ui")), br(),
-              div(verbatimTextOutput(ns("code_result_server")), 
-                style = "width: 99%; border-style: dashed; border-width: 1px; padding: 0px 8px 0px 8px; margin-right: 5px;")
             )
           )
         ), br()
@@ -335,7 +358,7 @@ mod_plugins_ui <- function(id = character(), i18n = character(), language = tibb
     shinyjs::hidden(
       div(
         id = ns("plugins_options_card"),
-        make_shiny_ace_card(i18n$t("plugin_options"),
+        make_shiny_ace_card("",#i18n$t("plugin_options"),
           div(
             shiny.fluent::Stack(
               tokens = list(childrenGap = 5),
@@ -398,7 +421,7 @@ mod_plugins_ui <- function(id = character(), i18n = character(), language = tibb
     shinyjs::hidden(
       div(
         id = ns("import_plugin_card"),
-        make_card(i18n$t("import_plugins"),
+        make_card("",#i18n$t("import_plugins"),
           div(br(),
             shiny.fluent::Stack(horizontal = TRUE, tokens = list(childrenGap = 10), 
               make_toggle(i18n = i18n, ns = ns, label = "replace_already_existing_plugins", inline = TRUE)), br(),
@@ -426,7 +449,7 @@ mod_plugins_ui <- function(id = character(), i18n = character(), language = tibb
     shinyjs::hidden(
       div(
         id = ns("export_plugin_card"),
-        make_shiny_ace_card(i18n$t("export_plugins"),
+        make_shiny_ace_card("",#i18n$t("export_plugins"),
           div(
             shiny.fluent::Stack(
               horizontal = TRUE, tokens = list(childrenGap = 10),
@@ -493,27 +516,34 @@ mod_plugins_server <- function(id = character(), r = shiny::reactiveValues(), d 
     if ("all_plugins_card" %in% r$user_accesses) shinyjs::show("all_plugins_card")
     else shinyjs::show("all_plugins_card_forbidden")
     
+    # Current pivot item
+    observeEvent(input$current_tab, {
+      if (debug) cat(paste0("\n", Sys.time(), " - mod_plugins - ", id, " - observer input$current_tab"))
+      
+      r[[paste0(id, "_current_tab")]] <- input$current_tab
+    })
+    
     # --- --- --- --- --- --- --
     # Load page from header ----
     # --- --- --- --- --- --- --
     
-    observeEvent(shiny.router::get_page(), {
-      if (debug) cat(paste0("\n", Sys.time(), " - mod_plugins - ", id, " - observer shiny_router::change_page"))
-
-      if (prefix == "aggregated" & shiny.router::get_page() == "plugins" & r$plugins_page == "plugins_patient_lvl") shiny.router::change_page("plugins_patient_lvl")
-      else if (prefix == "patient_lvl" & shiny.router::get_page() == "plugins" & r$plugins_page == "plugins_aggregated") shiny.router::change_page("plugins_aggregated")
-
-      # Close help pages when page changes
-      # r[[paste0("help_plugins_", prefix, "_open_panel")]] <- FALSE
-      # r[[paste0("help_plugins_", prefix, "_open_modal")]] <- FALSE
-
-      # Load Export plugins page, to load DT (doesn't update with other DT if not already loaded once)
-      if (shiny.router::get_page() == paste0("plugins_", prefix) & length(r[[paste0(prefix, "_plugins_page_loaded")]]) == 0){
-        sapply(c("plugins_datatable_card", "export_plugin_card"), function(card) if (card %in% r$user_accesses) shinyjs::show(card))
-        shinyjs::delay(500, sapply(c("plugins_datatable_card", "export_plugin_card"), shinyjs::hide))
-        r[[paste0(prefix, "_plugins_page_loaded")]] <- TRUE
-      }
-    })
+    # observeEvent(shiny.router::get_page(), {
+    #   if (debug) cat(paste0("\n", Sys.time(), " - mod_plugins - ", id, " - observer shiny_router::change_page"))
+    # 
+    #   if (prefix == "aggregated" & shiny.router::get_page() == "plugins" & r$plugins_page == "plugins_patient_lvl") shiny.router::change_page("plugins_patient_lvl")
+    #   else if (prefix == "patient_lvl" & shiny.router::get_page() == "plugins" & r$plugins_page == "plugins_aggregated") shiny.router::change_page("plugins_aggregated")
+    # 
+    #   # Close help pages when page changes
+    #   # r[[paste0("help_plugins_", prefix, "_open_panel")]] <- FALSE
+    #   # r[[paste0("help_plugins_", prefix, "_open_modal")]] <- FALSE
+    # 
+    #   # Load Export plugins page, to load DT (doesn't update with other DT if not already loaded once)
+    #   if (shiny.router::get_page() == paste0("plugins_", prefix) & length(r[[paste0(prefix, "_plugins_page_loaded")]]) == 0){
+    #     sapply(c("plugins_datatable_card", "export_plugin_card"), function(card) if (card %in% r$user_accesses) shinyjs::show(card))
+    #     shinyjs::delay(500, sapply(c("plugins_datatable_card", "export_plugin_card"), shinyjs::hide))
+    #     r[[paste0(prefix, "_plugins_page_loaded")]] <- TRUE
+    #   }
+    # })
     
     # --- --- --- --- --- -
     # Update dropdowns ----
@@ -1173,7 +1203,7 @@ mod_plugins_server <- function(id = character(), r = shiny::reactiveValues(), d 
         
         # Reload datatable
         r[[paste0(prefix, "_plugins_temp")]] <- r$plugins %>% dplyr::filter(tab_type_id == !!tab_type_id) %>% 
-          dplyr::mutate_at(c("creation_datetime", "update_datetime"), format_datetime, language = language, sec = FALSE) %>%
+          # dplyr::mutate_at(c("creation_datetime", "update_datetime"), format_datetime, language = language, sec = FALSE) %>%
           dplyr::mutate(modified = FALSE) %>% dplyr::arrange(name)
         
         show_message_bar(output,  "success_installing_remote_git_plugin", "success", i18n = i18n, ns = ns)
@@ -1203,7 +1233,7 @@ mod_plugins_server <- function(id = character(), r = shiny::reactiveValues(), d 
       
       # Reload datatable
       r[[paste0(prefix, "_plugins_temp")]] <- r$plugins %>% dplyr::filter(tab_type_id == !!tab_type_id) %>% 
-        dplyr::mutate_at(c("creation_datetime", "update_datetime"), format_datetime, language = language, sec = FALSE) %>%
+        # dplyr::mutate_at(c("creation_datetime", "update_datetime"), format_datetime, language = language, sec = FALSE) %>%
         dplyr::mutate(modified = FALSE) %>% dplyr::arrange(name)
       
       if (perf_monitoring) monitor_perf(r = r, action = "stop", task = paste0("mod_plugins - observer input$add_plugin"))
@@ -1234,7 +1264,7 @@ mod_plugins_server <- function(id = character(), r = shiny::reactiveValues(), d 
           tab_type_id = integer(), creation_datetime = character(), update_datetime = character(), deleted = integer(), modified = logical())
       }
       else r[[paste0(prefix, "_plugins_temp")]] <- r$plugins %>% dplyr::filter(tab_type_id == !!tab_type_id) %>%
-          dplyr::mutate_at(c("creation_datetime", "update_datetime"), format_datetime, language = language, sec = FALSE) %>%
+          # dplyr::mutate_at(c("creation_datetime", "update_datetime"), format_datetime, language = language, sec = FALSE) %>%
           dplyr::mutate(modified = FALSE) %>% dplyr::arrange(name)
       
     }, once = TRUE)
@@ -1433,7 +1463,7 @@ mod_plugins_server <- function(id = character(), r = shiny::reactiveValues(), d 
       
       # Reload datatable
       r[[paste0(prefix, "_plugins_temp")]] <- r$plugins %>% dplyr::filter(tab_type_id == !!tab_type_id) %>% 
-        dplyr::mutate_at(c("creation_datetime", "update_datetime"), format_datetime, language = language, sec = FALSE) %>%
+        # dplyr::mutate_at(c("creation_datetime", "update_datetime"), format_datetime, language = language, sec = FALSE) %>%
         dplyr::mutate(modified = FALSE) %>% dplyr::arrange(name)
       
       # Reload remote_git description if opened
@@ -1446,7 +1476,7 @@ mod_plugins_server <- function(id = character(), r = shiny::reactiveValues(), d 
       options <- convert_tibble_to_list(r[[paste0(prefix, "_plugins_temp")]] %>% dplyr::filter(tab_type_id == !!tab_type_id) %>% dplyr::arrange(name), key_col = "id", text_col = "name")
       
       shiny.fluent::updateComboBox.shinyInput(session, "code_selected_plugin", options = options, value = NULL)
-      shiny.fluent::updateChoiceGroup.shinyInput(session, "edit_code_ui_server", value = "ui")
+      # shiny.fluent::updateChoiceGroup.shinyInput(session, "edit_code_ui_server", value = "ui")
       shiny.fluent::updateToggle.shinyInput(session, "hide_editor", value = FALSE)
       sapply(c("ace_edit_code_ui", "ace_edit_code_server", "ace_edit_code_translations"),
         function(name) shinyAce::updateAceEditor(session, name, value = ""))
@@ -1695,7 +1725,7 @@ mod_plugins_server <- function(id = character(), r = shiny::reactiveValues(), d 
         name = dplyr::case_when(id == link_id ~ plugin_name, TRUE ~ name),
         update_datetime = dplyr::case_when(id == link_id ~ new_update_datetime, TRUE ~ update_datetime))
       r[[paste0(prefix, "_plugins_temp")]] <- r$plugins %>% dplyr::filter(tab_type_id == !!tab_type_id) %>%
-        dplyr::mutate_at(c("creation_datetime", "update_datetime"), format_datetime, language = language, sec = FALSE) %>%
+        # dplyr::mutate_at(c("creation_datetime", "update_datetime"), format_datetime, language = language, sec = FALSE) %>%
         dplyr::mutate(modified = FALSE) %>% dplyr::arrange(name)
       
       r[[paste0(prefix, "_show_plugin_details")]] <- Sys.time()
@@ -1881,28 +1911,107 @@ mod_plugins_server <- function(id = character(), r = shiny::reactiveValues(), d 
     # Edit plugin code ----
     # --- --- --- --- --- -
     
-    # Show / hide ace editors
+    # Div display
     
-    observeEvent(input$hide_editor, {
+    sapply(c("plugin", "concepts", "editor", "code_result"), function(name) observeEvent(r[[paste0(id, "_edit_code_", name, "_div")]], {
+      if (debug) cat(paste0("\n", Sys.time(), " - mod_plugins - observer r$.._edit_code_", name, "_div"))
+      if (r[[paste0(id, "_edit_code_", name, "_div")]]) shinyjs::show(paste0(name, "_div"))
+      else shinyjs::hide(paste0(name, "_div"))
       
-      if (debug) cat(paste0("\n", Sys.time(), " - mod_plugins - observer input$hide_editor"))
+      if (length(r[[paste0(id, "_edit_code_side_by_side_divs")]]) > 0){
+        if (name %in% c("editor", "code_result") & r[[paste0(id, "_edit_code_side_by_side_divs")]]){
+          editor_toggle <- r[[paste0(id, "_edit_code_editor_div")]]
+          code_result_toggle <- r[[paste0(id, "_edit_code_code_result_div")]]
+          
+          if (editor_toggle & code_result_toggle){
+            shinyjs::runjs(glue::glue("$('#{id}-editor_div').css('width', '50%');"))
+            shinyjs::runjs(glue::glue("$('#{id}-code_result_div').css('width', '50%');"))
+            shinyjs::runjs(glue::glue("$('#{id}-editor_div').css('padding-right', '20px');"))
+            shinyjs::runjs(glue::glue("$('#{id}-code_result_div').css('padding-left', '20px');"))
+          }
+          else if (editor_toggle & !code_result_toggle){
+            shinyjs::runjs(glue::glue("$('#{id}-editor_div').css('width', '100%');"))
+            shinyjs::runjs(glue::glue("$('#{id}-editor_div').css('padding', '0');"))
+            shinyjs::runjs(glue::glue("$('#{id}-code_result_div').css('width', '0');"))
+            shinyjs::runjs(glue::glue("$('#{id}-code_result_div').css('padding', '0');"))
+          }
+          else {
+            shinyjs::runjs(glue::glue("$('#{id}-code_result_div').css('width', '100%');"))
+            shinyjs::runjs(glue::glue("$('#{id}-code_result_div').css('padding', '0');"))
+            shinyjs::runjs(glue::glue("$('#{id}-editor_div').css('width', '0');"))
+            shinyjs::runjs(glue::glue("$('#{id}-editor_div').css('padding', '0');"))
+          }
+        }
+      }
+    }))
+    
+    observeEvent(r[[paste0(id, "_edit_code_side_by_side_divs")]], {
+      if (debug) cat(paste0("\n", Sys.time(), " - mod_plugins - observer r$.._edit_code_side_by_side_divs"))
       
-      if (input$hide_editor){
-        shinyjs::hide("ace_editor_div")
-        shinyjs::show("br_div") 
+      if (r[[paste0(id, "_edit_code_side_by_side_divs")]]){
+        shinyjs::runjs(glue::glue("$('#{id}-edit_and_result_div').css('display', 'flex');"))
+        
+        editor_toggle <- r[[paste0(id, "_edit_code_editor_div")]]
+        code_result_toggle <- r[[paste0(id, "_edit_code_code_result_div")]]
+        
+        if (editor_toggle & code_result_toggle){
+          shinyjs::runjs(glue::glue("$('#{id}-editor_div').css('width', '50%');"))
+          shinyjs::runjs(glue::glue("$('#{id}-code_result_div').css('width', '50%');"))
+          shinyjs::runjs(glue::glue("$('#{id}-editor_div').css('padding-right', '20px');"))
+          shinyjs::runjs(glue::glue("$('#{id}-code_result_div').css('padding-left', '20px');"))
+        }
+        else {
+          if (editor_toggle) name <- "editor"
+          else name <- "code_result"
+          shinyjs::runjs(glue::glue("$('#{id}-{name}_div').css('width', '100%');"))
+          shinyjs::runjs(glue::glue("$('#{id}-{name}_div').css('padding', '0');"))
+        }
       }
       else {
-        shinyjs::show("ace_editor_div")
-        shinyjs::hide("br_div") 
+        shinyjs::runjs(glue::glue("$('#{id}-edit_and_result_div').css('display', 'block');"))
+        shinyjs::runjs(glue::glue("$('#{id}-editor_div').css('width', '100%');"))
+        shinyjs::runjs(glue::glue("$('#{id}-editor_div').css('padding-right', '0px');"))
+        shinyjs::runjs(glue::glue("$('#{id}-code_result_div').css('width', '100%');"))
+        shinyjs::runjs(glue::glue("$('#{id}-code_result_div').css('padding-left', '0px');"))
       }
     })
     
-    observeEvent(input$edit_code_ui_server, {
+    # Show / hide ace editors
+    
+    # observeEvent(input$hide_editor, {
+    #   
+    #   if (debug) cat(paste0("\n", Sys.time(), " - mod_plugins - observer input$hide_editor"))
+    #   
+    #   if (input$hide_editor){
+    #     shinyjs::hide("ace_editor_div")
+    #     shinyjs::show("br_div") 
+    #   }
+    #   else {
+    #     shinyjs::show("ace_editor_div")
+    #     shinyjs::hide("br_div") 
+    #   }
+    # })
+    
+    # observeEvent(input$edit_code_ui_server, {
+    # 
+    #   if (debug) cat(paste0("\n", Sys.time(), " - mod_plugins - observer input$edit_code_ui_server"))
+    # 
+    #   sapply(c("ui", "server", "translations"), function(name) shinyjs::hide(paste0("ace_edit_code_", name, "_div")))
+    #   shinyjs::show(paste0("ace_edit_code_", input$edit_code_ui_server, "_div"))
+    # })
+    
+    observeEvent(r[[paste0(id, "_edit_code_ui_server")]], {
       
-      if (debug) cat(paste0("\n", Sys.time(), " - mod_plugins - observer input$edit_code_ui_server"))
+      if (debug) cat(paste0("\n", Sys.time(), " - mod_plugins - observer r$.._edit_code_ui_server"))
       
-      sapply(c("ui", "server", "translations"), function(name) shinyjs::hide(paste0("ace_edit_code_", name, "_div")))
-      shinyjs::show(paste0("ace_edit_code_", input$edit_code_ui_server, "_div"))
+      # shiny.fluent::updateChoiceGroup.shinyInput(session, "edit_code_ui_server", value = r[[paste0(id, "_edit_code_ui_server")]])
+      
+      # sapply(c("ui", "server", "translations"), function(name) shinyjs::hide(paste0("ace_edit_code_", name, "_div")))
+      elements <- c("ui", "server", "translations")
+      element_to_show <- r[[paste0(id, "_edit_code_ui_server")]]
+      elements_to_hide <- elements[elements != element_to_show]
+      sapply(elements_to_hide, function(element) shinyjs::hide(paste0("ace_edit_code_", element, "_div")))
+      shinyjs::show(paste0("ace_edit_code_", element_to_show, "_div"))
     })
     
     observeEvent(input$code_selected_plugin, {
@@ -2298,8 +2407,15 @@ mod_plugins_server <- function(id = character(), r = shiny::reactiveValues(), d 
     ## Execute code ----
     # --- --- --- -- --
     
-    observeEvent(input$execute_code, {
-      if (debug) cat(paste0("\n", Sys.time(), " - mod_plugins - observer input$execute_code"))
+    # observeEvent(input$execute_code, {
+    #   if (debug) cat(paste0("\n", Sys.time(), " - mod_plugins - observer input$execute_code"))
+    #   r[[paste0(id, "_ui_code")]] <- input$ace_edit_code_ui
+    #   r[[paste0(id, "_server_code")]] <- input$ace_edit_code_server
+    #   r[[paste0(id, "_trigger_code")]] <- Sys.time()
+    # })
+    
+    observeEvent(r[[paste0(id, "_edit_code_execute_code")]], {
+      if (debug) cat(paste0("\n", Sys.time(), " - mod_plugins - observer r$..edit_code_execute_code"))
       r[[paste0(id, "_ui_code")]] <- input$ace_edit_code_ui
       r[[paste0(id, "_server_code")]] <- input$ace_edit_code_server
       r[[paste0(id, "_trigger_code")]] <- Sys.time()
@@ -2340,16 +2456,16 @@ mod_plugins_server <- function(id = character(), r = shiny::reactiveValues(), d 
       if (perf_monitoring) monitor_perf(r = r, action = "start")
       if (debug) cat(paste0("\n", Sys.time(), " - mod_plugins - observer r$..trigger_code"))
       
-      var_check <- TRUE
-      if (length(r$selected_dataset) == 0) var_check <- FALSE
-      if (length(r$selected_dataset) > 0){
-        if (is.na(r$selected_dataset) | is.na(m$selected_study)) var_check <- FALSE
-        if (prefix == "patient_lvl" & is.na(m$selected_person)) var_check <- FALSE
-      }
+      # var_check <- TRUE
+      # if (length(r$selected_dataset) == 0) var_check <- FALSE
+      # if (length(r$selected_dataset) > 0){
+      #   if (is.na(r$selected_dataset) | is.na(m$selected_study)) var_check <- FALSE
+      #   if (prefix == "patient_lvl" & is.na(m$selected_person)) var_check <- FALSE
+      # }
+      # 
+      # if (!var_check) show_message_bar(output, message = "load_some_patient_data_plugin", i18n = i18n, ns = ns)
       
-      if (!var_check) show_message_bar(output, message = "load_some_patient_data_plugin", i18n = i18n, ns = ns)
-      
-      req(var_check)
+      # req(var_check)
       
       # Get vocabulary concepts
       
@@ -2378,22 +2494,28 @@ mod_plugins_server <- function(id = character(), r = shiny::reactiveValues(), d 
       
       # NB : req(m[[session_code]] == session_num) & req(m$selected_study == %study_id%) must be put at the beginning of each observeEvent in plugins code
       
+      study_id <- NA_integer_
+      selected_person <- NA_integer_
+      if (length(m$selected_study) > 0) study_id <- m$selected_study
+      if (prefix == "patient_lvl" & length(m$selected_person) > 0) selected_person <- m$selected_person
+      
+      
       ui_code <- ui_code %>% 
         stringr::str_replace_all("%tab_id%", "1") %>%
         stringr::str_replace_all("%widget_id%", as.character(widget_id)) %>%
-        stringr::str_replace_all("%study_id%", as.character(m$selected_study)) %>%
+        stringr::str_replace_all("%study_id%", as.character(study_id)) %>%
         stringr::str_replace_all("\r", "\n")
       
-      if (prefix == "patient_lvl") ui_code <- ui_code %>% stringr::str_replace_all("%patient_id%", as.character(m$selected_person))
+      if (prefix == "patient_lvl") ui_code <- ui_code %>% stringr::str_replace_all("%patient_id%", as.character(selected_person))
       
       server_code <- server_code %>% 
         stringr::str_replace_all("%tab_id%", "1") %>%
         stringr::str_replace_all("%widget_id%", as.character(widget_id)) %>%
         stringr::str_replace_all("%req%", "req(m[[session_code]] == session_num)\nreq(m$selected_study == %study_id%)") %>%
-        stringr::str_replace_all("%study_id%", as.character(m$selected_study)) %>%
+        stringr::str_replace_all("%study_id%", as.character(study_id)) %>%
         stringr::str_replace_all("\r", "\n")
       
-      if (prefix == "patient_lvl") server_code <- server_code %>% stringr::str_replace_all("%patient_id%", as.character(m$selected_person))
+      if (prefix == "patient_lvl") server_code <- server_code %>% stringr::str_replace_all("%patient_id%", as.character(selected_person))
       
       output$code_result_ui <- renderUI(make_shiny_ace_card("",
         div(
@@ -2492,10 +2614,14 @@ mod_plugins_server <- function(id = character(), r = shiny::reactiveValues(), d 
       if (debug) cat(paste0("\n", Sys.time(), " - mod_plugins - observer input$ace_edit_code_translations_save"))
       r[[paste0(id, "_save_code")]] <- Sys.time()
     })
-    observeEvent(input$save_code, {
-      if (debug) cat(paste0("\n", Sys.time(), " - mod_plugins - observer input$save_code"))
+    observeEvent(r[[paste0(id, "_edit_code_save_code")]], {
+      if (debug) cat(paste0("\n", Sys.time(), " - mod_plugins - observer r$..edit_code_save_code"))
       r[[paste0(id, "_save_code")]] <- Sys.time()
     })
+    # observeEvent(input$save_code, {
+    #   if (debug) cat(paste0("\n", Sys.time(), " - mod_plugins - observer input$save_code"))
+    #   r[[paste0(id, "_save_code")]] <- Sys.time()
+    # })
     
     observeEvent(r[[paste0(id, "_save_code")]], {
       
@@ -2530,7 +2656,7 @@ mod_plugins_server <- function(id = character(), r = shiny::reactiveValues(), d 
       
       # Update datatable
       r[[paste0(prefix, "_plugins_temp")]] <- r$plugins %>% dplyr::filter(tab_type_id == !!tab_type_id) %>%
-        dplyr::mutate_at(c("creation_datetime", "update_datetime"), format_datetime, language = language, sec = FALSE) %>%
+        # dplyr::mutate_at(c("creation_datetime", "update_datetime"), format_datetime, language = language, sec = FALSE) %>%
         dplyr::mutate(modified = FALSE) %>% dplyr::arrange(name)
       
       # Notify user
@@ -2722,7 +2848,7 @@ mod_plugins_server <- function(id = character(), r = shiny::reactiveValues(), d 
 
             # Reload datatable
             r[[paste0(prefix, "_plugins_temp")]] <- r$plugins %>% dplyr::filter(tab_type_id == !!tab_type_id) %>%
-              dplyr::mutate_at(c("creation_datetime", "update_datetime"), format_datetime, language = language, sec = FALSE) %>%
+              # dplyr::mutate_at(c("creation_datetime", "update_datetime"), format_datetime, language = language, sec = FALSE) %>%
               dplyr::mutate(modified = FALSE) %>% dplyr::arrange(name)
           }
         }
@@ -2734,7 +2860,7 @@ mod_plugins_server <- function(id = character(), r = shiny::reactiveValues(), d 
         column_widths <- c("author" = "100px", "version" = "80px", "creation_datetime" = "130px", "update_datetime" = "130px")
 
         data <- plugins %>% dplyr::select(name, version, author, creation_datetime, update_datetime) %>%
-          dplyr::mutate_at(c("creation_datetime", "update_datetime"), format_datetime, language = language, sec = FALSE)
+          # dplyr::mutate_at(c("creation_datetime", "update_datetime"), format_datetime, language = language, sec = FALSE)
         
         render_datatable(output = output, ns = ns, i18n = i18n, data = data,
           output_name = "imported_plugins", col_names = col_names, centered_cols = centered_cols, column_widths = column_widths,

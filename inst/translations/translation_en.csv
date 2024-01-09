@@ -116,6 +116,7 @@ add_widget,Add widget
 group_id,Group ID
 ui,UI
 server,Server
+editor,Editor
 hide_editor,Hide editor
 grant_access_to,Grant access to
 everybody,Everybody
@@ -1007,3 +1008,8 @@ test_python_path,Test
 failure,Failure
 app_data_structure,Data structure
 import_export_datasets,Importe / export datasets
+display,Display
+editor_page,Editor page
+plugin_choice,Plugin
+code_result,Code result
+editor_and_result_side_by_side,Side by side

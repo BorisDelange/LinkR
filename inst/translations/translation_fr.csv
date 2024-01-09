@@ -116,6 +116,7 @@ add_widget,Ajouter le widget
 group_id,ID du groupe
 ui,UI
 server,Server
+editor,Editeur
 hide_editor,Masquer l'éditeur
 grant_access_to,Donner l'accès à
 everybody,Tout le monde
@@ -1007,3 +1008,8 @@ test_python_path,Tester
 failure,Echec
 app_data_structure,Structure des données
 import_export_datasets,Importer / exporter des sets
+display,Affichage
+editor_page,Page de l'éditeur
+plugin_choice,Plugin
+code_result,Résultat du code
+editor_and_result_side_by_side,Côte à côte

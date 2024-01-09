@@ -330,8 +330,8 @@ mod_settings_users_server <- function(id = character(), r = shiny::reactiveValue
       
       # Prepare data for datatable (add code for dropdowns etc)
       r[[paste0(table, "_datatable_temp")]] <- prepare_data_datatable(output = output, r = r, ns = ns, i18n = i18n, id = id,
-        table = table, dropdowns = dropdowns_datatable, action_buttons = action_buttons, data_input = r[[paste0(table, "_temp")]]) %>%
-        dplyr::mutate_at("datetime", format_datetime, language = language, sec = FALSE)
+        table = table, dropdowns = dropdowns_datatable, action_buttons = action_buttons, data_input = r[[paste0(table, "_temp")]]) #%>%
+        # dplyr::mutate_at("datetime", format_datetime, language = language, sec = FALSE)
       
       hidden_cols <- c("id", "password", "deleted", "modified")
       

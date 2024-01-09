@@ -241,11 +241,16 @@ mod_home_server <- function(id = character(), r, language = "en", i18n = charact
               }, error = function(e) if (nchar(e[1]) > 0) report_bug(r = r, output = output, error_message = "error_loading_home_files",
                 error_name = "Home overview_card load markdown", category = "Error", error_report = toString(e), i18n = i18n, ns = ns))
             }
+            
+            title <- row$title %>% 
+              stringr::str_replace("^-", "") %>%
+              stringr::str_replace("^\\d+\\)", "") %>%
+              stringr::str_trim()
   
             div_result <-  div(
               id = ns(row$key),
               make_card(
-                row$title,
+                title,
                 uiOutput(ns(paste0(row$key, "_markdown")))
               ),
               style = "a:visited { color: black; text-decoration: none; }"

@@ -973,7 +973,7 @@ mod_settings_git_server <- function(id = character(), r = shiny::reactiveValues(
             r$edit_git_repo_category_elements <- repo_category_elements %>%
               dplyr::select(unique_id, paste0("name_", language), paste0("category_", language), version, creation_datetime, update_datetime) %>%
               dplyr::mutate_at(c("creation_datetime", "update_datetime"), lubridate::ymd_hms) %>%
-              dplyr::mutate_at(c("creation_datetime", "update_datetime"), format_datetime, language = language, sec = FALSE) %>%
+              # dplyr::mutate_at(c("creation_datetime", "update_datetime"), format_datetime, language = language, sec = FALSE) %>%
               dplyr::mutate(row_id = dplyr::row_number(), .before = "unique_id") %>%
               dplyr::mutate(action = as.character(
                 shiny::actionButton("delete_%plugin_id%", "", icon = icon("trash-alt"),

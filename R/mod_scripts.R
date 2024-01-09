@@ -777,8 +777,8 @@ mod_scripts_server <- function(id = character(), r = shiny::reactiveValues(), d 
         dplyr::left_join(r$options %>% dplyr::filter(category == "script", name == "unique_id") %>% dplyr::select(id = link_id, unique_id = value), by = "id") %>%
         dplyr::select(-deleted) %>%
         dplyr::relocate(unique_id, description, category, author, version, unique_id, .after = "name") %>%
-        dplyr::arrange(name) %>%
-        dplyr::mutate_at(c("creation_datetime", "update_datetime"), format_datetime, language = language, sec = FALSE)
+        dplyr::arrange(name) #%>%
+        # dplyr::mutate_at(c("creation_datetime", "update_datetime"), format_datetime, language = language, sec = FALSE)
       
       # Create datatable if doesn't exist
       
@@ -985,7 +985,7 @@ mod_scripts_server <- function(id = character(), r = shiny::reactiveValues(), d 
             TRUE ~ ""
           )) %>%
           dplyr::mutate(action = stringr::str_replace_all(action, "%unique_id%", unique_id)) %>%
-          dplyr::mutate_at(c("creation_datetime", "update_datetime"), format_datetime, language = language, sec = FALSE) %>%
+          # dplyr::mutate_at(c("creation_datetime", "update_datetime"), format_datetime, language = language, sec = FALSE) %>%
           dplyr::select(-local_script_version, -compare_versions)
       }
       
@@ -1189,7 +1189,7 @@ mod_scripts_server <- function(id = character(), r = shiny::reactiveValues(), d 
       if(nrow(r$scripts) > 0){
         
         r$scripts_temp <- r$scripts %>%
-          dplyr::mutate_at(c("creation_datetime", "update_datetime"), format_datetime, language = language, sec = FALSE) %>%
+          # dplyr::mutate_at(c("creation_datetime", "update_datetime"), format_datetime, language = language, sec = FALSE) %>%
           dplyr::mutate(modified = FALSE)
         
         # Reset selected scripts for export_scripts and export_scripts_selected
@@ -1337,7 +1337,7 @@ mod_scripts_server <- function(id = character(), r = shiny::reactiveValues(), d 
       
       # Reload datatable
       r$scripts_temp <- r$scripts %>% 
-        dplyr::mutate_at(c("creation_datetime", "update_datetime"), format_datetime, language = language, sec = FALSE) %>%
+        # dplyr::mutate_at(c("creation_datetime", "update_datetime"), format_datetime, language = language, sec = FALSE) %>%
         dplyr::mutate(modified = FALSE)
     })
     
@@ -1653,7 +1653,7 @@ mod_scripts_server <- function(id = character(), r = shiny::reactiveValues(), d 
         name = dplyr::case_when(id == link_id ~ script_name, TRUE ~ name),
         update_datetime = dplyr::case_when(id == link_id ~ new_update_datetime, TRUE ~ update_datetime))
       r$scripts_temp <- r$scripts %>%
-        dplyr::mutate_at(c("creation_datetime", "update_datetime"), format_datetime, language = language, sec = FALSE) %>%
+        # dplyr::mutate_at(c("creation_datetime", "update_datetime"), format_datetime, language = language, sec = FALSE) %>%
         dplyr::mutate(modified = FALSE) %>% dplyr::arrange(name)
       
       if (perf_monitoring) monitor_perf(r = r, action = "stop", task = paste0("mod_scripts - observer input$save_options_description"))
@@ -1980,7 +1980,7 @@ mod_scripts_server <- function(id = character(), r = shiny::reactiveValues(), d 
             
             # Reload datatable
             r$scripts_temp <- r$scripts %>%
-              dplyr::mutate_at(c("creation_datetime", "update_datetime"), format_datetime, language = language, sec = FALSE) %>%
+              # dplyr::mutate_at(c("creation_datetime", "update_datetime"), format_datetime, language = language, sec = FALSE) %>%
               dplyr::mutate(modified = FALSE) %>% dplyr::arrange(name)
           }
         }
@@ -1991,8 +1991,8 @@ mod_scripts_server <- function(id = character(), r = shiny::reactiveValues(), d 
         centered_cols <- c("author", "version", "creation_datetime", "update_datetime")
         column_widths <- c("author" = "100px", "version" = "80px", "creation_datetime" = "130px", "update_datetime" = "130px")
         
-        data <- scripts %>% dplyr::select(name, version, author, creation_datetime, update_datetime) %>%
-          dplyr::mutate_at(c("creation_datetime", "update_datetime"), format_datetime, language = language, sec = FALSE)
+        data <- scripts %>% dplyr::select(name, version, author, creation_datetime, update_datetime) #%>%
+          # dplyr::mutate_at(c("creation_datetime", "update_datetime"), format_datetime, language = language, sec = FALSE)
         
         render_datatable(output = output, ns = ns, i18n = i18n, data = data,
           output_name = "imported_scripts", col_names = col_names, centered_cols = centered_cols, column_widths = column_widths,

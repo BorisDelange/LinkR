@@ -921,7 +921,7 @@ mod_my_studies_server <- function(id = character(), r = shiny::reactiveValues(),
           dplyr::left_join(r$options %>% dplyr::filter(category == "study", name == "unique_id") %>% dplyr::select(id = link_id, unique_id = value), by = "id") %>%
           dplyr::select(-deleted, -dataset_id, -patient_lvl_tab_group_id, -aggregated_tab_group_id, -creator_id) %>%
           dplyr::relocate(unique_id, description, category, author, version, unique_id, .after = "name") %>%
-          dplyr::mutate_at(c("creation_datetime", "update_datetime"), format_datetime, language = language, sec = FALSE) %>%
+          # dplyr::mutate_at(c("creation_datetime", "update_datetime"), format_datetime, language = language, sec = FALSE) %>%
           dplyr::arrange(name)
 
       # Create datatable if doesn't exist
@@ -1095,8 +1095,8 @@ mod_my_studies_server <- function(id = character(), r = shiny::reactiveValues(),
 
         if (nrow(r$remote_git_studies_full) > 0) r$remote_git_studies <- r$remote_git_studies_full %>%
           dplyr::select(name = paste0("name_", language), unique_id, description = paste0("description_", language),
-            category = paste0("category_", language), author, version, images, creation_datetime, update_datetime) %>%
-            dplyr::mutate_at(c("creation_datetime", "update_datetime"), format_datetime, language = language, sec = FALSE)
+            category = paste0("category_", language), author, version, images, creation_datetime, update_datetime) #%>%
+            # dplyr::mutate_at(c("creation_datetime", "update_datetime"), format_datetime, language = language, sec = FALSE)
       }
 
       r$update_remote_git_studies_datatable <- Sys.time()
@@ -1437,7 +1437,7 @@ mod_my_studies_server <- function(id = character(), r = shiny::reactiveValues(),
         for (prefix in c("patient_lvl", "aggregated")){
           if (prefix == "patient_lvl") tab_type_id <- 1L else tab_type_id <- 2L
           r[[paste0(prefix, "_plugins_temp")]] <- r$plugins %>% dplyr::filter(tab_type_id == !!tab_type_id) %>% 
-            dplyr::mutate_at(c("creation_datetime", "update_datetime"), format_datetime, language = language, sec = FALSE) %>%
+            # dplyr::mutate_at(c("creation_datetime", "update_datetime"), format_datetime, language = language, sec = FALSE) %>%
             dplyr::mutate(modified = FALSE) %>% dplyr::arrange(name)
         }
         
@@ -1563,7 +1563,7 @@ mod_my_studies_server <- function(id = character(), r = shiny::reactiveValues(),
       if (nrow(r$studies) > 0){
         
         r$studies_temp <- r$studies %>% 
-          dplyr::mutate_at(c("creation_datetime", "update_datetime"), format_datetime, language = language, sec = FALSE) %>%
+          # dplyr::mutate_at(c("creation_datetime", "update_datetime"), format_datetime, language = language, sec = FALSE) %>%
           dplyr::mutate(modified = FALSE) %>% dplyr::arrange(name)
         
         # Reset selected studies for export_studies and export_studies_selected
@@ -1880,7 +1880,7 @@ mod_my_studies_server <- function(id = character(), r = shiny::reactiveValues(),
         name = dplyr::case_when(id == link_id ~ study_name, TRUE ~ name),
         update_datetime = dplyr::case_when(id == link_id ~ new_update_datetime, TRUE ~ update_datetime))
       r$studies_temp <- r$studies %>%
-        dplyr::mutate_at(c("creation_datetime", "update_datetime"), format_datetime, language = language, sec = FALSE) %>%
+        # dplyr::mutate_at(c("creation_datetime", "update_datetime"), format_datetime, language = language, sec = FALSE) %>%
         dplyr::mutate(modified = FALSE) %>% dplyr::arrange(name)
       r$reload_studies_datatable <- Sys.time()
       
@@ -2341,7 +2341,7 @@ mod_my_studies_server <- function(id = character(), r = shiny::reactiveValues(),
             for (prefix in c("patient_lvl", "aggregated")){
               if (prefix == "patient_lvl") tab_type_id <- 1L else tab_type_id <- 2L
               r[[paste0(prefix, "_plugins_temp")]] <- r$plugins %>% dplyr::filter(tab_type_id == !!tab_type_id) %>% 
-                dplyr::mutate_at(c("creation_datetime", "update_datetime"), format_datetime, language = language, sec = FALSE) %>%
+                # dplyr::mutate_at(c("creation_datetime", "update_datetime"), format_datetime, language = language, sec = FALSE) %>%
                 dplyr::mutate(modified = FALSE) %>% dplyr::arrange(name)
             }
             
@@ -2377,8 +2377,8 @@ mod_my_studies_server <- function(id = character(), r = shiny::reactiveValues(),
         centered_cols <- c("author", "version", "creation_datetime", "update_datetime")
         column_widths <- c("author" = "100px", "version" = "80px", "creation_datetime" = "130px", "update_datetime" = "130px")
 
-        data <- studies %>% dplyr::select(name, version, author, creation_datetime, update_datetime) %>%
-          dplyr::mutate_at(c("creation_datetime", "update_datetime"), format_datetime, language = language, sec = FALSE)
+        data <- studies %>% dplyr::select(name, version, author, creation_datetime, update_datetime) #%>%
+          # dplyr::mutate_at(c("creation_datetime", "update_datetime"), format_datetime, language = language, sec = FALSE)
         
         render_datatable(output = output, ns = ns, i18n = i18n, data = data,
           output_name = "imported_studies", col_names = col_names, centered_cols = centered_cols, column_widths = column_widths,

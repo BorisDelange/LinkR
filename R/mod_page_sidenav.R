@@ -153,44 +153,55 @@ mod_page_sidenav_ui <- function(id = character(), i18n = character()){
     )
   ) -> result
   
-  # --- --- --- --- --- --- --
-  # Plugins patient-level ----
-  # --- --- --- --- --- --- --
+  # --- --- -- -
+  # Plugins ----
+  # --- --- -- -
   
-  if (id == "plugins_patient_lvl"){
+  if (id %in% c("plugins_patient_lvl", "plugins_aggregated")){
     
     div(
       class = "sidenav",
       div(class = "reduced_sidenav"),
       div(class = "extended_sidenav",
-        div(i18n$t("data"), class = "input_title", style = "font-size:14.5px;"),
-        div(
-          shiny.fluent::Stack(horizontal = TRUE, tokens = list(childrenGap = 0),
-            shiny.fluent::PrimaryButton.shinyInput(ns("plugins_page_ind"), i18n$t("individual"), style = "width:125px;"), 
-            shiny.fluent::DefaultButton.shinyInput(ns("plugins_page_agg"), i18n$t("aggregated"), style = "width:125px;")
-          ), style = "width:250px;"
+        shinyjs::hidden(
+          div(
+            id = ns(paste0(id, "_edit_code_div")),
+            div(class = "input_title", i18n$t("display")), br(),
+            div(
+              shiny.fluent::Stack(horizontal = TRUE, tokens = list(childrenGap = 10),
+                make_toggle(i18n = i18n, ns = ns, label = "plugin_choice", id = paste0(id, "_edit_code_plugin_div"), inline = TRUE, value = TRUE))),
+            div(
+              shiny.fluent::Stack(horizontal = TRUE, tokens = list(childrenGap = 10),
+              make_toggle(i18n = i18n, ns = ns, label = "concepts", id = paste0(id, "_edit_code_concepts_div"), inline = TRUE, value = TRUE))),
+            div(
+              shiny.fluent::Stack(horizontal = TRUE, tokens = list(childrenGap = 10),
+                make_toggle(i18n = i18n, ns = ns, label = "editor", id = paste0(id, "_edit_code_editor_div"), inline = TRUE, value = TRUE))),
+            div(
+              shiny.fluent::Stack(horizontal = TRUE, tokens = list(childrenGap = 10),
+                make_toggle(i18n = i18n, ns = ns, label = "code_result", id = paste0(id, "_edit_code_code_result_div"), inline = TRUE, value = TRUE))),
+            div(
+              shiny.fluent::Stack(horizontal = TRUE, tokens = list(childrenGap = 10),
+                make_toggle(i18n = i18n, ns = ns, label = "editor_and_result_side_by_side", id = paste0(id, "_edit_code_side_by_side_divs"), inline = TRUE, value = TRUE))),
+            br(), hr(),
+            div(class = "input_title", i18n$t("editor_page")),
+            shiny.fluent::ChoiceGroup.shinyInput(ns(paste0(id, "_edit_code_ui_server")), value = "ui", options = list(
+              list(key = "ui", text = i18n$t("ui")),
+              list(key = "server", text = i18n$t("server")),
+              list(key = "translations", text = i18n$t("translations"))
+            ), className = "block_choicegroup"),
+            br(), hr(),
+            div(class = "input_title", i18n$t("action")),
+            shiny.fluent::PrimaryButton.shinyInput(ns(paste0(id, "_edit_code_execute_code")), i18n$t("run_code"), style = "width:100%; margin-bottom:10px;"),
+            shiny.fluent::DefaultButton.shinyInput(ns(paste0(id, "_edit_code_save_code")), i18n$t("save"), style = "width:100%;")
+          )
         )
-      )
-    ) -> result
-  }
-  
-  # --- --- --- --- --- ---
-  # Plugins aggregated ----
-  # --- --- --- --- --- ---
-  
-  if (id == "plugins_aggregated"){
-    
-    div(
-      class = "sidenav",
-      div(class = "reduced_sidenav"),
-      div(class = "extended_sidenav",
-        div(i18n$t("data"), class = "input_title", style = "font-size:14.5px;"),
-        div(
-          shiny.fluent::Stack(horizontal = TRUE, tokens = list(childrenGap = 0),
-            shiny.fluent::DefaultButton.shinyInput(ns("plugins_page_ind"), i18n$t("individual"), style = "width:125px;"), 
-            shiny.fluent::PrimaryButton.shinyInput(ns("plugins_page_agg"), i18n$t("aggregated"), style = "width:125px;")
-          ), style = "width:250px;"
-        )
+        # div(i18n$t("data"), class = "input_title", style = "font-size:14.5px;"),
+        # div(
+        #   shiny.fluent::Stack(horizontal = TRUE, tokens = list(childrenGap = 0),
+        #     shiny.fluent::PrimaryButton.shinyInput(ns("plugins_page_ind"), i18n$t("individual"), style = "width:125px;"), 
+        #     shiny.fluent::DefaultButton.shinyInput(ns("plugins_page_agg"), i18n$t("aggregated"), style = "width:125px;")
+        #   ), style = "width:250px;"
+        # )
       )
     ) -> result
   }
@@ -269,16 +280,49 @@ mod_page_sidenav_server <- function(id = character(), r = shiny::reactiveValues(
       
       # Changing page between patient-lvl & aggregated plugins
       
-      r$plugins_page <- "plugins_patient_lvl"
+      # r$plugins_page <- "plugins_patient_lvl"
+      # 
+      # if (id == "plugins_patient_lvl") observeEvent(input$plugins_page_agg, {
+      #   shiny.router::change_page("plugins_aggregated")
+      #   r$plugins_page <- "plugins_aggregated"
+      # })
+      # if (id == "plugins_aggregated") observeEvent(input$plugins_page_ind, {
+      #   shiny.router::change_page("plugins_patient_lvl")
+      #   r$plugins_page <- "plugins_patient_lvl"
+      # })
       
-      if (id == "plugins_patient_lvl") observeEvent(input$plugins_page_agg, {
-        shiny.router::change_page("plugins_aggregated")
-        r$plugins_page <- "plugins_aggregated"
+      # Current tab
+      observeEvent(r[[paste0(id, "_current_tab")]], {
+        if (debug) cat(paste0("\n", Sys.time(), " - mod_page_sidenav - observer r$..current_tab"))
+        
+        current_tab <- r[[paste0(id, "_current_tab")]]
+        
+        sapply(c(paste0(id, "_edit_code_div")), shinyjs::hide)
+        
+        if (current_tab == "plugins_edit_code_card") shinyjs::show(paste0(id, "_edit_code_div"))
       })
-      if (id == "plugins_aggregated") observeEvent(input$plugins_page_ind, {
-        shiny.router::change_page("plugins_patient_lvl")
-        r$plugins_page <- "plugins_patient_lvl"
+      
+      # Display
+      sapply(c("plugin", "concepts", "editor", "code_result"), function(name) observeEvent(input[[paste0(id, "_edit_code_", name, "_div")]], {
+        r[[paste0(id, "_edit_code_", name, "_div")]] <- input[[paste0(id, "_edit_code_", name, "_div")]]
+      }))
+      
+      observeEvent(input[[paste0(id, "_edit_code_side_by_side_divs")]], {
+        r[[paste0(id, "_edit_code_side_by_side_divs")]] <- input[[paste0(id, "_edit_code_side_by_side_divs")]]
       })
+      
+      # Edit code commands
+      observeEvent(input[[paste0(id, "_edit_code_ui_server")]], {
+        if (debug) cat(paste0("\n", Sys.time(), " - mod_page_sidenav - observer input$edit_code_ui_server"))
+        r[[paste0(id, "_edit_code_ui_server")]] <- input[[paste0(id, "_edit_code_ui_server")]]
+      })
+      
+      # Edit code actions
+      
+      sapply(c("save", "execute"), function(name) observeEvent(input[[paste0(id, "_edit_code_", name, "_code")]], {
+        if (debug) cat(paste0("\n", Sys.time(), " - mod_page_sidenav - observer input$.._edit_code_", name, "_code"))
+        r[[paste0(id, "_edit_code_", name, "_code")]] <- input[[paste0(id, "_edit_code_", name, "_code")]]
+      }))
     }
     
     if (id %in% c("my_studies", "my_subsets", "messages", "vocabularies", "scripts", "patient_level_data", "aggregated_data")){

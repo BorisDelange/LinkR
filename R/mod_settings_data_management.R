@@ -852,8 +852,8 @@ mod_settings_data_management_server <- function(id = character(), r = shiny::rea
           dplyr::left_join(r$options %>% dplyr::filter(category == get_singular(table), name == "version") %>% dplyr::select(id = link_id, version = value), by = "id") %>%
           dplyr::left_join(r$options %>% dplyr::filter(category == get_singular(table), name == paste0("category_", language)) %>% dplyr::select(id = link_id, category = value), by = "id") %>%
           dplyr::left_join(r$options %>% dplyr::filter(category == get_singular(table), name == paste0("description_", language)) %>% dplyr::select(id = link_id, description = value), by = "id") %>%
-          dplyr::left_join(r$options %>% dplyr::filter(category == get_singular(table), name == "unique_id") %>% dplyr::select(id = link_id, unique_id = value), by = "id") %>%
-          dplyr::mutate_at(c("creation_datetime", "update_datetime"), format_datetime, language = language, sec = FALSE)
+          dplyr::left_join(r$options %>% dplyr::filter(category == get_singular(table), name == "unique_id") %>% dplyr::select(id = link_id, unique_id = value), by = "id") #%>%
+          # dplyr::mutate_at(c("creation_datetime", "update_datetime"), format_datetime, language = language, sec = FALSE)
         
         if (table == "datasets") r[[paste0("local_", get_plural(table))]] <- r[[paste0("local_", get_plural(table))]] %>%
           dplyr::relocate(unique_id, description, category, author, version, unique_id, .after = "name") %>%
@@ -1032,8 +1032,8 @@ mod_settings_data_management_server <- function(id = character(), r = shiny::rea
         
         if (nrow(r[[paste0("remote_git_", get_plural(table), "_full")]]) > 0) r[[paste0("remote_git_", get_plural(table))]] <- r[[paste0("remote_git_", get_plural(table), "_full")]] %>%
           dplyr::select(name = paste0("name_", language), unique_id, description = paste0("description_", language),
-            category = paste0("category_", language), author, version, images, creation_datetime, update_datetime) %>%
-          dplyr::mutate_at(c("creation_datetime", "update_datetime"), format_datetime, language = language, sec = FALSE)
+            category = paste0("category_", language), author, version, images, creation_datetime, update_datetime) #%>%
+          # dplyr::mutate_at(c("creation_datetime", "update_datetime"), format_datetime, language = language, sec = FALSE)
       }
       
       r[[paste0("update_remote_git_", get_plural(table), "_datatable")]] <- Sys.time()
@@ -1423,8 +1423,8 @@ mod_settings_data_management_server <- function(id = character(), r = shiny::rea
           action_buttons = action_buttons, data_input = r[[paste0(table, "_temp")]])
         
         if (table %in% c("datasets", "vocabulary")){
-          r[[paste0(table, "_datatable_temp")]] <- r[[paste0(table, "_datatable_temp")]] %>%
-            dplyr::mutate_at(c("creation_datetime", "update_datetime"), format_datetime, language = language, sec = FALSE)
+          r[[paste0(table, "_datatable_temp")]] <- r[[paste0(table, "_datatable_temp")]] #%>%
+            # dplyr::mutate_at(c("creation_datetime", "update_datetime"), format_datetime, language = language, sec = FALSE)
         }
         
         data_management_datatable <- r[[paste0(table, "_datatable_temp")]]
@@ -1796,7 +1796,7 @@ mod_settings_data_management_server <- function(id = character(), r = shiny::rea
           r[[table]] <- r[[table]] %>% dplyr::mutate(update_datetime = dplyr::case_when(id == link_id ~ new_update_datetime, TRUE ~ update_datetime))
           
           r[[paste0(table, "_temp")]] <- r[[table]] %>%
-            dplyr::mutate_at(c("creation_datetime", "update_datetime"), format_datetime, language = language, sec = FALSE) %>%
+            # dplyr::mutate_at(c("creation_datetime", "update_datetime"), format_datetime, language = language, sec = FALSE) %>%
             dplyr::mutate(modified = FALSE)
           if (table == "datasets") r$datasets_temp <- r$datasets_temp %>% dplyr::arrange(name)
           else if (table == "vocabulary") r$vocabulary_temp %>% dplyr::arrange(vocabulary_id)
@@ -2135,7 +2135,7 @@ mod_settings_data_management_server <- function(id = character(), r = shiny::rea
           
           r[[table]] <- r[[table]] %>% dplyr::mutate(update_datetime = dplyr::case_when(id == link_id ~ new_update_datetime, TRUE ~ update_datetime))
           r[[paste0(table, "_temp")]] <- r[[table]] %>%
-            dplyr::mutate_at(c("creation_datetime", "update_datetime"), format_datetime, language = language, sec = FALSE) %>%
+            # dplyr::mutate_at(c("creation_datetime", "update_datetime"), format_datetime, language = language, sec = FALSE) %>%
             dplyr::mutate(modified = FALSE)
           if (table == "datasets") r$datasets_temp <- r$datasets_temp %>% dplyr::arrange(name)
           else if (table == "vocabulary") r$vocabulary_temp %>% dplyr::arrange(vocabulary_id)
@@ -3319,7 +3319,7 @@ mod_settings_data_management_server <- function(id = character(), r = shiny::rea
 
             # Reload datatable
             r[[paste0(table, "_temp")]] <- r[[table]] %>%
-              dplyr::mutate_at(c("creation_datetime", "update_datetime"), format_datetime, language = language, sec = FALSE) %>%
+              # dplyr::mutate_at(c("creation_datetime", "update_datetime"), format_datetime, language = language, sec = FALSE) %>%
               dplyr::mutate(modified = FALSE)
             if (table == "datasets") r$datasets_temp <- r$datasets_temp %>% dplyr::arrange(name)
             else if (table == "vocabulary") r$vocabulary_temp <- r$vocabulary_temp %>% dplyr::arrange(vocabulary_name)
@@ -3332,8 +3332,8 @@ mod_settings_data_management_server <- function(id = character(), r = shiny::rea
         centered_cols <- c("author", "version", "creation_datetime", "update_datetime")
         column_widths <- c("author" = "100px", "version" = "80px", "creation_datetime" = "130px", "update_datetime" = "130px")
 
-        data <- datasets_or_vocabs %>% dplyr::select(name, version, author, creation_datetime, update_datetime) %>%
-          dplyr::mutate_at(c("creation_datetime", "update_datetime"), format_datetime, language = language, sec = FALSE)
+        data <- datasets_or_vocabs %>% dplyr::select(name, version, author, creation_datetime, update_datetime) #%>%
+          # dplyr::mutate_at(c("creation_datetime", "update_datetime"), format_datetime, language = language, sec = FALSE)
 
         render_datatable(output = output, ns = ns, i18n = i18n, data = data,
           output_name = paste0("imported_", get_plural(table)), col_names = col_names, centered_cols = centered_cols, column_widths = column_widths,

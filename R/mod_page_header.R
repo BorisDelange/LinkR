@@ -40,7 +40,10 @@ mod_page_header_ui <- function(id = character(), i18n = character()){
           ))),
           shiny.fluent::CommandBarItem(i18n$t("messages"), "Chat", href = shiny.router::route_link("messages")),
           shiny.fluent::CommandBarItem(i18n$t("vocabularies"), "AllApps", href = shiny.router::route_link("vocabularies")),
-          shiny.fluent::CommandBarItem(i18n$t("plugins"), "Code", href = shiny.router::route_link("plugins"))
+          shiny.fluent::CommandBarItem(i18n$t("plugins"), "Code", subMenuProps = list(items = list(
+            list(text = i18n$t("patient_lvl_data"), iconProps = list(iconName = "Contact"), href = shiny.router::route_link("plugins_patient_lvl")),
+            list(text = i18n$t("aggregated_data"), iconProps = list(iconName = "Group"), href = shiny.router::route_link("plugins_aggregated"))
+          )))
         )
       )
     ),
