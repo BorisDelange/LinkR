@@ -96,43 +96,49 @@ mod_data_ui <- function(id = character(), i18n = character()){
             ),
             value = c(0, 1, 2, 7, 8, 9)
           ),
-          make_dropdown(i18n = i18n, ns = ns, label = "columns_mapped_concepts", id = paste0(type, "_vocabulary_mapped_concepts_table_cols"), width = "300px", multiSelect = TRUE,
-            options = list(
-              list(key = 1, text = i18n$t("concept_id")),
-              list(key = 2, text = i18n$t("relationship_id")),
-              list(key = 3, text = i18n$t("mapped_concept_id")),
-              list(key = 4, text = i18n$t("concept_name_2")),
-              list(key = 5, text = i18n$t("concept_display_name_2")),
-              list(key = 6, text = i18n$t("domain_id")),
-              list(key = 7, text = i18n$t("num_patients")),
-              list(key = 8, text = i18n$t("num_rows")),
-              list(key = 9, text = i18n$t("action"))
-            ),
-            value = c(2, 3, 4, 5, 7, 8, 9)
+          shinyjs::hidden(
+            make_dropdown(i18n = i18n, ns = ns, label = "columns_mapped_concepts", id = paste0(type, "_vocabulary_mapped_concepts_table_cols"), width = "300px", multiSelect = TRUE,
+              options = list(
+                list(key = 1, text = i18n$t("concept_id")),
+                list(key = 2, text = i18n$t("relationship_id")),
+                list(key = 3, text = i18n$t("mapped_concept_id")),
+                list(key = 4, text = i18n$t("concept_name_2")),
+                list(key = 5, text = i18n$t("concept_display_name_2")),
+                list(key = 6, text = i18n$t("domain_id")),
+                list(key = 7, text = i18n$t("num_patients")),
+                list(key = 8, text = i18n$t("num_rows")),
+                list(key = 9, text = i18n$t("action"))
+              ),
+              value = c(2, 3, 4, 5, 7, 8, 9)
+            )
           )
         ),
-        shiny.fluent::Stack(horizontal = TRUE, tokens = list(childrenGap = 0),
+        shinyjs::hidden(
           div(
-            shiny.fluent::Stack(horizontal = TRUE, tokens = list(childrenGap = 10),
-              div(shiny.fluent::Toggle.shinyInput(ns(paste0(type, "_show_mapped_concepts")), value = FALSE), style = "margin-top:30px; margin-bottom:5px;"),
-              div(i18n$t("show_mapped_concepts"), style = "font-weight:bold; margin-top:30px;; margin-bottom:5px;")
-            ),
-            style = "width:330px;"
-          ),
-          shinyjs::hidden(
-            div(
-              id = ns("widget_creation_show_mapped_concepts_div"),
-              shiny.fluent::Stack(horizontal = TRUE, tokens = list(childrenGap = 10),
-                div(shiny.fluent::Toggle.shinyInput(ns(paste0(type, "_merge_mapped_concepts")), value = TRUE), style = "margin-top:30px;; margin-bottom:5px; margin-left:-10px;"),
-                div(i18n$t("merge_mapped_concepts"), style = "font-weight:bold; margin-top:30px;; margin-bottom:5px;")
+            shiny.fluent::Stack(horizontal = TRUE, tokens = list(childrenGap = 0),
+              div(
+                shiny.fluent::Stack(horizontal = TRUE, tokens = list(childrenGap = 10),
+                  div(shiny.fluent::Toggle.shinyInput(ns(paste0(type, "_show_mapped_concepts")), value = FALSE), style = "margin-top:30px; margin-bottom:5px;"),
+                  div(i18n$t("show_mapped_concepts"), style = "font-weight:bold; margin-top:30px;; margin-bottom:5px;")
+                ),
+                style = "width:330px;"
               ),
-              style = "width:330px;"
-            )
-          ),
-          div(
-            shiny.fluent::Stack(horizontal = TRUE, tokens = list(childrenGap = 10),
-              div(shiny.fluent::Toggle.shinyInput(ns(paste0(type, "_hide_concepts_datatables")), value = FALSE), style = "margin-top:30px;; margin-bottom:5px; margin-left:-10px;"),
-              div(i18n$t("hide_concepts_datatables"), style = "font-weight:bold; margin-top:30px;; margin-bottom:5px;")
+              shinyjs::hidden(
+                div(
+                  id = ns("widget_creation_show_mapped_concepts_div"),
+                  shiny.fluent::Stack(horizontal = TRUE, tokens = list(childrenGap = 10),
+                    div(shiny.fluent::Toggle.shinyInput(ns(paste0(type, "_merge_mapped_concepts")), value = TRUE), style = "margin-top:30px;; margin-bottom:5px; margin-left:-10px;"),
+                    div(i18n$t("merge_mapped_concepts"), style = "font-weight:bold; margin-top:30px;; margin-bottom:5px;")
+                  ),
+                  style = "width:330px;"
+                )
+              ),
+              div(
+                shiny.fluent::Stack(horizontal = TRUE, tokens = list(childrenGap = 10),
+                  div(shiny.fluent::Toggle.shinyInput(ns(paste0(type, "_hide_concepts_datatables")), value = FALSE), style = "margin-top:30px;; margin-bottom:5px; margin-left:-10px;"),
+                  div(i18n$t("hide_concepts_datatables"), style = "font-weight:bold; margin-top:30px;; margin-bottom:5px;")
+                )
+              )
             )
           )
         ),

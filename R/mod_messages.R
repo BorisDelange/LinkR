@@ -596,7 +596,12 @@ mod_messages_server <- function(id = character(), r = shiny::reactiveValues(), d
             fail_load_message <- TRUE
             
             tryCatch({
-              message_div <- div(class = "markdown_messages", withMathJax(includeMarkdown(study_message$filepath)))
+              message_div <- 
+                includeMarkdown(study_message$filepath) %>%
+                gsub('(<code class="[^"]*)"', '\\1 code_highlight"', .) %>%
+                stringr::str_replace_all("<code>", "<code class=\"code_highlight\">") %>%
+                HTML()
+              
               fail_load_message <- FALSE
             }, error = function(e) report_bug(r = r, output = output, error_message = "fail_load_message",
               error_name = paste0(id, " - load message - message_id = ", study_message$id), category = "Error", error_report = toString(e), i18n = i18n, ns = ns),
@@ -807,14 +812,19 @@ mod_messages_server <- function(id = character(), r = shiny::reactiveValues(), d
             # Create the markdown file
             knitr::knit(text = markdown_file, envir = new_env, output = new_file, quiet = TRUE)
 
+            markdown_ui <- includeMarkdown(new_file) %>%
+              gsub('(<code class="[^"]*)"', '\\1 code_highlight"', .) %>%
+              stringr::str_replace_all("<code>", "<code class=\"code_highlight\">") %>%
+              HTML()
+            
             output[[paste0("new_", type, "_preview")]] <- renderUI(
               div(
                 div(
                   div(paste0(i18n$t("today"), ", ", format(Sys.time(), "%H:%M"))),
                   style = "font-size:12px; margin-bottom:10px; color:#878787"
                 ),
-                div(class = "markdown_messages", withMathJax(includeMarkdown(new_file))),
-                style = paste0("background-color:", background_color, "; margin-top:10px; padding:15px 15px 0px 15px; border-radius:10px; float:left; width:80%;")
+                markdown_ui,
+                style = paste0("background-color:", background_color, "; word-wrap: break-word; margin-top:10px; padding:15px 15px 0px 15px; border-radius:10px; float:left; width:80%;")
               )
             )
           }, error = function(e) "")

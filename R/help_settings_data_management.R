@@ -370,7 +370,7 @@ help_settings_data_management <- function(output, r = shiny::reactiveValues(), i
           tags$li(tags$em("dataset_id"), " : où vous indiquez ", strong("l'ID du dataset"), " actuel, via la balise ", tags$em("%dataset_id%")),
           tags$li(tags$em("data"), " : où vous indiquez la ", strong("fonction qui chargera les données"), " pour une variable (exemple : ", tags$em("person()"), ")"),
           tags$li(tags$em("omop_table"), " : où vous indiquez la ", strong("variable que vous souhaitez importer"), " (", tags$em("person, measurement"), "...)"),
-          tags$li(tags$em("omop_version"), " : où vous indiquez la ", strong("version utilisées"), " du modèle de données OMOP"),
+          tags$li(tags$em("omop_version"), " : où vous indiquez la ", strong("version utilisée"), " du modèle de données OMOP"),
           tags$li(tags$em("read_with"), " : indiquez avec quelle ", strong("librairie R"), " vous voulez ", strong("lire les données"), " importées"),
           tags$li(tags$em("save_as"), " : indiquez sous quel ", strong("format"), " vous voulez enregistrer les données après les avoir importées"),
           tags$li(tags$em("rewrite"), " : indiquez si vous souhaitez écraser l'ancien fichier de données pour le remplacer par le nouveau"),

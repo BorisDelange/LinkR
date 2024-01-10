@@ -2221,15 +2221,20 @@ mod_settings_data_management_server <- function(id = character(), r = shiny::rea
             stringr::str_replace_all(paste0("%", get_singular(table), "_folder%"), paste0(r$app_folder, "/", get_plural(table), "/", unique_id))
         }
         
-        # Prevent "NULL" at the end of console output
-        # edited_code <- paste0(edited_code, "\ncat()")
-        
-        output$datetime_code_execution <- renderText(format_datetime(Sys.time(), language))
-        
         console_result <- isolate(execute_settings_code(input = input, output = output, session = session, id = id, ns = ns, 
-          i18n = i18n, r = r, d = d, m = m, edited_code = edited_code)) %>% gsub("NULL$", "", .)
+          i18n = i18n, r = r, d = d, m = m, edited_code = edited_code)) %>%
+          stringr::str_replace_all(paste0("<(lgl|int|dbl|chr|cpl|raw|list|named list|fct|ord|date|dttm|drtn|time",
+            "|int64|blob|df\\[\\,1\\]|tibble\\[\\,1\\]|I|\\?\\?\\?|vctrs_vc|prtl_fctr|prtl|fn|sym|expression|quos)>"), 
+            function(x) sprintf("&lt;%s&gt;", substr(x, 2, nchar(x) - 1)))
         
-        output$code_result <- renderUI(HTML(paste0("<pre>", console_result, "</pre>")))
+        if (console_result != "NULL") console_result <- console_result %>% gsub("NULL$", "", .)
+        
+        # If there's a <simpleWarning ...> message, it is interpreted as an HTML tag and doesn't show the console result
+        if (!grepl("simpleWarning|simpleError", console_result)) console_result <- HTML(paste0("<pre>", console_result, "</pre>"))
+        else console_result <- tags$div(console_result, style = "padding: 15px 0px 15px 0px;")
+        
+        output$code_result <- renderUI(console_result)
+        output$datetime_code_execution <- renderText(format_datetime(Sys.time(), language))
         
         if (table == "datasets") r[[paste0(id, "_code_datatable_trigger")]] <- Sys.time()
         
