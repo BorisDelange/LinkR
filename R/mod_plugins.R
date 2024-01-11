@@ -1915,6 +1915,8 @@ mod_plugins_server <- function(id = character(), r = shiny::reactiveValues(), d 
     
     sapply(c("plugin", "concepts", "editor", "code_result"), function(name) observeEvent(r[[paste0(id, "_edit_code_", name, "_div")]], {
       if (debug) cat(paste0("\n", Sys.time(), " - mod_plugins - observer r$.._edit_code_", name, "_div"))
+      
+      req(r[[paste0(id, "_edit_code_", name, "_div")]])
       if (r[[paste0(id, "_edit_code_", name, "_div")]]) shinyjs::show(paste0(name, "_div"))
       else shinyjs::hide(paste0(name, "_div"))
       

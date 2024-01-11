@@ -7,23 +7,24 @@
 #' @param datetime Datetime converted in character vector (character)
 #' @param language Selected language, "en" or "fr" (character)
 #' @param sec Should we display seconds or not (logical)
+#' @param type Is the object a date or a datetime ? c("datetime", "date") (character)
 #' @examples 
 #' \dontrun{
 #'   format_datetime(datetime = "2023-05-20 16:56:22", language = "fr", sec = FALSE)
 #' }
-format_datetime <- function(datetime = character(), language = "en", sec = TRUE){
+format_datetime <- function(datetime = character(), language = "en", sec = TRUE, type = "datetime"){
   tryCatch({
     
     datetime <- as.character(datetime)
     
-    if (tolower(language) == "fr"){
-      if (sec) datetime <- format(as.POSIXct(datetime), format = "%d-%m-%Y %H:%M:%S")
-      else datetime <- format(as.POSIXct(datetime), format = "%d-%m-%Y %H:%M")
+    if (tolower(language) == "fr") date_format <- "%d-%m-%Y"
+    else date_format <- "%Y-%m-%d"
+    
+    if (type == "datetime"){
+      if (sec) datetime <- format(as.POSIXct(datetime), format = paste0(date_format, " %H:%M:%S"))
+      else datetime <- format(as.POSIXct(datetime), format = paste0(date_format, " %H:%M"))
     }
-    else {
-      if (sec) datetime <- format(as.POSIXct(datetime), format = "%Y-%m-%d %H:%M:%S")
-      else datetime <- format(as.POSIXct(datetime), format = "%Y-%m-%d %H:%M")
-    }
+    else if (type == "date") datetime <- format(as.Date(datetime), format = date_format)
   }, error = function(e) "")
   
   datetime
