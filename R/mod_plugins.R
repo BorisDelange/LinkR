@@ -527,8 +527,8 @@ mod_plugins_server <- function(id = character(), r = shiny::reactiveValues(), d 
     # Load page from header ----
     # --- --- --- --- --- --- --
     
-    # observeEvent(shiny.router::get_page(), {
-    #   if (debug) cat(paste0("\n", Sys.time(), " - mod_plugins - ", id, " - observer shiny_router::change_page"))
+    observeEvent(shiny.router::get_page(), {
+      if (debug) cat(paste0("\n", Sys.time(), " - mod_plugins - ", id, " - observer shiny_router::change_page"))
     # 
     #   if (prefix == "aggregated" & shiny.router::get_page() == "plugins" & r$plugins_page == "plugins_patient_lvl") shiny.router::change_page("plugins_patient_lvl")
     #   else if (prefix == "patient_lvl" & shiny.router::get_page() == "plugins" & r$plugins_page == "plugins_aggregated") shiny.router::change_page("plugins_aggregated")
@@ -536,14 +536,14 @@ mod_plugins_server <- function(id = character(), r = shiny::reactiveValues(), d 
     #   # Close help pages when page changes
     #   # r[[paste0("help_plugins_", prefix, "_open_panel")]] <- FALSE
     #   # r[[paste0("help_plugins_", prefix, "_open_modal")]] <- FALSE
-    # 
-    #   # Load Export plugins page, to load DT (doesn't update with other DT if not already loaded once)
-    #   if (shiny.router::get_page() == paste0("plugins_", prefix) & length(r[[paste0(prefix, "_plugins_page_loaded")]]) == 0){
-    #     sapply(c("plugins_datatable_card", "export_plugin_card"), function(card) if (card %in% r$user_accesses) shinyjs::show(card))
-    #     shinyjs::delay(500, sapply(c("plugins_datatable_card", "export_plugin_card"), shinyjs::hide))
-    #     r[[paste0(prefix, "_plugins_page_loaded")]] <- TRUE
-    #   }
-    # })
+      
+      # Load Export plugins page, to load DT (doesn't update with other DT if not already loaded once)
+      if (shiny.router::get_page() == paste0("plugins_", prefix) & length(r[[paste0(prefix, "_plugins_page_loaded")]]) == 0){
+        sapply(c("plugins_datatable_card", "export_plugin_card"), function(card) if (card %in% r$user_accesses) shinyjs::show(card))
+        shinyjs::delay(500, sapply(c("plugins_datatable_card", "export_plugin_card"), shinyjs::hide))
+        r[[paste0(prefix, "_plugins_page_loaded")]] <- TRUE
+      }
+    })
     
     # --- --- --- --- --- -
     # Update dropdowns ----
@@ -1916,7 +1916,7 @@ mod_plugins_server <- function(id = character(), r = shiny::reactiveValues(), d 
     sapply(c("plugin", "concepts", "editor", "code_result"), function(name) observeEvent(r[[paste0(id, "_edit_code_", name, "_div")]], {
       if (debug) cat(paste0("\n", Sys.time(), " - mod_plugins - observer r$.._edit_code_", name, "_div"))
       
-      req(r[[paste0(id, "_edit_code_", name, "_div")]])
+      req(length(r[[paste0(id, "_edit_code_", name, "_div")]]) > 0)
       if (r[[paste0(id, "_edit_code_", name, "_div")]]) shinyjs::show(paste0(name, "_div"))
       else shinyjs::hide(paste0(name, "_div"))
       
@@ -2759,7 +2759,7 @@ mod_plugins_server <- function(id = character(), r = shiny::reactiveValues(), d 
               DBI::dbClearResult(query)
               r$options <- r$options %>% dplyr::filter(link_id != plugin$id | (link_id == plugin$id & category != "plugin"))
 
-              sql <- glue::glue_sql("UDPATE code SET deleted = TRUE WHERE category IN ('plugin_ui', 'plugin_server', 'plugin_translations') AND link_id = {plugin$id}", .con = r$db)
+              sql <- glue::glue_sql("UPDATE code SET deleted = TRUE WHERE category IN ('plugin_ui', 'plugin_server', 'plugin_translations') AND link_id = {plugin$id}", .con = r$db)
               query <- DBI::dbSendStatement(r$db, sql)
               DBI::dbClearResult(query)
               r$code <- r$code %>% dplyr::filter(link_id != plugin$id | (link_id == plugin$id & category %not_in% c("plugin_ui", "plugin_server", "plugin_translations")))

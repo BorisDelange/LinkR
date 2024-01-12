@@ -444,11 +444,11 @@ add_settings_new_data <- function(session, output, r = shiny::reactiveValues(), 
   
   # Hide creation card & options card, show management card
   # Except for tabs (we usually add several tabs)
-  if (table %not_in% c("patient_lvl_tabs", "aggregated_tabs")){
-    shiny.fluent::updateToggle.shinyInput(session, "options_card_toggle", value = FALSE)
-    shiny.fluent::updateToggle.shinyInput(session, "creation_card_toggle", value = FALSE)
-    shiny.fluent::updateToggle.shinyInput(session, "datatable_card_toggle", value = TRUE)
-  }
+  # if (table %not_in% c("patient_lvl_tabs", "aggregated_tabs")){
+  #   shiny.fluent::updateToggle.shinyInput(session, "options_card_toggle", value = FALSE)
+  #   shiny.fluent::updateToggle.shinyInput(session, "creation_card_toggle", value = FALSE)
+  #   shiny.fluent::updateToggle.shinyInput(session, "datatable_card_toggle", value = TRUE)
+  # }
   
   if (table == "git_repos"){
     # Add options rows
@@ -497,8 +497,9 @@ add_settings_new_data <- function(session, output, r = shiny::reactiveValues(), 
   # Reset textfields
   if (table == "users") sapply(c("username", "firstname", "lastname", "password"), function(name) shiny.fluent::updateTextField.shinyInput(session, name, value = ""))
   else if (table == "vocabulary") sapply(c("vocabulary_id", "vocabulary_name"), function(name) shiny.fluent::updateTextField.shinyInput(session, name, value = ""))
-  else sapply(c("plugin_name", "script_name", "study_name", "subset_name", "name", "description", 
-    "raw_files_url_address", "repo_url_address", "api_key_git_repo_with_url"), function(name) shiny.fluent::updateTextField.shinyInput(session, name, value = ""))
+  else if (table %in% c("plugins", "scripts", "studies", "subsets")) shiny.fluent::updateTextField.shinyInput(session, paste0(get_singular(table), "_name"), value = "")
+  else if (table == "datasets") shiny.fluent::updateTextField.shinyInput(session, "name", value = "")
+  else if (table == "git_repos") sapply(c("raw_files_url_address", "repo_url_address", "api_key_git_repo_with_url"), function(name) shiny.fluent::updateTextField.shinyInput(session, name, value = ""))
 }
 
 #' Delete element
