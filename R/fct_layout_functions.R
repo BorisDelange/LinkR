@@ -445,12 +445,14 @@ render_datatable <- function(output, ns = character(), i18n = character(), data 
   sapply(factorize_cols, function(col) if (col != "") data <<- data %>% dplyr::mutate_at(col, as.factor))
   
   # Rename cols if lengths correspond
-  if (length(col_names) == length(names(data))) names(data) <- col_names
+  # if (length(col_names) == length(names(data))) names(data) <- col_names
+  if (length(col_names) != length(names(data))) col_names <- names(data)
   
   # So data is ready to be rendered in the datatable
   
   data <- DT::datatable(
     data,
+    colnames = col_names,
     options = list(
       dom = datatable_dom,
       pageLength = page_length, displayStart = 0,
