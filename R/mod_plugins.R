@@ -1913,39 +1913,43 @@ mod_plugins_server <- function(id = character(), r = shiny::reactiveValues(), d 
     
     # Div display
     
-    sapply(c("plugin", "concepts", "editor", "code_result"), function(name) observeEvent(r[[paste0(id, "_edit_code_", name, "_div")]], {
-      if (debug) cat(paste0("\n", Sys.time(), " - mod_plugins - observer r$.._edit_code_", name, "_div"))
+    sapply(c("plugin", "concepts", "editor", "code_result"), function(name){
       
-      req(length(r[[paste0(id, "_edit_code_", name, "_div")]]) > 0)
-      if (r[[paste0(id, "_edit_code_", name, "_div")]]) shinyjs::show(paste0(name, "_div"))
-      else shinyjs::hide(paste0(name, "_div"))
+      r[[paste0(id, "_edit_code_", name, "_div")]] <- TRUE
       
-      if (length(r[[paste0(id, "_edit_code_side_by_side_divs")]]) > 0){
-        if (name %in% c("editor", "code_result") & r[[paste0(id, "_edit_code_side_by_side_divs")]]){
-          editor_toggle <- r[[paste0(id, "_edit_code_editor_div")]]
-          code_result_toggle <- r[[paste0(id, "_edit_code_code_result_div")]]
-          
-          if (editor_toggle & code_result_toggle){
-            shinyjs::runjs(glue::glue("$('#{id}-editor_div').css('width', '50%');"))
-            shinyjs::runjs(glue::glue("$('#{id}-code_result_div').css('width', '50%');"))
-            shinyjs::runjs(glue::glue("$('#{id}-editor_div').css('padding-right', '20px');"))
-            shinyjs::runjs(glue::glue("$('#{id}-code_result_div').css('padding-left', '20px');"))
-          }
-          else if (editor_toggle & !code_result_toggle){
-            shinyjs::runjs(glue::glue("$('#{id}-editor_div').css('width', '100%');"))
-            shinyjs::runjs(glue::glue("$('#{id}-editor_div').css('padding', '0');"))
-            shinyjs::runjs(glue::glue("$('#{id}-code_result_div').css('width', '0');"))
-            shinyjs::runjs(glue::glue("$('#{id}-code_result_div').css('padding', '0');"))
-          }
-          else {
-            shinyjs::runjs(glue::glue("$('#{id}-code_result_div').css('width', '100%');"))
-            shinyjs::runjs(glue::glue("$('#{id}-code_result_div').css('padding', '0');"))
-            shinyjs::runjs(glue::glue("$('#{id}-editor_div').css('width', '0');"))
-            shinyjs::runjs(glue::glue("$('#{id}-editor_div').css('padding', '0');"))
+      observeEvent(r[[paste0(id, "_edit_code_", name, "_div")]], {
+        if (debug) cat(paste0("\n", Sys.time(), " - mod_plugins - observer r$.._edit_code_", name, "_div"))
+        
+        if (r[[paste0(id, "_edit_code_", name, "_div")]]) shinyjs::show(paste0(name, "_div"))
+        else shinyjs::hide(paste0(name, "_div"))
+        
+        if (length(r[[paste0(id, "_edit_code_side_by_side_divs")]]) > 0){
+          if (name %in% c("editor", "code_result") & r[[paste0(id, "_edit_code_side_by_side_divs")]]){
+            editor_toggle <- r[[paste0(id, "_edit_code_editor_div")]]
+            code_result_toggle <- r[[paste0(id, "_edit_code_code_result_div")]]
+            
+            if (editor_toggle & code_result_toggle){
+              shinyjs::runjs(glue::glue("$('#{id}-editor_div').css('width', '50%');"))
+              shinyjs::runjs(glue::glue("$('#{id}-code_result_div').css('width', '50%');"))
+              shinyjs::runjs(glue::glue("$('#{id}-editor_div').css('padding-right', '20px');"))
+              shinyjs::runjs(glue::glue("$('#{id}-code_result_div').css('padding-left', '20px');"))
+            }
+            else if (editor_toggle & !code_result_toggle){
+              shinyjs::runjs(glue::glue("$('#{id}-editor_div').css('width', '100%');"))
+              shinyjs::runjs(glue::glue("$('#{id}-editor_div').css('padding', '0');"))
+              shinyjs::runjs(glue::glue("$('#{id}-code_result_div').css('width', '0');"))
+              shinyjs::runjs(glue::glue("$('#{id}-code_result_div').css('padding', '0');"))
+            }
+            else {
+              shinyjs::runjs(glue::glue("$('#{id}-code_result_div').css('width', '100%');"))
+              shinyjs::runjs(glue::glue("$('#{id}-code_result_div').css('padding', '0');"))
+              shinyjs::runjs(glue::glue("$('#{id}-editor_div').css('width', '0');"))
+              shinyjs::runjs(glue::glue("$('#{id}-editor_div').css('padding', '0');"))
+            }
           }
         }
-      }
-    }))
+      })
+    })
     
     observeEvent(r[[paste0(id, "_edit_code_side_by_side_divs")]], {
       if (debug) cat(paste0("\n", Sys.time(), " - mod_plugins - observer r$.._edit_code_side_by_side_divs"))
