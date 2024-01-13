@@ -33,7 +33,7 @@ linkr <- function(
   # Used to restore database and import vocabularies
   # shiny.launch.browser to automatically open browser
   
-  if (debug) cat(paste0(now(), " - linkr - init"))
+  if (debug) cat(paste0(format(Sys.time(), "%Y-%m-%d %H:%M:%S"), " - linkr - init"))
   options(shiny.maxRequestSize = 4096*1024^2, shiny.launch.browser = TRUE)
   
   # suppressMessages(require(shinyTree))
@@ -41,7 +41,7 @@ linkr <- function(
   if (!is.logical(perf_monitoring) | !is.logical(debug) | !is.logical(local)) stop("perf_monitoring, debug or local are not logical")
   
   # Create app folder if it doesn't exist
-  if (debug) cat(paste0("\n", now(), " - linkr - app_folder"))
+  if (debug) cat(paste0("\n", format(Sys.time(), "%Y-%m-%d %H:%M:%S"), " - linkr - app_folder"))
   if (length(app_folder) == 0) app_folder <- paste0(path.expand("~"), "/linkr")
   
   if (!dir.exists(app_folder)){
@@ -52,7 +52,7 @@ linkr <- function(
   }
   
   # Create app sub-dirs
-  if (debug) cat(paste0("\n", now(), " - linkr - app sub-dirs"))
+  if (debug) cat(paste0("\n", format(Sys.time(), "%Y-%m-%d %H:%M:%S"), " - linkr - app sub-dirs"))
   sub_dirs <- c("app_database", "datasets", "datasets_files",
     "home", "home/fr", "home/en", 
     "home/fr/home", "home/fr/get_started", "home/fr/tutorials", "home/fr/resources",
@@ -61,7 +61,7 @@ linkr <- function(
   for (sub_dir in sub_dirs) if (!dir.exists(paste0(app_folder, "/", sub_dir))) dir.create(paste0(app_folder, "/", sub_dir))
   
   # Load translations
-  if (debug) cat(paste0("\n", now(), " - linkr - translation"))
+  if (debug) cat(paste0("\n", format(Sys.time(), "%Y-%m-%d %H:%M:%S"), " - linkr - translation"))
   
   languages <- c("en", "fr")
   if (language %not_in% languages){
@@ -178,7 +178,7 @@ linkr <- function(
   
   # Load UI & server
   
-  if (debug) cat(paste0("\n", now(), " - linkr - load UI & server"))
+  if (debug) cat(paste0("\n", format(Sys.time(), "%Y-%m-%d %H:%M:%S"), " - linkr - load UI & server"))
   with_golem_options(
     app = shinyApp(
       ui = app_ui(css = css, language = language, languages = languages, i18n = i18n, users_accesses_toggles_options = users_accesses_toggles_options, debug = debug),
