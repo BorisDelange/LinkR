@@ -261,12 +261,12 @@ mod_page_sidenav_server <- function(id = character(), r = shiny::reactiveValues(
   moduleServer(id, function(input, output, session){
     ns <- session$ns
     
-    if (debug) cat(paste0("\n", Sys.time(), " - mod_page_sidenav (", id, ") - start"))
+    if (debug) cat(paste0("\n", now(), " - mod_page_sidenav (", id, ") - start"))
     
     # Show / hide sidenav
     
     # observeEvent(r$show_hide_sidenav, {
-    #   if (debug) cat(paste0("\n", Sys.time(), " - mod_page_sidenav - observer r$show_hide_sidenav"))
+    #   if (debug) cat(paste0("\n", now(), " - mod_page_sidenav - observer r$show_hide_sidenav"))
     # 
     #   if (r$show_hide_sidenav == "hide") shinyjs::hide("sidenav")
     #   else shinyjs::show("sidenav")
@@ -293,7 +293,7 @@ mod_page_sidenav_server <- function(id = character(), r = shiny::reactiveValues(
       
       # Current tab
       observeEvent(r[[paste0(id, "_current_tab")]], {
-        if (debug) cat(paste0("\n", Sys.time(), " - mod_page_sidenav - observer r$..current_tab"))
+        if (debug) cat(paste0("\n", now(), " - mod_page_sidenav - observer r$..current_tab"))
         
         current_tab <- r[[paste0(id, "_current_tab")]]
         
@@ -313,14 +313,14 @@ mod_page_sidenav_server <- function(id = character(), r = shiny::reactiveValues(
       
       # Edit code commands
       observeEvent(input[[paste0(id, "_edit_code_ui_server")]], {
-        if (debug) cat(paste0("\n", Sys.time(), " - mod_page_sidenav - observer input$edit_code_ui_server"))
+        if (debug) cat(paste0("\n", now(), " - mod_page_sidenav - observer input$edit_code_ui_server"))
         r[[paste0(id, "_edit_code_ui_server")]] <- input[[paste0(id, "_edit_code_ui_server")]]
       })
       
       # Edit code actions
       
       sapply(c("save", "execute"), function(name) observeEvent(input[[paste0(id, "_edit_code_", name, "_code")]], {
-        if (debug) cat(paste0("\n", Sys.time(), " - mod_page_sidenav - observer input$.._edit_code_", name, "_code"))
+        if (debug) cat(paste0("\n", now(), " - mod_page_sidenav - observer input$.._edit_code_", name, "_code"))
         r[[paste0(id, "_edit_code_", name, "_code")]] <- input[[paste0(id, "_edit_code_", name, "_code")]]
       }))
     }
@@ -350,7 +350,7 @@ mod_page_sidenav_server <- function(id = character(), r = shiny::reactiveValues(
       
       observeEvent(r$datasets, {
         
-        if (debug) cat(paste0("\n", Sys.time(), " - mod_page_sidenav - observer r$datasets"))
+        if (debug) cat(paste0("\n", now(), " - mod_page_sidenav - observer r$datasets"))
         
         # Update dropdown
         shinyjs::delay(100, {
@@ -371,7 +371,7 @@ mod_page_sidenav_server <- function(id = character(), r = shiny::reactiveValues(
       
       observeEvent(input$dataset, {
         
-        if (debug) cat(paste0("\n", Sys.time(), " - mod_page_sidenav - observer input$dataset"))
+        if (debug) cat(paste0("\n", now(), " - mod_page_sidenav - observer input$dataset"))
         
         # Save value in r$selected_dropdown, to update patient-level data dropdowns AND aggregated data dropdowns
         r$selected_dataset <- input$dataset$key
@@ -396,7 +396,7 @@ mod_page_sidenav_server <- function(id = character(), r = shiny::reactiveValues(
       # Update the two pages dropdowns (patient-level data page & aggregated data page)
       observeEvent(r$selected_dataset, {
         
-        if (debug) cat(paste0("\n", Sys.time(), " - mod_page_sidenav - observer r$selected_dataset"))
+        if (debug) cat(paste0("\n", now(), " - mod_page_sidenav - observer r$selected_dataset"))
         
         shiny.fluent::updateComboBox.shinyInput(session, "dataset", options = 
           convert_tibble_to_list(r$datasets %>% dplyr::arrange(name), key_col = "id", text_col = "name"), 
@@ -419,7 +419,7 @@ mod_page_sidenav_server <- function(id = character(), r = shiny::reactiveValues(
       
         observeEvent(r$studies, {
           
-          if (debug) cat(paste0("\n", Sys.time(), " - mod_page_sidenav - observer r$studies"))
+          if (debug) cat(paste0("\n", now(), " - mod_page_sidenav - observer r$studies"))
           
           if (nrow(r$studies) == 0) shiny.fluent::updateComboBox.shinyInput(session, "study", options = list(), value = NULL, 
             errorMessage = i18n$t("no_study_available"))
@@ -431,7 +431,7 @@ mod_page_sidenav_server <- function(id = character(), r = shiny::reactiveValues(
         observeEvent(input$study, {
           
           if (perf_monitoring) monitor_perf(r = r, action = "start")
-          if (debug) cat(paste0("\n", Sys.time(), " - mod_page_sidenav - observer input$study"))
+          if (debug) cat(paste0("\n", now(), " - mod_page_sidenav - observer input$study"))
   
           req(input$study$key)
           
@@ -458,7 +458,7 @@ mod_page_sidenav_server <- function(id = character(), r = shiny::reactiveValues(
         
         observeEvent(m$selected_study, {
           
-          if (debug) cat(paste0("\n", Sys.time(), " - mod_page_sidenav - observer m$selected_study"))
+          if (debug) cat(paste0("\n", now(), " - mod_page_sidenav - observer m$selected_study"))
           
           req(input$dataset$key & !is.na(m$selected_study))
           studies <- r$studies %>% dplyr::filter(dataset_id == input$dataset$key)
@@ -501,7 +501,7 @@ mod_page_sidenav_server <- function(id = character(), r = shiny::reactiveValues(
         
         observeEvent(m$subsets, {
           
-          if (debug) cat(paste0("\n", Sys.time(), " - mod_page_sidenav - observer m$subsets"))
+          if (debug) cat(paste0("\n", now(), " - mod_page_sidenav - observer m$subsets"))
           
           if (nrow(m$subsets) == 0) shiny.fluent::updateComboBox.shinyInput(session, "subset", options = list(), value = NULL, 
             errorMessage = i18n$t("no_subset_available"))
@@ -513,7 +513,7 @@ mod_page_sidenav_server <- function(id = character(), r = shiny::reactiveValues(
         observeEvent(input$subset, {
           
           if (perf_monitoring) monitor_perf(r = r, action = "start")
-          if (debug) cat(paste0("\n", Sys.time(), " - mod_page_sidenav - observer input$subset"))
+          if (debug) cat(paste0("\n", now(), " - mod_page_sidenav - observer input$subset"))
           
           req(input$subset$key)
           
@@ -538,7 +538,7 @@ mod_page_sidenav_server <- function(id = character(), r = shiny::reactiveValues(
         
         observeEvent(m$selected_subset, {
           
-          if (debug) cat(paste0("\n", Sys.time(), " - mod_page_sidenav - observer m$selected_dataset"))
+          if (debug) cat(paste0("\n", now(), " - mod_page_sidenav - observer m$selected_dataset"))
           
           req(input$study$key)
           shiny.fluent::updateComboBox.shinyInput(session, "subset", options = convert_tibble_to_list(m$subsets, key_col = "id", text_col = "name"),
@@ -549,7 +549,7 @@ mod_page_sidenav_server <- function(id = character(), r = shiny::reactiveValues(
       if (id == "patient_level_data"){
         observeEvent(m$subset_persons, {
           
-          if (debug) cat(paste0("\n", Sys.time(), " - mod_page_sidenav - observer m$subset_persons"))
+          if (debug) cat(paste0("\n", now(), " - mod_page_sidenav - observer m$subset_persons"))
           
           persons <- tibble::tibble()
           
@@ -599,7 +599,7 @@ mod_page_sidenav_server <- function(id = character(), r = shiny::reactiveValues(
         # When a text is searched in the ComboBox (with javascript script in tags$script)
         observeEvent(input$person_trigger, {
           
-          if (debug) cat(paste0("\n", Sys.time(), " - mod_page_sidenav - observer input$person_trigger"))
+          if (debug) cat(paste0("\n", now(), " - mod_page_sidenav - observer input$person_trigger"))
           
           input_value <- input$person_trigger
           if (nchar(input_value) >= 2) {
@@ -629,7 +629,7 @@ mod_page_sidenav_server <- function(id = character(), r = shiny::reactiveValues(
         
         observeEvent(input$person, {
           
-          if (debug) cat(paste0("\n", Sys.time(), " - mod_page_sidenav - observer input$person"))
+          if (debug) cat(paste0("\n", now(), " - mod_page_sidenav - observer input$person"))
           if (perf_monitoring) monitor_perf(r = r, action = "stop", task = paste0("mod_page_sidenav - observer input$person"))
           
           # Check if the entry exists
@@ -711,7 +711,7 @@ mod_page_sidenav_server <- function(id = character(), r = shiny::reactiveValues(
         observeEvent(input$visit_detail, {
           
           if (perf_monitoring) monitor_perf(r = r, action = "start")
-          if (debug) cat(paste0("\n", Sys.time(), " - mod_page_sidenav - observer input$visit_detail"))
+          if (debug) cat(paste0("\n", now(), " - mod_page_sidenav - observer input$visit_detail"))
           
           m$selected_visit_detail <- input$visit_detail$key
   

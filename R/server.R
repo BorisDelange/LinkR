@@ -17,11 +17,11 @@ app_server <- function(language = "en", languages = tibble::tibble(), i18n = cha
   perf_monitoring = FALSE, debug = FALSE, local = FALSE, show_home_page = TRUE, users_accesses_toggles_options = tibble::tibble()){
   function(input, output, session ) {
     
-    if (debug) cat(paste0("\n", Sys.time(), " - server - init"))
+    if (debug) cat(paste0("\n", now(), " - server - init"))
     
     language <- tolower(language)
     
-    if (debug) cat(paste0("\n", Sys.time(), " - server - reactive values"))
+    if (debug) cat(paste0("\n", now(), " - server - reactive values"))
     # Create r reactive value, for the application processings
     r <- reactiveValues()
     
@@ -88,26 +88,26 @@ app_server <- function(language = "en", languages = tibble::tibble(), i18n = cha
     
     # Test internet connection
     # If local is TRUE, don't use internet connection
-    if (debug) cat(paste0("\n", Sys.time(), " - server - has_internet"))
+    if (debug) cat(paste0("\n", now(), " - server - has_internet"))
     if (local) has_internet <- FALSE
     else has_internet <- curl::has_internet()
     r$has_internet <- has_internet
     
     # Perf monitoring & debug
-    if (debug) cat(paste0("\n", Sys.time(), " - server - perf_monitoring"))
+    if (debug) cat(paste0("\n", now(), " - server - perf_monitoring"))
     r$perf_monitoring <- perf_monitoring
     r$debug <- debug
     
     r$perf_monitoring_table <- tibble::tibble(task = character(), datetime_start = lubridate::ymd_hms(), datetime_stop = lubridate::ymd_hms())
-    datetime_start <- Sys.time()
-    datetime_stop <- Sys.time()
+    datetime_start <- now()
+    datetime_stop <- now()
     
     # Create r$server_tabs_groups_loaded & r$ui_tabs_groups_loaded
     r$server_tabs_groups_loaded <- ""
     r$ui_tabs_groups_loaded <- ""
     
     # App folder
-    if (debug) cat(paste0("\n", Sys.time(), " - server - app_folder"))
+    if (debug) cat(paste0("\n", now(), " - server - app_folder"))
     r$app_folder <- app_folder
     m$app_folder <- app_folder
     
@@ -117,7 +117,7 @@ app_server <- function(language = "en", languages = tibble::tibble(), i18n = cha
     
     # Get translations
     
-    if (debug) cat(paste0("\n", Sys.time(), " - server - translations"))
+    if (debug) cat(paste0("\n", now(), " - server - translations"))
     
     # translations_path <- "inst/translations"
     # if (!dir.exists(translations_path)) translations_path <- paste0(find.package("linkr"), "/translations")
@@ -135,7 +135,7 @@ app_server <- function(language = "en", languages = tibble::tibble(), i18n = cha
     
     # Connection to database
     # If connection informations have been given in linkr() function, use these informations
-    if (debug) cat(paste0("\n", Sys.time(), " - server - app_db"))
+    if (debug) cat(paste0("\n", now(), " - server - app_db"))
     r$local_db <- DBI::dbConnect(RSQLite::SQLite(), paste0(app_db_folder, "/linkr_main"))
     m$local_db <- DBI::dbConnect(RSQLite::SQLite(), paste0(app_db_folder, "/linkr_public"))
     
@@ -152,7 +152,7 @@ app_server <- function(language = "en", languages = tibble::tibble(), i18n = cha
     trad$session_ends <- switch(language, "fr" = "Fin de la session", "en" = "Session ends")
     
     onStop(function() {
-      if (debug) cat(paste0("\n", Sys.time(), " - server - observer onStop"))
+      if (debug) cat(paste0("\n", now(), " - server - observer onStop"))
       add_log_entry(r = isolate(r), category = trad$session, name = trad$session_ends, value = "")
       
       # Close duckdb connections
@@ -170,7 +170,7 @@ app_server <- function(language = "en", languages = tibble::tibble(), i18n = cha
     
     observeEvent(r$db, {
       
-      if (debug) cat(paste0("\n", Sys.time(), " - server - observer r$db"))
+      if (debug) cat(paste0("\n", now(), " - server - observer r$db"))
       
       # Add default values in database, if it is empty
       insert_default_data(output = output, r = r, m = m, i18n = i18n, language = language, db_col_types = db_col_types, 
@@ -184,13 +184,13 @@ app_server <- function(language = "en", languages = tibble::tibble(), i18n = cha
 
     # Secure the app with shinymanager
 
-    if (debug) cat(paste0("\n", Sys.time(), " - server - shinyManager"))
+    if (debug) cat(paste0("\n", now(), " - server - shinyManager"))
     r$res_auth <- shinymanager::secure_server(check_credentials = check_authentification(r$db))
 
     # Get user ID
 
     observeEvent(r$res_auth, {
-      if (debug) cat(paste0("\n", Sys.time(), " - server - observer r$res_auth"))
+      if (debug) cat(paste0("\n", now(), " - server - observer r$res_auth"))
       user_id <- as.integer(reactiveValuesToList(r$res_auth)$id)
       r$user_id <- user_id
       m$user_id <- user_id
@@ -200,7 +200,7 @@ app_server <- function(language = "en", languages = tibble::tibble(), i18n = cha
     # When r$user_id loaded, load user_accesses
 
     observeEvent(r$user_id, {
-      if (debug) cat(paste0("\n", Sys.time(), " - server - observer r$user_id"))
+      if (debug) cat(paste0("\n", now(), " - server - observer r$user_id"))
       
       req(r$user_id)
 
@@ -215,7 +215,7 @@ app_server <- function(language = "en", languages = tibble::tibble(), i18n = cha
       r$username <- paste0(r$username$firstname, " ", r$username$lastname)
       
       # Clear temp dir
-      if (debug) cat(paste0("\n", Sys.time(), " - server - clear temp_files"))
+      if (debug) cat(paste0("\n", now(), " - server - clear temp_files"))
       
       temp_files_folder <- paste0(app_folder, "/temp_files/", r$user_id)
       unlink(temp_files_folder, recursive = TRUE, force = TRUE)
@@ -234,7 +234,7 @@ app_server <- function(language = "en", languages = tibble::tibble(), i18n = cha
       "position:relative;")
 
     # Route pages
-    if (debug) cat(paste0("\n", Sys.time(), " - server - shiny.router"))
+    if (debug) cat(paste0("\n", now(), " - server - shiny.router"))
     shiny.router::router_server()
     
     # Keep trace of loaded observers (not to have multiple identical observers)
@@ -245,7 +245,7 @@ app_server <- function(language = "en", languages = tibble::tibble(), i18n = cha
     
     observeEvent(r$user_accesses, {
       
-      if (debug) cat(paste0("\n", Sys.time(), " - server - observer r$user_accesses"))
+      if (debug) cat(paste0("\n", now(), " - server - observer r$user_accesses"))
       
       # --- --- --- --- --- -- -
       # Get authorized data ----
@@ -264,17 +264,17 @@ app_server <- function(language = "en", languages = tibble::tibble(), i18n = cha
       # Load server tabs ----
       # --- --- --- --- --- -- -
     
-      if (debug) cat(paste0("\n", Sys.time(), " - server - load server tabs"))
+      if (debug) cat(paste0("\n", now(), " - server - load server tabs"))
       if (perf_monitoring) monitor_perf(r = r, action = "start")
 
-      if (debug) cat(paste0("\n", Sys.time(), " - server - load server tabs - home"))
+      if (debug) cat(paste0("\n", now(), " - server - load server tabs - home"))
       sapply(c("home", "home_get_started", "home_tutorials", "home_resources", "home_dev"), function(page){
         mod_home_server(page, r, language, i18n, perf_monitoring, debug, show_home_page)
         mod_page_header_server(page, r, language, i18n, perf_monitoring, debug)
       })
 
       if (perf_monitoring) monitor_perf(r = r, action = "stop", task = "server - load server tabs - home")
-      if (debug) cat(paste0("\n", Sys.time(), " - server - load server tabs - data"))
+      if (debug) cat(paste0("\n", now(), " - server - load server tabs - data"))
 
       sapply(c("patient_level_data", "aggregated_data"), function(page){
         mod_data_server(page, r, d, m, language, i18n, perf_monitoring, debug)
@@ -283,7 +283,7 @@ app_server <- function(language = "en", languages = tibble::tibble(), i18n = cha
       })
 
       if (perf_monitoring) monitor_perf(r = r, action = "stop", task = "server - load server tabs - data")
-      if (debug) cat(paste0("\n", Sys.time(), " - server - load server tabs - my_studies / my_subsets / vocabularies / scripts"))
+      if (debug) cat(paste0("\n", now(), " - server - load server tabs - my_studies / my_subsets / vocabularies / scripts"))
 
       mod_my_studies_server("my_studies", r, d, m, i18n, language, db_col_types, perf_monitoring, debug)
       if (perf_monitoring) monitor_perf(r = r, action = "stop", task = "server - load server tabs - my_studies")
@@ -300,14 +300,14 @@ app_server <- function(language = "en", languages = tibble::tibble(), i18n = cha
       })
 
       if (perf_monitoring) monitor_perf(r = r, action = "stop", task = "server - load server tabs - my_studies / my_subsets / vocabularies / scripts - sidenav")
-      if (debug) cat(paste0("\n", Sys.time(), " - server - load server tabs - messages"))
+      if (debug) cat(paste0("\n", now(), " - server - load server tabs - messages"))
       
       mod_messages_server("messages", r, d, m, i18n, language, perf_monitoring, debug)
       mod_page_sidenav_server("messages", r, d, m, i18n, language, perf_monitoring, debug)
       mod_page_header_server("messages", r, language, i18n, perf_monitoring, debug)
       
       if (perf_monitoring) monitor_perf(r = r, action = "stop", task = "server - load server tabs - messages")
-      if (debug) cat(paste0("\n", Sys.time(), " - server - load server tabs - plugins"))
+      if (debug) cat(paste0("\n", now(), " - server - load server tabs - plugins"))
 
       sapply(c("plugins_patient_lvl", "plugins_aggregated"), function(page){
         mod_plugins_server(page, r, d, m, language, i18n, perf_monitoring, debug)
@@ -315,24 +315,24 @@ app_server <- function(language = "en", languages = tibble::tibble(), i18n = cha
         mod_page_header_server(page, r, language, i18n, perf_monitoring, debug)
       })
       if (perf_monitoring) monitor_perf(r = r, action = "stop", task = "server - load server tabs - plugins")
-      if (debug) cat(paste0("\n", Sys.time(), " - server - load server tabs - general_settings"))
+      if (debug) cat(paste0("\n", now(), " - server - load server tabs - general_settings"))
 
       mod_settings_general_server("settings_general_settings", r, i18n, perf_monitoring, debug)
       mod_page_sidenav_server("settings_general_settings", r, d, m, i18n, language, perf_monitoring, debug)
       mod_page_header_server("settings_general_settings", r, language, i18n, perf_monitoring, debug)
       if (perf_monitoring) monitor_perf(r = r, action = "stop", task = "server - load server tabs - general_settings")
-      if (debug) cat(paste0("\n", Sys.time(), " - server - load server tabs - settings_app_db"))
+      if (debug) cat(paste0("\n", now(), " - server - load server tabs - settings_app_db"))
 
       mod_settings_app_database_server("settings_app_db", r, m, i18n, language, db_col_types, app_folder, perf_monitoring, debug)
       mod_page_sidenav_server("settings_app_db", r, d, m, i18n, language, perf_monitoring, debug)
       mod_page_header_server("settings_app_db", r, language, i18n, perf_monitoring, debug)
       if (perf_monitoring) monitor_perf(r = r, action = "stop", task = "server - load server tabs - settings_app_db")
-      if (debug) cat(paste0("\n", Sys.time(), " - server - load server tabs - settings_git"))
+      if (debug) cat(paste0("\n", now(), " - server - load server tabs - settings_git"))
 
       mod_settings_git_server("settings_git", r, d, m, i18n, language, perf_monitoring, debug)
       mod_page_header_server("settings_git", r, language, i18n, perf_monitoring, debug)
       if (perf_monitoring) monitor_perf(r = r, action = "stop", task = "server - load server tabs - settings_git")
-      if (debug) cat(paste0("\n", Sys.time(), " - server - load server tabs - settings_users"))
+      if (debug) cat(paste0("\n", now(), " - server - load server tabs - settings_users"))
 
       mod_settings_users_server("settings_users", r, m, i18n, language, perf_monitoring, debug, users_accesses_toggles_options)
       mod_page_sidenav_server("settings_users", r, d, m, i18n, language, perf_monitoring, debug)
@@ -345,14 +345,14 @@ app_server <- function(language = "en", languages = tibble::tibble(), i18n = cha
       })
 
       if (perf_monitoring) monitor_perf(r = r, action = "stop", task = "server - load server tabs - settings_users")
-      if (debug) cat(paste0("\n", Sys.time(), " - server - load server tabs - settings_dev"))
+      if (debug) cat(paste0("\n", now(), " - server - load server tabs - settings_dev"))
       mod_settings_dev_server("settings_dev", r, d, m, i18n, language, perf_monitoring, debug)
       mod_page_sidenav_server("settings_dev", r, d, m, i18n, language, perf_monitoring, debug)
       mod_page_header_server("settings_dev", r, language, i18n, perf_monitoring, debug)
 
       if (perf_monitoring) monitor_perf(r = r, action = "stop", task = "server - load server tabs - settings_dev")
-      # if (debug) cat(paste0("\n", Sys.time(), " - server - load server tabs - data_sources / datasets / vocabularies"))
-      if (debug) cat(paste0("\n", Sys.time(), " - server - load server tabs - datasets / vocabularies"))
+      # if (debug) cat(paste0("\n", now(), " - server - load server tabs - data_sources / datasets / vocabularies"))
+      if (debug) cat(paste0("\n", now(), " - server - load server tabs - datasets / vocabularies"))
 
       # sapply(c("data_sources", "datasets", "vocabularies"), function(page){
       sapply(c("datasets", "vocabularies"), function(page){
@@ -362,12 +362,12 @@ app_server <- function(language = "en", languages = tibble::tibble(), i18n = cha
         if (perf_monitoring) monitor_perf(r = r, action = "stop", task = paste0("server - load server tabs - ", page))
       })
 
-      if (debug) cat(paste0("\n", Sys.time(), " - server - load server tabs - settings_log"))
+      if (debug) cat(paste0("\n", now(), " - server - load server tabs - settings_log"))
       mod_settings_log_server("settings_log", r, i18n, language, perf_monitoring, debug)
       mod_page_sidenav_server("settings_log", r, d, m, i18n, language, perf_monitoring, debug)
       mod_page_header_server("settings_log", r, language, i18n, perf_monitoring, debug)
       if (perf_monitoring) monitor_perf(r = r, action = "stop", task = "server - load server tabs - settings_log")
-      if (debug) cat(paste0("\n", Sys.time(), " - server - load server tabs - end"))
+      if (debug) cat(paste0("\n", now(), " - server - load server tabs - end"))
       
       r$end_load_tabs <- TRUE
       

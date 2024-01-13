@@ -1531,7 +1531,7 @@ import_vocabulary_table <- function(output, ns = character(), i18n = character()
     data_to_insert <- data_to_insert %>%
       dplyr::mutate(id = get_last_row(m$db, "vocabulary") + dplyr::row_number(), .before = "vocabulary_id") %>%
       dplyr::mutate(data_source_id = NA_character_, display_order = NA_integer_, creator_id = NA_integer_, 
-        creation_datetime = as.character(Sys.time()), update_datetime = as.character(Sys.time()), deleted = FALSE)
+        creation_datetime = now(), update_datetime = now(), deleted = FALSE)
   }
   
   # Insert data
@@ -1586,10 +1586,10 @@ import_vocabulary_table <- function(output, ns = character(), i18n = character()
                 dplyr::select(-code, -language)
             ) %>%
             dplyr::mutate(id = last_row$options + dplyr::row_number(), category = "vocabulary", link_id = row$id, .before = "name") %>%
-            dplyr::mutate(creator_id = r$user_id, datetime = as.character(Sys.time()), deleted = FALSE)
+            dplyr::mutate(creator_id = r$user_id, datetime = now(), deleted = FALSE)
           
           new_data$code <- tibble::tribble(~id, ~category, ~link_id, ~code, ~creator_id, ~datetime, ~deleted,
-            last_row$code + 1, "vocabulary", row$id, "", r$user_id, as.character(Sys.time()), FALSE)
+            last_row$code + 1, "vocabulary", row$id, "", r$user_id, now(), FALSE)
           
           for (var in c("options", "code")){
             DBI::dbAppendTable(r$db, var, new_data[[var]])
@@ -1613,7 +1613,7 @@ import_vocabulary_table <- function(output, ns = character(), i18n = character()
             dplyr::mutate(id = get_last_row(m$db, "vocabulary") + dplyr::row_number(), .before = "vocabulary_id") %>%
             dplyr::mutate(vocabulary_name = vocabulary_id, vocabulary_reference = "", vocabulary_version = "",
               vocabulary_concept_id = NA_integer_, data_source_id = NA_character_, display_order = NA_integer_, creator_id = r$user_id,
-              creation_datetime = as.character(Sys.time()), update_datetime = as.character(Sys.time()), deleted = FALSE)
+              creation_datetime = now(), update_datetime = now(), deleted = FALSE)
         
           DBI::dbAppendTable(m$db, "vocabulary", new_vocabulary)
           r$vocabulary <- r$vocabulary %>% dplyr::bind_rows(new_vocabulary)
@@ -1645,10 +1645,10 @@ import_vocabulary_table <- function(output, ns = character(), i18n = character()
                   dplyr::select(-code, -language)
               ) %>%
               dplyr::mutate(id = last_row$options + dplyr::row_number(), category = "vocabulary", link_id = row$id, .before = "name") %>%
-              dplyr::mutate(creator_id = r$user_id, datetime = as.character(Sys.time()), deleted = FALSE)
+              dplyr::mutate(creator_id = r$user_id, datetime = now(), deleted = FALSE)
             
             new_data$code <- tibble::tribble(~id, ~category, ~link_id, ~code, ~creator_id, ~datetime, ~deleted,
-              last_row$code + 1, "vocabulary", row$id, "", r$user_id, as.character(Sys.time()), FALSE)
+              last_row$code + 1, "vocabulary", row$id, "", r$user_id, now(), FALSE)
             
             for (var in c("options", "code")){
               DBI::dbAppendTable(r$db, var, new_data[[var]])

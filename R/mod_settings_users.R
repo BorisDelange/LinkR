@@ -181,7 +181,7 @@ mod_settings_users_server <- function(id = character(), r = shiny::reactiveValue
       
       observeEvent(r$users_accesses, {
         
-        if (debug) cat(paste0("\n", Sys.time(), " - mod_settings_users - observer r$users_accesses"))
+        if (debug) cat(paste0("\n", now(), " - mod_settings_users - observer r$users_accesses"))
           
         options <- convert_tibble_to_list(r$users_accesses %>% dplyr::arrange(name), key_col = "id", text_col = "name")
         
@@ -199,7 +199,7 @@ mod_settings_users_server <- function(id = character(), r = shiny::reactiveValue
       # Depending on user_accesses
       observeEvent(r$user_accesses, {
         
-        if (debug) cat(paste0("\n", Sys.time(), " - mod_settings_users - observer r$user_accesses"))
+        if (debug) cat(paste0("\n", now(), " - mod_settings_users - observer r$user_accesses"))
         
         # Hide Pivot if user has no access
         if ("users" %not_in% r$user_accesses) shinyjs::hide("pivot") else shinyjs::show("pivot")
@@ -225,7 +225,7 @@ mod_settings_users_server <- function(id = character(), r = shiny::reactiveValue
     })
     
     observeEvent(shiny.router::get_page(), {
-      if (debug) cat(paste0("\n", Sys.time(), " - mod_settings_users - ", id, " - observer shiny_router::change_page"))
+      if (debug) cat(paste0("\n", now(), " - mod_settings_users - ", id, " - observer shiny_router::change_page"))
 
       # Close help pages when page changes
       # r$help_settings_users_open_panel <- FALSE
@@ -240,7 +240,7 @@ mod_settings_users_server <- function(id = character(), r = shiny::reactiveValue
     })
     
     sapply(1:10, function(i){
-      observeEvent(input[[paste0("help_page_", i)]], r[[paste0("help_settings_users_page_", i)]] <- Sys.time())
+      observeEvent(input[[paste0("help_page_", i)]], r[[paste0("help_settings_users_page_", i)]] <- now())
     })
     
     help_settings_users(output = output, r = r, id = id, language = language, i18n = i18n, ns = ns)
@@ -257,7 +257,7 @@ mod_settings_users_server <- function(id = character(), r = shiny::reactiveValue
         function(data_var){
           observeEvent(r[[data_var]], {
             
-            if (debug) cat(paste0("\n", Sys.time(), " - mod_settings_users - observer r$users_[accesses/statuses]"))
+            if (debug) cat(paste0("\n", now(), " - mod_settings_users - observer r$users_[accesses/statuses]"))
             
             # Convert options to list
             options <- convert_tibble_to_list(data = r[[data_var]], key_col = "id", text_col = "name")
@@ -269,7 +269,7 @@ mod_settings_users_server <- function(id = character(), r = shiny::reactiveValue
       observeEvent(input$add, {
         
         if (perf_monitoring) monitor_perf(r = r, action = "start")
-        if (debug) cat(paste0("\n", Sys.time(), " - mod_settings_users - observer input$add"))
+        if (debug) cat(paste0("\n", now(), " - mod_settings_users - observer input$add"))
         
         # If user has access
         req(paste0(table, "_creation_card") %in% r$user_accesses)
@@ -349,7 +349,7 @@ mod_settings_users_server <- function(id = character(), r = shiny::reactiveValue
       observeEvent(r[[table]], {
         
         if (perf_monitoring) monitor_perf(r = r, action = "start")
-        if (debug) cat(paste0("\n", Sys.time(), " - mod_settings_users - observer r$..[table]"))
+        if (debug) cat(paste0("\n", now(), " - mod_settings_users - observer r$..[table]"))
         
         r[[paste0(table, "_temp")]] <- r[[table]] %>% dplyr::mutate(modified = FALSE)
         
@@ -374,7 +374,7 @@ mod_settings_users_server <- function(id = character(), r = shiny::reactiveValue
       # Each time a row is updated, modify temp variable
       observeEvent(input$management_datatable_cell_edit, {
         
-        if (debug) cat(paste0("\n", Sys.time(), " - mod_settings_users - observer input$management_datatable_cell_edit"))
+        if (debug) cat(paste0("\n", now(), " - mod_settings_users - observer input$management_datatable_cell_edit"))
         
         edit_info <- input$management_datatable_cell_edit
         r[[paste0(table, "_temp")]] <- DT::editData(r[[paste0(table, "_temp")]], edit_info, rownames = FALSE)
@@ -387,7 +387,7 @@ mod_settings_users_server <- function(id = character(), r = shiny::reactiveValue
         observeEvent(r$users, {
           
           if (perf_monitoring) monitor_perf(r = r, action = "start")
-          if (debug) cat(paste0("\n", Sys.time(), " - mod_settings_users - observer r$users"))
+          if (debug) cat(paste0("\n", now(), " - mod_settings_users - observer r$users"))
           
           update_settings_datatable(input = input, tab_id = id, r = r, ns = ns, table = table, dropdowns = dropdowns, i18n = i18n)
           
@@ -399,7 +399,7 @@ mod_settings_users_server <- function(id = character(), r = shiny::reactiveValue
       observeEvent(input$management_save, {
         
         if (perf_monitoring) monitor_perf(r = r, action = "start")
-        if (debug) cat(paste0("\n", Sys.time(), " - mod_settings_users - observer input$management_save"))
+        if (debug) cat(paste0("\n", now(), " - mod_settings_users - observer input$management_save"))
         
         save_settings_datatable_updates(output = output, r = r, ns = ns, table = table, i18n = i18n, r_message_bar = TRUE)
         
@@ -435,7 +435,7 @@ mod_settings_users_server <- function(id = character(), r = shiny::reactiveValue
       
       observeEvent(input$deleted_pressed, {
         
-        if (debug) cat(paste0("\n", Sys.time(), " - mod_settings_users - observer input$deleted_pressed"))
+        if (debug) cat(paste0("\n", now(), " - mod_settings_users - observer input$deleted_pressed"))
         
         r[[paste0("delete_", table)]] <- as.integer(substr(input$deleted_pressed, nchar("delete_") + 1, 100))
         r[[delete_variable]] <- TRUE
@@ -449,7 +449,7 @@ mod_settings_users_server <- function(id = character(), r = shiny::reactiveValue
       observeEvent(input$delete_selection, {
         
         if (perf_monitoring) monitor_perf(r = r, action = "start")
-        if (debug) cat(paste0("\n", Sys.time(), " - mod_settings_users - observer input$delete_selection"))
+        if (debug) cat(paste0("\n", now(), " - mod_settings_users - observer input$delete_selection"))
         
         req(length(input[["management_datatable_rows_selected"]]) > 0)
         
@@ -468,7 +468,7 @@ mod_settings_users_server <- function(id = character(), r = shiny::reactiveValue
     
       observeEvent(input$options, {
         
-        if (debug) cat(paste0("\n", Sys.time(), " - mod_settings_users - observer input$options"))
+        if (debug) cat(paste0("\n", now(), " - mod_settings_users - observer input$options"))
         
         # Show options toggle
         r$users_statuses_options <- as.integer(substr(input$options, nchar("options_") + 1, nchar(input$options)))
@@ -487,7 +487,7 @@ mod_settings_users_server <- function(id = character(), r = shiny::reactiveValue
         label <- users_accesses_toggles_options[[i, "name"]]
         
         observeEvent(input[[paste0("toggle_", label)]], {
-          if (debug) cat(paste0("\n", Sys.time(), " - mod_settings_users - observer input$toggle_", label))
+          if (debug) cat(paste0("\n", now(), " - mod_settings_users - observer input$toggle_", label))
           if (input[[paste0("toggle_", label)]]) shinyjs::show(paste0("sub_results_", label, "_div"))
           else shinyjs::hide(paste0("sub_results_", label, "_div"))
         })
@@ -495,7 +495,7 @@ mod_settings_users_server <- function(id = character(), r = shiny::reactiveValue
       
       observeEvent(r$users_statuses_options, {
         
-        if (debug) cat(paste0("\n", Sys.time(), " - mod_settings_users - observer r$users_statuses_options"))
+        if (debug) cat(paste0("\n", now(), " - mod_settings_users - observer r$users_statuses_options"))
 
         options <- convert_tibble_to_list(r$users_accesses %>% dplyr::arrange(name), key_col = "id", text_col = "name")
         value <- list(key = r$users_statuses_options, text = r$users_accesses %>% dplyr::filter(id == r$users_statuses_options) %>% dplyr::pull(name))
@@ -506,7 +506,7 @@ mod_settings_users_server <- function(id = character(), r = shiny::reactiveValue
       observeEvent(input$options_selected, {
         
         if (perf_monitoring) monitor_perf(r = r, action = "start")
-        if (debug) cat(paste0("\n", Sys.time(), " - mod_settings_users - observer input$options_selected"))
+        if (debug) cat(paste0("\n", now(), " - mod_settings_users - observer input$options_selected"))
 
         req(input$options_selected)
         if (length(input$options_selected) > 1) link_id <- input$options_selected$key
@@ -546,10 +546,10 @@ mod_settings_users_server <- function(id = character(), r = shiny::reactiveValue
       observeEvent(input$select_all,{
         
         if (perf_monitoring) monitor_perf(r = r, action = "start")
-        if (debug) cat(paste0("\n", Sys.time(), " - mod_settings_users - observer input$select_all"))
+        if (debug) cat(paste0("\n", now(), " - mod_settings_users - observer input$select_all"))
 
         req(input$options_selected)
-        r$reload_all_users_accesses_toggles <- Sys.time()
+        r$reload_all_users_accesses_toggles <- now()
         r$reload_all_users_accesses_toggles_value <- TRUE
         
         if (perf_monitoring) monitor_perf(r = r, action = "stop", task = paste0("mod_settings_users - observer input$select_all"))
@@ -559,10 +559,10 @@ mod_settings_users_server <- function(id = character(), r = shiny::reactiveValue
       observeEvent(input$unselect_all,{
         
         if (perf_monitoring) monitor_perf(r = r, action = "start")
-        if (debug) cat(paste0("\n", Sys.time(), " - mod_settings_users - observer input$unselect_all"))
+        if (debug) cat(paste0("\n", now(), " - mod_settings_users - observer input$unselect_all"))
         
         req(input$options_selected)
-        r$reload_all_users_accesses_toggles <- Sys.time()
+        r$reload_all_users_accesses_toggles <- now()
         r$reload_all_users_accesses_toggles_value <- FALSE
         
         if (perf_monitoring) monitor_perf(r = r, action = "stop", task = paste0("mod_settings_users - observer input$unselect_all"))
@@ -571,7 +571,7 @@ mod_settings_users_server <- function(id = character(), r = shiny::reactiveValue
       observeEvent(r$reload_all_users_accesses_toggles, {
         
         if (perf_monitoring) monitor_perf(r = r, action = "start")
-        if (debug) cat(paste0("\n", Sys.time(), " - mod_settings_users - observer r$reload_all_users_accesses_toggles"))
+        if (debug) cat(paste0("\n", now(), " - mod_settings_users - observer r$reload_all_users_accesses_toggles"))
         
         value <- r$reload_all_users_accesses_toggles_value
         
@@ -593,7 +593,7 @@ mod_settings_users_server <- function(id = character(), r = shiny::reactiveValue
       observeEvent(input$options_save, {
         
         if (perf_monitoring) monitor_perf(r = r, action = "start")
-        if (debug) cat(paste0("\n", Sys.time(), " - mod_settings_users - observer input$options_save"))
+        if (debug) cat(paste0("\n", now(), " - mod_settings_users - observer input$options_save"))
 
         req(input$options_selected)
         if (length(input$options_selected) > 1) link_id <- input$options_selected$key
@@ -608,7 +608,7 @@ mod_settings_users_server <- function(id = character(), r = shiny::reactiveValue
           data <- data %>% dplyr::bind_rows(
             tibble::tribble(~category, ~link_id, ~name, ~value, ~value_num, ~creator_id, ~datetime, ~deleted,
               "users_accesses", as.integer(link_id), users_accesses_toggles_options[[i, "name"]], "", as.numeric(input[[paste0("toggle_", users_accesses_toggles_options[[i, "name"]])]]),
-              r$user_id, as.character(Sys.time()), FALSE)
+              r$user_id, now(), FALSE)
           )
           if (users_accesses_toggles_options[[i, "toggles"]] != ""){
             for (toggle in users_accesses_toggles_options[[i, "toggles"]][[1]]){
@@ -621,7 +621,7 @@ mod_settings_users_server <- function(id = character(), r = shiny::reactiveValue
               data <- data %>% dplyr::bind_rows(
                 tibble::tribble(~category, ~link_id, ~name, ~value, ~value_num, ~creator_id, ~datetime, ~deleted,
                   "users_accesses", as.integer(link_id), toggle, "", value_num,
-                  r$user_id, as.character(Sys.time()), FALSE)
+                  r$user_id, now(), FALSE)
               )
             }
           }
@@ -646,7 +646,7 @@ mod_settings_users_server <- function(id = character(), r = shiny::reactiveValue
         r$options <- r$options %>% dplyr::bind_rows(data)
 
         # Notify user
-        r[[paste0(table, "_show_message_bar")]] <- tibble::tibble(message = "modif_saved", type = "success", trigger = Sys.time())
+        r[[paste0(table, "_show_message_bar")]] <- tibble::tibble(message = "modif_saved", type = "success", trigger = now())
 
         if (perf_monitoring) monitor_perf(r = r, action = "stop", task = paste0("mod_settings_users - observer input$options_save"))
       })

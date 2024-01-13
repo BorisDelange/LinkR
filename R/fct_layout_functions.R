@@ -481,7 +481,7 @@ render_datatable <- function(output, ns = character(), i18n = character(), data 
   
   if (length(bold_rows) > 0){
     for (col_name in names(bold_rows)){
-      data <- data %>% DT::formatStyle(i18n$t(col_name), target = "row", fontWeight = DT::styleEqual(bold_rows[col_name], "bold"))
+      data <- data %>% DT::formatStyle(col_name, target = "row", fontWeight = DT::styleEqual(bold_rows[col_name], "bold"))
     }
   }
   

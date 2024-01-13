@@ -4,7 +4,12 @@
 \alias{format_datetime}
 \title{Format datetime}
 \usage{
-format_datetime(datetime = character(), language = "en", sec = TRUE)
+format_datetime(
+  datetime = character(),
+  language = "en",
+  sec = TRUE,
+  type = "datetime"
+)
 }
 \arguments{
 \item{datetime}{Datetime converted in character vector (character)}
@@ -12,6 +17,8 @@ format_datetime(datetime = character(), language = "en", sec = TRUE)
 \item{language}{Selected language, "en" or "fr" (character)}
 
 \item{sec}{Should we display seconds or not (logical)}
+
+\item{type}{Is the object a date or a datetime ? c("datetime", "date") (character)}
 }
 \description{
 Format datetime depending on the selected language

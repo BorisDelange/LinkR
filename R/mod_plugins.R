@@ -481,7 +481,7 @@ mod_plugins_server <- function(id = character(), r = shiny::reactiveValues(), d 
   moduleServer(id, function(input, output, session){
     ns <- session$ns
     
-    if (debug) cat(paste0("\n", Sys.time(), " - mod_plugins - start"))
+    if (debug) cat(paste0("\n", now(), " - mod_plugins - start"))
     
     col_types <- tibble::tribble(
       ~table, ~col_types,
@@ -518,7 +518,7 @@ mod_plugins_server <- function(id = character(), r = shiny::reactiveValues(), d 
     
     # Current pivot item
     observeEvent(input$current_tab, {
-      if (debug) cat(paste0("\n", Sys.time(), " - mod_plugins - ", id, " - observer input$current_tab"))
+      if (debug) cat(paste0("\n", now(), " - mod_plugins - ", id, " - observer input$current_tab"))
       
       r[[paste0(id, "_current_tab")]] <- input$current_tab
     })
@@ -528,7 +528,7 @@ mod_plugins_server <- function(id = character(), r = shiny::reactiveValues(), d 
     # --- --- --- --- --- --- --
     
     observeEvent(shiny.router::get_page(), {
-      if (debug) cat(paste0("\n", Sys.time(), " - mod_plugins - ", id, " - observer shiny_router::change_page"))
+      if (debug) cat(paste0("\n", now(), " - mod_plugins - ", id, " - observer shiny_router::change_page"))
     # 
     #   if (prefix == "aggregated" & shiny.router::get_page() == "plugins" & r$plugins_page == "plugins_patient_lvl") shiny.router::change_page("plugins_patient_lvl")
     #   else if (prefix == "patient_lvl" & shiny.router::get_page() == "plugins" & r$plugins_page == "plugins_aggregated") shiny.router::change_page("plugins_aggregated")
@@ -551,7 +551,7 @@ mod_plugins_server <- function(id = character(), r = shiny::reactiveValues(), d 
     
     observeEvent(r$plugins, {
       
-      if (debug) cat(paste0("\n", Sys.time(), " - mod_plugins - observer r$plugins"))
+      if (debug) cat(paste0("\n", now(), " - mod_plugins - observer r$plugins"))
       
       options <- convert_tibble_to_list(r$plugins %>% dplyr::filter(tab_type_id == !!tab_type_id) %>% dplyr::arrange(name), key_col = "id", text_col = "name")
       
@@ -592,15 +592,15 @@ mod_plugins_server <- function(id = character(), r = shiny::reactiveValues(), d 
     })
     
     sapply(1:10, function(i){
-      observeEvent(input[[paste0("help_page_", i)]], r[[paste0("help_plugins_", prefix, "_page_", i)]] <- Sys.time())
+      observeEvent(input[[paste0("help_page_", i)]], r[[paste0("help_plugins_", prefix, "_page_", i)]] <- now())
     })
     
     help_plugins(output = output, r = r, id = id, prefix = prefix, language = language, i18n = i18n, ns = ns)
     
-    observeEvent(input$copy_code_1, r$help_plugins_copy_code_1 <- Sys.time())
-    observeEvent(input$copy_code_2, r$help_plugins_copy_code_2 <- Sys.time())
-    observeEvent(input$copy_code_3, r$help_plugins_copy_code_3 <- Sys.time())
-    observeEvent(input$copy_code_4, r$help_plugins_copy_code_4 <- Sys.time())
+    observeEvent(input$copy_code_1, r$help_plugins_copy_code_1 <- now())
+    observeEvent(input$copy_code_2, r$help_plugins_copy_code_2 <- now())
+    observeEvent(input$copy_code_3, r$help_plugins_copy_code_3 <- now())
+    observeEvent(input$copy_code_4, r$help_plugins_copy_code_4 <- now())
     
     # --- --- --- --- -- -
     # Plugins catalog ----
@@ -608,7 +608,7 @@ mod_plugins_server <- function(id = character(), r = shiny::reactiveValues(), d 
     
     # Show / hide divs
     observeEvent(input$all_plugins_source, {
-      if (debug) cat(paste0("\n", Sys.time(), " - mod_plugins - observer input$all_plugins_source"))
+      if (debug) cat(paste0("\n", now(), " - mod_plugins - observer input$all_plugins_source"))
       if (input$all_plugins_source == "local"){
         shinyjs::show("all_plugins_local_div")
         sapply(c("remote_git_repo_div", "all_plugins_remote_git_div"), shinyjs::hide)
@@ -622,7 +622,7 @@ mod_plugins_server <- function(id = character(), r = shiny::reactiveValues(), d 
     # Update dropdown of remote git repos
     
     observeEvent(r$git_repos, {
-      if (debug) cat(paste0("\n", Sys.time(), " - mod_plugins - observer r$git_repos"))
+      if (debug) cat(paste0("\n", now(), " - mod_plugins - observer r$git_repos"))
       
       shiny.fluent::updateDropdown.shinyInput(session, "remote_git_repo", 
         options = convert_tibble_to_list(r$git_repos, key_col = "id", text_col = "name"))
@@ -631,7 +631,7 @@ mod_plugins_server <- function(id = character(), r = shiny::reactiveValues(), d 
     # Update plugins catalog when a remote git repo is selected
     
     observeEvent(input$remote_git_repo, {
-      if (debug) cat(paste0("\n", Sys.time(), " - mod_plugins - observer input$remote_git_repo"))
+      if (debug) cat(paste0("\n", now(), " - mod_plugins - observer input$remote_git_repo"))
       
       # Get URL of remote git repo
       raw_files_url_address <- r$git_repos %>% dplyr::filter(id == input$remote_git_repo) %>% dplyr::pull(raw_files_url_address)
@@ -705,11 +705,11 @@ mod_plugins_server <- function(id = character(), r = shiny::reactiveValues(), d 
       }
       if (nrow(r$remote_git_plugins) == 0) shiny.fluent::updateDropdown.shinyInput(session, "remote_git_plugins_category", options = list(), value = NULL)
       
-      r$reload_plugins_document_cards <- Sys.time()
+      r$reload_plugins_document_cards <- now()
     })
     
     observeEvent(r[[paste0(prefix, "_remote_git_repo")]], {
-      if (debug) cat(paste0("\n", Sys.time(), " - mod_plugins - observer r$.._remote_git_repo"))
+      if (debug) cat(paste0("\n", now(), " - mod_plugins - observer r$.._remote_git_repo"))
       
       shiny.fluent::updateDropdown.shinyInput(session, "remote_git_repo",
         options = convert_tibble_to_list(r$git_repos, key_col = "id", text_col = "name"),
@@ -717,24 +717,24 @@ mod_plugins_server <- function(id = character(), r = shiny::reactiveValues(), d 
     })
     
     observeEvent(r$plugins, {
-      if (debug) cat(paste0("\n", Sys.time(), " - mod_plugins - observer r$plugins"))
-      r$reload_plugins_document_cards <- Sys.time()
+      if (debug) cat(paste0("\n", now(), " - mod_plugins - observer r$plugins"))
+      r$reload_plugins_document_cards <- now()
     }, once = TRUE)
     
     observeEvent(input$reload_plugins_document_cards, {
-      if (debug) cat(paste0("\n", Sys.time(), " - mod_plugins - observer input$reload_plugins_document_cards"))
-      r$reload_plugins_document_cards <- Sys.time()
+      if (debug) cat(paste0("\n", now(), " - mod_plugins - observer input$reload_plugins_document_cards"))
+      r$reload_plugins_document_cards <- now()
     })
     
     observeEvent(input$local_plugins_category, {
-      if (debug) cat(paste0("\n", Sys.time(), " - mod_plugins - observer input$local_plugins_category"))
-      r$reload_plugins_document_cards <- Sys.time()
+      if (debug) cat(paste0("\n", now(), " - mod_plugins - observer input$local_plugins_category"))
+      r$reload_plugins_document_cards <- now()
     })
     
     observeEvent(r$reload_plugins_document_cards, {
 
       if (perf_monitoring) monitor_perf(r = r, action = "start")
-      if (debug) cat(paste0("\n", Sys.time(), " - mod_plugins - observer r$reload_plugins_document_cards"))
+      if (debug) cat(paste0("\n", now(), " - mod_plugins - observer r$reload_plugins_document_cards"))
 
       req(input$local_plugins_category)
       
@@ -848,14 +848,14 @@ mod_plugins_server <- function(id = character(), r = shiny::reactiveValues(), d 
         }
       })
 
-      r[[paste0(prefix, "_load_plugins_images")]] <- Sys.time()
+      r[[paste0(prefix, "_load_plugins_images")]] <- now()
 
       if (perf_monitoring) monitor_perf(r = r, action = "stop", task = paste0("mod_plugins - observer r$reload_plugins_document_cards"))
     })
     
     observeEvent(r[[paste0(prefix, "_load_plugins_images")]], {
       if (perf_monitoring) monitor_perf(r = r, action = "start")
-      if (debug) cat(paste0("\n", Sys.time(), " - mod_plugins - observer r$..load_plugins_images"))
+      if (debug) cat(paste0("\n", now(), " - mod_plugins - observer r$..load_plugins_images"))
       
       req(nrow(r[[paste0(prefix, "_plugins_images")]]) > 0)
       sapply(1:nrow(r[[paste0(prefix, "_plugins_images")]]), function(i){
@@ -890,14 +890,14 @@ mod_plugins_server <- function(id = character(), r = shiny::reactiveValues(), d 
     })
     
     observeEvent(input$show_plugin_details, {
-      if (debug) cat(paste0("\n", Sys.time(), " - mod_plugins - observer input$show_plugin_details"))
-      r[[paste0(prefix, "_show_plugin_details")]] <- Sys.time()
+      if (debug) cat(paste0("\n", now(), " - mod_plugins - observer input$show_plugin_details"))
+      r[[paste0(prefix, "_show_plugin_details")]] <- now()
     })
     
     observeEvent(r[[paste0(prefix, "_show_plugin_details")]], {
       
       if (perf_monitoring) monitor_perf(r = r, action = "start")
-      if (debug) cat(paste0("\n", Sys.time(), " - mod_plugins - observer r.._show_plugin_details"))
+      if (debug) cat(paste0("\n", now(), " - mod_plugins - observer r.._show_plugin_details"))
       
       req(input$show_plugin_details)
       
@@ -966,7 +966,7 @@ mod_plugins_server <- function(id = character(), r = shiny::reactiveValues(), d 
       markdown_file <- paste0(markdown_settings, plugin_description)
       
       # Create temp dir
-      file <- paste0(dir, "/", as.character(Sys.time()) %>% stringr::str_replace_all(":", "_"), ".Md")
+      file <- paste0(dir, "/", now() %>% stringr::str_replace_all(":", "_"), ".Md")
       if (!dir.exists(dir)) dir.create(dir)
       
       # Create the markdown file
@@ -1032,7 +1032,7 @@ mod_plugins_server <- function(id = character(), r = shiny::reactiveValues(), d 
     })
     
     observeEvent(input$all_plugins_show_document_cards, {
-      if (debug) cat(paste0("\n", Sys.time(), " - mod_plugins - observer input$all_plugins_show_document_cards"))
+      if (debug) cat(paste0("\n", now(), " - mod_plugins - observer input$all_plugins_show_document_cards"))
       shinyjs::show("all_plugins_document_cards")
       shinyjs::hide("all_plugins_plugin_details")
     })
@@ -1040,21 +1040,21 @@ mod_plugins_server <- function(id = character(), r = shiny::reactiveValues(), d 
     # Install or update a remote_git plugin
     
     observeEvent(input$install_plugin, {
-      if (debug) cat(paste0("\n", Sys.time(), " - mod_plugins - observer input$install_plugin"))
+      if (debug) cat(paste0("\n", now(), " - mod_plugins - observer input$install_plugin"))
       r[[paste0(prefix, "_install_update_plugin")]] <- "install"
-      r[[paste0(prefix, "_install_update_plugin_trigger")]] <- Sys.time()
+      r[[paste0(prefix, "_install_update_plugin_trigger")]] <- now()
     })
     
     observeEvent(input$update_plugin, {
-      if (debug) cat(paste0("\n", Sys.time(), " - mod_plugins - observer input$update_plugin"))
+      if (debug) cat(paste0("\n", now(), " - mod_plugins - observer input$update_plugin"))
       r[[paste0(prefix, "_install_update_plugin")]] <- "update"
-      r[[paste0(prefix, "_install_update_plugin_trigger")]] <- Sys.time()
+      r[[paste0(prefix, "_install_update_plugin_trigger")]] <- now()
     })
     
     observeEvent(r[[paste0(prefix, "_install_update_plugin_trigger")]], {
       
       if (perf_monitoring) monitor_perf(r = r, action = "start")
-      if (debug) cat(paste0("\n", Sys.time(), " - mod_plugins - observer r$.._install_update_plugin_trigger"))
+      if (debug) cat(paste0("\n", now(), " - mod_plugins - observer r$.._install_update_plugin_trigger"))
       
       req(isTruthy(input$install_plugin) || isTruthy(input$update_plugin))
       
@@ -1112,7 +1112,7 @@ mod_plugins_server <- function(id = character(), r = shiny::reactiveValues(), d 
         
         new_data <- tibble::tribble(
           ~id, ~name, ~tab_type_id, ~creation_datetime, ~update_datetime, ~deleted,
-          new_row, as.character(plugin[[paste0("name_", language)]]), as.integer(tab_type_id), plugin$creation_datetime, as.character(Sys.time()), FALSE)
+          new_row, as.character(plugin[[paste0("name_", language)]]), as.integer(tab_type_id), plugin$creation_datetime, now(), FALSE)
         
         DBI::dbAppendTable(r$db, "plugins", new_data)
         add_log_entry(r = r, category = paste0("plugins - ", i18n$t("insert_new_data")), name = i18n$t("sql_query"), value = toString(new_data))
@@ -1145,7 +1145,7 @@ mod_plugins_server <- function(id = character(), r = shiny::reactiveValues(), d 
               dplyr::select(-code, -language, -col_prefix)
           ) %>%
           dplyr::mutate(id = last_row_options + dplyr::row_number(), category = "plugin", link_id = new_row, .before = "name") %>%
-          dplyr::mutate(creator_id = r$user_id, datetime = as.character(Sys.time()), deleted = FALSE)
+          dplyr::mutate(creator_id = r$user_id, datetime = now(), deleted = FALSE)
         
         DBI::dbAppendTable(r$db, "options", new_options)
         add_log_entry(r = r, category = paste0("options - ", i18n$t("insert_new_data")), name = i18n$t("sql_query"), value = toString(new_options))
@@ -1176,7 +1176,7 @@ mod_plugins_server <- function(id = character(), r = shiny::reactiveValues(), d 
           id = last_row_code + 1:3,
           category = c("plugin_ui", "plugin_server", "plugin_translations"),
           link_id = new_row, code = c(plugin_code$ui, plugin_code$server, plugin_code$translations), 
-          creator_id = r$user_id, datetime = as.character(Sys.time()), deleted = FALSE
+          creator_id = r$user_id, datetime = now(), deleted = FALSE
         )
         
         DBI::dbAppendTable(r$db, "code", new_code)
@@ -1199,7 +1199,7 @@ mod_plugins_server <- function(id = character(), r = shiny::reactiveValues(), d 
           }
         }
         
-        r[[paste0(prefix, "_show_plugin_details")]] <- Sys.time()
+        r[[paste0(prefix, "_show_plugin_details")]] <- now()
         
         # Reload datatable
         r[[paste0(prefix, "_plugins_temp")]] <- r$plugins %>% dplyr::filter(tab_type_id == !!tab_type_id) %>% 
@@ -1221,7 +1221,7 @@ mod_plugins_server <- function(id = character(), r = shiny::reactiveValues(), d 
     observeEvent(input$add_plugin, {
       
       if (perf_monitoring) monitor_perf(r = r, action = "start")
-      if (debug) cat(paste0("\n", Sys.time(), " - mod_plugins - observer input$add_plugin"))
+      if (debug) cat(paste0("\n", now(), " - mod_plugins - observer input$add_plugin"))
       
       new_data <- list()
       new_data$name <- coalesce2(type = "char", x = input$plugin_name)
@@ -1270,18 +1270,18 @@ mod_plugins_server <- function(id = character(), r = shiny::reactiveValues(), d 
     }, once = TRUE)
     
     observeEvent(r[[paste0(prefix, "_plugins_temp")]], {
-      if (debug) cat(paste0("\n", Sys.time(), " - mod_plugins - observer r$..plugins_temp"))
-      r[[paste0(prefix, "_plugins_reload_datatables")]] <- Sys.time()
+      if (debug) cat(paste0("\n", now(), " - mod_plugins - observer r$..plugins_temp"))
+      r[[paste0(prefix, "_plugins_reload_datatables")]] <- now()
     })
     observeEvent(r[[paste0(prefix, "_export_plugins_temp")]], {
-      if (debug) cat(paste0("\n", Sys.time(), " - mod_plugins - observer r$..export_plugins_temp"))
-      r[[paste0(prefix, "_plugins_reload_datatables")]] <- Sys.time()
+      if (debug) cat(paste0("\n", now(), " - mod_plugins - observer r$..export_plugins_temp"))
+      r[[paste0(prefix, "_plugins_reload_datatables")]] <- now()
     })
     
     observeEvent(r[[paste0(prefix, "_plugins_reload_datatables")]], {
       
       if (perf_monitoring) monitor_perf(r = r, action = "start")
-      if (debug) cat(paste0("\n", Sys.time(), " - mod_plugins - observer r$..plugins_reload_datatables"))
+      if (debug) cat(paste0("\n", now(), " - mod_plugins - observer r$..plugins_reload_datatables"))
       
       # Reset selected plugins for export_plugins & export_plugins_selected
       r[[paste0(prefix, "_export_plugins_temp")]] <- r[[paste0(prefix, "_plugins_temp")]]
@@ -1354,7 +1354,7 @@ mod_plugins_server <- function(id = character(), r = shiny::reactiveValues(), d 
     observeEvent(r[[paste0(prefix, "_export_plugins_temp")]], {
       
       if (perf_monitoring) monitor_perf(r = r, action = "start")
-      if (debug) cat(paste0("\n", Sys.time(), " - mod_plugins - observer r$..export_plugins_temp"))
+      if (debug) cat(paste0("\n", now(), " - mod_plugins - observer r$..export_plugins_temp"))
       
       # Reload datatable_temp variable
       if (nrow(r[[paste0(prefix, "_export_plugins_temp")]]) == 0){
@@ -1376,7 +1376,7 @@ mod_plugins_server <- function(id = character(), r = shiny::reactiveValues(), d 
     # Updates on datatable data
     observeEvent(input$plugins_datatable_cell_edit, {
       
-      if (debug) cat(paste0("\n", Sys.time(), " - mod_plugins - observer input$plugins_datatable_cell_edit"))
+      if (debug) cat(paste0("\n", now(), " - mod_plugins - observer input$plugins_datatable_cell_edit"))
       
       edit_info <- input$plugins_datatable_cell_edit
       r[[paste0(prefix, "_plugins_temp")]] <- DT::editData(r[[paste0(prefix, "_plugins_temp")]], edit_info, rownames = FALSE)
@@ -1387,7 +1387,7 @@ mod_plugins_server <- function(id = character(), r = shiny::reactiveValues(), d 
     
     observeEvent(input$plugins_to_export_datatable_cell_edit, {
       
-      if (debug) cat(paste0("\n", Sys.time(), " - mod_plugins - observer input$plugins_to_export_datatable_cell_edit"))
+      if (debug) cat(paste0("\n", now(), " - mod_plugins - observer input$plugins_to_export_datatable_cell_edit"))
       
       edit_info <- input$plugins_to_export_datatable_cell_edit
       r[[paste0(prefix, "_export_plugins_temp")]] <- DT::editData(r[[paste0(prefix, "_export_plugins_temp")]], edit_info, rownames = FALSE)
@@ -1400,7 +1400,7 @@ mod_plugins_server <- function(id = character(), r = shiny::reactiveValues(), d 
     observeEvent(input$save_plugins_management, {
       
       if (perf_monitoring) monitor_perf(r = r, action = "start")
-      if (debug) cat(paste0("\n", Sys.time(), " - mod_plugins - observer input$save_plugins_management"))
+      if (debug) cat(paste0("\n", now(), " - mod_plugins - observer input$save_plugins_management"))
       
       if (nrow(r[[paste0(prefix, "_plugins_temp")]] %>% dplyr::filter(modified)) == 0) show_message_bar(output,  "modif_saved", "success", i18n = i18n, ns = ns)
       
@@ -1436,7 +1436,7 @@ mod_plugins_server <- function(id = character(), r = shiny::reactiveValues(), d 
     
     observeEvent(input$deleted_pressed, {
       
-      if (debug) cat(paste0("\n", Sys.time(), " - mod_plugins - observer input$deleted_pressed"))
+      if (debug) cat(paste0("\n", now(), " - mod_plugins - observer input$deleted_pressed"))
       
       r$delete_plugins <- as.integer(substr(input$deleted_pressed, nchar("delete_") + 1, 100))
       r[[plugin_delete_variable]] <- TRUE
@@ -1449,7 +1449,7 @@ mod_plugins_server <- function(id = character(), r = shiny::reactiveValues(), d 
     
     observeEvent(input$delete_selection, {
       
-      if (debug) cat(paste0("\n", Sys.time(), " - mod_plugins - observer input$delete_selection"))
+      if (debug) cat(paste0("\n", now(), " - mod_plugins - observer input$delete_selection"))
       
       req(length(input$plugins_datatable_rows_selected) > 0)
       
@@ -1459,7 +1459,7 @@ mod_plugins_server <- function(id = character(), r = shiny::reactiveValues(), d 
     
     observeEvent(r[[plugin_reload_variable]], {
       
-      if (debug) cat(paste0("\n", Sys.time(), " - mod_plugins - observer r$reload..plugins"))
+      if (debug) cat(paste0("\n", now(), " - mod_plugins - observer r$reload..plugins"))
       
       # Reload datatable
       r[[paste0(prefix, "_plugins_temp")]] <- r$plugins %>% dplyr::filter(tab_type_id == !!tab_type_id) %>% 
@@ -1467,7 +1467,7 @@ mod_plugins_server <- function(id = character(), r = shiny::reactiveValues(), d 
         dplyr::mutate(modified = FALSE) %>% dplyr::arrange(name)
       
       # Reload remote_git description if opened
-      r[[paste0(prefix, "_show_plugin_details")]] <- Sys.time()
+      r[[paste0(prefix, "_show_plugin_details")]] <- now()
       
       # Reload export plugin datatable
       
@@ -1493,7 +1493,7 @@ mod_plugins_server <- function(id = character(), r = shiny::reactiveValues(), d 
     
     observeEvent(input$edit_code, {
       
-      if (debug) cat(paste0("\n", Sys.time(), " - mod_plugins - observer input$edit_code"))
+      if (debug) cat(paste0("\n", now(), " - mod_plugins - observer input$edit_code"))
       
       link_id <- as.integer(substr(input$edit_code, nchar("edit_code_") + 1, nchar(input$edit_code)))
       
@@ -1512,7 +1512,7 @@ mod_plugins_server <- function(id = character(), r = shiny::reactiveValues(), d 
     
     observeEvent(input$options, {
       
-      if (debug) cat(paste0("\n", Sys.time(), " - mod_plugins - observer input$options"))
+      if (debug) cat(paste0("\n", now(), " - mod_plugins - observer input$options"))
       
       # Get link_id variable, to update options div
       link_id <- as.integer(substr(input$options, nchar("options_") + 1, nchar(input$options)))
@@ -1537,7 +1537,7 @@ mod_plugins_server <- function(id = character(), r = shiny::reactiveValues(), d 
     # Show / hide options & description divs depending on selected language
     observeEvent(input$plugin_language, {
       
-      if (debug) cat(paste0("\n", Sys.time(), " - mod_my_plugins - observer input$plugin_language"))
+      if (debug) cat(paste0("\n", now(), " - mod_my_plugins - observer input$plugin_language"))
       
       for (lang in r$languages$code){
         if (lang == input$plugin_language) sapply(c(paste0("plugin_options_", lang, "_div"), paste0("plugin_description_", lang, "_div")), shinyjs::show)
@@ -1548,7 +1548,7 @@ mod_plugins_server <- function(id = character(), r = shiny::reactiveValues(), d 
     # Show / hide people picker input
     observeEvent(input$users_allowed_read_group, {
       
-      if (debug) cat(paste0("\n", Sys.time(), " - mod_my_plugins - observer input$users_allowed_read_group"))
+      if (debug) cat(paste0("\n", now(), " - mod_my_plugins - observer input$users_allowed_read_group"))
       
       if (input$users_allowed_read_group == "people_picker") shinyjs::show("users_allowed_read_div")
       else shinyjs::hide("users_allowed_read_div")
@@ -1557,7 +1557,7 @@ mod_plugins_server <- function(id = character(), r = shiny::reactiveValues(), d 
     # Show / hide plugin image div
     observeEvent(input$plugin_image, {
       
-      if (debug) cat(paste0("\n", Sys.time(), " - mod_my_plugins - observer input$plugin_image"))
+      if (debug) cat(paste0("\n", now(), " - mod_my_plugins - observer input$plugin_image"))
       
       if (length(input$plugin_image) == 0) shinyjs::hide("render_image_div")
       if (length(input$plugin_image) > 0){
@@ -1569,7 +1569,7 @@ mod_plugins_server <- function(id = character(), r = shiny::reactiveValues(), d 
     observeEvent(input$options_selected_plugin, {
       
       if (perf_monitoring) monitor_perf(r = r, action = "start")
-      if (debug) cat(paste0("\n", Sys.time(), " - mod_plugins - observer input$options_selected_plugin"))
+      if (debug) cat(paste0("\n", now(), " - mod_plugins - observer input$options_selected_plugin"))
       
       if (length(input$options_selected_plugin) > 1) link_id <- input$options_selected_plugin$key
       else link_id <- input$options_selected_plugin
@@ -1651,7 +1651,7 @@ mod_plugins_server <- function(id = character(), r = shiny::reactiveValues(), d 
     
     output$render_image <- renderImage({
       
-      if (debug) cat(paste0("\n", Sys.time(), " - mod_plugins - output$render_image"))
+      if (debug) cat(paste0("\n", now(), " - mod_plugins - output$render_image"))
       
       req(length(input$plugin_image) > 0)
       req(input$plugin_image != "")
@@ -1669,19 +1669,19 @@ mod_plugins_server <- function(id = character(), r = shiny::reactiveValues(), d 
     
     sapply(r$languages$code, function(lang){
       observeEvent(input[[paste0("plugin_description_", lang, "_save")]], {
-        if (debug) cat(paste0("\n", Sys.time(), " - mod_plugins - observer input$plugin_description_", lang, "_save"))
-        r[[paste0(id, "_save_options")]] <- Sys.time()
+        if (debug) cat(paste0("\n", now(), " - mod_plugins - observer input$plugin_description_", lang, "_save"))
+        r[[paste0(id, "_save_options")]] <- now()
       })
     })
     observeEvent(input$save_plugin_options, {
-      if (debug) cat(paste0("\n", Sys.time(), " - mod_plugins - observer input$save_plugin_options"))
-      r[[paste0(id, "_save_options")]] <- Sys.time()
+      if (debug) cat(paste0("\n", now(), " - mod_plugins - observer input$save_plugin_options"))
+      r[[paste0(id, "_save_options")]] <- now()
     })
     
     observeEvent(r[[paste0(id, "_save_options")]], {
       
       if (perf_monitoring) monitor_perf(r = r, action = "start")
-      if (debug) cat(paste0("\n", Sys.time(), " - mod_plugins - observer r$..save_options"))
+      if (debug) cat(paste0("\n", now(), " - mod_plugins - observer r$..save_options"))
       
       req(length(input$options_selected_plugin) > 0)
       if (length(input$options_selected_plugin) > 1) link_id <- input$options_selected_plugin$key
@@ -1716,7 +1716,7 @@ mod_plugins_server <- function(id = character(), r = shiny::reactiveValues(), d 
           paste0("name_", r$languages$code), paste0("category_", r$languages$code), paste0("description_", r$languages$code)))
       
       # Change plugin_name & update_datetime in plugins table
-      new_update_datetime <- as.character(Sys.time())
+      new_update_datetime <- now()
       sql <- glue::glue_sql("UPDATE plugins SET name = {plugin_name}, update_datetime = {new_update_datetime} WHERE id = {link_id}", .con = r$db)
       query <- DBI::dbSendStatement(r$db, sql)
       DBI::dbClearResult(query)
@@ -1728,7 +1728,7 @@ mod_plugins_server <- function(id = character(), r = shiny::reactiveValues(), d 
         # dplyr::mutate_at(c("creation_datetime", "update_datetime"), format_datetime, language = language, sec = FALSE) %>%
         dplyr::mutate(modified = FALSE) %>% dplyr::arrange(name)
       
-      r[[paste0(prefix, "_show_plugin_details")]] <- Sys.time()
+      r[[paste0(prefix, "_show_plugin_details")]] <- now()
       
       if (perf_monitoring) monitor_perf(r = r, action = "stop", task = paste0("mod_plugins - observer r$..save_options"))
     })
@@ -1736,7 +1736,7 @@ mod_plugins_server <- function(id = character(), r = shiny::reactiveValues(), d 
     # Delete an image
     
     observeEvent(input$delete_image, {
-      if (debug) cat(paste0("\n", Sys.time(), " - mod_plugins - observer input$delete_image"))
+      if (debug) cat(paste0("\n", now(), " - mod_plugins - observer input$delete_image"))
       req(length(input$plugin_image) > 0 & input$plugin_image != "")
       r[[paste0(prefix, "_plugins_delete_image")]] <- TRUE
     })
@@ -1744,7 +1744,7 @@ mod_plugins_server <- function(id = character(), r = shiny::reactiveValues(), d 
     r[[paste0(prefix, "_plugins_delete_image")]] <- FALSE
     output$plugin_image_delete_confirm <- shiny.fluent::renderReact({
       
-      if (debug) cat(paste0("\n", Sys.time(), " - mod_plugins - output$plugin_image_delete_confirm"))
+      if (debug) cat(paste0("\n", now(), " - mod_plugins - output$plugin_image_delete_confirm"))
       
       shiny.fluent::Dialog(
         hidden = !r[[paste0(prefix, "_plugins_delete_image")]],
@@ -1764,17 +1764,17 @@ mod_plugins_server <- function(id = character(), r = shiny::reactiveValues(), d 
     })
     
     observeEvent(input[[paste0(prefix, "_plugin_delete_image_hide_dialog")]], {
-      if (debug) cat(paste0("\n", Sys.time(), " - mod_plugins - observer input$..plugin_delete_image_hide_dialog"))
+      if (debug) cat(paste0("\n", now(), " - mod_plugins - observer input$..plugin_delete_image_hide_dialog"))
       r[[paste0(prefix, "_plugins_delete_image")]] <- FALSE
     })
     observeEvent(input[[paste0(prefix, "_plugin_delete_image_delete_canceled")]], {
-      if (debug) cat(paste0("\n", Sys.time(), " - mod_plugins - observer input$..plugin_delete_image_delete_canceled"))
+      if (debug) cat(paste0("\n", now(), " - mod_plugins - observer input$..plugin_delete_image_delete_canceled"))
       r[[paste0(prefix, "_plugins_delete_image")]] <- FALSE
     })
     
     observeEvent(input[[paste0(prefix, "_plugin_delete_image_delete_confirmed")]], {
       
-      if (debug) cat(paste0("\n", Sys.time(), " - mod_plugins - observer input$..plugin_delete_image_delete_confirmed"))
+      if (debug) cat(paste0("\n", now(), " - mod_plugins - observer input$..plugin_delete_image_delete_confirmed"))
       
       req(input$plugin_image != "")
       tryCatch({
@@ -1806,7 +1806,7 @@ mod_plugins_server <- function(id = character(), r = shiny::reactiveValues(), d 
     # Import an image
     
     observeEvent(input$import_image, {
-      if (debug) cat(paste0("\n", Sys.time(), " - mod_plugins - observer input$import_image"))
+      if (debug) cat(paste0("\n", now(), " - mod_plugins - observer input$import_image"))
       req(input$options_selected_plugin)
       shinyjs::click("import_image_file")
     })
@@ -1814,7 +1814,7 @@ mod_plugins_server <- function(id = character(), r = shiny::reactiveValues(), d 
     observeEvent(input$import_image_file, {
       
       if (perf_monitoring) monitor_perf(r = r, action = "start")
-      if (debug) cat(paste0("\n", Sys.time(), " - mod_plugins - observer input$import_image_file"))
+      if (debug) cat(paste0("\n", now(), " - mod_plugins - observer input$import_image_file"))
       
       tryCatch({
         
@@ -1859,21 +1859,21 @@ mod_plugins_server <- function(id = character(), r = shiny::reactiveValues(), d 
     # Render markdown
     
     observeEvent(input$execute_options_description, {
-      if (debug) cat(paste0("\n", Sys.time(), " - mod_plugins - observer input$execute_options_description"))
-      r[[paste0(prefix, "_plugin_options_description_trigger")]] <- Sys.time()
+      if (debug) cat(paste0("\n", now(), " - mod_plugins - observer input$execute_options_description"))
+      r[[paste0(prefix, "_plugin_options_description_trigger")]] <- now()
     })
     
     sapply(r$languages$code, function(lang){
       observeEvent(input[[paste0("plugin_description_", lang, "_run_all")]], {
-        if (debug) cat(paste0("\n", Sys.time(), " - mod_plugins - observer input$plugin_description_", lang, "_run_all"))
-        r[[paste0(prefix, "_plugin_options_description_trigger")]] <- Sys.time()
+        if (debug) cat(paste0("\n", now(), " - mod_plugins - observer input$plugin_description_", lang, "_run_all"))
+        r[[paste0(prefix, "_plugin_options_description_trigger")]] <- now()
       })
     })
     
     observeEvent(r[[paste0(prefix, "_plugin_options_description_trigger")]], {
       
       if (perf_monitoring) monitor_perf(r = r, action = "start")
-      if (debug) cat(paste0("\n", Sys.time(), " - mod_plugins - observer r$.._plugin_options_description_trigger"))
+      if (debug) cat(paste0("\n", now(), " - mod_plugins - observer r$.._plugin_options_description_trigger"))
       
       options <- r$options %>% dplyr::filter(category == "plugin", link_id == input$options_selected_plugin$key)
       plugin_folder <- paste0(r$app_folder, "/plugins/", prefix, "/", options %>% dplyr::filter(name == "unique_id") %>% dplyr::pull(value))
@@ -1895,7 +1895,7 @@ mod_plugins_server <- function(id = character(), r = shiny::reactiveValues(), d 
         
         # Create temp dir
         dir <- paste0(r$app_folder, "/temp_files/", r$user_id, "/markdowns")
-        file <- paste0(dir, "/", paste0(sample(c(0:9, letters[1:6]), 8, TRUE), collapse = ''), "_", as.character(Sys.time()) %>% stringr::str_replace_all(":", "_"), ".Md")
+        file <- paste0(dir, "/", paste0(sample(c(0:9, letters[1:6]), 8, TRUE), collapse = ''), "_", now() %>% stringr::str_replace_all(":", "_"), ".Md")
         if (!dir.exists(dir)) dir.create(dir)
         
         # Create the markdown file
@@ -1918,7 +1918,7 @@ mod_plugins_server <- function(id = character(), r = shiny::reactiveValues(), d 
       r[[paste0(id, "_edit_code_", name, "_div")]] <- TRUE
       
       observeEvent(r[[paste0(id, "_edit_code_", name, "_div")]], {
-        if (debug) cat(paste0("\n", Sys.time(), " - mod_plugins - observer r$.._edit_code_", name, "_div"))
+        if (debug) cat(paste0("\n", now(), " - mod_plugins - observer r$.._edit_code_", name, "_div"))
         
         if (r[[paste0(id, "_edit_code_", name, "_div")]]) shinyjs::show(paste0(name, "_div"))
         else shinyjs::hide(paste0(name, "_div"))
@@ -1952,7 +1952,7 @@ mod_plugins_server <- function(id = character(), r = shiny::reactiveValues(), d 
     })
     
     observeEvent(r[[paste0(id, "_edit_code_side_by_side_divs")]], {
-      if (debug) cat(paste0("\n", Sys.time(), " - mod_plugins - observer r$.._edit_code_side_by_side_divs"))
+      if (debug) cat(paste0("\n", now(), " - mod_plugins - observer r$.._edit_code_side_by_side_divs"))
       
       if (r[[paste0(id, "_edit_code_side_by_side_divs")]]){
         shinyjs::runjs(glue::glue("$('#{id}-edit_and_result_div').css('display', 'flex');"))
@@ -1986,7 +1986,7 @@ mod_plugins_server <- function(id = character(), r = shiny::reactiveValues(), d 
     
     # observeEvent(input$hide_editor, {
     #   
-    #   if (debug) cat(paste0("\n", Sys.time(), " - mod_plugins - observer input$hide_editor"))
+    #   if (debug) cat(paste0("\n", now(), " - mod_plugins - observer input$hide_editor"))
     #   
     #   if (input$hide_editor){
     #     shinyjs::hide("ace_editor_div")
@@ -2000,7 +2000,7 @@ mod_plugins_server <- function(id = character(), r = shiny::reactiveValues(), d 
     
     # observeEvent(input$edit_code_ui_server, {
     # 
-    #   if (debug) cat(paste0("\n", Sys.time(), " - mod_plugins - observer input$edit_code_ui_server"))
+    #   if (debug) cat(paste0("\n", now(), " - mod_plugins - observer input$edit_code_ui_server"))
     # 
     #   sapply(c("ui", "server", "translations"), function(name) shinyjs::hide(paste0("ace_edit_code_", name, "_div")))
     #   shinyjs::show(paste0("ace_edit_code_", input$edit_code_ui_server, "_div"))
@@ -2008,7 +2008,7 @@ mod_plugins_server <- function(id = character(), r = shiny::reactiveValues(), d 
     
     observeEvent(r[[paste0(id, "_edit_code_ui_server")]], {
       
-      if (debug) cat(paste0("\n", Sys.time(), " - mod_plugins - observer r$.._edit_code_ui_server"))
+      if (debug) cat(paste0("\n", now(), " - mod_plugins - observer r$.._edit_code_ui_server"))
       
       # shiny.fluent::updateChoiceGroup.shinyInput(session, "edit_code_ui_server", value = r[[paste0(id, "_edit_code_ui_server")]])
       
@@ -2023,7 +2023,7 @@ mod_plugins_server <- function(id = character(), r = shiny::reactiveValues(), d 
     observeEvent(input$code_selected_plugin, {
       
       if (perf_monitoring) monitor_perf(r = r, action = "start")
-      if (debug) cat(paste0("\n", Sys.time(), " - mod_plugins - observer input$code_selected_plugin"))
+      if (debug) cat(paste0("\n", now(), " - mod_plugins - observer input$code_selected_plugin"))
       
       if (length(input$code_selected_plugin) > 1) link_id <- input$code_selected_plugin$key
       else link_id <- input$code_selected_plugin
@@ -2065,7 +2065,7 @@ mod_plugins_server <- function(id = character(), r = shiny::reactiveValues(), d 
     # Comment text
     sapply(c("ui", "server"), function(type){
       observeEvent(input[[paste0("ace_edit_code_", type, "_comment")]], {
-        if (debug) cat(paste0("\n", Sys.time(), " - mod_plugins - observer input$ace_code_.._comment"))
+        if (debug) cat(paste0("\n", now(), " - mod_plugins - observer input$ace_code_.._comment"))
         
         lines <- strsplit(input[[paste0("ace_edit_code_", type)]], "\n")[[1]]
         req(length(lines) > 0)
@@ -2094,7 +2094,7 @@ mod_plugins_server <- function(id = character(), r = shiny::reactiveValues(), d 
     # Load vocabularies attached to this dataset
     observeEvent(r$dataset_vocabularies, {
       
-      if (debug) cat(paste0("\n", Sys.time(), " - mod_plugins - observer r$dataset_vocabularies"))
+      if (debug) cat(paste0("\n", now(), " - mod_plugins - observer r$dataset_vocabularies"))
       
       if (nrow(r$dataset_vocabularies) == 0) shiny.fluent::updateComboBox.shinyInput(session, "vocabulary", options = list(), value = NULL)
       if (nrow(r$dataset_vocabularies) > 0){
@@ -2106,13 +2106,13 @@ mod_plugins_server <- function(id = character(), r = shiny::reactiveValues(), d 
     # Reload vocabulary concepts
     
     observeEvent(input$vocabulary, {
-      if (debug) cat(paste0("\n", Sys.time(), " - mod_plugins - observer input$vocabulary"))
-      r[[paste0(prefix, "_reload_plugin_vocabulary_concepts")]] <- Sys.time()
+      if (debug) cat(paste0("\n", now(), " - mod_plugins - observer input$vocabulary"))
+      r[[paste0(prefix, "_reload_plugin_vocabulary_concepts")]] <- now()
     })
     
     observeEvent(input$show_mapped_concepts, {
-      if (debug) cat(paste0("\n", Sys.time(), " - mod_plugins - observer input$show_mapped_concepts"))
-      r[[paste0(prefix, "_reload_plugin_vocabulary_concepts")]] <- Sys.time()
+      if (debug) cat(paste0("\n", now(), " - mod_plugins - observer input$show_mapped_concepts"))
+      r[[paste0(prefix, "_reload_plugin_vocabulary_concepts")]] <- now()
       if (input$show_mapped_concepts & !input$hide_concepts_datatables) sapply(c("merge_mapped_concepts_div", "plugin_vocabulary_mapped_concepts"), shinyjs::show)
       else sapply(c("merge_mapped_concepts_div", "plugin_vocabulary_mapped_concepts"), shinyjs::hide)
     })
@@ -2120,7 +2120,7 @@ mod_plugins_server <- function(id = character(), r = shiny::reactiveValues(), d 
     observeEvent(r[[paste0(prefix, "_reload_plugin_vocabulary_concepts")]], {
       
       if (perf_monitoring) monitor_perf(r = r, action = "start")
-      if (debug) cat(paste0("\n", Sys.time(), " - mod_plugins - observer r$..reload_plugin_vocabulary_concepts"))
+      if (debug) cat(paste0("\n", now(), " - mod_plugins - observer r$..reload_plugin_vocabulary_concepts"))
       
       req(length(d$dataset_all_concepts) > 0, nrow(d$dataset_all_concepts) > 0)
       
@@ -2189,7 +2189,7 @@ mod_plugins_server <- function(id = character(), r = shiny::reactiveValues(), d 
     # Update which cols are hidden
     
     observeEvent(input$vocabulary_concepts_table_cols, {
-      if (debug) cat(paste0("\n", Sys.time(), " - mod_plugins - observer input$vocabulary_concepts_table_cols"))
+      if (debug) cat(paste0("\n", now(), " - mod_plugins - observer input$vocabulary_concepts_table_cols"))
       
       req(length(r[[paste0(prefix, "_plugin_vocabulary_concepts_proxy")]]) > 0)
       
@@ -2199,7 +2199,7 @@ mod_plugins_server <- function(id = character(), r = shiny::reactiveValues(), d 
     })
     
     observeEvent(input$vocabulary_mapped_concepts_table_cols, {
-      if (debug) cat(paste0("\n", Sys.time(), " - mod_plugins - observer input$vocabulary_mapped_concepts_table_cols"))
+      if (debug) cat(paste0("\n", now(), " - mod_plugins - observer input$vocabulary_mapped_concepts_table_cols"))
       
       req(length(r[[paste0(prefix, "_plugin_vocabulary_mapped_concepts_proxy")]]) > 0)
       
@@ -2211,7 +2211,7 @@ mod_plugins_server <- function(id = character(), r = shiny::reactiveValues(), d 
     # Hide datatables
     
     observeEvent(input$hide_concepts_datatables, {
-      if (debug) cat(paste0("\n", Sys.time(), " - mod_plugins - observer input$hide_concepts_datatables"))
+      if (debug) cat(paste0("\n", now(), " - mod_plugins - observer input$hide_concepts_datatables"))
       
       req(input$vocabulary)
       
@@ -2224,7 +2224,7 @@ mod_plugins_server <- function(id = character(), r = shiny::reactiveValues(), d 
     
     observeEvent(input$plugin_vocabulary_concepts_cell_edit, {
 
-      if (debug) cat(paste0("\n", Sys.time(), " - mod_plugins - observer input$plugin_vocabulary_concepts_cell_edit"))
+      if (debug) cat(paste0("\n", now(), " - mod_plugins - observer input$plugin_vocabulary_concepts_cell_edit"))
 
       edit_info <- input$plugin_vocabulary_concepts_cell_edit
       r[[paste0(prefix, "_plugin_vocabulary_concepts")]] <- DT::editData(r[[paste0(prefix, "_plugin_vocabulary_concepts")]], edit_info, rownames = FALSE)
@@ -2232,7 +2232,7 @@ mod_plugins_server <- function(id = character(), r = shiny::reactiveValues(), d 
     
     observeEvent(input$plugin_vocabulary_mapped_concepts_cell_edit, {
       
-      if (debug) cat(paste0("\n", Sys.time(), " - mod_plugins - observer input$plugin_vocabulary_mapped_concepts_cell_edit"))
+      if (debug) cat(paste0("\n", now(), " - mod_plugins - observer input$plugin_vocabulary_mapped_concepts_cell_edit"))
       
       edit_info <- input$plugin_vocabulary_mapped_concepts_cell_edit
       r[[paste0(prefix, "_plugin_vocabulary_mapped_concepts")]] <- DT::editData(r[[paste0(prefix, "_plugin_vocabulary_mapped_concepts")]], edit_info, rownames = FALSE)
@@ -2242,7 +2242,7 @@ mod_plugins_server <- function(id = character(), r = shiny::reactiveValues(), d 
     
     observeEvent(input$plugin_vocabulary_concepts_rows_selected, {
       
-      if (debug) cat(paste0("\n", Sys.time(), " - mod_plugins - observer input$plugin_vocabulary_concepts_rows_selected"))
+      if (debug) cat(paste0("\n", now(), " - mod_plugins - observer input$plugin_vocabulary_concepts_rows_selected"))
       
       req(input$show_mapped_concepts)
       
@@ -2304,7 +2304,7 @@ mod_plugins_server <- function(id = character(), r = shiny::reactiveValues(), d 
     observeEvent(input$concept_selected, {
 
       if (perf_monitoring) monitor_perf(r = r, action = "start")
-      if (debug) cat(paste0("\n", Sys.time(), " - mod_plugins - observer input$concept_selected"))
+      if (debug) cat(paste0("\n", now(), " - mod_plugins - observer input$concept_selected"))
 
       # Initiate r variable if doesn't exist
       if (length(r[[paste0(prefix, "_plugin_vocabulary_selected_concepts")]]) == 0) r[[paste0(prefix, "_plugin_vocabulary_selected_concepts")]] <- tibble::tibble( 
@@ -2359,7 +2359,7 @@ mod_plugins_server <- function(id = character(), r = shiny::reactiveValues(), d 
       
       # Update dropdown of selected concepts
       
-      r[[paste0(prefix, "_plugin_vocabulary_update_selected_concepts_dropdown")]] <- Sys.time()
+      r[[paste0(prefix, "_plugin_vocabulary_update_selected_concepts_dropdown")]] <- now()
 
       if (perf_monitoring) monitor_perf(r = r, action = "stop", task = paste0("mod_plugins - observer input$concept_selected"))
 
@@ -2368,18 +2368,18 @@ mod_plugins_server <- function(id = character(), r = shiny::reactiveValues(), d 
     # When reset button is clicked
     observeEvent(input$reset_vocabulary_concepts, {
 
-      if (debug) cat(paste0("\n", Sys.time(), " - mod_plugins - observer input$reset_vocabulary_concepts"))
+      if (debug) cat(paste0("\n", now(), " - mod_plugins - observer input$reset_vocabulary_concepts"))
 
       # Reset r$..plugin_vocabulary_selected_concepts
       r[[paste0(prefix, "_plugin_vocabulary_selected_concepts")]] <- r[[paste0(prefix, "_plugin_vocabulary_selected_concepts")]] %>% dplyr::slice(0)
 
-      r[[paste0(prefix, "_plugin_vocabulary_update_selected_concepts_dropdown")]] <- Sys.time()
+      r[[paste0(prefix, "_plugin_vocabulary_update_selected_concepts_dropdown")]] <- now()
     })
     
     # When dropdown is modified
     observeEvent(input$vocabulary_selected_concepts_trigger, {
 
-      if (debug) cat(paste0("\n", Sys.time(), " - mod_plugins - observer input$vocabulary_selected_concepts_trigger"))
+      if (debug) cat(paste0("\n", now(), " - mod_plugins - observer input$vocabulary_selected_concepts_trigger"))
 
       if (length(input$vocabulary_selected_concepts) == 0) r[[paste0(prefix, "_plugin_vocabulary_selected_concepts")]] <- r[[paste0(prefix, "_plugin_vocabulary_selected_concepts")]] %>% dplyr::slice(0)
       if (length(input$vocabulary_selected_concepts) > 0) {
@@ -2391,14 +2391,14 @@ mod_plugins_server <- function(id = character(), r = shiny::reactiveValues(), d 
           dplyr::filter(is.na(mapped_to_concept_id) | mapped_to_concept_id %in% r[[paste0(prefix, "_plugin_vocabulary_selected_concepts")]]$concept_id)
       }
       
-      r[[paste0(prefix, "_plugin_vocabulary_update_selected_concepts_dropdown")]] <- Sys.time()
+      r[[paste0(prefix, "_plugin_vocabulary_update_selected_concepts_dropdown")]] <- now()
     })
     
     # Update dropdown of selected concepts
     
     observeEvent(r[[paste0(prefix, "_plugin_vocabulary_update_selected_concepts_dropdown")]], {
       
-      if (debug) cat(paste0("\n", Sys.time(), " - mod_plugins - observer r$..plugin_vocabulary_update_selected_concepts_dropdown"))
+      if (debug) cat(paste0("\n", now(), " - mod_plugins - observer r$..plugin_vocabulary_update_selected_concepts_dropdown"))
       
       options <- convert_tibble_to_list(
         r[[paste0(prefix, "_plugin_vocabulary_selected_concepts")]] %>%
@@ -2414,53 +2414,53 @@ mod_plugins_server <- function(id = character(), r = shiny::reactiveValues(), d 
     # --- --- --- -- --
     
     # observeEvent(input$execute_code, {
-    #   if (debug) cat(paste0("\n", Sys.time(), " - mod_plugins - observer input$execute_code"))
+    #   if (debug) cat(paste0("\n", now(), " - mod_plugins - observer input$execute_code"))
     #   r[[paste0(id, "_ui_code")]] <- input$ace_edit_code_ui
     #   r[[paste0(id, "_server_code")]] <- input$ace_edit_code_server
-    #   r[[paste0(id, "_trigger_code")]] <- Sys.time()
+    #   r[[paste0(id, "_trigger_code")]] <- now()
     # })
     
     observeEvent(r[[paste0(id, "_edit_code_execute_code")]], {
-      if (debug) cat(paste0("\n", Sys.time(), " - mod_plugins - observer r$..edit_code_execute_code"))
+      if (debug) cat(paste0("\n", now(), " - mod_plugins - observer r$..edit_code_execute_code"))
       r[[paste0(id, "_ui_code")]] <- input$ace_edit_code_ui
       r[[paste0(id, "_server_code")]] <- input$ace_edit_code_server
-      r[[paste0(id, "_trigger_code")]] <- Sys.time()
+      r[[paste0(id, "_trigger_code")]] <- now()
     })
     
     observeEvent(input$ace_edit_code_ui_run_selection, {
-      if (debug) cat(paste0("\n", Sys.time(), " - mod_plugins - observer input$ace_edit_code_ui_run_selection"))
+      if (debug) cat(paste0("\n", now(), " - mod_plugins - observer input$ace_edit_code_ui_run_selection"))
       if(!shinyAce::is.empty(input$ace_edit_code_ui_run_selection$selection)) r[[paste0(id, "_ui_code")]] <- input$ace_edit_code_ui_run_selection$selection
       else r[[paste0(id, "_ui_code")]] <- input$ace_edit_code_ui_run_selection$line
       r[[paste0(id, "_server_code")]] <- ""
-      r[[paste0(id, "_trigger_code")]] <- Sys.time()
+      r[[paste0(id, "_trigger_code")]] <- now()
     })
     
     observeEvent(input$ace_edit_code_server_run_selection, {
-      if (debug) cat(paste0("\n", Sys.time(), " - mod_plugins - observer input$ace_edit_code_server_run_selection"))
+      if (debug) cat(paste0("\n", now(), " - mod_plugins - observer input$ace_edit_code_server_run_selection"))
       if(!shinyAce::is.empty(input$ace_edit_code_server_run_selection$selection)) r[[paste0(id, "_server_code")]] <- input$ace_edit_code_server_run_selection$selection
       else r[[paste0(id, "_server_code")]] <- input$ace_edit_code_server_run_selection$line
       r[[paste0(id, "_ui_code")]] <- ""
-      r[[paste0(id, "_trigger_code")]] <- Sys.time()
+      r[[paste0(id, "_trigger_code")]] <- now()
     })
     
     observeEvent(input$ace_edit_code_ui_run_all, {
-      if (debug) cat(paste0("\n", Sys.time(), " - mod_plugins - observer input$ace_edit_code_ui_run_all"))
+      if (debug) cat(paste0("\n", now(), " - mod_plugins - observer input$ace_edit_code_ui_run_all"))
       r[[paste0(id, "_ui_code")]] <- input$ace_edit_code_ui
       r[[paste0(id, "_server_code")]] <- input$ace_edit_code_server
-      r[[paste0(id, "_trigger_code")]] <- Sys.time()
+      r[[paste0(id, "_trigger_code")]] <- now()
     })
     
     observeEvent(input$ace_edit_code_server_run_all, {
-      if (debug) cat(paste0("\n", Sys.time(), " - mod_plugins - observer input$ace_edit_code_server_run_all"))
+      if (debug) cat(paste0("\n", now(), " - mod_plugins - observer input$ace_edit_code_server_run_all"))
       r[[paste0(id, "_server_code")]] <- input$ace_edit_code_server
       r[[paste0(id, "_ui_code")]] <- input$ace_edit_code_ui
-      r[[paste0(id, "_trigger_code")]] <- Sys.time()
+      r[[paste0(id, "_trigger_code")]] <- now()
     })
     
     observeEvent(r[[paste0(id, "_trigger_code")]], {
       
       if (perf_monitoring) monitor_perf(r = r, action = "start")
-      if (debug) cat(paste0("\n", Sys.time(), " - mod_plugins - observer r$..trigger_code"))
+      if (debug) cat(paste0("\n", now(), " - mod_plugins - observer r$..trigger_code"))
       
       # var_check <- TRUE
       # if (length(r$selected_dataset) == 0) var_check <- FALSE
@@ -2599,7 +2599,7 @@ mod_plugins_server <- function(id = character(), r = shiny::reactiveValues(), d 
       
       output$code_result_server <- renderText(paste(captured_output, collapse = "\n"))
       
-      output$datetime_code_execution <- renderText(format_datetime(Sys.time(), language))
+      output$datetime_code_execution <- renderText(format_datetime(now(), language))
       
       if (perf_monitoring) monitor_perf(r = r, action = "stop", task = paste0("mod_plugins - observer r$..trigger_code"))
     })
@@ -2609,30 +2609,30 @@ mod_plugins_server <- function(id = character(), r = shiny::reactiveValues(), d 
     # --- --- --- -- ---
     
     observeEvent(input$ace_edit_code_ui_save, {
-      if (debug) cat(paste0("\n", Sys.time(), " - mod_plugins - observer input$ace_edit_code_ui_save"))
-      r[[paste0(id, "_save_code")]] <- Sys.time()
+      if (debug) cat(paste0("\n", now(), " - mod_plugins - observer input$ace_edit_code_ui_save"))
+      r[[paste0(id, "_save_code")]] <- now()
     })
     observeEvent(input$ace_edit_code_server_save, {
-      if (debug) cat(paste0("\n", Sys.time(), " - mod_plugins - observer input$ace_edit_code_server_save"))
-      r[[paste0(id, "_save_code")]] <- Sys.time()
+      if (debug) cat(paste0("\n", now(), " - mod_plugins - observer input$ace_edit_code_server_save"))
+      r[[paste0(id, "_save_code")]] <- now()
     })
     observeEvent(input$ace_edit_code_translations_save, {
-      if (debug) cat(paste0("\n", Sys.time(), " - mod_plugins - observer input$ace_edit_code_translations_save"))
-      r[[paste0(id, "_save_code")]] <- Sys.time()
+      if (debug) cat(paste0("\n", now(), " - mod_plugins - observer input$ace_edit_code_translations_save"))
+      r[[paste0(id, "_save_code")]] <- now()
     })
     observeEvent(r[[paste0(id, "_edit_code_save_code")]], {
-      if (debug) cat(paste0("\n", Sys.time(), " - mod_plugins - observer r$..edit_code_save_code"))
-      r[[paste0(id, "_save_code")]] <- Sys.time()
+      if (debug) cat(paste0("\n", now(), " - mod_plugins - observer r$..edit_code_save_code"))
+      r[[paste0(id, "_save_code")]] <- now()
     })
     # observeEvent(input$save_code, {
-    #   if (debug) cat(paste0("\n", Sys.time(), " - mod_plugins - observer input$save_code"))
-    #   r[[paste0(id, "_save_code")]] <- Sys.time()
+    #   if (debug) cat(paste0("\n", now(), " - mod_plugins - observer input$save_code"))
+    #   r[[paste0(id, "_save_code")]] <- now()
     # })
     
     observeEvent(r[[paste0(id, "_save_code")]], {
       
       if (perf_monitoring) monitor_perf(r = r, action = "start")
-      if (debug) cat(paste0("\n", Sys.time(), " - mod_plugins - observer r$..save_code"))
+      if (debug) cat(paste0("\n", now(), " - mod_plugins - observer r$..save_code"))
       
       if (length(input$code_selected_plugin) > 1) link_id <- input$code_selected_plugin$key
       else link_id <- input$code_selected_plugin
@@ -2654,7 +2654,7 @@ mod_plugins_server <- function(id = character(), r = shiny::reactiveValues(), d 
       
       # Update datetime in plugins table
       
-      new_update_datetime <- as.character(Sys.time())
+      new_update_datetime <- now()
       sql <- glue::glue_sql("UPDATE plugins SET update_datetime = {new_update_datetime} WHERE id = {link_id}", .con = r$db)
       query <- DBI::dbSendStatement(r$db, sql)
       DBI::dbClearResult(query)
@@ -2676,12 +2676,12 @@ mod_plugins_server <- function(id = character(), r = shiny::reactiveValues(), d 
     # --- --- --- --- - -
 
     observeEvent(input$import_plugins_browse, {
-      if (debug) cat(paste0("\n", Sys.time(), " - mod_plugins - observer input$import_plugins_browse"))
+      if (debug) cat(paste0("\n", now(), " - mod_plugins - observer input$import_plugins_browse"))
       shinyjs::click("import_plugins_upload")
     })
 
     output$import_plugins_status <- renderUI({
-      if (debug) cat(paste0("\n", Sys.time(), " - mod_plugins - output$import_plugins_status"))
+      if (debug) cat(paste0("\n", now(), " - mod_plugins - output$import_plugins_status"))
 
       tagList(div(
         span(i18n$t("loaded_file"), " : ", style = "padding-top:5px;"),
@@ -2691,7 +2691,7 @@ mod_plugins_server <- function(id = character(), r = shiny::reactiveValues(), d 
     observeEvent(input$import_plugins_button, {
 
       if (perf_monitoring) monitor_perf(r = r, action = "start")
-      if (debug) cat(paste0("\n", Sys.time(), " - mod_plugins - observer input$import_plugins_button"))
+      if (debug) cat(paste0("\n", now(), " - mod_plugins - observer input$import_plugins_button"))
 
       req(input$import_plugins_upload)
 
@@ -2699,7 +2699,7 @@ mod_plugins_server <- function(id = character(), r = shiny::reactiveValues(), d 
 
         # Extract ZIP file
 
-        temp_dir <- paste0(r$app_folder, "/temp_files/", r$user_id, "/plugins/", Sys.time() %>% stringr::str_replace_all(":| |-", ""), paste0(sample(c(0:9, letters[1:6]), 24, TRUE), collapse = ''))
+        temp_dir <- paste0(r$app_folder, "/temp_files/", r$user_id, "/plugins/", now() %>% stringr::str_replace_all(":| |-", ""), paste0(sample(c(0:9, letters[1:6]), 24, TRUE), collapse = ''))
         zip::unzip(input$import_plugins_upload$datapath, exdir = temp_dir)
 
         # Read XML file
@@ -2810,7 +2810,7 @@ mod_plugins_server <- function(id = character(), r = shiny::reactiveValues(), d 
                   dplyr::select(-code, -language, -col_prefix)
               ) %>%
               dplyr::mutate(id = last_row_options + dplyr::row_number(), category = "plugin", link_id = new_row, .before = "name") %>%
-              dplyr::mutate(creator_id = r$user_id, datetime = as.character(Sys.time()), deleted = FALSE)
+              dplyr::mutate(creator_id = r$user_id, datetime = now(), deleted = FALSE)
 
             DBI::dbAppendTable(r$db, "options", new_options)
             r$options <- r$options %>% dplyr::bind_rows(new_options)
@@ -2834,7 +2834,7 @@ mod_plugins_server <- function(id = character(), r = shiny::reactiveValues(), d 
               id = last_row_code + 1:3,
               category = c("plugin_ui", "plugin_server", "plugin_translations"),
               link_id = new_row, code = c(plugin_code$ui, plugin_code$server, plugin_code$translations), 
-              creator_id = r$user_id, datetime = as.character(Sys.time()), deleted = FALSE
+              creator_id = r$user_id, datetime = now(), deleted = FALSE
             )
 
             DBI::dbAppendTable(r$db, "code", new_code)
@@ -2850,7 +2850,7 @@ mod_plugins_server <- function(id = character(), r = shiny::reactiveValues(), d 
               overwrite = TRUE
             )
 
-            r[[paste0(prefix, "_show_plugin_details")]] <- Sys.time()
+            r[[paste0(prefix, "_show_plugin_details")]] <- now()
 
             # Reload datatable
             r[[paste0(prefix, "_plugins_temp")]] <- r$plugins %>% dplyr::filter(tab_type_id == !!tab_type_id) %>%
@@ -2891,7 +2891,7 @@ mod_plugins_server <- function(id = character(), r = shiny::reactiveValues(), d 
     # When add button is clicked
     observeEvent(input$add_item, {
 
-      if (debug) cat(paste0("\n", Sys.time(), " - mod_plugins - observer input$add_item"))
+      if (debug) cat(paste0("\n", now(), " - mod_plugins - observer input$add_item"))
 
       # Get ID of selected plugin
       link_id <- as.integer(substr(input$add_item, nchar("add_item_") + 1, nchar(input$add_item)))
@@ -2918,7 +2918,7 @@ mod_plugins_server <- function(id = character(), r = shiny::reactiveValues(), d 
     # When dropdown is updated
     observeEvent(input$plugins_to_export_trigger, {
 
-      if (debug) cat(paste0("\n", Sys.time(), " - mod_plugins - observer input$plugins_to_export"))
+      if (debug) cat(paste0("\n", now(), " - mod_plugins - observer input$plugins_to_export"))
 
       r[[paste0(prefix, "_export_plugins_selected")]] <- r[[paste0(prefix, "_export_plugins_selected")]] %>%
         dplyr::filter(id %in% input$plugins_to_export)
@@ -2932,7 +2932,7 @@ mod_plugins_server <- function(id = character(), r = shiny::reactiveValues(), d 
     # Export plugins
     observeEvent(input$export_selected_plugins, {
 
-      if (debug) cat(paste0("\n", Sys.time(), " - mod_plugins - observer input$export_plugins"))
+      if (debug) cat(paste0("\n", now(), " - mod_plugins - observer input$export_plugins"))
 
       req(nrow(r[[paste0(prefix, "_export_plugins_selected")]]) > 0)
 
@@ -2942,17 +2942,17 @@ mod_plugins_server <- function(id = character(), r = shiny::reactiveValues(), d 
     output$export_plugins_download <- downloadHandler(
 
       filename = function() paste0("linkr_export_plugins_",
-        Sys.time() %>% stringr::str_replace_all(" ", "_") %>% stringr::str_replace_all(":", "_") %>% as.character(), ".zip"),
+        now() %>% stringr::str_replace_all(" ", "_") %>% stringr::str_replace_all(":", "_") %>% as.character(), ".zip"),
 
       content = function(file){
 
         if (perf_monitoring) monitor_perf(r = r, action = "start")
-        if (debug) cat(paste0("\n", Sys.time(), " - mod_plugins - output$export_plugins_download"))
+        if (debug) cat(paste0("\n", now(), " - mod_plugins - output$export_plugins_download"))
 
         owd <- setwd(tempdir())
         on.exit(setwd(owd))
 
-        temp_dir <- paste0(r$app_folder, "/temp_files/", r$user_id, "/plugins/", Sys.time() %>% stringr::str_replace_all(":| |-", ""), paste0(sample(c(0:9, letters[1:6]), 24, TRUE), collapse = ''))
+        temp_dir <- paste0(r$app_folder, "/temp_files/", r$user_id, "/plugins/", now() %>% stringr::str_replace_all(":| |-", ""), paste0(sample(c(0:9, letters[1:6]), 24, TRUE), collapse = ''))
         dir.create(temp_dir, recursive = TRUE)
         
         for (plugin_id in r[[paste0(prefix, "_export_plugins_selected")]] %>% dplyr::pull(id)){

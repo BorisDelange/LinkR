@@ -72,7 +72,7 @@ mod_page_header_server <- function(id = character(), r = shiny::reactiveValues()
     r$show_hide_sidenav <- "hide"
   
     observeEvent(input$show_hide_sidenav, {
-      if (debug) cat(paste0("\n", Sys.time(), " - mod_page_header - observer input$show_hide_sidenav"))
+      if (debug) cat(paste0("\n", now(), " - mod_page_header - observer input$show_hide_sidenav"))
       
       if (r$show_hide_sidenav == "hide"){
         r$show_hide_sidenav <- "show"

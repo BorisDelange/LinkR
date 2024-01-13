@@ -13,7 +13,7 @@ add_log_entry <- function(r, category = character(), name = character(), value =
   con <- isolate(r$db)
   
   id_row <- get_last_row(con, "log") + 1
-  datetime <- as.character(Sys.time())
+  datetime <- now()
   
   sql <- glue::glue_sql("INSERT INTO log(id, category, name, value, creator_id, datetime)
     SELECT {id_row}, {category}, {name}, {value}, {isolate(r$user_id)}, {datetime}", 

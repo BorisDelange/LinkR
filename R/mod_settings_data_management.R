@@ -705,7 +705,7 @@ mod_settings_data_management_server <- function(id = character(), r = shiny::rea
     ns <- session$ns
     
     if (perf_monitoring) monitor_perf(r = r, action = "start")
-    if (debug) cat(paste0("\n", Sys.time(), " - mod_settings_data_management_server - start"))
+    if (debug) cat(paste0("\n", now(), " - mod_settings_data_management_server - start"))
     
     # Dropdowns in the management datatable, by page
     dropdowns <- tibble::tribble(~id, ~dropdowns,
@@ -727,7 +727,7 @@ mod_settings_data_management_server <- function(id = character(), r = shiny::rea
     if (table %in% c("datasets", "vocabulary")){
       observeEvent(r[[table]], {
         
-        if (debug) cat(paste0("\n", Sys.time(), " - mod_settings_data_management - observer r$", table, " - updateComboBox"))
+        if (debug) cat(paste0("\n", now(), " - mod_settings_data_management - observer r$", table, " - updateComboBox"))
         
         if (table == "datasets") options <- convert_tibble_to_list(r[[table]] %>% dplyr::arrange(name), key_col = "id", text_col = "name")
         
@@ -739,7 +739,7 @@ mod_settings_data_management_server <- function(id = character(), r = shiny::rea
         shiny.fluent::updateComboBox.shinyInput(session, "options_selected_dataset_or_vocabulary", options = options)
         shiny.fluent::updateComboBox.shinyInput(session, "code_selected_dataset_or_vocabulary", options = options)
         
-        r[[paste0("reload_local_", get_plural(table), "_datatable")]] <- Sys.time()
+        r[[paste0("reload_local_", get_plural(table), "_datatable")]] <- now()
       })
     }
     
@@ -779,7 +779,7 @@ mod_settings_data_management_server <- function(id = character(), r = shiny::rea
     })
     
     # observeEvent(shiny.router::get_page(), {
-    #   if (debug) cat(paste0("\n", Sys.time(), " - mod_settings_data_managemenent - ", id, " - observer shiny_router::change_page"))
+    #   if (debug) cat(paste0("\n", now(), " - mod_settings_data_managemenent - ", id, " - observer shiny_router::change_page"))
     # 
     #   # Close help pages when page changes
     #   r[[paste0("help_settings_data_management_", table, "_open_panel")]] <- FALSE
@@ -788,7 +788,7 @@ mod_settings_data_management_server <- function(id = character(), r = shiny::rea
     
     if (table %in% c("datasets", "vocabulary")){
       observeEvent(shiny.router::get_page(), {
-        if (debug) cat(paste0("\n", Sys.time(), " - mod_settings_data_managemenent - observer shiny_router::change_page"))
+        if (debug) cat(paste0("\n", now(), " - mod_settings_data_managemenent - observer shiny_router::change_page"))
         
         # Load export & management pages, to load DT (doesn't update with other DT if not already loaded once)
         if (shiny.router::get_page() == paste0("settings/", get_plural(table)) & length(r[[paste0(get_plural(table), "_page_loaded")]]) == 0){
@@ -800,13 +800,13 @@ mod_settings_data_management_server <- function(id = character(), r = shiny::rea
     }
     
     sapply(1:11, function(i){
-      observeEvent(input[[paste0("help_page_", i)]], r[[paste0("help_settings_data_management_", table, "_page_", i)]] <- Sys.time())
+      observeEvent(input[[paste0("help_page_", i)]], r[[paste0("help_settings_data_management_", table, "_page_", i)]] <- now())
     })
     
     help_settings_data_management(output = output, r = r, id = id, prefix = table, language = language, i18n = i18n, ns = ns)
     
-    observeEvent(input$copy_code_1, r$help_settings_data_management_copy_code_1 <- Sys.time())
-    observeEvent(input$copy_code_2, r$help_settings_data_management_copy_code_2 <- Sys.time())
+    observeEvent(input$copy_code_1, r$help_settings_data_management_copy_code_1 <- now())
+    observeEvent(input$copy_code_2, r$help_settings_data_management_copy_code_2 <- now())
     
     # --- --- --- --- --- --- --- -
     # Datasets & vocab catalog ----
@@ -817,7 +817,7 @@ mod_settings_data_management_server <- function(id = character(), r = shiny::rea
     name <- get_plural(table)
     observeEvent(input[[paste0("all_", name, "_source")]], {
       
-      if (debug) cat(paste0("\n", Sys.time(), " - mod_settings_data_management - observer input$all_", name, "_source"))
+      if (debug) cat(paste0("\n", now(), " - mod_settings_data_management - observer input$all_", name, "_source"))
       
       if (input[[paste0("all_", name, "_source")]] == "local"){
         shinyjs::show("all_dataset_or_vocabs_local_div")
@@ -832,13 +832,13 @@ mod_settings_data_management_server <- function(id = character(), r = shiny::rea
     # Update dropdown of remote git repos
     
     observeEvent(r$git_repos, {
-      if (debug) cat(paste0("\n", Sys.time(), " - mod_settings_data_management - observer r$git_repos"))
+      if (debug) cat(paste0("\n", now(), " - mod_settings_data_management - observer r$git_repos"))
       
       shiny.fluent::updateDropdown.shinyInput(session, "remote_git_repo", options = convert_tibble_to_list(r$git_repos, key_col = "id", text_col = "name"))
     })
     
     observeEvent(r[[paste0("reload_local_", get_plural(table), "_datatable")]], {
-      if (debug) cat(paste0("\n", Sys.time(), " - mod_settings_data_management - observer r$reload_local_.._datatable"))
+      if (debug) cat(paste0("\n", now(), " - mod_settings_data_management - observer r$reload_local_.._datatable"))
       
       if (nrow(r[[table]]) == 0) r[[paste0("local_", get_plural(table))]] <- tibble::tibble(id = integer(), name = character(), unique_id = character(), description = character(),
         category = character(), author = character(), version = character(), creation_datetime = character(), update_datetime = character())
@@ -890,19 +890,19 @@ mod_settings_data_management_server <- function(id = character(), r = shiny::rea
     # When a dataset or vocab is selected
     
     observeEvent(input[[paste0("local_", get_plural(table), "_datatable_rows_selected")]], {
-      if (debug) cat(paste0("\n", Sys.time(), " - mod_settings_data_management - observer input$local_.._datatable_rows_selected"))
-      r[[paste0("datatable_", get_plural(table), "_selected")]] <- Sys.time()
+      if (debug) cat(paste0("\n", now(), " - mod_settings_data_management - observer input$local_.._datatable_rows_selected"))
+      r[[paste0("datatable_", get_plural(table), "_selected")]] <- now()
       r[[paste0("datatable_", get_plural(table), "_selected_type")]] <- "local"
     })
     
     observeEvent(input[[paste0("remote_git_", get_plural(table), "_datatable_rows_selected")]], {
-      if (debug) cat(paste0("\n", Sys.time(), " - mod_settings_data_management - observer input$remote_git_.._datatable_rows_selected"))
-      r[[paste0("datatable_", get_plural(table), "_selected")]] <- Sys.time()
+      if (debug) cat(paste0("\n", now(), " - mod_settings_data_management - observer input$remote_git_.._datatable_rows_selected"))
+      r[[paste0("datatable_", get_plural(table), "_selected")]] <- now()
       r[[paste0("datatable_", get_plural(table), "_selected_type")]] <- "remote_git"
     })
     
     observeEvent(r[[paste0("datatable_", get_plural(table), "_selected")]], {
-      if (debug) cat(paste0("\n", Sys.time(), " - mod_settings_data_management - observer r$datatable_.._selected"))
+      if (debug) cat(paste0("\n", now(), " - mod_settings_data_management - observer r$datatable_.._selected"))
       
       type <- r[[paste0("datatable_", get_plural(table), "_selected_type")]]
       
@@ -972,7 +972,7 @@ mod_settings_data_management_server <- function(id = character(), r = shiny::rea
         
         # Create temp dir
         dir <- paste0(r$app_folder, "/temp_files/", r$user_id, "/markdowns")
-        file <- paste0(dir, "/", paste0(sample(c(0:9, letters[1:6]), 8, TRUE), collapse = ''), "_", as.character(Sys.time()) %>% stringr::str_replace_all(":", "_") %>% stringr::str_replace_all(" ", "_"), ".Md")
+        file <- paste0(dir, "/", paste0(sample(c(0:9, letters[1:6]), 8, TRUE), collapse = ''), "_", now() %>% stringr::str_replace_all(":", "_") %>% stringr::str_replace_all(" ", "_"), ".Md")
         if (!dir.exists(dir)) dir.create(dir)
         
         shinyjs::show(paste0(type, "_selected_", get_singular(table), "_markdown_div"))
@@ -989,7 +989,7 @@ mod_settings_data_management_server <- function(id = character(), r = shiny::rea
     # Download datasets or vocabularies from repo git
     
     observeEvent(input$remote_git_repo, {
-      if (debug) cat(paste0("\n", Sys.time(), " - mod_settings_data_management - observer input$remote_git_repo"))
+      if (debug) cat(paste0("\n", now(), " - mod_settings_data_management - observer input$remote_git_repo"))
       
       # Get URL of remote git repo
       raw_files_url_address <- r$git_repos %>% dplyr::filter(id == input$remote_git_repo) %>% dplyr::pull(raw_files_url_address)
@@ -1036,13 +1036,13 @@ mod_settings_data_management_server <- function(id = character(), r = shiny::rea
           # dplyr::mutate_at(c("creation_datetime", "update_datetime"), format_datetime, language = language, sec = FALSE)
       }
       
-      r[[paste0("update_remote_git_", get_plural(table), "_datatable")]] <- Sys.time()
+      r[[paste0("update_remote_git_", get_plural(table), "_datatable")]] <- now()
     })
     
     # Update remote_git_.. datatable
     
     observeEvent(r[[paste0("update_remote_git_", get_plural(table), "_datatable")]], {
-      if (debug) cat(paste0("\n", Sys.time(), " - mod_settings_data_management - observer r$update_remote_git_.._datatable"))
+      if (debug) cat(paste0("\n", now(), " - mod_settings_data_management - observer r$update_remote_git_.._datatable"))
       
       req(r[[paste0("remote_git_", get_plural(table))]])
       
@@ -1104,7 +1104,7 @@ mod_settings_data_management_server <- function(id = character(), r = shiny::rea
     # Download a dataset or a vocabulary from remote git
     
     observeEvent(input[[paste0("add_remote_git_", get_singular(table))]], {
-      if (debug) cat(paste0("\n", Sys.time(), " - mod_settings_data_management - observer input$add_remote_git_.."))
+      if (debug) cat(paste0("\n", now(), " - mod_settings_data_management - observer input$add_remote_git_.."))
       
       unique_id <- substr(input[[paste0("add_remote_git_", get_singular(table))]], nchar(paste0("add_remote_git_", get_singular(table), "_")) + 1, nchar(input[[paste0("add_remote_git_", get_singular(table))]]))
       
@@ -1169,7 +1169,7 @@ mod_settings_data_management_server <- function(id = character(), r = shiny::rea
         link_id <- last_row[[table]] + 1
         
         new_data[[table]] <- tibble::tibble(id = last_row[[table]] + 1, name = dataset_or_vocab[[paste0("name_", language)]],
-          creation_datetime = dataset_or_vocab$creation_datetime, update_datetime = as.character(Sys.time()), deleted = FALSE)
+          creation_datetime = dataset_or_vocab$creation_datetime, update_datetime = now(), deleted = FALSE)
         
         if (table == "vocabulary") new_data$vocabulary <- new_data$vocabulary %>% 
           dplyr::rename(vocabulary_name = name) %>%
@@ -1211,7 +1211,7 @@ mod_settings_data_management_server <- function(id = character(), r = shiny::rea
         )
         new_data$options <- new_data$options %>%
           dplyr::mutate(id = last_row$options + dplyr::row_number(), category = get_singular(table), link_id = !!link_id, .before = "name") %>%
-          dplyr::mutate(creator_id = r$user_id, datetime = as.character(Sys.time()), deleted = FALSE)
+          dplyr::mutate(creator_id = r$user_id, datetime = now(), deleted = FALSE)
         
         new_data$code <- tibble::tribble(
           ~id, ~category, ~link_id, ~code, ~creator_id, ~datetime, ~deleted,
@@ -1253,7 +1253,7 @@ mod_settings_data_management_server <- function(id = character(), r = shiny::rea
             creation_datetime = dataset_or_vocab$creation_datetime, update_datetime = dataset_or_vocab$update_datetime
           ))
         
-        r[[paste0("update_remote_git_", get_plural(table), "_datatable")]] <- Sys.time()
+        r[[paste0("update_remote_git_", get_plural(table), "_datatable")]] <- now()
         
       }, error = function(e) if (nchar(e[1]) > 0) report_bug(r = r, output = output, error_message = paste0("error_install_remote_git_", get_singular(table)),
         error_name = paste0("error_install_remote_git_", get_singular(table), " - id = ", dataset_or_vocab$unique_id), category = "Error", error_report = toString(e), i18n = i18n, ns = ns))
@@ -1275,7 +1275,7 @@ mod_settings_data_management_server <- function(id = character(), r = shiny::rea
           data_var <- get_plural(data_var)
           observeEvent(r[[data_var]], {
             
-            if (debug) cat(paste0("\n", Sys.time(), " - mod_settings_data_management - observer r$", table))
+            if (debug) cat(paste0("\n", now(), " - mod_settings_data_management - observer r$", table))
             
             # Convert options to list
             options <- convert_tibble_to_list(data = r[[data_var]] %>% dplyr::arrange(name), key_col = "id", text_col = "name")
@@ -1288,7 +1288,7 @@ mod_settings_data_management_server <- function(id = character(), r = shiny::rea
     observeEvent(input$add, {
       
       if (perf_monitoring) monitor_perf(r = r, action = "start")
-      if (debug) cat(paste0("\n", Sys.time(), " - mod_settings_data_management - observer input$add"))
+      if (debug) cat(paste0("\n", now(), " - mod_settings_data_management - observer input$add"))
       
       # Create a list with new data
       # If page = vocabulary, data_source is character, not integer (multiple choices)
@@ -1381,7 +1381,7 @@ mod_settings_data_management_server <- function(id = character(), r = shiny::rea
     
     observeEvent(r[[table]], {
       
-      if (debug) cat(paste0("\n", Sys.time(), " - mod_settings_data_management - observer r$", table, " - reload datatable"))
+      if (debug) cat(paste0("\n", now(), " - mod_settings_data_management - observer r$", table, " - reload datatable"))
       
       if (table == "vocabulary") r[[paste0(table, "_temp")]] <- r[[table]] %>% dplyr::mutate(modified = FALSE) %>% dplyr::arrange(vocabulary_id)
       else r[[paste0(table, "_temp")]] <- r[[table]] %>% dplyr::mutate(modified = FALSE) %>% dplyr::arrange(name)
@@ -1399,7 +1399,7 @@ mod_settings_data_management_server <- function(id = character(), r = shiny::rea
     observeEvent(r[[paste0(table, "_temp")]], {
       
       if (perf_monitoring) monitor_perf(r = r, action = "start")
-      if (debug) cat(paste0("\n", Sys.time(), " - mod_settings_data_management - observer input$", table, "_temp"))
+      if (debug) cat(paste0("\n", now(), " - mod_settings_data_management - observer input$", table, "_temp"))
       
       if (nrow(r[[paste0(table, "_temp")]]) == 0){
         
@@ -1484,7 +1484,7 @@ mod_settings_data_management_server <- function(id = character(), r = shiny::rea
     # Do that for main datatable (management_datatable) & vocabularies_tables_datatable
     observeEvent(input$management_datatable_cell_edit, {
       
-      if (debug) cat(paste0("\n", Sys.time(), " - mod_settings_data_management - observer input$management_datatable_cell_edit"))
+      if (debug) cat(paste0("\n", now(), " - mod_settings_data_management - observer input$management_datatable_cell_edit"))
       
       edit_info <- input$management_datatable_cell_edit
       r[[paste0(table, "_temp")]] <- DT::editData(r[[paste0(table, "_temp")]], edit_info, rownames = FALSE)
@@ -1497,12 +1497,12 @@ mod_settings_data_management_server <- function(id = character(), r = shiny::rea
     observeEvent(r[[table]], {
       
       if (perf_monitoring) monitor_perf(r = r, action = "start")
-      if (debug) cat(paste0("\n", Sys.time(), " - mod_settings_data_management - observer r$", table, " - update dropdowns"))
+      if (debug) cat(paste0("\n", now(), " - mod_settings_data_management - observer r$", table, " - update dropdowns"))
       
       update_settings_datatable(input = input, tab_id = id, r = r, ns = ns, table = table, 
         dropdowns = dropdowns %>% dplyr::filter(id == id) %>% dplyr::pull(dropdowns) %>% unlist(), i18n = i18n)
       
-      if (table %in% c("datasets", "vocabulary")) r[[paste0("update_remote_git_", get_plural(table), "_datatable")]] <- Sys.time()
+      if (table %in% c("datasets", "vocabulary")) r[[paste0("update_remote_git_", get_plural(table), "_datatable")]] <- now()
       
       if (perf_monitoring) monitor_perf(r = r, action = "stop", task = paste0("mod_settings_data_management - observer r$", table, " - update dropdowns"))
     })
@@ -1512,7 +1512,7 @@ mod_settings_data_management_server <- function(id = character(), r = shiny::rea
     observeEvent(input$management_save, {
       
       if (perf_monitoring) monitor_perf(r = r, action = "start")
-      if (debug) cat(paste0("\n", Sys.time(), " - mod_settings_data_management - observer input$management_save"))
+      if (debug) cat(paste0("\n", now(), " - mod_settings_data_management - observer input$management_save"))
       
       req(nrow(r[[paste0(table, "_temp")]]) > 0)
       
@@ -1546,7 +1546,7 @@ mod_settings_data_management_server <- function(id = character(), r = shiny::rea
     
     observeEvent(input$deleted_pressed, {
       
-      if (debug) cat(paste0("\n", Sys.time(), " - mod_settings_data_management - observer input$deleted_pressed"))
+      if (debug) cat(paste0("\n", now(), " - mod_settings_data_management - observer input$deleted_pressed"))
       
       r[[paste0("delete_", get_plural(table))]] <- as.integer(substr(input$deleted_pressed, nchar("delete_") + 1, 100))
       r[[settings_delete_variable]] <- TRUE
@@ -1560,7 +1560,7 @@ mod_settings_data_management_server <- function(id = character(), r = shiny::rea
     observeEvent(input$delete_selection, {
       
       if (perf_monitoring) monitor_perf(r = r, action = "start")
-      if (debug) cat(paste0("\n", Sys.time(), " - mod_settings_data_management - observer input$delete_selection"))
+      if (debug) cat(paste0("\n", now(), " - mod_settings_data_management - observer input$delete_selection"))
       
       req(length(input[["management_datatable_rows_selected"]]) > 0)
       
@@ -1575,7 +1575,7 @@ mod_settings_data_management_server <- function(id = character(), r = shiny::rea
     # Show / hide options & description divs depending on selected language
     observeEvent(input[[paste0(get_singular(table), "_language")]], {
       
-      if (debug) cat(paste0("\n", Sys.time(), " - mod_settings_data_management - observer input$.._language"))
+      if (debug) cat(paste0("\n", now(), " - mod_settings_data_management - observer input$.._language"))
       
       for (lang in r$languages$code){
         if (lang == input[[paste0(get_singular(table), "_language")]]) sapply(c(paste0(get_singular(table), "_options_", lang, "_div"), 
@@ -1588,7 +1588,7 @@ mod_settings_data_management_server <- function(id = character(), r = shiny::rea
     if (table == "datasets"){
       observeEvent(input$users_allowed_read_group, {
         
-        if (debug) cat(paste0("\n", Sys.time(), " - mod_settings_data_management - observer input$users_allowed_read_group"))
+        if (debug) cat(paste0("\n", now(), " - mod_settings_data_management - observer input$users_allowed_read_group"))
         
         if (input$users_allowed_read_group == "people_picker") shinyjs::show("users_allowed_read_div")
         else shinyjs::hide("users_allowed_read_div")
@@ -1599,7 +1599,7 @@ mod_settings_data_management_server <- function(id = character(), r = shiny::rea
       
       observeEvent(input$options, {
         
-        if (debug) cat(paste0("\n", Sys.time(), " - mod_settings_data_management - observer input$options"))
+        if (debug) cat(paste0("\n", now(), " - mod_settings_data_management - observer input$options"))
         
         # Get link_id variable, to update options div
         link_id <- as.integer(substr(input$options, nchar("options_") + 1, nchar(input$options)))
@@ -1626,7 +1626,7 @@ mod_settings_data_management_server <- function(id = character(), r = shiny::rea
       
       observeEvent(input$options_selected_dataset_or_vocabulary, {
         
-        if (debug) cat(paste0("\n", Sys.time(), " - mod_settings_data_management - observer input$options_selected_dataset_or_vocabulary"))
+        if (debug) cat(paste0("\n", now(), " - mod_settings_data_management - observer input$options_selected_dataset_or_vocabulary"))
         
         if (length(input$options_selected_dataset_or_vocabulary) > 1) link_id <- input$options_selected_dataset_or_vocabulary$key
         else link_id <- input$options_selected_dataset_or_vocabulary
@@ -1711,25 +1711,25 @@ mod_settings_data_management_server <- function(id = character(), r = shiny::rea
       
       sapply(r$languages$code, function(lang){
         observeEvent(input[[paste0(get_singular(table), "_description_", lang, "_save")]], {
-          if (debug) cat(paste0("\n", Sys.time(), " - mod_settings_data_management - observer input$.._description_", lang, "_save"))
-          r[[paste0(get_singular(table), "_save_options")]] <- Sys.time()
+          if (debug) cat(paste0("\n", now(), " - mod_settings_data_management - observer input$.._description_", lang, "_save"))
+          r[[paste0(get_singular(table), "_save_options")]] <- now()
         })
       })
       
       observeEvent(input$save_options_description, {
-        if (debug) cat(paste0("\n", Sys.time(), " - mod_settings_data_management - observer input$save_options_description"))
-        r[[paste0(get_singular(table), "_save_options")]] <- Sys.time()
+        if (debug) cat(paste0("\n", now(), " - mod_settings_data_management - observer input$save_options_description"))
+        r[[paste0(get_singular(table), "_save_options")]] <- now()
       })
       
       observeEvent(input$options_save, {
-        if (debug) cat(paste0("\n", Sys.time(), " - mod_settings_data_management - observer input$options_save"))
-        r[[paste0(get_singular(table), "_save_options")]] <- Sys.time()
+        if (debug) cat(paste0("\n", now(), " - mod_settings_data_management - observer input$options_save"))
+        r[[paste0(get_singular(table), "_save_options")]] <- now()
       })
       
       observeEvent(r[[paste0(get_singular(table), "_save_options")]], {
         
         if (perf_monitoring) monitor_perf(r = r, action = "start")
-        if (debug) cat(paste0("\n", Sys.time(), " - mod_settings_data_management - observer r$.._save_options"))
+        if (debug) cat(paste0("\n", now(), " - mod_settings_data_management - observer r$.._save_options"))
         
         req(input$options_selected_dataset_or_vocabulary)
         
@@ -1785,7 +1785,7 @@ mod_settings_data_management_server <- function(id = character(), r = shiny::rea
             name_col <- "vocabulary_name"
           } 
           
-          new_update_datetime <- as.character(Sys.time())
+          new_update_datetime <- now()
           sql <- glue::glue_sql("UPDATE {`table`} SET {`name_col`} = {dataset_or_vocab_name}, update_datetime = {new_update_datetime} WHERE id = {link_id}", .con = db)
           query <- DBI::dbSendStatement(db, sql)
           DBI::dbClearResult(query)
@@ -1811,7 +1811,7 @@ mod_settings_data_management_server <- function(id = character(), r = shiny::rea
       # Delete a file
       
       observeEvent(input$delete_file, {
-        if (debug) cat(paste0("\n", Sys.time(), " - mod_settings_data_management - observer input$delete_file"))
+        if (debug) cat(paste0("\n", now(), " - mod_settings_data_management - observer input$delete_file"))
         req(length(input[[paste0(get_singular(table), "_file")]]) > 0 & input[[paste0(get_singular(table), "_file")]] != "")
         r[[paste0(get_singular(table), "_delete_file")]] <- TRUE
       })
@@ -1819,7 +1819,7 @@ mod_settings_data_management_server <- function(id = character(), r = shiny::rea
       r[[paste0(get_singular(table), "_delete_file")]] <- FALSE
       output[[paste0(get_singular(table), "_file_delete_confirm")]] <- shiny.fluent::renderReact({
         
-        if (debug) cat(paste0("\n", Sys.time(), " - mod_settings_data_management - output$.._file_delete_confirm"))
+        if (debug) cat(paste0("\n", now(), " - mod_settings_data_management - output$.._file_delete_confirm"))
         
         shiny.fluent::Dialog(
           hidden = !r[[paste0(get_singular(table), "_delete_file")]],
@@ -1839,17 +1839,17 @@ mod_settings_data_management_server <- function(id = character(), r = shiny::rea
       })
       
       observeEvent(input[[paste0(get_singular(table), "_delete_file_hide_dialog")]], {
-        if (debug) cat(paste0("\n", Sys.time(), " - mod_settings_data_management - observer input$.._delete_file_hide_dialog"))
+        if (debug) cat(paste0("\n", now(), " - mod_settings_data_management - observer input$.._delete_file_hide_dialog"))
         r[[paste0(get_singular(table), "_delete_file")]] <- FALSE
       })
       observeEvent(input[[paste0(get_singular(table), "_delete_file_delete_canceled")]], {
-        if (debug) cat(paste0("\n", Sys.time(), " - mod_settings_data_management - observer input$.._delete_file_delete_canceled"))
+        if (debug) cat(paste0("\n", now(), " - mod_settings_data_management - observer input$.._delete_file_delete_canceled"))
         r[[paste0(get_singular(table), "_delete_file")]] <- FALSE
       })
       
       observeEvent(input[[paste0(get_singular(table), "_delete_file_delete_confirmed")]], {
         
-        if (debug) cat(paste0("\n", Sys.time(), " - mod_settings_data_management - observer input$.._delete_file_delete_confirmed"))
+        if (debug) cat(paste0("\n", now(), " - mod_settings_data_management - observer input$.._delete_file_delete_confirmed"))
         
         req(input[[paste0(get_singular(table), "_file")]] != "")
         tryCatch({
@@ -1882,14 +1882,14 @@ mod_settings_data_management_server <- function(id = character(), r = shiny::rea
       # Import a file
       
       observeEvent(input$import_file, {
-        if (debug) cat(paste0("\n", Sys.time(), " - mod_settings_data_management - observer input$import_file"))
+        if (debug) cat(paste0("\n", now(), " - mod_settings_data_management - observer input$import_file"))
         req(input$options_selected_dataset_or_vocabulary)
         shinyjs::click("import_file_input")
       })
       
       observeEvent(input$import_file_input, {
         
-        if (debug) cat(paste0("\n", Sys.time(), " - mod_settings_data_management - observer input$import_file_input"))
+        if (debug) cat(paste0("\n", now(), " - mod_settings_data_management - observer input$import_file_input"))
         
         tryCatch({
           
@@ -1926,20 +1926,20 @@ mod_settings_data_management_server <- function(id = character(), r = shiny::rea
       # Render markdown
       
       observeEvent(input$preview_description, {
-        if (debug) cat(paste0("\n", Sys.time(), " - mod_settings_data_management - observer input$preview_description"))
-        r[[paste0(get_singular(table), "_preview_description_trigger")]] <- Sys.time()
+        if (debug) cat(paste0("\n", now(), " - mod_settings_data_management - observer input$preview_description"))
+        r[[paste0(get_singular(table), "_preview_description_trigger")]] <- now()
       })
       
       sapply(r$languages$code, function(lang){
         observeEvent(input[[paste0(get_singular(table), "_description_", lang, "_run_all")]], {
-          if (debug) cat(paste0("\n", Sys.time(), " - mod_settings_data_management - observer input$.._description_", lang, "_run_all"))
-          r[[paste0(get_singular(table), "_preview_description_trigger")]] <- Sys.time()
+          if (debug) cat(paste0("\n", now(), " - mod_settings_data_management - observer input$.._description_", lang, "_run_all"))
+          r[[paste0(get_singular(table), "_preview_description_trigger")]] <- now()
         })
       })
       
       observeEvent(r[[paste0(get_singular(table), "_preview_description_trigger")]], {
         
-        if (debug) cat(paste0("\n", Sys.time(), " - mod_settings_data_management - observer r$..preview_description_trigger"))
+        if (debug) cat(paste0("\n", now(), " - mod_settings_data_management - observer r$..preview_description_trigger"))
         
         req(length(input$options_selected_dataset_or_vocabulary) > 0)
         if (length(input$options_selected_dataset_or_vocabulary) > 1) link_id <- input$options_selected_dataset_or_vocabulary$key
@@ -1965,7 +1965,7 @@ mod_settings_data_management_server <- function(id = character(), r = shiny::rea
           
           # Create temp dir
           dir <- paste0(r$app_folder, "/temp_files/", r$user_id, "/markdowns")
-          file <- paste0(dir, "/", paste0(sample(c(0:9, letters[1:6]), 8, TRUE), collapse = ''), "_", as.character(Sys.time()) %>% stringr::str_replace_all(":", "_"), ".Md")
+          file <- paste0(dir, "/", paste0(sample(c(0:9, letters[1:6]), 8, TRUE), collapse = ''), "_", now() %>% stringr::str_replace_all(":", "_"), ".Md")
           if (!dir.exists(dir)) dir.create(dir)
           
           # Create the markdown file
@@ -1984,7 +1984,7 @@ mod_settings_data_management_server <- function(id = character(), r = shiny::rea
     
     observeEvent(input$hide_editor, {
       
-      if (debug) cat(paste0("\n", Sys.time(), " - mod_settings_data_management - observer input$hide_editor"))
+      if (debug) cat(paste0("\n", now(), " - mod_settings_data_management - observer input$hide_editor"))
       
       if (input$hide_editor){
         shinyjs::hide("ace_editor_div")
@@ -2000,7 +2000,7 @@ mod_settings_data_management_server <- function(id = character(), r = shiny::rea
     
     observeEvent(input$show_imported_data, {
       
-      if (debug) cat(paste0("\n", Sys.time(), " - mod_settings_data_management - observer input$show_imported_data"))
+      if (debug) cat(paste0("\n", now(), " - mod_settings_data_management - observer input$show_imported_data"))
       
       if (input$show_imported_data) shinyjs::show("code_datatable")
       else shinyjs::hide("code_datatable")
@@ -2011,7 +2011,7 @@ mod_settings_data_management_server <- function(id = character(), r = shiny::rea
       # Button "Edit code" is clicked on the datatable
       observeEvent(input$edit_code, {
         
-        if (debug) cat(paste0("\n", Sys.time(), " - mod_settings_data_management - observer input$edit_code"))
+        if (debug) cat(paste0("\n", now(), " - mod_settings_data_management - observer input$edit_code"))
         
         # Get link_id variable, to update code editor
         link_id <- as.integer(substr(input$edit_code, nchar("edit_code_") + 1, nchar(input$edit_code)))
@@ -2039,7 +2039,7 @@ mod_settings_data_management_server <- function(id = character(), r = shiny::rea
       
       observeEvent(input$code_selected_dataset_or_vocabulary, {
         
-        if (debug) cat(paste0("\n", Sys.time(), " - mod_settings_data_management - observer input$code_selected_dataset_or_vocabulary"))
+        if (debug) cat(paste0("\n", now(), " - mod_settings_data_management - observer input$code_selected_dataset_or_vocabulary"))
         
         if (length(input$code_selected_dataset_or_vocabulary) > 1) link_id <- input$code_selected_dataset_or_vocabulary$key
         else link_id <- input$code_selected_dataset_or_vocabulary
@@ -2101,12 +2101,12 @@ mod_settings_data_management_server <- function(id = character(), r = shiny::rea
       
       # When save button is clicked, or CTRL+C or CMD+C is pushed
       observeEvent(input$edit_code_save, {
-        if (debug) cat(paste0("\n", Sys.time(), " - mod_settings_data_management - observer input$edit_code_save"))
-        r[[paste0(id, "_save")]] <- Sys.time()
+        if (debug) cat(paste0("\n", now(), " - mod_settings_data_management - observer input$edit_code_save"))
+        r[[paste0(id, "_save")]] <- now()
       })
       observeEvent(input$ace_edit_code_save, {
-        if (debug) cat(paste0("\n", Sys.time(), " - mod_settings_data_management - observer input$ace_edit_code_save"))
-        r[[paste0(id, "_save")]] <- Sys.time()
+        if (debug) cat(paste0("\n", now(), " - mod_settings_data_management - observer input$ace_edit_code_save"))
+        r[[paste0(id, "_save")]] <- now()
         shinyjs::runjs(sprintf("
             var editor = ace.edit('%s-ace_edit_code');
             editor.moveCursorTo(%d, %d);
@@ -2116,7 +2116,7 @@ mod_settings_data_management_server <- function(id = character(), r = shiny::rea
       observeEvent(r[[paste0(id, "_save")]], {
         
         if (perf_monitoring) monitor_perf(r = r, action = "start")
-        if (debug) cat(paste0("\n", Sys.time(), " - mod_settings_data_management - observer r$..save"))
+        if (debug) cat(paste0("\n", now(), " - mod_settings_data_management - observer r$..save"))
         
         req(input$code_selected_dataset_or_vocabulary)
         
@@ -2128,7 +2128,7 @@ mod_settings_data_management_server <- function(id = character(), r = shiny::rea
           if (table == "datasets") db <- r$db
           else if (table == "vocabulary") db <- m$db
           
-          new_update_datetime <- as.character(Sys.time())
+          new_update_datetime <- now()
           sql <- glue::glue_sql("UPDATE {`table`} SET update_datetime = {new_update_datetime} WHERE id = {link_id}", .con = db)
           query <- DBI::dbSendStatement(db, sql)
           DBI::dbClearResult(query) 
@@ -2150,7 +2150,7 @@ mod_settings_data_management_server <- function(id = character(), r = shiny::rea
       # Comment text
       
       observeEvent(input$ace_edit_code_comment, {
-        if (debug) cat(paste0("\n", Sys.time(), " - mod_settings_data_management - observer input$ace_edit_code_comment"))
+        if (debug) cat(paste0("\n", now(), " - mod_settings_data_management - observer input$ace_edit_code_comment"))
         
         lines <- strsplit(input$ace_edit_code, "\n")[[1]]
         req(length(lines) > 0)
@@ -2172,28 +2172,28 @@ mod_settings_data_management_server <- function(id = character(), r = shiny::rea
       # When Execute code button is clicked
       
       observeEvent(input$execute_code, {
-        if (debug) cat(paste0("\n", Sys.time(), " - mod_settings_data_management - observer input$execute_code"))
+        if (debug) cat(paste0("\n", now(), " - mod_settings_data_management - observer input$execute_code"))
         r[[paste0(id, "_code")]] <- input$ace_edit_code
-        r[[paste0(id, "_code_trigger")]] <- Sys.time()
+        r[[paste0(id, "_code_trigger")]] <- now()
       })
       
       observeEvent(input$ace_edit_code_run_selection, {
-        if (debug) cat(paste0("\n", Sys.time(), " - mod_settings_data_management - observer input$ace_edit_code_run_selection"))
+        if (debug) cat(paste0("\n", now(), " - mod_settings_data_management - observer input$ace_edit_code_run_selection"))
         if(!shinyAce::is.empty(input$ace_edit_code_run_selection$selection)) r[[paste0(id, "_code")]] <- input$ace_edit_code_run_selection$selection
         else r[[paste0(id, "_code")]] <- input$ace_edit_code_run_selection$line
-        r[[paste0(id, "_code_trigger")]] <- Sys.time()
+        r[[paste0(id, "_code_trigger")]] <- now()
       })
       
       observeEvent(input$ace_edit_code_run_all, {
-        if (debug) cat(paste0("\n", Sys.time(), " - mod_settings_data_management - observer input$ace_edit_code_run_all"))
+        if (debug) cat(paste0("\n", now(), " - mod_settings_data_management - observer input$ace_edit_code_run_all"))
         r[[paste0(id, "_code")]] <- input$ace_edit_code
-        r[[paste0(id, "_code_trigger")]] <- Sys.time()
+        r[[paste0(id, "_code_trigger")]] <- now()
       })
       
       observeEvent(r[[paste0(id, "_code_trigger")]], {
         
         if (perf_monitoring) monitor_perf(r = r, action = "start")
-        if (debug) cat(paste0("\n", Sys.time(), " - mod_settings_data_management - observer r$..code_trigger"))
+        if (debug) cat(paste0("\n", now(), " - mod_settings_data_management - observer r$..code_trigger"))
         
         req(length(input$code_selected_dataset_or_vocabulary) > 0)
         
@@ -2234,9 +2234,9 @@ mod_settings_data_management_server <- function(id = character(), r = shiny::rea
         else console_result <- tags$div(console_result, style = "padding: 15px 0px 15px 0px;")
         
         output$code_result <- renderUI(console_result)
-        output$datetime_code_execution <- renderText(format_datetime(Sys.time(), language))
+        output$datetime_code_execution <- renderText(format_datetime(now(), language))
         
-        if (table == "datasets") r[[paste0(id, "_code_datatable_trigger")]] <- Sys.time()
+        if (table == "datasets") r[[paste0(id, "_code_datatable_trigger")]] <- now()
         
         if (perf_monitoring) monitor_perf(r = r, action = "stop", task = paste0("mod_settings_data_management - observer r$..code"))
       })
@@ -2244,7 +2244,7 @@ mod_settings_data_management_server <- function(id = character(), r = shiny::rea
       observeEvent(r[[paste0(id, "_code_datatable_trigger")]], {
         
         if (perf_monitoring) monitor_perf(r = r, action = "start")
-        if (debug) cat(paste0("\n", Sys.time(), " - mod_settings_data_management - observer r$..code_datatable_trigger"))
+        if (debug) cat(paste0("\n", now(), " - mod_settings_data_management - observer r$..code_datatable_trigger"))
         
         data <- tibble::tibble(name = character(), rows = integer())
         
@@ -2446,7 +2446,7 @@ mod_settings_data_management_server <- function(id = character(), r = shiny::rea
       
       observeEvent(input$vocabularies_table, {
         
-        if (debug) cat(paste0("\n", Sys.time(), " - mod_settings_data_management - observer input$vocabularies_table"))
+        if (debug) cat(paste0("\n", now(), " - mod_settings_data_management - observer input$vocabularies_table"))
         
         shinyjs::hide("br_div_2")
         
@@ -2515,37 +2515,37 @@ mod_settings_data_management_server <- function(id = character(), r = shiny::rea
         else shiny.fluent::updateComboBox.shinyInput(session, "vocabularies_table_vocabulary", options = r$vocabularies_table_vocabulary_options, value = "all_vocabularies")
         
         # Render datatable rows dropdown
-        r$vocabularies_table_update_table_rows_dropdown <- Sys.time()
+        r$vocabularies_table_update_table_rows_dropdown <- now()
       })
       
       # Reload datatable when toggle row_details or mapped_concepts is updated, to change selection (single / multiple)
       observeEvent(input$vocabularies_datatable_show_row_details, {
-        if (debug) cat(paste0("\n", Sys.time(), " - mod_settings_data_management - observer input$vocabularies_datatable_show_row_details"))
-        r$vocabularies_table_render_datatable <- Sys.time()
+        if (debug) cat(paste0("\n", now(), " - mod_settings_data_management - observer input$vocabularies_datatable_show_row_details"))
+        r$vocabularies_table_render_datatable <- now()
       })
       
       observeEvent(input$vocabularies_datatable_show_mapped_concepts, {
-        if (debug) cat(paste0("\n", Sys.time(), " - mod_settings_data_management - observer input$vocabularies_datatable_show_mapped_concepts"))
-        r$vocabularies_table_render_datatable <- Sys.time()
+        if (debug) cat(paste0("\n", now(), " - mod_settings_data_management - observer input$vocabularies_datatable_show_mapped_concepts"))
+        r$vocabularies_table_render_datatable <- now()
       })
       
       # Reload datatable when rows nums selected
       observeEvent(input$vocabularies_table_rows, {
-        if (debug) cat(paste0("\n", Sys.time(), " - mod_settings_data_management - observer input$vocabularies_table_rows"))
-        r$vocabularies_table_render_datatable <- Sys.time()
+        if (debug) cat(paste0("\n", now(), " - mod_settings_data_management - observer input$vocabularies_table_rows"))
+        r$vocabularies_table_render_datatable <- now()
       })
       
       # Reload datatable rows dropdown & datatable when a vocabulary is selected
       observeEvent(input$vocabularies_table_vocabulary, {
-        if (debug) cat(paste0("\n", Sys.time(), " - mod_settings_data_management - observer input$vocabularies_table_vocabulary"))
-        r$vocabularies_table_update_table_rows_dropdown <- Sys.time()
+        if (debug) cat(paste0("\n", now(), " - mod_settings_data_management - observer input$vocabularies_table_vocabulary"))
+        r$vocabularies_table_update_table_rows_dropdown <- now()
       })
       
       # Reload datatable rows dropdown
       observeEvent(r$vocabularies_table_update_table_rows_dropdown, {
         
         if (perf_monitoring) monitor_perf(r = r, action = "start")
-        if (debug) cat(paste0("\n", Sys.time(), " - mod_settings_data_management - observer r$vocabularies_table_update_table_rows_dropdown"))
+        if (debug) cat(paste0("\n", now(), " - mod_settings_data_management - observer r$vocabularies_table_update_table_rows_dropdown"))
         
         req(input$vocabularies_table_vocabulary)
         if (length(input$vocabularies_table_vocabulary) > 1) vocabularies_table_vocabulary <- input$vocabularies_table_vocabulary$key
@@ -2632,7 +2632,7 @@ mod_settings_data_management_server <- function(id = character(), r = shiny::rea
       observeEvent(r$vocabularies_table_render_datatable, {
         
         if (perf_monitoring) monitor_perf(r = r, action = "start")
-        if (debug) cat(paste0("\n", Sys.time(), " - mod_settings_data_management - observer r$vocabularies_table_render_datatable"))
+        if (debug) cat(paste0("\n", now(), " - mod_settings_data_management - observer r$vocabularies_table_render_datatable"))
         
         req(input$vocabularies_table, input$vocabularies_table_rows, input$vocabularies_table_vocabulary)
         if (length(input$vocabularies_table_vocabulary) > 1) vocabularies_table_vocabulary <- input$vocabularies_table_vocabulary$key
@@ -2686,7 +2686,7 @@ mod_settings_data_management_server <- function(id = character(), r = shiny::rea
       # Update which cols are hidden
       observeEvent(input$vocabularies_table_cols, {
         
-        if (debug) cat(paste0("\n", Sys.time(), " - mod_settings_data_management - observer input$vocabularies_table_cols"))
+        if (debug) cat(paste0("\n", now(), " - mod_settings_data_management - observer input$vocabularies_table_cols"))
         
         req(length(r$vocabularies_tables_datatable_proxy) > 0)
         
@@ -2698,7 +2698,7 @@ mod_settings_data_management_server <- function(id = character(), r = shiny::rea
       # Show row details or mapped concepts
       observeEvent(input$vocabularies_tables_datatable_rows_selected, {
         
-        if (debug) cat(paste0("\n", Sys.time(), " - mod_settings_data_management - observer input$vocabularies_tables_datatable_rows_selected"))
+        if (debug) cat(paste0("\n", now(), " - mod_settings_data_management - observer input$vocabularies_tables_datatable_rows_selected"))
         
         n_rows <- stringr::str_split_1(input$vocabularies_table_rows, ";")
         n_rows_start <- as.integer(n_rows[1])
@@ -2813,7 +2813,7 @@ mod_settings_data_management_server <- function(id = character(), r = shiny::rea
       
       observeEvent(input$vocabularies_tables_datatable_cell_edit, {
         
-        if (debug) cat(paste0("\n", Sys.time(), " - mod_settings_data_management - observer input$vocabularies_tables_datatable_cell_edit"))
+        if (debug) cat(paste0("\n", now(), " - mod_settings_data_management - observer input$vocabularies_tables_datatable_cell_edit"))
         
         edit_info <- input$vocabularies_tables_datatable_cell_edit
         d[[input$vocabularies_table]] <- DT::editData(d[[input$vocabularies_table]], edit_info, rownames = FALSE)
@@ -2826,7 +2826,7 @@ mod_settings_data_management_server <- function(id = character(), r = shiny::rea
       
       observeEvent(input$vocabularies_tables_datatable_save, {
         
-        if (debug) cat(paste0("\n", Sys.time(), " - mod_settings_data_management - observer input$vocabularies_tables_datatable_save"))
+        if (debug) cat(paste0("\n", now(), " - mod_settings_data_management - observer input$vocabularies_tables_datatable_save"))
         
         if (nrow(d[[input$vocabularies_table]] %>% dplyr::filter(modified)) == 0) show_message_bar(output,  "modif_saved", "success", i18n = i18n, ns = ns)
         
@@ -2894,7 +2894,7 @@ mod_settings_data_management_server <- function(id = character(), r = shiny::rea
       
       observeEvent(input$vocabularies_tables_delete_selection, {
         
-        if (debug) cat(paste0("\n", Sys.time(), " - mod_settings_data_management - observer input$vocabularies_tables_delete_selection"))
+        if (debug) cat(paste0("\n", now(), " - mod_settings_data_management - observer input$vocabularies_tables_delete_selection"))
         
         req(length(input$vocabularies_tables_datatable_rows_selected) > 0)
         
@@ -2906,7 +2906,7 @@ mod_settings_data_management_server <- function(id = character(), r = shiny::rea
       
       output$vocabularies_table_delete_confirm <- shiny.fluent::renderReact({
         
-        if (debug) cat(paste0("\n", Sys.time(), " - mod_settings_data_management - output$vocabularies_table_delete_confirm"))
+        if (debug) cat(paste0("\n", now(), " - mod_settings_data_management - output$vocabularies_table_delete_confirm"))
         
         shiny.fluent::Dialog(
           hidden = !r$vocabularies_table_open_dialog,
@@ -2930,7 +2930,7 @@ mod_settings_data_management_server <- function(id = character(), r = shiny::rea
       # When the deletion is confirmed
       observeEvent(input$vocabularies_table_delete_confirmed, {
         
-        if (debug) cat(paste0("\n", Sys.time(), " - mod_settings_data_management - observer input$vocabularies_table_delete_confirmed"))
+        if (debug) cat(paste0("\n", now(), " - mod_settings_data_management - observer input$vocabularies_table_delete_confirmed"))
         
         # Close dialog box
         r$vocabularies_table_open_dialog <- FALSE
@@ -2941,7 +2941,7 @@ mod_settings_data_management_server <- function(id = character(), r = shiny::rea
         
         d[[input$vocabularies_table]] <- d[[input$vocabularies_table]] %>% dplyr::filter(id %not_in% r$delete_vocabularies_table_rows)
         
-        r$vocabulary_table_reload_datatable <- Sys.time()
+        r$vocabulary_table_reload_datatable <- now()
         
         show_message_bar(output, "vocabulary_table_rows_deleted", type = "warning", i18n = i18n, ns = ns)
       })
@@ -2950,7 +2950,7 @@ mod_settings_data_management_server <- function(id = character(), r = shiny::rea
       
       observeEvent(r$vocabulary_table_reload_datatable, {
         
-        if (debug) cat(paste0("\n", Sys.time(), " - mod_settings_data_management - observer r$vocabulary_table_reload_datatable"))
+        if (debug) cat(paste0("\n", now(), " - mod_settings_data_management - observer r$vocabulary_table_reload_datatable"))
         
         DT::replaceData(r$vocabularies_tables_datatable_proxy, d[[input$vocabularies_table]], resetPaging = FALSE, rownames = FALSE)
       })
@@ -2964,7 +2964,7 @@ mod_settings_data_management_server <- function(id = character(), r = shiny::rea
       
       # Show / hide divs
       observeEvent(input$import_vocabulary_current_tab, {
-        if (debug) cat(paste0("\n", Sys.time(), " - mod_settings_data_management - observer input$import_vocabulary_current_tab"))
+        if (debug) cat(paste0("\n", now(), " - mod_settings_data_management - observer input$import_vocabulary_current_tab"))
         
         if (input$import_vocabulary_current_tab == "vocabulary"){
           shinyjs::show("import_vocabulary_div")
@@ -2978,29 +2978,29 @@ mod_settings_data_management_server <- function(id = character(), r = shiny::rea
       
       # Import a zip file
       observeEvent(input$import_concepts_browse_zip, {
-        if (debug) cat(paste0("\n", Sys.time(), " - mod_settings_data_management - observer input$import_concepts_browse_zip"))
+        if (debug) cat(paste0("\n", now(), " - mod_settings_data_management - observer input$import_concepts_browse_zip"))
         shinyjs::click("import_concepts_upload_zip")
       })
       
       # Import CSV files
       observeEvent(input$import_concepts_browse_csv, {
-        if (debug) cat(paste0("\n", Sys.time(), " - mod_settings_data_management - observer input$import_concepts_browse_csv"))
+        if (debug) cat(paste0("\n", now(), " - mod_settings_data_management - observer input$import_concepts_browse_csv"))
         shinyjs::click("import_concepts_upload_csv")
       })
       
       # Import files status
       observeEvent(input$import_concepts_upload_zip, {
-        if (debug) cat(paste0("\n", Sys.time(), " - mod_settings_data_management - input$import_concepts_upload_zip"))
-        r$import_concepts_status_trigger <- Sys.time()
+        if (debug) cat(paste0("\n", now(), " - mod_settings_data_management - input$import_concepts_upload_zip"))
+        r$import_concepts_status_trigger <- now()
       })
       
       observeEvent(input$import_concepts_upload_csv, {
-        if (debug) cat(paste0("\n", Sys.time(), " - mod_settings_data_management - input$import_concepts_upload_csv"))
-        r$import_concepts_status_trigger <- Sys.time()
+        if (debug) cat(paste0("\n", now(), " - mod_settings_data_management - input$import_concepts_upload_csv"))
+        r$import_concepts_status_trigger <- now()
       })
       
       observeEvent(r$import_concepts_status_trigger, {
-        if (debug) cat(paste0("\n", Sys.time(), " - mod_settings_data_management - r$import_concepts_status_trigger"))
+        if (debug) cat(paste0("\n", now(), " - mod_settings_data_management - r$import_concepts_status_trigger"))
         
         result <- div()
         
@@ -3023,7 +3023,7 @@ mod_settings_data_management_server <- function(id = character(), r = shiny::rea
       observeEvent(input$import_concepts_button, {
         
         if (perf_monitoring) monitor_perf(r = r, action = "start")
-        if (debug) cat(paste0("\n", Sys.time(), " - mod_settings_data_management - observer input$import_concepts_button"))
+        if (debug) cat(paste0("\n", now(), " - mod_settings_data_management - observer input$import_concepts_button"))
         
         # Reset count_rows vars
         r$import_concepts_count_rows <- tibble::tibble(table_name = character(), n_rows = integer())
@@ -3033,7 +3033,7 @@ mod_settings_data_management_server <- function(id = character(), r = shiny::rea
             
             # Extract ZIP file
             
-            temp_dir <- paste0(r$app_folder, "/temp_files/", r$user_id, "/vocabularies/", Sys.time() %>% stringr::str_replace_all(":| |-", ""), paste0(sample(c(0:9, letters[1:6]), 24, TRUE), collapse = ''))
+            temp_dir <- paste0(r$app_folder, "/temp_files/", r$user_id, "/vocabularies/", now() %>% stringr::str_replace_all(":| |-", ""), paste0(sample(c(0:9, letters[1:6]), 24, TRUE), collapse = ''))
             zip::unzip(input$import_concepts_upload_zip$datapath, exdir = temp_dir)
             
             csv_files <- zip::zip_list(input$import_concepts_upload_zip$datapath)
@@ -3131,7 +3131,7 @@ mod_settings_data_management_server <- function(id = character(), r = shiny::rea
     
     # Show / hide div
     observeEvent(input$import_concepts_data_type, {
-      if (debug) cat(paste0("\n", Sys.time(), " - mod_settings_data_management - observer input$import_concepts_data_type"))
+      if (debug) cat(paste0("\n", now(), " - mod_settings_data_management - observer input$import_concepts_data_type"))
       
       if (input$import_concepts_data_type == "zip"){
         shinyjs::show("import_concepts_browse_zip")
@@ -3144,12 +3144,12 @@ mod_settings_data_management_server <- function(id = character(), r = shiny::rea
     })
     
     observeEvent(input[[paste0("import_", get_plural(table), "_browse")]], {
-      if (debug) cat(paste0("\n", Sys.time(), " - mod_settings_data_management - observer input$import_.._browse"))
+      if (debug) cat(paste0("\n", now(), " - mod_settings_data_management - observer input$import_.._browse"))
       shinyjs::click(paste0("import_", get_plural(table), "_upload"))
     })
 
     output[[paste0("import_", get_plural(table), "_status")]] <- renderUI({
-      if (debug) cat(paste0("\n", Sys.time(), " - mod_settings_data_management - output$import_.._status"))
+      if (debug) cat(paste0("\n", now(), " - mod_settings_data_management - output$import_.._status"))
 
       tagList(div(
         span(i18n$t("loaded_file"), " : ", style = "padding-top:5px;"),
@@ -3159,7 +3159,7 @@ mod_settings_data_management_server <- function(id = character(), r = shiny::rea
     observeEvent(input[[paste0("import_", get_plural(table), "_button")]], {
 
       if (perf_monitoring) monitor_perf(r = r, action = "start")
-      if (debug) cat(paste0("\n", Sys.time(), " - mod_settings_data_management - observer input$import_.._button"))
+      if (debug) cat(paste0("\n", now(), " - mod_settings_data_management - observer input$import_.._button"))
 
       req(input[[paste0("import_", get_plural(table), "_upload")]])
 
@@ -3167,7 +3167,7 @@ mod_settings_data_management_server <- function(id = character(), r = shiny::rea
 
         # Extract ZIP file
 
-        temp_dir <- paste0(r$app_folder, "/temp_files/", r$user_id, "/", get_plural(table), "/", Sys.time() %>% stringr::str_replace_all(":| |-", ""), paste0(sample(c(0:9, letters[1:6]), 24, TRUE), collapse = ''))
+        temp_dir <- paste0(r$app_folder, "/temp_files/", r$user_id, "/", get_plural(table), "/", now() %>% stringr::str_replace_all(":| |-", ""), paste0(sample(c(0:9, letters[1:6]), 24, TRUE), collapse = ''))
         zip::unzip(input[[paste0("import_", get_plural(table), "_upload")]]$datapath, exdir = temp_dir)
 
         # Read XML file
@@ -3291,7 +3291,7 @@ mod_settings_data_management_server <- function(id = character(), r = shiny::rea
             
             new_options <- new_options %>%
               dplyr::mutate(id = last_row_options + dplyr::row_number(), category = get_singular(table), link_id = new_row, .before = "name") %>%
-              dplyr::mutate(creator_id = r$user_id, datetime = as.character(Sys.time()), deleted = FALSE)
+              dplyr::mutate(creator_id = r$user_id, datetime = now(), deleted = FALSE)
 
             DBI::dbAppendTable(r$db, "options", new_options)
             r$options <- r$options %>% dplyr::bind_rows(new_options)
@@ -3302,7 +3302,7 @@ mod_settings_data_management_server <- function(id = character(), r = shiny::rea
 
             new_code <- tibble::tribble(
               ~id, ~category, ~link_id, ~code, ~creator_id, ~datetime, ~deleted,
-              last_row_code + 1, get_singular(table), new_row, dataset_or_vocab$code, r$user_id, as.character(Sys.time()), FALSE)
+              last_row_code + 1, get_singular(table), new_row, dataset_or_vocab$code, r$user_id, now(), FALSE)
 
             DBI::dbAppendTable(r$db, "code", new_code)
             r$code <- r$code %>% dplyr::bind_rows(new_code)
@@ -3364,7 +3364,7 @@ mod_settings_data_management_server <- function(id = character(), r = shiny::rea
       
       # Show / hide divs
       observeEvent(input$export_vocabulary_current_tab, {
-        if (debug) cat(paste0("\n", Sys.time(), " - mod_settings_data_management - observer input$export_vocabulary_current_tab"))
+        if (debug) cat(paste0("\n", now(), " - mod_settings_data_management - observer input$export_vocabulary_current_tab"))
         
         if (input$export_vocabulary_current_tab == "vocabulary"){
           shinyjs::show("export_vocabulary_div")
@@ -3379,7 +3379,7 @@ mod_settings_data_management_server <- function(id = character(), r = shiny::rea
       # When add button is clicked
       observeEvent(input$export_concepts_add_item, {
         
-        if (debug) cat(paste0("\n", Sys.time(), " - mod_settings_data_management - observer input$export_concepts_add_item"))
+        if (debug) cat(paste0("\n", now(), " - mod_settings_data_management - observer input$export_concepts_add_item"))
         
         link_id <- as.integer(substr(input$export_concepts_add_item, nchar("export_concepts_add_item_") + 1, nchar(input$export_concepts_add_item)))
         
@@ -3400,7 +3400,7 @@ mod_settings_data_management_server <- function(id = character(), r = shiny::rea
       # When dropdown is modified
       observeEvent(input$concepts_vocabularies_to_export_trigger, {
         
-        if (debug) cat(paste0("\n", Sys.time(), " - mod_settings_data_management - observer input$concepts_vocabularies_to_export_trigger"))
+        if (debug) cat(paste0("\n", now(), " - mod_settings_data_management - observer input$concepts_vocabularies_to_export_trigger"))
         
         r$export_concepts_vocabularies_selected <- r$export_concepts_vocabularies_selected %>% dplyr::filter(id %in% input$concepts_vocabularies_to_export)
         
@@ -3412,7 +3412,7 @@ mod_settings_data_management_server <- function(id = character(), r = shiny::rea
       # Export datasets or vocabularies
       observeEvent(input$export_selected_concepts, {
         
-        if (debug) cat(paste0("\n", Sys.time(), " - mod_settings_data_management - observer input$export_selected_concepts"))
+        if (debug) cat(paste0("\n", now(), " - mod_settings_data_management - observer input$export_selected_concepts"))
         
         req(nrow(r$export_concepts_vocabularies_selected) > 0)
         req(length(input$concepts_tables_to_export) > 0)
@@ -3422,17 +3422,17 @@ mod_settings_data_management_server <- function(id = character(), r = shiny::rea
       output$export_concepts_download <- downloadHandler(
         
         filename = function() paste0("linkr_export_vocabularies_concepts_",
-          Sys.time() %>% stringr::str_replace_all(" ", "_") %>% stringr::str_replace_all(":", "_") %>% as.character(), ".zip"),
+          now() %>% stringr::str_replace_all(" ", "_") %>% stringr::str_replace_all(":", "_") %>% as.character(), ".zip"),
         
         content = function(file){
           
           if (perf_monitoring) monitor_perf(r = r, action = "start")
-          if (debug) cat(paste0("\n", Sys.time(), " - mod_settings_data_management - output$export_concepts_download"))
+          if (debug) cat(paste0("\n", now(), " - mod_settings_data_management - output$export_concepts_download"))
           
           owd <- setwd(tempdir())
           on.exit(setwd(owd))
           
-          temp_dir <- paste0(r$app_folder, "/temp_files/", r$user_id, "/vocabularies/", Sys.time() %>% stringr::str_replace_all(":| |-", ""), paste0(sample(c(0:9, letters[1:6]), 24, TRUE), collapse = ''))
+          temp_dir <- paste0(r$app_folder, "/temp_files/", r$user_id, "/vocabularies/", now() %>% stringr::str_replace_all(":| |-", ""), paste0(sample(c(0:9, letters[1:6]), 24, TRUE), collapse = ''))
           dir.create(temp_dir, recursive = TRUE)
           
           vocabularies_ids <- r$export_concepts_vocabularies_selected %>% dplyr::pull(vocabulary_id)
@@ -3507,7 +3507,7 @@ mod_settings_data_management_server <- function(id = character(), r = shiny::rea
       # When add button is clicked
       observeEvent(input$add_item, {
         
-        if (debug) cat(paste0("\n", Sys.time(), " - mod_settings_data_management - observer input$add_item"))
+        if (debug) cat(paste0("\n", now(), " - mod_settings_data_management - observer input$add_item"))
         
         # Get ID of selected dataset or vocabulary
         link_id <- as.integer(substr(input$add_item, nchar("add_item_") + 1, nchar(input$add_item)))
@@ -3534,7 +3534,7 @@ mod_settings_data_management_server <- function(id = character(), r = shiny::rea
       # When dropdown is modified
       observeEvent(input[[paste0(get_plural(table), "_to_export_trigger")]], {
         
-        if (debug) cat(paste0("\n", Sys.time(), " - mod_settings_data_management - observer input$.._to_export"))
+        if (debug) cat(paste0("\n", now(), " - mod_settings_data_management - observer input$.._to_export"))
 
         r[[paste0("export_", get_plural(table), "_selected")]] <- r[[paste0("export_", get_plural(table), "_selected")]] %>%
           dplyr::filter(id %in% input[[paste0(get_plural(table), "_to_export")]])
@@ -3549,7 +3549,7 @@ mod_settings_data_management_server <- function(id = character(), r = shiny::rea
       # Export datasets or vocabularies
       observeEvent(input[[paste0("export_selected_", get_plural(table))]], {
 
-        if (debug) cat(paste0("\n", Sys.time(), " - mod_settings_data_management - observer input$export_selected_.."))
+        if (debug) cat(paste0("\n", now(), " - mod_settings_data_management - observer input$export_selected_.."))
 
         req(nrow(r[[paste0("export_", get_plural(table), "_selected")]]) > 0)
 
@@ -3559,17 +3559,17 @@ mod_settings_data_management_server <- function(id = character(), r = shiny::rea
       output[[paste0("export_", get_plural(table), "_download")]] <- downloadHandler(
 
         filename = function() paste0("linkr_export_", get_plural(table), "_",
-          Sys.time() %>% stringr::str_replace_all(" ", "_") %>% stringr::str_replace_all(":", "_") %>% as.character(), ".zip"),
+          now() %>% stringr::str_replace_all(" ", "_") %>% stringr::str_replace_all(":", "_") %>% as.character(), ".zip"),
 
         content = function(file){
 
           if (perf_monitoring) monitor_perf(r = r, action = "start")
-          if (debug) cat(paste0("\n", Sys.time(), " - mod_settings_data_management - output$export_.._download"))
+          if (debug) cat(paste0("\n", now(), " - mod_settings_data_management - output$export_.._download"))
           
           owd <- setwd(tempdir())
           on.exit(setwd(owd))
 
-          temp_dir <- paste0(r$app_folder, "/temp_files/", r$user_id, "/", get_plural(table), "/", Sys.time() %>% stringr::str_replace_all(":| |-", ""), paste0(sample(c(0:9, letters[1:6]), 24, TRUE), collapse = ''))
+          temp_dir <- paste0(r$app_folder, "/temp_files/", r$user_id, "/", get_plural(table), "/", now() %>% stringr::str_replace_all(":| |-", ""), paste0(sample(c(0:9, letters[1:6]), 24, TRUE), collapse = ''))
           dir.create(temp_dir, recursive = TRUE)
 
           for (dataset_or_vocab_id in r[[paste0("export_", get_plural(table), "_selected")]] %>% dplyr::pull(id)){

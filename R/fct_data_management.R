@@ -75,7 +75,7 @@ add_persons_to_subset <- function(output, r = shiny::reactiveValues(), m = shiny
     tryCatch({
       last_id <- DBI::dbGetQuery(m$db, "SELECT COALESCE(MAX(id), 0) FROM subset_persons") %>% dplyr::pull()
       other_cols <- tibble::tibble(
-        id = 1:nrow(persons) + last_id, subset_id = subset_id, creator_id = m$user_id, datetime = as.character(Sys.time()), deleted = FALSE
+        id = 1:nrow(persons) + last_id, subset_id = subset_id, creator_id = m$user_id, datetime = now(), deleted = FALSE
       )
       persons <- persons %>% dplyr::bind_cols(other_cols) %>% dplyr::relocate(person_id, .after = "subset_id")
       DBI::dbAppendTable(m$db, "subset_persons", persons)

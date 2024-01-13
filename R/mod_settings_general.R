@@ -81,7 +81,7 @@ mod_settings_general_server <- function(id = character(), r = shiny::reactiveVal
   moduleServer(id, function(input, output, session){
     ns <- session$ns
     
-    if (debug) cat(paste0("\n", Sys.time(), " - mod_settings_general - start"))
+    if (debug) cat(paste0("\n", now(), " - mod_settings_general - start"))
     
     # --- --- --- --- --- ---
     # Show or hide cards ----
@@ -113,7 +113,7 @@ mod_settings_general_server <- function(id = character(), r = shiny::reactiveVal
     })
     
     # observeEvent(shiny.router::get_page(), {
-    #   if (debug) cat(paste0("\n", Sys.time(), " - mod_settings_general - ", id, " - observer shiny_router::change_page"))
+    #   if (debug) cat(paste0("\n", now(), " - mod_settings_general - ", id, " - observer shiny_router::change_page"))
     # 
     #   # Close help pages when page changes
     #   r$help_settings_general_open_panel <- FALSE
@@ -121,7 +121,7 @@ mod_settings_general_server <- function(id = character(), r = shiny::reactiveVal
     # })
     
     sapply(1:10, function(i){
-      observeEvent(input[[paste0("help_page_", i)]], r[[paste0("help_settings_general_page_", i)]] <- Sys.time())
+      observeEvent(input[[paste0("help_page_", i)]], r[[paste0("help_settings_general_page_", i)]] <- now())
     })
     
     help_settings_general(output = output, r = r, id = id, language = language, i18n = i18n, ns = ns)
@@ -132,7 +132,7 @@ mod_settings_general_server <- function(id = character(), r = shiny::reactiveVal
     
     observeEvent(input$save, {
       
-      if (debug) cat(paste0("\n", Sys.time(), " - mod_settings_general - observer input$save"))
+      if (debug) cat(paste0("\n", now(), " - mod_settings_general - observer input$save"))
       
       # Check if textfields are not empty
       
@@ -198,19 +198,19 @@ mod_settings_general_server <- function(id = character(), r = shiny::reactiveVal
     # --- --- --- --- --- -
     
     observeEvent(r$db, {
-      if (debug) cat(paste0("\n", Sys.time(), " - mod_settings_general - observer r$db"))
+      if (debug) cat(paste0("\n", now(), " - mod_settings_general - observer r$db"))
       
       sql <- glue::glue_sql("SELECT * FROM options WHERE category = 'python_config' AND name = 'python_path'")
       python_path <- DBI::dbGetQuery(r$db, sql) %>% dplyr::pull(value)
       
       shiny.fluent::updateTextField.shinyInput(session, "python_path", value = python_path)
       
-      r$python_path_trigger <- Sys.time()
+      r$python_path_trigger <- now()
     })
     
     observeEvent(input$test_python_path, {
       
-      if (debug) cat(paste0("\n", Sys.time(), " - mod_settings_general - observer input$test_python_path"))
+      if (debug) cat(paste0("\n", now(), " - mod_settings_general - observer input$test_python_path"))
       
       success <- FALSE
       error_message <- ""
@@ -227,7 +227,7 @@ mod_settings_general_server <- function(id = character(), r = shiny::reactiveVal
     
     observeEvent(input$save_python_path, {
       
-      if (debug) cat(paste0("\n", Sys.time(), " - mod_settings_general - observer input$save_python_path"))
+      if (debug) cat(paste0("\n", now(), " - mod_settings_general - observer input$save_python_path"))
       
       sql <- glue::glue_sql("DELETE FROM options WHERE category = 'python_config' AND name = 'python_path'", .con = r$db)
       query <- DBI::dbSendStatement(r$db, sql)
@@ -235,12 +235,12 @@ mod_settings_general_server <- function(id = character(), r = shiny::reactiveVal
       
       new_row <- tibble::tibble(id = get_last_row(r$db, "options") + 1, category = "python_config", link_id = NA_integer_,
         name = "python_path", value = input$python_path, value_num = NA_integer_, creator_id = r$user_id, 
-        datetime = as.character(Sys.time()), deleted = FALSE)
+        datetime = now(), deleted = FALSE)
       DBI::dbAppendTable(r$db, "options", new_row)
       
       show_message_bar(output, message = "modif_saved", type = "success", i18n = i18n, ns = ns)
       
-      r$python_path_trigger <- Sys.time()
+      r$python_path_trigger <- now()
     })
   })
 }

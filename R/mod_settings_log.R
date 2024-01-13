@@ -63,7 +63,7 @@ mod_settings_log_server <- function(id = character(), r = shiny::reactiveValuess
     })
     
     # observeEvent(shiny.router::get_page(), {
-    #   if (debug) cat(paste0("\n", Sys.time(), " - mod_settings_log - ", id, " - observer shiny_router::change_page"))
+    #   if (debug) cat(paste0("\n", now(), " - mod_settings_log - ", id, " - observer shiny_router::change_page"))
     # 
     #   # Close help pages when page changes
     #   r$help_settings_log_open_panel <- FALSE
@@ -71,7 +71,7 @@ mod_settings_log_server <- function(id = character(), r = shiny::reactiveValuess
     # })
     
     sapply(1:10, function(i){
-      observeEvent(input[[paste0("help_page_", i)]], r[[paste0("help_settings_log_page_", i)]] <- Sys.time())
+      observeEvent(input[[paste0("help_page_", i)]], r[[paste0("help_settings_log_page_", i)]] <- now())
     })
     
     help_settings_log(output = output, r = r, id = id, language = language, i18n = i18n, ns = ns)
@@ -80,7 +80,7 @@ mod_settings_log_server <- function(id = character(), r = shiny::reactiveValuess
     # Log ----
     # --- -- -
     
-    if (debug) cat(paste0("\n", Sys.time(), " - mod_settings_log - start"))
+    if (debug) cat(paste0("\n", now(), " - mod_settings_log - start"))
 
     if ("log" %in% r$user_accesses & ("all_users" %in% r$user_accesses | "only_me" %in% r$user_accesses)){
       
@@ -102,7 +102,7 @@ mod_settings_log_server <- function(id = character(), r = shiny::reactiveValuess
     output$main <- renderUI({
       
       if (perf_monitoring) monitor_perf(r = r, action = "start")
-      if (debug) cat(paste0("\n", Sys.time(), " - mod_settings_log - output$main"))
+      if (debug) cat(paste0("\n", now(), " - mod_settings_log - output$main"))
       
       result <- ""
       
@@ -164,7 +164,7 @@ mod_settings_log_server <- function(id = character(), r = shiny::reactiveValuess
     observeEvent(input$reload_log, {
       
       if (perf_monitoring) monitor_perf(r = r, action = "start")
-      if (debug) cat(paste0("\n", Sys.time(), " - mod_settings_log - observer input$reload_log"))
+      if (debug) cat(paste0("\n", now(), " - mod_settings_log - observer input$reload_log"))
       
       r$log <- tibble::tibble()
       
@@ -204,7 +204,7 @@ mod_settings_log_server <- function(id = character(), r = shiny::reactiveValuess
     
     # Show / hide people picker div
     observeEvent(input$see_log_of, {
-      if (debug) cat(paste0("\n", Sys.time(), " - mod_settings_log - observer input$see_log_of"))
+      if (debug) cat(paste0("\n", now(), " - mod_settings_log - observer input$see_log_of"))
       
       if (input$see_log_of == "only_me") shinyjs::hide("log_users_div")
       else if (input$see_log_of == "people_picker") shinyjs::show("log_users_div")
@@ -214,7 +214,7 @@ mod_settings_log_server <- function(id = character(), r = shiny::reactiveValuess
     
     observeEvent(input$log_datatable_rows_selected, {
       
-      if (debug) cat(paste0("\n", Sys.time(), " - mod_settings_log - observer input$log_datatable_rows_selected"))
+      if (debug) cat(paste0("\n", now(), " - mod_settings_log - observer input$log_datatable_rows_selected"))
       
       output$log_details <- renderText({
         paste0(

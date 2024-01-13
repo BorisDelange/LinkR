@@ -152,7 +152,7 @@ mod_messages_server <- function(id = character(), r = shiny::reactiveValues(), d
   moduleServer(id, function(input, output, session){
     ns <- session$ns
     
-    if (debug) cat(paste0("\n", Sys.time(), " - mod_messages - start"))
+    if (debug) cat(paste0("\n", now(), " - mod_messages - start"))
     
     sapply(1:20, function(i) observeEvent(input[[paste0("close_message_bar_", i)]], shinyjs::hide(paste0("message_bar", i))))
     
@@ -188,7 +188,7 @@ mod_messages_server <- function(id = character(), r = shiny::reactiveValues(), d
     })
     
     # observeEvent(shiny.router::get_page(), {
-    #   if (debug) cat(paste0("\n", Sys.time(), " - mod_messages - ", id, " - observer shiny_router::change_page"))
+    #   if (debug) cat(paste0("\n", now(), " - mod_messages - ", id, " - observer shiny_router::change_page"))
     # 
     #   # Close help pages when page changes
     #   r$help_messages_open_panel <- FALSE
@@ -196,12 +196,12 @@ mod_messages_server <- function(id = character(), r = shiny::reactiveValues(), d
     # })
     
     sapply(1:10, function(i){
-      observeEvent(input[[paste0("help_page_", i)]], r[[paste0("help_messages_page_", i)]] <- Sys.time())
+      observeEvent(input[[paste0("help_page_", i)]], r[[paste0("help_messages_page_", i)]] <- now())
     })
     
     help_messages(output = output, r = r, id = id, language = language, i18n = i18n, ns = ns)
     
-    observeEvent(input$copy_code_1, r$help_messages_copy_code_1 <- Sys.time())
+    observeEvent(input$copy_code_1, r$help_messages_copy_code_1 <- now())
     
     # --- --- --- --- --- --- --- --
     # When a dataset is selected ----
@@ -210,7 +210,7 @@ mod_messages_server <- function(id = character(), r = shiny::reactiveValues(), d
     observeEvent(r$selected_dataset, {
       
       if (perf_monitoring) monitor_perf(r = r, action = "start")
-      if (debug) cat(paste0("\n", Sys.time(), " - mod_messages - observer r$selected_dataset"))
+      if (debug) cat(paste0("\n", now(), " - mod_messages - observer r$selected_dataset"))
       
       # Show first card & hide "choose a dataset" card
       shinyjs::hide("choose_a_dataset_card")
@@ -243,7 +243,7 @@ mod_messages_server <- function(id = character(), r = shiny::reactiveValues(), d
     
     observeEvent(m$selected_study, {
       
-      if (debug) cat(paste0("\n", Sys.time(), " - mod_messages - observer r$selected_study"))
+      if (debug) cat(paste0("\n", now(), " - mod_messages - observer r$selected_study"))
       
       req(!is.na(m$selected_study))
       # Show first card & hide "choose a dataset" card
@@ -271,7 +271,7 @@ mod_messages_server <- function(id = character(), r = shiny::reactiveValues(), d
       observeEvent(m$selected_study, {
         
         if (perf_monitoring) monitor_perf(r = r, action = "start")
-        if (debug) cat(paste0("\n", Sys.time(), " - mod_messages - observer m$selected_study"))
+        if (debug) cat(paste0("\n", now(), " - mod_messages - observer m$selected_study"))
 
         req(!is.na(m$selected_study))
         
@@ -313,7 +313,7 @@ mod_messages_server <- function(id = character(), r = shiny::reactiveValues(), d
         r$study_conversations_temp <- r$study_conversations %>% dplyr::mutate(modified = FALSE)
         
         r$study_reload_conversations_datatable_clear_selection <- "all"
-        r$study_reload_conversations_datatable <- Sys.time()
+        r$study_reload_conversations_datatable <- now()
         
         if (perf_monitoring) monitor_perf(r = r, action = "stop", task = paste0("mod_messages - observer m$selected_study"))
       })
@@ -330,7 +330,7 @@ mod_messages_server <- function(id = character(), r = shiny::reactiveValues(), d
       
       observeEvent(r$study_reload_conversations_datatable, {
         
-        if (debug) cat(paste0("\n", Sys.time(), " - mod_messages - observer r$study_reload_conversations_datatable"))
+        if (debug) cat(paste0("\n", now(), " - mod_messages - observer r$study_reload_conversations_datatable"))
         
         # Render datatable
         if (length(r$study_conversations_datatable_proxy) == 0){
@@ -353,7 +353,7 @@ mod_messages_server <- function(id = character(), r = shiny::reactiveValues(), d
       observe({
         
         # if (perf_monitoring) monitor_perf(r = r, action = "start")
-        if (debug) cat(paste0("\n", Sys.time(), " - mod_messages - observer to update messages"))
+        if (debug) cat(paste0("\n", now(), " - mod_messages - observer to update messages"))
         
         messages_timer()
         req(!is.na(m$selected_study))
@@ -398,9 +398,9 @@ mod_messages_server <- function(id = character(), r = shiny::reactiveValues(), d
           r$study_reload_conversations_datatable_clear_selection <- "all"
           
           # Reload datatable
-          r$study_reload_conversations_datatable <- Sys.time()
+          r$study_reload_conversations_datatable <- now()
           
-          r$study_reload_conversation <- Sys.time()
+          r$study_reload_conversation <- now()
           r$study_reload_conversation_type <- "refresh_conversation"
         }
         
@@ -415,7 +415,7 @@ mod_messages_server <- function(id = character(), r = shiny::reactiveValues(), d
       
       output$conversation_delete_confirm <- shiny.fluent::renderReact({
         
-        if (debug) cat(paste0("\n", Sys.time(), " - mod_messages - output$conversation_delete_confirm"))
+        if (debug) cat(paste0("\n", now(), " - mod_messages - output$conversation_delete_confirm"))
         
         shiny.fluent::Dialog(
           hidden = !r$study_delete_conversation_open_dialog,
@@ -436,11 +436,11 @@ mod_messages_server <- function(id = character(), r = shiny::reactiveValues(), d
       
       # Whether to close or not delete dialog box
       observeEvent(input$study_delete_conversation_hide_dialog, {
-        if (debug) cat(paste0("\n", Sys.time(), " - mod_messages - observer input$study_delete_conversation_hide_dialog"))
+        if (debug) cat(paste0("\n", now(), " - mod_messages - observer input$study_delete_conversation_hide_dialog"))
         r$study_delete_conversation_open_dialog <- FALSE 
       })
       observeEvent(input$study_delete_conversation_delete_canceled, {
-        if (debug) cat(paste0("\n", Sys.time(), " - mod_messages - observer input$study_delete_conversation_delete_canceled"))
+        if (debug) cat(paste0("\n", now(), " - mod_messages - observer input$study_delete_conversation_delete_canceled"))
         r$study_delete_conversation_open_dialog <- FALSE
       })
       
@@ -448,13 +448,13 @@ mod_messages_server <- function(id = character(), r = shiny::reactiveValues(), d
       
       observeEvent(input$study_delete_conversation_delete_confirmed, {
         
-        if (debug) cat(paste0("\n", Sys.time(), " - mod_messages - observer input$study_delete_conversation_delete_confirmed"))
+        if (debug) cat(paste0("\n", now(), " - mod_messages - observer input$study_delete_conversation_delete_confirmed"))
         
         link_id <- substr(input$conversation_deletion, nchar(paste0(id, "-delete_conversation_")) + 1, nchar(input$conversation_deletion)) %>% as.integer()
         
         new_data <- tibble::tibble(
           id = get_last_row(r$db, "user_deleted_conversations") + 1, conversation_id = link_id,
-          user_id = r$user_id, datetime = as.character(Sys.time()))
+          user_id = r$user_id, datetime = now())
         DBI::dbAppendTable(r$db, "user_deleted_conversations", new_data)
         
         r$study_conversations <- r$study_conversations %>% dplyr::filter(conversation_id != link_id)
@@ -462,7 +462,7 @@ mod_messages_server <- function(id = character(), r = shiny::reactiveValues(), d
         
         r$study_delete_conversation_open_dialog <- FALSE
         
-        r$study_reload_conversations_datatable <- Sys.time()
+        r$study_reload_conversations_datatable <- now()
         
         output$conversation_object <- renderUI("")
         output$selected_conversation <- renderUI("")
@@ -470,7 +470,7 @@ mod_messages_server <- function(id = character(), r = shiny::reactiveValues(), d
       })
       
       observeEvent(input$conversation_deletion, {
-        if (debug) cat(paste0("\n", Sys.time(), " - mod_messages - observer input$conversation_deletion"))
+        if (debug) cat(paste0("\n", now(), " - mod_messages - observer input$conversation_deletion"))
         r$study_delete_conversation_open_dialog <- TRUE
       })
       
@@ -482,7 +482,7 @@ mod_messages_server <- function(id = character(), r = shiny::reactiveValues(), d
       
       output$message_delete_confirm <- shiny.fluent::renderReact({
         
-        if (debug) cat(paste0("\n", Sys.time(), " - mod_messages - output$message_delete_confirm"))
+        if (debug) cat(paste0("\n", now(), " - mod_messages - output$message_delete_confirm"))
         
         shiny.fluent::Dialog(
           hidden = !r$study_delete_message_open_dialog,
@@ -503,11 +503,11 @@ mod_messages_server <- function(id = character(), r = shiny::reactiveValues(), d
       
       # Whether to close or not delete dialog box
       observeEvent(input$study_delete_message_hide_dialog, {
-        if (debug) cat(paste0("\n", Sys.time(), " - mod_messages - observer input$study_delete_message_hide_dialog"))
+        if (debug) cat(paste0("\n", now(), " - mod_messages - observer input$study_delete_message_hide_dialog"))
         r$study_delete_message_open_dialog <- FALSE 
       })
       observeEvent(input$study_delete_message_delete_canceled, {
-        if (debug) cat(paste0("\n", Sys.time(), " - mod_messages - observer input$study_delete_message_delete_canceled"))
+        if (debug) cat(paste0("\n", now(), " - mod_messages - observer input$study_delete_message_delete_canceled"))
         r$study_delete_message_open_dialog <- FALSE
       })
       
@@ -515,7 +515,7 @@ mod_messages_server <- function(id = character(), r = shiny::reactiveValues(), d
       
       observeEvent(input$study_delete_message_delete_confirmed, {
         
-        if (debug) cat(paste0("\n", Sys.time(), " - mod_messages - observer input$study_delete_message_delete_confirmed"))
+        if (debug) cat(paste0("\n", now(), " - mod_messages - observer input$study_delete_message_delete_confirmed"))
         
         link_id <- substr(input$message_deletion, nchar(paste0(id, "-delete_message_")) + 1, nchar(input$message_deletion)) %>% as.integer()
         print(link_id)
@@ -530,12 +530,12 @@ mod_messages_server <- function(id = character(), r = shiny::reactiveValues(), d
         r$study_delete_message_open_dialog <- FALSE
         
         # Reload conversation
-        r$study_reload_conversation <- Sys.time()
+        r$study_reload_conversation <- now()
         r$study_reload_conversation_type <- "refresh_conversation"
       })
       
       observeEvent(input$message_deletion, {
-        if (debug) cat(paste0("\n", Sys.time(), " - mod_messages - observer input$message_deletion"))
+        if (debug) cat(paste0("\n", now(), " - mod_messages - observer input$message_deletion"))
         r$study_delete_message_open_dialog <- TRUE
       })
       
@@ -545,11 +545,11 @@ mod_messages_server <- function(id = character(), r = shiny::reactiveValues(), d
       
       observeEvent(input$study_conversations_rows_selected, {
         
-        if (debug) cat(paste0("\n", Sys.time(), " - mod_messages - observer input$study_conversations_rows_selected"))
+        if (debug) cat(paste0("\n", now(), " - mod_messages - observer input$study_conversations_rows_selected"))
 
         # Show conversation messages
         
-        r$study_reload_conversation <- Sys.time()
+        r$study_reload_conversation <- now()
         r$study_reload_conversation_type <- "select_conversation"
         r$study_selected_conversation <- r$study_conversations_temp[input$study_conversations_rows_selected, ]
         
@@ -562,13 +562,13 @@ mod_messages_server <- function(id = character(), r = shiny::reactiveValues(), d
         
         # Reload datatable
         r$study_reload_conversations_datatable_clear_selection <- "none"
-        r$study_reload_conversations_datatable <- Sys.time()
+        r$study_reload_conversations_datatable <- now()
       })
 
       observeEvent(r$study_reload_conversation, {
         
         if (perf_monitoring) monitor_perf(r = r, action = "start")
-        if (debug) cat(paste0("\n", Sys.time(), " - mod_messages - observer r$study_reload_conversation"))
+        if (debug) cat(paste0("\n", now(), " - mod_messages - observer r$study_reload_conversation"))
 
         req(r$study_selected_conversation)
         
@@ -697,7 +697,7 @@ mod_messages_server <- function(id = character(), r = shiny::reactiveValues(), d
         if (nrow(has_inbox_messages) == 0){
           new_data <- conversation_messages %>% dplyr::select(message_id = id) %>%
             dplyr::mutate(id = 1:dplyr::n() + get_last_row(r$db, "inbox_messages"), .before = "message_id") %>%
-            dplyr::mutate(receiver_id = r$user_id, read = TRUE, datetime = as.character(Sys.time()), deleted = FALSE)
+            dplyr::mutate(receiver_id = r$user_id, read = TRUE, datetime = now(), deleted = FALSE)
           DBI::dbAppendTable(r$db, "inbox_messages", new_data)
         }
         
@@ -722,7 +722,7 @@ mod_messages_server <- function(id = character(), r = shiny::reactiveValues(), d
       # --- --- --- --- -
       
       observeEvent(input$messages_current_tab, {
-        if (debug) cat(paste0("\n", Sys.time(), " - mod_messages - observer input$messages_current_tab"))
+        if (debug) cat(paste0("\n", now(), " - mod_messages - observer input$messages_current_tab"))
         if (input$messages_current_tab == "new_conversation") shinyjs::runjs(sprintf("document.getElementById('%s').focus();", session$ns("new_conversation_name")))
         if (input$messages_current_tab == "all_messages"){
           shinyjs::show("all_messages_div")
@@ -735,7 +735,7 @@ mod_messages_server <- function(id = character(), r = shiny::reactiveValues(), d
       })
 
       observeEvent(input$conversation_new_message, {
-        if (debug) cat(paste0("\n", Sys.time(), " - mod_messages - observer input$conversation_new_message"))
+        if (debug) cat(paste0("\n", now(), " - mod_messages - observer input$conversation_new_message"))
         sapply(c("new_message_text_div_1", "new_message_text_div_2", "conversation_hide_new_message_div"), function(name) shinyjs::show(name))
         shinyjs::hide("conversation_new_message")
         
@@ -744,7 +744,7 @@ mod_messages_server <- function(id = character(), r = shiny::reactiveValues(), d
       })
 
       observeEvent(input$conversation_hide_new_message, {
-        if (debug) cat(paste0("\n", Sys.time(), " - mod_messages - observer input$conversation_hide_new_message"))
+        if (debug) cat(paste0("\n", now(), " - mod_messages - observer input$conversation_hide_new_message"))
         sapply(c("new_message_text_div_1", "new_message_text_div_2", "conversation_hide_new_message_div"), function(name) shinyjs::hide(name))
         shinyjs::show("conversation_new_message")
       })
@@ -754,21 +754,21 @@ mod_messages_server <- function(id = character(), r = shiny::reactiveValues(), d
       # --- --- --- --- --- --- --- --- --- --- -- -
 
       observeEvent(input$preview_new_conversation, {
-        if (debug) cat(paste0("\n", Sys.time(), " - mod_messages - observer input$preview_new_conversation"))
-        r$study_preview_trigger <- Sys.time()
+        if (debug) cat(paste0("\n", now(), " - mod_messages - observer input$preview_new_conversation"))
+        r$study_preview_trigger <- now()
         r$study_preview_type <- "conversation"
       })
 
       observeEvent(input$preview_new_message, {
-        if (debug) cat(paste0("\n", Sys.time(), " - mod_messages - observer input$preview_new_message"))
-        r$study_preview_trigger <- Sys.time()
+        if (debug) cat(paste0("\n", now(), " - mod_messages - observer input$preview_new_message"))
+        r$study_preview_trigger <- now()
         r$study_preview_type <- "message"
       })
 
       observeEvent(r$study_preview_trigger, {
         
         if (perf_monitoring) monitor_perf(r = r, action = "start")
-        if (debug) cat(paste0("\n", Sys.time(), " - mod_messages - observer r$study_preview_trigger"))
+        if (debug) cat(paste0("\n", now(), " - mod_messages - observer r$study_preview_trigger"))
 
         req(r$study_preview_type %in% c("message", "conversation"))
 
@@ -800,7 +800,7 @@ mod_messages_server <- function(id = character(), r = shiny::reactiveValues(), d
 
             # Create temp dir
             dir <- paste0(r$app_folder, "/temp_files/", r$user_id, "/markdowns")
-            new_file <- paste0(dir, "/", paste0(sample(c(0:9, letters[1:6]), 8, TRUE), collapse = ''), "_", as.character(Sys.time()) %>% stringr::str_replace_all(":", "_"), ".Md")
+            new_file <- paste0(dir, "/", paste0(sample(c(0:9, letters[1:6]), 8, TRUE), collapse = ''), "_", now() %>% stringr::str_replace_all(":", "_"), ".Md")
             if (!dir.exists(dir)) dir.create(dir)
 
             # Variables to hide
@@ -820,7 +820,7 @@ mod_messages_server <- function(id = character(), r = shiny::reactiveValues(), d
             output[[paste0("new_", type, "_preview")]] <- renderUI(
               div(
                 div(
-                  div(paste0(i18n$t("today"), ", ", format(Sys.time(), "%H:%M"))),
+                  div(paste0(i18n$t("today"), ", ", format(now(), "%H:%M"))),
                   style = "font-size:12px; margin-bottom:10px; color:#878787"
                 ),
                 markdown_ui,
@@ -837,7 +837,7 @@ mod_messages_server <- function(id = character(), r = shiny::reactiveValues(), d
           output[[paste0("new_", type, "_preview")]] <- renderUI(
             div(
               div(
-                div(paste0(i18n$t("today"), ", ", format(Sys.time(), "%H:%M"))),
+                div(paste0(i18n$t("today"), ", ", format(now(), "%H:%M"))),
                 style = "font-size:12px; margin-bottom:10px; color:#878787"
               ),
               div(HTML(new_text)),
@@ -854,33 +854,33 @@ mod_messages_server <- function(id = character(), r = shiny::reactiveValues(), d
       # --- --- --- --- --- --- --- --- --- --
 
       observeEvent(input$send_new_conversation, {
-        if (debug) cat(paste0("\n", Sys.time(), " - mod_messages - observer input$send_new_conversation"))
-        r$study_save_message_conversation_trigger <- Sys.time()
+        if (debug) cat(paste0("\n", now(), " - mod_messages - observer input$send_new_conversation"))
+        r$study_save_message_conversation_trigger <- now()
         r$study_save_message_conversation_type <- "conversation"
       })
       
       observeEvent(input$new_conversation_text_run_all, {
-        if (debug) cat(paste0("\n", Sys.time(), " - mod_messages - observer input$new_conversation_text_run_all"))
-        r$study_save_message_conversation_trigger <- Sys.time()
+        if (debug) cat(paste0("\n", now(), " - mod_messages - observer input$new_conversation_text_run_all"))
+        r$study_save_message_conversation_trigger <- now()
         r$study_save_message_conversation_type <- "conversation"
       })
 
       observeEvent(input$send_new_message, {
-        if (debug) cat(paste0("\n", Sys.time(), " - mod_messages - observer input$send_new_message"))
-        r$study_save_message_conversation_trigger <- Sys.time()
+        if (debug) cat(paste0("\n", now(), " - mod_messages - observer input$send_new_message"))
+        r$study_save_message_conversation_trigger <- now()
         r$study_save_message_conversation_type <- "message"
       })
       
       observeEvent(input$new_message_text_run_all, {
-        if (debug) cat(paste0("\n", Sys.time(), " - mod_messages - observer input$new_message_text_run_all"))
-        r$study_save_message_conversation_trigger <- Sys.time()
+        if (debug) cat(paste0("\n", now(), " - mod_messages - observer input$new_message_text_run_all"))
+        r$study_save_message_conversation_trigger <- now()
         r$study_save_message_conversation_type <- "message"
       })
 
       observeEvent(r$study_save_message_conversation_trigger, {
         
         if (perf_monitoring) monitor_perf(r = r, action = "start")
-        if (debug) cat(paste0("\n", Sys.time(), " - mod_messages - observer r$study_save_message_conversation_trigger"))
+        if (debug) cat(paste0("\n", now(), " - mod_messages - observer r$study_save_message_conversation_trigger"))
 
         req(r$study_save_message_conversation_type %in% c("message", "conversation"))
         type <- r$study_save_message_conversation_type
@@ -906,7 +906,7 @@ mod_messages_server <- function(id = character(), r = shiny::reactiveValues(), d
             new_text <- input[[paste0("new_", type, "_text")]] %>% 
               stringr::str_replace_all("\r", "\n")
 
-            unique_id <- paste0(Sys.time() %>% stringr::str_replace_all(":| |-", "") , paste0(sample(c(0:9, letters[1:6]), 24, TRUE), collapse = ''))
+            unique_id <- paste0(now() %>% stringr::str_replace_all(":| |-", "") , paste0(sample(c(0:9, letters[1:6]), 24, TRUE), collapse = ''))
             new_dir <- paste0(r$app_folder, "/messages/", unique_id)
 
             markdown_settings <- paste0("```{r setup, include=FALSE}\n",
@@ -918,7 +918,7 @@ mod_messages_server <- function(id = character(), r = shiny::reactiveValues(), d
             markdown_file <- paste0(markdown_settings, new_text)
 
             # Create new dir
-            new_file <- paste0(new_dir, "/", as.character(Sys.time()) %>% stringr::str_replace_all(":| |-", ""), ".Md")
+            new_file <- paste0(new_dir, "/", now() %>% stringr::str_replace_all(":| |-", ""), ".Md")
             if (!dir.exists(new_dir)) dir.create(new_dir)
             
             # Variables to hide
@@ -960,7 +960,7 @@ mod_messages_server <- function(id = character(), r = shiny::reactiveValues(), d
           # Conversations table
           new_data <- tibble::tribble(
             ~id, ~name, ~datetime, ~deleted,
-            conversation_id, input$new_conversation_name, as.character(Sys.time()), FALSE)
+            conversation_id, input$new_conversation_name, now(), FALSE)
           DBI::dbAppendTable(r$db, "conversations", new_data)
         }
 
@@ -968,13 +968,13 @@ mod_messages_server <- function(id = character(), r = shiny::reactiveValues(), d
         new_data <- tibble::tribble(
           ~id, ~conversation_id, ~study_id, ~category, ~message, ~filepath, ~creator_id, ~datetime, ~deleted,
           new_message_id, conversation_id, m$selected_study, "study_message",
-          new_text, new_file, r$user_id, as.character(Sys.time()), FALSE)
+          new_text, new_file, r$user_id, now(), FALSE)
         DBI::dbAppendTable(r$db, "messages", new_data)
 
         # Inbox_messages table
         new_data <- tibble::tibble(
           id = seq(get_last_row(r$db, "inbox_messages") + 1, get_last_row(r$db, "inbox_messages") + length(receivers_ids), 1),
-          message_id = new_message_id, receiver_id = receivers_ids, read = FALSE, datetime = as.character(Sys.time()), deleted = FALSE) %>%
+          message_id = new_message_id, receiver_id = receivers_ids, read = FALSE, datetime = now(), deleted = FALSE) %>%
           dplyr::mutate(read = dplyr::case_when(receiver_id == r$user_id ~ TRUE, TRUE ~ read))
         DBI::dbAppendTable(r$db, "inbox_messages", new_data)
 
@@ -991,7 +991,7 @@ mod_messages_server <- function(id = character(), r = shiny::reactiveValues(), d
             dplyr::bind_rows(
               tibble::tibble(
                 conversation_id = conversation_id, conversation_name = conversation_name, 
-                datetime = as.character(Sys.time()), unread_messages = 0, action = ""
+                datetime = now(), unread_messages = 0, action = ""
               )
             ) %>%
             dplyr::mutate(
@@ -1004,7 +1004,7 @@ mod_messages_server <- function(id = character(), r = shiny::reactiveValues(), d
           r$study_conversations_temp <- r$study_conversations %>% dplyr::mutate(modified = FALSE)
           
           r$study_reload_conversations_datatable_clear_selection <- "all"
-          r$study_reload_conversations_datatable <- Sys.time()
+          r$study_reload_conversations_datatable <- now()
         }
 
         # Reload conversation
@@ -1013,13 +1013,13 @@ mod_messages_server <- function(id = character(), r = shiny::reactiveValues(), d
           dplyr::bind_rows(
             tibble::tribble(
               ~id, ~conversation_id, ~conversation_name, ~message, ~filepath, ~creator_id, ~datetime, ~read, ~deleted,
-              new_message_id, conversation_id, conversation_name, new_text, new_file, r$user_id, Sys.time(), 0, FALSE
+              new_message_id, conversation_id, conversation_name, new_text, new_file, r$user_id, now(), 0, FALSE
             )
           ) %>%
           dplyr::arrange(dplyr::desc(datetime))
 
         if (type == "message"){
-          r$study_reload_conversation <- Sys.time()
+          r$study_reload_conversation <- now()
           r$study_reload_conversation_type <- "add_message"
         } 
 

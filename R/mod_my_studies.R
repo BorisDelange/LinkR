@@ -293,7 +293,7 @@ mod_my_studies_server <- function(id = character(), r = shiny::reactiveValues(),
   moduleServer(id, function(input, output, session){
     ns <- session$ns
     
-    if (debug) cat(paste0("\n", Sys.time(), " - mod_my_studies - start"))
+    if (debug) cat(paste0("\n", now(), " - mod_my_studies - start"))
     
     sapply(1:20, function(i) observeEvent(input[[paste0("close_message_bar_", i)]], shinyjs::hide(paste0("message_bar", i))))
     
@@ -327,7 +327,7 @@ mod_my_studies_server <- function(id = character(), r = shiny::reactiveValues(),
     })
     
     observeEvent(shiny.router::get_page(), {
-      if (debug) cat(paste0("\n", Sys.time(), " - mod_my_studies - ", id, " - observer shiny_router::change_page"))
+      if (debug) cat(paste0("\n", now(), " - mod_my_studies - ", id, " - observer shiny_router::change_page"))
     # 
     #   # Close help pages when page changes
     #   r$help_my_studies_open_panel <- FALSE
@@ -342,12 +342,12 @@ mod_my_studies_server <- function(id = character(), r = shiny::reactiveValues(),
     })
     
     sapply(1:10, function(i){
-      observeEvent(input[[paste0("help_page_", i)]], r[[paste0("help_my_studies_page_", i)]] <- Sys.time())
+      observeEvent(input[[paste0("help_page_", i)]], r[[paste0("help_my_studies_page_", i)]] <- now())
     })
     
     help_my_studies(output = output, r = r, id = id, language = language, i18n = i18n, ns = ns)
     
-    observeEvent(input$copy_code_1, r$help_my_studies_copy_code_1 <- Sys.time())
+    observeEvent(input$copy_code_1, r$help_my_studies_copy_code_1 <- now())
     
     # --- --- --- --- --- -
     # Update dropdowns ----
@@ -355,14 +355,14 @@ mod_my_studies_server <- function(id = character(), r = shiny::reactiveValues(),
     
     observeEvent(r$studies, {
       
-      if (debug) cat(paste0("\n", Sys.time(), " - mod_my_studies - observer r$studies"))
+      if (debug) cat(paste0("\n", now(), " - mod_my_studies - observer r$studies"))
       
       options <- convert_tibble_to_list(r$studies %>% dplyr::arrange(name), key_col = "id", text_col = "name")
       
       shiny.fluent::updateComboBox.shinyInput(session, "options_selected_study", options = options)
       
-      r$reload_local_studies_datatable <- Sys.time()
-      r$update_remote_git_studies_datatable <- Sys.time()
+      r$reload_local_studies_datatable <- now()
+      r$update_remote_git_studies_datatable <- now()
     })
     
     # --- --- --- --- --- --- --- --
@@ -372,7 +372,7 @@ mod_my_studies_server <- function(id = character(), r = shiny::reactiveValues(),
     observeEvent(r$selected_dataset, {
       
       if (perf_monitoring) monitor_perf(r = r, action = "start")
-      if (debug) cat(paste0("\n", Sys.time(), " - mod_my_studies - observer r$selected_dataset"))
+      if (debug) cat(paste0("\n", now(), " - mod_my_studies - observer r$selected_dataset"))
       
       # Show first card & hide "choose a dataset" card
       if (is.na(r$selected_dataset)){
@@ -436,22 +436,22 @@ mod_my_studies_server <- function(id = character(), r = shiny::reactiveValues(),
         
         # If an error occured
         if (grepl(paste0("\\*\\*", i18n$t("error"), "\\*\\*"), toString(captured_output))){
-          r$show_message_bar <- tibble::tibble(message = "fail_load_dataset", type = "severeWarning", trigger = Sys.time())
+          r$show_message_bar <- tibble::tibble(message = "fail_load_dataset", type = "severeWarning", trigger = now())
           report_bug(r = r, output = output, error_message = "fail_load_dataset",
             error_name = paste0(id, " - run server code"), category = "Error", error_report = toString(captured_output), i18n = i18n)
         }
         else {
-          r$show_message_bar <- tibble::tibble(message = "import_dataset_success", type = "success", trigger = Sys.time())
-          r$load_scripts <- Sys.time() 
+          r$show_message_bar <- tibble::tibble(message = "import_dataset_success", type = "success", trigger = now())
+          r$load_scripts <- now() 
         }
       },
       error = function(e){
-        r$show_message_bar <- tibble::tibble(message = "fail_load_dataset", type = "severeWarning", trigger = Sys.time())
+        r$show_message_bar <- tibble::tibble(message = "fail_load_dataset", type = "severeWarning", trigger = now())
         report_bug(r = r, output = output, error_message = "fail_load_dataset",
           error_name = paste0(id, " - run server code"), category = "Error", error_report = toString(e), i18n = i18n)
       })
       
-      r$reload_studies_datatable <- Sys.time()
+      r$reload_studies_datatable <- now()
       
       if (perf_monitoring) monitor_perf(r = r, action = "stop", task = paste0("mod_my_studies - observer r$selected_dataset"))
     })
@@ -461,7 +461,7 @@ mod_my_studies_server <- function(id = character(), r = shiny::reactiveValues(),
     observeEvent(r$load_scripts, {
       
       if (perf_monitoring) monitor_perf(r = r, action = "start")
-      if (debug) cat(paste0("\n", Sys.time(), " - mod_my_studies - observer r$load_scripts"))
+      if (debug) cat(paste0("\n", now(), " - mod_my_studies - observer r$load_scripts"))
       
       # Try to run the scripts associated with this dataset
       # Save runned scripts and success status
@@ -492,7 +492,7 @@ mod_my_studies_server <- function(id = character(), r = shiny::reactiveValues(),
               # Try to load dataset
               tryCatch(run_dataset_code(output, r = r, d = d, m = m, dataset_id = r$selected_dataset, i18n = i18n),
                 error = function(e){
-                  r$show_message_bar <- tibble::tibble(message = "fail_load_dataset", type = "severeWarning", trigger = Sys.time())
+                  r$show_message_bar <- tibble::tibble(message = "fail_load_dataset", type = "severeWarning", trigger = now())
                   report_bug(r = r, output = output, error_message = "fail_load_dataset",
                     error_name = paste0(id, " - run server code"), category = "Error", error_report = toString(e), i18n = i18n)
                 })
@@ -510,7 +510,7 @@ mod_my_studies_server <- function(id = character(), r = shiny::reactiveValues(),
               script <- scripts[i, ]
               
               r$dataset_loaded_scripts <- r$dataset_loaded_scripts %>% dplyr::bind_rows(
-                tibble::tibble(id = script$id, status = "failure", datetime = as.character(Sys.time())))
+                tibble::tibble(id = script$id, status = "failure", datetime = now()))
               
               # Execute script code
               captured_output <- capture.output(
@@ -521,18 +521,18 @@ mod_my_studies_server <- function(id = character(), r = shiny::reactiveValues(),
                   ))
                 },
                   error = function(e){
-                    # r$show_message_bar <- tibble::tibble(message = "fail_load_scripts", type = "severeWarning", trigger = Sys.time())
+                    # r$show_message_bar <- tibble::tibble(message = "fail_load_scripts", type = "severeWarning", trigger = now())
                     report_bug(r = r, output = output, error_message = "fail_load_scripts",
                       error_name = paste0(id, " - run server code"), category = "Error", error_report = toString(e), i18n = i18n)})
               )
             }
           }
           
-          if (cache_activated) r$reload_scripts_cache <- Sys.time()
+          if (cache_activated) r$reload_scripts_cache <- now()
           else {
             if (nrow(r$dataset_loaded_scripts %>% dplyr::filter(status == "failure")) > 0) r$show_message_bar <- 
-              tibble::tibble(message = "fail_load_scripts", type = "severeWarning", trigger = Sys.time())
-            else r$show_message_bar <- tibble::tibble(message = "run_scripts_success", type = "success", trigger = Sys.time()) 
+              tibble::tibble(message = "fail_load_scripts", type = "severeWarning", trigger = now())
+            else r$show_message_bar <- tibble::tibble(message = "run_scripts_success", type = "success", trigger = now()) 
           }
         }
       }
@@ -545,7 +545,7 @@ mod_my_studies_server <- function(id = character(), r = shiny::reactiveValues(),
     observeEvent(r$reload_scripts_cache, {
       
       if (perf_monitoring) monitor_perf(r = r, action = "start")
-      if (debug) cat(paste0("\n", Sys.time(), " - mod_my_studies - observer r$reload_scripts_cache"))
+      if (debug) cat(paste0("\n", now(), " - mod_my_studies - observer r$reload_scripts_cache"))
       
       req(!is.na(r$selected_dataset))
       
@@ -575,7 +575,7 @@ mod_my_studies_server <- function(id = character(), r = shiny::reactiveValues(),
             if (d[[table]] %>% dplyr::count() %>% dplyr::pull() > 0){
               
               r$dataset_loaded_scripts_cache <- r$dataset_loaded_scripts_cache %>% dplyr::bind_rows(
-                tibble::tibble(table = table, status = "failure", datetime = as.character(Sys.time())))
+                tibble::tibble(table = table, status = "failure", datetime = now()))
               
               # Do the same as when the dataset was loaded : save as CSV if save_as = "csv" for import_dataset ...
               save_as <- r$dataset_loaded_tables %>% dplyr::filter(table == !!table) %>% dplyr::pull(save_as)
@@ -740,15 +740,15 @@ mod_my_studies_server <- function(id = character(), r = shiny::reactiveValues(),
       
       if (nrow(r$dataset_loaded_scripts %>% dplyr::filter(status == "failure")) > 0 |
           nrow(r$dataset_loaded_scripts_cache %>% dplyr::filter(status == "failure")) > 0) r$show_message_bar <- 
-        tibble::tibble(message = "fail_load_scripts", type = "severeWarning", trigger = Sys.time())
-      else r$show_message_bar <- tibble::tibble(message = "run_scripts_success", type = "success", trigger = Sys.time())
+        tibble::tibble(message = "fail_load_scripts", type = "severeWarning", trigger = now())
+      else r$show_message_bar <- tibble::tibble(message = "run_scripts_success", type = "success", trigger = now())
       
       r$force_reload_scripts_cache <- FALSE
-      r$update_scripts_cache_card <- Sys.time()
+      r$update_scripts_cache_card <- now()
       
       # Join d tables with d$dataset_all_concepts
       
-      r$merge_concepts_and_d_vars <- Sys.time()
+      r$merge_concepts_and_d_vars <- now()
       
       if (perf_monitoring) monitor_perf(r = r, action = "stop", task = paste0("mod_my_studies - observer r$reload_scripts_cache"))
     })
@@ -756,10 +756,10 @@ mod_my_studies_server <- function(id = character(), r = shiny::reactiveValues(),
     # Once the dataset is loaded, load studies & scripts
     observeEvent(r$loaded_dataset, {
       
-      if (debug) cat(paste0("\n", Sys.time(), " - mod_my_studies - observer r$loaded_dataset"))
+      if (debug) cat(paste0("\n", now(), " - mod_my_studies - observer r$loaded_dataset"))
       
       # Load studies datatable
-      # r$reload_studies_datatable <- Sys.time()
+      # r$reload_studies_datatable <- now()
       
       # Update dropdown for study options
       options <- convert_tibble_to_list(r$studies %>% dplyr::arrange(name), key_col = "id", text_col = "name")
@@ -772,7 +772,7 @@ mod_my_studies_server <- function(id = character(), r = shiny::reactiveValues(),
     
     observeEvent(m$selected_study, {
       
-      if (debug) cat(paste0("\n", Sys.time(), " - mod_my_studies - observer r$selected_study"))
+      if (debug) cat(paste0("\n", now(), " - mod_my_studies - observer r$selected_study"))
       
       req(!is.na(m$selected_study))
       # Show first card & hide "choose a dataset" card
@@ -830,7 +830,7 @@ mod_my_studies_server <- function(id = character(), r = shiny::reactiveValues(),
       #   
       #   # Create temp dir
       #   dir <- paste0(r$app_folder, "/temp_files/", r$user_id)
-      #   file <- paste0(dir, "/", as.character(Sys.time()) %>% stringr::str_replace_all(":", "_"), ".Md")
+      #   file <- paste0(dir, "/", now() %>% stringr::str_replace_all(":", "_"), ".Md")
       #   if (!dir.exists(dir)) dir.create(dir)
       #   
       #   # Create the markdown file
@@ -886,7 +886,7 @@ mod_my_studies_server <- function(id = character(), r = shiny::reactiveValues(),
     
     # Hide / show div
     observeEvent(input$all_studies_source, {
-      if (debug) cat(paste0("\n", Sys.time(), " - mod_studies - observer input$all_studies_source"))
+      if (debug) cat(paste0("\n", now(), " - mod_studies - observer input$all_studies_source"))
       
       if (input$all_studies_source == "local"){
         shinyjs::show("all_studies_local_div")
@@ -901,14 +901,14 @@ mod_my_studies_server <- function(id = character(), r = shiny::reactiveValues(),
     # Update dropdown of remote git repos
     
     observeEvent(r$git_repos, {
-      if (debug) cat(paste0("\n", Sys.time(), " - mod_studies - observer r$git_repos"))
+      if (debug) cat(paste0("\n", now(), " - mod_studies - observer r$git_repos"))
 
       shiny.fluent::updateDropdown.shinyInput(session, "remote_git_repo",
         options = convert_tibble_to_list(r$git_repos, key_col = "id", text_col = "name"))
     })
     
     observeEvent(r$reload_local_studies_datatable, {
-      if (debug) cat(paste0("\n", Sys.time(), " - mod_studies - observer r$reload_local_studies_datatable"))
+      if (debug) cat(paste0("\n", now(), " - mod_studies - observer r$reload_local_studies_datatable"))
 
       if (nrow(r$studies) == 0) r$local_studies <- tibble::tibble(id = integer(), name = character(), unique_id = character(), description = character(),
         category = character(), author = character(), version = character(), creation_datetime = character(), update_datetime = character())
@@ -951,19 +951,19 @@ mod_my_studies_server <- function(id = character(), r = shiny::reactiveValues(),
     # When a study is selected
     
     observeEvent(input$local_studies_datatable_rows_selected, {
-      if (debug) cat(paste0("\n", Sys.time(), " - mod_studies - observer input$local_studies_datatable_rows_selected"))
-      r$datatable_study_selected <- Sys.time()
+      if (debug) cat(paste0("\n", now(), " - mod_studies - observer input$local_studies_datatable_rows_selected"))
+      r$datatable_study_selected <- now()
       r$datatable_study_selected_type <- "local"
     })
     
     observeEvent(input$remote_git_studies_datatable_rows_selected, {
-      if (debug) cat(paste0("\n", Sys.time(), " - mod_studies - observer input$remote_git_studies_datatable_rows_selected"))
-      r$datatable_study_selected <- Sys.time()
+      if (debug) cat(paste0("\n", now(), " - mod_studies - observer input$remote_git_studies_datatable_rows_selected"))
+      r$datatable_study_selected <- now()
       r$datatable_study_selected_type <- "remote_git"
     })
     
     observeEvent(r$datatable_study_selected, {
-      if (debug) cat(paste0("\n", Sys.time(), " - mod_studies - observer r$datatable_study_selected"))
+      if (debug) cat(paste0("\n", now(), " - mod_studies - observer r$datatable_study_selected"))
 
       type <- r$datatable_study_selected_type
 
@@ -1035,7 +1035,7 @@ mod_my_studies_server <- function(id = character(), r = shiny::reactiveValues(),
 
         # Create temp dir
         dir <- paste0(r$app_folder, "/temp_files/", r$user_id, "/markdowns")
-        file <- paste0(dir, "/", paste0(sample(c(0:9, letters[1:6]), 8, TRUE), collapse = ''), "_", as.character(Sys.time()) %>% stringr::str_replace_all(":", "_") %>% stringr::str_replace_all(" ", "_"), ".Md")
+        file <- paste0(dir, "/", paste0(sample(c(0:9, letters[1:6]), 8, TRUE), collapse = ''), "_", now() %>% stringr::str_replace_all(":", "_") %>% stringr::str_replace_all(" ", "_"), ".Md")
         if (!dir.exists(dir)) dir.create(dir)
 
         shinyjs::show(paste0(type, "_selected_study_markdown_div"))
@@ -1052,7 +1052,7 @@ mod_my_studies_server <- function(id = character(), r = shiny::reactiveValues(),
     # Download studies from repo git
     
     observeEvent(input$remote_git_repo, {
-      if (debug) cat(paste0("\n", Sys.time(), " - mod_studies - observer input$remote_git_repo"))
+      if (debug) cat(paste0("\n", now(), " - mod_studies - observer input$remote_git_repo"))
 
       # Get URL of remote git repo
       raw_files_url_address <- r$git_repos %>% dplyr::filter(id == input$remote_git_repo) %>% dplyr::pull(raw_files_url_address)
@@ -1099,13 +1099,13 @@ mod_my_studies_server <- function(id = character(), r = shiny::reactiveValues(),
             # dplyr::mutate_at(c("creation_datetime", "update_datetime"), format_datetime, language = language, sec = FALSE)
       }
 
-      r$update_remote_git_studies_datatable <- Sys.time()
+      r$update_remote_git_studies_datatable <- now()
     })
     
     # Update remote_git_studies datatable
     
     observeEvent(r$update_remote_git_studies_datatable, {
-      if (debug) cat(paste0("\n", Sys.time(), " - mod_studies - observer r$update_remote_git_studies_datatable"))
+      if (debug) cat(paste0("\n", now(), " - mod_studies - observer r$update_remote_git_studies_datatable"))
 
       req(r$remote_git_studies)
 
@@ -1160,7 +1160,7 @@ mod_my_studies_server <- function(id = character(), r = shiny::reactiveValues(),
     # Download a study from remote git
     
     observeEvent(input$add_remote_git_study, {
-      if (debug) cat(paste0("\n", Sys.time(), " - mod_studies - observer input$add_remote_git_study"))
+      if (debug) cat(paste0("\n", now(), " - mod_studies - observer input$add_remote_git_study"))
 
       unique_id <- substr(input$add_remote_git_study, nchar("add_remote_git_study_") + 1, nchar(input$add_remote_git_study))
 
@@ -1217,7 +1217,7 @@ mod_my_studies_server <- function(id = character(), r = shiny::reactiveValues(),
         new_data$studies <- tibble::tibble(id = link_id, name = study[[paste0("name_", language)]],
           dataset_id = as.integer(r$selected_dataset), patient_lvl_tab_group_id = last_row$tabs_groups + 1, 
           aggregated_tab_group_id = last_row$tabs_groups + 2, creator_id = as.integer(r$user_id),
-          creation_datetime = study$creation_datetime, update_datetime = as.character(Sys.time()), deleted = FALSE)
+          creation_datetime = study$creation_datetime, update_datetime = now(), deleted = FALSE)
 
         for (name in c(paste0("description_", r$languages$code), "code")) study[[name]] <- study[[name]] %>% stringr::str_replace_all("'", "''")
         
@@ -1243,7 +1243,7 @@ mod_my_studies_server <- function(id = character(), r = shiny::reactiveValues(),
               dplyr::select(-code, -language, -col_prefix)
           ) %>%
           dplyr::mutate(id = last_row$options + dplyr::row_number(), category = "study", link_id = !!link_id, .before = "name") %>%
-          dplyr::mutate(creator_id = r$user_id, datetime = as.character(Sys.time()), deleted = FALSE)
+          dplyr::mutate(creator_id = r$user_id, datetime = now(), deleted = FALSE)
         
         print(new_data)
         
@@ -1415,7 +1415,7 @@ mod_my_studies_server <- function(id = character(), r = shiny::reactiveValues(),
         if (update_plugins) data$plugins <- data$plugins %>% dplyr::filter(id %in% new_plugins$id | id %in% more_recent_plugins$id)
         if (!update_plugins) data$plugins <- data$plugins %>% dplyr::filter(id %in% new_plugins$id)
         
-        data$plugins <- data$plugins %>% dplyr::mutate(id = new_id, update_datetime = as.character(Sys.time())) %>% dplyr::select(-new_id)
+        data$plugins <- data$plugins %>% dplyr::mutate(id = new_id, update_datetime = now()) %>% dplyr::select(-new_id)
         
         # Filter options & code on plugins
         data$options <- data$options %>% dplyr::filter(category != "plugin" | (category == "plugin" & link_id %in% data$plugins$id))
@@ -1491,10 +1491,10 @@ mod_my_studies_server <- function(id = character(), r = shiny::reactiveValues(),
         if (study_updated) show_message_bar(output, message = "study_updated", type = "success", i18n = i18n, ns = ns)
         else show_message_bar(output, message = "study_imported", type = "success", i18n = i18n, ns = ns)
 
-        r$update_remote_git_studies_datatable <- Sys.time()
+        r$update_remote_git_studies_datatable <- now()
         
         # Reload datatable
-        r$reload_studies_datatable <- Sys.time()
+        r$reload_studies_datatable <- now()
 
       }, error = function(e) if (nchar(e[1]) > 0) report_bug(r = r, output = output, error_message = "error_install_remote_git_study",
         error_name = paste0("error_install_remote_git_study - id = ", study$unique_id), category = "Error", error_report = toString(e), i18n = i18n, ns = ns))
@@ -1507,7 +1507,7 @@ mod_my_studies_server <- function(id = character(), r = shiny::reactiveValues(),
     observeEvent(input$add_study, {
       
       if (perf_monitoring) monitor_perf(r = r, action = "start")
-      if (debug) cat(paste0("\n", Sys.time(), " - mod_my_studies - observer input$add_study"))
+      if (debug) cat(paste0("\n", now(), " - mod_my_studies - observer input$add_study"))
       
       new_data <- list()
       new_data$name <- coalesce2(type = "char", x = input$study_name)
@@ -1520,7 +1520,7 @@ mod_my_studies_server <- function(id = character(), r = shiny::reactiveValues(),
         data = new_data, table = "studies", required_textfields = "study_name", req_unique_values = "name")
       
       # Reload datatable
-      r$reload_studies_datatable <- Sys.time()
+      r$reload_studies_datatable <- now()
       # r$studies_temp <- r$studies %>% dplyr::filter(dataset_id == r$selected_dataset) %>% dplyr::mutate(modified = FALSE) %>% dplyr::arrange(name)
       
       if (perf_monitoring) monitor_perf(r = r, action = "stop", task = paste0("mod_my_studies - observer input$add_study"))
@@ -1543,14 +1543,14 @@ mod_my_studies_server <- function(id = character(), r = shiny::reactiveValues(),
     studies_management_col_names <- get_col_names("studies", i18n)
     
     # Prepare data for datatable
-    # This is on a different observer, because r$studies is loaded just before r$reload_studies_datatable is set to Sys.time()
+    # This is on a different observer, because r$studies is loaded just before r$reload_studies_datatable is set to now()
     # If we put this code in the observer of r$selected_dataset, it has no time to execute update_r for studies
     # So r$studies is not updated
     
     observeEvent(r$reload_studies_datatable, {
       
       if (perf_monitoring) monitor_perf(r = r, action = "start")
-      if (debug) cat(paste0("\n", Sys.time(), " - mod_my_studies - observer r$reload_studies_datatable"))
+      if (debug) cat(paste0("\n", now(), " - mod_my_studies - observer r$reload_studies_datatable"))
       
       if (nrow(r$studies) == 0) {
         
@@ -1615,7 +1615,7 @@ mod_my_studies_server <- function(id = character(), r = shiny::reactiveValues(),
     # Reload datatable
     # observeEvent(r$studies_temp, {
     #   
-    #   if (debug) cat(paste0("\n", Sys.time(), " - mod_my_studies - observer r$studies_temp"))
+    #   if (debug) cat(paste0("\n", now(), " - mod_my_studies - observer r$studies_temp"))
     # 
     #   # Reload datatable_temp variable
     #   if (nrow(r$studies_temp) == 0) r$studies_datatable_temp <- tibble::tibble(id = integer(), name = character(), dataset_id = factor(),
@@ -1633,7 +1633,7 @@ mod_my_studies_server <- function(id = character(), r = shiny::reactiveValues(),
     # Updates on datatable data
     observeEvent(input$studies_datatable_cell_edit, {
       
-      if (debug) cat(paste0("\n", Sys.time(), " - mod_my_studies - observer input$studies_datatable_cell_edit"))
+      if (debug) cat(paste0("\n", now(), " - mod_my_studies - observer input$studies_datatable_cell_edit"))
       
       edit_info <- input$studies_datatable_cell_edit
       r$studies_temp <- DT::editData(r$studies_temp, edit_info, rownames = FALSE)
@@ -1645,7 +1645,7 @@ mod_my_studies_server <- function(id = character(), r = shiny::reactiveValues(),
     # Save updates
     observeEvent(input$save_studies_management, {
       
-      if (debug) cat(paste0("\n", Sys.time(), " - mod_my_studies - observer input$save_studies_management"))
+      if (debug) cat(paste0("\n", now(), " - mod_my_studies - observer input$save_studies_management"))
       
       req(nrow(r$studies %>% dplyr::filter(dataset_id == r$selected_dataset)) > 0)
       
@@ -1653,7 +1653,7 @@ mod_my_studies_server <- function(id = character(), r = shiny::reactiveValues(),
         table = "studies", r_table = "studies", i18n = i18n, duplicates_allowed = FALSE)
       
       # Update sidenav dropdown with the new study
-      r$reload_studies <- Sys.time()
+      r$reload_studies <- now()
     })
     
     # Delete a row in datatable
@@ -1680,7 +1680,7 @@ mod_my_studies_server <- function(id = character(), r = shiny::reactiveValues(),
     
     observeEvent(input$deleted_pressed, {
       
-      if (debug) cat(paste0("\n", Sys.time(), " - mod_my_studies - observer input$deleted_pressed"))
+      if (debug) cat(paste0("\n", now(), " - mod_my_studies - observer input$deleted_pressed"))
       
       r$delete_study <- as.integer(substr(input$deleted_pressed, nchar("delete_") + 1, 100))
       r[[study_delete_variable]] <- TRUE
@@ -1693,7 +1693,7 @@ mod_my_studies_server <- function(id = character(), r = shiny::reactiveValues(),
     
     observeEvent(input$delete_selection, {
       
-      if (debug) cat(paste0("\n", Sys.time(), " - mod_my_studies - observer input$delete_selection"))
+      if (debug) cat(paste0("\n", now(), " - mod_my_studies - observer input$delete_selection"))
       
       req(length(input$studies_datatable_rows_selected) > 0)
       
@@ -1703,10 +1703,10 @@ mod_my_studies_server <- function(id = character(), r = shiny::reactiveValues(),
     
     observeEvent(r$reload_studies, {
       
-      if (debug) cat(paste0("\n", Sys.time(), " - mod_my_studies - observer r$reload_studies"))
+      if (debug) cat(paste0("\n", now(), " - mod_my_studies - observer r$reload_studies"))
       
       r$studies_temp <- r$studies %>% dplyr::filter(dataset_id == r$selected_dataset) %>% dplyr::mutate(modified = FALSE) %>% dplyr::arrange(name)
-      r$reload_studies_datatable <- Sys.time()
+      r$reload_studies_datatable <- now()
       
       # Reset selected study
       m$selected_study <- NA_integer_
@@ -1719,7 +1719,7 @@ mod_my_studies_server <- function(id = character(), r = shiny::reactiveValues(),
     # Show / hide options & description divs depending on selected language
     observeEvent(input$study_language, {
       
-      if (debug) cat(paste0("\n", Sys.time(), " - mod_my_studies - observer input$study_language"))
+      if (debug) cat(paste0("\n", now(), " - mod_my_studies - observer input$study_language"))
       
       for (lang in r$languages$code){
         if (lang == input$study_language) sapply(c(paste0("study_options_", lang, "_div"), paste0("study_description_", lang, "_div")), shinyjs::show)
@@ -1730,7 +1730,7 @@ mod_my_studies_server <- function(id = character(), r = shiny::reactiveValues(),
     # Show / hide people picker input
     observeEvent(input$users_allowed_read_group, {
       
-      if (debug) cat(paste0("\n", Sys.time(), " - mod_my_studies - observer input$users_allowed_read_group"))
+      if (debug) cat(paste0("\n", now(), " - mod_my_studies - observer input$users_allowed_read_group"))
       
       if (input$users_allowed_read_group == "people_picker") shinyjs::show("users_allowed_read_div")
       else shinyjs::hide("users_allowed_read_div")
@@ -1738,7 +1738,7 @@ mod_my_studies_server <- function(id = character(), r = shiny::reactiveValues(),
     
     observeEvent(input$options, {
       
-      if (debug) cat(paste0("\n", Sys.time(), " - mod_my_studies - observer input$options"))
+      if (debug) cat(paste0("\n", now(), " - mod_my_studies - observer input$options"))
       
       # Get link_id variable, to update options div
       link_id <- as.integer(substr(input$options, nchar("options_") + 1, nchar(input$options)))
@@ -1758,7 +1758,7 @@ mod_my_studies_server <- function(id = character(), r = shiny::reactiveValues(),
     
     observeEvent(input$options_selected_study, {
       
-      if (debug) cat(paste0("\n", Sys.time(), " - mod_my_studies - observer input$options_selected_study"))
+      if (debug) cat(paste0("\n", now(), " - mod_my_studies - observer input$options_selected_study"))
       
       if (length(input$options_selected_study) > 1) link_id <- input$options_selected_study$key
       else link_id <- input$options_selected_study
@@ -1822,22 +1822,22 @@ mod_my_studies_server <- function(id = character(), r = shiny::reactiveValues(),
     # Save updates
     
     observeEvent(input$study_description_fr_save, {
-      if (debug) cat(paste0("\n", Sys.time(), " - mod_my_studies - observer input$study_description_fr_save"))
-      r$study_save_options <- Sys.time()
+      if (debug) cat(paste0("\n", now(), " - mod_my_studies - observer input$study_description_fr_save"))
+      r$study_save_options <- now()
     })
     observeEvent(input$study_description_en_save, {
-      if (debug) cat(paste0("\n", Sys.time(), " - mod_my_studies - observer input$study_description_en_save"))
-      r$study_save_options <- Sys.time()
+      if (debug) cat(paste0("\n", now(), " - mod_my_studies - observer input$study_description_en_save"))
+      r$study_save_options <- now()
     })
     observeEvent(input$options_save, {
-      if (debug) cat(paste0("\n", Sys.time(), " - mod_my_studies - observer input$options_save"))
-      r$study_save_options <- Sys.time()
+      if (debug) cat(paste0("\n", now(), " - mod_my_studies - observer input$options_save"))
+      r$study_save_options <- now()
     })
     
     observeEvent(r$study_save_options, {
       
       if (perf_monitoring) monitor_perf(r = r, action = "start")
-      if (debug) cat(paste0("\n", Sys.time(), " - mod_my_studies - observer r$study_save_options"))
+      if (debug) cat(paste0("\n", now(), " - mod_my_studies - observer r$study_save_options"))
 
       req(length(input$options_selected_study) > 0)
       if (length(input$options_selected_study) > 1) link_id <- input$options_selected_study$key
@@ -1871,7 +1871,7 @@ mod_my_studies_server <- function(id = character(), r = shiny::reactiveValues(),
           paste0("name_", r$languages$code), paste0("category_", r$languages$code)))
       
       # Change study_name & update_datetime in studies table
-      new_update_datetime <- as.character(Sys.time())
+      new_update_datetime <- now()
       sql <- glue::glue_sql("UPDATE studies SET name = {study_name}, update_datetime = {new_update_datetime} WHERE id = {link_id}", .con = r$db)
       query <- DBI::dbSendStatement(r$db, sql)
       DBI::dbClearResult(query)
@@ -1882,7 +1882,7 @@ mod_my_studies_server <- function(id = character(), r = shiny::reactiveValues(),
       r$studies_temp <- r$studies %>%
         # dplyr::mutate_at(c("creation_datetime", "update_datetime"), format_datetime, language = language, sec = FALSE) %>%
         dplyr::mutate(modified = FALSE) %>% dplyr::arrange(name)
-      r$reload_studies_datatable <- Sys.time()
+      r$reload_studies_datatable <- now()
       
       if (perf_monitoring) monitor_perf(r = r, action = "stop", task = paste0("mod_my_studies - observer input$options_save"))
     })
@@ -1890,7 +1890,7 @@ mod_my_studies_server <- function(id = character(), r = shiny::reactiveValues(),
     # Delete an image
     
     observeEvent(input$delete_image, {
-      if (debug) cat(paste0("\n", Sys.time(), " - mod_studies - observer input$delete_image"))
+      if (debug) cat(paste0("\n", now(), " - mod_studies - observer input$delete_image"))
       req(length(input$study_image) > 0 & input$study_image != "")
       r$studies_delete_image <- TRUE
     })
@@ -1898,7 +1898,7 @@ mod_my_studies_server <- function(id = character(), r = shiny::reactiveValues(),
     r$studies_delete_image <- FALSE
     output$study_image_delete_confirm <- shiny.fluent::renderReact({
       
-      if (debug) cat(paste0("\n", Sys.time(), " - mod_studies - output$study_image_delete_confirm"))
+      if (debug) cat(paste0("\n", now(), " - mod_studies - output$study_image_delete_confirm"))
       
       shiny.fluent::Dialog(
         hidden = !r$studies_delete_image,
@@ -1918,17 +1918,17 @@ mod_my_studies_server <- function(id = character(), r = shiny::reactiveValues(),
     })
     
     observeEvent(input$study_delete_image_hide_dialog, {
-      if (debug) cat(paste0("\n", Sys.time(), " - mod_studies - observer input$study_delete_image_hide_dialog"))
+      if (debug) cat(paste0("\n", now(), " - mod_studies - observer input$study_delete_image_hide_dialog"))
       r$studies_delete_image <- FALSE
     })
     observeEvent(input$study_delete_image_delete_canceled, {
-      if (debug) cat(paste0("\n", Sys.time(), " - mod_studies - observer input$study_delete_image_delete_canceled"))
+      if (debug) cat(paste0("\n", now(), " - mod_studies - observer input$study_delete_image_delete_canceled"))
       r$studies_delete_image <- FALSE
     })
     
     observeEvent(input$study_delete_image_delete_confirmed, {
       
-      if (debug) cat(paste0("\n", Sys.time(), " - mod_studies - observer input$study_delete_image_delete_confirmed"))
+      if (debug) cat(paste0("\n", now(), " - mod_studies - observer input$study_delete_image_delete_confirmed"))
       
       req(input$study_image != "")
       tryCatch({
@@ -1956,14 +1956,14 @@ mod_my_studies_server <- function(id = character(), r = shiny::reactiveValues(),
     # Import an image
     
     observeEvent(input$import_image, {
-      if (debug) cat(paste0("\n", Sys.time(), " - mod_studies - observer input$import_image"))
+      if (debug) cat(paste0("\n", now(), " - mod_studies - observer input$import_image"))
       req(input$options_selected_study)
       shinyjs::click("import_image_file")
     })
     
     observeEvent(input$import_image_file, {
       
-      if (debug) cat(paste0("\n", Sys.time(), " - mod_studies - observer input$import_image_file"))
+      if (debug) cat(paste0("\n", now(), " - mod_studies - observer input$import_image_file"))
       
       tryCatch({
         
@@ -1995,21 +1995,21 @@ mod_my_studies_server <- function(id = character(), r = shiny::reactiveValues(),
     # Render markdown
     
     observeEvent(input$execute_options_description, {
-      if (debug) cat(paste0("\n", Sys.time(), " - mod_studies - observer input$execute_options_description"))
-      r$study_options_description_trigger <- Sys.time()
+      if (debug) cat(paste0("\n", now(), " - mod_studies - observer input$execute_options_description"))
+      r$study_options_description_trigger <- now()
     })
     
     sapply(r$languages$code, function(lang){
       observeEvent(input[[paste0("study_description_", lang, "_run_all")]], {
-        if (debug) cat(paste0("\n", Sys.time(), " - mod_studies - observer input$study_description_", lang, "_run_all"))
-        r$study_options_description_trigger <- Sys.time()
+        if (debug) cat(paste0("\n", now(), " - mod_studies - observer input$study_description_", lang, "_run_all"))
+        r$study_options_description_trigger <- now()
       })
     })
     
     observeEvent(r$study_options_description_trigger, {
       
       if (perf_monitoring) monitor_perf(r = r, action = "start")
-      if (debug) cat(paste0("\n", Sys.time(), " - mod_my_studies - observer r$study_options_description_trigger"))
+      if (debug) cat(paste0("\n", now(), " - mod_my_studies - observer r$study_options_description_trigger"))
       
       if (length(input$options_selected_study) > 1) link_id <- input$options_selected_study$key
       else link_id <- input$options_selected_study
@@ -2033,7 +2033,7 @@ mod_my_studies_server <- function(id = character(), r = shiny::reactiveValues(),
         
         # Create temp dir
         dir <- paste0(r$app_folder, "/temp_files/", r$user_id, "/markdowns")
-        file <- paste0(dir, "/", paste0(sample(c(0:9, letters[1:6]), 8, TRUE), collapse = ''), "_", as.character(Sys.time()) %>% stringr::str_replace_all(":", "_"), ".Md")
+        file <- paste0(dir, "/", paste0(sample(c(0:9, letters[1:6]), 8, TRUE), collapse = ''), "_", now() %>% stringr::str_replace_all(":", "_"), ".Md")
         if (!dir.exists(dir)) dir.create(dir)
         
         # Create the markdown file
@@ -2050,12 +2050,12 @@ mod_my_studies_server <- function(id = character(), r = shiny::reactiveValues(),
     # --- --- --- --- ---
     
     observeEvent(input$import_studies_browse, {
-      if (debug) cat(paste0("\n", Sys.time(), " - mod_studies - observer input$import_studies_browse"))
+      if (debug) cat(paste0("\n", now(), " - mod_studies - observer input$import_studies_browse"))
       shinyjs::click("import_studies_upload")
     })
     
     output$import_studies_status <- renderUI({
-      if (debug) cat(paste0("\n", Sys.time(), " - mod_studies - output$import_studies_status"))
+      if (debug) cat(paste0("\n", now(), " - mod_studies - output$import_studies_status"))
       
       tagList(div(
         span(i18n$t("loaded_file"), " : ", style = "padding-top:5px;"),
@@ -2065,7 +2065,7 @@ mod_my_studies_server <- function(id = character(), r = shiny::reactiveValues(),
     observeEvent(input$import_studies_button, {
 
       if (perf_monitoring) monitor_perf(r = r, action = "start")
-      if (debug) cat(paste0("\n", Sys.time(), " - mod_studies - observer input$import_studies_button"))
+      if (debug) cat(paste0("\n", now(), " - mod_studies - observer input$import_studies_button"))
 
       req(input$import_studies_upload)
 
@@ -2073,7 +2073,7 @@ mod_my_studies_server <- function(id = character(), r = shiny::reactiveValues(),
 
         # Extract ZIP file
 
-        temp_dir <- paste0(r$app_folder, "/temp_files/", r$user_id, "/studies/", Sys.time() %>% stringr::str_replace_all(":| |-", ""), paste0(sample(c(0:9, letters[1:6]), 24, TRUE), collapse = ''))
+        temp_dir <- paste0(r$app_folder, "/temp_files/", r$user_id, "/studies/", now() %>% stringr::str_replace_all(":| |-", ""), paste0(sample(c(0:9, letters[1:6]), 24, TRUE), collapse = ''))
         zip::unzip(input$import_studies_upload$datapath, exdir = temp_dir)
 
         # Read XML file
@@ -2171,7 +2171,7 @@ mod_my_studies_server <- function(id = character(), r = shiny::reactiveValues(),
                   dplyr::select(-code, -language, -col_prefix)
               ) %>%
               dplyr::mutate(id = last_row$options + dplyr::row_number(), category = "study", link_id = last_row$studies + 1, .before = "name") %>%
-              dplyr::mutate(creator_id = r$user_id, datetime = as.character(Sys.time()), deleted = FALSE)
+              dplyr::mutate(creator_id = r$user_id, datetime = now(), deleted = FALSE)
 
             DBI::dbAppendTable(r$db, "options", new_options)
             r$options <- r$options %>% dplyr::bind_rows(new_options)
@@ -2364,10 +2364,10 @@ mod_my_studies_server <- function(id = character(), r = shiny::reactiveValues(),
             }
             
             # Update All studies / study description
-            r$show_study_details <- Sys.time()
+            r$show_study_details <- now()
 
             # Reload datatable
-            r$reload_studies_datatable <- Sys.time()
+            r$reload_studies_datatable <- now()
           }
         }
 
@@ -2403,7 +2403,7 @@ mod_my_studies_server <- function(id = character(), r = shiny::reactiveValues(),
     # When add button is clicked
     observeEvent(input$add_item, {
       
-      if (debug) cat(paste0("\n", Sys.time(), " - mod_studies - observer input$add_item"))
+      if (debug) cat(paste0("\n", now(), " - mod_studies - observer input$add_item"))
       
       # Get ID of selected study
       link_id <- as.integer(substr(input$add_item, nchar("add_item_") + 1, nchar(input$add_item)))
@@ -2430,7 +2430,7 @@ mod_my_studies_server <- function(id = character(), r = shiny::reactiveValues(),
     # When dropdown is modified
     observeEvent(input$studies_to_export_trigger, {
 
-      if (debug) cat(paste0("\n", Sys.time(), " - mod_studies - observer input$studies_to_export"))
+      if (debug) cat(paste0("\n", now(), " - mod_studies - observer input$studies_to_export"))
 
       r$export_studies_selected <- r$export_studies_selected %>%
         dplyr::filter(id %in% input$studies_to_export)
@@ -2444,7 +2444,7 @@ mod_my_studies_server <- function(id = character(), r = shiny::reactiveValues(),
     # Export scripts
     observeEvent(input$export_selected_studies, {
 
-      if (debug) cat(paste0("\n", Sys.time(), " - mod_studies - observer input$export_studies"))
+      if (debug) cat(paste0("\n", now(), " - mod_studies - observer input$export_studies"))
 
       req(nrow(r$export_studies_selected) > 0)
 
@@ -2454,17 +2454,17 @@ mod_my_studies_server <- function(id = character(), r = shiny::reactiveValues(),
     output$export_studies_download <- downloadHandler(
 
       filename = function() paste0("linkr_export_studies_",
-        Sys.time() %>% stringr::str_replace_all(" ", "_") %>% stringr::str_replace_all(":", "_") %>% as.character(), ".zip"),
+        now() %>% stringr::str_replace_all(" ", "_") %>% stringr::str_replace_all(":", "_") %>% as.character(), ".zip"),
 
       content = function(file){
         
         if (perf_monitoring) monitor_perf(r = r, action = "start")
-        if (debug) cat(paste0("\n", Sys.time(), " - mod_studies - output$export_studies_download"))
+        if (debug) cat(paste0("\n", now(), " - mod_studies - output$export_studies_download"))
 
         owd <- setwd(tempdir())
         on.exit(setwd(owd))
 
-        temp_dir <- paste0(r$app_folder, "/temp_files/", r$user_id, "/studies/", Sys.time() %>% stringr::str_replace_all(":| |-", ""), paste0(sample(c(0:9, letters[1:6]), 24, TRUE), collapse = ''))
+        temp_dir <- paste0(r$app_folder, "/temp_files/", r$user_id, "/studies/", now() %>% stringr::str_replace_all(":| |-", ""), paste0(sample(c(0:9, letters[1:6]), 24, TRUE), collapse = ''))
         dir.create(temp_dir, recursive = TRUE)
 
         for (study_id in r$export_studies_selected %>% dplyr::pull(id)){

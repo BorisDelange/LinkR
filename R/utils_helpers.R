@@ -121,6 +121,15 @@ is_integer_or_integer64 <- function(x) {
   is.integer(x) || bit64::is.integer64(x)
 }
 
+#' Get system time
+#' 
+#' @description Get system time with Sys.time() function
+#' @param format Format to apply to Sys.time() result
+#' @examples now()
+now <- function(format = "%Y-%m-%d %H:%M:%S"){
+  format(Sys.time(), format)
+}
+
 `%not_in%` <- Negate(`%in%`)
 
 not_null <- Negate(is.null)

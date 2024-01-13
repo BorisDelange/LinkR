@@ -272,7 +272,7 @@ mod_settings_git_server <- function(id = character(), r = shiny::reactiveValues(
     })
     
     sapply(1:10, function(i){
-      observeEvent(input[[paste0("help_page_", i)]], r[[paste0("help_settings_git_page_", i)]] <- Sys.time())
+      observeEvent(input[[paste0("help_page_", i)]], r[[paste0("help_settings_git_page_", i)]] <- now())
     })
     
     help_settings_git(output = output, r = r, id = id, language = language, i18n = i18n, ns = ns)
@@ -283,7 +283,7 @@ mod_settings_git_server <- function(id = character(), r = shiny::reactiveValues(
     
     # Show / hide divs
     observeEvent(input$add_repo_tab, {
-      if (debug) cat(paste0("\n", Sys.time(), " - mod_settings_git - observer input$add_repo_tab"))
+      if (debug) cat(paste0("\n", now(), " - mod_settings_git - observer input$add_repo_tab"))
       
       if (input$add_repo_tab == "git_add_repo_map"){
         shinyjs::show("git_add_repo_map_div")
@@ -323,7 +323,7 @@ mod_settings_git_server <- function(id = character(), r = shiny::reactiveValues(
       ## Render leaflet map
       output$git_repos_map <- leaflet::renderLeaflet({
         
-        if (debug) cat(paste0("\n", Sys.time(), " - mod_settings_git - output$git_repos_map"))
+        if (debug) cat(paste0("\n", now(), " - mod_settings_git - output$git_repos_map"))
         
         leaflet::leaflet(git_repos) %>%
           leaflet::addTiles() %>%
@@ -338,7 +338,7 @@ mod_settings_git_server <- function(id = character(), r = shiny::reactiveValues(
       
       ## When a repo is selected on the map
       observeEvent(input$git_repos_map_marker_click, {
-        if (debug) cat(paste0("\n", Sys.time(), " - mod_settings_git - observer input$git_repos_map_marker_click"))
+        if (debug) cat(paste0("\n", now(), " - mod_settings_git - observer input$git_repos_map_marker_click"))
         
         # Show div
         shinyjs::show("git_add_repo_map_details_div")
@@ -363,7 +363,7 @@ mod_settings_git_server <- function(id = character(), r = shiny::reactiveValues(
           if (git_repo$api_key_required) shinyjs::show("api_key_git_repo_with_map_div") else shinyjs::hide("api_key_git_repo_with_map_div")
         }
         
-        r$show_git_repo_description_trigger <- Sys.time()
+        r$show_git_repo_description_trigger <- now()
         r$show_git_repo_description_type <- "map"
         r$show_git_repo_description_url <- git_repo$raw_files_url_address
         
@@ -373,7 +373,7 @@ mod_settings_git_server <- function(id = character(), r = shiny::reactiveValues(
       
       ## Add with map
       observeEvent(input$add_git_repo_with_map, {
-        if (debug) cat(paste0("\n", Sys.time(), " - mod_settings_git - observer input$add_git_repo_with_map"))
+        if (debug) cat(paste0("\n", now(), " - mod_settings_git - observer input$add_git_repo_with_map"))
         
         req(length(input$git_repos_map_marker_click) > 0)
         git_repo <- git_repos %>% dplyr::filter(
@@ -425,11 +425,11 @@ mod_settings_git_server <- function(id = character(), r = shiny::reactiveValues(
     
     ## Show description
     observeEvent(input$show_git_repo_description, {
-      if (debug) cat(paste0("\n", Sys.time(), " - mod_settings_git - observer input$show_git_repo_description"))
+      if (debug) cat(paste0("\n", now(), " - mod_settings_git - observer input$show_git_repo_description"))
       
       req(length(input$repo_url_address) > 0)
       
-      r$show_git_repo_description_trigger <- Sys.time()
+      r$show_git_repo_description_trigger <- now()
       r$show_git_repo_description_type <- "url"
       r$show_git_repo_description_url <- input$raw_files_url_address
       
@@ -441,7 +441,7 @@ mod_settings_git_server <- function(id = character(), r = shiny::reactiveValues(
     observeEvent(input$add_git_repo_with_url, {
       
       if (perf_monitoring) monitor_perf(r = r, action = "start")
-      if (debug) cat(paste0("\n", Sys.time(), " - mod_settings_git - observer input$add_git_repo_with_url"))
+      if (debug) cat(paste0("\n", now(), " - mod_settings_git - observer input$add_git_repo_with_url"))
       
       new_data <- list()
       for (name in c("name", "api_key_git_repo_with_url", "repo_url_address", "raw_files_url_address")) new_data[[name]] <- coalesce2(type = "char", x = input[[name]])
@@ -461,7 +461,7 @@ mod_settings_git_server <- function(id = character(), r = shiny::reactiveValues(
     # Show git repo description (for map & URL)
     
     observeEvent(r$show_git_repo_description_trigger , {
-      if (debug) cat(paste0("\n", Sys.time(), " - mod_settings_git - observer r$show_git_repo_description_trigger "))
+      if (debug) cat(paste0("\n", now(), " - mod_settings_git - observer r$show_git_repo_description_trigger "))
       
       readme <- div(shiny.fluent::MessageBar(i18n$t("error_loading_git_readme"), messageBarType = 5), style = "margin-bottom:8px;")
       
@@ -484,7 +484,7 @@ mod_settings_git_server <- function(id = character(), r = shiny::reactiveValues(
       
       # Render UI
       output[[paste0("render_git_repo_description_with_", r$show_git_repo_description_type)]] <- renderUI({
-        if (debug) cat(paste0("\n", Sys.time(), " - mod_settings_git - output$render_git_repo_description_with_map"))
+        if (debug) cat(paste0("\n", now(), " - mod_settings_git - output$render_git_repo_description_with_map"))
         readme
       })
     })
@@ -509,7 +509,7 @@ mod_settings_git_server <- function(id = character(), r = shiny::reactiveValues(
     observeEvent(r$git_repos, {
       
       if (perf_monitoring) monitor_perf(r = r, action = "start")
-      if (debug) cat(paste0("\n", Sys.time(), " - mod_settings_git - observer r$git_repos"))
+      if (debug) cat(paste0("\n", now(), " - mod_settings_git - observer r$git_repos"))
       
       # Update dropdowns
       shiny.fluent::updateComboBox.shinyInput(session, "edit_repo_selected_repo", options = convert_tibble_to_list(r$git_repos, key_col = "id", text_col = "name"))
@@ -553,7 +553,7 @@ mod_settings_git_server <- function(id = character(), r = shiny::reactiveValues(
     # Updates on datatable data
     observeEvent(input$git_repos_datatable_cell_edit, {
       
-      if (debug) cat(paste0("\n", Sys.time(), " - mod_settings_git - observer input$git_repos_datatable_cell_edit"))
+      if (debug) cat(paste0("\n", now(), " - mod_settings_git - observer input$git_repos_datatable_cell_edit"))
       
       edit_info <- input$git_repos_datatable_cell_edit
       r$git_repos_temp <- DT::editData(r$git_repos_temp, edit_info, rownames = FALSE)
@@ -565,7 +565,7 @@ mod_settings_git_server <- function(id = character(), r = shiny::reactiveValues(
     # Save updates
     observeEvent(input$save_git_repos_management, {
       
-      if (debug) cat(paste0("\n", Sys.time(), " - mod_settings_git - observer input$save_git_repos_management"))
+      if (debug) cat(paste0("\n", now(), " - mod_settings_git - observer input$save_git_repos_management"))
       
       req(nrow(r$git_repos) > 0)
       
@@ -597,7 +597,7 @@ mod_settings_git_server <- function(id = character(), r = shiny::reactiveValues(
     
     observeEvent(input$deleted_pressed, {
       
-      if (debug) cat(paste0("\n", Sys.time(), " - mod_settings_git - observer input$deleted_pressed"))
+      if (debug) cat(paste0("\n", now(), " - mod_settings_git - observer input$deleted_pressed"))
       
       r$delete_git_repo <- as.integer(substr(input$deleted_pressed, nchar("delete_") + 1, 100))
       r[[git_repos_delete_variable]] <- TRUE
@@ -608,7 +608,7 @@ mod_settings_git_server <- function(id = character(), r = shiny::reactiveValues(
     
     observeEvent(input$delete_selection, {
       
-      if (debug) cat(paste0("\n", Sys.time(), " - mod_settings_git - observer input$delete_selection"))
+      if (debug) cat(paste0("\n", now(), " - mod_settings_git - observer input$delete_selection"))
       
       req(length(input$git_repos_datatable_rows_selected) > 0)
       
@@ -623,7 +623,7 @@ mod_settings_git_server <- function(id = character(), r = shiny::reactiveValues(
     # Show / hide people picker input
     observeEvent(input$users_allowed_read_group, {
       
-      if (debug) cat(paste0("\n", Sys.time(), " - mod_settings_git - observer input$users_allowed_read_group"))
+      if (debug) cat(paste0("\n", now(), " - mod_settings_git - observer input$users_allowed_read_group"))
       
       if (input$users_allowed_read_group == "people_picker") shinyjs::show("users_allowed_read_div")
       else shinyjs::hide("users_allowed_read_div")
@@ -632,7 +632,7 @@ mod_settings_git_server <- function(id = character(), r = shiny::reactiveValues(
     # When a repo is selected
     observeEvent(input$options, {
       
-      if (debug) cat(paste0("\n", Sys.time(), " - mod_settings_git - observer input$options"))
+      if (debug) cat(paste0("\n", now(), " - mod_settings_git - observer input$options"))
       
       # Get link_id variable, to update options div
       link_id <- as.integer(substr(input$options, nchar("options_") + 1, nchar(input$options)))
@@ -651,7 +651,7 @@ mod_settings_git_server <- function(id = character(), r = shiny::reactiveValues(
     
     observeEvent(input$options_selected_repo, {
       
-      if (debug) cat(paste0("\n", Sys.time(), " - mod_settings_git - observer input$options_selected_repo"))
+      if (debug) cat(paste0("\n", now(), " - mod_settings_git - observer input$options_selected_repo"))
       
       if (length(input$options_selected_repo) > 1) link_id <- input$options_selected_repo$key
       else link_id <- input$options_selected_repo
@@ -700,7 +700,7 @@ mod_settings_git_server <- function(id = character(), r = shiny::reactiveValues(
     # Save updates
     observeEvent(input$save_git_repo_options, {
       
-      if (debug) cat(paste0("\n", Sys.time(), " - mod_settings_git - observer input$save_git_repo_options"))
+      if (debug) cat(paste0("\n", now(), " - mod_settings_git - observer input$save_git_repo_options"))
       
       if (length(input$options_selected_repo) > 1) link_id <- input$options_selected_repo$key
       else link_id <- input$options_selected_repo
@@ -748,7 +748,7 @@ mod_settings_git_server <- function(id = character(), r = shiny::reactiveValues(
     # Show / hide divs
     observeEvent(input$git_edit_repo_current_tab, {
       
-      if (debug) cat(paste0("\n", Sys.time(), " - mod_settings_git - observer input$git_edit_repo_current_tab"))
+      if (debug) cat(paste0("\n", now(), " - mod_settings_git - observer input$git_edit_repo_current_tab"))
       
       if (input$git_edit_repo_current_tab == "git_edit_repo_files"){
         shinyjs::show("git_edit_repo_files_div")
@@ -762,7 +762,7 @@ mod_settings_git_server <- function(id = character(), r = shiny::reactiveValues(
     
     observeEvent(input$hide_readme_editor, {
       
-      if (debug) cat(paste0("\n", Sys.time(), " - mod_settings_git - observer input$hide_readme_editor"))
+      if (debug) cat(paste0("\n", now(), " - mod_settings_git - observer input$hide_readme_editor"))
       
       if (input$hide_readme_editor){
         shinyjs::hide("git_repo_readme")
@@ -777,7 +777,7 @@ mod_settings_git_server <- function(id = character(), r = shiny::reactiveValues(
     # When a repo is selected
     observeEvent(input$edit_repo_load_repo, {
       
-      if (debug) cat(paste0("\n", Sys.time(), " - mod_settings_git - observer input$edit_repo_load_repo"))
+      if (debug) cat(paste0("\n", now(), " - mod_settings_git - observer input$edit_repo_load_repo"))
       
       req(length(input$edit_repo_selected_repo) > 0)
       
@@ -804,7 +804,7 @@ mod_settings_git_server <- function(id = character(), r = shiny::reactiveValues(
       # 
       # for (dir in git_repos_dirs) {
       #   dir_time <- file.info(dir)$mtime
-      #   time_diff <- as.numeric(difftime(Sys.time(), dir_time, units = "hours"))
+      #   time_diff <- as.numeric(difftime(now(), dir_time, units = "hours"))
       #   if (time_diff > 24) unlink(dir, recursive = TRUE, force = TRUE)
       # }
       
@@ -864,18 +864,18 @@ mod_settings_git_server <- function(id = character(), r = shiny::reactiveValues(
         sapply(c("edit_repo_repo_files_div", "edit_repo_files"), shinyjs::show)
         
         # Trigger to render datatable
-        r$edit_repo_datatable_trigger <- Sys.time()
+        r$edit_repo_datatable_trigger <- now()
         
         # Trigger to update dropdown of files
-        r$repo_category_trigger <- Sys.time() 
+        r$repo_category_trigger <- now() 
       }
     })
     
     # When a category is selected
     observeEvent(input$repo_category, {
       
-      if (debug) cat(paste0("\n", Sys.time(), " - mod_settings_git - observer input$repo_category"))
-      r$repo_category_trigger <- Sys.time() 
+      if (debug) cat(paste0("\n", now(), " - mod_settings_git - observer input$repo_category"))
+      r$repo_category_trigger <- now() 
       
       if (input$repo_category == "studies") shinyjs::show("edit_repo_studies_dataset_div")
       else shinyjs::hide("edit_repo_studies_dataset_div")
@@ -883,7 +883,7 @@ mod_settings_git_server <- function(id = character(), r = shiny::reactiveValues(
     
     observeEvent(r$repo_category_trigger, {
       
-      if (debug) cat(paste0("\n", Sys.time(), " - mod_settings_git - observer r$repo_category_trigger"))
+      if (debug) cat(paste0("\n", now(), " - mod_settings_git - observer r$repo_category_trigger"))
       
       req(input$edit_repo_selected_repo)
       
@@ -906,13 +906,13 @@ mod_settings_git_server <- function(id = character(), r = shiny::reactiveValues(
       }
       
       # Trigger to render datatable
-      r$edit_repo_datatable_trigger <- Sys.time()
+      r$edit_repo_datatable_trigger <- now()
     })
     
     # When a dataset is selected (for studies)
     observeEvent(input$edit_repo_studies_dataset, {
       
-      if (debug) cat(paste0("\n", Sys.time(), " - mod_settings_git - observer input$edit_repo_studies_dataset"))
+      if (debug) cat(paste0("\n", now(), " - mod_settings_git - observer input$edit_repo_studies_dataset"))
       
       req(input$edit_repo_selected_repo)
       
@@ -924,13 +924,13 @@ mod_settings_git_server <- function(id = character(), r = shiny::reactiveValues(
       shiny.fluent::updateDropdown.shinyInput(session, "edit_repo_add_selected_files", options = dropdown_options)
       
       # Trigger to render datatable
-      r$edit_repo_datatable_trigger <- Sys.time()
+      r$edit_repo_datatable_trigger <- now()
     })
     
     # Load data for selected category
     observeEvent(r$edit_repo_datatable_trigger, {
       
-      if (debug) cat(paste0("\n", Sys.time(), " - mod_settings_git - observer r$edit_repo_datatable_trigger"))
+      if (debug) cat(paste0("\n", now(), " - mod_settings_git - observer r$edit_repo_datatable_trigger"))
       
       req(input$edit_repo_selected_repo)
       
@@ -1011,7 +1011,7 @@ mod_settings_git_server <- function(id = character(), r = shiny::reactiveValues(
     
     observeEvent(r$edit_git_repo_category_elements, {
       
-      if (debug) cat(paste0("\n", Sys.time(), " - mod_settings_git - observer r$edit_git_repo_category_elements"))
+      if (debug) cat(paste0("\n", now(), " - mod_settings_git - observer r$edit_git_repo_category_elements"))
       
       if (length(r$edit_git_repo_category_elements_datatable_proxy) > 0) DT::replaceData(r$edit_git_repo_category_elements_datatable_proxy, 
         r$edit_git_repo_category_elements, resetPaging = FALSE, rownames = FALSE)
@@ -1035,7 +1035,7 @@ mod_settings_git_server <- function(id = character(), r = shiny::reactiveValues(
     
     observeEvent(input$edit_repo_add_files, {
       
-      if (debug) cat(paste0("\n", Sys.time(), " - mod_settings_git - observer input$edit_repo_add_files"))
+      if (debug) cat(paste0("\n", now(), " - mod_settings_git - observer input$edit_repo_add_files"))
       
       req(input$edit_repo_add_selected_files)
       
@@ -1347,14 +1347,14 @@ mod_settings_git_server <- function(id = character(), r = shiny::reactiveValues(
       shiny.fluent::updateDropdown.shinyInput(session, "edit_repo_add_selected_files", options = dropdown_options, value = NULL)
       
       # Create global XML file
-      r$edit_repo_create_global_xml_trigger <- Sys.time()
+      r$edit_repo_create_global_xml_trigger <- now()
     })
     
     # Delete a category element
     
     observeEvent(input$edit_git_repo_delete_category_element, {
       
-      if (debug) cat(paste0("\n", Sys.time(), " - mod_settings_git - observer input$edit_git_repo_delete_category_element"))
+      if (debug) cat(paste0("\n", now(), " - mod_settings_git - observer input$edit_git_repo_delete_category_element"))
       
       r$delete_edit_git_repo_category_elements_open_dialog <- TRUE
       r$delete_edit_git_repo_category_elements <- as.integer(substr(input$edit_git_repo_delete_category_element, nchar("delete_") + 1, 100))
@@ -1365,7 +1365,7 @@ mod_settings_git_server <- function(id = character(), r = shiny::reactiveValues(
     
     observeEvent(input$edit_repo_delete_selection, {
       
-      if (debug) cat(paste0("\n", Sys.time(), " - mod_settings_git - observer input$edit_repo_delete_selection"))
+      if (debug) cat(paste0("\n", now(), " - mod_settings_git - observer input$edit_repo_delete_selection"))
       
       req(length(input$edit_repo_files_rows_selected) > 0)
       
@@ -1376,7 +1376,7 @@ mod_settings_git_server <- function(id = character(), r = shiny::reactiveValues(
     r$delete_edit_git_repo_category_elements_open_dialog <- FALSE
     output$edit_repo_delete_confirm <- shiny.fluent::renderReact({
       
-      if (debug) cat(paste0("\n", Sys.time(), " - mod_settings_git - output$edit_repo_delete_confirm"))
+      if (debug) cat(paste0("\n", now(), " - mod_settings_git - output$edit_repo_delete_confirm"))
       
       shiny.fluent::Dialog(
         hidden = !r$delete_edit_git_repo_category_elements_open_dialog,
@@ -1396,11 +1396,11 @@ mod_settings_git_server <- function(id = character(), r = shiny::reactiveValues(
     })
     
     observeEvent(input$delete_edit_git_repo_hide_dialog, {
-      if (debug) cat(paste0("\n", Sys.time(), " - mod_settings_git - observer input$delete_edit_git_repo_hide_dialog"))
+      if (debug) cat(paste0("\n", now(), " - mod_settings_git - observer input$delete_edit_git_repo_hide_dialog"))
       r$delete_edit_git_repo_category_elements_open_dialog <- FALSE
     })
     observeEvent(input$delete_edit_git_repo_delete_canceled, {
-      if (debug) cat(paste0("\n", Sys.time(), " - mod_settings_git - observer input$delete_edit_git_repo_delete_canceled"))
+      if (debug) cat(paste0("\n", now(), " - mod_settings_git - observer input$delete_edit_git_repo_delete_canceled"))
       r$delete_edit_git_repo_category_elements_open_dialog <- FALSE
     })
     
@@ -1428,7 +1428,7 @@ mod_settings_git_server <- function(id = character(), r = shiny::reactiveValues(
     
     observeEvent(input$delete_edit_git_repo_delete_confirmed, {
       
-      if (debug) cat(paste0("\n", Sys.time(), " - mod_settings_git - observer input$delete_edit_git_repo_delete_confirmed"))
+      if (debug) cat(paste0("\n", now(), " - mod_settings_git - observer input$delete_edit_git_repo_delete_confirmed"))
       
       tryCatch({
         unique_ids <- 
@@ -1457,7 +1457,7 @@ mod_settings_git_server <- function(id = character(), r = shiny::reactiveValues(
         r$repo_category <- repo_category
         
         # Create global XML file
-        r$edit_repo_create_global_xml_trigger <- Sys.time()
+        r$edit_repo_create_global_xml_trigger <- now()
         
         show_message_bar(output, "file_deleted", "warning", i18n = i18n, ns = ns)
         
@@ -1469,7 +1469,7 @@ mod_settings_git_server <- function(id = character(), r = shiny::reactiveValues(
     
     observeEvent(r$edit_repo_create_global_xml_trigger, {
       
-      if (debug) cat(paste0("\n", Sys.time(), " - mod_settings_git - observer r$edit_repo_create_global_xml_trigger"))
+      if (debug) cat(paste0("\n", now(), " - mod_settings_git - observer r$edit_repo_create_global_xml_trigger"))
       
       repo_category_path <- r$repo_category_path
       repo_category <- r$repo_category
@@ -1518,14 +1518,14 @@ mod_settings_git_server <- function(id = character(), r = shiny::reactiveValues(
       XML::saveXML(category_xml, file = paste0(repo_category_path, "/", repo_category, ".xml"))
       
       # Trigger to render datatable
-      r$edit_repo_datatable_trigger <- Sys.time()
+      r$edit_repo_datatable_trigger <- now()
     })
     
     # Save README
     
     observeEvent(input$git_repo_readme_save, {
       
-      if (debug) cat(paste0("\n", Sys.time(), " - mod_settings_git - observer input$git_repo_readme_save"))
+      if (debug) cat(paste0("\n", now(), " - mod_settings_git - observer input$git_repo_readme_save"))
       
       tryCatch({
           writeLines(input$git_repo_readme, paste0(r$edit_git_local_path, "/README.md"))
@@ -1538,19 +1538,19 @@ mod_settings_git_server <- function(id = character(), r = shiny::reactiveValues(
     # Preview README
     
     observeEvent(input$git_repo_readme_preview, {
-      if (debug) cat(paste0("\n", Sys.time(), " - mod_settings_git - observer input$git_repo_readme_preview"))
-      r$git_repo_readme_preview_trigger <- Sys.time()
+      if (debug) cat(paste0("\n", now(), " - mod_settings_git - observer input$git_repo_readme_preview"))
+      r$git_repo_readme_preview_trigger <- now()
     })
     
     observeEvent(input$git_repo_readme_run_all, {
-      if (debug) cat(paste0("\n", Sys.time(), " - mod_settings_git - observer input$git_repo_readme_run_all"))
-      r$git_repo_readme_preview_trigger <- Sys.time()
+      if (debug) cat(paste0("\n", now(), " - mod_settings_git - observer input$git_repo_readme_run_all"))
+      r$git_repo_readme_preview_trigger <- now()
     })
     
     # Generate README
     
     observeEvent(input$git_repo_readme_generate, {
-      if (debug) cat(paste0("\n", Sys.time(), " - mod_settings_git - observer input$git_repo_readme_generate"))
+      if (debug) cat(paste0("\n", now(), " - mod_settings_git - observer input$git_repo_readme_generate"))
       
       git_repo_raw_files_url_address <- r$git_repos %>% dplyr::filter(id == input$edit_repo_selected_repo$key) %>% dplyr::pull(raw_files_url_address)
       if (substr(git_repo_raw_files_url_address, nchar(git_repo_raw_files_url_address), nchar(git_repo_raw_files_url_address)) != "/") git_repo_raw_files_url_address <- paste0(git_repo_raw_files_url_address, "/")
@@ -1648,7 +1648,7 @@ mod_settings_git_server <- function(id = character(), r = shiny::reactiveValues(
     
     observeEvent(r$git_repo_readme_preview_trigger, {
       
-      if (debug) cat(paste0("\n", Sys.time(), " - mod_settings_git - observer r$git_repo_readme_preview_trigger"))
+      if (debug) cat(paste0("\n", now(), " - mod_settings_git - observer r$git_repo_readme_preview_trigger"))
       
       tryCatch({
         
@@ -1662,7 +1662,7 @@ mod_settings_git_server <- function(id = character(), r = shiny::reactiveValues(
         
         # Create temp dir
         dir <- paste0(r$app_folder, "/temp_files/", r$user_id, "/markdowns")
-        file <- paste0(dir, "/", paste0(sample(c(0:9, letters[1:6]), 8, TRUE), collapse = ''), "_", as.character(Sys.time()) %>% stringr::str_replace_all(":", "_"), ".Md")
+        file <- paste0(dir, "/", paste0(sample(c(0:9, letters[1:6]), 8, TRUE), collapse = ''), "_", now() %>% stringr::str_replace_all(":", "_"), ".Md")
         if (!dir.exists(dir)) dir.create(dir)
         
         # Create the markdown file
@@ -1676,7 +1676,7 @@ mod_settings_git_server <- function(id = character(), r = shiny::reactiveValues(
     
     observeEvent(input$commit_and_push, {
       
-      if (debug) cat(paste0("\n", Sys.time(), " - mod_settings_git - observer input$commit_and_push"))
+      if (debug) cat(paste0("\n", now(), " - mod_settings_git - observer input$commit_and_push"))
       
       # Check if commit message is not empty
       

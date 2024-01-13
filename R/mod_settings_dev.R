@@ -149,7 +149,7 @@ mod_settings_dev_server <- function(id = character(), r = shiny::reactiveValues(
     })
 
     # observeEvent(shiny.router::get_page(), {
-    #   if (debug) cat(paste0("\n", Sys.time(), " - mod_settings_dev - ", id, " - observer shiny_router::change_page"))
+    #   if (debug) cat(paste0("\n", now(), " - mod_settings_dev - ", id, " - observer shiny_router::change_page"))
     # 
     #   # Close help pages when page changes
     #   r$help_settings_dev_open_panel <- FALSE
@@ -157,13 +157,13 @@ mod_settings_dev_server <- function(id = character(), r = shiny::reactiveValues(
     # })
 
     sapply(1:10, function(i){
-      observeEvent(input[[paste0("help_page_", i)]], r[[paste0("help_settings_dev_page_", i)]] <- Sys.time())
+      observeEvent(input[[paste0("help_page_", i)]], r[[paste0("help_settings_dev_page_", i)]] <- now())
     })
 
     help_settings_dev(output = output, r = r, id = id, language = language, i18n = i18n, ns = ns)
     
-    observeEvent(input$copy_code_1, r$help_settings_dev_copy_code_1 <- Sys.time())
-    observeEvent(input$copy_code_2, r$help_settings_dev_copy_code_2 <- Sys.time())
+    observeEvent(input$copy_code_1, r$help_settings_dev_copy_code_1 <- now())
+    observeEvent(input$copy_code_2, r$help_settings_dev_copy_code_2 <- now())
   
     # --- --- --- --- ---
     # Execute R code ----
@@ -171,32 +171,32 @@ mod_settings_dev_server <- function(id = character(), r = shiny::reactiveValues(
     
     observeEvent(input$execute_r_code, {
       
-      if (debug) cat(paste0("\n", Sys.time(), " - mod_settings_dev - observer input$execute_r_code"))
+      if (debug) cat(paste0("\n", now(), " - mod_settings_dev - observer input$execute_r_code"))
       
       r$r_console_code <- input$r_code
-      r$r_console_code_trigger <- Sys.time()
+      r$r_console_code_trigger <- now()
     })
     
     observeEvent(input$r_code_run_selection, {
       
-      if (debug) cat(paste0("\n", Sys.time(), " - mod_settings_dev - observer input$r_code_run_selection"))
+      if (debug) cat(paste0("\n", now(), " - mod_settings_dev - observer input$r_code_run_selection"))
       
       if(!shinyAce::is.empty(input$r_code_run_selection$selection)) r$r_console_code <- input$r_code_run_selection$selection
       else r$r_console_code <- input$r_code_run_selection$line
-      r$r_console_code_trigger <- Sys.time()
+      r$r_console_code_trigger <- now()
     })
 
     observeEvent(input$r_code_run_all, {
       
-      if (debug) cat(paste0("\n", Sys.time(), " - mod_settings_dev - observer input$r_code_run_all"))
+      if (debug) cat(paste0("\n", now(), " - mod_settings_dev - observer input$r_code_run_all"))
       
       r$r_console_code <- input$r_code
-      r$r_console_code_trigger <- Sys.time()
+      r$r_console_code_trigger <- now()
     })
 
     observeEvent(r$r_console_code_trigger, {
       
-      if (debug) cat(paste0("\n", Sys.time(), " - mod_settings_dev - observer r$r_console_code_trigger"))
+      if (debug) cat(paste0("\n", now(), " - mod_settings_dev - observer r$r_console_code_trigger"))
       
       if ("dev_edit_r_code_card" %in% r$user_accesses){
         edited_code <- r$r_console_code %>% stringr::str_replace_all("\r", "\n")
@@ -214,13 +214,13 @@ mod_settings_dev_server <- function(id = character(), r = shiny::reactiveValues(
         else console_result <- tags$div(console_result, style = "padding: 15px 0px 15px 0px;")
         
         output$r_code_result <- renderUI(console_result)
-        output$datetime_r_code_execution <- renderText(format_datetime(Sys.time(), language))
+        output$datetime_r_code_execution <- renderText(format_datetime(now(), language))
       }
     })
     
     # Comment text
     observeEvent(input$r_code_comment, {
-      if (debug) cat(paste0("\n", Sys.time(), " - mod_settings_dev - observer input$r_code_comment"))
+      if (debug) cat(paste0("\n", now(), " - mod_settings_dev - observer input$r_code_comment"))
       
       lines <- strsplit(input$r_code, "\n")[[1]]
       req(length(lines) > 0)
@@ -254,32 +254,32 @@ mod_settings_dev_server <- function(id = character(), r = shiny::reactiveValues(
     
     observeEvent(input$execute_python_code, {
       
-      if (debug) cat(paste0("\n", Sys.time(), " - mod_settings_dev - observer input$execute_python_code"))
+      if (debug) cat(paste0("\n", now(), " - mod_settings_dev - observer input$execute_python_code"))
       
       r$python_console_code <- input$python_code
-      r$python_console_code_trigger <- Sys.time()
+      r$python_console_code_trigger <- now()
     })
     
     observeEvent(input$python_code_run_selection, {
       
-      if (debug) cat(paste0("\n", Sys.time(), " - mod_settings_dev - observer input$python_code_run_selection"))
+      if (debug) cat(paste0("\n", now(), " - mod_settings_dev - observer input$python_code_run_selection"))
       
       if(!shinyAce::is.empty(input$python_code_run_selection$selection)) r$python_console_code <- input$python_code_run_selection$selection
       else r$python_console_code <- input$python_code_run_selection$line
-      r$python_console_code_trigger <- Sys.time()
+      r$python_console_code_trigger <- now()
     })
     
     observeEvent(input$python_code_run_all, {
       
-      if (debug) cat(paste0("\n", Sys.time(), " - mod_settings_dev - observer input$python_code_run_all"))
+      if (debug) cat(paste0("\n", now(), " - mod_settings_dev - observer input$python_code_run_all"))
       
       r$python_console_code <- input$python_code
-      r$python_console_code_trigger <- Sys.time()
+      r$python_console_code_trigger <- now()
     })
     
     observeEvent(r$python_console_code_trigger, {
       
-      if (debug) cat(paste0("\n", Sys.time(), " - mod_settings_dev - observer r$python_console_code_trigger"))
+      if (debug) cat(paste0("\n", now(), " - mod_settings_dev - observer r$python_console_code_trigger"))
       
       if ("dev_edit_python_code_card" %in% r$user_accesses){
         edited_code <- r$python_console_code %>% stringr::str_replace_all("\r", "\n")
@@ -287,13 +287,13 @@ mod_settings_dev_server <- function(id = character(), r = shiny::reactiveValues(
         console_result <- capture_python_output(edited_code)
         
         output$python_code_result <- renderUI(HTML(paste0("<pre>", console_result, "</pre>")))
-        output$datetime_python_code_execution <- renderText(format_datetime(Sys.time(), language))
+        output$datetime_python_code_execution <- renderText(format_datetime(now(), language))
       }
     })
     
     # Comment text
     observeEvent(input$python_code_comment, {
-      if (debug) cat(paste0("\n", Sys.time(), " - mod_settings_dev - observer input$python_code_comment"))
+      if (debug) cat(paste0("\n", now(), " - mod_settings_dev - observer input$python_code_comment"))
       
       lines <- strsplit(input$python_code, "\n")[[1]]
       req(length(lines) > 0)
@@ -324,7 +324,7 @@ mod_settings_dev_server <- function(id = character(), r = shiny::reactiveValues(
     
     observeEvent(input$show_datatable, {
       
-      if (debug) cat(paste0("\n", Sys.time(), " - mod_settings_dev - observer input$show_datatable"))
+      if (debug) cat(paste0("\n", now(), " - mod_settings_dev - observer input$show_datatable"))
       
       if (nrow(r$perf_monitoring_table) > 0) perf_monitoring_table <- r$perf_monitoring_table %>%
         dplyr::mutate(elapsed_time = round(datetime_stop - datetime_start, 2), .before = "task") %>%
@@ -355,7 +355,7 @@ mod_settings_dev_server <- function(id = character(), r = shiny::reactiveValues(
     
     observeEvent(input$reset_perf_monitoring, {
       
-      if (debug) cat(paste0("\n", Sys.time(), " - mod_settings_dev - observer input$reset_perf_monitoring"))
+      if (debug) cat(paste0("\n", now(), " - mod_settings_dev - observer input$reset_perf_monitoring"))
       
       r$perf_monitoring_table <- r$perf_monitoring_table %>% dplyr::slice(0)
     })

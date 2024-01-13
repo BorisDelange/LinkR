@@ -39,7 +39,7 @@ app_ui <- function(request, css, language, languages, i18n = character(), users_
   
   do.call(shiny.router::router_ui,
     lapply(pages, function(page_url){
-      if (debug) cat(paste0("\n", Sys.time(), " - ui - make_router - ", page_url))
+      if (debug) cat(paste0("\n", now(), " - ui - make_router - ", page_url))
       if (page_url == "/") page <- "home" else page <- page_url
       shiny.router::route(page_url, make_layout(language = language, languages = languages, page = page, i18n = i18n, users_accesses_toggles_options = users_accesses_toggles_options))
     })

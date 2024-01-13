@@ -77,7 +77,7 @@ add_settings_new_data <- function(session, output, r = shiny::reactiveValues(), 
     
     if (tolower(data[[field]]) %in% distinct_values) {
       if (!r_message_bar) show_message_bar(output, message = paste0(field, "_already_used"), type = "severeWarning", i18n = i18n, ns = ns)
-      if (r_message_bar) r[[paste0(table, "_show_message_bar")]] <- tibble::tibble(message = paste0(field, "_already_used"), type = "severeWarning", trigger = Sys.time())
+      if (r_message_bar) r[[paste0(table, "_show_message_bar")]] <- tibble::tibble(message = paste0(field, "_already_used"), type = "severeWarning", trigger = now())
     }
     req(tolower(data[[field]]) %not_in% distinct_values)
   })
@@ -107,7 +107,7 @@ add_settings_new_data <- function(session, output, r = shiny::reactiveValues(), 
   
   if (!dropdowns_check){
     if (!r_message_bar) show_message_bar(output, message = "dropdown_empty", type = "severeWarning", i18n = i18n, ns = ns)
-    if (r_message_bar) r[[paste0(table, "_show_message_bar")]] <- tibble::tibble(message = "dropdown_empty", type = "severeWarning", trigger = Sys.time())
+    if (r_message_bar) r[[paste0(table, "_show_message_bar")]] <- tibble::tibble(message = "dropdown_empty", type = "severeWarning", trigger = now())
   }
   req(dropdowns_check)
   
@@ -142,16 +142,16 @@ add_settings_new_data <- function(session, output, r = shiny::reactiveValues(), 
     
     # These columns are also found in all of these tables
     # Add them at last to respect the order of cols
-    new_data$data <- new_data$data %>% dplyr::bind_cols(tibble::tribble(~creator_id, ~datetime, ~deleted, r$user_id, as.character(Sys.time()), FALSE))
+    new_data$data <- new_data$data %>% dplyr::bind_cols(tibble::tribble(~creator_id, ~datetime, ~deleted, r$user_id, now(), FALSE))
   }
   
   if (table == "datasets"){
     # new_data$data <- tibble::tribble(
     #   ~id, ~name, ~data_source_id, ~creator_id, ~creation_datetime, ~update_datetime, ~deleted,
-    #   last_row$data + 1, as.character(data$name), as.integer(data$data_source), r$user_id, as.character(Sys.time()), as.character(Sys.time()), FALSE)
+    #   last_row$data + 1, as.character(data$name), as.integer(data$data_source), r$user_id, now(), now(), FALSE)
     new_data$data <- tibble::tribble(
       ~id, ~name, ~data_source_id, ~creator_id, ~creation_datetime, ~update_datetime, ~deleted,
-      last_row$data + 1, as.character(data$name), NA_integer_, r$user_id, as.character(Sys.time()), as.character(Sys.time()), FALSE)
+      last_row$data + 1, as.character(data$name), NA_integer_, r$user_id, now(), now(), FALSE)
   }
 
   # Creation of new_data$data variable for vocabulary page
@@ -159,11 +159,11 @@ add_settings_new_data <- function(session, output, r = shiny::reactiveValues(), 
     # new_data$data <- tibble::tribble(~id, ~vocabulary_id, ~vocabulary_name, ~vocabulary_reference, ~vocabulary_version,
     #   ~vocabulary_concept_id, ~display_order, ~data_source_id, ~creator_id, ~creation_datetime, ~update_datetime, ~deleted,
     #   last_row$data + 1, as.character(data$vocabulary_id), as.character(data$vocabulary_name), "", "", "", NA_integer_,
-    #   data$data_source, r$user_id, as.character(Sys.time()), as.character(Sys.time()), FALSE)
+    #   data$data_source, r$user_id, now(), now(), FALSE)
     new_data$data <- tibble::tribble(~id, ~vocabulary_id, ~vocabulary_name, ~vocabulary_reference, ~vocabulary_version,
       ~vocabulary_concept_id, ~display_order, ~data_source_id, ~creator_id, ~creation_datetime, ~update_datetime, ~deleted,
       last_row$data + 1, as.character(data$vocabulary_id), as.character(data$vocabulary_name), "", "", NA_integer_,
-      NA_integer_, "", r$user_id, as.character(Sys.time()), as.character(Sys.time()), FALSE)
+      NA_integer_, "", r$user_id, now(), now(), FALSE)
   }
   
   # Creation of new_data$data variable for studies page
@@ -171,19 +171,19 @@ add_settings_new_data <- function(session, output, r = shiny::reactiveValues(), 
     new_data$data <- tibble::tribble(
       ~id, ~name, ~dataset_id, ~patient_lvl_tab_group_id, ~aggregated_tab_group_id, ~creator_id, ~creation_datetime, ~update_datetime, ~deleted,
       last_row$data + 1, as.character(data$name), as.integer(data$dataset), as.integer(data$patient_lvl_tab_group), as.integer(data$aggregated_tab_group),
-      r$user_id, as.character(Sys.time()), as.character(Sys.time()), FALSE)
+      r$user_id, now(), now(), FALSE)
   }
   
   # Creation of new_data$data variable for plugins page
   else if (table == "plugins"){
     new_data$data <- tibble::tribble(~id, ~name, ~tab_type_id, ~creation_datetime, ~update_datetime, ~deleted,
-      last_row$data + 1, as.character(data$name), as.integer(data$tab_type), as.character(Sys.time()), as.character(Sys.time()), FALSE)
+      last_row$data + 1, as.character(data$name), as.integer(data$tab_type), now(), now(), FALSE)
   }
   
   # Creation of new_data$data variable for scripts page
   else if (table == "scripts"){
     new_data$data <- tibble::tribble(~id, ~name, ~creation_datetime, ~update_datetime, ~deleted,
-      last_row$data + 1, as.character(data$name), as.character(Sys.time()), as.character(Sys.time()), FALSE)
+      last_row$data + 1, as.character(data$name), now(), now(), FALSE)
   }
   
   # Creation of new_data$data variable for users sub-pages
@@ -191,23 +191,23 @@ add_settings_new_data <- function(session, output, r = shiny::reactiveValues(), 
   else if (table == "users"){
     new_data$data <- tibble::tribble(~id, ~username, ~firstname, ~lastname, ~password, ~user_access_id, ~user_status_id, ~datetime, ~deleted,
       last_row$data + 1, as.character(data$username), as.character(data$firstname), as.character(data$lastname),
-      rlang::hash(data$password), as.integer(data$user_access), as.integer(data$user_status), as.character(Sys.time()), FALSE)
+      rlang::hash(data$password), as.integer(data$user_access), as.integer(data$user_status), now(), FALSE)
   }
   
   else if (table %in% c("users_accesses", "users_statuses")){
     new_data$data <- tibble::tribble(~id, ~name, ~description, ~datetime, ~deleted,
-      last_row$data + 1, as.character(data$name), as.character(data$description), as.character(Sys.time()), FALSE)
+      last_row$data + 1, as.character(data$name), as.character(data$description), now(), FALSE)
   }
   
   else if (table %in% c("patient_lvl_tabs", "aggregated_tabs")){
     new_data$data <- tibble::tribble(~id, ~category, ~name,  ~description, ~tab_group_id, ~parent_tab_id,  ~display_order, ~creator_id, ~datetime, ~deleted,
       last_row$data + 1, category, as.character(data$name), as.character(data$description), as.integer(data$tab_group), as.integer(data$parent_tab),
-      as.integer(data$display_order), r$user_id, as.character(Sys.time()), FALSE)
+      as.integer(data$display_order), r$user_id, now(), FALSE)
   }
   
   # else if (table %in% c("patient_lvl_tabs_groups", "aggregated_tabs_groups")){
   #   new_data$data <- tibble::tribble(~id, ~category, ~name,  ~description, ~creator_id, ~datetime, ~deleted,
-  #     last_row$data + 1, category, as.character(data$name), as.character(data$description), r$user_id, as.character(Sys.time()), FALSE)
+  #     last_row$data + 1, category, as.character(data$name), as.character(data$description), r$user_id, now(), FALSE)
   # }
   
   else if (table == "git_repos"){
@@ -215,7 +215,7 @@ add_settings_new_data <- function(session, output, r = shiny::reactiveValues(), 
     else unique_id <- paste0(sample(c(0:9, letters[1:6]), 64, TRUE), collapse = '')
     new_data$data <- tibble::tribble(~id, ~unique_id, ~name, ~api_key, ~repo_url_address, ~raw_files_url_address, ~creator_id, ~datetime, ~deleted,
       last_row$data + 1, unique_id, as.character(data$name), as.character(data$api_key),
-      as.character(data$repo_url_address), as.character(data$raw_files_url_address), r$user_id, as.character(Sys.time()), FALSE)
+      as.character(data$repo_url_address), as.character(data$raw_files_url_address), r$user_id, now(), FALSE)
   }
   
   # Append data to the table and to r / m variables
@@ -240,7 +240,7 @@ add_settings_new_data <- function(session, output, r = shiny::reactiveValues(), 
   # Add a row in code if table is datasets, vocabulary
   if (table %in% c("datasets", "vocabulary")){
     new_data$code <- tibble::tribble(~id, ~category, ~link_id, ~code, ~creator_id, ~datetime, ~deleted,
-      last_row$code + 1, get_singular(word = table), last_row$data + 1, "", r$user_id, as.character(Sys.time()), FALSE)
+      last_row$code + 1, get_singular(word = table), last_row$data + 1, "", r$user_id, now(), FALSE)
   }
   
   # For options of plugins, add one row for long description (Markdown) & 2 rows for users allowed to use this plugin
@@ -271,13 +271,13 @@ add_settings_new_data <- function(session, output, r = shiny::reactiveValues(), 
         dplyr::select(-code, -language)
     ) %>%
     dplyr::mutate(id = last_row$options + dplyr::row_number(), category = "plugin", link_id = last_row$data + 1, .before = "name") %>%
-    dplyr::mutate(creator_id = r$user_id, datetime = as.character(Sys.time()), deleted = FALSE)
+    dplyr::mutate(creator_id = r$user_id, datetime = now(), deleted = FALSE)
     
     # Add code rows
     new_data$code <- tibble::tibble(
       id = last_row$code + 1:3,
       category = c("plugin_ui", "plugin_server", "plugin_translations"),
-      link_id = last_row$data + 1, code = "", creator_id = r$user_id, datetime = as.character(Sys.time()), deleted = FALSE
+      link_id = last_row$data + 1, code = "", creator_id = r$user_id, datetime = now(), deleted = FALSE
     )
   }
 
@@ -304,11 +304,11 @@ add_settings_new_data <- function(session, output, r = shiny::reactiveValues(), 
           dplyr::select(-code, -language)
       ) %>%
       dplyr::mutate(id = last_row$options + dplyr::row_number(), category = "script", link_id = last_row$data + 1, .before = "name") %>%
-      dplyr::mutate(creator_id = r$user_id, datetime = as.character(Sys.time()), deleted = FALSE)
+      dplyr::mutate(creator_id = r$user_id, datetime = now(), deleted = FALSE)
     
     # Add code row
     new_data$code <- tibble::tribble(~id, ~category, ~link_id, ~code, ~creator_id, ~datetime, ~deleted,
-      last_row$code + 1, "script", last_row$data + 1, "", r$user_id, as.character(Sys.time()), FALSE)
+      last_row$code + 1, "script", last_row$data + 1, "", r$user_id, now(), FALSE)
   }
   
   # For datasets options
@@ -339,7 +339,7 @@ add_settings_new_data <- function(session, output, r = shiny::reactiveValues(), 
           dplyr::select(-code, -language)
       ) %>%
       dplyr::mutate(id = last_row$options + dplyr::row_number(), category = "dataset", link_id = last_row$data + 1, .before = "name") %>%
-      dplyr::mutate(creator_id = r$user_id, datetime = as.character(Sys.time()), deleted = FALSE)
+      dplyr::mutate(creator_id = r$user_id, datetime = now(), deleted = FALSE)
   }
   
   if (table == "vocabulary"){
@@ -364,7 +364,7 @@ add_settings_new_data <- function(session, output, r = shiny::reactiveValues(), 
           dplyr::select(-code, -language)
       ) %>%
       dplyr::mutate(id = last_row$options + dplyr::row_number(), category = "vocabulary", link_id = last_row$data + 1, .before = "name") %>%
-      dplyr::mutate(creator_id = r$user_id, datetime = as.character(Sys.time()), deleted = FALSE)
+      dplyr::mutate(creator_id = r$user_id, datetime = now(), deleted = FALSE)
   }
   
   # For studies, need to add one row in options and add rows of code for subsets, with default value
@@ -392,26 +392,26 @@ add_settings_new_data <- function(session, output, r = shiny::reactiveValues(), 
           dplyr::select(-code, -language)
       ) %>%
       dplyr::mutate(id = last_row$options + dplyr::row_number(), category = "study", link_id = last_row$data + 1, .before = "name") %>%
-      dplyr::mutate(creator_id = r$user_id, datetime = as.character(Sys.time()), deleted = FALSE)
+      dplyr::mutate(creator_id = r$user_id, datetime = now(), deleted = FALSE)
     
     # Add rows in subsets table, for inclusion / exclusion subsets
     # Add also code corresponding to each subset
     new_data$subsets <- tibble::tribble(~id, ~name, ~description, ~study_id, ~creator_id,  ~datetime, ~deleted,
-      last_row$subsets + 1, i18n$t("subset_all_patients"), "", last_row$data + 1, r$user_id, as.character(Sys.time()), FALSE)
+      last_row$subsets + 1, i18n$t("subset_all_patients"), "", last_row$data + 1, r$user_id, now(), FALSE)
     
     # Add code for creating subset with all patients
     code <- paste0("add_persons_to_subset(output = output, m = m, persons = d$person %>% dplyr::select(person_id) %>% dplyr::collect(), subset_id = %subset_id%, i18n = i18n, ns = ns)")
     new_data$code <- tibble::tribble(~id, ~category, ~link_id, ~code, ~creator_id, ~datetime, ~deleted,
-      last_row$code + 1, "subset", last_row$subsets + 1, code, r$user_id, as.character(Sys.time()), FALSE)
+      last_row$code + 1, "subset", last_row$subsets + 1, code, r$user_id, now(), FALSE)
     
     # Add patient_lvl & aggregated tabs families
     
     new_data$tabs_groups <- tibble::tribble(~id, ~category, ~name, ~description, ~creator_id, ~datetime, ~deleted,
-      get_last_row(r$db, "tabs_groups") + 1, "patient_lvl", data$name, "", r$user_id, as.character(Sys.time()), FALSE,
-      get_last_row(r$db, "tabs_groups") + 2, "aggregated", data$name, "", r$user_id, as.character(Sys.time()), FALSE)
+      get_last_row(r$db, "tabs_groups") + 1, "patient_lvl", data$name, "", r$user_id, now(), FALSE,
+      get_last_row(r$db, "tabs_groups") + 2, "aggregated", data$name, "", r$user_id, now(), FALSE)
     
     # new_data$aggregated_tabs_groups <- tibble::tribble(~id, ~name, ~description, ~creator_id, ~datetime, ~deleted,
-    #   get_last_row(r$db, "aggregated_tabs_groups") + 1, data$name, "", r$user_id, as.character(Sys.time()), FALSE)
+    #   get_last_row(r$db, "aggregated_tabs_groups") + 1, data$name, "", r$user_id, now(), FALSE)
     
     # Add persons to subset
     tryCatch({
@@ -426,20 +426,20 @@ add_settings_new_data <- function(session, output, r = shiny::reactiveValues(), 
     
     # Select new study as current study
     m$selected_study <- last_row$data + 1
-    r$study_page <- Sys.time()
+    r$study_page <- now()
   }
   
   # For subsets, need to add one row in code
   if (table == "subsets"){
     new_data$code <- tibble::tribble(~id, ~category, ~link_id, ~code, ~creator_id, ~datetime, ~deleted,
-      last_row$code + 1, "subset", last_row$subsets + 1, "", r$user_id, as.character(Sys.time()), FALSE)
+      last_row$code + 1, "subset", last_row$subsets + 1, "", r$user_id, now(), FALSE)
   }
   
   # For options of patient_lvl & aggregated tabs families, need to add two rows, for users accesses
   # if (table %in% c("patient_lvl_tabs_groups", "aggregated_tabs_groups")){
   #   new_data$options <- tibble::tribble(~id, ~category, ~link_id, ~name, ~value, ~value_num, ~creator_id, ~datetime, ~deleted,
-  #     last_row$options + 1, get_singular(word = table), last_row$data + 1, "users_allowed_read_group", "everybody", 1, r$user_id, as.character(Sys.time()), FALSE,
-  #     last_row$options + 2, get_singular(word = table), last_row$data + 1, "user_allowed_read", "", r$user_id, r$user_id, as.character(Sys.time()), FALSE)
+  #     last_row$options + 1, get_singular(word = table), last_row$data + 1, "users_allowed_read_group", "everybody", 1, r$user_id, now(), FALSE,
+  #     last_row$options + 2, get_singular(word = table), last_row$data + 1, "user_allowed_read", "", r$user_id, r$user_id, now(), FALSE)
   # }
   
   # Hide creation card & options card, show management card
@@ -469,7 +469,7 @@ add_settings_new_data <- function(session, output, r = shiny::reactiveValues(), 
           dplyr::select(-code, -language)
       ) %>%
       dplyr::mutate(id = last_row$options + dplyr::row_number(), category = "git_repo", link_id = last_row$data + 1, .before = "name") %>%
-      dplyr::mutate(creator_id = r$user_id, datetime = as.character(Sys.time()), deleted = FALSE)
+      dplyr::mutate(creator_id = r$user_id, datetime = now(), deleted = FALSE)
   }
   
   # Add new data to r variables and database
@@ -492,7 +492,7 @@ add_settings_new_data <- function(session, output, r = shiny::reactiveValues(), 
   }
   
   if (!r_message_bar) show_message_bar(output, message = paste0(get_singular(table), "_added"), type = "success", i18n = i18n, ns = ns)
-  if (r_message_bar) r[[paste0(table, "_show_message_bar")]] <- tibble::tibble(message = paste0(get_singular(table), "_added"), type = "success", trigger = Sys.time())
+  if (r_message_bar) r[[paste0(table, "_show_message_bar")]] <- tibble::tibble(message = paste0(get_singular(table), "_added"), type = "success", trigger = now())
   
   # Reset textfields
   if (table == "users") sapply(c("username", "firstname", "lastname", "password"), function(name) shiny.fluent::updateTextField.shinyInput(session, name, value = ""))
@@ -646,10 +646,10 @@ delete_element <- function(r = shiny::reactiveValues(), m = shiny::reactiveValue
     
     # Notify user
     if (!r_message_bar) show_message_bar(output, delete_message, type = "warning", i18n = i18n, ns = ns)
-    if (r_message_bar) r[[paste0(table, "_show_message_bar")]] <- tibble::tibble(message = delete_message, type = "warning", trigger = Sys.time())
+    if (r_message_bar) r[[paste0(table, "_show_message_bar")]] <- tibble::tibble(message = delete_message, type = "warning", trigger = now())
     
     # Activate reload variable
-    if (length(reload_variable) > 0) r[[reload_variable]] <- Sys.time()
+    if (length(reload_variable) > 0) r[[reload_variable]] <- now()
     
     # Information variable
     if (length(information_variable) > 0) r[[information_variable]] <- r[[id_var_r]]
@@ -755,10 +755,10 @@ execute_settings_code <- function(input, output, session, id = character(), ns =
 monitor_perf <- function(r = shiny::reactiveValues(), action = "stop", task = character()){
   
   # if (!r$perf_monitoring) return()
-  if (action == "start") datetime_start <<- Sys.time()
+  if (action == "start") datetime_start <<- now()
   
   if (action == "stop"){
-    datetime_stop <<- Sys.time()
+    datetime_stop <<- now()
     
     r$perf_monitoring_table <- 
       isolate(r$perf_monitoring_table) %>% 
@@ -766,7 +766,7 @@ monitor_perf <- function(r = shiny::reactiveValues(), action = "stop", task = ch
         ~task, ~datetime_start, ~datetime_stop, 
         task, datetime_start, datetime_stop))
     
-    datetime_start <<- Sys.time() 
+    datetime_start <<- now() 
   }
 }
 
@@ -1146,7 +1146,7 @@ save_settings_options <- function(output, r = shiny::reactiveValues(), id = char
         last_row <- get_last_row(r$db, "options")
         new_data <- tibble::tibble(id = (last_row + (1:length(data$users_allowed_read))), category = category, link_id = link_id,
           name = "user_allowed_read", value = "", value_num = value_num, creator_id = r$user_id,
-          datetime = as.character(Sys.time()), deleted = FALSE)
+          datetime = now(), deleted = FALSE)
         DBI::dbAppendTable(r$db, "options", new_data)
         r$options <- r$options %>% dplyr::bind_rows(new_data)
       }
@@ -1168,7 +1168,7 @@ save_settings_options <- function(output, r = shiny::reactiveValues(), id = char
         option_id <- get_last_row(r$db, "options") + 1
         new_data <- tibble::tibble(
           id = option_id, category = !!category, link_id = !!link_id,
-          name = field, value = new_value, value_num = NA_real_, creator_id = r$user_id, datetime = as.character(Sys.time()), deleted = FALSE)
+          name = field, value = new_value, value_num = NA_real_, creator_id = r$user_id, datetime = now(), deleted = FALSE)
         print(new_data)
         DBI::dbAppendTable(r$db, "options", new_data)
         r$options <- r$options %>% dplyr::bind_rows(new_data)
@@ -1271,19 +1271,19 @@ save_settings_datatable_updates <- function(output, r = shiny::reactiveValues(),
     
     if (duplicates_display_order > 0){
       if (!r_message_bar) show_message_bar(output, "modif_display_order_duplicates", "severeWarning", i18n, ns = ns)
-      if (r_message_bar) r[[paste0(table, "_show_message_bar")]] <- tibble::tibble(message = "modif_display_order_duplicates", type = "severeWarning", trigger = Sys.time())
+      if (r_message_bar) r[[paste0(table, "_show_message_bar")]] <- tibble::tibble(message = "modif_display_order_duplicates", type = "severeWarning", trigger = now())
     } 
     if (tab_is_its_own_parent > 0){
       if (!r_message_bar) show_message_bar(output, "tab_cannot_be_its_own_parent", "severeWarning", i18n, ns = ns)
-      if (r_message_bar) r[[paste0(table, "_show_message_bar")]] <- tibble::tibble(message = "tab_cannot_be_its_own_parent", type = "severeWarning", trigger = Sys.time())
+      if (r_message_bar) r[[paste0(table, "_show_message_bar")]] <- tibble::tibble(message = "tab_cannot_be_its_own_parent", type = "severeWarning", trigger = now())
     }
     if (loop_over_tabs > 0){
       if (!r_message_bar) show_message_bar(output, "tab_loop_between_tabs", "severeWarning", i18n, ns = ns)
-      if (r_message_bar) r[[paste0(table, "_show_message_bar")]] <- tibble::tibble(message = "tab_loop_between_tabs", type = "severeWarning", trigger = Sys.time())
+      if (r_message_bar) r[[paste0(table, "_show_message_bar")]] <- tibble::tibble(message = "tab_loop_between_tabs", type = "severeWarning", trigger = now())
     }
     if (duplicates_name > 0){
       if (!r_message_bar) show_message_bar(output, "modif_names_duplicates", "severeWarning", i18n, ns = ns)
-      if (r_message_bar) r[[paste0(table, "_show_message_bar")]] <- tibble::tibble(message = "modif_names_duplicates", type = "severeWarning", trigger = Sys.time())
+      if (r_message_bar) r[[paste0(table, "_show_message_bar")]] <- tibble::tibble(message = "modif_names_duplicates", type = "severeWarning", trigger = now())
     }
     
     req(duplicates_name == 0, duplicates_display_order == 0, tab_is_its_own_parent == 0, loop_over_tabs == 0)
@@ -1298,7 +1298,7 @@ save_settings_datatable_updates <- function(output, r = shiny::reactiveValues(),
 
   if (names_empty > 0){
     if (!r_message_bar) show_message_bar(output, "names_empty", "severeWarning", i18n, ns = ns)
-    if (r_message_bar) r[[paste0(table, "_show_message_bar")]] <- tibble::tibble(message = "names_empty", type = "severeWarning", trigger = Sys.time())
+    if (r_message_bar) r[[paste0(table, "_show_message_bar")]] <- tibble::tibble(message = "names_empty", type = "severeWarning", trigger = now())
   }
   
   req(names_empty == 0)
@@ -1315,7 +1315,7 @@ save_settings_datatable_updates <- function(output, r = shiny::reactiveValues(),
 
   if (length(ids_to_del) == 0 & table != "concept_user"){
     if (!r_message_bar) show_message_bar(output,  "modif_saved", "success", i18n, ns = ns)
-    if (r_message_bar) r[[paste0(table, "_show_message_bar")]] <- tibble::tibble(message = "modif_saved", type = "success", trigger = Sys.time())
+    if (r_message_bar) r[[paste0(table, "_show_message_bar")]] <- tibble::tibble(message = "modif_saved", type = "success", trigger = now())
   }
 
   req(length(ids_to_del) > 0 | table == "concept_user")
@@ -1340,7 +1340,7 @@ save_settings_datatable_updates <- function(output, r = shiny::reactiveValues(),
 
   # Notify user
   if (!r_message_bar) show_message_bar(output,  "modif_saved", "success", i18n, ns = ns)
-  if (r_message_bar) r[[paste0(table, "_show_message_bar")]] <- tibble::tibble(message = "modif_saved", type = "success", trigger = Sys.time())
+  if (r_message_bar) r[[paste0(table, "_show_message_bar")]] <- tibble::tibble(message = "modif_saved", type = "success", trigger = now())
 }
 
 #' Show or hide cards
