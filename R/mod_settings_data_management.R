@@ -18,8 +18,8 @@ mod_settings_data_management_ui <- function(id = character(), i18n = character()
   # Dropdowns shown in datatable for each page
   dropdowns <- tibble::tribble(~id, ~dropdowns,
     "settings_data_sources", "",
-    "settings_datasets", "data_source",
-    "settings_vocabularies", "data_source")
+    "settings_datasets", "",
+    "settings_vocabularies", "")
   
   cards <- c("all_datasets_card", "all_vocabularies_card", "datatable_card", "edit_code_card", "options_card", "vocabularies_tables_datatable_card", 
     "import_dataset_card", "export_dataset_card", "import_vocabulary_card", "export_vocabulary_card")
@@ -710,8 +710,8 @@ mod_settings_data_management_server <- function(id = character(), r = shiny::rea
     # Dropdowns in the management datatable, by page
     dropdowns <- tibble::tribble(~id, ~dropdowns,
       "settings_data_sources", "",
-      "settings_datasets", "data_source",
-      "settings_vocabularies", "data_source")
+      "settings_datasets", "",
+      "settings_vocabularies", "")
     
     # Close message bar
     sapply(1:20, function(i) observeEvent(input[[paste0("close_message_bar_", i)]], shinyjs::hide(paste0("message_bar", i))))
@@ -733,7 +733,7 @@ mod_settings_data_management_server <- function(id = character(), r = shiny::rea
         
         if (table == "vocabulary"){
           options <- convert_tibble_to_list(r[[table]] %>% dplyr::arrange(vocabulary_id), key_col = "id", text_col = "vocabulary_id")
-          shiny.fluent::updateComboBox.shinyInput(session, "vocabulary_tables_selected_vocabulary", options = options)
+          # shiny.fluent::updateComboBox.shinyInput(session, "vocabulary_tables_selected_vocabulary", options = options)
         }
         
         shiny.fluent::updateComboBox.shinyInput(session, "options_selected_dataset_or_vocabulary", options = options)
@@ -1615,7 +1615,7 @@ mod_settings_data_management_server <- function(id = character(), r = shiny::rea
         
         shiny.fluent::updateComboBox.shinyInput(session, "code_selected_dataset_or_vocabulary", options = options, value = value)
         shiny.fluent::updateComboBox.shinyInput(session, "options_selected_dataset_or_vocabulary", options = options, value = value)
-        if (table == "vocabulary") shiny.fluent::updateComboBox.shinyInput(session, "vocabulary_tables_selected_vocabulary", options = options, value = value)
+        # if (table == "vocabulary") shiny.fluent::updateComboBox.shinyInput(session, "vocabulary_tables_selected_vocabulary", options = options, value = value)
         
         # Reload datatable (to unselect rows)
         DT::replaceData(r[[paste0(table, "_datatable_proxy")]], r[[paste0(table, "_datatable_temp")]], resetPaging = FALSE, rownames = FALSE)
@@ -2027,7 +2027,7 @@ mod_settings_data_management_server <- function(id = character(), r = shiny::rea
         
         shiny.fluent::updateComboBox.shinyInput(session, "code_selected_dataset_or_vocabulary", options = options, value = value)
         shiny.fluent::updateComboBox.shinyInput(session, "options_selected_dataset_or_vocabulary", options = options, value = value)
-        if (table == "vocabulary") shiny.fluent::updateComboBox.shinyInput(session, "vocabulary_tables_selected_vocabulary", options = options, value = value)
+        # if (table == "vocabulary") shiny.fluent::updateComboBox.shinyInput(session, "vocabulary_tables_selected_vocabulary", options = options, value = value)
         
         # Reload datatable (to unselect rows)
         DT::replaceData(r[[paste0(table, "_datatable_proxy")]], r[[paste0(table, "_datatable_temp")]], resetPaging = FALSE, rownames = FALSE)
@@ -2074,7 +2074,7 @@ mod_settings_data_management_server <- function(id = character(), r = shiny::rea
           if (link_id != items_link_id){
             options <- convert_tibble_to_list(r$vocabulary %>% dplyr::arrange(vocabulary_id), key_col = "id", text_col = "vocabulary_id")
             value <- list(key = link_id, text = r$vocabulary %>% dplyr::filter(id == link_id) %>% dplyr::pull(vocabulary_id))
-            shiny.fluent::updateComboBox.shinyInput(session, "vocabulary_tables_selected_vocabulary", options = options, value = value)
+            # shiny.fluent::updateComboBox.shinyInput(session, "vocabulary_tables_selected_vocabulary", options = options, value = value)
             shiny.fluent::updateComboBox.shinyInput(session, "options_selected_dataset_or_vocabulary", options = options, value = value)
           }
         }

@@ -151,18 +151,6 @@ app_server <- function(language = "en", languages = tibble::tibble(), i18n = cha
     trad$session_starts <- switch(language, "fr" = "Début de la session", "en" = "Session starts")
     trad$session_ends <- switch(language, "fr" = "Fin de la session", "en" = "Session ends")
     
-    onStop(function() {
-      if (debug) cat(paste0("\n", now(), " - server - observer onStop"))
-      add_log_entry(r = isolate(r), category = trad$session, name = trad$session_ends, value = "")
-      
-      # Close duckdb connections
-      DBI::dbDisconnect(isolate(r$db))
-      if (length(isolate(r$duckdb_drv)) > 0) sapply(isolate(r$duckdb_drv), duckdb::duckdb_shutdown)
-      
-      # Close spark connections
-      sparklyr::spark_disconnect_all()
-    })
-    
     # Add default values in database if database is empty
     # Load all data from database
     # Don't load concept, load it only when a vocabulary is selected
@@ -217,6 +205,18 @@ app_server <- function(language = "en", languages = tibble::tibble(), i18n = cha
       if (debug) cat(paste0("\n", now(), " - server - observer r$user_id"))
       
       req(r$user_id)
+      
+      onStop(function() {
+        if (debug) cat(paste0("\n", now(), " - server - observer onStop"))
+        add_log_entry(r = isolate(r), category = trad$session, name = trad$session_ends, value = "")
+        
+        # Close duckdb connections
+        DBI::dbDisconnect(isolate(r$db))
+        if (length(isolate(r$duckdb_drv)) > 0) sapply(isolate(r$duckdb_drv), duckdb::duckdb_shutdown)
+        
+        # Close spark connections
+        sparklyr::spark_disconnect_all()
+      })
       
       user_access_id <- r$users %>% dplyr::filter(id == r$user_id) %>% dplyr::pull(user_access_id)
       
