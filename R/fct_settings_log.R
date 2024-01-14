@@ -40,8 +40,6 @@ add_log_entry <- function(r, category = character(), name = character(), value =
 report_bug <- function(r = shiny::reactiveValues(), output, error_message = character(), 
   error_name = character(), category = character(), error_report = character(), i18n = character(), ns = character()){
   
-  # print(error_report)
-  
   # Notification to user
   if (error_message %not_in% c("fail_load_dataset", "fail_load_scripts", "error_connection_remote_git", 
     "error_restoring_database_table", "error_importing_default_database")){

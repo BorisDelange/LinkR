@@ -202,8 +202,6 @@ add_vocabulary_concept <- function(output, m = shiny::reactiveValues(), vocabula
       get_last_row(m$db, "concept") + 1, new_concept_id, concept_name, domain_id, vocabulary_id, 
       concept_class_id, "C", concept_code, "1970-01-01", "2099-12-31", NA_character_)
     
-    print(new_data)
-    
     DBI::dbAppendTable(m$db, "concept", new_data)
   }
   

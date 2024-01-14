@@ -1169,7 +1169,6 @@ save_settings_options <- function(output, r = shiny::reactiveValues(), id = char
         new_data <- tibble::tibble(
           id = option_id, category = !!category, link_id = !!link_id,
           name = field, value = new_value, value_num = NA_real_, creator_id = r$user_id, datetime = now(), deleted = FALSE)
-        print(new_data)
         DBI::dbAppendTable(r$db, "options", new_data)
         r$options <- r$options %>% dplyr::bind_rows(new_data)
       }

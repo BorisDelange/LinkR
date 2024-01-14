@@ -2,17 +2,17 @@
 #' 
 #' @description Check user authentification using shinymanager library
 #' @param db A DBI database connection object
-check_authentification <- function(db){
-  function(user, password) {
-    
-    password <- rlang::hash(password)
-    
-    res <- DBI::dbGetQuery(db, paste0("SELECT * FROM users WHERE username = '", user, "' AND password = '", password, "' AND deleted IS FALSE"))
-    
-    if (nrow(res) > 0) list(result = TRUE, user_info = list(user = user, id = res$id))
-    else list(result = FALSE)
-  }
-}
+# check_authentification <- function(db){
+#   function(user, password) {
+#     
+#     password <- rlang::hash(password)
+#     
+#     res <- DBI::dbGetQuery(db, paste0("SELECT * FROM users WHERE username = '", user, "' AND password = '", password, "' AND deleted IS FALSE"))
+#     
+#     if (nrow(res) > 0) list(result = TRUE, user_info = list(user = user, id = res$id))
+#     else list(result = FALSE)
+#   }
+# }
 
 #' Create a new table
 #' 
@@ -374,6 +374,8 @@ get_db <- function(r = shiny::reactiveValues(), m = shiny::reactiveValues(), app
       DBI::dbClearResult(query)
     }
   }
+  
+  return(db$local_main)
 }
 
 #' Get last row
@@ -450,7 +452,6 @@ get_remote_db <- function(r = shiny::reactiveValues(), m = shiny::reactiveValues
 #' load_database(r = r, m = m, i18n = i18n)
 #' }
 load_database <- function(r = shiny::reactiveValues(), m = shiny::reactiveValues(), i18n = character()){
-  
   # Database tables to load
   r_tables <- c("users", "users_accesses", "users_statuses", "data_sources", "datasets",
     "plugins", "scripts", "code", "options", "git_repos")

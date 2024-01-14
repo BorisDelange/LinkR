@@ -518,7 +518,6 @@ mod_messages_server <- function(id = character(), r = shiny::reactiveValues(), d
         if (debug) cat(paste0("\n", now(), " - mod_messages - observer input$study_delete_message_delete_confirmed"))
         
         link_id <- substr(input$message_deletion, nchar(paste0(id, "-delete_message_")) + 1, nchar(input$message_deletion)) %>% as.integer()
-        print(link_id)
         
         sql <- glue::glue_sql("UPDATE messages SET deleted = TRUE WHERE id = {link_id}", .con = r$db)
         query <- DBI::dbSendStatement(r$db, sql)

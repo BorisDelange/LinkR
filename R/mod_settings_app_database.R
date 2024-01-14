@@ -660,7 +660,6 @@ mod_settings_app_database_server <- function(id = character(), r = shiny::reacti
             tryCatch({
               captured_output <- capture.output({
                 DBI::dbSendStatement(db, request) -> query
-                print(query)
                 DBI::dbClearResult(query)
               })
             }, error = function(e) captured_output <<- e, warning = function(w) captured_output <<- w)

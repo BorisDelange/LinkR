@@ -2719,7 +2719,6 @@ mod_plugins_server <- function(id = character(), r = shiny::reactiveValues(), d 
               dplyr::select(id, unique_id),
             by = "unique_id"
           )
-        print(plugins)
         
         prefixes <- c("description", "name", "category")
         new_cols <- outer(prefixes, r$languages$code, paste, sep = "_") %>% as.vector()

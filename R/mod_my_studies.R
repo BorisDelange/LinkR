@@ -1168,8 +1168,6 @@ mod_my_studies_server <- function(id = character(), r = shiny::reactiveValues(),
       link_id <- integer(0)
 
       study <- r$remote_git_studies_full %>% dplyr::filter(unique_id == !!unique_id)
-      print("study")
-      print(study)
 
       tryCatch({
         study_dir <- paste0(r$app_folder, "/studies/", study$unique_id)
@@ -1178,7 +1176,6 @@ mod_my_studies_server <- function(id = character(), r = shiny::reactiveValues(),
 
         # Delete old study if exists
         if (nrow(r$options %>% dplyr::filter(category == "study" & name == "unique_id" & value == unique_id)) > 0){
-          print("1")
           link_id <- r$options %>% dplyr::filter(category == "study" & name == "unique_id" & value == unique_id) %>% dplyr::pull(link_id)
 
           sql <- glue::glue_sql("DELETE FROM options WHERE category = 'study' AND link_id = {link_id}", .con = r$db)
@@ -1244,8 +1241,6 @@ mod_my_studies_server <- function(id = character(), r = shiny::reactiveValues(),
           ) %>%
           dplyr::mutate(id = last_row$options + dplyr::row_number(), category = "study", link_id = !!link_id, .before = "name") %>%
           dplyr::mutate(creator_id = r$user_id, datetime = now(), deleted = FALSE)
-        
-        print(new_data)
         
         for (name in c("studies", "options")){
           DBI::dbAppendTable(r$db, name, new_data[[name]])
