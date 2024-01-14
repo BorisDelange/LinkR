@@ -63,25 +63,25 @@ insert_default_data <- function(output, r = shiny::reactiveValues(), m = shiny::
       if (nrow(DBI::dbGetQuery(r$db, "SELECT * FROM users")) == 0){
         DBI::dbAppendTable(r$db, "users", tibble::tribble(
           ~id, ~username, ~firstname, ~lastname, ~password, ~user_access_id, ~user_status_id, ~datetime, ~deleted,
-          1, "admin", "Alan", "Turing", rlang::hash("admin"), 1, 1, format(Sys.time(), "%Y-%m-%d %H:%M:%S"), FALSE,
-          2, "test", "Marvin", "Minski", rlang::hash("test"), 2, 1, format(Sys.time(), "%Y-%m-%d %H:%M:%S"), FALSE))
+          1, "admin", "Alan", "Turing", rlang::hash("admin"), 1, 1, now(), FALSE,
+          2, "test", "Marvin", "Minski", rlang::hash("test"), 2, 1, now(), FALSE))
       }
       
       # Add default user access
       if (nrow(DBI::dbGetQuery(r$db, "SELECT * FROM users_accesses")) == 0){
         DBI::dbAppendTable(r$db, "users_accesses", tibble::tribble(
           ~id, ~name, ~description, ~datetime, ~deleted,
-          1, i18n$t("admin"), i18n$t("admin_access"), format(Sys.time(), "%Y-%m-%d %H:%M:%S"), FALSE,
-          2, i18n$t("user"), i18n$t("user_access"), format(Sys.time(), "%Y-%m-%d %H:%M:%S"), FALSE))
+          1, i18n$t("admin"), i18n$t("admin_access"), now(), FALSE,
+          2, i18n$t("user"), i18n$t("user_access"), now(), FALSE))
       }
       
       # Add default user status
       if (nrow(DBI::dbGetQuery(r$db, "SELECT * FROM users_statuses")) == 0){
         DBI::dbAppendTable(r$db, "users_statuses", tibble::tribble(
           ~id, ~name, ~description, ~datetime, ~deleted,
-          1, i18n$t("data_scientist"), "", format(Sys.time(), "%Y-%m-%d %H:%M:%S"), FALSE,
-          2, i18n$t("clinician"), "", format(Sys.time(), "%Y-%m-%d %H:%M:%S"), FALSE,
-          3, i18n$t("statistician"), "", format(Sys.time(), "%Y-%m-%d %H:%M:%S"), FALSE))
+          1, i18n$t("data_scientist"), "", now(), FALSE,
+          2, i18n$t("clinician"), "", now(), FALSE,
+          3, i18n$t("statistician"), "", now(), FALSE))
       }
       
       # Add default users accesses
@@ -96,14 +96,14 @@ insert_default_data <- function(output, r = shiny::reactiveValues(), m = shiny::
           data <- data %>% dplyr::bind_rows(
             tibble::tribble(
               ~category, ~link_id, ~name, ~value, ~value_num, ~creator_id, ~datetime, ~deleted,
-              "users_accesses", link_id, users_accesses_toggles_options[[i, "name"]], "", ifelse(link_id == 1, 1, 0), 1, format(Sys.time(), "%Y-%m-%d %H:%M:%S"), FALSE)
+              "users_accesses", link_id, users_accesses_toggles_options[[i, "name"]], "", ifelse(link_id == 1, 1, 0), 1, now(), FALSE)
           )
           if (users_accesses_toggles_options[[i, "toggles"]] != ""){
             for(toggle in users_accesses_toggles_options[[i, "toggles"]][[1]]){
               
               data <- data %>% dplyr::bind_rows(
                 tibble::tribble(~category, ~link_id, ~name, ~value, ~value_num, ~creator_id, ~datetime, ~deleted,
-                  "users_accesses", link_id, toggle, "", ifelse(link_id == 1, 1, 0), 1, format(Sys.time(), "%Y-%m-%d %H:%M:%S"), FALSE)
+                  "users_accesses", link_id, toggle, "", ifelse(link_id == 1, 1, 0), 1, now(), FALSE)
               )
             }
           }
