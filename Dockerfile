@@ -9,6 +9,9 @@ RUN apt-get update
 RUN R -e "install.packages(c('remotes', shiny', xts', 'dygraphs', 'duckdb', 'sparklyr'), repos='https://cloud.r-project.org/')"
 
 # Install LinkR from GitHub
+# Add an argument to use cache except for this line
+# Use this syntax : docker build --build-arg CACHEBUST=$(date +%s) -t linkr-v0.2.0.9076 .
+ARG CACHEBUST=1
 RUN R -e "remotes::install_gitlab('interhop/linkr/linkr', host = 'framagit.org')"
 
 COPY Rprofile.site /usr/lib/R/etc/

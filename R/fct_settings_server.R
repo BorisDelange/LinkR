@@ -1159,7 +1159,7 @@ save_settings_options <- function(output, r = shiny::reactiveValues(), id = char
       option_id <- options %>% dplyr::filter(name == field) %>% dplyr::pull(id)
       new_value <- stringr::str_replace_all(data[[field]], "'", "''")
       
-      sql <- glue::glue_sql("SELECT id FROM options WHERE id = {option_id}")
+      sql <- glue::glue_sql("SELECT id FROM options WHERE id = {option_id}", .con = r$db)
       
       if (DBI::dbGetQuery(r$db, sql) %>% nrow() == 0){
         
