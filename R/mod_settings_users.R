@@ -257,7 +257,7 @@ mod_settings_users_server <- function(id = character(), r = shiny::reactiveValue
       # Update dropdowns with reactive data
       sapply(c("users_accesses", "users_statuses"), 
         function(data_var){
-          if (id == "creation" | id == paste0(data_var, "_management")){
+          if (grepl("creation", id) | grepl(paste0(data_var, "_management"), id)){
             observeEvent(r[[data_var]], {
               
               if (debug) cat(paste0("\n", now(), " - mod_settings_users - observer r$users_[accesses/statuses]"))
@@ -354,7 +354,7 @@ mod_settings_users_server <- function(id = character(), r = shiny::reactiveValue
       observeEvent(r[[table]], {
         
         if (perf_monitoring) monitor_perf(r = r, action = "start")
-        if (debug) cat(paste0("\n", now(), " - mod_settings_users - observer r$..[table]"))
+        if (debug) cat(paste0("\n", now(), " - mod_settings_users - observer r$", table))
         
         r[[paste0(table, "_temp")]] <- r[[table]] %>% dplyr::mutate(modified = FALSE)
         
@@ -365,7 +365,7 @@ mod_settings_users_server <- function(id = character(), r = shiny::reactiveValue
         # Reload data of datatable
         DT::replaceData(r[[paste0(table, "_datatable_proxy")]], r[[paste0(table, "_datatable_temp")]], resetPaging = FALSE, rownames = FALSE)
         
-        if (perf_monitoring) monitor_perf(r = r, action = "stop", task = paste0("mod_settings_users - observer r$..[table]"))
+        if (perf_monitoring) monitor_perf(r = r, action = "stop", task = paste0("mod_settings_users - observer r$", table))
       })
     }
     

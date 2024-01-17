@@ -33,7 +33,7 @@ linkr <- function(
   # Used to restore database and import vocabularies
   # shiny.launch.browser to automatically open browser
   
-  if (debug) cat(paste0(now(), " - linkr - init - v0.2.0.9076"))
+  if (debug) cat(paste0(now(), " - linkr - init - v0.2.0.9077"))
   options(shiny.maxRequestSize = 4096*1024^2, shiny.launch.browser = TRUE)
   
   # suppressMessages(require(shinyTree))
@@ -119,8 +119,6 @@ linkr <- function(
       "dev_edit_r_code_card",
       "dev_edit_python_code_card",
       "dev_perf_monitoring_card"),
-    "data_sources", c(
-      "data_sources_datatable_card"),
     "datasets", c(
       "datasets_see_all_data",
       "datasets_all_datasets_card",

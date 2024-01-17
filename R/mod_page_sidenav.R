@@ -603,18 +603,21 @@ mod_page_sidenav_server <- function(id = character(), r = shiny::reactiveValues(
           
           input_value <- input$person_trigger
           if (nchar(input_value) >= 2) {
-            filtered_person <- d$person
-            if ("tbl_lazy" %in% class(d$person)) filtered_person <- filtered_person %>%
-              dplyr::filter(dplyr::sql(paste0("CAST(person_id AS TEXT) LIKE '%", input_value, "%'")))
-            else filtered_person <- filtered_person %>%
-                dplyr::filter(stringr::str_detect(person_id, stringr::regex(input_value, ignore_case = TRUE)))
-            filtered_person <- filtered_person %>%
+            # filtered_persons <- d$person
+            # if ("tbl_lazy" %in% class(d$person)) filtered_persons <- filtered_persons %>%
+            #   dplyr::filter(dplyr::sql(paste0("CAST(person_id AS TEXT) LIKE '%", input_value, "%'")))
+            # else filtered_persons <- filtered_persons %>%
+            #     dplyr::filter(stringr::str_detect(person_id, stringr::regex(input_value, ignore_case = TRUE)))
+            # filtered_persons <- filtered_persons %>%
+            filtered_persons <-
+              d$person %>%
               dplyr::collect() %>%
+              dplyr::filter(stringr::str_detect(person_id, stringr::regex(input_value, ignore_case = TRUE))) %>%
               dplyr::slice_head(n = 100) %>%
               dplyr::left_join(d$dataset_all_concepts %>% dplyr::filter(is.na(relationship_id)) %>% dplyr::select(gender_concept_id = concept_id_1, gender_concept_name = concept_name_1), by = "gender_concept_id") %>%
               dplyr::mutate(name_display = paste0(person_id, " - ", gender_concept_name))
             
-            shiny.fluent::updateComboBox.shinyInput(session, "person", options = convert_tibble_to_list(filtered_person, key_col = "person_id", text_col = "name_display"))
+            shiny.fluent::updateComboBox.shinyInput(session, "person", options = convert_tibble_to_list(filtered_persons, key_col = "person_id", text_col = "name_display"))
           } else {
             shiny.fluent::updateComboBox.shinyInput(session, "person", 
               options = convert_tibble_to_list(data = d$person %>% 
@@ -639,13 +642,15 @@ mod_page_sidenav_server <- function(id = character(), r = shiny::reactiveValues(
           if (length(input$person$key) == 0){
             person_text <- input$person$text
             person <- d$person %>%
+              dplyr::collect() %>%
               dplyr::left_join(d$dataset_all_concepts %>% dplyr::filter(is.na(relationship_id)) %>% dplyr::select(gender_concept_id = concept_id_1, gender_concept_name = concept_name_1), by = "gender_concept_id") %>%
               dplyr::mutate(name_display = paste0(person_id, " - ", gender_concept_name)) %>%
-              dplyr::filter(name_display == person_text) %>% dplyr::collect()
+              dplyr::filter(name_display == person_text)
           }
           if (length(input$person$key) > 0){
             person_key <- input$person$key
-            person <- d$person %>% dplyr::filter(person_id == person_key) %>% dplyr::collect() %>%
+            person <- d$person %>% dplyr::filter(person_id == person_key) %>% dplyr::collect()
+            if (nrow(person) > 0) person <- person %>%
               dplyr::left_join(d$dataset_all_concepts %>% dplyr::filter(is.na(relationship_id)) %>% dplyr::select(gender_concept_id = concept_id_1, gender_concept_name = concept_name_1), by = "gender_concept_id") %>%
               dplyr::mutate(name_display = paste0(person_id, " - ", gender_concept_name))
           }
