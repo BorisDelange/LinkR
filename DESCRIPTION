@@ -1,6 +1,6 @@
 Package: linkr
 Title: LinkR
-Version: 0.2.0.9077
+Version: 0.2.0.9078
 Authors@R: person('Boris', 'Delange', email = 'linkr-app@pm.me', role = c('cre', 'aut', 'cph'))
 Description: LinkR package gives some tools to help clinicians without advanced programmation skills, 
   statisticiants and data scientists use their clinical data warehouse, from patient-level data visualization 

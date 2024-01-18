@@ -289,7 +289,9 @@ mod_messages_server <- function(id = character(), r = shiny::reactiveValues(), d
           ")"), .con = r$db)
 
         r$study_messages <- DBI::dbGetQuery(r$db, sql) %>%
-          tibble::as_tibble() %>% dplyr::mutate_at("datetime", as.POSIXct) %>% dplyr::arrange(dplyr::desc(datetime))
+          tibble::as_tibble() %>% 
+          # dplyr::mutate_at("datetime", as.POSIXct) %>% 
+          dplyr::arrange(dplyr::desc(datetime))
 
         if (nrow(r$study_messages) > 0) r$study_conversations <- r$study_messages %>%
           dplyr::group_by(conversation_id) %>%
@@ -369,7 +371,9 @@ mod_messages_server <- function(id = character(), r = shiny::reactiveValues(), d
           ")"), .con = r$db)
         
         study_messages <- DBI::dbGetQuery(r$db, sql) %>%
-          tibble::as_tibble() %>% dplyr::mutate_at("datetime", as.POSIXct) %>% dplyr::arrange(dplyr::desc(datetime))
+          tibble::as_tibble() %>% 
+          # dplyr::mutate_at("datetime", as.POSIXct) %>% 
+          dplyr::arrange(dplyr::desc(datetime))
         
         if (study_messages %>% dplyr::select(id, deleted) %>% dplyr::anti_join(r$study_messages %>% dplyr::select(id, deleted), by = c("id", "deleted")) %>% nrow() > 0 & nrow(study_messages) > 0){
           
@@ -625,7 +629,7 @@ mod_messages_server <- function(id = character(), r = shiny::reactiveValues(), d
               div(
                 deletion_div,
                 div(
-                  div(paste0(date, ", ", format(study_message$datetime, "%H:%M"))),
+                  div(paste0(date, ", ", format(study_message$datetime %>% as.POSIXct(), "%H:%M"))),
                   style = "font-size:12px; margin-bottom:10px; color:#878787"
                 ),
                 message_div,
@@ -641,7 +645,7 @@ mod_messages_server <- function(id = character(), r = shiny::reactiveValues(), d
               dplyr::mutate(creator_name = paste0(firstname, " ", lastname)) %>% dplyr::pull(creator_name)
 
             author_span <- shiny.fluent::Stack(horizontal = TRUE, tokens = list(childrenGap = 30),
-              div(creator_name), div(paste0(date, ", ", format(study_message$datetime, "%H:%M")))
+              div(creator_name), div(paste0(date, ", ", format(study_message$datetime %>% as.POSIXct(), "%H:%M")))
             )
             
             if (!study_message$deleted & study_message$creator_id == r$user_id) deletion_div <- div(
@@ -819,7 +823,7 @@ mod_messages_server <- function(id = character(), r = shiny::reactiveValues(), d
             output[[paste0("new_", type, "_preview")]] <- renderUI(
               div(
                 div(
-                  div(paste0(i18n$t("today"), ", ", format(now(), "%H:%M"))),
+                  div(paste0(i18n$t("today"), ", ", format(Sys.time(), "%H:%M"))),
                   style = "font-size:12px; margin-bottom:10px; color:#878787"
                 ),
                 markdown_ui,
@@ -836,7 +840,7 @@ mod_messages_server <- function(id = character(), r = shiny::reactiveValues(), d
           output[[paste0("new_", type, "_preview")]] <- renderUI(
             div(
               div(
-                div(paste0(i18n$t("today"), ", ", format(now(), "%H:%M"))),
+                div(paste0(i18n$t("today"), ", ", format(Sys.time(), "%H:%M"))),
                 style = "font-size:12px; margin-bottom:10px; color:#878787"
               ),
               div(HTML(new_text)),

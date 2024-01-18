@@ -24,11 +24,12 @@ common data model
 
 The application is for:
 
-- **clinicians**, an intuitive interface allows clinicians to analyze
-  data and conduct studies without advanced programming knowledge
+- **healthcare professionals**, an intuitive interface allows healthcare
+  professionals to analyze data and conduct studies without advanced
+  programming knowledge
 - **data scientists and statisticians**, LinkR provides access to a full
-  R environment, allowing data scientists and statisticians to exploit
-  all the features of advanced data analysis
+  R and Python environment, allowing data scientists and statisticians
+  to exploit all the features of advanced data analysis
 - **healthcare students**, integrated tutorials in the application
   provide healthcare students with an opportunity to learn and practice
   data analysis in the healthcare field
@@ -37,7 +38,23 @@ Thus, LinkR facilitates **collaborative work**.
 
 ## Quick overview
 
-<img src="man/figures/ggplot2_plugin.gif" />
+Use an intuitive **graphical interface** to **visualize aggregated
+patient data**. **Generate** and, if required, **modify** the
+corresponding R **code** directly from the figures you create.
+
+<img src="man/figures/ggplot2_plugin.gif" /><br /><br />
+
+**Explore data** on a **patient-by-patient** basis. As you switch
+between patients, the figures **dynamically update** to reflect each
+patient’s specific data.
+
+<img src="man/figures/dygraphs_plugin.gif" /><br /><br />
+
+**Enhance team collaboration** with our integrated messaging system.
+Exchange messages with team members for mutual assistance and
+streamlined communication.
+
+<img src="man/figures/messages.gif" />
 
 ## Sharing and Open Science
 
