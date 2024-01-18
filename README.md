@@ -8,7 +8,7 @@
 [![Lifecycle:
 experimental](https://img.shields.io/badge/lifecycle-experimental-orange.svg)](https://lifecycle.r-lib.org/articles/stages.html#experimental)
 ![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)
-![version](https://img.shields.io/badge/version-0.2.0.9077-blue)
+![version](https://img.shields.io/badge/version-0.2.0.9078-blue)
 <!-- badges: end -->
 
 ## Introduction
@@ -34,6 +34,10 @@ The application is for:
   data analysis in the healthcare field
 
 Thus, LinkR facilitates **collaborative work**.
+
+## Quick overview
+
+<img src="man/figures/ggplot2_plugin.gif" />
 
 ## Sharing and Open Science
 
