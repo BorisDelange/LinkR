@@ -30,9 +30,14 @@
     
     <a class="navbar-brand me-2" href="index.html">linkr</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.2.0.9062</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.2.0.9079</small>
 
-    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.3.1/styles/tomorrow-night-blue.min.css">
+<div class="language-selector">
+  <select id="language" class="form-control" style="margin:0px 20px 0px 20px; width:50px;" onchange="change_language()"><option value="en">EN</option>
+<option value="fr">FR</option></select>
+</div>
+
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
       <span class="navbar-toggler-icon"></span>
     </button>
@@ -41,6 +46,18 @@
       <ul class="navbar-nav me-auto">
 <li class="nav-item">
   <a class="nav-link" href="reference/index.html">Reference</a>
+</li>
+<li class="nav-item dropdown">
+  <a href="#" class="nav-link dropdown-toggle" data-bs-toggle="dropdown" role="button" aria-expanded="false" aria-haspopup="true" id="dropdown-tutorials">Tutorials</a>
+  <div class="dropdown-menu" aria-labelledby="dropdown-tutorials">
+    <a class="dropdown-item" href="articles/en_import_data.html">Import data</a>
+  </div>
+</li>
+<li class="nav-item dropdown">
+  <a href="#" class="nav-link dropdown-toggle" data-bs-toggle="dropdown" role="button" aria-expanded="false" aria-haspopup="true" id="dropdown-tutoriels">Tutoriels</a>
+  <div class="dropdown-menu" aria-labelledby="dropdown-tutoriels">
+    <a class="dropdown-item" href="articles/fr_import_data.html">Importer des données</a>
+  </div>
 </li>
       </ul>
 <form class="form-inline my-2 my-lg-0" role="search">
@@ -72,13 +89,23 @@
 <p>The application is for:</p>
 <ul>
 <li>
-<strong>clinicians</strong>, an intuitive interface allows clinicians to analyze data and conduct studies without advanced programming knowledge</li>
+<strong>healthcare professionals</strong>, an intuitive interface allows healthcare professionals to analyze data and conduct studies without advanced programming knowledge</li>
 <li>
-<strong>data scientists and statisticians</strong>, LinkR provides access to a full R environment, allowing data scientists and statisticians to exploit all the features of advanced data analysis</li>
+<strong>data scientists and statisticians</strong>, LinkR provides access to a full R and Python environment, allowing data scientists and statisticians to exploit all the features of advanced data analysis</li>
 <li>
 <strong>healthcare students</strong>, integrated tutorials in the application provide healthcare students with an opportunity to learn and practice data analysis in the healthcare field</li>
 </ul>
 <p>Thus, LinkR facilitates <strong>collaborative work</strong>.</p>
+</div>
+<div class="section level2">
+<h2 id="quick-overview">Quick overview<a class="anchor" aria-label="anchor" href="#quick-overview"></a>
+</h2>
+<p>Use an intuitive <strong>graphical interface</strong> to <strong>visualize aggregated patient data</strong>. <strong>Generate</strong> and, if required, <strong>modify</strong> the corresponding R <strong>code</strong> directly from the figures you create.</p>
+<p><img src="reference/figures/ggplot2_plugin.gif"><br><br></p>
+<p><strong>Explore data</strong> on a <strong>patient-by-patient</strong> basis. As you switch between patients, the figures <strong>dynamically update</strong> to reflect each patient’s specific data.</p>
+<p><img src="reference/figures/dygraphs_plugin.gif"><br><br></p>
+<p><strong>Enhance team collaboration</strong> with our integrated messaging system. Exchange messages with team members for mutual assistance and streamlined communication.</p>
+<p><img src="reference/figures/messages.gif"></p>
 </div>
 <div class="section level2">
 <h2 id="sharing-and-open-science">Sharing and Open Science<a class="anchor" aria-label="anchor" href="#sharing-and-open-science"></a>
@@ -209,7 +236,72 @@
 
   
 
+  <script>
+  var languageChangedEvent = new Event('languageChanged');
+
+  function change_language() {
+    var lang = document.getElementById("language").value;
+    if (lang === "en") {
+      document.getElementById("dropdown-tutorials").style.display = "block";
+      document.getElementById("dropdown-tutoriels").style.display = "none";
+    } else if (lang === "fr") {
+      document.getElementById("dropdown-tutorials").style.display = "none";
+      document.getElementById("dropdown-tutoriels").style.display = "block";
+    } else {
+      document.getElementById("dropdown-tutorials").style.display = "block";
+      document.getElementById("dropdown-tutoriels").style.display = "none";
+    }
+  }
   
+  function initializeLanguageSelector() {
+    var languageSelect = document.getElementById("language");
+    if (languageSelect) {
+      var selectedLanguage = localStorage.getItem("selectedLanguage");
+      if (selectedLanguage) {
+        languageSelect.value = selectedLanguage;
+      }
+      change_language(selectedLanguage);
+    }
+  }
+  
+  document.addEventListener("DOMContentLoaded", function() {
+    
+    var languageSelect = document.getElementById("language");
+    if (languageSelect) {
+      languageSelect.addEventListener("change", function() {
+        localStorage.setItem("selectedLanguage", this.value);
+        change_language(this.value);
+      });
+    }
+
+    window.addEventListener('storage', function(e) {
+      if (e.key === 'selectedLanguage') {
+        initializeLanguageSelector();
+      }
+    });
+
+    initializeLanguageSelector();
+    
+    var observer = new MutationObserver(function(mutations) {
+      mutations.forEach(function(mutation) {
+        if (mutation.addedNodes.length > 0) {
+          document.querySelectorAll('.code_highlight:not(.hljs)').forEach((block) => {
+            hljs.highlightElement(block);
+            block.classList.add('hljs');
+          });
+        }
+      });
+    });
+
+    var target = document.querySelector('body');
+    observer.observe(target, { childList: true, subtree: true });
+  });
+</script><script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.3.1/highlight.min.js">
+
 
   </body>
+</html>
+
+</script>
+</body>
 </html>

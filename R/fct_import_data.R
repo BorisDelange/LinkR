@@ -16,7 +16,6 @@
 #' @param allow_numeric_instead_integer Allow columns that should be of type integer to be of type numeric (logical)
 #' @param allow_dttm_instead_date Allow columns that should be of type datetime to be of type date (logical)
 #' @details 
-#' @details 
 #' This function is used within a dataset code and is invoked each time a user selects a dataset.
 #'
 #' For \strong{each OMOP table} you wish to import, you must \strong{create a function} that, when called,

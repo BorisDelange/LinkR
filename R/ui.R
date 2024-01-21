@@ -91,13 +91,13 @@ golem_add_external_resources <- function(css){
             if (mutation.addedNodes.length > 0) {
               document.querySelectorAll('.code_highlight:not(.hljs)').forEach((block) => {
                 hljs.highlightElement(block);
-                block.classList.add('hljs'); // Ajoute une classe pour marquer que le highlight a été appliqué
+                block.classList.add('hljs');
               });
             }
           });
         });
 
-        var target = document.querySelector('body'); // Observez tout le body pour les changements
+        var target = document.querySelector('body');
         observer.observe(target, { childList: true, subtree: true });
       });
     ")),

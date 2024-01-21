@@ -16,9 +16,11 @@ a 'linkr' folder will be created in the folder returned by path.expand(&quot;~&q
     
     <a class="navbar-brand me-2" href="../index.html">linkr</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.2.0.9062</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.2.0.9079</small>
 
-    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.3.1/styles/tomorrow-night-blue.min.css"><div class="language-selector">
+  <select id="language" class="form-control" style="margin:0px 20px 0px 20px; width:50px;" onchange="change_language()"><option value="en">EN</option><option value="fr">FR</option></select></div>
+
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
       <span class="navbar-toggler-icon"></span>
     </button>
@@ -26,6 +28,18 @@ a 'linkr' folder will be created in the folder returned by path.expand(&quot;~&q
     <div id="navbar" class="collapse navbar-collapse ms-3">
       <ul class="navbar-nav me-auto"><li class="active nav-item">
   <a class="nav-link" href="../reference/index.html">Reference</a>
+</li>
+<li class="nav-item dropdown">
+  <a href="#" class="nav-link dropdown-toggle" data-bs-toggle="dropdown" role="button" aria-expanded="false" aria-haspopup="true" id="dropdown-tutorials">Tutorials</a>
+  <div class="dropdown-menu" aria-labelledby="dropdown-tutorials">
+    <a class="dropdown-item" href="../articles/en_import_data.html">Import data</a>
+  </div>
+</li>
+<li class="nav-item dropdown">
+  <a href="#" class="nav-link dropdown-toggle" data-bs-toggle="dropdown" role="button" aria-expanded="false" aria-haspopup="true" id="dropdown-tutoriels">Tutoriels</a>
+  <div class="dropdown-menu" aria-labelledby="dropdown-tutoriels">
+    <a class="dropdown-item" href="../articles/fr_import_data.html">Importer des données</a>
+  </div>
 </li>
       </ul><form class="form-inline my-2 my-lg-0" role="search">
         <input type="search" class="form-control me-sm-2" aria-label="Toggle navigation" name="search-input" data-search-index="../search.json" id="search-input" placeholder="Search for" autocomplete="off"></form>
@@ -111,7 +125,71 @@ a 'linkr' folder will be created in the folder returned by path.expand("~").<br>
 
   
 
-  
+  <script>
+  var languageChangedEvent = new Event('languageChanged');
 
-  </body></html>
+  function change_language() {
+    var lang = document.getElementById("language").value;
+    if (lang === "en") {
+      document.getElementById("dropdown-tutorials").style.display = "block";
+      document.getElementById("dropdown-tutoriels").style.display = "none";
+    } else if (lang === "fr") {
+      document.getElementById("dropdown-tutorials").style.display = "none";
+      document.getElementById("dropdown-tutoriels").style.display = "block";
+    } else {
+      document.getElementById("dropdown-tutorials").style.display = "block";
+      document.getElementById("dropdown-tutoriels").style.display = "none";
+    }
+  }
+  
+  function initializeLanguageSelector() {
+    var languageSelect = document.getElementById("language");
+    if (languageSelect) {
+      var selectedLanguage = localStorage.getItem("selectedLanguage");
+      if (selectedLanguage) {
+        languageSelect.value = selectedLanguage;
+      }
+      change_language(selectedLanguage);
+    }
+  }
+  
+  document.addEventListener("DOMContentLoaded", function() {
+    
+    var languageSelect = document.getElementById("language");
+    if (languageSelect) {
+      languageSelect.addEventListener("change", function() {
+        localStorage.setItem("selectedLanguage", this.value);
+        change_language(this.value);
+      });
+    }
+
+    window.addEventListener('storage', function(e) {
+      if (e.key === 'selectedLanguage') {
+        initializeLanguageSelector();
+      }
+    });
+
+    initializeLanguageSelector();
+    
+    var observer = new MutationObserver(function(mutations) {
+      mutations.forEach(function(mutation) {
+        if (mutation.addedNodes.length > 0) {
+          document.querySelectorAll('.code_highlight:not(.hljs)').forEach((block) => {
+            hljs.highlightElement(block);
+            block.classList.add('hljs');
+          });
+        }
+      });
+    });
+
+    var target = document.querySelector('body');
+    observer.observe(target, { childList: true, subtree: true });
+  });
+</script><script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.3.1/highlight.min.js">
+
+
+  </body>
+</html>
+
+</script></body></html>
 

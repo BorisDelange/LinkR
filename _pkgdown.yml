@@ -1,6 +1,98 @@
 url: https://framagit.org/interhop/LinkR/
 template:
   bootstrap: 5
+  bslib:
+    h1-font-size: 2rem;
+    h2-font-size: 1.8rem;
+    h3-font-size: 1.5rem;
+    headings-margin-bottom: 2rem;
+  includes:
+    before_navbar: |
+      <link rel = "stylesheet", href = "https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.3.1/styles/tomorrow-night-blue.min.css">
+      <div class="language-selector">
+        <select id="language" class="form-control" style="margin:0px 20px 0px 20px; width:50px;" onchange="change_language()">
+          <option value="en">EN</option>
+          <option value="fr">FR</option>
+        </select>
+      </div>
+    after_body: |
+      <script>
+        var languageChangedEvent = new Event('languageChanged');
+      
+        function change_language() {
+          var lang = document.getElementById("language").value;
+          if (lang === "en") {
+            document.getElementById("dropdown-tutorials").style.display = "block";
+            document.getElementById("dropdown-tutoriels").style.display = "none";
+          } else if (lang === "fr") {
+            document.getElementById("dropdown-tutorials").style.display = "none";
+            document.getElementById("dropdown-tutoriels").style.display = "block";
+          } else {
+            document.getElementById("dropdown-tutorials").style.display = "block";
+            document.getElementById("dropdown-tutoriels").style.display = "none";
+          }
+        }
+        
+        function initializeLanguageSelector() {
+          var languageSelect = document.getElementById("language");
+          if (languageSelect) {
+            var selectedLanguage = localStorage.getItem("selectedLanguage");
+            if (selectedLanguage) {
+              languageSelect.value = selectedLanguage;
+            }
+            change_language(selectedLanguage);
+          }
+        }
+        
+        document.addEventListener("DOMContentLoaded", function() {
+          
+          var languageSelect = document.getElementById("language");
+          if (languageSelect) {
+            languageSelect.addEventListener("change", function() {
+              localStorage.setItem("selectedLanguage", this.value);
+              change_language(this.value);
+            });
+          }
+
+          window.addEventListener('storage', function(e) {
+            if (e.key === 'selectedLanguage') {
+              initializeLanguageSelector();
+            }
+          });
+
+          initializeLanguageSelector();
+          
+          var observer = new MutationObserver(function(mutations) {
+            mutations.forEach(function(mutation) {
+              if (mutation.addedNodes.length > 0) {
+                document.querySelectorAll('.code_highlight:not(.hljs)').forEach((block) => {
+                  hljs.highlightElement(block);
+                  block.classList.add('hljs');
+                });
+              }
+            });
+          });
+  
+          var target = document.querySelector('body');
+          observer.observe(target, { childList: true, subtree: true });
+        });
+      </script>
+      <script src = "https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.3.1/highlight.min.js">
+navbar:
+  structure:
+    left:  [reference, en_tutorials, fr_tutorials, es_tutorials]
+    right: [search]
+  components:
+    en_tutorials:
+      text: "Tutorials"
+      menu:
+      - text: "Import data"
+        href: "articles/en_import_data.html"
+    fr_tutorials:
+      text: "Tutoriels"
+      menu:
+      - text: "Importer des données"
+        href: "articles/fr_import_data.html"
 reference:
 - title: "Run the app"
   contents:
@@ -21,7 +113,6 @@ reference:
   - add_log_entry
   - add_settings_new_data
   - capture_python_output
-  - check_authentification
   - coalesce2
   - convert_tibble_to_list
   - db_create_table
@@ -37,6 +128,7 @@ reference:
   - is_integer_or_integer64
   - load_database
   - monitor_perf
+  - now
   - prepare_data_datatable
   - report_bug
   - resize_and_pad_image

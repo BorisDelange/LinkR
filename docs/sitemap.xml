@@ -13,6 +13,18 @@
     <loc>https://framagit.org/interhop/LinkR/LICENSE.html</loc>
   </url>
   <url>
+    <loc>https://framagit.org/interhop/LinkR/articles/en_import_data.html</loc>
+  </url>
+  <url>
+    <loc>https://framagit.org/interhop/LinkR/articles/fr_import_data.html</loc>
+  </url>
+  <url>
+    <loc>https://framagit.org/interhop/LinkR/articles/import_data.html</loc>
+  </url>
+  <url>
+    <loc>https://framagit.org/interhop/LinkR/articles/index.html</loc>
+  </url>
+  <url>
     <loc>https://framagit.org/interhop/LinkR/authors.html</loc>
   </url>
   <url>
@@ -136,6 +148,9 @@
     <loc>https://framagit.org/interhop/LinkR/reference/monitor_perf.html</loc>
   </url>
   <url>
+    <loc>https://framagit.org/interhop/LinkR/reference/now.html</loc>
+  </url>
+  <url>
     <loc>https://framagit.org/interhop/LinkR/reference/prepare_data_datatable.html</loc>
   </url>
   <url>
@@ -182,5 +197,11 @@
   </url>
   <url>
     <loc>https://framagit.org/interhop/LinkR/reference/update_settings_datatable.html</loc>
+  </url>
+  <url>
+    <loc>https://framagit.org/interhop/LinkR/tutorials/import_data.html</loc>
+  </url>
+  <url>
+    <loc>https://framagit.org/interhop/LinkR/tutorials/index.html</loc>
   </url>
 </urlset>

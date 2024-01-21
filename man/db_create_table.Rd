@@ -2,7 +2,7 @@
 % Please edit documentation in R/fct_settings_app_database.R
 \name{db_create_table}
 \alias{db_create_table}
-\title{Create a new table}
+\title{Check user authentification}
 \usage{
 db_create_table(
   db,
@@ -33,6 +33,8 @@ db_create_table(
 \item{text_cols}{Character vector containing the text columns, to create a column with TEXT type in postgres DBMS (character)}
 }
 \description{
+Check user authentification using shinymanager library
+
 Create a new table in the database
 }
 \details{

@@ -1,0 +1,16 @@
+---
+title: "Import data"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{en_import_data}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+<html>
+<body>
+```{r echo = FALSE}
+htmltools::includeMarkdown("https://framagit.org/interhop/linkr/LinkR-content/-/raw/main/home/fr/tutorials/2024-01-21_tutorial_import_data.md")
+```
+</body>
+</html>
