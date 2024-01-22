@@ -6,6 +6,7 @@ pages:
     - Rscript -e "install.packages('remotes', repos = 'https://cloud.r-project.org')"
     - Rscript -e "remotes::install_gitlab('interhop/linkr/linkr', host = 'framagit.org')"
     - Rscript -e "install.packages('pkgdown')"
+    - Rscript -e "pkgdown::build_articles()"
     - Rscript -e "pkgdown::build_site()"
     - mv docs public
   artifacts:
