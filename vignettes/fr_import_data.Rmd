@@ -8,9 +8,16 @@ vignette: >
 ---
 
 <html>
+<style>
+img {
+  border-color: black;
+}
+</style>
 <body>
-```{r echo = FALSE}
-htmltools::includeMarkdown("https://framagit.org/interhop/linkr/LinkR-content/-/raw/main/home/fr/tutorials/2024-01-21_tutorial_import_data.md")
+```{r, echo = FALSE, results = 'asis'}
+url <- "https://framagit.org/interhop/linkr/LinkR-content/-/raw/main/home/fr/tutorials/2024-01-21_tutorial_import_data.md"
+markdown_content <- readLines(url, warn = FALSE, encoding = "UTF-8")
+cat(markdown_content, sep = "\n")
 ```
 </body>
 </html>
