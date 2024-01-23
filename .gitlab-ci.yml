@@ -5,6 +5,7 @@ pages:
     - apt-get update
     - Rscript -e "install.packages(c('remotes', 'rmarkdown', 'knitr', 'pkgdown'), repos = 'https://cloud.r-project.org')"
     - Rscript -e "remotes::install_gitlab('interhop/linkr/linkr', host = 'framagit.org')"
+    - Rscript -e "pkgdown::build_articles()"
     - Rscript -e "pkgdown::build_site()"
     - mv docs public
   artifacts:
