@@ -1,7 +1,9 @@
+title: LinkR
 url: https://interhop.frama.io/linkr/linkr/
 template:
   bootstrap: 5
   bslib:
+    font-size-base: 1rem;
     h1-font-size: 2rem;
     h2-font-size: 1.8rem;
     h3-font-size: 1.5rem;
@@ -9,6 +11,14 @@ template:
   includes:
     before_navbar: |
       <link rel = "stylesheet", href = "https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.3.1/styles/tomorrow-night-blue.min.css">
+      <style>
+      body {
+        font-size: 1rem;
+      }
+      body .page-header {
+        min-height: 75px !important;
+      }
+      </style>
       <div class="language-selector">
         <select id="language" class="form-control" style="margin:0px 20px 0px 20px; width:50px;" onchange="change_language()">
           <option value="en">EN</option>

@@ -1,207 +1,207 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
-    <loc>https://framagit.org/interhop/LinkR/404.html</loc>
+    <loc>https://interhop.frama.io/linkr/linkr/404.html</loc>
   </url>
   <url>
-    <loc>https://framagit.org/interhop/LinkR/CODE_OF_CONDUCT.html</loc>
+    <loc>https://interhop.frama.io/linkr/linkr/CODE_OF_CONDUCT.html</loc>
   </url>
   <url>
-    <loc>https://framagit.org/interhop/LinkR/LICENSE-text.html</loc>
+    <loc>https://interhop.frama.io/linkr/linkr/LICENSE-text.html</loc>
   </url>
   <url>
-    <loc>https://framagit.org/interhop/LinkR/LICENSE.html</loc>
+    <loc>https://interhop.frama.io/linkr/linkr/LICENSE.html</loc>
   </url>
   <url>
-    <loc>https://framagit.org/interhop/LinkR/articles/en_import_data.html</loc>
+    <loc>https://interhop.frama.io/linkr/linkr/articles/en_import_data.html</loc>
   </url>
   <url>
-    <loc>https://framagit.org/interhop/LinkR/articles/fr_import_data.html</loc>
+    <loc>https://interhop.frama.io/linkr/linkr/articles/fr_import_data.html</loc>
   </url>
   <url>
-    <loc>https://framagit.org/interhop/LinkR/articles/import_data.html</loc>
+    <loc>https://interhop.frama.io/linkr/linkr/articles/import_data.html</loc>
   </url>
   <url>
-    <loc>https://framagit.org/interhop/LinkR/articles/index.html</loc>
+    <loc>https://interhop.frama.io/linkr/linkr/articles/index.html</loc>
   </url>
   <url>
-    <loc>https://framagit.org/interhop/LinkR/authors.html</loc>
+    <loc>https://interhop.frama.io/linkr/linkr/authors.html</loc>
   </url>
   <url>
-    <loc>https://framagit.org/interhop/LinkR/index.html</loc>
+    <loc>https://interhop.frama.io/linkr/linkr/index.html</loc>
   </url>
   <url>
-    <loc>https://framagit.org/interhop/LinkR/reference/add_log_entry.html</loc>
+    <loc>https://interhop.frama.io/linkr/linkr/reference/add_log_entry.html</loc>
   </url>
   <url>
-    <loc>https://framagit.org/interhop/LinkR/reference/add_persons_to_subset.html</loc>
+    <loc>https://interhop.frama.io/linkr/linkr/reference/add_persons_to_subset.html</loc>
   </url>
   <url>
-    <loc>https://framagit.org/interhop/LinkR/reference/add_settings_new_data.html</loc>
+    <loc>https://interhop.frama.io/linkr/linkr/reference/add_settings_new_data.html</loc>
   </url>
   <url>
-    <loc>https://framagit.org/interhop/LinkR/reference/add_vocabulary_concept.html</loc>
+    <loc>https://interhop.frama.io/linkr/linkr/reference/add_vocabulary_concept.html</loc>
   </url>
   <url>
-    <loc>https://framagit.org/interhop/LinkR/reference/capture_python_output.html</loc>
+    <loc>https://interhop.frama.io/linkr/linkr/reference/capture_python_output.html</loc>
   </url>
   <url>
-    <loc>https://framagit.org/interhop/LinkR/reference/check_authentification.html</loc>
+    <loc>https://interhop.frama.io/linkr/linkr/reference/check_authentification.html</loc>
   </url>
   <url>
-    <loc>https://framagit.org/interhop/LinkR/reference/coalesce2.html</loc>
+    <loc>https://interhop.frama.io/linkr/linkr/reference/coalesce2.html</loc>
   </url>
   <url>
-    <loc>https://framagit.org/interhop/LinkR/reference/convert_tibble_to_list.html</loc>
+    <loc>https://interhop.frama.io/linkr/linkr/reference/convert_tibble_to_list.html</loc>
   </url>
   <url>
-    <loc>https://framagit.org/interhop/LinkR/reference/db_create_table.html</loc>
+    <loc>https://interhop.frama.io/linkr/linkr/reference/db_create_table.html</loc>
   </url>
   <url>
-    <loc>https://framagit.org/interhop/LinkR/reference/db_create_tables.html</loc>
+    <loc>https://interhop.frama.io/linkr/linkr/reference/db_create_tables.html</loc>
   </url>
   <url>
-    <loc>https://framagit.org/interhop/LinkR/reference/delete_element.html</loc>
+    <loc>https://interhop.frama.io/linkr/linkr/reference/delete_element.html</loc>
   </url>
   <url>
-    <loc>https://framagit.org/interhop/LinkR/reference/execute_settings_code.html</loc>
+    <loc>https://interhop.frama.io/linkr/linkr/reference/execute_settings_code.html</loc>
   </url>
   <url>
-    <loc>https://framagit.org/interhop/LinkR/reference/forbidden_card.html</loc>
+    <loc>https://interhop.frama.io/linkr/linkr/reference/forbidden_card.html</loc>
   </url>
   <url>
-    <loc>https://framagit.org/interhop/LinkR/reference/format_datetime.html</loc>
+    <loc>https://interhop.frama.io/linkr/linkr/reference/format_datetime.html</loc>
   </url>
   <url>
-    <loc>https://framagit.org/interhop/LinkR/reference/get_authorized_data.html</loc>
+    <loc>https://interhop.frama.io/linkr/linkr/reference/get_authorized_data.html</loc>
   </url>
   <url>
-    <loc>https://framagit.org/interhop/LinkR/reference/get_col_names.html</loc>
+    <loc>https://interhop.frama.io/linkr/linkr/reference/get_col_names.html</loc>
   </url>
   <url>
-    <loc>https://framagit.org/interhop/LinkR/reference/get_db.html</loc>
+    <loc>https://interhop.frama.io/linkr/linkr/reference/get_db.html</loc>
   </url>
   <url>
-    <loc>https://framagit.org/interhop/LinkR/reference/get_last_row.html</loc>
+    <loc>https://interhop.frama.io/linkr/linkr/reference/get_last_row.html</loc>
   </url>
   <url>
-    <loc>https://framagit.org/interhop/LinkR/reference/get_plural.html</loc>
+    <loc>https://interhop.frama.io/linkr/linkr/reference/get_plural.html</loc>
   </url>
   <url>
-    <loc>https://framagit.org/interhop/LinkR/reference/get_remote_db.html</loc>
+    <loc>https://interhop.frama.io/linkr/linkr/reference/get_remote_db.html</loc>
   </url>
   <url>
-    <loc>https://framagit.org/interhop/LinkR/reference/get_singular.html</loc>
+    <loc>https://interhop.frama.io/linkr/linkr/reference/get_singular.html</loc>
   </url>
   <url>
-    <loc>https://framagit.org/interhop/LinkR/reference/get_vocabulary_concept.html</loc>
+    <loc>https://interhop.frama.io/linkr/linkr/reference/get_vocabulary_concept.html</loc>
   </url>
   <url>
-    <loc>https://framagit.org/interhop/LinkR/reference/import_dataset.html</loc>
+    <loc>https://interhop.frama.io/linkr/linkr/reference/import_dataset.html</loc>
   </url>
   <url>
-    <loc>https://framagit.org/interhop/LinkR/reference/import_vocabulary_table.html</loc>
+    <loc>https://interhop.frama.io/linkr/linkr/reference/import_vocabulary_table.html</loc>
   </url>
   <url>
-    <loc>https://framagit.org/interhop/LinkR/reference/index.html</loc>
+    <loc>https://interhop.frama.io/linkr/linkr/reference/index.html</loc>
   </url>
   <url>
-    <loc>https://framagit.org/interhop/LinkR/reference/insert_default_data.html</loc>
+    <loc>https://interhop.frama.io/linkr/linkr/reference/insert_default_data.html</loc>
   </url>
   <url>
-    <loc>https://framagit.org/interhop/LinkR/reference/is_integer_or_integer64.html</loc>
+    <loc>https://interhop.frama.io/linkr/linkr/reference/is_integer_or_integer64.html</loc>
   </url>
   <url>
-    <loc>https://framagit.org/interhop/LinkR/reference/linkr.html</loc>
+    <loc>https://interhop.frama.io/linkr/linkr/reference/linkr.html</loc>
   </url>
   <url>
-    <loc>https://framagit.org/interhop/LinkR/reference/load_database.html</loc>
+    <loc>https://interhop.frama.io/linkr/linkr/reference/load_database.html</loc>
   </url>
   <url>
-    <loc>https://framagit.org/interhop/LinkR/reference/make_card.html</loc>
+    <loc>https://interhop.frama.io/linkr/linkr/reference/make_card.html</loc>
   </url>
   <url>
-    <loc>https://framagit.org/interhop/LinkR/reference/make_combobox.html</loc>
+    <loc>https://interhop.frama.io/linkr/linkr/reference/make_combobox.html</loc>
   </url>
   <url>
-    <loc>https://framagit.org/interhop/LinkR/reference/make_dropdown.html</loc>
+    <loc>https://interhop.frama.io/linkr/linkr/reference/make_dropdown.html</loc>
   </url>
   <url>
-    <loc>https://framagit.org/interhop/LinkR/reference/make_layout.html</loc>
+    <loc>https://interhop.frama.io/linkr/linkr/reference/make_layout.html</loc>
   </url>
   <url>
-    <loc>https://framagit.org/interhop/LinkR/reference/make_page.html</loc>
+    <loc>https://interhop.frama.io/linkr/linkr/reference/make_page.html</loc>
   </url>
   <url>
-    <loc>https://framagit.org/interhop/LinkR/reference/make_people_picker.html</loc>
+    <loc>https://interhop.frama.io/linkr/linkr/reference/make_people_picker.html</loc>
   </url>
   <url>
-    <loc>https://framagit.org/interhop/LinkR/reference/make_shiny_ace_card.html</loc>
+    <loc>https://interhop.frama.io/linkr/linkr/reference/make_shiny_ace_card.html</loc>
   </url>
   <url>
-    <loc>https://framagit.org/interhop/LinkR/reference/make_textfield.html</loc>
+    <loc>https://interhop.frama.io/linkr/linkr/reference/make_textfield.html</loc>
   </url>
   <url>
-    <loc>https://framagit.org/interhop/LinkR/reference/make_toggle.html</loc>
+    <loc>https://interhop.frama.io/linkr/linkr/reference/make_toggle.html</loc>
   </url>
   <url>
-    <loc>https://framagit.org/interhop/LinkR/reference/monitor_perf.html</loc>
+    <loc>https://interhop.frama.io/linkr/linkr/reference/monitor_perf.html</loc>
   </url>
   <url>
-    <loc>https://framagit.org/interhop/LinkR/reference/now.html</loc>
+    <loc>https://interhop.frama.io/linkr/linkr/reference/now.html</loc>
   </url>
   <url>
-    <loc>https://framagit.org/interhop/LinkR/reference/prepare_data_datatable.html</loc>
+    <loc>https://interhop.frama.io/linkr/linkr/reference/prepare_data_datatable.html</loc>
   </url>
   <url>
-    <loc>https://framagit.org/interhop/LinkR/reference/remove_persons_from_subset.html</loc>
+    <loc>https://interhop.frama.io/linkr/linkr/reference/remove_persons_from_subset.html</loc>
   </url>
   <url>
-    <loc>https://framagit.org/interhop/LinkR/reference/render_datatable.html</loc>
+    <loc>https://interhop.frama.io/linkr/linkr/reference/render_datatable.html</loc>
   </url>
   <url>
-    <loc>https://framagit.org/interhop/LinkR/reference/render_settings_creation_card.html</loc>
+    <loc>https://interhop.frama.io/linkr/linkr/reference/render_settings_creation_card.html</loc>
   </url>
   <url>
-    <loc>https://framagit.org/interhop/LinkR/reference/render_settings_datatable_card.html</loc>
+    <loc>https://interhop.frama.io/linkr/linkr/reference/render_settings_datatable_card.html</loc>
   </url>
   <url>
-    <loc>https://framagit.org/interhop/LinkR/reference/render_settings_default_elements.html</loc>
+    <loc>https://interhop.frama.io/linkr/linkr/reference/render_settings_default_elements.html</loc>
   </url>
   <url>
-    <loc>https://framagit.org/interhop/LinkR/reference/report_bug.html</loc>
+    <loc>https://interhop.frama.io/linkr/linkr/reference/report_bug.html</loc>
   </url>
   <url>
-    <loc>https://framagit.org/interhop/LinkR/reference/resize_and_pad_image.html</loc>
+    <loc>https://interhop.frama.io/linkr/linkr/reference/resize_and_pad_image.html</loc>
   </url>
   <url>
-    <loc>https://framagit.org/interhop/LinkR/reference/run_dataset_code.html</loc>
+    <loc>https://interhop.frama.io/linkr/linkr/reference/run_dataset_code.html</loc>
   </url>
   <url>
-    <loc>https://framagit.org/interhop/LinkR/reference/save_settings_code.html</loc>
+    <loc>https://interhop.frama.io/linkr/linkr/reference/save_settings_code.html</loc>
   </url>
   <url>
-    <loc>https://framagit.org/interhop/LinkR/reference/save_settings_datatable_updates.html</loc>
+    <loc>https://interhop.frama.io/linkr/linkr/reference/save_settings_datatable_updates.html</loc>
   </url>
   <url>
-    <loc>https://framagit.org/interhop/LinkR/reference/save_settings_options.html</loc>
+    <loc>https://interhop.frama.io/linkr/linkr/reference/save_settings_options.html</loc>
   </url>
   <url>
-    <loc>https://framagit.org/interhop/LinkR/reference/show_message_bar.html</loc>
+    <loc>https://interhop.frama.io/linkr/linkr/reference/show_message_bar.html</loc>
   </url>
   <url>
-    <loc>https://framagit.org/interhop/LinkR/reference/show_or_hide_cards.html</loc>
+    <loc>https://interhop.frama.io/linkr/linkr/reference/show_or_hide_cards.html</loc>
   </url>
   <url>
-    <loc>https://framagit.org/interhop/LinkR/reference/update_r.html</loc>
+    <loc>https://interhop.frama.io/linkr/linkr/reference/update_r.html</loc>
   </url>
   <url>
-    <loc>https://framagit.org/interhop/LinkR/reference/update_settings_datatable.html</loc>
+    <loc>https://interhop.frama.io/linkr/linkr/reference/update_settings_datatable.html</loc>
   </url>
   <url>
-    <loc>https://framagit.org/interhop/LinkR/tutorials/import_data.html</loc>
+    <loc>https://interhop.frama.io/linkr/linkr/tutorials/import_data.html</loc>
   </url>
   <url>
-    <loc>https://framagit.org/interhop/LinkR/tutorials/index.html</loc>
+    <loc>https://interhop.frama.io/linkr/linkr/tutorials/index.html</loc>
   </url>
 </urlset>
