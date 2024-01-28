@@ -178,7 +178,7 @@ body .page-header {
   function change_page() {
     var lang = document.getElementById("language").value;
     var current_url = window.location.href;
-    if (!current_url.includes("reference") && current_url.includes("index.html")){
+    if (!current_url.includes("reference") && (current_url.includes("index.html") || current_url == "https://interhop.frama.io/linkr/linkr")){
       if (lang == "en") current_url = current_url.replace("fr_", "");
       else if (lang == "fr" && !current_url.includes("fr_")) current_url = current_url.replace("index.html", "fr_index.html");
     }
