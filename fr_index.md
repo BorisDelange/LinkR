@@ -1,6 +1,3 @@
-
-<!-- README.md is generated from README.Rmd. Please edit that file -->
-
 # LinkR <a href="https://framagit.org/interhop/linkr/linkr"><img src="https://framagit.org/interhop/linkr/linkr/-/raw/master/man/figures/hex.png" align="right" width = "123" height="140" /></a>
 
 <img src = "https://img.shields.io/badge/lifecycle-experimental-orange.svg" alt = "Lifecycle experimental" style = "margin-right:2px;"/>
@@ -9,120 +6,92 @@
 
 ## Introduction
 
-**LinkR** is a web application that allows for visualization and
-analysis of healthcare data.
+**LinkR** est une application web qui permet la visualisation et l'analyse des données de santé.
 
-The application is coded in R using the Shiny library. It uses the
-common data model
-<a href = "https://ohdsi.github.io/CommonDataModel/" target = "_blank">OMOP</a>.
+L'application est codée en R à l'aide de la bibliothèque Shiny. Elle utilise le modèle de données commun [OMOP](https://ohdsi.github.io/CommonDataModel/).
 
-## Who is the application for?
+## A qui s'addresse LinkR ?
 
-The application is for:
+L'application est destinée :
 
-- **healthcare professionals**, an intuitive interface allows healthcare
-  professionals to analyze data and conduct studies without advanced
-  programming knowledge
-- **data scientists and statisticians**, LinkR provides access to a full
-  R and Python environment, allowing data scientists and statisticians
-  to exploit all the features of advanced data analysis
-- **healthcare students**, integrated tutorials in the application
-  provide healthcare students with an opportunity to learn and practice
-  data analysis in the healthcare field
+- aux **professionnels de santé**, une interface intuitive permet aux professionnels de santé d'analyser des données et de mener des études sans avoir de connaissances avancées en programmation.
+- aux **data scientists et statisticiens**, LinkR offre un accès à un environnement complet en R et Python, permettant aux data scientists et statisticiens d'exploiter toutes les fonctionnalités de l'analyse avancée des données.
+- **étudiants en santé**, des tutoriels intégrés dans l'application offrent aux étudiants en santé l'opportunité d'apprendre et de pratiquer l'analyse des données dans le domaine de la santé.
 
-Thus, LinkR facilitates **collaborative work**.
+Ainsi, LinkR facilite le **travail collaboratif**.
 
-## Quick overview
+## Aperçu rapide
 
-Use an intuitive **graphical interface** to **visualize aggregated
-patient data**. **Generate** and, if required, **modify** the
-corresponding R **code** directly from the figures you create.
+Utilisez une **interface graphique intuitive** pour **visualiser les données agrégées des patients**. **Générez** et, si nécessaire, **modifiez** le code R correspondant directement à partir des graphiques que vous créez.
 
 <img src="man/figures/ggplot2_plugin.gif" /><br /><br />
 
-**Explore data** on a **patient-by-patient** basis. As you switch
-between patients, the figures **dynamically update** to reflect each
-patient’s specific data.
+**Explorez les données** patient par patient. En passant d'un patient à l'autre, les graphiques sont **mis à jour dynamiquement** pour refléter les données spécifiques de chaque patient.
 
 <img src="man/figures/dygraphs_plugin.gif" /><br /><br />
 
-**Enhance team collaboration** with our integrated messaging system.
-Exchange messages with team members for mutual assistance and
-streamlined communication.
+**Améliorez la collaboration en équipe** grâce à notre système de messagerie intégrée. Échangez des messages avec les membres de l'équipe pour vous entraider.
 
 <img src="man/figures/messages.gif" />
 
-## Sharing and Open Science
+## Partage et open science
 
-LinkR is an **open source** application.
+LinkR est une **application open source**.
 
-It contributes to **open science** by allowing the sharing of:
+Elle contribue à la **science ouverte** en permettant le partage :
 
-- *studies*: import and export your studies in one click, reproduce
-  studies with your own data
-- *scripts*: share interoperable scripts, thanks to the use of the
-  common OMOP data model
-- *plugins*: help improve the application by creating plugins and
-  sharing them
+- d'*études* : importez et exportez vos études en un clic, reproduisez des études avec vos propres données.
+- de *scripts* : partagez des scripts interopérables, grâce à l'utilisation du modèle de données OMOP commun.
+- de *plugins* : contribuez à l'amélioration de l'application en créant des plugins et en les partageant.
 
 ## Installation
 
-The `remotes` library must be installed, you can install it with:
+La bibliothèque `remotes` doit être installée, vous pouvez l'installer avec :
 
 ``` r
 install.packages("remotes")
 ```
 
-You can install the development version from Framagit, with:
+Vous pouvez installer la version de développement depuis Framagit, avec :
 
 ``` r
 remotes::install_gitlab("interhop/linkr/linkr", host = "framagit.org")
 ```
 
-## Launch the app
+## Lancer l'application
 
-To launch the Shiny app, run:
+Pour lancer l'application Shiny, exécutez :
 
 ``` r
 linkr::linkr(language = "en")
 ```
 
-You can use the following arguments in the linkr function :
+Vous pouvez utiliser les arguments suivants dans la fonction linkr :
 
-- *language*: choose in which the application will be launched ; “en”
-  and “fr” are available
-- *app_folder*: by default, application files are saved in the home
-  folder (`path.expand("~")` to know which folder it is). You can change
-  this folder by specifying the target folder in this argument.
-- *local*: TRUE or FALSE to allow the app to access the internet
-- *show_home_page*: TRUE or FALSE to show home pages (Overview, News,
-  Tutorials… pages)
+- *language* : choisissez dans quelle langue l'application sera lancée ; “en” et “fr” sont disponibles.
+- *app_folder* : par défaut, les fichiers de l'application sont enregistrés dans le dossier principal (path.expand("~") pour connaître le dossier). Vous pouvez changer ce dossier en spécifiant le dossier cible dans cet argument.
+- *local* : TRUE ou FALSE pour permettre à l'application d'accéder à Internet.
+- *show_home_page* : TRUE ou FALSE pour afficher les pages d'accueil (vue d'ensemble, actualités, tutoriels…).
 
-See `?linkr::linkr` for more informations.
+Consultez `?linkr::linkr` pour plus d'informations.
 
-The first load may take a few minutes to create the application database
-and download the default data.
+Le premier chargement peut prendre quelques minutes pour créer la base de données de l'application et télécharger les données par défaut.
 
-Use “admin” as **ID & password** for your first connection.
+Utilisez "admin" comme **identifiant et mot de passe** pour votre première connexion.
 
 ## Contributions
 
-LinkR **needs help** to evolve! You can contribute by creating plugins,
-or by helping to improve the application’s code.
+LinkR a **besoin d'aide** pour évoluer ! Vous pouvez contribuer en créant des plugins ou en aidant à améliorer le code de l'application.
 
 ## Report a bug
 
-<a href = "https://framagit.org/interhop/linkr/linkr/-/issues" target = "_blank">Go
-here</a> to report a bug.
+<a href = "https://framagit.org/interhop/linkr/linkr/-/issues" target = "_blank">Rendez-vous ici</a> pour signaler un bug.
 
-## Support us
+## Soutenez-nous
 
-LinkR is supported by the **Interhop** association, promoting
-open-source and interoperability in healthcare.
+LinkR est soutenu par l'association **Interhop**, qui promeut l'open source et l'interopérabilité dans le domaine de la santé.
 
-You can
-**<a href = "https://interhop.org/en/dons/" target = "_blank">make a
-donation here</a>**.
+Vous pouvez **<a href = "https://interhop.org/en/dons/" target = "_blank">faire un don ici</a>**.
 
 ## Contact
 

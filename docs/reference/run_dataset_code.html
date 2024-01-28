@@ -19,6 +19,10 @@ body {
 body .page-header {
   min-height: 75px !important;
 }
+pre {
+  background-color: transparent;
+  border: none;
+}
 </style><div class="language-selector">
   <select id="language" class="form-control" style="margin:0px 20px 0px 20px; width:50px;" onchange="change_language(); change_page();"><option value="en">EN</option><option value="fr">FR</option></select></div>
 
@@ -152,13 +156,19 @@ body .page-header {
       if (item.textContent === "Reference" || item.textContent === "Fonctions") {
         item.textContent = lang === "fr" ? "Fonctions" : "Reference";
       }
+      
+      var home_url = document.querySelector(".navbar-brand[href='index.html'], .navbar-brand[href='fr_index.html']");
+      if (home_url) {
+        if (lang == "fr") home_url.href = "fr_index.html";
+        else if (lang == "en") home_url.href = "index.html"
+      }
     });
   }
   
   function change_page() {
     var lang = document.getElementById("language").value;
     var current_url = window.location.href;
-    if (!current_url.includes("reference") && (current_url.includes("index.html") || current_url == "https://interhop.frama.io/linkr/linkr")){
+    if (!current_url.includes("reference") && (current_url.includes("index.html") || current_url == "https://interhop.frama.io/linkr/linkr/")){
       if (lang == "en") current_url = current_url.replace("fr_", "");
       else if (lang == "fr" && !current_url.includes("fr_")) current_url = current_url.replace("index.html", "fr_index.html");
     }
