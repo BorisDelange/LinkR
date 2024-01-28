@@ -63,7 +63,7 @@ remotes::install_gitlab("interhop/linkr/linkr", host = "framagit.org")
 Pour lancer l'application Shiny, exécutez :
 
 ``` r
-linkr::linkr(language = "en")
+linkr::linkr(language = "fr")
 ```
 
 Vous pouvez utiliser les arguments suivants dans la fonction linkr :

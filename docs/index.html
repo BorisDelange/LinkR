@@ -40,7 +40,7 @@ body {
 body .page-header {
   min-height: 75px !important;
 }
-pre {
+.pre_tutorials {
   background-color: transparent;
   border: none;
 }
@@ -138,15 +138,14 @@ pre {
 <p>The <code>remotes</code> library must be installed, you can install it with:</p>
 <div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/utils/install.packages.html" class="external-link">install.packages</a></span><span class="op">(</span><span class="st">"remotes"</span><span class="op">)</span></span></code></pre></div>
-<p>You can install the development version from Framagit, with:</p>
-<div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu">remotes</span><span class="fu">::</span><span class="fu"><a href="https://remotes.r-lib.org/reference/install_gitlab.html" class="external-link">install_gitlab</a></span><span class="op">(</span><span class="st">"interhop/linkr/linkr"</span>, host <span class="op">=</span> <span class="st">"framagit.org"</span><span class="op">)</span></span></code></pre></div>
+You can install the development version from Framagit, with:
+<pre><code class="r code_highlight" style="font-size:12px;"><span><span class="fu">remotes</span><span class="fu">::</span><span class="fu"><a href="https://remotes.r-lib.org/reference/install_gitlab.html" class="external-link">install_gitlab</a></span><span class="op">(</span><span class="st">"interhop/linkr/linkr"</span>, host <span class="op">=</span> <span class="st">"framagit.org"</span><span class="op">)</span></span></code></pre>
 </div>
 <div class="section level2">
 <h2 id="launch-the-app">Launch the app<a class="anchor" aria-label="anchor" href="#launch-the-app"></a>
 </h2>
 <p>To launch the Shiny app, run:</p>
-<div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu">linkr</span><span class="fu">::</span><span class="fu"><a href="reference/linkr.html">linkr</a></span><span class="op">(</span>language <span class="op">=</span> <span class="st">"en"</span><span class="op">)</span></span></code></pre></div>
 <p>You can use the following arguments in the linkr function :</p>
 <ul>
@@ -320,15 +319,6 @@ pre {
         change_language(this.value);
       });
     }
-    
-    //var home_url = document.querySelector(".navbar-brand[href='https://interhop.frama.io/linkr/linkr/index.html'], .navbar-brand[href='https://interhop.frama.io/linkr/linkr/fr_index.html']");
-    //if (home_url) {
-    //  if (selected_language.value == "fr" && !home_url.href.includes("fr_index.html")) {
-    //    home_url.href = home_url.href.replace("index.html", "fr_index.html");
-    //  } else {
-    //    home_url.href = home_url.href.replace("fr_index.html", "index.html");
-    //  }
-    //}
     
     window.addEventListener('storage', function(e) {
       if (e.key === 'selectedLanguage') {

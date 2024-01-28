@@ -18,7 +18,7 @@ template:
       body .page-header {
         min-height: 75px !important;
       }
-      pre {
+      .pre_tutorials {
         background-color: transparent;
         border: none;
       }

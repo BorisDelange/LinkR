@@ -62,12 +62,12 @@ It contributes to **open science** by allowing the sharing of:
 ## Installation
 
 The `remotes` library must be installed, you can install it with:
-``` r
+```r
 install.packages("remotes")
 ```
 
 You can install the development version from Framagit, with:
-``` r
+```r
 remotes::install_gitlab("interhop/linkr/linkr", host = "framagit.org")
 ```
 
