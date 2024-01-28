@@ -165,6 +165,16 @@ a 'linkr' folder will be created in the folder returned by path.expand("~").<br>
       if (item.textContent === "Reference" || item.textContent === "Fonctions") {
         item.textContent = lang === "fr" ? "Fonctions" : "Reference";
       }
+      
+      const elements = document.querySelectorAll('.navbar-brand');
+      const home_url = Array.from(elements).find(el => el.textContent.trim() === 'LinkR');
+      if (home_url) {
+        if (lang == "fr" && !home_url.href.includes("fr_index.html")) {
+          home_url.href = home_url.href.replace("index.html", "fr_index.html");
+        } else if (lang == "en") {
+          home_url.href = home_url.href.replace("fr_index.html", "index.html");
+        }
+      }
     });
   }
   
@@ -205,14 +215,14 @@ a 'linkr' folder will be created in the folder returned by path.expand("~").<br>
       });
     }
     
-    var home_url = document.querySelector(".navbar-brand[href='index.html'], .navbar-brand[href='../index.html'], .navbar-brand[href='fr_index.html'], .navbar-brand[href='..fr_index.html']");
-    if (home_url) {
-      if (selected_language.value == "fr" && !home_url.href.includes("fr_index.html")) {
-        home_url.href = home_url.href.replace("index.html", "fr_index.html");
-      } else {
-        home_url.href = home_url.href.replace("fr_index.html", "index.html");
-      }
-    }
+    //var home_url = document.querySelector(".navbar-brand[href='https://interhop.frama.io/linkr/linkr/index.html'], .navbar-brand[href='https://interhop.frama.io/linkr/linkr/fr_index.html']");
+    //if (home_url) {
+    //  if (selected_language.value == "fr" && !home_url.href.includes("fr_index.html")) {
+    //    home_url.href = home_url.href.replace("index.html", "fr_index.html");
+    //  } else {
+    //    home_url.href = home_url.href.replace("fr_index.html", "index.html");
+    //  }
+    //}
     
     window.addEventListener('storage', function(e) {
       if (e.key === 'selectedLanguage') {
