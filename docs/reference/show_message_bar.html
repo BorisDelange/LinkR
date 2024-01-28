@@ -160,12 +160,6 @@ pre {
       if (item.textContent === "Reference" || item.textContent === "Fonctions") {
         item.textContent = lang === "fr" ? "Fonctions" : "Reference";
       }
-      
-      var home_url = document.querySelector(".navbar-brand[href='index.html'], .navbar-brand[href='fr_index.html']");
-      if (home_url) {
-        if (lang == "fr") home_url.href = "fr_index.html";
-        else if (lang == "en") home_url.href = "index.html"
-      }
     });
   }
   
@@ -185,12 +179,12 @@ pre {
     window.location.href = current_url;
   }
   
-  function initializeLanguageSelector() {
-    var languageSelect = document.getElementById("language");
-    if (languageSelect) {
+  function initialize_language_selector() {
+    var selected_language = document.getElementById("language");
+    if (selected_language) {
       var selectedLanguage = localStorage.getItem("selectedLanguage");
       if (selectedLanguage) {
-        languageSelect.value = selectedLanguage;
+        selected_language.value = selectedLanguage;
       }
       change_language(selectedLanguage);
     }
@@ -198,21 +192,30 @@ pre {
   
   document.addEventListener("DOMContentLoaded", function() {
     
-    var languageSelect = document.getElementById("language");
-    if (languageSelect) {
-      languageSelect.addEventListener("change", function() {
+    var selected_language = document.getElementById("language");
+    if (selected_language) {
+      selected_language.addEventListener("change", function() {
         localStorage.setItem("selectedLanguage", this.value);
         change_language(this.value);
       });
     }
-
+    
+    var home_url = document.querySelector(".navbar-brand[href='index.html'], .navbar-brand[href='../index.html'], .navbar-brand[href='fr_index.html'], .navbar-brand[href='..fr_index.html']");
+    if (home_url) {
+      if (selected_language.value == "fr" && !home_url.href.includes("fr_index.html")) {
+        home_url.href = home_url.href.replace("index.html", "fr_index.html");
+      } else {
+        home_url.href = home_url.href.replace("fr_index.html", "index.html");
+      }
+    }
+    
     window.addEventListener('storage', function(e) {
       if (e.key === 'selectedLanguage') {
-        initializeLanguageSelector();
+        initialize_language_selector();
       }
     });
 
-    initializeLanguageSelector();
+    initialize_language_selector();
     
     var observer = new MutationObserver(function(mutations) {
       mutations.forEach(function(mutation) {
