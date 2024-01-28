@@ -13,11 +13,11 @@ knitr::opts_chunk$set(
 )
 ```
 
-# LinkR <a href="https://framagit.org/interhop/linkr/linkr"><img src="man/figures/hex.png" align="right" width = "123" height="140" /></a>
+# LinkR <a href="https://framagit.org/interhop/linkr/linkr"><img src="https://framagit.org/interhop/linkr/linkr/-/raw/master/man/figures/hex.png" align="right" width = "123" height="140" /></a>
 
-<!-- badges: start -->
-[![Lifecycle: experimental](https://img.shields.io/badge/lifecycle-experimental-orange.svg)](https://lifecycle.r-lib.org/articles/stages.html#experimental) ![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg) ![version](https://img.shields.io/badge/version-0.2.0.9079-blue)
-<!-- badges: end -->
+<img src = "https://img.shields.io/badge/lifecycle-experimental-orange.svg" alt = "Lifecycle experimental" style = "margin-right:2px;"/>
+<img src = "https://img.shields.io/badge/License-GPLv3-blue.svg" alt = "License: GPL v3" style = "margin-right:2px;"/>
+<img src = "https://img.shields.io/badge/version-0.2.0.9079-blue" alt = "version" style = "margin-right:2px;" />
 
 ## Introduction
 

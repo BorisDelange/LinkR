@@ -42,7 +42,7 @@ body .page-header {
 }
 </style>
 <div class="language-selector">
-  <select id="language" class="form-control" style="margin:0px 20px 0px 20px; width:50px;" onchange="change_language()"><option value="en">EN</option>
+  <select id="language" class="form-control" style="margin:0px 20px 0px 20px; width:50px;" onchange="change_language(); change_page();"><option value="en">EN</option>
 <option value="fr">FR</option></select>
 </div>
 
@@ -80,11 +80,10 @@ body .page-header {
 </nav><div class="container template-home">
 <div class="row">
   <main id="main" class="col-md-9"><div class="section level1">
-<div class="page-header"><h1 id="linkr-">LinkR <a href="https://framagit.org/interhop/linkr/linkr" class="external-link"><img src="reference/figures/hex.png" align="right" width="123" height="140"></a>
+<div class="page-header"><h1 id="linkr-">LinkR <a href="https://framagit.org/interhop/linkr/linkr" class="external-link"><img src="https://framagit.org/interhop/linkr/linkr/-/raw/master/man/figures/hex.png" align="right" width="123" height="140"></a>
 <a class="anchor" aria-label="anchor" href="#linkr-"></a>
 </h1></div>
-<!-- badges: start -->
-
+<p><img src="https://img.shields.io/badge/lifecycle-experimental-orange.svg" alt="Lifecycle experimental" style="margin-right:2px;"><img src="https://img.shields.io/badge/License-GPLv3-blue.svg" alt="License: GPL v3" style="margin-right:2px;"><img src="https://img.shields.io/badge/version-0.2.0.9079-blue" alt="version" style="margin-right:2px;"></p>
 <div class="section level2">
 <h2 id="introduction">Introduction<a class="anchor" aria-label="anchor" href="#introduction"></a>
 </h2>
@@ -218,12 +217,7 @@ body .page-header {
 </ul>
 </div>
 
-<div class="dev-status">
-<h2 data-toc-skip>Dev status</h2>
-<ul class="list-unstyled">
-<li><a href="https://lifecycle.r-lib.org/articles/stages.html#experimental" class="external-link"><img src="https://img.shields.io/badge/lifecycle-experimental-orange.svg" alt="Lifecycle: experimental"></a></li>
-</ul>
-</div>
+
 
   </aside>
 </div>
@@ -245,20 +239,51 @@ body .page-header {
   
 
   <script>
-  var languageChangedEvent = new Event('languageChanged');
+  //var languageChangedEvent = new Event('languageChanged');
 
-  function change_language() {
-    var lang = document.getElementById("language").value;
-    if (lang === "en") {
-      document.getElementById("dropdown-tutorials").style.display = "block";
-      document.getElementById("dropdown-tutoriels").style.display = "none";
-    } else if (lang === "fr") {
-      document.getElementById("dropdown-tutorials").style.display = "none";
-      document.getElementById("dropdown-tutoriels").style.display = "block";
-    } else {
-      document.getElementById("dropdown-tutorials").style.display = "block";
-      document.getElementById("dropdown-tutoriels").style.display = "none";
+  function change_display(id, display_style) {
+    var element = document.getElementById(id);
+    if (element) {
+      element.style.display = display_style;
     }
+  }
+  
+  function change_language() {
+    var lang = document.getElementById("language").value || "en";
+
+    var navItems = document.querySelectorAll("#navbar .nav-link");
+    navItems.forEach(function(item) {
+      switch(item.textContent) {
+        case "Tutoriels":
+        //case "": // Add other pages this way
+          item.style.display = lang === "fr" ? "block" : "none";
+          break;
+        case "Tutorials":
+        //case "": // Add other pages this way
+          item.style.display = lang === "en" ? "block" : "none";
+          break;
+      }
+      
+      if (item.textContent === "Reference" || item.textContent === "Fonctions") {
+        item.textContent = lang === "fr" ? "Fonctions" : "Reference";
+      }
+    });
+  }
+  
+  function change_page() {
+    var lang = document.getElementById("language").value;
+    var current_url = window.location.href;
+    if (!current_url.includes("reference") && current_url.includes("index.html")){
+      if (lang == "en") current_url = current_url.replace("fr_", "");
+      else if (lang == "fr" && !current_url.includes("fr_")) current_url = current_url.replace("index.html", "fr_index.html");
+    }
+    else {
+      if (!current_url.includes(lang + "_")){
+        if (lang == "en" && current_url.includes("fr_")) current_url = current_url.replace("fr_", "en_");
+        else if (lang == "fr" && current_url.includes("en_")) current_url = current_url.replace("en_", "fr_");
+      }
+    }
+    window.location.href = current_url;
   }
   
   function initializeLanguageSelector() {
