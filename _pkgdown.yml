@@ -63,7 +63,6 @@ template:
             const elements = document.querySelectorAll('.navbar-brand');
             const home_url = Array.from(elements).find(el => el.textContent.trim() === 'LinkR');
             if (home_url) {
-              alert("test")
               if (lang == "fr" && !home_url.href.includes("fr_index.html")) {
                 home_url.href = home_url.href.replace("index.html", "fr_index.html");
               } else if (lang == "en") {
