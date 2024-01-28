@@ -74,8 +74,10 @@ install.packages("remotes")
 ```
 
 You can install the development version from Framagit, with:
-<pre><code class = "r code_highlight" style = "font-size:12px;">remotes::install_gitlab("interhop/linkr/linkr", host = "framagit.org")
-</code></pre>
+
+``` r
+remotes::install_gitlab("interhop/linkr/linkr", host = "framagit.org")
+```
 
 ## Launch the app
 
