@@ -99,7 +99,7 @@ template:
             });
           }
           
-          var home_url = document.querySelector(".navbar-brand[href='index.html'], .navbar-brand[href='../index.html'], .navbar-brand[href='fr_index.html'], .navbar-brand[href='..fr_index.html']");
+          var home_url = document.querySelector(".navbar-brand[href='https://interhop.frama.io/linkr/linkr/index.html'], .navbar-brand[href='https://interhop.frama.io/linkr/linkr/fr_index.html']");
           if (home_url) {
             if (selected_language.value == "fr" && !home_url.href.includes("fr_index.html")) {
               home_url.href = home_url.href.replace("index.html", "fr_index.html");
