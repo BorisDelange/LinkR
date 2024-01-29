@@ -1,0 +1,19 @@
+---
+title: "Créer un plugin"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{en_import_data}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+<html>
+<body>
+```{r, echo = FALSE, results = 'asis'}
+url <- "https://framagit.org/interhop/linkr/LinkR-content/-/raw/main/home/fr/tutorials/2023-01-29_tutorial_create_plugins.md"
+markdown_content <- readLines(url, warn = FALSE, encoding = "UTF-8")
+cat(markdown_content, sep = "\n")
+```
+
+</body>
+</html>

@@ -63,12 +63,14 @@ body .page-header {
   <a href="#" class="nav-link dropdown-toggle" data-bs-toggle="dropdown" role="button" aria-expanded="false" aria-haspopup="true" id="dropdown-tutorials">Tutorials</a>
   <div class="dropdown-menu" aria-labelledby="dropdown-tutorials">
     <a class="dropdown-item" href="articles/en_import_data.html">Import data</a>
+    <a class="dropdown-item" href="articles/en_create_plugins.html">Create a plugin</a>
   </div>
 </li>
 <li class="nav-item dropdown">
   <a href="#" class="nav-link dropdown-toggle" data-bs-toggle="dropdown" role="button" aria-expanded="false" aria-haspopup="true" id="dropdown-tutoriels">Tutoriels</a>
   <div class="dropdown-menu" aria-labelledby="dropdown-tutoriels">
     <a class="dropdown-item" href="articles/fr_import_data.html">Importer des données</a>
+    <a class="dropdown-item" href="articles/fr_create_plugins.html">Créer un plugin</a>
   </div>
 </li>
       </ul>
@@ -138,14 +140,15 @@ body .page-header {
 <p>The <code>remotes</code> library must be installed, you can install it with:</p>
 <div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/utils/install.packages.html" class="external-link">install.packages</a></span><span class="op">(</span><span class="st">"remotes"</span><span class="op">)</span></span></code></pre></div>
-You can install the development version from Framagit, with:
-<pre><code class="r code_highlight" style="font-size:12px;"><span><span class="fu">remotes</span><span class="fu">::</span><span class="fu"><a href="https://remotes.r-lib.org/reference/install_gitlab.html" class="external-link">install_gitlab</a></span><span class="op">(</span><span class="st">"interhop/linkr/linkr"</span>, host <span class="op">=</span> <span class="st">"framagit.org"</span><span class="op">)</span></span></code></pre>
+<p>You can install the development version from Framagit, with:</p>
+<div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu">remotes</span><span class="fu">::</span><span class="fu"><a href="https://remotes.r-lib.org/reference/install_gitlab.html" class="external-link">install_gitlab</a></span><span class="op">(</span><span class="st">"interhop/linkr/linkr"</span>, host <span class="op">=</span> <span class="st">"framagit.org"</span><span class="op">)</span></span></code></pre></div>
 </div>
 <div class="section level2">
 <h2 id="launch-the-app">Launch the app<a class="anchor" aria-label="anchor" href="#launch-the-app"></a>
 </h2>
 <p>To launch the Shiny app, run:</p>
-<div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu">linkr</span><span class="fu">::</span><span class="fu"><a href="reference/linkr.html">linkr</a></span><span class="op">(</span>language <span class="op">=</span> <span class="st">"en"</span><span class="op">)</span></span></code></pre></div>
 <p>You can use the following arguments in the linkr function :</p>
 <ul>

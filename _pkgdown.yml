@@ -143,11 +143,15 @@ navbar:
       menu:
       - text: "Import data"
         href: "articles/en_import_data.html"
+      - text: "Create a plugin"
+        href: "articles/en_create_plugins.html"
     fr_tutorials:
       text: "Tutoriels"
       menu:
       - text: "Importer des données"
         href: "articles/fr_import_data.html"
+      - text: "Créer un plugin"
+        href: "articles/fr_create_plugins.html"
 reference:
 - title: "Run the app"
   contents:

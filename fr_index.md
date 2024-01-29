@@ -10,7 +10,7 @@
 
 L'application est codée en R à l'aide de la bibliothèque Shiny. Elle utilise le modèle de données commun [OMOP](https://ohdsi.github.io/CommonDataModel/).
 
-## A qui s'addresse LinkR ?
+## A qui s'adresse LinkR ?
 
 L'application est destinée :
 
@@ -83,7 +83,7 @@ Utilisez "admin" comme **identifiant et mot de passe** pour votre première conn
 
 LinkR a **besoin d'aide** pour évoluer ! Vous pouvez contribuer en créant des plugins ou en aidant à améliorer le code de l'application.
 
-## Report a bug
+## Signaler un bug
 
 <a href = "https://framagit.org/interhop/linkr/linkr/-/issues" target = "_blank">Rendez-vous ici</a> pour signaler un bug.
 
