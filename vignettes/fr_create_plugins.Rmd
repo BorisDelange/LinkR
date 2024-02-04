@@ -10,7 +10,7 @@ vignette: >
 <html>
 <body>
 ```{r, echo = FALSE, results = 'asis'}
-url <- "https://framagit.org/interhop/linkr/LinkR-content/-/raw/main/home/fr/tutorials/2023-01-29_tutorial_create_plugins.md"
+url <- "https://framagit.org/interhop/linkr/LinkR-content/-/raw/main/home/fr/tutorials/2024-02-04_tutorial_create_plugins.md"
 markdown_content <- readLines(url, warn = FALSE, encoding = "UTF-8")
 cat(markdown_content, sep = "\n")
 ```
