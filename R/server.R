@@ -41,7 +41,7 @@ app_server <- function(language = "en", languages = tibble::tibble(), i18n = cha
     o <- reactiveValues()
     
     # App version
-    r$app_version <- "0.2.0.9082"
+    r$app_version <- "0.2.0.9083"
     
     # Col types of database tables, to import and restore database
     

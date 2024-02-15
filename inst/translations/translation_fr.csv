@@ -301,7 +301,7 @@ patient_lvl_plugins,Plugins de données individuelles
 aggregated_plugins,Plugins de données agrégées
 all_plugins_card,Accéder au catalogue des plugins
 all_scripts_card,Tous les scripts
-all_datasets_card,Tous les sets de données
+all_datasets_card,Accéder à l'onglet 'Tous les sets'
 all_vocabularies_card,Toutes les terminologies
 plugins_see_all_data,Accéder à toutes les données
 plugins_edit_data,Editer un plugin
@@ -804,7 +804,7 @@ data_console_user_access_description,Accéder à la console depuis une étude
 datasets_import_dataset_card_user_access_description,Importer des sets de données
 datasets_export_dataset_card_user_access_description,Exporter des sets de données
 datasets_all_datasets_card_user_access_description,Tous les sets de données
-vocabularies_all_vocabularies_card_user_access_description,Toutes les terminologies
+vocabularies_all_vocabularies_card_user_access_description,Accéder à l'onglet 'Toutes les terminologies'
 vocabulary_id_col,ID (vocabulary_id)
 vocabulary_id,ID de la terminologie
 vocabulary_id_1,ID terminologie 1
@@ -905,8 +905,8 @@ git_repos_management,Gestion des dépôts git
 git_repo_options,Options du dépôt git
 git_repos_see_all_data_user_access_description,Accès à tous les dépôts git
 git_add_repo_card_user_access_description,Ajouter un dépôt git
-git_repos_management_card_user_access_description,Gestion des dépôts git
-git_repo_options_card_user_access_description,Gestion du dépôt git
+git_repos_management_card_user_access_description,Gérer les dépôts git (éditer et supprimer)
+git_repo_options_card_user_access_description,Editer les options d'un dépôt git
 git_edit_repo_card_user_access_description,Modifier un dépôt git (commit et push)
 link,Lien
 url_address,Adresse URL

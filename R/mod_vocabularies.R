@@ -104,7 +104,8 @@ mod_vocabularies_ui <- function(id = character(), i18n = character()){
                         div(shiny.fluent::Dropdown.shinyInput(ns("vocabulary_datatable_selected_item_plot_variable")), style = "width:50%; margin-left:42px;")
                       ),
                       uiOutput(ns("vocabulary_datatable_selected_item_error_message")),
-                      plotly::plotlyOutput(ns("vocabulary_datatable_selected_item_plot"), height = "280px"), 
+                      # plotly::plotlyOutput(ns("vocabulary_datatable_selected_item_plot"), height = "280px"), 
+                      plotOutput(ns("vocabulary_datatable_selected_item_plot"), height = "280px"),
                       style = "display:relative; float:right; width:50%;"
                     )
                   )
@@ -368,7 +369,8 @@ mod_vocabularies_server <- function(id = character(), r = shiny::reactiveValues(
       
       # Reset UI of selected item
       output$vocabulary_datatable_selected_item <- renderUI("")
-      output$vocabulary_datatable_selected_item_plot <- plotly::renderPlotly(plotly::plotly_empty(data = tibble::tibble(x = 1), type = "scatter", mode = "lines") %>% plotly::config(displayModeBar = FALSE))
+      # output$vocabulary_datatable_selected_item_plot <- plotly::renderPlotly(plotly::plotly_empty(data = tibble::tibble(x = 1), type = "scatter", mode = "lines") %>% plotly::config(displayModeBar = FALSE))
+      output$vocabulary_datatable_selected_item_plot <- renderPlot(ggplot2::geom_blank())
       shinyjs::hide("vocabulary_datatable_selected_item_div")
       
       if (perf_monitoring) monitor_perf(r = r, action = "stop", task = paste0("mod_vocabularies - observer r$selected_dataset 2"))
@@ -832,7 +834,8 @@ mod_vocabularies_server <- function(id = character(), r = shiny::reactiveValues(
 
       # Reset row details
       output$vocabulary_datatable_selected_item <- renderUI("")
-      output$vocabulary_datatable_selected_item_plot <- plotly::renderPlotly(plotly::plotly_empty(data = tibble::tibble(x = 1), type = "scatter", mode = "lines") %>% plotly::config(displayModeBar = FALSE))
+      # output$vocabulary_datatable_selected_item_plot <- plotly::renderPlotly(plotly::plotly_empty(data = tibble::tibble(x = 1), type = "scatter", mode = "lines") %>% plotly::config(displayModeBar = FALSE))
+      output$vocabulary_datatable_selected_item_plot <- renderPlot(ggplot2::geom_blank())
       shinyjs::hide("vocabulary_datatable_selected_item_div")
 
       vocabulary_id <- "all_vocabularies"
@@ -1153,18 +1156,19 @@ mod_vocabularies_server <- function(id = character(), r = shiny::reactiveValues(
       
       if (debug) cat(paste0("\n", now(), " - mod_vocabularies - observer r$vocabulary_datatable_selected_item_reload_plot"))
       
-      if(length(input$vocabulary_datatable_selected_item_plot_variable) == 0){
-        output$vocabulary_datatable_selected_item_error_message <- renderUI(tagList(br(),
-          div(shiny.fluent::MessageBar(i18n$t("no_data_to_show"), messageBarType = 5), style = "width:300px; margin-left:42px;")))
-        shinyjs::hide("vocabulary_datatable_selected_item_plot")
-      }
+      # if(length(input$vocabulary_datatable_selected_item_plot_variable) == 0){
+      #   output$vocabulary_datatable_selected_item_error_message <- renderUI(tagList(br(),
+      #     div(shiny.fluent::MessageBar(i18n$t("no_data_to_show"), messageBarType = 5), style = "width:300px; margin-left:42px;")))
+      #   shinyjs::hide("vocabulary_datatable_selected_item_plot")
+      # }
+      if(length(input$vocabulary_datatable_selected_item_plot_variable) == 0) plot_variable <- "value_as_number"
+      else plot_variable <- input$vocabulary_datatable_selected_item_plot_variable
       
-      req(length(input$vocabulary_datatable_selected_item_plot_variable) > 0)
+      # req(length(input$vocabulary_datatable_selected_item_plot_variable) > 0)
       
       selected_concept <- r$vocabulary_selected_concept
       row <- vocabulary_concepts_row_details %>% dplyr::filter(domain_id == selected_concept$domain_id)
       values <- r$vocabulary_selected_concept_values
-      plot_variable <- input$vocabulary_datatable_selected_item_plot_variable
       unit <- r$vocabulary_selected_concept_unit
       
       req(plot_variable %in% names(row$cols %>% unlist()))
@@ -1177,7 +1181,8 @@ mod_vocabularies_server <- function(id = character(), r = shiny::reactiveValues(
       n_distinct_values <- values %>% dplyr::distinct(get(plot_variable)) %>% dplyr::rename("col" := "get(plot_variable)") %>% dplyr::filter(!is.na(col)) %>% nrow()
       
       if (n_distinct_values <= 1){
-        concept_plot <- plotly::plotly_empty(data = tibble::tibble(x = 1), type = "scatter", mode = "lines") %>% plotly::config(displayModeBar = FALSE)
+        # concept_plot <- plotly::plotly_empty(data = tibble::tibble(x = 1), type = "scatter", mode = "lines") %>% plotly::config(displayModeBar = FALSE)
+        concept_plot <- ggplot2::geom_blank()
         error_message <- "no_data_to_show"
       }
       
@@ -1204,42 +1209,46 @@ mod_vocabularies_server <- function(id = character(), r = shiny::reactiveValues(
           if (plot_variable == "value_as_concept_id") plot_variable <- "value_as_concept_name"
           
           if (n_distinct_values > 5){
-            suppressWarnings(concept_plot <- plotly::plotly_empty(data = tibble::tibble(x = 1), type = "scatter", mode = "lines") %>% plotly::config(displayModeBar = FALSE))
+            # suppressWarnings(concept_plot <- plotly::plotly_empty(data = tibble::tibble(x = 1), type = "scatter", mode = "lines") %>% plotly::config(displayModeBar = FALSE))
+            concept_plot <- ggplot2::geom_blank()
             error_message <- "too_many_x_axis_values"
           }
           
           if (n_distinct_values <= 5) concept_plot <- values %>%
-              ggplot2::ggplot(ggplot2::aes(x = get(plot_variable),
-                text = paste0(i18n$t("value"), " : ", get(plot_variable), text_part_2, "<br />", i18n$t("row_number"), " : ", count))) +
+              ggplot2::ggplot(ggplot2::aes(x = get(plot_variable))) +
+                # text = paste0(i18n$t("value"), " : ", get(plot_variable), text_part_2, "<br />", i18n$t("row_number"), " : ", count))) +
               # ggplot2::geom_histogram(fill = "#4F86C6", stat = "count", bins = input$vocabulary_datatable_selected_item_plot_bins) +
-              ggplot2::geom_histogram(fill = "#4F86C6", stat = "count") +
+              ggplot2::geom_histogram(fill = "#4F86C6", colour = "white", stat = "count", bins = 50) +
               ggplot2::labs(
                 x = selected_concept$concept_name_1, 
                 y = paste0(i18n$t("proportion"), " (%)")) +
+              ggplot2::theme_minimal() +
               ggplot2::theme(axis.title = ggplot2::element_text(size = 10), axis.text = ggplot2::element_text(size = 10))
         }
         
         else {
           concept_plot <- values %>%
-            ggplot2::ggplot(ggplot2::aes(x = get(plot_variable), y = 100 * ..count.. / sum(..count..),
-              text = paste0(i18n$t("value"), " : ", get(plot_variable), text_part_2, "<br />", i18n$t("row_number"), " : ", count))) +
+            ggplot2::ggplot(ggplot2::aes(x = get(plot_variable), y = 100 * ..count.. / sum(..count..))) +
+              # text = paste0(i18n$t("value"), " : ", get(plot_variable), text_part_2, "<br />", i18n$t("row_number"), " : ", count))) +
             # ggplot2::geom_histogram(fill = "#4F86C6", bins = input$vocabulary_datatable_selected_item_plot_bins) +
-            ggplot2::geom_histogram(fill = "#4F86C6") +
+            ggplot2::geom_histogram(fill = "#4F86C6", colour = "white", bins = 50) +
             ggplot2::labs(
               x = x_axis_name, 
               y = paste0(i18n$t("proportion"), " (%)")) +
+            ggplot2::theme_minimal() +
             ggplot2::theme(axis.title = ggplot2::element_text(size = 10), axis.text = ggplot2::element_text(size = 10))
         }
         
-        concept_plot <- concept_plot %>% 
-          plotly::ggplotly(tooltip = "text", source = "vocabulary_concept_plot") %>%
-          plotly::config(displayModeBar = FALSE) %>%
-          plotly::style(hoverlabel = list(bgcolor = "white", font = list(size = 12))) %>%
-          plotly::layout(xaxis = list(tickfont = list(size = 12)), yaxis = list(tickfont = list(size = 12))) %>%
-          suppressWarnings() %>% suppressMessages()
+        # concept_plot <- concept_plot %>% 
+        #   plotly::ggplotly(tooltip = "text", source = "vocabulary_concept_plot") %>%
+        #   plotly::config(displayModeBar = FALSE) %>%
+        #   plotly::style(hoverlabel = list(bgcolor = "white", font = list(size = 12))) %>%
+        #   plotly::layout(xaxis = list(tickfont = list(size = 12)), yaxis = list(tickfont = list(size = 12))) %>%
+        #   suppressWarnings() %>% suppressMessages()
       }
       
-      output$vocabulary_datatable_selected_item_plot <- plotly::renderPlotly(concept_plot)
+      # output$vocabulary_datatable_selected_item_plot <- plotly::renderPlotly(concept_plot)
+      output$vocabulary_datatable_selected_item_plot <-renderPlot(concept_plot)
       
       if (!is.na(error_message)){
         output$vocabulary_datatable_selected_item_error_message <- renderUI(tagList(br(),

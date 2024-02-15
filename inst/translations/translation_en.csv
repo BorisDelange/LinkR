@@ -803,8 +803,8 @@ only_me_user_access_description,Access the log of the connected user
 data_console_user_access_description,Accessing the console from a study
 datasets_import_dataset_card_user_access_description,Import datasets
 datasets_export_dataset_card_user_access_description,Export datasets
-datasets_all_datasets_card_user_access_description,All datasets
-vocabularies_all_vocabularies_card_user_access_description,All vocabularies
+datasets_all_datasets_card_user_access_description,Access to 'All datasets' card
+vocabularies_all_vocabularies_card_user_access_description,Access to 'All vocabularies' card
 vocabulary_id_col,ID (vocabulary_id)
 vocabulary_id,Vocabulary ID
 vocabulary_id_1,Vocabulary ID 1
@@ -905,8 +905,8 @@ git_repos_management,Repositories management
 git_repo_options,Repository options
 git_repos_see_all_data_user_access_description,See all repositories
 git_add_repo_card_user_access_description,Add a repository
-git_repos_management_card_user_access_description,Repositories management
-git_repo_options_card_user_access_description,Repository options
+git_repos_management_card_user_access_description,Manage repositories (edit and delete)
+git_repo_options_card_user_access_description,Edit repository options
 git_edit_repo_card_user_access_description,Edit a repository (commit & push files)
 link,Link
 url_address,URL address
