@@ -2864,7 +2864,7 @@ mod_plugins_server <- function(id = character(), r = shiny::reactiveValues(), d 
         centered_cols <- c("author", "version", "creation_datetime", "update_datetime")
         column_widths <- c("author" = "100px", "version" = "80px", "creation_datetime" = "130px", "update_datetime" = "130px")
 
-        data <- plugins %>% dplyr::select(name, version, author, creation_datetime, update_datetime) %>%
+        data <- plugins %>% dplyr::select(name, version, author, creation_datetime, update_datetime) #%>%
           # dplyr::mutate_at(c("creation_datetime", "update_datetime"), format_datetime, language = language, sec = FALSE)
         
         render_datatable(output = output, ns = ns, i18n = i18n, data = data,

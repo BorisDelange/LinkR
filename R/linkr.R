@@ -33,7 +33,7 @@ linkr <- function(
   # Used to restore database and import vocabularies
   # shiny.launch.browser to automatically open browser
   
-  if (debug) cat(paste0(now(), " - linkr - init - v0.2.0.9081"))
+  if (debug) cat(paste0(now(), " - linkr - init - v0.2.0.9082"))
   options(shiny.maxRequestSize = 4096*1024^2, shiny.launch.browser = TRUE)
   
   # suppressMessages(require(shinyTree))

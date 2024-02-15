@@ -10,7 +10,7 @@ RUN R -e "install.packages(c('remotes', shiny', xts', 'dygraphs', 'duckdb', 'spa
 
 # Install LinkR from GitHub
 # Add an argument to use cache except for this line
-# Use this syntax : docker build --build-arg CACHEBUST=$(date +%s) -t linkr-v0.2.0.9081 .
+# Use this syntax : docker build --build-arg CACHEBUST=$(date +%s) -t linkr-v0.2.0.9082 .
 ARG CACHEBUST=1
 RUN R -e "remotes::install_gitlab('interhop/linkr/linkr', host = 'framagit.org')"
 
