@@ -211,7 +211,7 @@ db_create_tables <- function(db, type = character(), dbms = character()){
       tibble::tibble(id = integer(), concept_relationship_id = integer(), comment = character(), creator_id = integer(), datetime = character()))
     
     db_create_table(db, "concept_relationship_evals", primary_key_col = "id", dbms = dbms,
-      tibble::tibble(id = integer(), concept_relationship_id = integer(), creator_id = integer(), evaluation_id = character(),
+      tibble::tibble(id = integer(), concept_relationship_id = integer(), creator_id = integer(), evaluation_id = integer(),
         datetime = character()))
     
     db_create_table(db, "relationship", primary_key_col = "id", dbms = dbms,

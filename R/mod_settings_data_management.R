@@ -2230,7 +2230,7 @@ mod_settings_data_management_server <- function(id = character(), r = shiny::rea
         if (console_result != "NULL") console_result <- console_result %>% gsub("NULL$", "", .)
         
         # If there's a <simpleWarning ...> message, it is interpreted as an HTML tag and doesn't show the console result
-        if (!grepl("simpleWarning|simpleError", console_result)) console_result <- HTML(paste0("<pre>", console_result, "</pre>"))
+        if (!grepl("simpleWarning|simpleError|Rcpp::", console_result)) console_result <- HTML(paste0("<pre>", console_result, "</pre>"))
         else console_result <- tags$div(console_result, style = "padding: 15px 0px 15px 0px;")
         
         output$code_result <- renderUI(console_result)
@@ -2475,16 +2475,22 @@ mod_settings_data_management_server <- function(id = character(), r = shiny::rea
           
           if (input$vocabularies_table == "concept_relationship") sql <- glue::glue_sql(paste0(
             "SELECT cr.* FROM concept_relationship cr WHERE cr.id NOT IN ( ",
-            "WITH cr AS (",
-            "SELECT cru.concept_relationship_id, ",
-            "SUM(CASE WHEN cre.evaluation_id = 1 THEN 1 ELSE 0 END) AS positive_evals, ",
-            "SUM(CASE WHEN cre.evaluation_id = 2 THEN 1 ELSE 0 END) AS negative_evals ",
-            "FROM concept_relationship_user cru ",
-            "LEFT JOIN concept_relationship_evals cre ON cru.concept_relationship_id = cre.concept_relationship_id ",
-            "GROUP BY cru.concept_relationship_id ",
-            "HAVING positive_evals = 0 OR (positive_evals > 0 AND positive_evals <= negative_evals) ",
-            ") ",
-            "SELECT cr.concept_relationship_id FROM cr ",
+              "WITH cr2 AS (",
+                "SELECT cru.concept_relationship_id, ",
+                "SUM(CASE WHEN cre.evaluation_id = 1 THEN 1 ELSE 0 END) AS positive_evals, ",
+                "SUM(CASE WHEN cre.evaluation_id = 2 THEN 1 ELSE 0 END) AS negative_evals ",
+                "FROM concept_relationship_user cru ",
+                "LEFT JOIN concept_relationship_evals cre ON cru.concept_relationship_id = cre.concept_relationship_id ",
+                "GROUP BY cru.concept_relationship_id ",
+              "), ",
+              "cr3 AS (",
+                "SELECT cr2.concept_relationship_id,",
+                "cr2.positive_evals,",
+                "cr2.negative_evals ",
+                "FROM cr2 ",
+                "WHERE cr2.positive_evals = 0 OR (cr2.positive_evals > 0 AND cr2.positive_evals <= cr2.negative_evals)",
+              ") ",
+              "SELECT concept_relationship_id FROM cr3 ",
             ")"), .con = m$db)
           
           else sql <- glue::glue_sql("SELECT * FROM {`input$vocabularies_table`}", .con = m$db)
@@ -2654,7 +2660,7 @@ mod_settings_data_management_server <- function(id = character(), r = shiny::rea
         render_datatable(output = output, ns = ns, i18n = i18n, output_name = "vocabularies_tables_mapped_concepts_datatable",
           data = tibble::tibble(concept_id_1 = character(), relationship_id = character(), concept_id_2 = character(), concept_name_2 = character()))
         
-        n_rows <- stringr::str_split_1(input$vocabularies_table_rows, ";")
+        n_rows <- stringr::str_split(input$vocabularies_table_rows, ";") %>% unlist()
         n_rows_start <- as.integer(n_rows[1])
         n_rows_end <- as.integer(n_rows[2])
         
@@ -2700,7 +2706,7 @@ mod_settings_data_management_server <- function(id = character(), r = shiny::rea
         
         if (debug) cat(paste0("\n", now(), " - mod_settings_data_management - observer input$vocabularies_tables_datatable_rows_selected"))
         
-        n_rows <- stringr::str_split_1(input$vocabularies_table_rows, ";")
+        n_rows <- stringr::str_split(input$vocabularies_table_rows, ";") %>% unlist()
         n_rows_start <- as.integer(n_rows[1])
         n_rows_end <- as.integer(n_rows[2])
         

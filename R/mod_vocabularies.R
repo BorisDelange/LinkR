@@ -578,9 +578,15 @@ mod_vocabularies_server <- function(id = character(), r = shiny::reactiveValues(
                   "FROM concept_relationship_user cru ",
                   "LEFT JOIN concept_relationship_evals cre ON cru.concept_relationship_id = cre.concept_relationship_id ",
                   "GROUP BY cru.concept_relationship_id ",
-                  "HAVING positive_evals = 0 OR (positive_evals > 0 AND positive_evals <= negative_evals) ",
+                "), ",
+                "cr3 AS (",
+                  "SELECT cr2.concept_relationship_id,",
+                  "cr2.positive_evals,",
+                  "cr2.negative_evals ",
+                  "FROM cr2 ",
+                  "WHERE cr2.positive_evals = 0 OR (cr2.positive_evals > 0 AND cr2.positive_evals <= cr2.negative_evals)",
                 ") ",
-              "SELECT concept_relationship_id FROM cr2 ",
+                "SELECT concept_relationship_id FROM cr3 ",
               ")"), .con = m$db)
             
             d[[table]] <- DBI::dbGetQuery(m$db, sql) %>%

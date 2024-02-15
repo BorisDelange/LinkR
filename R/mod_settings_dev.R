@@ -210,7 +210,7 @@ mod_settings_dev_server <- function(id = character(), r = shiny::reactiveValues(
         if (console_result != "NULL") console_result <- console_result %>% gsub("NULL$", "", .)
         
         # If there's a <simpleWarning ...> message, it is interpreted as an HTML tag and doesn't show the console result
-        if (!grepl("simpleWarning|simpleError", console_result)) console_result <- HTML(paste0("<pre>", console_result, "</pre>"))
+        if (!grepl("simpleWarning|simpleError|Rcpp::", console_result)) console_result <- HTML(paste0("<pre>", console_result, "</pre>"))
         else console_result <- tags$div(console_result, style = "padding: 15px 0px 15px 0px;")
         
         output$r_code_result <- renderUI(console_result)

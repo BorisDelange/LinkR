@@ -41,7 +41,7 @@ app_server <- function(language = "en", languages = tibble::tibble(), i18n = cha
     o <- reactiveValues()
     
     # App version
-    r$app_version <- "0.2.0"
+    r$app_version <- "0.2.0.9081"
     
     # Col types of database tables, to import and restore database
     
@@ -177,7 +177,7 @@ app_server <- function(language = "en", languages = tibble::tibble(), i18n = cha
     res_auth <- shinymanager::secure_server(check_credentials = function(user, password) {
       password <- rlang::hash(password)
       
-      res <- DBI::dbGetQuery(db_local_main, paste0("SELECT * FROM users WHERE username = '", user, "' AND password = '", password, "' AND deleted IS FALSE"))
+      res <- DBI::dbGetQuery(r$db, paste0("SELECT * FROM users WHERE username = '", user, "' AND password = '", password, "' AND deleted IS FALSE"))
       
       if (nrow(res) > 0) list(result = TRUE, user_info = list(user = user, id = res$id))
       else list(result = FALSE)
