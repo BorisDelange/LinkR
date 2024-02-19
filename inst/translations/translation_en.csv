@@ -508,7 +508,7 @@ var_type_not_valid,Variable type is not valid
 var_omop_table_not_valid,Variable omop_table is not valid
 error_loading_csv,Error loading CSV file
 error_transforming_tibble,Error transforming data to tibble
-valid_col_names_are,Column names are not valid. Valid col names are :
+valid_col_names_are,Column names are not valid.
 error_saving_csv,Error saving CSV file
 error_saving_parquet,Error saving Parquet file
 package_arrow_not_installed,Package arrow is not installed
@@ -757,6 +757,7 @@ users_accesses_options_card_user_access_description,Configure users accesses
 users_statuses_management_card_user_access_description,"Manage user statuses (add, edit and delete)"
 dev_edit_r_code_card_user_access_description,Execute code on R console without data restriction
 dev_edit_python_code_card_user_access_description,Execute code on Python console
+dev_edit_terminal_code_card_user_access_description,Execute code on terminal
 dev_perf_monitoring_card_user_access_description,Access to performances monitoring
 data_sources_datatable_card_user_access_description,"Manage data sources (add, edit and delete)"
 datasets_see_all_data_user_access_description,"Access to all datasets, even if current user is not in authorized users for a dataset"
@@ -1013,3 +1014,5 @@ editor_page,Editor page
 plugin_choice,Plugin
 code_result,Code result
 editor_and_result_side_by_side,Side by side
+imported_col,Imported column
+required_col,Required column

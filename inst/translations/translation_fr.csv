@@ -508,7 +508,7 @@ var_type_not_valid,La variable type n'est pas valide
 var_omop_table_not_valid,La variable omop_table n'est pas valide
 error_loading_csv,Erreur lors du chargement du fichier CSV
 error_transforming_tibble,Erreur dans la conversion de la variable au format tibble
-valid_col_names_are,Noms de colonnes non valides. Les noms requis sont : 
+valid_col_names_are,Noms de colonnes non valides.
 error_saving_csv,Erreur dans l'enregistrement du fichier CSV
 error_saving_parquet,Erreur dans l'enregistrement du fichier Parquet
 package_arrow_not_installed,La librairie arrow n'est pas installée
@@ -757,6 +757,7 @@ users_accesses_options_card_user_access_description,Configurer les accès utilis
 users_statuses_management_card_user_access_description,"Gérer les statuts des utilisateurs (ajouter, éditer et supprimer)"
 dev_edit_r_code_card_user_access_description,Exécuter du code dans la console R sans restriction d'accès aux données
 dev_edit_python_code_card_user_access_description,Exécuter du code dans la console Python
+dev_edit_terminal_code_card_user_access_description,Exécuter du code dans le terminal
 dev_perf_monitoring_card_user_access_description,Accéder aux mesures des performances
 data_sources_datatable_card_user_access_description,"Gérer les sources de données (ajouter, éditer et supprimer)"
 datasets_see_all_data_user_access_description,"Accéder à tous les sets de données, même ceux pour lesquels l'utilisateur n'est pas dans les utilisateurs autorisés"
@@ -1013,3 +1014,5 @@ editor_page,Page de l'éditeur
 plugin_choice,Plugin
 code_result,Résultat du code
 editor_and_result_side_by_side,Côte à côte
+imported_col,Colonne importée
+required_col,Colonne attendue

@@ -31,7 +31,8 @@ update_r <- function(r = shiny::reactiveValues(), m = shiny::reactiveValues(), t
       
       if (grepl("patient_lvl", table)) category <- "patient_lvl" else category <- "aggregated"
       
-      widget_ids <- r[[paste0(category, "_widgets")]] %>% dplyr::pull(id)
+      if (nrow(r[[paste0(category, "_widgets")]]) > 0) widget_ids <- r[[paste0(category, "_widgets")]] %>% dplyr::pull(id)
+      else widget_ids <- 0L
       sql <- glue::glue_sql("SELECT * FROM widgets_concepts WHERE deleted IS FALSE AND widget_id IN ({widget_ids*})", .con = db)
       r[[paste0(category, "_widgets_concepts")]] <- DBI::dbGetQuery(db, sql)
     }
@@ -40,7 +41,9 @@ update_r <- function(r = shiny::reactiveValues(), m = shiny::reactiveValues(), t
       
       if (table == "subsets_persons"){
         
-        sql <- glue::glue_sql("SELECT * FROM subset_persons WHERE deleted IS FALSE AND subset_id IN ({m$subsets %>% dplyr::pull(id)*})", .con = db)
+        if (nrow(m$subsets) > 0) subsets_ids <- m$subsets %>% dplyr::pull(id)
+        else subsets_ids <- 0L
+        sql <- glue::glue_sql("SELECT * FROM subset_persons WHERE deleted IS FALSE AND subset_id IN ({subsets_ids*})", .con = db)
         m$subsets_persons <- DBI::dbGetQuery(db, sql)
       }
       
@@ -106,7 +109,8 @@ update_r <- function(r = shiny::reactiveValues(), m = shiny::reactiveValues(), t
       }
       
       else if (table == paste0(category, "_widgets")){
-        tabs_ids <- r[[paste0(category, "_tabs")]] %>% dplyr::pull(id)
+        if (nrow(r[[paste0(category, "_tabs")]]) > 0) tabs_ids <- r[[paste0(category, "_tabs")]] %>% dplyr::pull(id)
+        else tabs_ids <- 0L
         sql <- glue::glue_sql("SELECT * FROM widgets WHERE deleted IS FALSE AND category = {category} AND tab_id IN ({tabs_ids*})", .con = db)
         r[[paste0(category, "_widgets")]] <- DBI::dbGetQuery(db, sql)
       }

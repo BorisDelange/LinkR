@@ -1440,15 +1440,24 @@ capture_python_output <- function(code) {
       "import sys\n",
       "from io import StringIO\n",
       "original_stdout = sys.stdout\n",
-      "sys.stdout = StringIO()\n"
+      "original_stderr = sys.stderr\n",
+      "sys.stdout = StringIO()\n",
+      "sys.stderr = sys.stdout\n"
     ))
     reticulate::py_run_string(code)
     reticulate::py_run_string(paste0(
       "sys.stdout.seek(0)\n",
       "output = sys.stdout.getvalue()\n",
-      "sys.stdout = original_stdout"
+      "sys.stdout = original_stdout\n",
+      "sys.stderr = original_stderr\n"
     ))
     reticulate::py$output
   },
-    error = function(e) return(e))
+    error = function(e) {
+      reticulate::py_run_string(paste0(
+        "sys.stdout = original_stdout\n",
+        "sys.stderr = original_stderr\n"
+      ))
+      return(e$message)
+    })
 }

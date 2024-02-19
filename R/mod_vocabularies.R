@@ -1678,11 +1678,14 @@ mod_vocabularies_server <- function(id = character(), r = shiny::reactiveValues(
           # "INNER JOIN concept c1 ON cr.concept_id_1 = c1.concept_id AND c1.vocabulary_id IN ({vocabulary_ids*}) ",
           # "INNER JOIN concept c2 ON cr.concept_id_2 = c2.concept_id AND c2.vocabulary_id IN ({vocabulary_ids*})"), .con = m$db)
         r$dataset_vocabulary_concepts_evaluate_mappings <- DBI::dbGetQuery(m$db, sql)
+        
+        if (nrow(r$dataset_vocabulary_concepts_evaluate_mappings) > 0) concept_relationship_ids <- r$dataset_vocabulary_concepts_evaluate_mappings$concept_relationship_id
+        else concept_relationship_ids <- 0L
   
         # Join with evaluations
   
         sql <- glue::glue_sql(paste0("SELECT * FROM concept_relationship_evals ",
-        " WHERE concept_relationship_id IN ({r$dataset_vocabulary_concepts_evaluate_mappings$concept_relationship_id*})"), .con = m$db)
+        " WHERE concept_relationship_id IN ({concept_relationship_ids*})"), .con = m$db)
         vocabulary_mapping_evals <- DBI::dbGetQuery(m$db, sql) %>% tibble::as_tibble() %>% dplyr::mutate_at("evaluation_id", as.integer)
   
         r$dataset_vocabulary_concepts_evaluate_mappings <- r$dataset_vocabulary_concepts_evaluate_mappings %>%

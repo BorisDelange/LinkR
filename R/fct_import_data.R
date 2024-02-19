@@ -562,6 +562,25 @@ import_dataset <- function(output, ns = character(), i18n = character(), r = shi
         "visit_detail_parent_id", "integer",
         "visit_occurrence_id", "integer"
       ),
+      "note", tibble::tribble(
+        ~name, ~type,
+        "note_id", "integer",
+        "person_id", "integer",
+        "note_event_id", "integer",
+        "note_event_field_concept_id", "integer",
+        "note_date", "date",
+        "note_datetime", "datetime",
+        "note_type_concept_id", "integer",
+        "note_class_concept_id", "integer",
+        "note_title", "character",
+        "note_text", "character",
+        "encoding_concept_id", "integer",
+        "language_concept_id", "integer",
+        "provider_id", "integer",
+        "visit_occurrence_id", "integer",
+        "visit_detail_id", "integer",
+        "note_source_value", "character"
+      ),
       "drug_era", tibble::tribble(
         ~name, ~type,
         "drug_era_id", "integer",
@@ -661,6 +680,23 @@ import_dataset <- function(output, ns = character(), i18n = character(), r = shi
           "unit_source_value", "character",
           "qualifier_source_value", "character"
         ),
+        "note", tibble::tribble(
+          ~name, ~type,
+          "note_id", "integer",
+          "person_id", "integer",
+          "note_date", "date",
+          "note_datetime", "datetime",
+          "note_type_concept_id", "integer",
+          "note_class_concept_id", "integer",
+          "note_title", "character",
+          "note_text", "character",
+          "encoding_concept_id", "integer",
+          "language_concept_id", "integer",
+          "provider_id", "integer",
+          "visit_occurrence_id", "integer",
+          "visit_detail_id", "integer",
+          "note_source_value", "character"
+        ),
         "location", tibble::tribble(
           ~name, ~type,
           "location_id", "integer",
@@ -725,6 +761,25 @@ import_dataset <- function(output, ns = character(), i18n = character(), r = shi
           "value_source_value", "character",
           "observation_event_id", "integer",
           "obs_event_field_concept_id", "integer"
+        ),
+        "note", tibble::tribble(
+          ~name, ~type,
+          "note_id", "integer",
+          "person_id", "integer",
+          "note_date", "date",
+          "note_datetime", "datetime",
+          "note_type_concept_id", "integer",
+          "note_class_concept_id", "integer",
+          "note_title", "character",
+          "note_text", "character",
+          "encoding_concept_id", "integer",
+          "language_concept_id", "integer",
+          "provider_id", "integer",
+          "visit_occurrence_id", "integer",
+          "visit_detail_id", "integer",
+          "note_source_value", "character",
+          "note_event_id", "integer",
+          "note_event_field_concept_id", "integer"
         )
       )
     )
@@ -919,25 +974,6 @@ import_dataset <- function(output, ns = character(), i18n = character(), r = shi
         "cause_source_value", "character",
         "cause_source_concept_id", "integer"
       ),
-      "note", tibble::tribble(
-        ~name, ~type,
-        "note_id", "integer",
-        "person_id", "integer",
-        "note_event_id", "integer",
-        "note_event_field_concept_id", "integer",
-        "note_date", "date",
-        "note_datetime", "datetime",
-        "note_type_concept_id", "integer",
-        "note_class_concept_id", "integer",
-        "note_title", "character",
-        "note_text", "character",
-        "encoding_concept_id", "integer",
-        "language_concept_id", "integer",
-        "provider_id", "integer",
-        "visit_occurrence_id", "integer",
-        "visit_detail_id", "integer",
-        "note_source_value", "character"
-      ),
       "note_nlp", tibble::tribble(
         ~name, ~type,
         "note_nlp_id", "integer",
@@ -1096,7 +1132,39 @@ import_dataset <- function(output, ns = character(), i18n = character(), r = shi
   
   if (!identical(colnames(data), var_cols %>% dplyr::pull(name))){
     add_log_entry(r = r, category = "Error", name = paste0("import_dataset - invalid_col_names - id = ", dataset_id), value = paste0(i18n$t("valid_col_names_are"), "</span>\n", toString(var_cols %>% dplyr::pull(name))))
-    cat(paste0(tags$span(paste0("**", i18n$t("error"), "** ", i18n$t("valid_col_names_are")), style = "font-weight:bold; color:red;"), "\n", toString(var_cols %>% dplyr::pull(name)), "\n"))
+    
+    imported_cols <- colnames(data)
+    required_cols <- var_cols$name
+    columns <- tibble::tibble(imported = character(), required = character())
+    for (i in 1:max(length(imported_cols), length(required_cols))){
+      
+      if (i <= length(imported_cols)) imported_col <- imported_cols[i] else imported_col <- ""
+      if (i <= length(required_cols)) required_col <- required_cols[i] else required_col <- ""
+      
+      columns <- columns %>% dplyr::bind_rows(tibble::tibble(imported = imported_col, required = required_col))
+    }
+    
+    text <- paste0(
+      "<table style='min-width:400px;'>",
+        "<tr>",
+          "<th style='border-bottom: 1px solid black;'>", i18n$t("imported_col"), "</th>",
+          "<th style='border-bottom: 1px solid black;'>", i18n$t("required_col"), "</th>",
+        "</tr>"
+    )
+    
+    for (i in 1:nrow(columns)){
+      row <- columns[i, ]
+      text <- paste0(text,
+        "<tr>",
+          "<td style='padding-right:10px;'>", row$imported, "</td>",
+          "<td style='border-left: 1px solid black; padding-left:10px;'>", row$required, "</td>",
+        "</tr>"
+      )
+    }
+    
+    text <- paste0(text, "</table>")
+    
+    cat(paste0(tags$span(paste0("**", i18n$t("error"), "** ", i18n$t("valid_col_names_are")), style = "font-weight:bold; color:red;"), "\n\n", text))
     return(NULL)
   }
   
@@ -1406,7 +1474,39 @@ import_vocabulary_table <- function(output, ns = character(), i18n = character()
   
   if (!identical(colnames(data), var_cols$name)){
     add_log_entry(r = r, category = "Error", name = paste0("import_vocabulary_table - invalid_col_names"), value = paste0(i18n$t("valid_col_names_are"), "</span>\n", toString(var_cols %>% dplyr::pull(name))))
-    cat(paste0(tags$span(paste0("**", i18n$t("error"), "** ", i18n$t("valid_col_names_are")), style = "font-weight:bold; color:red;"), "\n", toString(var_cols %>% dplyr::pull(name)), "\n"))
+    
+    imported_cols <- colnames(data)
+    required_cols <- var_cols$name
+    columns <- tibble::tibble(imported = character(), required = character())
+    for (i in 1:max(length(imported_cols), length(required_cols))){
+      
+      if (i <= length(imported_cols)) imported_col <- imported_cols[i] else imported_col <- ""
+      if (i <= length(required_cols)) required_col <- required_cols[i] else required_col <- ""
+      
+      columns <- columns %>% dplyr::bind_rows(tibble::tibble(imported = imported_col, required = required_col))
+    }
+    
+    text <- paste0(
+      "<table style='min-width:400px;'>",
+      "<tr>",
+      "<th style='border-bottom: 1px solid black;'>", i18n$t("imported_col"), "</th>",
+      "<th style='border-bottom: 1px solid black;'>", i18n$t("required_col"), "</th>",
+      "</tr>"
+    )
+    
+    for (i in 1:nrow(columns)){
+      row <- columns[i, ]
+      text <- paste0(text,
+        "<tr>",
+        "<td style='padding-right:10px;'>", row$imported, "</td>",
+        "<td style='border-left: 1px solid black; padding-left:10px;'>", row$required, "</td>",
+        "</tr>"
+      )
+    }
+    
+    text <- paste0(text, "</table>")
+    
+    cat(paste0(tags$span(paste0("**", i18n$t("error"), "** ", i18n$t("valid_col_names_are")), style = "font-weight:bold; color:red;"), "\n\n", text))
     return(NULL)
   }
   

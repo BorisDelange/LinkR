@@ -2041,8 +2041,11 @@ mod_settings_data_management_server <- function(id = character(), r = shiny::rea
         
         if (debug) cat(paste0("\n", now(), " - mod_settings_data_management - observer input$code_selected_dataset_or_vocabulary"))
         
+        print("1")
+        print(input$code_selected_dataset_or_vocabulary)
         if (length(input$code_selected_dataset_or_vocabulary) > 1) link_id <- input$code_selected_dataset_or_vocabulary$key
         else link_id <- input$code_selected_dataset_or_vocabulary
+        print("2")
         
         if (table == "datasets"){
           
@@ -2065,18 +2068,20 @@ mod_settings_data_management_server <- function(id = character(), r = shiny::rea
         }
         
         if (table == "vocabulary"){
+          print("3")
           if (length(input$vocabulary_tables_selected_vocabulary) > 0){
             if (length(input$vocabulary_tables_selected_vocabulary) > 1) items_link_id <- input$vocabulary_tables_selected_vocabulary$key
             else items_link_id <- input$vocabulary_tables_selected_vocabulary
           }
           else items_link_id <- 0L
-          
+          print("4")
           if (link_id != items_link_id){
             options <- convert_tibble_to_list(r$vocabulary %>% dplyr::arrange(vocabulary_id), key_col = "id", text_col = "vocabulary_id")
             value <- list(key = link_id, text = r$vocabulary %>% dplyr::filter(id == link_id) %>% dplyr::pull(vocabulary_id))
             # shiny.fluent::updateComboBox.shinyInput(session, "vocabulary_tables_selected_vocabulary", options = options, value = value)
             shiny.fluent::updateComboBox.shinyInput(session, "options_selected_dataset_or_vocabulary", options = options, value = value)
           }
+          print("5")
         }
         
         # Save ID value in r variable, to get this during code execution
@@ -2089,14 +2094,17 @@ mod_settings_data_management_server <- function(id = character(), r = shiny::rea
         # if (id == "settings_vocabularies") r$vocabulary_id <- r$vocabulary %>% dplyr::filter(id == link_id) %>% dplyr::pull(vocabulary_id)
         
         category <- get_singular(id)
-        
+        print("6")
+        print(category)
+        print(link_id)
         # Get code from database
         code <- r$code %>% dplyr::filter(category == !!category & link_id == !!link_id) %>% dplyr::pull(code) %>% stringr::str_replace_all("''", "'")
         shinyAce::updateAceEditor(session, "ace_edit_code", value = code)
-        
+        print("7")
         # Reset code_result textOutput
         output$datetime_code_execution <- renderText("")
         output$code_result <- renderUI("")
+        print("8")
       })
       
       # When save button is clicked, or CTRL+C or CMD+C is pushed
@@ -2163,10 +2171,10 @@ mod_settings_data_management_server <- function(id = character(), r = shiny::rea
         shinyAce::updateAceEditor(session, "ace_edit_code", value = paste0(lines, collapse = "\n"))
         
         shinyjs::runjs(sprintf("
-            var editor = ace.edit('%s-ace_edit_code');
-            editor.moveCursorTo(%d, %d);
-            editor.focus();
-              ", id, input$ace_edit_code_comment$range$end$row, input$ace_edit_code_comment$range$end$column))
+          var editor = ace.edit('%s-ace_edit_code');
+          editor.moveCursorTo(%d, %d);
+          editor.focus();
+            ", id, input$ace_edit_code_comment$range$end$row, input$ace_edit_code_comment$range$end$column))
       })
       
       # When Execute code button is clicked
