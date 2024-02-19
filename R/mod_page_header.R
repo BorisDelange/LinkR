@@ -54,8 +54,8 @@ mod_page_header_ui <- function(id = character(), i18n = character()){
         div(textOutput(ns("datetime_code_execution")), style = "color:#878787;"), br(),
         shinyjs::hidden(
           div(
-            id = ns("code_result_div"),
-            uiOutput(ns("code_result")),
+            id = ns("console_code_result_div"),
+            uiOutput(ns("console_code_result")),
             style = "width: 99%; border-style: dashed; border-width: 1px; padding: 0px 8px 0px 8px; margin-right: 5px;"
           )
         )
@@ -192,7 +192,7 @@ mod_page_header_server <- function(id = character(), r = shiny::reactiveValues()
       
       if (debug) cat(paste0("\n", now(), " - mod_settings_dev - observer r$console_code_trigger"))
         
-      shinyjs::show("code_result_div")
+      shinyjs::show("console_code_result_div")
       
       edited_code <- r$console_code %>% stringr::str_replace_all("\r", "\n")
       
@@ -232,7 +232,7 @@ mod_page_header_server <- function(id = character(), r = shiny::reactiveValues()
         }
       }
 
-      output$code_result <- renderUI(console_result)
+      output$console_code_result <- renderUI(console_result)
       output$datetime_code_execution <- renderText(format_datetime(now(), language))
     })
     
