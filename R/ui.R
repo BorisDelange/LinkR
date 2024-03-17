@@ -13,9 +13,9 @@ app_ui <- function(request, css, language, languages, i18n = character(), users_
   
   pages <- c(
     "/", 
-    "home/get_started", 
-    "home/tutorials", 
-    "home/resources",
+    # "home/get_started", 
+    # "home/tutorials", 
+    # "home/resources",
     "my_studies", 
     "my_subsets",
     "messages",
@@ -41,18 +41,39 @@ app_ui <- function(request, css, language, languages, i18n = character(), users_
     lapply(pages, function(page_url){
       if (debug) cat(paste0("\n", now(), " - ui - make_router - ", page_url))
       if (page_url == "/") page <- "home" else page <- page_url
-      shiny.router::route(page_url, make_layout(language = language, languages = languages, page = page, i18n = i18n, users_accesses_toggles_options = users_accesses_toggles_options))
+      
+      # Pages without sidenav
+      if (page == "home") shiny.router::route(page_url,
+        div(
+          style = paste0(
+            "display: grid;",
+            "grid-template-columns: 60px 240px 1fr;",
+            "grid-template-rows: 54px 1fr 45px;",
+            "grid-template-areas:",
+            "\"header header header\" ",
+            "\"sidenav main main\" ",
+            "\"footer footer footer\";",
+            "height: 100vh;"
+          ),
+          mod_page_header_ui(id = stringr::str_replace(page, "/", "_"), i18n = i18n),
+          mod_page_sidenav_ui(id = stringr::str_replace(page, "/", "_"), i18n = i18n),
+          mod_page_main_ui(id = stringr::str_replace(page, "/", "_"), language = language, languages = languages, i18n = i18n, users_accesses_toggles_options = users_accesses_toggles_options),
+          mod_page_footer_ui(i18n = i18n)
+        ))
+        # make_layout(language = language, languages = languages, page = page, i18n = i18n, users_accesses_toggles_options = users_accesses_toggles_options))
+      
+      else shiny.router::route(page_url, make_layout(language = language, languages = languages, page = page, i18n = i18n, users_accesses_toggles_options = users_accesses_toggles_options))
     })
   ) -> page
   
   # Secure page with ShinyManager
-  shinymanager::secure_app(
+  # shinymanager::secure_app(
     tagList(
       golem_add_external_resources(css),
       shiny.fluent::fluentPage(page)
-    ),
-    enable_admin = FALSE, language = tolower(language), fab_position = "none"
-  )
+    )#,
+    # enable_admin = FALSE, language = tolower(language), fab_position = "none"
+  # )
 }
 
 #' Add external Resources to the Application
@@ -91,13 +112,13 @@ golem_add_external_resources <- function(css){
             if (mutation.addedNodes.length > 0) {
               document.querySelectorAll('.code_highlight:not(.hljs)').forEach((block) => {
                 hljs.highlightElement(block);
-                block.classList.add('hljs');
+                block.classList.add('hljs'); // Ajoute une classe pour marquer que le highlight a été appliqué
               });
             }
           });
         });
 
-        var target = document.querySelector('body');
+        var target = document.querySelector('body'); // Observez tout le body pour les changements
         observer.observe(target, { childList: true, subtree: true });
       });
     ")),

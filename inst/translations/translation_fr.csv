@@ -684,6 +684,8 @@ file_delete,Supprimer un fichier
 file_delete_subtext,Confirmer la suppression de ce fichier ?
 plugin_image_delete,Supprimer une image
 plugin_image_delete_subtext,Confirmer la suppression de cette image ?
+plugin_script_delete,Supprimer un script
+plugin_script_delete_subtext,Confirmer la suppression de ce script ?
 script_image_delete,Supprimer une image
 script_image_delete_subtext,Confirmer la suppression de cette image ?
 study_image_delete,Supprimer une image
@@ -961,6 +963,7 @@ wrong_association_read_with_and_save_as,"L'association entre les paramètres 're
 error_loading_duckdb,Erreur lors du chargement de la base de données duckdb
 error_loading_sparklyr,Erreur lors du chargement des données avec sparklyr
 language,Langue
+programming_language,Langage
 with_map,Avec la carte
 with_url,Avec un lien
 show_description,Afficher la description
@@ -1016,3 +1019,7 @@ code_result,Résultat du code
 editor_and_result_side_by_side,Côte à côte
 imported_col,Colonne importée
 required_col,Colonne attendue
+script_name,Nom du script
+main_script,Script principal
+projects,Projets
+create_project,Créer un projet

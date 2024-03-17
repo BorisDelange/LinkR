@@ -233,10 +233,8 @@ mod_settings_users_server <- function(id = character(), r = shiny::reactiveValue
 
       # Load users_management_card, to load DT (doesn't update with other DT if not already loaded once)
       if (shiny.router::get_page() == "settings/users" & length(r$settings_users_page_loaded) == 0){
-        sapply(c("users_management_card", "users_accesses_management_card", "users_statuses_management_card"), function(card){
-          if (card %in% r$user_accesses) shinyjs::show(card)
-          shinyjs::delay(500, shinyjs::hide(card))
-        })
+        if ("users_management_card" %in% r$user_accesses) shinyjs::show("users_management_card")
+        shinyjs::delay(500, shinyjs::hide("users_management_card"))
         r$settings_users_page_loaded <- TRUE
       }
     })
@@ -257,16 +255,14 @@ mod_settings_users_server <- function(id = character(), r = shiny::reactiveValue
       # Update dropdowns with reactive data
       sapply(c("users_accesses", "users_statuses"), 
         function(data_var){
-          if (grepl("creation", id) | grepl(paste0(data_var, "_management"), id)){
-            observeEvent(r[[data_var]], {
-              
-              if (debug) cat(paste0("\n", now(), " - mod_settings_users - observer r$users_[accesses/statuses]"))
-              
-              # Convert options to list
-              options <- convert_tibble_to_list(data = r[[data_var]], key_col = "id", text_col = "name")
-              shiny.fluent::updateDropdown.shinyInput(session, get_singular(word = data_var), options = options)
-            })
-          }
+          observeEvent(r[[data_var]], {
+            
+            if (debug) cat(paste0("\n", now(), " - mod_settings_users - observer r$users_[accesses/statuses]"))
+            
+            # Convert options to list
+            options <- convert_tibble_to_list(data = r[[data_var]], key_col = "id", text_col = "name")
+            shiny.fluent::updateDropdown.shinyInput(session, get_singular(word = data_var), options = options)
+          })
         })
       
       # When add button is clicked
@@ -276,8 +272,7 @@ mod_settings_users_server <- function(id = character(), r = shiny::reactiveValue
         if (debug) cat(paste0("\n", now(), " - mod_settings_users - observer input$add"))
         
         # If user has access
-        if (table == "users") req(paste0(table, "_creation_card") %in% r$user_accesses)
-        else if (table %in% c("users_accesses", "users_statuses")) req(paste0(table, "_management_card") %in% r$user_accesses)
+        req(paste0(table, "_creation_card") %in% r$user_accesses)
         
         new_data <- list()
         
@@ -354,7 +349,7 @@ mod_settings_users_server <- function(id = character(), r = shiny::reactiveValue
       observeEvent(r[[table]], {
         
         if (perf_monitoring) monitor_perf(r = r, action = "start")
-        if (debug) cat(paste0("\n", now(), " - mod_settings_users - observer r$", table))
+        if (debug) cat(paste0("\n", now(), " - mod_settings_users - observer r$..[table]"))
         
         r[[paste0(table, "_temp")]] <- r[[table]] %>% dplyr::mutate(modified = FALSE)
         
@@ -365,7 +360,7 @@ mod_settings_users_server <- function(id = character(), r = shiny::reactiveValue
         # Reload data of datatable
         DT::replaceData(r[[paste0(table, "_datatable_proxy")]], r[[paste0(table, "_datatable_temp")]], resetPaging = FALSE, rownames = FALSE)
         
-        if (perf_monitoring) monitor_perf(r = r, action = "stop", task = paste0("mod_settings_users - observer r$", table))
+        if (perf_monitoring) monitor_perf(r = r, action = "stop", task = paste0("mod_settings_users - observer r$..[table]"))
       })
     }
     

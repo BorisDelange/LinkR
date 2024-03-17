@@ -21,26 +21,26 @@ mod_page_sidenav_ui <- function(id = character(), i18n = character()){
       class = "sidenav",
       div(class = "reduced_sidenav"),
       div(class = "extended_sidenav",
-        shiny.fluent::Nav(
-          groups = list(
-            list(links = list(
-              list(name = i18n$t("home"), key = "home", url = shiny.router::route_link("/")),
-              list(name = i18n$t("get_started"), key = "home_get_started", url = shiny.router::route_link("home/get_started")),
-              list(name = i18n$t("tutorials"), key = "home_tutorials", url = shiny.router::route_link("home/tutorials")),
-              list(name = i18n$t("resources"), key = "home_resources", url = shiny.router::route_link("home/resources"))
-              )
-            )
-          ),
-          initialSelectedKey = id,
-          selectedKey = id,
-          styles = list(
-            root = list(
-              height = "100%",
-              boxSizing = "border-box",
-              overflowY = "auto"
-            )
-          )
-        )
+        # shiny.fluent::Nav(
+        #   groups = list(
+        #     list(links = list(
+        #       list(name = i18n$t("home"), key = "home", url = shiny.router::route_link("/")),
+        #       list(name = i18n$t("get_started"), key = "home_get_started", url = shiny.router::route_link("home/get_started")),
+        #       list(name = i18n$t("tutorials"), key = "home_tutorials", url = shiny.router::route_link("home/tutorials")),
+        #       list(name = i18n$t("resources"), key = "home_resources", url = shiny.router::route_link("home/resources"))
+        #       )
+        #     )
+        #   ),
+        #   initialSelectedKey = id,
+        #   selectedKey = id,
+        #   styles = list(
+        #     root = list(
+        #       height = "100%",
+        #       boxSizing = "border-box",
+        #       overflowY = "auto"
+        #     )
+        #   )
+        # )
       )
     ) -> result
   }
@@ -169,19 +169,28 @@ mod_page_sidenav_ui <- function(id = character(), i18n = character()){
             div(class = "input_title", i18n$t("display")), br(),
             div(
               shiny.fluent::Stack(horizontal = TRUE, tokens = list(childrenGap = 10),
-                make_toggle(i18n = i18n, ns = ns, label = "plugin_choice", id = paste0(id, "_edit_code_plugin_div"), inline = TRUE, value = TRUE))),
+                make_toggle(i18n = i18n, ns = ns, label = "plugin", id = paste0(id, "_edit_code_plugin_div"), inline = TRUE, value = TRUE))
+            ),
             div(
               shiny.fluent::Stack(horizontal = TRUE, tokens = list(childrenGap = 10),
-              make_toggle(i18n = i18n, ns = ns, label = "concepts", id = paste0(id, "_edit_code_concepts_div"), inline = TRUE, value = TRUE))),
+                make_toggle(i18n = i18n, ns = ns, label = "concepts", id = paste0(id, "_edit_code_concepts_div"), inline = TRUE, value = TRUE))
+            ),
             div(
               shiny.fluent::Stack(horizontal = TRUE, tokens = list(childrenGap = 10),
-                make_toggle(i18n = i18n, ns = ns, label = "editor", id = paste0(id, "_edit_code_editor_div"), inline = TRUE, value = TRUE))),
+                make_toggle(i18n = i18n, ns = ns, label = "scripts_management", id = paste0(id, "_edit_code_script_div"), inline = TRUE, value = TRUE))
+            ),
             div(
               shiny.fluent::Stack(horizontal = TRUE, tokens = list(childrenGap = 10),
-                make_toggle(i18n = i18n, ns = ns, label = "code_result", id = paste0(id, "_edit_code_code_result_div"), inline = TRUE, value = TRUE))),
+                make_toggle(i18n = i18n, ns = ns, label = "editor", id = paste0(id, "_edit_code_editor_div"), inline = TRUE, value = TRUE))
+            ),
             div(
               shiny.fluent::Stack(horizontal = TRUE, tokens = list(childrenGap = 10),
-                make_toggle(i18n = i18n, ns = ns, label = "editor_and_result_side_by_side", id = paste0(id, "_edit_code_side_by_side_divs"), inline = TRUE, value = TRUE))),
+                make_toggle(i18n = i18n, ns = ns, label = "code_result", id = paste0(id, "_edit_code_code_result_div"), inline = TRUE, value = TRUE))
+            ),
+            div(
+              shiny.fluent::Stack(horizontal = TRUE, tokens = list(childrenGap = 10),
+                make_toggle(i18n = i18n, ns = ns, label = "editor_and_result_side_by_side", id = paste0(id, "_edit_code_side_by_side_divs"), inline = TRUE, value = TRUE))
+            ),
             br(), hr(),
             div(class = "input_title", i18n$t("editor_page")),
             shiny.fluent::ChoiceGroup.shinyInput(ns(paste0(id, "_edit_code_ui_server")), value = "ui", options = list(
@@ -272,24 +281,17 @@ mod_page_sidenav_server <- function(id = character(), r = shiny::reactiveValues(
     #   else shinyjs::show("sidenav")
     # })
     
+    # --- --- --- -
+    # Projects ----
+    # --- --- --- -
+    
+    # if (grepl("^home", id)) shinyjs::runjs(paste0("$('.grid-container').css('grid-template-areas', '\"header header header\" \"sidenav main main\" \"footer footer footer\"');"))
+    
     # --- --- -- -
     # Plugins ----
     # --- --- -- -
     
     if (id %in% c("plugins_patient_lvl", "plugins_aggregated")){
-      
-      # Changing page between patient-lvl & aggregated plugins
-      
-      # r$plugins_page <- "plugins_patient_lvl"
-      # 
-      # if (id == "plugins_patient_lvl") observeEvent(input$plugins_page_agg, {
-      #   shiny.router::change_page("plugins_aggregated")
-      #   r$plugins_page <- "plugins_aggregated"
-      # })
-      # if (id == "plugins_aggregated") observeEvent(input$plugins_page_ind, {
-      #   shiny.router::change_page("plugins_patient_lvl")
-      #   r$plugins_page <- "plugins_patient_lvl"
-      # })
       
       # Current tab
       observeEvent(r[[paste0(id, "_current_tab")]], {
@@ -303,7 +305,7 @@ mod_page_sidenav_server <- function(id = character(), r = shiny::reactiveValues(
       })
       
       # Display
-      sapply(c("plugin", "concepts", "editor", "code_result"), function(name) observeEvent(input[[paste0(id, "_edit_code_", name, "_div")]], {
+      sapply(c("plugin", "script", "concepts", "editor", "code_result"), function(name) observeEvent(input[[paste0(id, "_edit_code_", name, "_div")]], {
         r[[paste0(id, "_edit_code_", name, "_div")]] <- input[[paste0(id, "_edit_code_", name, "_div")]]
       }))
       
@@ -603,21 +605,18 @@ mod_page_sidenav_server <- function(id = character(), r = shiny::reactiveValues(
           
           input_value <- input$person_trigger
           if (nchar(input_value) >= 2) {
-            # filtered_persons <- d$person
-            # if ("tbl_lazy" %in% class(d$person)) filtered_persons <- filtered_persons %>%
-            #   dplyr::filter(dplyr::sql(paste0("CAST(person_id AS TEXT) LIKE '%", input_value, "%'")))
-            # else filtered_persons <- filtered_persons %>%
-            #     dplyr::filter(stringr::str_detect(person_id, stringr::regex(input_value, ignore_case = TRUE)))
-            # filtered_persons <- filtered_persons %>%
-            filtered_persons <-
-              d$person %>%
+            filtered_person <- d$person
+            if ("tbl_lazy" %in% class(d$person)) filtered_person <- filtered_person %>%
+              dplyr::filter(dplyr::sql(paste0("CAST(person_id AS TEXT) LIKE '%", input_value, "%'")))
+            else filtered_person <- filtered_person %>%
+                dplyr::filter(stringr::str_detect(person_id, stringr::regex(input_value, ignore_case = TRUE)))
+            filtered_person <- filtered_person %>%
               dplyr::collect() %>%
-              dplyr::filter(stringr::str_detect(person_id, stringr::regex(input_value, ignore_case = TRUE))) %>%
               dplyr::slice_head(n = 100) %>%
               dplyr::left_join(d$dataset_all_concepts %>% dplyr::filter(is.na(relationship_id)) %>% dplyr::select(gender_concept_id = concept_id_1, gender_concept_name = concept_name_1), by = "gender_concept_id") %>%
               dplyr::mutate(name_display = paste0(person_id, " - ", gender_concept_name))
             
-            shiny.fluent::updateComboBox.shinyInput(session, "person", options = convert_tibble_to_list(filtered_persons, key_col = "person_id", text_col = "name_display"))
+            shiny.fluent::updateComboBox.shinyInput(session, "person", options = convert_tibble_to_list(filtered_person, key_col = "person_id", text_col = "name_display"))
           } else {
             shiny.fluent::updateComboBox.shinyInput(session, "person", 
               options = convert_tibble_to_list(data = d$person %>% 
@@ -642,15 +641,13 @@ mod_page_sidenav_server <- function(id = character(), r = shiny::reactiveValues(
           if (length(input$person$key) == 0){
             person_text <- input$person$text
             person <- d$person %>%
-              dplyr::collect() %>%
               dplyr::left_join(d$dataset_all_concepts %>% dplyr::filter(is.na(relationship_id)) %>% dplyr::select(gender_concept_id = concept_id_1, gender_concept_name = concept_name_1), by = "gender_concept_id") %>%
               dplyr::mutate(name_display = paste0(person_id, " - ", gender_concept_name)) %>%
-              dplyr::filter(name_display == person_text)
+              dplyr::filter(name_display == person_text) %>% dplyr::collect()
           }
           if (length(input$person$key) > 0){
             person_key <- input$person$key
-            person <- d$person %>% dplyr::filter(person_id == person_key) %>% dplyr::collect()
-            if (nrow(person) > 0) person <- person %>%
+            person <- d$person %>% dplyr::filter(person_id == person_key) %>% dplyr::collect() %>%
               dplyr::left_join(d$dataset_all_concepts %>% dplyr::filter(is.na(relationship_id)) %>% dplyr::select(gender_concept_id = concept_id_1, gender_concept_name = concept_name_1), by = "gender_concept_id") %>%
               dplyr::mutate(name_display = paste0(person_id, " - ", gender_concept_name))
           }

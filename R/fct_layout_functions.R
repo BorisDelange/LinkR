@@ -43,9 +43,17 @@ format_datetime <- function(datetime = character(), language = "en", sec = TRUE,
 #' make_card(title = "Introduction", content = "This is the text of my introduction card", size = 12)
 #' }
 make_card <- function(title = character(), content = character(), size = 12, style = "") {
+  additional_style <- "padding:10px 20px 20px 20px;"
+  if(length(title) > 0){
+    if (length(title) == 1){
+      if (!is.na(title) & title != "") additional_style <- ""
+    }
+    else additional_style <- ""
+  }
+  
   div(
     class = glue::glue("card ms-depth-8 ms-sm{size} ms-xl{size}"),
-    style = style,
+    style = paste0(additional_style, style),
     shiny.fluent::Stack(
       tokens = list(childrenGap = 5),
       shiny.fluent::Text(variant = "large", title, block = TRUE),
@@ -296,9 +304,12 @@ make_toggle <- function(i18n = character(), ns = character(), id = NULL, label =
 #' make_shiny_ace_card(title = "Introduction", content = "This is the text of my introduction card", size = 12)
 #' }
 make_shiny_ace_card <- function(title = character(), content = character(), size = 12, style = "") {
+  additional_style <- "padding:10px 20px 20px 20px;"
+  if(length(title) > 0) if (title != "") additional_style <- ""
+  
   div(
     class = glue::glue("card ms-depth-8 ms-sm{size} ms-xl{size}"),
-    style = style,
+    style = paste0(additional_style, style),
     shiny.fluent::Text(variant = "large", title, block = TRUE),
     content
   )

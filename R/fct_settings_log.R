@@ -11,14 +11,11 @@
 add_log_entry <- function(r, category = character(), name = character(), value = character()){
   
   con <- isolate(r$db)
-  
   id_row <- get_last_row(con, "log") + 1
   datetime <- now()
-  
   sql <- glue::glue_sql("INSERT INTO log(id, category, name, value, creator_id, datetime)
     SELECT {id_row}, {category}, {name}, {value}, {isolate(r$user_id)}, {datetime}", 
     .con = con)
-  
   query <- DBI::dbSendStatement(con, sql)
   DBI::dbClearResult(query)
 }

@@ -12,14 +12,126 @@ mod_page_header_ui <- function(id = character(), i18n = character()){
   
   ns <- NS(id)
   
-  if (!grepl("home", id)) console_input <- shiny.fluent::CommandBarButton.shinyInput(ns("console"), iconProps = list("iconName" = "Code"))
-  else console_input <- ""
+  if (id == "home"){
+    console_input <- ""
+    title_div <- ""
+  } 
+  else {
+    console_input <- shiny.fluent::CommandBarButton.shinyInput(ns("console"), iconProps = list("iconName" = "Code"))
+    title_div <- div(
+      shiny.fluent::Text(variant = "xLarge", "LinkR"),
+      class = "title",
+      style = "cursor: pointer;",
+      onclick = paste0("window.location.href='", shiny.router::route_link("/"), "';")
+    )
+  }
+  
+  if (id == "home"){
+    command_bar <- div(
+      shiny.fluent::CommandBar(
+        items = list(
+          # Configure
+          shiny.fluent::CommandBarItem("", "Settings",
+            subMenuProps = list(items = list(
+              list(text = "Manage projects", iconProps = list(iconName = "CustomList"), href = shiny.router::route_link("/")),
+              list(text = i18n$t("datasets"), iconProps = list(iconName = "OfflineStorage"), href = shiny.router::route_link("/")),
+              list(text = i18n$t("vocabularies"), iconProps = list(iconName = "AllApps"), href = shiny.router::route_link("/"))
+            ))
+          ),
+          # Develop
+          shiny.fluent::CommandBarItem("", "CodeEdit",
+            subMenuProps = list(items = list(
+              list(text = i18n$t("plugins"), iconProps = list(iconName = "Code"), href = shiny.router::route_link("/")),
+              list(text = i18n$t("data_cleaning"), iconProps = list(iconName = "CodeEdit"), href = shiny.router::route_link("/"))
+            ))
+          ),
+          # Discover
+          shiny.fluent::CommandBarItem("", "World")
+        )
+      ),
+      style = "position:relative; z-index:1;"
+    )
+    
+    sidenav_button <- ""
+  }
+  
+  else {
+    command_bar <- tagList(
+      tags$a(
+        href = shiny.router::route_link("/"),
+        div(
+          uiOutput(ns("selected_project")),
+          style = paste0("background-color:#0084D8; color:white; font-weight:bold; border-radius:5px; ",
+            "padding:3px 8px 3px 8px; height:20px; margin:10px 0px 0px 25px; dispaly:inline-block;")
+        ),
+        style = "z-index:2; text-decoration:none;",
+      ),
+      div(
+        shiny.fluent::CommandBar(
+          items = list(
+            # Explore
+            shiny.fluent::CommandBarItem("", "BIDashboard",
+              subMenuProps = list(items = list(
+                list(text = i18n$t("concepts"), iconProps = list(iconName = "AllApps"), href = shiny.router::route_link("vocabularies")),
+                list(text = i18n$t("patient_lvl_data"), iconProps = list(iconName = "Contact"), href = shiny.router::route_link("data")),
+                list(text = i18n$t("aggregated_data"), iconProps = list(iconName = "People"), href = shiny.router::route_link("data"))
+              ))
+            ),
+            # Configure
+            shiny.fluent::CommandBarItem("", "Settings",
+              subMenuProps = list(items = list(
+                list(text = i18n$t("subsets"), iconProps = list(iconName = "People"), href = shiny.router::route_link("my_subsets"))
+              ))
+            ),
+            # Messages
+            shiny.fluent::CommandBarItem("", "Chat", href = shiny.router::route_link("messages")),
+            # Console
+            shiny.fluent::CommandBarItem("", "Code",
+              subMenuProps = list(items = list(
+                list(text = i18n$t("console"), iconProps = list(iconName = "Code"), href = shiny.router::route_link("/")),
+                list(text = "Notebook", iconProps = list(iconName = "EditNote"), href = shiny.router::route_link("/"))
+              ))
+            ),
+            # Performance monitoring / Tasks
+            shiny.fluent::CommandBarItem("", "Market",
+              subMenuProps = list(items = list(
+                list(text = "Performances", iconProps = list(iconName = "Market"), href = shiny.router::route_link("/")),
+                list(text = "Tasks", iconProps = list(iconName = "CheckList"), href = shiny.router::route_link("/"))
+              ))
+            ),
+            # Show results
+            shiny.fluent::CommandBarItem("", "Play",
+              subMenuProps = list(items = list(
+                list(text = "Article", iconProps = list(iconName = "KnowledgeArticle"), href = shiny.router::route_link("/")),
+                list(text = "Slides", iconProps = list(iconName = "Slideshow"), href = shiny.router::route_link("/"))
+              ))
+            )
+            # Develop
+            # shiny.fluent::CommandBarItem("", "CodeEdit"),
+            # Discover
+            # shiny.fluent::CommandBarItem("", "Cloud")
+          )
+        ),
+        style = "display:inline-block; margin-left:-15px; z-index:1;"
+      )
+    )
+    
+    sidenav_button <- div(
+      tags$a(
+        tags$img(src = "www/sidebar.png", style = "width:16px; height:auto; display:block; margin-top:8px; margin-left:8px;"), 
+        href = "javascript:void(0);", 
+        onclick = paste0("event.preventDefault(); Shiny.setInputValue('", id, "-show_hide_sidenav', Math.random()); return false;"),
+        style = "display: block; width:100%; height:100%;"
+      ), 
+      class = "link_image_container"
+    )
+  }
   
   div(
     class = "header",
     div(
       id = ns("console"),
-      style = "display: none; position: fixed; z-index: 1050; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.5);",
+      style = "display: none; position: fixed; z-index:10; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.5);",
       div(
         style = "position: relative; background: #fff; padding: 20px; margin: 3% auto; width: 90%; max-height: 85%; overflow-y: auto;",
         div(
@@ -61,34 +173,36 @@ mod_page_header_ui <- function(id = character(), i18n = character()){
         )
       )
     ),
-    div(htmltools::img(src = "www/logo.png", style = "height:25px;"), class = "logo"),
-    div(class = "title", shiny.fluent::Text(variant = "xLarge", "LinkR")),
     div(
-      tags$a(
-        tags$img(src = "www/sidebar.png", style = "width:16px; height:auto; display:block; margin-top:8px; margin-left:8px;"), 
-        href = "javascript:void(0);", 
-        onclick = paste0("event.preventDefault(); Shiny.setInputValue('", id, "-show_hide_sidenav', Math.random()); return false;"),
-        style = "display: block; width:100%; height:100%;"
-      ), 
-      class = "link_image_container"),
-    div(class = "header_left_bar", 
-      shiny.fluent::CommandBar(
-        items = list(
-          shiny.fluent::CommandBarItem(i18n$t("home"), "Home", href = shiny.router::route_link("/")),
-          shiny.fluent::CommandBarItem(i18n$t("data"), "OfflineStorage",
-            subMenuProps = list(items = list(
-              list(text = i18n$t("access_to_data"), iconProps = list(iconName = "BIDashboard"), href = shiny.router::route_link("data")),
-              list(text = i18n$t("data_cleaning"), iconProps = list(iconName = "CodeEdit"), href = shiny.router::route_link("scripts")),
-              list(text = i18n$t("my_studies"), iconProps = list(iconName = "CustomList"), href = shiny.router::route_link("my_studies")),
-              list(text = i18n$t("my_subsets"), iconProps = list(iconName = "People"), href = shiny.router::route_link("my_subsets"))
-          ))),
-          shiny.fluent::CommandBarItem(i18n$t("messages"), "Chat", href = shiny.router::route_link("messages")),
-          shiny.fluent::CommandBarItem(i18n$t("vocabularies"), "AllApps", href = shiny.router::route_link("vocabularies")),
-          shiny.fluent::CommandBarItem(i18n$t("plugins"), "Code", subMenuProps = list(items = list(
-            list(text = i18n$t("patient_lvl_data"), iconProps = list(iconName = "Contact"), href = shiny.router::route_link("plugins_patient_lvl")),
-            list(text = i18n$t("aggregated_data"), iconProps = list(iconName = "Group"), href = shiny.router::route_link("plugins_aggregated"))
-          )))
-        )
+      htmltools::img(src = "www/logo.png", style = "height:25px; margin-left:-10px;"),
+      class = "logo",
+      style = "cursor:pointer; z-index:10; position:relative; width:65px; display:flex; justify-content:center; margin-left:5px; margin-right:8px;",
+      onclick = paste0("window.location.href='", shiny.router::route_link("/"), "';")
+    ),
+    # title_div,
+    # sidenav_button,
+    div(class = "header_left_bar",
+      div(
+        # shiny.fluent::CommandBar(
+        #   items = list(
+        #     shiny.fluent::CommandBarItem(i18n$t("data"), "OfflineStorage",
+        #       subMenuProps = list(items = list(
+        #         list(text = i18n$t("access_to_data"), iconProps = list(iconName = "BIDashboard"), href = shiny.router::route_link("data")),
+        #         list(text = i18n$t("data_cleaning"), iconProps = list(iconName = "CodeEdit"), href = shiny.router::route_link("scripts")),
+        #         list(text = i18n$t("my_studies"), iconProps = list(iconName = "CustomList"), href = shiny.router::route_link("my_studies")),
+        #         list(text = i18n$t("my_subsets"), iconProps = list(iconName = "People"), href = shiny.router::route_link("my_subsets"))
+        #     ))),
+        #     shiny.fluent::CommandBarItem(i18n$t("messages"), "Chat", href = shiny.router::route_link("messages")),
+        #     shiny.fluent::CommandBarItem(i18n$t("vocabularies"), "AllApps", href = shiny.router::route_link("vocabularies")),
+        #     shiny.fluent::CommandBarItem(i18n$t("plugins"), "Code", subMenuProps = list(items = list(
+        #       list(text = i18n$t("patient_lvl_data"), iconProps = list(iconName = "Contact"), href = shiny.router::route_link("plugins_patient_lvl")),
+        #       list(text = i18n$t("aggregated_data"), iconProps = list(iconName = "Group"), href = shiny.router::route_link("plugins_aggregated"))
+        #     )))
+        #   )
+        # ),
+        command_bar,
+        uiOutput(ns("current_page"), style = "font-weight:bold; margin-top:12px; display:inline-block;"),
+        style = "display:flex;"
       )
     ),
     div(class = "header_right_bar",
@@ -137,6 +251,21 @@ mod_page_header_server <- function(id = character(), r = shiny::reactiveValues()
     })
     
     output$username <- renderUI(r$username)
+    
+    # Show current page
+    
+    if (id != "home") output$current_page <- renderUI(i18n$t(gsub("settings_", "", id)))
+    
+    # Selected project
+    
+    observeEvent(r$selected_project, {
+      if (debug) cat(paste0("\n", now(), " - mod_data - ", id, " - observer r$selected_project"))
+      
+      project_name <- r$projects %>% dplyr::filter(study_id == r$selected_project, name == paste0("name_", language)) %>% dplyr::pull(value)
+      max_length <- 45
+      if (nchar(project_name) > max_length) project_name <- paste0(substr(project_name, 1, max_length - 3), "...")
+      output$selected_project <- renderUI(project_name)
+    })
     
     # Open / close console modal
     

@@ -33,7 +33,7 @@ linkr <- function(
   # Used to restore database and import vocabularies
   # shiny.launch.browser to automatically open browser
   
-  if (debug) cat(paste0(now(), " - linkr - init - v0.2.0.9085"))
+  if (debug) cat(paste0(now(), " - linkr - init - v0.2.0.9072"))
   options(shiny.maxRequestSize = 4096*1024^2, shiny.launch.browser = TRUE)
   
   # suppressMessages(require(shinyTree))
@@ -42,9 +42,7 @@ linkr <- function(
   
   # Create app folder if it doesn't exist
   if (debug) cat(paste0("\n", now(), " - linkr - app_folder"))
-  if (length(app_folder) == 0) app_folder <- "~/linkr"
-  # Get full folder
-  app_folder <- path.expand(app_folder)
+  if (length(app_folder) == 0) app_folder <- paste0(path.expand("~"), "/linkr")
   
   if (!dir.exists(app_folder)){
     tryCatch(
@@ -59,9 +57,7 @@ linkr <- function(
     "home", "home/fr", "home/en", 
     "home/fr/home", "home/fr/get_started", "home/fr/tutorials", "home/fr/resources",
     "home/en/home", "home/en/get_started", "home/en/tutorials", "home/en/resources",
-    "messages", 
-    "plugins", "plugins/patient_lvl", "plugins/aggregated", 
-    "studies", "studies_files", "scripts", "temp_files", "translations", "vocabularies")
+    "messages", "plugins/patient_lvl", "plugins/aggregated", "studies", "studies_files", "scripts", "temp_files", "translations", "vocabularies")
   for (sub_dir in sub_dirs) if (!dir.exists(paste0(app_folder, "/", sub_dir))) dir.create(paste0(app_folder, "/", sub_dir))
   
   # Load translations
@@ -120,8 +116,9 @@ linkr <- function(
     "dev", c(
       "dev_edit_r_code_card",
       "dev_edit_python_code_card",
-      "dev_edit_terminal_code_card",
       "dev_perf_monitoring_card"),
+    "data_sources", c(
+      "data_sources_datatable_card"),
     "datasets", c(
       "datasets_see_all_data",
       "datasets_all_datasets_card",

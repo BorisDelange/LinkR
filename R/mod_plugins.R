@@ -95,7 +95,7 @@ mod_plugins_ui <- function(id = character(), i18n = character(), language = tibb
     ),
     div(DT::DTOutput(ns("plugin_vocabulary_concepts")), class = "vocabulary_table"),
     div(DT::DTOutput(ns("plugin_vocabulary_mapped_concepts")), class = "vocabulary_table"),
-    div(id = ns("blank_space"), br()),
+    # div(id = ns("blank_space"), br()),
     style = "position:relative; z-index:1;"
   )
   
@@ -144,23 +144,27 @@ mod_plugins_ui <- function(id = character(), i18n = character(), language = tibb
     shiny.fluent::reactOutput(ns("help_modal")),
     shiny.fluent::reactOutput(ns("plugin_delete_confirm")),
     shiny.fluent::reactOutput(ns("plugin_image_delete_confirm")),
-    shiny.fluent::Breadcrumb(items = list(
-      list(key = id, text = i18n$t(id))
-    ), maxDisplayedItems = 3),
+    shiny.fluent::reactOutput(ns("plugin_script_delete_confirm")),
+    # shiny.fluent::Breadcrumb(items = list(
+    #   list(key = id, text = i18n$t(id))
+    # ), maxDisplayedItems = 3),
     
     # --- --- -- -- --
     # Pivot items ----
     # --- --- -- -- --
     
-    shiny.fluent::Pivot(
-      id = ns("plugins_pivot"),
-      onLinkClick = htmlwidgets::JS(paste0("item => Shiny.setInputValue('", id, "-current_tab', item.props.id)")),
-      shiny.fluent::PivotItem(id = "all_plugins_card", itemKey = "all_plugins_card", headerText = i18n$t("all_plugins")),
-      shiny.fluent::PivotItem(id = "plugins_datatable_card", itemKey = "plugins_datatable_card", headerText = i18n$t("plugins_management")),
-      shiny.fluent::PivotItem(id = "plugins_edit_code_card", itemKey = "plugins_edit_code_card", headerText = i18n$t("edit_plugin_code")),
-      shiny.fluent::PivotItem(id = "plugins_options_card", itemKey = "plugins_options_card", headerText = i18n$t("plugin_options")),
-      shiny.fluent::PivotItem(id = "import_plugin_card", itemKey = "import_plugin_card", headerText = i18n$t("import_plugins")),
-      shiny.fluent::PivotItem(id = "export_plugin_card", itemKey = "export_plugin_card", headerText = i18n$t("export_plugins"))
+    div(
+      shiny.fluent::Pivot(
+        id = ns("plugins_pivot"),
+        onLinkClick = htmlwidgets::JS(paste0("item => Shiny.setInputValue('", id, "-current_tab', item.props.id)")),
+        shiny.fluent::PivotItem(id = "all_plugins_card", itemKey = "all_plugins_card", headerText = i18n$t("all_plugins")),
+        shiny.fluent::PivotItem(id = "plugins_datatable_card", itemKey = "plugins_datatable_card", headerText = i18n$t("plugins_management")),
+        shiny.fluent::PivotItem(id = "plugins_edit_code_card", itemKey = "plugins_edit_code_card", headerText = i18n$t("edit_plugin_code")),
+        shiny.fluent::PivotItem(id = "plugins_options_card", itemKey = "plugins_options_card", headerText = i18n$t("plugin_options")),
+        shiny.fluent::PivotItem(id = "import_plugin_card", itemKey = "import_plugin_card", headerText = i18n$t("import_plugins")),
+        shiny.fluent::PivotItem(id = "export_plugin_card", itemKey = "export_plugin_card", headerText = i18n$t("export_plugins"))
+      ),
+      style = "margin-top: 10px;"
     ),
     forbidden_cards,
     
@@ -248,7 +252,7 @@ mod_plugins_ui <- function(id = character(), i18n = character(), language = tibb
     shinyjs::hidden(
       div(
         id = ns("plugins_edit_code_card"),
-        make_shiny_ace_card("",#i18n$t("edit_plugin_code"),
+        make_shiny_ace_card("",
           div(
             shiny.fluent::Stack(
               tokens = list(childrenGap = 5),
@@ -258,21 +262,49 @@ mod_plugins_ui <- function(id = character(), i18n = character(), language = tibb
                   width = "300px", allowFreeform = FALSE, multiSelect = FALSE)
               ),
               vocabulary_concepts_div,
-              shinyjs::hidden(
+              div(
+                id = ns("script_div"),
                 div(
-                  shiny.fluent::Stack(horizontal = TRUE, tokens = list(childrenGap = 10),
-                    shiny.fluent::ChoiceGroup.shinyInput(ns("edit_code_ui_server"), value = "ui", options = list(
-                      list(key = "ui", text = i18n$t("ui")),
-                      list(key = "server", text = i18n$t("server")),
-                      list(key = "translations", text = i18n$t("translations"))
-                    ), className = "inline_choicegroup"),
-                    div(shiny.fluent::Toggle.shinyInput(ns("hide_editor"), value = FALSE), style = "margin-top:9px;"),
-                    div(i18n$t("hide_editor"), style = "font-weight:bold; margin-top:9px; margin-right:30px;")
-                  ),
-                  style = "z-index:2"
-                )
-              )#,
-              # shinyjs::hidden(div(id = ns("br_div"), br()))
+                  id = ns("code_ui_selected_script_div"),
+                  shiny.fluent::Stack(
+                    horizontal = TRUE, tokens = list(childrenGap = 20),
+                    make_dropdown(i18n = i18n, ns = ns, label = "script", id = "code_ui_selected_script", width = "300px"),
+                    div(shiny.fluent::DefaultButton.shinyInput(ns("delete_ui_script"), i18n$t("delete")), style = "margin-top:39px;")
+                  )
+                ),
+                div(
+                  id = ns("code_server_selected_script_div"),
+                  shiny.fluent::Stack(
+                    horizontal = TRUE, tokens = list(childrenGap = 20),
+                    make_dropdown(i18n = i18n, ns = ns, label = "script", id = "code_server_selected_script", width = "300px"),
+                    div(shiny.fluent::DefaultButton.shinyInput(ns("delete_server_script"), i18n$t("delete")), style = "margin-top:39px;")
+                  )
+                ),
+                div(
+                  id = ns("add_script_div"),
+                  shiny.fluent::Stack(
+                    horizontal = TRUE,
+                    tokens = list(childrenGap = 20),
+                    div(
+                      div(class = "input_title", i18n$t("script_name")),
+                      div(shiny.fluent::TextField.shinyInput(ns("add_script_name")), style = "width:300px;")
+                    ),
+                    div(
+                      div(class = "input_title", i18n$t("programming_language")),
+                      div(shiny.fluent::Dropdown.shinyInput(ns("add_script_programming_language"),
+                        options = list(
+                          list(key = 1L, text = "R"),
+                          list(key = 2L, text = "Python")
+                        ),
+                        value = 1L
+                      ), style = "width:300px;")
+                    ),
+                    div(shiny.fluent::PrimaryButton.shinyInput(ns("add_script"), i18n$t("add")), style = "margin-top:39px;")
+                  )
+                ),
+                div(style = "visibility:hidden;", shiny.fluent::DefaultButton.shinyInput(ns("delete_script")))
+              ),
+              br(),
             ),
             div(
               id = ns("edit_and_result_div"),
@@ -334,10 +366,6 @@ mod_plugins_ui <- function(id = character(), i18n = character(), language = tibb
                 id = ns("code_result_div"),
                 shiny.fluent::Stack(
                   tokens = list(childrenGap = 5),
-                  # shiny.fluent::Stack(horizontal = TRUE, tokens = list(childrenGap = 10),
-                  #   shiny.fluent::PrimaryButton.shinyInput(ns("execute_code"), i18n$t("run_code")),
-                  #   shiny.fluent::DefaultButton.shinyInput(ns("save_code"), i18n$t("save"))
-                  # ), br(),
                   div(textOutput(ns("datetime_code_execution")), style = "color:#878787;"),
                   shiny::uiOutput(ns("code_result_ui")), br(),
                   div(verbatimTextOutput(ns("code_result_server")), 
@@ -1913,7 +1941,7 @@ mod_plugins_server <- function(id = character(), r = shiny::reactiveValues(), d 
     
     # Div display
     
-    sapply(c("plugin", "concepts", "editor", "code_result"), function(name){
+    sapply(c("plugin", "script", "concepts", "editor", "code_result"), function(name){
       
       r[[paste0(id, "_edit_code_", name, "_div")]] <- TRUE
       
@@ -1984,40 +2012,29 @@ mod_plugins_server <- function(id = character(), r = shiny::reactiveValues(), d 
     
     # Show / hide ace editors
     
-    # observeEvent(input$hide_editor, {
-    #   
-    #   if (debug) cat(paste0("\n", now(), " - mod_plugins - observer input$hide_editor"))
-    #   
-    #   if (input$hide_editor){
-    #     shinyjs::hide("ace_editor_div")
-    #     shinyjs::show("br_div") 
-    #   }
-    #   else {
-    #     shinyjs::show("ace_editor_div")
-    #     shinyjs::hide("br_div") 
-    #   }
-    # })
-    
-    # observeEvent(input$edit_code_ui_server, {
-    # 
-    #   if (debug) cat(paste0("\n", now(), " - mod_plugins - observer input$edit_code_ui_server"))
-    # 
-    #   sapply(c("ui", "server", "translations"), function(name) shinyjs::hide(paste0("ace_edit_code_", name, "_div")))
-    #   shinyjs::show(paste0("ace_edit_code_", input$edit_code_ui_server, "_div"))
-    # })
-    
     observeEvent(r[[paste0(id, "_edit_code_ui_server")]], {
       
       if (debug) cat(paste0("\n", now(), " - mod_plugins - observer r$.._edit_code_ui_server"))
       
-      # shiny.fluent::updateChoiceGroup.shinyInput(session, "edit_code_ui_server", value = r[[paste0(id, "_edit_code_ui_server")]])
-      
-      # sapply(c("ui", "server", "translations"), function(name) shinyjs::hide(paste0("ace_edit_code_", name, "_div")))
       elements <- c("ui", "server", "translations")
       element_to_show <- r[[paste0(id, "_edit_code_ui_server")]]
       elements_to_hide <- elements[elements != element_to_show]
       sapply(elements_to_hide, function(element) shinyjs::hide(paste0("ace_edit_code_", element, "_div")))
       shinyjs::show(paste0("ace_edit_code_", element_to_show, "_div"))
+      if (element_to_show %in% c("ui", "server")){
+        if (element_to_show == "ui"){
+          sapply(c("add_script_div", "code_ui_selected_script_div"), shinyjs::show)
+          shinyjs::hide("code_server_selected_script_div")
+        }
+        else {
+          sapply(c("add_script_div", "code_server_selected_script_div"), shinyjs::show)
+          shinyjs::hide("code_ui_selected_script_div")
+        }
+      }
+      else {
+        sapply(c("ui", "server"), function(name) shinyjs::hide(paste0("code_", name, "_selected_script_div")))
+        shinyjs::hide("add_script_div")
+      }
     })
     
     observeEvent(input$code_selected_plugin, {
@@ -2054,12 +2071,202 @@ mod_plugins_server <- function(id = character(), r = shiny::reactiveValues(), d 
       shinyAce::updateAceEditor(session, "ace_edit_code_server", value = code$server)
       shinyAce::updateAceEditor(session, "ace_edit_code_translations", value = code$translations)
       
+      # Update scripts dropdowns
+      
+      scripts <- list()
+      for (name in c("ui", "server")){
+        category <- paste0(name, "_script")
+        scripts[[name]] <- 
+          r$options %>% 
+          dplyr::filter(category == !!category & link_id == !!link_id) %>%
+          dplyr::select(id, text = name) %>%
+          dplyr::arrange(text)
+        dropdown_options <-
+          tibble::tibble(id = 0L, text = i18n$t("main_script")) %>%
+          dplyr::bind_rows(scripts[[name]]) %>%
+          convert_tibble_to_list(key_col = "id", text_col = "text")
+        
+        shiny.fluent::updateDropdown.shinyInput(session, paste0("code_", name, "_selected_script"), options = dropdown_options, value = 0L)
+      }
+      
       # Reset code_result textOutput
       output$datetime_code_execution <- renderText("")
       output$code_result_ui <- renderUI("")
       output$code_result_server <- renderText("")
       
       if (perf_monitoring) monitor_perf(r = r, action = "stop", task = paste0("mod_plugins - observer input$code_selected_plugin"))
+    })
+    
+    # Add a script
+    
+    observeEvent(input$add_script, {
+      if (debug) cat(paste0("\n", now(), " - mod_plugins - observer input$add_script"))
+      
+      req(length(input$code_selected_plugin) > 0)
+      req(r[[paste0(id, "_edit_code_ui_server")]] %in% c("ui", "server"))
+      
+      if (length(input$code_selected_plugin) > 1) link_id <- input$code_selected_plugin$key
+      else link_id <- input$code_selected_plugin
+      script_category <- r[[paste0(id, "_edit_code_ui_server")]]
+      
+      # Check if name is empty
+      empty_name <- TRUE
+      if (length(input$add_script_name) > 0) if (input$add_script_name != "") empty_name <- FALSE
+      
+      if (empty_name) shiny.fluent::updateTextField.shinyInput(session, "add_script_name", errorMessage = i18n$t("provide_valid_name"))
+      else shiny.fluent::updateTextField.shinyInput(session, "add_script_name", errorMessage = NULL)
+      req(!empty_name)
+      
+      # Check if name is already used
+      name_already_used <- FALSE
+      sql <- glue::glue_sql("SELECT * FROM options WHERE category = {paste0(script_category, '_script')} AND link_id = {link_id} AND name = {input$add_script_name} AND deleted IS FALSE", .con = r$db)
+      result <- DBI::dbGetQuery(r$db, sql)
+      if (nrow(result) > 0 | tolower(input$add_script_name) %in% 
+        c(tolower(i18n$t("main_script")), "req", "tab_id", "widget_id", "study_id", "patient_id", "study_folder", "plugin_folder")) name_already_used <- TRUE
+      
+      if (name_already_used) shiny.fluent::updateTextField.shinyInput(session, "add_script_name", errorMessage = i18n$t("name_already_used"))
+      else shiny.fluent::updateTextField.shinyInput(session, "add_script_name", errorMessage = NULL)
+      req(!name_already_used)
+      
+      # Add new data & update r
+      new_data <- list()
+      new_row <- list()
+      new_row$options <- get_last_row(r$db, "options") + 1
+      new_row$code <- get_last_row(r$db, "code") + 1
+      
+      new_data$options <- tibble::tibble(
+        id = new_row$options, category = paste0(script_category, '_script'), link_id = link_id,
+        name = input$add_script_name, value = "", value_num = input$add_script_programming_language, creator_id = r$user_id, datetime = now(), deleted = FALSE
+      )
+      new_data$code <- tibble::tibble(
+        id = new_row$code, category = paste0(script_category, '_script_code'), link_id = new_row$options,
+        code = "", creator_id = r$user_id, datetime = now(), deleted = FALSE
+      )
+      
+      for (table in c("options", "code")){
+        DBI::dbAppendTable(r$db, table, new_data[[table]])
+        r[[table]] <- r[[table]] %>% dplyr::bind_rows(new_data[[table]])
+      }
+      
+      # Update dropdown
+      dropdown_options <- tibble::tibble(id = 0L, text = i18n$t("main_script")) %>% 
+        dplyr::bind_rows(
+          r$options %>% 
+            dplyr::filter(category == paste0(script_category, '_script') & link_id == !!link_id) %>% 
+            dplyr::select(id, text = name) %>%
+            dplyr::arrange(text)
+        ) %>%
+        convert_tibble_to_list(key_col = "id", text_col = "text")
+      shiny.fluent::updateDropdown.shinyInput(session, paste0("code_", script_category, "_selected_script"), options = dropdown_options)
+      
+      # Clear textfield
+      shiny.fluent::updateTextField.shinyInput(session, "add_script_name", value = "")
+      
+      # Notify user
+      show_message_bar(output,  "modif_saved", "success", i18n = i18n, ns = ns)
+    })
+    
+    # Load / delete a script
+    
+    sapply(c("ui", "server"), function(type){
+      
+      # Load a script
+      observeEvent(input[[paste0("code_", type, "_selected_script")]], {
+        if (debug) cat(paste0("\n", now(), " - mod_plugins - observer input$code_", type, "_selected_script"))
+        
+        
+      })
+      
+      # Delete a script
+      observeEvent(input[[paste0("delete_", type, "_script")]], {
+        if (debug) cat(paste0("\n", now(), " - mod_plugins - observer input$delete_", type, "_script"))
+        req(length(input$code_selected_plugin) > 0)
+        shinyjs::click("delete_script")
+      })
+    })
+    
+    observeEvent(input$delete_script, {
+      if (debug) cat(paste0("\n", now(), " - mod_plugins - observer input$delete_script"))
+      
+      script_category <- r[[paste0(id, "_edit_code_ui_server")]]
+      id_to_del <- input[[paste0("code_", script_category, "_selected_script")]]
+      req(id_to_del != 0L) # Can't delete main script
+      
+      r[[paste0(prefix, "_plugins_delete_script")]] <- TRUE
+    })
+
+    r[[paste0(prefix, "_plugins_delete_script")]] <- FALSE
+    output$plugin_script_delete_confirm <- shiny.fluent::renderReact({
+
+      if (debug) cat(paste0("\n", now(), " - mod_plugins - output$plugin_script_delete_confirm"))
+
+      shiny.fluent::Dialog(
+        hidden = !r[[paste0(prefix, "_plugins_delete_script")]],
+        onDismiss = htmlwidgets::JS(paste0("function() { Shiny.setInputValue('", prefix, "_plugin_delete_script_hide_dialog', Math.random()); }")),
+        dialogContentProps = list(
+          type = 0,
+          title = i18n$t("plugin_script_delete"),
+          closeButtonAriaLabel = "Close",
+          subText = tagList(i18n$t("plugin_script_delete_subtext"), br(), br())
+        ),
+        modalProps = list(),
+        shiny.fluent::DialogFooter(
+          shiny.fluent::PrimaryButton.shinyInput(ns(paste0(prefix, "_plugin_delete_script_delete_confirmed")), text = i18n$t("delete")),
+          shiny.fluent::DefaultButton.shinyInput(ns(paste0(prefix, "_plugin_delete_script_delete_canceled")), text = i18n$t("dont_delete"))
+        )
+      )
+    })
+
+    observeEvent(input[[paste0(prefix, "_plugin_delete_script_hide_dialog")]], {
+      if (debug) cat(paste0("\n", now(), " - mod_plugins - observer input$..plugin_delete_script_hide_dialog"))
+      r[[paste0(prefix, "_plugins_delete_script")]] <- FALSE
+    })
+    observeEvent(input[[paste0(prefix, "_plugin_delete_script_delete_canceled")]], {
+      if (debug) cat(paste0("\n", now(), " - mod_plugins - observer input$..plugin_delete_script_delete_canceled"))
+      r[[paste0(prefix, "_plugins_delete_script")]] <- FALSE
+    })
+
+    observeEvent(input[[paste0(prefix, "_plugin_delete_script_delete_confirmed")]], {
+
+      if (debug) cat(paste0("\n", now(), " - mod_plugins - observer input$..plugin_delete_script_delete_confirmed"))
+      
+      if (length(input$options_selected_plugin) > 1) link_id <- input$options_selected_plugin$key
+      else link_id <- input$options_selected_plugin
+      
+      # Delete script
+      
+      script_category <- r[[paste0(id, "_edit_code_ui_server")]]
+      id_to_del <- input[[paste0("code_", script_category, "_selected_script")]]
+      
+      sql <- glue::glue_sql("UPDATE options SET deleted = TRUE WHERE id = {id_to_del}", .con = r$db)
+      query <- DBI::dbSendStatement(r$db, sql)
+      DBI::dbClearResult(query)
+      r$options <- r$options %>% dplyr::filter(id != id_to_del)
+      
+      # Delete related code
+      
+      ids_to_del <- r$code %>% dplyr::filter(category == paste0(script_category, "_script_code") & link_id == id_to_del) %>% dplyr::pull(id)
+      
+      sql <- glue::glue_sql("UPDATE code SET deleted = TRUE WHERE id IN ({ids_to_del*})", .con = r$db)
+      query <- DBI::dbSendStatement(r$db, sql)
+      DBI::dbClearResult(query)
+      r$code <- r$code %>% dplyr::filter(id %not_in% ids_to_del)
+      
+      # Update dropdown
+      
+      dropdown_options <- tibble::tibble(id = 0L, text = i18n$t("main_script")) %>% 
+        dplyr::bind_rows(
+          r$options %>% 
+            dplyr::filter(category == paste0(script_category, '_script') & link_id == !!link_id) %>% 
+            dplyr::select(id, text = name) %>%
+            dplyr::arrange(text)
+        ) %>%
+        convert_tibble_to_list(key_col = "id", text_col = "text")
+      shiny.fluent::updateDropdown.shinyInput(session, paste0("code_", script_category, "_selected_script"), options = dropdown_options, value = 0L)
+      
+      show_message_bar(output,  "script_deleted", "warning", i18n = i18n, ns = ns)
+      
+      r[[paste0(prefix, "_plugins_delete_script")]] <- FALSE
     })
     
     # Comment text
@@ -2128,7 +2335,8 @@ mod_plugins_server <- function(id = character(), r = shiny::reactiveValues(), d 
         dplyr::filter(vocabulary_id_1 == input$vocabulary) %>%
         dplyr::select(concept_id = concept_id_1, concept_name = concept_name_1, concept_display_name = concept_display_name_1,
           relationship_id, domain_id, concept_class_id, standard_concept, concept_code,
-          count_persons_rows, count_concepts_rows, add_concept_input)
+          count_persons_rows, count_concepts_rows, add_concept_input) %>%
+        dplyr::arrange(dplyr::desc(count_concepts_rows))
       
       if (input$show_mapped_concepts) plugin_vocabulary_concepts <- plugin_vocabulary_concepts %>%
         dplyr::group_by(concept_id) %>%
@@ -2370,9 +2578,10 @@ mod_plugins_server <- function(id = character(), r = shiny::reactiveValues(), d 
 
       if (debug) cat(paste0("\n", now(), " - mod_plugins - observer input$reset_vocabulary_concepts"))
 
-      # Reset r$..plugin_vocabulary_selected_concepts
-      r[[paste0(prefix, "_plugin_vocabulary_selected_concepts")]] <- r[[paste0(prefix, "_plugin_vocabulary_selected_concepts")]] %>% dplyr::slice(0)
-
+      r[[paste0(prefix, "_plugin_vocabulary_selected_concepts")]] <- tibble::tibble( 
+        concept_id = integer(), concept_name = character(), concept_display_name = character(), domain_id = character(),
+        mapped_to_concept_id = integer(), merge_mapped_concepts = logical())
+      
       r[[paste0(prefix, "_plugin_vocabulary_update_selected_concepts_dropdown")]] <- now()
     })
     
@@ -2719,6 +2928,7 @@ mod_plugins_server <- function(id = character(), r = shiny::reactiveValues(), d 
               dplyr::select(id, unique_id),
             by = "unique_id"
           )
+        print(plugins)
         
         prefixes <- c("description", "name", "category")
         new_cols <- outer(prefixes, r$languages$code, paste, sep = "_") %>% as.vector()
@@ -2864,7 +3074,7 @@ mod_plugins_server <- function(id = character(), r = shiny::reactiveValues(), d 
         centered_cols <- c("author", "version", "creation_datetime", "update_datetime")
         column_widths <- c("author" = "100px", "version" = "80px", "creation_datetime" = "130px", "update_datetime" = "130px")
 
-        data <- plugins %>% dplyr::select(name, version, author, creation_datetime, update_datetime) #%>%
+        data <- plugins %>% dplyr::select(name, version, author, creation_datetime, update_datetime) %>%
           # dplyr::mutate_at(c("creation_datetime", "update_datetime"), format_datetime, language = language, sec = FALSE)
         
         render_datatable(output = output, ns = ns, i18n = i18n, data = data,
