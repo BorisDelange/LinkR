@@ -14,35 +14,35 @@ mod_page_header_ui <- function(id = character(), i18n = character()){
   
   if (id == "home"){
     console_input <- ""
-    title_div <- ""
-  } 
+  #   title_div <- ""
+  }
   else {
     console_input <- shiny.fluent::CommandBarButton.shinyInput(ns("console"), iconProps = list("iconName" = "Code"))
-    title_div <- div(
-      shiny.fluent::Text(variant = "xLarge", "LinkR"),
-      class = "title",
-      style = "cursor: pointer;",
-      onclick = paste0("window.location.href='", shiny.router::route_link("/"), "';")
-    )
+  #   title_div <- div(
+  #     shiny.fluent::Text(variant = "xLarge", "LinkR"),
+  #     class = "title",
+  #     style = "cursor: pointer;",
+  #     onclick = paste0("window.location.href='", shiny.router::route_link("/"), "';")
+  #   )
   }
   
-  if (id == "home"){
+  if (id %in% c("home", "settings_datasets", "settings_vocabularies", "plugins_patient_lvl", "plugins_aggregated", "scripts")){
     command_bar <- div(
       shiny.fluent::CommandBar(
         items = list(
           # Configure
           shiny.fluent::CommandBarItem("", "Settings",
             subMenuProps = list(items = list(
-              list(text = "Manage projects", iconProps = list(iconName = "CustomList"), href = shiny.router::route_link("/")),
-              list(text = i18n$t("datasets"), iconProps = list(iconName = "OfflineStorage"), href = shiny.router::route_link("/")),
-              list(text = i18n$t("vocabularies"), iconProps = list(iconName = "AllApps"), href = shiny.router::route_link("/"))
+              list(text = i18n$t("projects"), iconProps = list(iconName = "CustomList"), href = shiny.router::route_link("/")),
+              list(text = i18n$t("datasets"), iconProps = list(iconName = "OfflineStorage"), href = shiny.router::route_link("settings/datasets")),
+              list(text = i18n$t("vocabularies"), iconProps = list(iconName = "AllApps"), href = shiny.router::route_link("settings/vocabularies"))
             ))
           ),
           # Develop
           shiny.fluent::CommandBarItem("", "CodeEdit",
             subMenuProps = list(items = list(
-              list(text = i18n$t("plugins"), iconProps = list(iconName = "Code"), href = shiny.router::route_link("/")),
-              list(text = i18n$t("data_cleaning"), iconProps = list(iconName = "CodeEdit"), href = shiny.router::route_link("/"))
+              list(text = i18n$t("plugins"), iconProps = list(iconName = "Code"), href = shiny.router::route_link("plugins_patient_lvl")),
+              list(text = i18n$t("data_cleaning"), iconProps = list(iconName = "CodeEdit"), href = shiny.router::route_link("scripts"))
             ))
           ),
           # Discover
@@ -62,9 +62,9 @@ mod_page_header_ui <- function(id = character(), i18n = character()){
         div(
           uiOutput(ns("selected_project")),
           style = paste0("background-color:#0084D8; color:white; font-weight:bold; border-radius:5px; ",
-            "padding:3px 8px 3px 8px; height:20px; margin:10px 0px 0px 25px; dispaly:inline-block;")
+            "padding:3px 8px 3px 8px; height:20px; margin:10px 0px 0px 25px; dispaly:inline-block; width:195px; text-align:center;")
         ),
-        style = "z-index:2; text-decoration:none;",
+        style = "z-index:2; text-decoration:none; margin-left:-28px;",
       ),
       div(
         shiny.fluent::CommandBar(
@@ -86,12 +86,13 @@ mod_page_header_ui <- function(id = character(), i18n = character()){
             # Messages
             shiny.fluent::CommandBarItem("", "Chat", href = shiny.router::route_link("messages")),
             # Console
-            shiny.fluent::CommandBarItem("", "Code",
-              subMenuProps = list(items = list(
-                list(text = i18n$t("console"), iconProps = list(iconName = "Code"), href = shiny.router::route_link("/")),
-                list(text = "Notebook", iconProps = list(iconName = "EditNote"), href = shiny.router::route_link("/"))
-              ))
-            ),
+            shiny.fluent::CommandBarItem("", "Code", href = shiny.router::route_link("console")),
+            # shiny.fluent::CommandBarItem("", "Code",
+            #   subMenuProps = list(items = list(
+            #     list(text = i18n$t("console"), iconProps = list(iconName = "Code"), href = shiny.router::route_link("/")),
+            #     list(text = "Notebook", iconProps = list(iconName = "EditNote"), href = shiny.router::route_link("/"))
+            #   ))
+            # ),
             # Performance monitoring / Tasks
             shiny.fluent::CommandBarItem("", "Market",
               subMenuProps = list(items = list(
@@ -116,15 +117,15 @@ mod_page_header_ui <- function(id = character(), i18n = character()){
       )
     )
     
-    sidenav_button <- div(
-      tags$a(
-        tags$img(src = "www/sidebar.png", style = "width:16px; height:auto; display:block; margin-top:8px; margin-left:8px;"), 
-        href = "javascript:void(0);", 
-        onclick = paste0("event.preventDefault(); Shiny.setInputValue('", id, "-show_hide_sidenav', Math.random()); return false;"),
-        style = "display: block; width:100%; height:100%;"
-      ), 
-      class = "link_image_container"
-    )
+    # sidenav_button <- div(
+    #   tags$a(
+    #     tags$img(src = "www/sidebar.png", style = "width:16px; height:auto; display:block; margin-top:8px; margin-left:8px;"), 
+    #     href = "javascript:void(0);", 
+    #     onclick = paste0("event.preventDefault(); Shiny.setInputValue('", id, "-show_hide_sidenav', Math.random()); return false;"),
+    #     style = "display: block; width:100%; height:100%;"
+    #   ), 
+    #   class = "link_image_container"
+    # )
   }
   
   div(
@@ -206,13 +207,15 @@ mod_page_header_ui <- function(id = character(), i18n = character()){
       )
     ),
     div(class = "header_right_bar",
-      shiny.fluent::Stack(horizontal = TRUE, tokens = (childrenGap = 0),
-        shiny.fluent::CommandBar(),
-        div(uiOutput(ns("username")), style = "font-weight:bold; padding: 12px 10px 0px 0px;"),
-        console_input,
-        shiny.fluent::CommandBarButton.shinyInput(ns("help"), iconProps = list("iconName" = "Help")),
-        shiny.fluent::CommandBarButton.shinyInput("settings", iconProps = list("iconName" = "Settings"), href = shiny.router::route_link("settings/general_settings")),
-        shiny.fluent::CommandBarButton.shinyInput(".shinymanager_logout", iconProps = list("iconName" = "PowerButton"))
+        shiny.fluent::Stack(horizontal = TRUE, tokens = (childrenGap = 0),
+          uiOutput(ns("user")),
+      # shiny.fluent::Stack(horizontal = TRUE, tokens = (childrenGap = 0),
+      #   shiny.fluent::CommandBar(),
+      #   div(uiOutput(ns("username")), style = "font-weight:bold; padding: 12px 10px 0px 0px;"),
+          console_input
+      #   shiny.fluent::CommandBarButton.shinyInput(ns("help"), iconProps = list("iconName" = "Help")),
+      #   shiny.fluent::CommandBarButton.shinyInput("settings", iconProps = list("iconName" = "Settings"), href = shiny.router::route_link("settings/general_settings")),
+      #   shiny.fluent::CommandBarButton.shinyInput(".shinymanager_logout", iconProps = list("iconName" = "PowerButton"))
       )
     )
   )
@@ -229,28 +232,38 @@ mod_page_header_server <- function(id = character(), r = shiny::reactiveValues()
     
     # Show / hide sidenav
     
-    r$show_hide_sidenav <- "hide"
+    # r$show_hide_sidenav <- "hide"
   
-    observeEvent(input$show_hide_sidenav, {
-      if (debug) cat(paste0("\n", now(), " - mod_page_header - observer input$show_hide_sidenav"))
-      
-      if (r$show_hide_sidenav == "hide"){
-        r$show_hide_sidenav <- "show"
-        shinyjs::runjs(paste0("$('.extended_sidenav').css('display', 'none');"))
-        shinyjs::runjs(paste0("$('.reduced_sidenav').css('display', 'block');"))
-        shinyjs::runjs(paste0("$('.grid-container').css('grid-template-areas', '\"header header header\" \"sidenav main main\" \"footer footer footer\"');"))
-        shinyjs::runjs(paste0("$('.main').css('left', '20px');"))
-      }
-      else {
-        r$show_hide_sidenav <- "hide"
-        shinyjs::runjs(paste0("$('.extended_sidenav').css('display', 'block');"))
-        shinyjs::runjs(paste0("$('.reduced_sidenav').css('display', 'none');"))
-        shinyjs::runjs(paste0("$('.grid-container').css('grid-template-areas', '\"header header header\" \"sidenav sidenav main\" \"footer footer footer\"');"))
-        shinyjs::runjs(paste0("$('.main').css('left', '0px');"))
-      }
-    })
+    # observeEvent(input$show_hide_sidenav, {
+    #   if (debug) cat(paste0("\n", now(), " - mod_page_header - observer input$show_hide_sidenav"))
+    #   
+    #   if (r$show_hide_sidenav == "hide"){
+    #     r$show_hide_sidenav <- "show"
+    #     shinyjs::runjs(paste0("$('.extended_sidenav').css('display', 'none');"))
+    #     shinyjs::runjs(paste0("$('.reduced_sidenav').css('display', 'block');"))
+    #     shinyjs::runjs(paste0("$('.grid-container').css('grid-template-areas', '\"header header header\" \"sidenav main main\" \"footer footer footer\"');"))
+    #     shinyjs::runjs(paste0("$('.main').css('left', '20px');"))
+    #   }
+    #   else {
+    #     r$show_hide_sidenav <- "hide"
+    #     shinyjs::runjs(paste0("$('.extended_sidenav').css('display', 'block');"))
+    #     shinyjs::runjs(paste0("$('.reduced_sidenav').css('display', 'none');"))
+    #     shinyjs::runjs(paste0("$('.grid-container').css('grid-template-areas', '\"header header header\" \"sidenav sidenav main\" \"footer footer footer\"');"))
+    #     shinyjs::runjs(paste0("$('.main').css('left', '0px');"))
+    #   }
+    # })
     
-    output$username <- renderUI(r$username)
+    # output$username <- renderUI(r$username)
+    output$user <- renderUI(
+      tags$a(
+        div(
+          r$user$initials,
+          style = "position:relative; width:25px; height:25px; border-radius:50%; color:white; background-color:#95a5a6; font-size:12px; font-weight:bold; display:flex; justify-content:center; align-items:center;"
+        ),
+        class = "no-hover-effect"#,
+        # style = "margin-top:10px;"
+      )
+    )
     
     # Show current page
     
@@ -258,11 +271,11 @@ mod_page_header_server <- function(id = character(), r = shiny::reactiveValues()
     
     # Selected project
     
-    observeEvent(r$selected_project, {
-      if (debug) cat(paste0("\n", now(), " - mod_data - ", id, " - observer r$selected_project"))
+    observeEvent(m$selected_study, {
+      if (debug) cat(paste0("\n", now(), " - mod_data - ", id, " - observer m$selected_study"))
       
-      project_name <- r$projects %>% dplyr::filter(study_id == r$selected_project, name == paste0("name_", language)) %>% dplyr::pull(value)
-      max_length <- 45
+      project_name <- r$projects %>% dplyr::filter(study_id == m$selected_study, name == paste0("name_", language)) %>% dplyr::pull(value)
+      max_length <- 27
       if (nchar(project_name) > max_length) project_name <- paste0(substr(project_name, 1, max_length - 3), "...")
       output$selected_project <- renderUI(project_name)
     })

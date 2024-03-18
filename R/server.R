@@ -226,8 +226,8 @@ app_server <- function(language = "en", languages = tibble::tibble(), i18n = cha
       m$user_accesses <- r$user_accesses
       
       # Show username on top of the page
-      r$username <- r$users %>% dplyr::filter(id == r$user_id)
-      r$username <- paste0(r$username$firstname, " ", r$username$lastname)
+      sql <- glue::glue_sql("SELECT CONCAT(firstname, ' ', lastname) AS name, CONCAT(SUBSTRING(firstname, 1, 1), SUBSTRING(lastname, 1, 1)) AS initials FROM users WHERE id = {r$user_id}", .con = r$db)
+      r$user <- DBI::dbGetQuery(r$db, sql)
       
       # Clear temp dir
       if (debug) cat(paste0("\n", now(), " - server - clear temp_files"))
@@ -287,7 +287,7 @@ app_server <- function(language = "en", languages = tibble::tibble(), i18n = cha
       #   mod_home_server(page, r, language, i18n, perf_monitoring, debug, show_home_page)
       #   mod_page_header_server(page, r, d, m, language, i18n, perf_monitoring, debug)
       # })
-      mod_home_server("home", r, language, i18n, perf_monitoring, debug, show_home_page)
+      mod_home_server("home", r, d, m, language, i18n, perf_monitoring, debug, show_home_page)
       mod_page_header_server("home", r, d, m, language, i18n, perf_monitoring, debug)
       
       if (perf_monitoring) monitor_perf(r = r, action = "stop", task = "server - load server tabs - home")
@@ -299,22 +299,22 @@ app_server <- function(language = "en", languages = tibble::tibble(), i18n = cha
         mod_page_header_server(page, r, d, m, language, i18n, perf_monitoring, debug)
       })
 
-      if (perf_monitoring) monitor_perf(r = r, action = "stop", task = "server - load server tabs - data")
-      if (debug) cat(paste0("\n", now(), " - server - load server tabs - my_studies / my_subsets / vocabularies / scripts"))
-
-      mod_my_studies_server("my_studies", r, d, m, i18n, language, db_col_types, perf_monitoring, debug)
-      if (perf_monitoring) monitor_perf(r = r, action = "stop", task = "server - load server tabs - my_studies")
-      mod_my_subsets_server("my_subsets", r, d, m, i18n, language, perf_monitoring, debug)
-      if (perf_monitoring) monitor_perf(r = r, action = "stop", task = "server - load server tabs - my_subsets")
-      mod_vocabularies_server("vocabularies", r, d, m, i18n, language, perf_monitoring, debug)
-      if (perf_monitoring) monitor_perf(r = r, action = "stop", task = "server - load server tabs - vocabularies")
-      mod_scripts_server("scripts", r, d, m, language, i18n, perf_monitoring, debug)
-      if (perf_monitoring) monitor_perf(r = r, action = "stop", task = "server - load server tabs - scripts")
-
-      sapply(c("my_studies", "my_subsets", "vocabularies", "scripts"), function(page){
-        mod_page_sidenav_server(page, r, d, m, i18n, language, perf_monitoring, debug)
-        mod_page_header_server(page, r, d, m, language, i18n, perf_monitoring, debug)
-      })
+      # if (perf_monitoring) monitor_perf(r = r, action = "stop", task = "server - load server tabs - data")
+      # if (debug) cat(paste0("\n", now(), " - server - load server tabs - my_studies / my_subsets / vocabularies / scripts"))
+      # 
+      # mod_my_studies_server("my_studies", r, d, m, i18n, language, db_col_types, perf_monitoring, debug)
+      # if (perf_monitoring) monitor_perf(r = r, action = "stop", task = "server - load server tabs - my_studies")
+      # mod_my_subsets_server("my_subsets", r, d, m, i18n, language, perf_monitoring, debug)
+      # if (perf_monitoring) monitor_perf(r = r, action = "stop", task = "server - load server tabs - my_subsets")
+      # mod_vocabularies_server("vocabularies", r, d, m, i18n, language, perf_monitoring, debug)
+      # if (perf_monitoring) monitor_perf(r = r, action = "stop", task = "server - load server tabs - vocabularies")
+      # mod_scripts_server("scripts", r, d, m, language, i18n, perf_monitoring, debug)
+      # if (perf_monitoring) monitor_perf(r = r, action = "stop", task = "server - load server tabs - scripts")
+      # 
+      # sapply(c("my_studies", "my_subsets", "vocabularies", "scripts"), function(page){
+      #   mod_page_sidenav_server(page, r, d, m, i18n, language, perf_monitoring, debug)
+      #   mod_page_header_server(page, r, d, m, language, i18n, perf_monitoring, debug)
+      # })
       # 
       # if (perf_monitoring) monitor_perf(r = r, action = "stop", task = "server - load server tabs - my_studies / my_subsets / vocabularies / scripts - sidenav")
       # if (debug) cat(paste0("\n", now(), " - server - load server tabs - messages"))
@@ -340,11 +340,11 @@ app_server <- function(language = "en", languages = tibble::tibble(), i18n = cha
       # if (perf_monitoring) monitor_perf(r = r, action = "stop", task = "server - load server tabs - general_settings")
       # if (debug) cat(paste0("\n", now(), " - server - load server tabs - settings_app_db"))
       # 
-      mod_settings_app_database_server("settings_app_db", r, m, i18n, language, db_col_types, app_folder, perf_monitoring, debug)
-      mod_page_sidenav_server("settings_app_db", r, d, m, i18n, language, perf_monitoring, debug)
-      mod_page_header_server("settings_app_db", r, d, m, language, i18n, perf_monitoring, debug)
-      if (perf_monitoring) monitor_perf(r = r, action = "stop", task = "server - load server tabs - settings_app_db")
-      if (debug) cat(paste0("\n", now(), " - server - load server tabs - settings_git"))
+      # mod_settings_app_database_server("settings_app_db", r, m, i18n, language, db_col_types, app_folder, perf_monitoring, debug)
+      # mod_page_sidenav_server("settings_app_db", r, d, m, i18n, language, perf_monitoring, debug)
+      # mod_page_header_server("settings_app_db", r, d, m, language, i18n, perf_monitoring, debug)
+      # if (perf_monitoring) monitor_perf(r = r, action = "stop", task = "server - load server tabs - settings_app_db")
+      # if (debug) cat(paste0("\n", now(), " - server - load server tabs - settings_git"))
       # 
       # mod_settings_git_server("settings_git", r, d, m, i18n, language, perf_monitoring, debug)
       # mod_page_header_server("settings_git", r, d, m, language, i18n, perf_monitoring, debug)

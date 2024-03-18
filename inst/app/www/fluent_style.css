@@ -38,7 +38,7 @@
 .header_right_bar {
   position: absolute;
   right: 27px;
-  padding: 5px 0px 0px 0px;
+  top: 14px;
 }
 
 .header_center_bar {

@@ -50,7 +50,8 @@ mod_home_ui <- function(id = character(), i18n = character()){
 #' home Server Functions
 #'
 #' @noRd 
-mod_home_server <- function(id = character(), r, language = "en", i18n = character(), perf_monitoring = FALSE, debug = FALSE, show_home_page = TRUE){
+mod_home_server <- function(id = character(), r = shiny::reactiveValues(), d = shiny::reactiveValues(), m = shiny::reactiveValues(), 
+    language = "en", i18n = character(), perf_monitoring = FALSE, debug = FALSE, show_home_page = TRUE){
   moduleServer(id, function(input, output, session){
     ns <- session$ns
     
@@ -126,6 +127,10 @@ mod_home_server <- function(id = character(), r, language = "en", i18n = charact
       sql <- glue::glue_sql("SELECT id, CONCAT(firstname, ' ', lastname) AS name, CONCAT(SUBSTRING(firstname, 1, 1), SUBSTRING(lastname, 1, 1)) AS initials FROM users", .con = r$db)
       r$projects_users <- DBI::dbGetQuery(r$db, sql)
       
+      # Load r$studies (to work with old version)
+      sql <- glue::glue_sql("SELECT * FROM studies WHERE id IN ({unique(r$projects$study_id)*})", .con = r$db)
+      r$studies <- DBI::dbGetQuery(r$db, sql)
+      
       r$reload_projects_list <- now()
     })
     
@@ -191,7 +196,7 @@ mod_home_server <- function(id = character(), r, language = "en", i18n = charact
               ),
               style = "width:350px; height:165px; box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19); margin:10px; padding:10px;"
             ),
-            class="no-hover-effect"
+            class = "no-hover-effect"
           ),
           projects_ui
         )
@@ -205,7 +210,7 @@ mod_home_server <- function(id = character(), r, language = "en", i18n = charact
     observeEvent(input$selected_project, {
       if (debug) cat(paste0("\n", now(), " - mod_home - ", id, " - observer input$selected_project"))
       
-      r$selected_project <- input$selected_project
+      m$selected_study <- input$selected_project
     })
     
     if (debug) cat(paste0("\n", now(), " - mod_home - ", id, " - end"))

@@ -16,10 +16,13 @@ mod_page_sidenav_ui <- function(id = character(), i18n = character()){
   # Home ----
   # --- --- -
   
-  if (grepl("^home", id)){
+  if (id == "home"){
     div(
       class = "sidenav",
-      div(class = "reduced_sidenav"),
+      # div(style = "height:30px; width:10px; color:grey; top:50%; right:0px; border-radius:5px; position:absolute;"),
+      div(
+        class = "reduced_sidenav"
+      ),
       div(class = "extended_sidenav",
         # shiny.fluent::Nav(
         #   groups = list(
@@ -116,20 +119,29 @@ mod_page_sidenav_ui <- function(id = character(), i18n = character()){
   
   if (id == "patient_level_data"){
     div(class = "sidenav",
-      div(class = "reduced_sidenav"),
-      div(class = "extended_sidenav",
-        div(i18n$t("data"), class = "input_title", style = "font-size:14.5px;"),
+      div(class = "reduced_sidenav",
         div(
-          shiny.fluent::Stack(horizontal = TRUE, tokens = list(childrenGap = 0),
-            shiny.fluent::PrimaryButton.shinyInput(ns("data_page_ind"), i18n$t("individual"), style = "width:125px;"), 
-            shiny.fluent::DefaultButton.shinyInput(ns("data_page_agg"), i18n$t("aggregated"), style = "width:125px;")
-          ), style = "width:250px;"
-        ),
-        dropdowns(c("dataset", "study", "subset")),
-        br(), div(id = ns("hr1"), hr()),
+          onclick = paste0("Shiny.setInputValue('", id, "-show_hide_sidenav', Math.random());"),
+          style = "width:0; height:0; border-top:30px solid transparent; border-bottom:30px solid transparent; border-left:13px solid #e7e7e7; margin-right:-10px; z-index:3; position:absolute; top:50%; right:-3px; cursor:pointer;"
+        )
+      ),
+      div(class = "extended_sidenav",
+        # div(i18n$t("data"), class = "input_title", style = "font-size:14.5px;"),
+        # div(
+        #   shiny.fluent::Stack(horizontal = TRUE, tokens = list(childrenGap = 0),
+        #     shiny.fluent::PrimaryButton.shinyInput(ns("data_page_ind"), i18n$t("individual"), style = "width:125px;"), 
+        #     shiny.fluent::DefaultButton.shinyInput(ns("data_page_agg"), i18n$t("aggregated"), style = "width:125px;")
+        #   ), style = "width:250px;"
+        # ),
+        # dropdowns(c("dataset", "study", "subset")),
+        # br(), div(id = ns("hr1"), hr()),
         dropdowns(c("person", "visit_detail")),
         br(), div(id = ns("hr2"), hr()),
-        uiOutput(ns("person_info"))
+        uiOutput(ns("person_info")),
+        div(
+          onclick = paste0("Shiny.setInputValue('", id, "-show_hide_sidenav', Math.random());"),
+          style = "width:0; height:0; border-top:30px solid transparent; border-bottom:30px solid transparent; border-right:13px solid #e7e7e7; margin-right:-10px; z-index:3; position:absolute; top:50%; right:10px; cursor:pointer;"
+        )
       )
     ) -> result
   }
@@ -274,12 +286,26 @@ mod_page_sidenav_server <- function(id = character(), r = shiny::reactiveValues(
     
     # Show / hide sidenav
     
-    # observeEvent(r$show_hide_sidenav, {
-    #   if (debug) cat(paste0("\n", now(), " - mod_page_sidenav - observer r$show_hide_sidenav"))
-    # 
-    #   if (r$show_hide_sidenav == "hide") shinyjs::hide("sidenav")
-    #   else shinyjs::show("sidenav")
-    # })
+    r$show_hide_sidenav <- "hide"
+    
+    observeEvent(input$show_hide_sidenav, {
+      if (debug) cat(paste0("\n", now(), " - mod_page_sidenav - observer input$show_hide_sidenav"))
+
+      if (r$show_hide_sidenav == "hide"){
+        r$show_hide_sidenav <- "show"
+        shinyjs::runjs(paste0("$('.extended_sidenav').css('display', 'none');"))
+        shinyjs::runjs(paste0("$('.reduced_sidenav').css('display', 'block');"))
+        shinyjs::runjs(paste0("$('.grid-container').css('grid-template-areas', '\"header header header\" \"sidenav main main\" \"footer footer footer\"');"))
+        shinyjs::runjs(paste0("$('.main').css('left', '20px');"))
+      }
+      else {
+        r$show_hide_sidenav <- "hide"
+        shinyjs::runjs(paste0("$('.extended_sidenav').css('display', 'block');"))
+        shinyjs::runjs(paste0("$('.reduced_sidenav').css('display', 'none');"))
+        shinyjs::runjs(paste0("$('.grid-container').css('grid-template-areas', '\"header header header\" \"sidenav sidenav main\" \"footer footer footer\"');"))
+        shinyjs::runjs(paste0("$('.main').css('left', '0px');"))
+      }
+    })
     
     # --- --- --- -
     # Projects ----
@@ -350,68 +376,68 @@ mod_page_sidenav_server <- function(id = character(), r = shiny::reactiveValues(
       # Selected dataset ----
       # --- --- --- --- -- -
       
-      observeEvent(r$datasets, {
-        
-        if (debug) cat(paste0("\n", now(), " - mod_page_sidenav - observer r$datasets"))
-        
-        # Update dropdown
-        shinyjs::delay(100, {
-          
-          value <- NULL
-          if (length(r$selected_dataset) > 0) if (nrow(r$datasets %>% dplyr::filter(id == r$selected_dataset)) > 0) value <- list(
-            key = r$selected_dataset, text = r$datasets %>% dplyr::filter(id == r$selected_dataset) %>% dplyr::pull(name))
-          
-          shiny.fluent::updateComboBox.shinyInput(session, "dataset", 
-            options = convert_tibble_to_list(r$datasets %>% dplyr::arrange(name), key_col = "id", text_col = "name"), value = value)
-          
-          sapply(c("study", "subset", "person", "visit_detail", "person_status", "hr1", "hr2", "exclusion_reason_div"), function(element){
-            sapply(c(element, paste0(element, "_title"), paste0(element, "_page")), shinyjs::hide)
-          })
-          shinyjs::hide("exclusion_reason_div")
-        })
-      })
+      # observeEvent(r$datasets, {
+      #   
+      #   if (debug) cat(paste0("\n", now(), " - mod_page_sidenav - observer r$datasets"))
+      #   
+      #   # Update dropdown
+      #   shinyjs::delay(100, {
+      #     
+      #     value <- NULL
+      #     if (length(r$selected_dataset) > 0) if (nrow(r$datasets %>% dplyr::filter(id == r$selected_dataset)) > 0) value <- list(
+      #       key = r$selected_dataset, text = r$datasets %>% dplyr::filter(id == r$selected_dataset) %>% dplyr::pull(name))
+      #     
+      #     shiny.fluent::updateComboBox.shinyInput(session, "dataset", 
+      #       options = convert_tibble_to_list(r$datasets %>% dplyr::arrange(name), key_col = "id", text_col = "name"), value = value)
+      #     
+      #     sapply(c("study", "subset", "person", "visit_detail", "person_status", "hr1", "hr2", "exclusion_reason_div"), function(element){
+      #       sapply(c(element, paste0(element, "_title"), paste0(element, "_page")), shinyjs::hide)
+      #     })
+      #     shinyjs::hide("exclusion_reason_div")
+      #   })
+      # })
       
-      observeEvent(input$dataset, {
-        
-        if (debug) cat(paste0("\n", now(), " - mod_page_sidenav - observer input$dataset"))
-        
-        # Save value in r$selected_dropdown, to update patient-level data dropdowns AND aggregated data dropdowns
-        r$selected_dataset <- input$dataset$key
-        
-        sapply(c("subset", "person", "visit_detail", "person_status", "hr1", "hr2", "exclusion_reason_div"), function(element){
-          sapply(c(element, paste0(element, "_title"), paste0(element, "_page")), shinyjs::hide)
-        })
-        sapply(c("study"), function(element) sapply(c(element, paste0(element, "_title"), paste0(element, "_page")), shinyjs::show))
-        
-        # Reset dropdowns & uiOutput
-        # Hide exclusion_reason dropdown
-        
-        shiny.fluent::updateComboBox.shinyInput(session, "subset", options = list(), value = NULL)
-        shiny.fluent::updateComboBox.shinyInput(session, "person", options = list(), value = NULL)
-        shiny.fluent::updateComboBox.shinyInput(session, "visit_detail", options = list(), value = NULL)
-        shiny.fluent::updateComboBox.shinyInput(session, "person_status", options = list(), value = NULL)
-        shiny.fluent::updateComboBox.shinyInput(session, "exclusion_reason", options = list(), value = NULL)
-        shinyjs::hide("exclusion_reason_div")
-        output$person_info <- renderUI("")
-      })
+      # observeEvent(input$dataset, {
+      #   
+      #   if (debug) cat(paste0("\n", now(), " - mod_page_sidenav - observer input$dataset"))
+      #   
+      #   # Save value in r$selected_dropdown, to update patient-level data dropdowns AND aggregated data dropdowns
+      #   r$selected_dataset <- input$dataset$key
+      #   
+      #   sapply(c("subset", "person", "visit_detail", "person_status", "hr1", "hr2", "exclusion_reason_div"), function(element){
+      #     sapply(c(element, paste0(element, "_title"), paste0(element, "_page")), shinyjs::hide)
+      #   })
+      #   sapply(c("study"), function(element) sapply(c(element, paste0(element, "_title"), paste0(element, "_page")), shinyjs::show))
+      #   
+      #   # Reset dropdowns & uiOutput
+      #   # Hide exclusion_reason dropdown
+      #   
+      #   shiny.fluent::updateComboBox.shinyInput(session, "subset", options = list(), value = NULL)
+      #   shiny.fluent::updateComboBox.shinyInput(session, "person", options = list(), value = NULL)
+      #   shiny.fluent::updateComboBox.shinyInput(session, "visit_detail", options = list(), value = NULL)
+      #   shiny.fluent::updateComboBox.shinyInput(session, "person_status", options = list(), value = NULL)
+      #   shiny.fluent::updateComboBox.shinyInput(session, "exclusion_reason", options = list(), value = NULL)
+      #   shinyjs::hide("exclusion_reason_div")
+      #   output$person_info <- renderUI("")
+      # })
       
       # Update the two pages dropdowns (patient-level data page & aggregated data page)
-      observeEvent(r$selected_dataset, {
-        
-        if (debug) cat(paste0("\n", now(), " - mod_page_sidenav - observer r$selected_dataset"))
-        
-        shiny.fluent::updateComboBox.shinyInput(session, "dataset", options = 
-          convert_tibble_to_list(r$datasets %>% dplyr::arrange(name), key_col = "id", text_col = "name"), 
-            value = list(key = r$selected_dataset))
-        
-        # Reset m$selected_study (to reset main display)
-        if (length(m$selected_study) == 0) m$selected_study <- NA_integer_
-        if (!is.na(m$selected_study)) m$selected_study <- NA_integer_
-        
-        # Reset of data variables, load of vocabulary code happens in mod_my_studies.R
-        # With this solution, code is run only one time
-        # Here, code is run for each page
-      })
+      # observeEvent(r$selected_dataset, {
+      #   
+      #   if (debug) cat(paste0("\n", now(), " - mod_page_sidenav - observer r$selected_dataset"))
+      #   
+      #   shiny.fluent::updateComboBox.shinyInput(session, "dataset", options = 
+      #     convert_tibble_to_list(r$datasets %>% dplyr::arrange(name), key_col = "id", text_col = "name"), 
+      #       value = list(key = r$selected_dataset))
+      #   
+      #   # Reset m$selected_study (to reset main display)
+      #   if (length(m$selected_study) == 0) m$selected_study <- NA_integer_
+      #   if (!is.na(m$selected_study)) m$selected_study <- NA_integer_
+      #   
+      #   # Reset of data variables, load of vocabulary code happens in mod_my_studies.R
+      #   # With this solution, code is run only one time
+      #   # Here, code is run for each page
+      # })
       
       # --- --- --- --- -
       # Selected study --
@@ -419,59 +445,59 @@ mod_page_sidenav_server <- function(id = character(), r = shiny::reactiveValues(
       
       if (id %in% c("my_studies", "my_subsets", "patient_level_data", "aggregated_data", "messages")){
       
-        observeEvent(r$studies, {
-          
-          if (debug) cat(paste0("\n", now(), " - mod_page_sidenav - observer r$studies"))
-          
-          if (nrow(r$studies) == 0) shiny.fluent::updateComboBox.shinyInput(session, "study", options = list(), value = NULL, 
-            errorMessage = i18n$t("no_study_available"))
-          
-          if (nrow(r$studies) > 0) shiny.fluent::updateComboBox.shinyInput(session, "study",
-            options = convert_tibble_to_list(r$studies %>% dplyr::arrange(name), key_col = "id", text_col = "name"), value = NULL)
-        })
-        
-        observeEvent(input$study, {
-          
-          if (perf_monitoring) monitor_perf(r = r, action = "start")
-          if (debug) cat(paste0("\n", now(), " - mod_page_sidenav - observer input$study"))
-  
-          req(input$study$key)
-          
-          # Prevent multiple changes of m$selected_study
-          # We have to keep multiple observers, cause we use input variable
-          if (is.na(m$selected_study)) m$selected_study <- input$study$key
-          if (!is.na(m$selected_study) & m$selected_study != input$study$key) m$selected_study <- input$study$key
-  
-          # Reset dropdowns & uiOutput
-          shiny.fluent::updateComboBox.shinyInput(session, "person", options = list(), value = NULL)
-          shiny.fluent::updateComboBox.shinyInput(session, "visit_detail", options = list(), value = NULL)
-          shiny.fluent::updateComboBox.shinyInput(session, "person_status", options = list(), value = NULL)
-          shiny.fluent::updateComboBox.shinyInput(session, "exclusion_reason", options = list(), value = NULL)
-          
-          sapply(c("person", "visit_detail", "person_status", "hr1", "hr2", "exclusion_reason_div"), function(element){
-            sapply(c(element, paste0(element, "_title"), paste0(element, "_page")), shinyjs::hide)
-          })
-          sapply(c("subset"), function(element) sapply(c(element, paste0(element, "_title"), paste0(element, "_page")), shinyjs::show))
-          shinyjs::hide("exclusion_reason_div")
-          output$person_info <- renderUI("")
-          
-          if (perf_monitoring) monitor_perf(r = r, action = "stop", task = paste0("mod_page_sidenav - observer input$study"))
-        })
-        
-        observeEvent(m$selected_study, {
-          
-          if (debug) cat(paste0("\n", now(), " - mod_page_sidenav - observer m$selected_study"))
-          
-          req(input$dataset$key & !is.na(m$selected_study))
-          studies <- r$studies %>% dplyr::filter(dataset_id == input$dataset$key)
-          
-          shiny.fluent::updateComboBox.shinyInput(session, "study", options =
-              convert_tibble_to_list(studies %>% dplyr::arrange(name), key_col = "id", text_col = "name"),
-            value = list(key = m$selected_study))
-          
-          # Load of subsets is done in mod_my_studies.R
-          # With this solution, code is run only one time
-        })
+        # observeEvent(r$studies, {
+        #   
+        #   if (debug) cat(paste0("\n", now(), " - mod_page_sidenav - observer r$studies"))
+        #   
+        #   if (nrow(r$studies) == 0) shiny.fluent::updateComboBox.shinyInput(session, "study", options = list(), value = NULL, 
+        #     errorMessage = i18n$t("no_study_available"))
+        #   
+        #   if (nrow(r$studies) > 0) shiny.fluent::updateComboBox.shinyInput(session, "study",
+        #     options = convert_tibble_to_list(r$studies %>% dplyr::arrange(name), key_col = "id", text_col = "name"), value = NULL)
+        # })
+        # 
+        # observeEvent(input$study, {
+        #   
+        #   if (perf_monitoring) monitor_perf(r = r, action = "start")
+        #   if (debug) cat(paste0("\n", now(), " - mod_page_sidenav - observer input$study"))
+        # 
+        #   req(input$study$key)
+        #   
+        #   # Prevent multiple changes of m$selected_study
+        #   # We have to keep multiple observers, cause we use input variable
+        #   if (is.na(m$selected_study)) m$selected_study <- input$study$key
+        #   if (!is.na(m$selected_study) & m$selected_study != input$study$key) m$selected_study <- input$study$key
+        # 
+        #   # Reset dropdowns & uiOutput
+        #   shiny.fluent::updateComboBox.shinyInput(session, "person", options = list(), value = NULL)
+        #   shiny.fluent::updateComboBox.shinyInput(session, "visit_detail", options = list(), value = NULL)
+        #   shiny.fluent::updateComboBox.shinyInput(session, "person_status", options = list(), value = NULL)
+        #   shiny.fluent::updateComboBox.shinyInput(session, "exclusion_reason", options = list(), value = NULL)
+        #   
+        #   sapply(c("person", "visit_detail", "person_status", "hr1", "hr2", "exclusion_reason_div"), function(element){
+        #     sapply(c(element, paste0(element, "_title"), paste0(element, "_page")), shinyjs::hide)
+        #   })
+        #   sapply(c("subset"), function(element) sapply(c(element, paste0(element, "_title"), paste0(element, "_page")), shinyjs::show))
+        #   shinyjs::hide("exclusion_reason_div")
+        #   output$person_info <- renderUI("")
+        #   
+        #   if (perf_monitoring) monitor_perf(r = r, action = "stop", task = paste0("mod_page_sidenav - observer input$study"))
+        # })
+        # 
+        # observeEvent(m$selected_study, {
+        #   
+        #   if (debug) cat(paste0("\n", now(), " - mod_page_sidenav - observer m$selected_study"))
+        #   
+        #   req(input$dataset$key & !is.na(m$selected_study))
+        #   studies <- r$studies %>% dplyr::filter(dataset_id == input$dataset$key)
+        #   
+        #   shiny.fluent::updateComboBox.shinyInput(session, "study", options =
+        #       convert_tibble_to_list(studies %>% dplyr::arrange(name), key_col = "id", text_col = "name"),
+        #     value = list(key = m$selected_study))
+        #   
+        #   # Load of subsets is done in mod_my_studies.R
+        #   # With this solution, code is run only one time
+        # })
         
         observeEvent(m$subsets, {
           req(!is.na(m$selected_study))

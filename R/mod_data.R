@@ -509,29 +509,29 @@ mod_data_server <- function(id = character(), r = shiny::reactiveValues(), d = s
       
       if (debug) cat(paste0("\n", now(), " - mod_data - ", id, " - observer r$..load_display_tabs"))
       if (perf_monitoring) monitor_perf(r = r, action = "start")
-      
+      print("1")
       # Load study informations
       # For one study, you choose ONE patient_lvl or aggregated data tab family
       study_infos <- r$studies %>% dplyr::filter(id == m$selected_study)
       # study_infos <- DBI::dbGetQuery(r$db, paste0("SELECT * FROM studies WHERE id = ", m$selected_study))
-      
+      print("2")
       # Check if users has access only to aggregated data
-      r$options %>% dplyr::filter(category == "dataset" & link_id == r$selected_dataset & name == "show_only_aggregated_data") %>%
-        dplyr::pull(value_num) -> r[[paste0(category, "_show_only_aggregated_data")]]
+      # r$options %>% dplyr::filter(category == "dataset" & link_id == r$selected_dataset & name == "show_only_aggregated_data") %>%
+      #   dplyr::pull(value_num) -> r[[paste0(category, "_show_only_aggregated_data")]]
       
       # Load tabs belonging to this tab family
       # display_tabs <- DBI::dbGetQuery(r$db, paste0("SELECT * FROM ", category, "_tabs WHERE tab_group_id = ",
       #   study_infos[[paste0(category, "_tab_group_id")]], " AND deleted IS FALSE"))
       tab_group_id <- study_infos[[paste0(category, "_tab_group_id")]]
       display_tabs <- r[[paste0(category, "_tabs")]] %>% dplyr::filter(tab_group_id == !!tab_group_id) 
-      
+      print("3")
       # Tabs without parent are set to level 1
       display_tabs <- display_tabs %>% 
         dplyr::mutate(level = dplyr::case_when(is.na(parent_tab_id) ~ 1L, TRUE ~ NA_integer_))
       
       # Prevent infinite loop, max loops = 7
       i <- 1
-      
+      print("4")
       # Creating levels for distinct tabs
       while(nrow(display_tabs %>% dplyr::filter(is.na(level))) > 0 & i <= 7){
         display_tabs <-

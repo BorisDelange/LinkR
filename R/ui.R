@@ -55,9 +55,9 @@ app_ui <- function(request, css, language, languages, i18n = character(), users_
             "\"footer footer footer\";",
             "height: 100vh;"
           ),
-          mod_page_header_ui(id = stringr::str_replace(page, "/", "_"), i18n = i18n),
-          mod_page_sidenav_ui(id = stringr::str_replace(page, "/", "_"), i18n = i18n),
-          mod_page_main_ui(id = stringr::str_replace(page, "/", "_"), language = language, languages = languages, i18n = i18n, users_accesses_toggles_options = users_accesses_toggles_options),
+          mod_page_header_ui(id = "home", i18n = i18n),
+          mod_page_sidenav_ui(id = "home", i18n = i18n),
+          mod_page_main_ui(id = "home", language = language, languages = languages, i18n = i18n, users_accesses_toggles_options = users_accesses_toggles_options),
           mod_page_footer_ui(i18n = i18n)
         ))
         # make_layout(language = language, languages = languages, page = page, i18n = i18n, users_accesses_toggles_options = users_accesses_toggles_options))

@@ -243,7 +243,7 @@ mod_messages_server <- function(id = character(), r = shiny::reactiveValues(), d
     
     observeEvent(m$selected_study, {
       
-      if (debug) cat(paste0("\n", now(), " - mod_messages - observer r$selected_study"))
+      if (debug) cat(paste0("\n", now(), " - mod_messages - observer m$selected_study"))
       
       req(!is.na(m$selected_study))
       # Show first card & hide "choose a dataset" card
