@@ -326,11 +326,12 @@ app_server <- function(language = "en", languages = tibble::tibble(), i18n = cha
       # if (perf_monitoring) monitor_perf(r = r, action = "stop", task = "server - load server tabs - messages")
       # if (debug) cat(paste0("\n", now(), " - server - load server tabs - plugins"))
       # 
-      # sapply(c("plugins_patient_lvl", "plugins_aggregated"), function(page){
-      #   mod_plugins_server(page, r, d, m, language, i18n, perf_monitoring, debug)
-      #   mod_page_sidenav_server(page, r, d, m, i18n, language, perf_monitoring, debug)
-      #   mod_page_header_server(page, r, d, m, language, i18n, perf_monitoring, debug)
-      # })
+      sapply(c("plugins_patient_lvl"), function(page){
+        mod_plugins_server(page, r, d, m, language, i18n, perf_monitoring, debug)
+        mod_page_sidenav_server(page, r, d, m, i18n, language, perf_monitoring, debug)
+        mod_page_header_server(page, r, d, m, language, i18n, perf_monitoring, debug)
+      })
+      
       # if (perf_monitoring) monitor_perf(r = r, action = "stop", task = "server - load server tabs - plugins")
       # if (debug) cat(paste0("\n", now(), " - server - load server tabs - general_settings"))
       # 

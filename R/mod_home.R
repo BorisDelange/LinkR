@@ -14,8 +14,8 @@ mod_home_ui <- function(id = character(), i18n = character()){
   
   div(class = "main",
     render_settings_default_elements(ns = ns),
-    shiny.fluent::reactOutput(ns("help_panel")),
-    shiny.fluent::reactOutput(ns("help_modal")),
+    # shiny.fluent::reactOutput(ns("help_panel")),
+    # shiny.fluent::reactOutput(ns("help_modal")),
     div(
       shiny.fluent::Breadcrumb(items = list(list(key = page, text = i18n$t("projects")))), br(),
       # shiny.fluent::Stack(
@@ -27,23 +27,7 @@ mod_home_ui <- function(id = character(), i18n = character()){
       uiOutput(ns("projects")),
       style = "margin-left:20px;"
     ),
-    br()#,
-    # tags$script(HTML(paste0(
-    #   "var timeoutId;",
-    #   "document.getElementById('", id, "-bd').addEventListener('mouseover', function(e) {",
-    #   "  clearTimeout(timeoutId);",
-    #   "  var tooltip = document.getElementById('", id, "-bd-tooltip');",
-    #   "  timeoutId = setTimeout(function() {",
-    #   "    tooltip.style.visibility = 'visible';",
-    #   "    tooltip.style.left = (e.pageX - 15) + 'px';",
-    #   "    tooltip.style.top = (e.pageY + 15) + 'px';",
-    #   "  }, 500)",
-    #   "});",
-    #   "document.getElementById('", id, "-bd').addEventListener('mouseout', function() {",
-    #   "  document.getElementById('", id, "-bd-tooltip').style.visibility = 'hidden';",
-    #   "  clearTimeout(timeoutId);",
-    #   "});"
-    # )))
+    br()
   )
 }
 

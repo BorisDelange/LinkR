@@ -49,7 +49,7 @@ mod_page_header_ui <- function(id = character(), i18n = character()){
           shiny.fluent::CommandBarItem("", "World")
         )
       ),
-      style = "position:relative; z-index:1;"
+      style = "position:relative; z-index:1; margin-right:35px;"
     )
     
     sidenav_button <- ""
