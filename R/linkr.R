@@ -11,6 +11,7 @@
 #' @param show_home_page Should the home page be loaded ? (logical)
 #' @param perf_monitoring Monitor app performances (logical)
 #' @param debug Debug mode : steps and errors will by displayed in the console (logical)
+#' @param port Port used by shiny app (integer)
 #' @examples 
 #' \dontrun{
 #' linkr(language = "en", perf_monitoring = FALSE, debug = FALSE, local = FALSE)
@@ -26,15 +27,16 @@ linkr <- function(
   local = FALSE,
   show_home_page = TRUE,
   perf_monitoring = FALSE,
-  debug = FALSE
+  debug = FALSE,
+  port = 3838
 ) {
   
   # Maximum size for uploaded data (4096 MB)
   # Used to restore database and import vocabularies
   # shiny.launch.browser to automatically open browser
   
-  if (debug) cat(paste0(now(), " - linkr - init - v0.2.0.9072"))
-  options(shiny.maxRequestSize = 4096*1024^2, shiny.launch.browser = TRUE)
+  if (debug) cat(paste0(now(), " - linkr - init - v0.2.0.9086"))
+  options(shiny.maxRequestSize = 4096*1024^2, shiny.launch.browser = TRUE, shiny.port = port)
   
   # suppressMessages(require(shinyTree))
   

@@ -365,97 +365,6 @@ mod_my_studies_server <- function(id = character(), r = shiny::reactiveValues(),
       r$update_remote_git_studies_datatable <- now()
     })
     
-    # --- --- --- --- --- --- --- --
-    # When a dataset is selected ----
-    # --- --- --- --- --- --- --- --
-    
-    # observeEvent(r$selected_dataset, {
-    #   
-    #   if (perf_monitoring) monitor_perf(r = r, action = "start")
-    #   if (debug) cat(paste0("\n", now(), " - mod_my_studies - observer r$selected_dataset"))
-    #   
-    #   # Show first card & hide "choose a dataset" card
-    #   if (is.na(r$selected_dataset)){
-    #     shinyjs::show("choose_a_dataset_card")
-    #     shinyjs::hide("menu")
-    #   }
-    #   else {
-    #     shinyjs::hide("choose_a_dataset_card")
-    #     shinyjs::show("menu")
-    #   }
-    #   
-    #   if (length(input$current_tab) == 0){
-    #     if ("all_studies_card" %in% r$user_accesses) shinyjs::show("all_studies_card")
-    #     else shinyjs::show("all_studies_card_forbidden")
-    #   }
-    #   else {
-    #     if (input$current_tab %in% r$user_accesses) shinyjs::show(input$current_tab)
-    #     else shinyjs::show(paste0(input$current_tab, "_forbidden"))
-    #   }
-    #   
-    #   # The dataset is loaded here, and not in sidenav
-    #   # Placed in sidenav, the dataset is loaded multiple times (each time a page loads its own sidenav)
-    #   
-    #   # Initiate selected_key for study UI
-    #   r$patient_lvl_selected_key <- NA_integer_
-    #   r$aggregated_selected_key <- NA_integer_
-    #   
-    #   # Reset d variables
-    #   
-    #   visit_detail_tables <- c("condition_occurrence", "drug_exposure", "procedure_occurrence", "device_exposure", "measurement",
-    #     "observation", "note", "note_nlp", "fact_relationship", "payer_plan_period", "cost")
-    #   person_tables <- c(visit_detail_tables, "specimen", "death", "drug_era", "dose_era", "condition_era")
-    #   subset_tables <- c(person_tables, "person", "observation_period", "visit_occurrence", "visit_detail")
-    #   main_tables <- c(subset_tables, "location", "care_site", "provider")
-    #   
-    #   sapply(main_tables, function(table) d[[table]] <- tibble::tibble())
-    #   sapply(subset_tables, function(table) d$data_subset[[table]] <- tibble::tibble())
-    #   sapply(person_tables, function(table) d$data_person[[table]] <- tibble::tibble())
-    #   sapply(visit_detail_tables, function(table) d$data_visit_detail[[table]] <- tibble::tibble())
-    # 
-    #   # Reset selected_study variable
-    #   m$selected_study <- NA_integer_
-    #   m$selected_person <- NA_integer_ # To prevent bug when execute plugin code from plugin page
-    #   
-    #   # A r variable to update study dropdown, when the load of dataset is finished
-    #   r$loaded_dataset <- r$selected_dataset
-    #   
-    #   # Load studies & scripts related to this dataset
-    #   update_r(r = r, m = m, table = "studies")
-    #   
-    #   r$force_reload_scripts_cache <- FALSE
-    #   
-    #   # Get OMOP version for this dataset
-    #   omop_version <- r$options %>% dplyr::filter(category == "dataset" & link_id == r$selected_dataset & name == "omop_version") %>% dplyr::pull(value)
-    #   m$omop_version <- omop_version
-    #   
-    #   # Try to load dataset
-    #   tryCatch({
-    #     
-    #     captured_output <- capture.output(run_dataset_code(output, r = r, d = d, m = m, dataset_id = r$selected_dataset, i18n = i18n))
-    #     
-    #     # If an error occured
-    #     if (grepl(paste0("\\*\\*", i18n$t("error"), "\\*\\*"), toString(captured_output))){
-    #       r$show_message_bar <- tibble::tibble(message = "fail_load_dataset", type = "severeWarning", trigger = now())
-    #       report_bug(r = r, output = output, error_message = "fail_load_dataset",
-    #         error_name = paste0(id, " - run server code"), category = "Error", error_report = toString(captured_output), i18n = i18n)
-    #     }
-    #     else {
-    #       r$show_message_bar <- tibble::tibble(message = "import_dataset_success", type = "success", trigger = now())
-    #       r$load_scripts <- now() 
-    #     }
-    #   },
-    #   error = function(e){
-    #     r$show_message_bar <- tibble::tibble(message = "fail_load_dataset", type = "severeWarning", trigger = now())
-    #     report_bug(r = r, output = output, error_message = "fail_load_dataset",
-    #       error_name = paste0(id, " - run server code"), category = "Error", error_report = toString(e), i18n = i18n)
-    #   })
-    #   
-    #   r$reload_studies_datatable <- now()
-    #   
-    #   if (perf_monitoring) monitor_perf(r = r, action = "stop", task = paste0("mod_my_studies - observer r$selected_dataset"))
-    # })
-    
     # Load scripts
     
     observeEvent(r$load_scripts, {
@@ -811,33 +720,100 @@ mod_my_studies_server <- function(id = character(), r = shiny::reactiveValues(),
       sql <- glue::glue_sql("SELECT * FROM persons_options WHERE study_id = {m$selected_study}", .con = m$db)
       m$persons_options <- DBI::dbGetQuery(m$db, sql)
       
-      # Load study description
+      # Load study associated dataset
+      sql <- glue::glue_sql("SELECT dataset_id FROM studies WHERE id = {m$selected_study}", .con = r$db)
+      shinyjs::delay(1000, r$selected_dataset <- DBI::dbGetQuery(r$db, sql) %>% dplyr::pull(dataset_id))
+    })
+    
+    # --- --- --- --- --- --- --- --- --
+    # Load study associated dataset ----
+    # --- --- --- --- --- --- --- --- --
+    
+    observeEvent(r$selected_dataset, {
       
-      # Get description from database
-      # study_description <- r$options %>% dplyr::filter(category == "study" & name == "markdown_description" & link_id == m$selected_study) %>% 
-      #   dplyr::pull(value) %>% stringr::str_replace_all("\r", "\n") %>% stringr::str_replace_all("''", "'")
+      if (perf_monitoring) monitor_perf(r = r, action = "start")
+      if (debug) cat(paste0("\n", now(), " - mod_my_studies - observer r$selected_dataset"))
+      
+      # # Show first card & hide "choose a dataset" card
+      # if (is.na(r$selected_dataset)){
+      #   shinyjs::show("choose_a_dataset_card")
+      #   shinyjs::hide("menu")
+      # }
+      # else {
+      #   shinyjs::hide("choose_a_dataset_card")
+      #   shinyjs::show("menu")
+      # }
       # 
-      # tryCatch({
-      #   
-      #   # Clear temp dir
-      #   unlink(paste0(r$app_folder, "/temp_files/", r$user_id), recursive = TRUE, force = TRUE)
-      #   
-      #   markdown_settings <- paste0("```{r setup, include=FALSE}\nknitr::opts_knit$set(root.dir = '", 
-      #     r$app_folder, "/temp_files/", r$user_id')\n",
-      #     "knitr::opts_chunk$set(root.dir = '", r$app_folder, "/temp_files/", r$user_id, "/', fig.path = '", r$app_folder, "/temp_files/')\n```\n")
-      #   
-      #   markdown_file <- paste0(markdown_settings, study_description)
-      #   
-      #   # Create temp dir
-      #   dir <- paste0(r$app_folder, "/temp_files/", r$user_id)
-      #   file <- paste0(dir, "/", now() %>% stringr::str_replace_all(":", "_"), ".Md")
-      #   if (!dir.exists(dir)) dir.create(dir)
-      #   
-      #   # Create the markdown file
-      #   knitr::knit(text = markdown_file, output = file, quiet = TRUE)
-      #   
-      #   output$studies_description_markdown_result <- renderUI(div(class = "markdown", withMathJax(includeMarkdown(file))))
-      # }, error = function(e) "")
+      # if (length(input$current_tab) == 0){
+      #   if ("all_studies_card" %in% r$user_accesses) shinyjs::show("all_studies_card")
+      #   else shinyjs::show("all_studies_card_forbidden")
+      # }
+      # else {
+      #   if (input$current_tab %in% r$user_accesses) shinyjs::show(input$current_tab)
+      #   else shinyjs::show(paste0(input$current_tab, "_forbidden"))
+      # }
+      
+      # The dataset is loaded here, and not in sidenav
+      # Placed in sidenav, the dataset is loaded multiple times (each time a page loads its own sidenav)
+      
+      # Initiate selected_key for study UI
+      # r$patient_lvl_selected_key <- NA_integer_
+      # r$aggregated_selected_key <- NA_integer_
+      
+      # Reset d variables
+      
+      visit_detail_tables <- c("condition_occurrence", "drug_exposure", "procedure_occurrence", "device_exposure", "measurement",
+        "observation", "note", "note_nlp", "fact_relationship", "payer_plan_period", "cost")
+      person_tables <- c(visit_detail_tables, "specimen", "death", "drug_era", "dose_era", "condition_era")
+      subset_tables <- c(person_tables, "person", "observation_period", "visit_occurrence", "visit_detail")
+      main_tables <- c(subset_tables, "location", "care_site", "provider")
+      
+      sapply(main_tables, function(table) d[[table]] <- tibble::tibble())
+      sapply(subset_tables, function(table) d$data_subset[[table]] <- tibble::tibble())
+      sapply(person_tables, function(table) d$data_person[[table]] <- tibble::tibble())
+      sapply(visit_detail_tables, function(table) d$data_visit_detail[[table]] <- tibble::tibble())
+      
+      # Reset selected_study variable
+      # m$selected_study <- NA_integer_
+      # m$selected_person <- NA_integer_ # To prevent bug when execute plugin code from plugin page
+      
+      # A r variable to update study dropdown, when the load of dataset is finished
+      # r$loaded_dataset <- r$selected_dataset
+      
+      # Load studies & scripts related to this dataset
+      # update_r(r = r, m = m, table = "studies")
+      
+      # r$force_reload_scripts_cache <- FALSE
+      
+      # Get OMOP version for this dataset
+      omop_version <- r$options %>% dplyr::filter(category == "dataset" & link_id == r$selected_dataset & name == "omop_version") %>% dplyr::pull(value)
+      m$omop_version <- omop_version
+      
+      # Try to load dataset
+      tryCatch({
+        
+        captured_output <- capture.output(run_dataset_code(output, r = r, d = d, m = m, dataset_id = r$selected_dataset, i18n = i18n))
+        
+        # If an error occured
+        if (grepl(paste0("\\*\\*", i18n$t("error"), "\\*\\*"), toString(captured_output))){
+          r$show_message_bar <- tibble::tibble(message = "fail_load_dataset", type = "severeWarning", trigger = now())
+          report_bug(r = r, output = output, error_message = "fail_load_dataset",
+                     error_name = paste0(id, " - run server code"), category = "Error", error_report = toString(captured_output), i18n = i18n)
+        }
+        else {
+          r$show_message_bar <- tibble::tibble(message = "import_dataset_success", type = "success", trigger = now())
+          r$load_scripts <- now()
+        }
+      },
+      error = function(e){
+        r$show_message_bar <- tibble::tibble(message = "fail_load_dataset", type = "severeWarning", trigger = now())
+        report_bug(r = r, output = output, error_message = "fail_load_dataset",
+                   error_name = paste0(id, " - run server code"), category = "Error", error_report = toString(e), i18n = i18n)
+      })
+      
+      # r$reload_studies_datatable <- now()
+      
+      if (perf_monitoring) monitor_perf(r = r, action = "stop", task = paste0("mod_my_studies - observer r$selected_dataset"))
     })
     
     # --- --- --- --- --- --- --- --

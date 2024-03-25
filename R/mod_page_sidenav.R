@@ -102,6 +102,8 @@ mod_page_sidenav_ui <- function(id = character(), i18n = character()){
         )
       ),
       div(class = "extended_sidenav",
+        dropdowns("subset"),
+        br(), div(id = ns("hr1"), hr()),
         dropdowns(c("person", "visit_detail")),
         br(), div(id = ns("hr2"), hr()),
         uiOutput(ns("person_info")),
@@ -119,16 +121,18 @@ mod_page_sidenav_ui <- function(id = character(), i18n = character()){
   
   if (id == "aggregated_data") div(
     class = "sidenav",
-    div(class = "reduced_sidenav"),
-    div(class = "extended_sidenav",
-      div(i18n$t("data"), class = "input_title", style = "font-size:14.5px;"),
+    div(class = "reduced_sidenav",
       div(
-        shiny.fluent::Stack(horizontal = TRUE, tokens = list(childrenGap = 0),
-          shiny.fluent::DefaultButton.shinyInput(ns("data_page_ind"), i18n$t("individual"), style = "width:125px;"), 
-          shiny.fluent::PrimaryButton.shinyInput(ns("data_page_agg"), i18n$t("aggregated"), style = "width:125px;")
-        ), style = "width:250px;"
-      ),                               
-      dropdowns(c("dataset", "study", "subset"))
+        onclick = paste0("Shiny.setInputValue('", id, "-show_hide_sidenav', Math.random());"),
+        class = "button_hide_sidenav"
+      )    
+    ),
+    div(class = "extended_sidenav",
+      dropdowns(c("subset")),
+      div(
+        onclick = paste0("Shiny.setInputValue('", id, "-show_hide_sidenav', Math.random());"),
+        class = "button_show_sidenav"
+      )
     )
   ) -> result
   
@@ -279,16 +283,16 @@ mod_page_sidenav_server <- function(id = character(), r = shiny::reactiveValues(
       
       # Changing page between patient-lvl & aggregated data
       
-      r$data_page <- "patient_level_data"
-      
-      if (id == "patient_level_data") observeEvent(input$data_page_agg, {
-        shiny.router::change_page("aggregated_data")
-        r$data_page <- "aggregated_data"
-      })
-      if (id == "aggregated_data") observeEvent(input$data_page_ind, {
-        shiny.router::change_page("patient_level_data")
-        r$data_page <- "patient_level_data"
-      })
+      # r$data_page <- "patient_level_data"
+      # 
+      # if (id == "patient_level_data") observeEvent(input$data_page_agg, {
+      #   shiny.router::change_page("aggregated_data")
+      #   r$data_page <- "aggregated_data"
+      # })
+      # if (id == "aggregated_data") observeEvent(input$data_page_ind, {
+      #   shiny.router::change_page("patient_level_data")
+      #   r$data_page <- "patient_level_data"
+      # })
       
       # --- --- --- --- -- -
       # Selected dataset ----

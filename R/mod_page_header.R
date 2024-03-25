@@ -73,8 +73,8 @@ mod_page_header_ui <- function(id = character(), i18n = character()){
             shiny.fluent::CommandBarItem("", "BIDashboard",
               subMenuProps = list(items = list(
                 list(text = i18n$t("concepts"), iconProps = list(iconName = "AllApps"), href = shiny.router::route_link("vocabularies")),
-                list(text = i18n$t("patient_lvl_data"), iconProps = list(iconName = "Contact"), href = shiny.router::route_link("data")),
-                list(text = i18n$t("aggregated_data"), iconProps = list(iconName = "People"), href = shiny.router::route_link("data"))
+                list(text = i18n$t("patient_lvl_data"), iconProps = list(iconName = "Contact"), href = shiny.router::route_link("patient_level_data")),
+                list(text = i18n$t("aggregated_data"), iconProps = list(iconName = "People"), href = shiny.router::route_link("aggregated_data"))
               ))
             ),
             # Configure
@@ -271,14 +271,16 @@ mod_page_header_server <- function(id = character(), r = shiny::reactiveValues()
     
     # Selected project
     
-    observeEvent(m$selected_study, {
-      if (debug) cat(paste0("\n", now(), " - mod_data - ", id, " - observer m$selected_study"))
-      
-      project_name <- r$projects %>% dplyr::filter(study_id == m$selected_study, name == paste0("name_", language)) %>% dplyr::pull(value)
-      max_length <- 27
-      if (nchar(project_name) > max_length) project_name <- paste0(substr(project_name, 1, max_length - 3), "...")
-      output$selected_project <- renderUI(project_name)
-    })
+    if (id %in% c("patient_level_data", "aggregated_data")){
+      observeEvent(m$selected_study, {
+        if (debug) cat(paste0("\n", now(), " - mod_data - ", id, " - observer m$selected_study"))
+        
+        project_name <- r$projects %>% dplyr::filter(study_id == m$selected_study, name == paste0("name_", language)) %>% dplyr::pull(value)
+        max_length <- 27
+        if (nchar(project_name) > max_length) project_name <- paste0(substr(project_name, 1, max_length - 3), "...")
+        output$selected_project <- renderUI(project_name)
+      })
+    }
     
     # Open / close console modal
     

@@ -293,23 +293,23 @@ mod_data_server <- function(id = character(), r = shiny::reactiveValues(), d = s
     
     # Load page from header
     
-    observeEvent(shiny.router::get_page(), {
-      if (debug) cat(paste0("\n", now(), " - mod_data - ", id, " - observer shiny_router::change_page"))
-      
-      if (category == "aggregated" & shiny.router::get_page() == "data" & r$data_page == "patient_level_data") shiny.router::change_page("patient_level_data")
-      else if (category == "patient_lvl" & shiny.router::get_page() == "data" & r$data_page == "aggregated_data") shiny.router::change_page("aggregated_data")
-      
-      # Close help pages when page changes
-      # r[[paste0("help_data_", category, "_open_panel")]] <- FALSE
-      # r[[paste0("help_data_", category, "_open_modal")]] <- FALSE
-
-      # Refresh reactivity
-      shinyjs::hide("study_cards")
-      shinyjs::show("study_cards")
-      
-      # Refresh sortable
-      shinyjs::delay(1000, r[[paste0(category, "_initialize_sortable")]] <- now())
-    })
+    # observeEvent(shiny.router::get_page(), {
+    #   if (debug) cat(paste0("\n", now(), " - mod_data - ", id, " - observer shiny_router::change_page"))
+    #   
+    #   # if (category == "aggregated" & shiny.router::get_page() == "data" & r$data_page == "patient_level_data") shiny.router::change_page("patient_level_data")
+    #   # else if (category == "patient_lvl" & shiny.router::get_page() == "data" & r$data_page == "aggregated_data") shiny.router::change_page("aggregated_data")
+    #   
+    #   # Close help pages when page changes
+    #   # r[[paste0("help_data_", category, "_open_panel")]] <- FALSE
+    #   # r[[paste0("help_data_", category, "_open_modal")]] <- FALSE
+    # 
+    #   # Refresh reactivity
+    #   shinyjs::hide("study_cards")
+    #   shinyjs::show("study_cards")
+    #   
+    #   # Refresh sortable
+    #   shinyjs::delay(1000, r[[paste0(category, "_initialize_sortable")]] <- now())
+    # })
     
     if (perf_monitoring) monitor_perf(r = r, action = "stop", task = paste0("mod_data - ", id, " - initiate vars"))
     
