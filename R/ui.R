@@ -102,6 +102,14 @@ golem_add_external_resources <- function(css){
     # Link to CSS file
     tags$link(href = css, rel = "stylesheet", type = "text/css"),
     
+    # Add gridstacks.js
+    tags$link(rel = "stylesheet", href = "https://cdnjs.cloudflare.com/ajax/libs/gridstack.js/10.1.0/gridstack.min.css"),
+    tags$script(HTML("
+      document.addEventListener('DOMContentLoaded', function() {
+        window.gridStackInstances = {};
+      });
+    ")),
+    
     # Add highlight.js
     tags$link(rel = "stylesheet", href = "https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.3.1/styles/tomorrow-night-blue.min.css"),
     tags$script(src = "https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.3.1/highlight.min.js"),

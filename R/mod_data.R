@@ -428,7 +428,7 @@ mod_data_server <- function(id = character(), r = shiny::reactiveValues(), d = s
       # Hide UI from previous loaded study
       # Don't use removeUI, cause when you switch study, it is deleted and cannot be reinserted
       
-      sapply(r[[paste0(category, "_cards")]], shinyjs::hide)
+      # sapply(r[[paste0(category, "_cards")]], shinyjs::hide)
       
       req(!is.na(m$selected_study))
       
@@ -887,10 +887,34 @@ mod_data_server <- function(id = character(), r = shiny::reactiveValues(), d = s
       
       sapply(distinct_tabs, function(tab_id){
         
-        toggles <- tagList()
+        # toggles <- tagList()
         
-        widgets <- r[[paste0(category, "_widgets")]] %>% dplyr::filter(tab_id == !!tab_id) %>% 
-          dplyr::rename(widget_id = id) %>% dplyr::arrange(display_order)
+        # Add gridstack div
+        gridstack_id <- paste0(category, "_gridstack_", tab_id)
+        gridstack_div <- div(id = ns(gridstack_id), class = "grid-stack")
+        
+        hide_div <- TRUE
+        if (!is.na(selected_tab)) if (tab_id == selected_tab) hide_div <- FALSE
+        if (hide_div) gridstack_div <- shinyjs::hidden(gridstack_div)
+        
+        insertUI(selector = paste0("#", ns("study_cards")), where = "beforeEnd", ui = gridstack_div)
+        r[[paste0(category, "_cards")]] <- c(r[[paste0(category, "_cards")]], gridstack_id)
+        
+        shinyjs::delay(100, shinyjs::runjs(paste0("
+          if (!window.gridStackInstances['", tab_id, "']) {
+            import('https://esm.sh/gridstack').then((module) => {
+              const GridStack = module.GridStack;
+              window.gridStackInstances['", tab_id, "'] = GridStack.init({
+                cellHeight: 70,
+                acceptWidgets: true,
+                staticGrid: false,
+                removable: '#", id, "-widget_trash',
+              }, '#", ns(gridstack_id), "');
+            });
+          }
+        ")))
+        
+        widgets <- r[[paste0(category, "_widgets")]] %>% dplyr::filter(tab_id == !!tab_id) %>% dplyr::rename(widget_id = id) %>% dplyr::arrange(display_order)
         
         if (nrow(widgets) > 0){
           
@@ -970,11 +994,11 @@ mod_data_server <- function(id = character(), r = shiny::reactiveValues(), d = s
             widget_name <- widgets %>% dplyr::filter(widget_id == !!widget_id) %>% dplyr::slice(1) %>% dplyr::pull(name)
             
             # Append a toggle to our cards list
-            r[[paste0(category, "_cards")]] <- c(r[[paste0(category, "_cards")]], paste0(category, "_widget_", widget_id))
+            # r[[paste0(category, "_cards")]] <- c(r[[paste0(category, "_cards")]], paste0(category, "_widget_", widget_id))
             
-            toggles <<- tagList(toggles,
-              shiny.fluent::Toggle.shinyInput(ns(paste0(category, "_widget_", widget_id, "_toggle")), value = TRUE, style = "margin-top:10px;"),
-              div(class = "toggle_title", widget_name, style = "padding-top:10px;"))
+            # toggles <<- tagList(toggles,
+            #   shiny.fluent::Toggle.shinyInput(ns(paste0(category, "_widget_", widget_id, "_toggle")), value = TRUE, style = "margin-top:10px;"),
+            #   div(class = "toggle_title", widget_name, style = "padding-top:10px;"))
             
             # Try to run plugin UI code
             # ID of UI element is in the following format : "group_[ID]"
@@ -1000,7 +1024,13 @@ mod_data_server <- function(id = character(), r = shiny::reactiveValues(), d = s
               p(toString(w))
             })
             
-            element_code <- div(
+            # hide_div <- TRUE
+            # style <- ""
+            # if (!is.na(selected_tab)) if (tab_id == selected_tab) hide_div <- FALSE
+            # if (hide_div) style <- "display:none;"
+            
+            ui_output <- div(
+              id = ns(paste0(category, "_widget_", widget_id)),
               make_shiny_ace_card("",
                 div(
                   div(id = ns(paste0(category, "_widget_plugin_ui_", widget_id)), code_ui),
@@ -1015,22 +1045,36 @@ mod_data_server <- function(id = character(), r = shiny::reactiveValues(), d = s
                   )
                 ),
                 style = "position:relative;"
-              )
+              ),
+              style = "height:100%;"
             )
             
-            ui_output <- uiOutput(ns(paste0(category, "_widget_", widget_id)))
-            hide_div <- TRUE
-            if (!is.na(selected_tab)) if (tab_id == selected_tab) hide_div <- FALSE
-            if (hide_div) ui_output <- shinyjs::hidden(ui_output)
+            # ui_output <- uiOutput(ns(paste0(category, "_widget_", widget_id)))
+            # hide_div <- TRUE
+            # if (!is.na(selected_tab)) if (tab_id == selected_tab) hide_div <- FALSE
+            # if (hide_div) ui_output <- shinyjs::hidden(ui_output)
             
-            insertUI(selector = paste0("#", ns("study_cards")), where = "beforeEnd", ui = ui_output)
-            output[[paste0(category, "_widget_", widget_id)]] <- renderUI(element_code)
+            # insertUI(selector = paste0("#", ns("study_cards")), where = "beforeEnd", ui = ui_output)
+            # output[[paste0(category, "_widget_", widget_id)]] <- renderUI(element_code)
+            
+            # shinyjs::runjs(paste0("
+            #   window.grid.addWidget({w: 4, h: 4, content: `", ui_output, "`});
+            # "))
+            
+            # ui_output <- make_shiny_ace_card("Title", "content")
+            
+            shinyjs::delay(100, shinyjs::runjs(sprintf("
+              var grid = window.gridStackInstances['%s'];
+              if (grid) {
+                grid.addWidget({w: 12, h: 4, content: `%s`});
+              }
+            ", tab_id, ui_output)))
           })
         }
         
         # Put all div together
         
-        r[[paste0(category, "_cards")]] <- c(r[[paste0(category, "_cards")]], paste0(category, "_toggles_", tab_id))
+        # r[[paste0(category, "_cards")]] <- c(r[[paste0(category, "_cards")]], paste0(category, "_toggles_", tab_id))
         
         # Does this tab have sub-tabs ?
         # if (r[[paste0(category, "_tabs")]] %>% dplyr::filter(parent_tab_id == tab_id) %>% nrow() > 0) toggles_div <- div(
@@ -1056,12 +1100,12 @@ mod_data_server <- function(id = character(), r = shiny::reactiveValues(), d = s
         #   )
         # )
         
-        ui_output <- uiOutput(ns(paste0(category, "_toggles_", tab_id)))
-        hide_div <- TRUE
-        if (!is.na(selected_tab)) if (tab_id == selected_tab) hide_div <- FALSE
-        if (hide_div) ui_output <- shinyjs::hidden(ui_output)
+        # ui_output <- uiOutput(ns(paste0(category, "_toggles_", tab_id)))
+        # hide_div <- TRUE
+        # if (!is.na(selected_tab)) if (tab_id == selected_tab) hide_div <- FALSE
+        # if (hide_div) ui_output <- shinyjs::hidden(ui_output)
         
-        insertUI(selector = paste0("#", ns("study_cards")), where = "afterBegin", ui = ui_output)
+        # insertUI(selector = paste0("#", ns("study_cards")), where = "afterBegin", ui = ui_output)
         # output[[paste0(category, "_toggles_", tab_id)]] <- renderUI(toggles_div)
         
       })
@@ -1561,40 +1605,40 @@ mod_data_server <- function(id = character(), r = shiny::reactiveValues(), d = s
       sapply(r[[paste0(category, "_cards")]], shinyjs::hide)
       
       # Hide Add widget card, Add tab card & Edit tab card
-      sapply(c(paste0(category, "_add_tab"), paste0(category, "_edit_tab"), paste0(category, "_add_widget"), paste0(category, "_widget_settings")), shinyjs::hide)
+      # sapply(c(paste0(category, "_add_tab"), paste0(category, "_edit_tab"), paste0(category, "_add_widget"), paste0(category, "_widget_settings")), shinyjs::hide)
       
       # Show toggles for this tab
-      shinyjs::show(paste0(category, "_toggles_", r[[paste0(category, "_selected_tab")]]))
+      # shinyjs::show(paste0(category, "_toggles_", r[[paste0(category, "_selected_tab")]]))
       
       # Add to the list of open cards and reset the list
-      r[[paste0(category, "_opened_cards")]] <- paste0(category, "_toggles_", r[[paste0(category, "_selected_tab")]])
+      # r[[paste0(category, "_opened_cards")]] <- paste0(category, "_toggles_", r[[paste0(category, "_selected_tab")]])
       
       selected_tab <- r[[paste0(category, "_selected_tab")]]
-      widgets <- r[[paste0(category, "_widgets")]] %>% dplyr::filter(tab_id == selected_tab) %>% 
-        dplyr::rename(widget_id = id)
-      distinct_widgets <- unique(widgets$widget_id)
+      shinyjs::show(paste0(category, "_gridstack_", selected_tab))
+      # widgets <- r[[paste0(category, "_widgets")]] %>% dplyr::filter(tab_id == selected_tab) %>% dplyr::rename(widget_id = id)
+      # distinct_widgets <- unique(widgets$widget_id)
       
       # Use sapply instead of for loop, cause with for loop, widget_id doesn't change
-      sapply(distinct_widgets, function(widget_id){
-        
-        # If toggle is ON
-        if (length(input[[paste0(category, "_widget_", widget_id, "_toggle")]]) > 0){
-          
-          if (input[[paste0(category, "_widget_", widget_id, "_toggle")]]){
-            
-            # Show card
-            shinyjs::show(paste0(category, "_widget_", widget_id))
-            
-            # Add to the list of open cards
-            r[[paste0(category, "_opened_cards")]] <- c(r[[paste0(category, "_opened_cards")]], paste0(category, "_widget_", widget_id))
-          }
-        }
-        else {
-          shinyjs::show(paste0(category, "_widget_", widget_id))
-          r[[paste0(category, "_opened_cards")]] <- c(r[[paste0(category, "_opened_cards")]], paste0(category, "_widget_", widget_id))
-        }
-        
-      })
+      # sapply(distinct_widgets, function(widget_id){
+      #   
+      #   # If toggle is ON
+      #   if (length(input[[paste0(category, "_widget_", widget_id, "_toggle")]]) > 0){
+      #     
+      #     if (input[[paste0(category, "_widget_", widget_id, "_toggle")]]){
+      #       
+      #       # Show card
+      #       shinyjs::show(paste0(category, "_widget_", widget_id))
+      #       
+      #       # Add to the list of open cards
+      #       r[[paste0(category, "_opened_cards")]] <- c(r[[paste0(category, "_opened_cards")]], paste0(category, "_widget_", widget_id))
+      #     }
+      #   }
+      #   else {
+      #     shinyjs::show(paste0(category, "_widget_", widget_id))
+      #     r[[paste0(category, "_opened_cards")]] <- c(r[[paste0(category, "_opened_cards")]], paste0(category, "_widget_", widget_id))
+      #   }
+      #   
+      # })
       
       if (perf_monitoring) monitor_perf(r = r, action = "stop", task = paste0("mod_data - ", id, " - observer r$..selected_tab"))
     })
@@ -1714,7 +1758,7 @@ mod_data_server <- function(id = character(), r = shiny::reactiveValues(), d = s
       #   )
       # )
       
-      insertUI(selector = paste0("#", ns("study_cards")), where = "beforeEnd", ui = uiOutput(ns(paste0(category, "_toggles_", tab_id))))
+      # insertUI(selector = paste0("#", ns("study_cards")), where = "beforeEnd", ui = uiOutput(ns(paste0(category, "_toggles_", tab_id))))
       # output[[paste0(category, "_toggles_", tab_id)]] <- renderUI(toggles_div)
       
       # If this is a sub-tab, change toggles div of parent tab also
@@ -1738,7 +1782,7 @@ mod_data_server <- function(id = character(), r = shiny::reactiveValues(), d = s
       }
       
       # Add toggles div to vector of cards
-      r[[paste0(category, "_cards")]] <- c(isolate(r[[paste0(category, "_cards")]]), paste0(category, "_toggles_", tab_id))
+      # r[[paste0(category, "_cards")]] <- c(isolate(r[[paste0(category, "_cards")]]), paste0(category, "_toggles_", tab_id))
       
       # Reload UI menu and set to added tab
       r[[paste0(category, "_selected_tab")]] <- tab_id
@@ -1939,7 +1983,7 @@ mod_data_server <- function(id = character(), r = shiny::reactiveValues(), d = s
           #   )
           # )
           
-          insertUI(selector = paste0("#", ns("study_cards")), where = "beforeEnd", ui = uiOutput(ns(paste0(category, "_toggles_", parent_tab_id))))
+          # insertUI(selector = paste0("#", ns("study_cards")), where = "beforeEnd", ui = uiOutput(ns(paste0(category, "_toggles_", parent_tab_id))))
           # output[[paste0(category, "_toggles_", parent_tab_id)]] <- renderUI(parent_toggles_div)
         }
       }
@@ -2722,14 +2766,14 @@ mod_data_server <- function(id = character(), r = shiny::reactiveValues(), d = s
       # output[[paste0(category, "_toggles_", tab_id)]] <- renderUI(toggles_div)
       
       # Add widget UI
-      insertUI(selector = paste0("#", ns("study_cards")), where = "beforeEnd", ui = uiOutput(ns(paste0(category, "_widget_", widget_id))))
-      output[[paste0(category, "_widget_", widget_id)]] <- renderUI(element_code)
+      # insertUI(selector = paste0("#", ns("study_cards")), where = "beforeEnd", ui = uiOutput(ns(paste0(category, "_widget_", widget_id))))
+      # output[[paste0(category, "_widget_", widget_id)]] <- renderUI(element_code)
       
       # Hide Add widget div
       shinyjs::hide(paste0(category, "_add_widget"))
       
       # Add this div to vector of cards
-      r[[paste0(category, "_cards")]] <- c(isolate(r[[paste0(category, "_cards")]]), paste0(category, "_widget_", widget_id))
+      # r[[paste0(category, "_cards")]] <- c(isolate(r[[paste0(category, "_cards")]]), paste0(category, "_widget_", widget_id))
       
       # Reload UI menu
       r[[paste0(category, "_load_display_tabs")]] <- now()
