@@ -101,12 +101,7 @@ mod_page_header_ui <- function(id = character(), i18n = character()){
               ))
             ),
             # Show results
-            shiny.fluent::CommandBarItem("", "Play",
-              subMenuProps = list(items = list(
-                list(text = "Article", iconProps = list(iconName = "KnowledgeArticle"), href = shiny.router::route_link("/")),
-                list(text = "Slides", iconProps = list(iconName = "Slideshow"), href = shiny.router::route_link("/"))
-              ))
-            )
+            shiny.fluent::CommandBarItem("", "Play")
             # Develop
             # shiny.fluent::CommandBarItem("", "CodeEdit"),
             # Discover

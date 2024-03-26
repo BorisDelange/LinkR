@@ -449,8 +449,8 @@ mod_data_server <- function(id = character(), r = shiny::reactiveValues(), d = s
       r[[paste0(category, "_opened_cards")]] <- ""
       
       # Hide Add widget card & Add tab
-      shinyjs::hide("add_widget")
-      shinyjs::hide("add_tab")
+      # shinyjs::hide("add_widget")
+      # shinyjs::hide("add_tab")
       
       r[[paste0(category, "_load_display_tabs")]] <- paste0("first_load_ui_", now())
       
@@ -771,19 +771,19 @@ mod_data_server <- function(id = character(), r = shiny::reactiveValues(), d = s
       }
       
       output$study_menu <- renderUI(tagList(
-        breadcrumbs,
-        div(
-          pivots,
-          shiny.fluent::Pivot(
-            shiny.fluent::PivotItem(id = paste0(category, "_add_tab"), headerText = span(i18n$t("add_tab"), style = "padding-left:5px;"), itemIcon = "Add"),
-            onLinkClick = htmlwidgets::JS(paste0("item => {",
-              "Shiny.setInputValue('", id, "-study_add_new_tab', Math.random());",
-              "}"
-            )),
-            selectedKey = NULL
-          ),
-          style = "display:flex;"
-        )
+        breadcrumbs, pivots
+        # div(
+        #   pivots,
+        #   shiny.fluent::Pivot(
+        #     shiny.fluent::PivotItem(id = paste0(category, "_add_tab"), headerText = span(i18n$t("add_tab"), style = "padding-left:5px;"), itemIcon = "Add"),
+        #     onLinkClick = htmlwidgets::JS(paste0("item => {",
+        #       "Shiny.setInputValue('", id, "-study_add_new_tab', Math.random());",
+        #       "}"
+        #     )),
+        #     selectedKey = NULL
+        #   ),
+        #   style = "display:flex;"
+        # )
       ))
       
       r[[paste0(category, "_hide_ui")]] <- now()
@@ -1033,28 +1033,28 @@ mod_data_server <- function(id = character(), r = shiny::reactiveValues(), d = s
         r[[paste0(category, "_cards")]] <- c(r[[paste0(category, "_cards")]], paste0(category, "_toggles_", tab_id))
         
         # Does this tab have sub-tabs ?
-        if (r[[paste0(category, "_tabs")]] %>% dplyr::filter(parent_tab_id == tab_id) %>% nrow() > 0) toggles_div <- div(
-          make_card("",
-            shiny.fluent::Stack(horizontal = TRUE, tokens = list(childrenGap = 10),
-              shiny.fluent::ActionButton.shinyInput(ns(paste0(category, "_edit_tab_", tab_id)), i18n$t("edit_tab"), iconProps = list(iconName = "Edit"),
-                onClick = htmlwidgets::JS(paste0("item => Shiny.setInputValue('", id, "-edit_tab_trigger', Math.random())"))),
-              div(shiny.fluent::MessageBar(i18n$t("tab_contains_sub_tabs"), messageBarType = 5), style = "margin-top:4px;")
-            )
-          )
-        )
-        
-        else toggles_div <- div(
-          make_card("",
-            shiny.fluent::Stack(horizontal = TRUE, tokens = list(childrenGap = 10),
-              shiny.fluent::ActionButton.shinyInput(ns(paste0(category, "_add_widget_", tab_id)), i18n$t("new_widget"), iconProps = list(iconName = "Add"),
-                onClick = htmlwidgets::JS(paste0("item => Shiny.setInputValue('", id, "-", category, "_add_widget_trigger', Math.random())"))),
-              shiny.fluent::ActionButton.shinyInput(ns(paste0(category, "_edit_tab_", tab_id)), i18n$t("edit_tab"), iconProps = list(iconName = "Edit"),
-                onClick = htmlwidgets::JS(paste0("item => Shiny.setInputValue('", id, "-edit_tab_trigger', Math.random())"))),
-              div(style = "width:20px;"),
-              toggles
-            )
-          )
-        )
+        # if (r[[paste0(category, "_tabs")]] %>% dplyr::filter(parent_tab_id == tab_id) %>% nrow() > 0) toggles_div <- div(
+        #   make_card("",
+        #     shiny.fluent::Stack(horizontal = TRUE, tokens = list(childrenGap = 10),
+        #       shiny.fluent::ActionButton.shinyInput(ns(paste0(category, "_edit_tab_", tab_id)), i18n$t("edit_tab"), iconProps = list(iconName = "Edit"),
+        #         onClick = htmlwidgets::JS(paste0("item => Shiny.setInputValue('", id, "-edit_tab_trigger', Math.random())"))),
+        #       div(shiny.fluent::MessageBar(i18n$t("tab_contains_sub_tabs"), messageBarType = 5), style = "margin-top:4px;")
+        #     )
+        #   )
+        # )
+        # 
+        # else toggles_div <- div(
+        #   make_card("",
+        #     shiny.fluent::Stack(horizontal = TRUE, tokens = list(childrenGap = 10),
+        #       # shiny.fluent::ActionButton.shinyInput(ns(paste0(category, "_add_widget_", tab_id)), i18n$t("new_widget"), iconProps = list(iconName = "Add"),
+        #       #   onClick = htmlwidgets::JS(paste0("item => Shiny.setInputValue('", id, "-", category, "_add_widget_trigger', Math.random())"))),
+        #       # shiny.fluent::ActionButton.shinyInput(ns(paste0(category, "_edit_tab_", tab_id)), i18n$t("edit_tab"), iconProps = list(iconName = "Edit"),
+        #       #   onClick = htmlwidgets::JS(paste0("item => Shiny.setInputValue('", id, "-edit_tab_trigger', Math.random())"))),
+        #       # div(style = "width:20px;"),
+        #       toggles
+        #     )
+        #   )
+        # )
         
         ui_output <- uiOutput(ns(paste0(category, "_toggles_", tab_id)))
         hide_div <- TRUE
@@ -1062,7 +1062,7 @@ mod_data_server <- function(id = character(), r = shiny::reactiveValues(), d = s
         if (hide_div) ui_output <- shinyjs::hidden(ui_output)
         
         insertUI(selector = paste0("#", ns("study_cards")), where = "afterBegin", ui = ui_output)
-        output[[paste0(category, "_toggles_", tab_id)]] <- renderUI(toggles_div)
+        # output[[paste0(category, "_toggles_", tab_id)]] <- renderUI(toggles_div)
         
       })
       
@@ -1479,20 +1479,20 @@ mod_data_server <- function(id = character(), r = shiny::reactiveValues(), d = s
         r[[paste0(category, "_opened_cards")]] <- c(r[[paste0(category, "_opened_cards")]], paste0(category, "_widget_", widget_id))
       })
       
-      toggles_div <- div(
-        make_card("",
-          shiny.fluent::Stack(horizontal = TRUE, tokens = list(childrenGap = 10),
-            shiny.fluent::ActionButton.shinyInput(ns(paste0(category, "_add_widget_", ids$tab_id)), i18n$t("new_widget"), iconProps = list(iconName = "Add"),
-              onClick = htmlwidgets::JS(paste0("item => Shiny.setInputValue('", id, "-", category, "_add_widget_trigger', Math.random())"))),
-            shiny.fluent::ActionButton.shinyInput(ns(paste0(category, "_edit_tab_", ids$tab_id)), i18n$t("edit_tab"), iconProps = list(iconName = "Edit"),
-              onClick = htmlwidgets::JS(paste0("item => Shiny.setInputValue('", id, "-edit_tab_trigger', Math.random())"))),
-            div(style = "width:20px;"),
-            toggles
-          )
-        )
-      )
+      # toggles_div <- div(
+      #   make_card("",
+      #     shiny.fluent::Stack(horizontal = TRUE, tokens = list(childrenGap = 10),
+      #       shiny.fluent::ActionButton.shinyInput(ns(paste0(category, "_add_widget_", ids$tab_id)), i18n$t("new_widget"), iconProps = list(iconName = "Add"),
+      #         onClick = htmlwidgets::JS(paste0("item => Shiny.setInputValue('", id, "-", category, "_add_widget_trigger', Math.random())"))),
+      #       shiny.fluent::ActionButton.shinyInput(ns(paste0(category, "_edit_tab_", ids$tab_id)), i18n$t("edit_tab"), iconProps = list(iconName = "Edit"),
+      #         onClick = htmlwidgets::JS(paste0("item => Shiny.setInputValue('", id, "-edit_tab_trigger', Math.random())"))),
+      #       div(style = "width:20px;"),
+      #       toggles
+      #     )
+      #   )
+      # )
       
-      output[[paste0(category, "_toggles_", ids$tab_id)]] <- renderUI(toggles_div)
+      # output[[paste0(category, "_toggles_", ids$tab_id)]] <- renderUI(toggles_div)
       
       # Hide settings card and show opened cards
       shinyjs::hide(paste0(category, "_widget_settings"))
@@ -1603,9 +1603,9 @@ mod_data_server <- function(id = character(), r = shiny::reactiveValues(), d = s
     ## Add a tab ----
     # --- --- --- - -
     
-    observeEvent(input$study_add_new_tab, {
+    observeEvent(input$add_tab, {
       
-      if (debug) cat(paste0("\n", now(), " - mod_data - ", id, " - observer input$study_add_new_tab"))
+      if (debug) cat(paste0("\n", now(), " - mod_data - ", id, " - observer input$add_tab"))
 
       sapply(r[[paste0(category, "_opened_cards")]], shinyjs::hide)
       shinyjs::hide(paste0(category, "_add_widget"))
@@ -1702,20 +1702,20 @@ mod_data_server <- function(id = character(), r = shiny::reactiveValues(), d = s
       
       # Add Toggles div
       
-      toggles_div <- div(
-        make_card("",
-          shiny.fluent::Stack(horizontal = TRUE, tokens = list(childrenGap = 10),
-            shiny.fluent::ActionButton.shinyInput(ns(paste0(category, "_add_widget_", tab_id)), i18n$t("new_widget"), iconProps = list(iconName = "Add"),
-              onClick = htmlwidgets::JS(paste0("item => Shiny.setInputValue('", id, "-", category, "_add_widget_trigger', Math.random())"))),
-            shiny.fluent::ActionButton.shinyInput(ns(paste0(category, "_edit_tab_", tab_id)), i18n$t("edit_tab"), iconProps = list(iconName = "Edit"),
-              onClick = htmlwidgets::JS(paste0("item => Shiny.setInputValue('", id, "-edit_tab_trigger', Math.random())"))),
-            div(style = "width:20px;")
-          )
-        )
-      )
+      # toggles_div <- div(
+      #   make_card("",
+      #     shiny.fluent::Stack(horizontal = TRUE, tokens = list(childrenGap = 10),
+      #       shiny.fluent::ActionButton.shinyInput(ns(paste0(category, "_add_widget_", tab_id)), i18n$t("new_widget"), iconProps = list(iconName = "Add"),
+      #         onClick = htmlwidgets::JS(paste0("item => Shiny.setInputValue('", id, "-", category, "_add_widget_trigger', Math.random())"))),
+      #       shiny.fluent::ActionButton.shinyInput(ns(paste0(category, "_edit_tab_", tab_id)), i18n$t("edit_tab"), iconProps = list(iconName = "Edit"),
+      #         onClick = htmlwidgets::JS(paste0("item => Shiny.setInputValue('", id, "-edit_tab_trigger', Math.random())"))),
+      #       div(style = "width:20px;")
+      #     )
+      #   )
+      # )
       
       insertUI(selector = paste0("#", ns("study_cards")), where = "beforeEnd", ui = uiOutput(ns(paste0(category, "_toggles_", tab_id))))
-      output[[paste0(category, "_toggles_", tab_id)]] <- renderUI(toggles_div)
+      # output[[paste0(category, "_toggles_", tab_id)]] <- renderUI(toggles_div)
       
       # If this is a sub-tab, change toggles div of parent tab also
       parent_tab_id <- r[[paste0(category, "_tabs")]] %>% dplyr::filter(id == tab_id) %>% dplyr::pull(parent_tab_id)
@@ -1723,18 +1723,18 @@ mod_data_server <- function(id = character(), r = shiny::reactiveValues(), d = s
         
         shinyjs::hide(paste0(category, "_toggles_", parent_tab_id))
         
-        parent_toggles_div <- div(
-          make_card("",
-            shiny.fluent::Stack(horizontal = TRUE, tokens = list(childrenGap = 10),
-              shiny.fluent::ActionButton.shinyInput(ns(paste0(category, "_edit_tab_", tab_id)), i18n$t("edit_tab"), iconProps = list(iconName = "Edit"),
-                onClick = htmlwidgets::JS(paste0("item => Shiny.setInputValue('", id, "-edit_tab_trigger', Math.random())"))),
-              div(shiny.fluent::MessageBar(i18n$t("tab_contains_sub_tabs"), messageBarType = 5), style = "margin-top:4px;")
-            )
-          )
-        )
+        # parent_toggles_div <- div(
+        #   make_card("",
+        #     shiny.fluent::Stack(horizontal = TRUE, tokens = list(childrenGap = 10),
+        #       shiny.fluent::ActionButton.shinyInput(ns(paste0(category, "_edit_tab_", tab_id)), i18n$t("edit_tab"), iconProps = list(iconName = "Edit"),
+        #         onClick = htmlwidgets::JS(paste0("item => Shiny.setInputValue('", id, "-edit_tab_trigger', Math.random())"))),
+        #       div(shiny.fluent::MessageBar(i18n$t("tab_contains_sub_tabs"), messageBarType = 5), style = "margin-top:4px;")
+        #     )
+        #   )
+        # )
         
         insertUI(selector = paste0("#", ns("study_cards")), where = "beforeEnd", ui = shinyjs::hidden(uiOutput(ns(paste0(category, "_toggles_", parent_tab_id)))))
-        output[[paste0(category, "_toggles_", parent_tab_id)]] <- renderUI(parent_toggles_div)
+        # output[[paste0(category, "_toggles_", parent_tab_id)]] <- renderUI(parent_toggles_div)
       }
       
       # Add toggles div to vector of cards
@@ -1754,9 +1754,9 @@ mod_data_server <- function(id = character(), r = shiny::reactiveValues(), d = s
     ## Edit a tab ----
     # --- --- --- -- -
     
-    observeEvent(input$edit_tab_trigger, {
+    observeEvent(input$edit_tab, {
       
-      if (debug) cat(paste0("\n", now(), " - mod_data - ", id, " - observer input$edit_tab_trigger"))
+      if (debug) cat(paste0("\n", now(), " - mod_data - ", id, " - observer input$edit_tab"))
       
       sapply(r[[paste0(category, "_opened_cards")]], shinyjs::hide)
       shinyjs::hide(paste0(category, "_add_widget"))
@@ -1832,9 +1832,8 @@ mod_data_server <- function(id = character(), r = shiny::reactiveValues(), d = s
     ## Show / hide widget creation card ----
     # --- --- --- --- --- --- --- --- --- --
     
-    # Code to make Add widget button work
-    observeEvent(input[[paste0(category, "_add_widget_trigger")]], {
-      if (debug) cat(paste0("\n", now(), " - mod_data - ", id, " - observer input$..add_widget_trigger"))
+    observeEvent(input$add_widget, {
+      if (debug) cat(paste0("\n", now(), " - mod_data - ", id, " - observer input$add_widget"))
       
       # Hide opened cards
       sapply(r[[paste0(category, "_opened_cards")]], shinyjs::hide)
@@ -1928,20 +1927,20 @@ mod_data_server <- function(id = character(), r = shiny::reactiveValues(), d = s
           
           shinyjs::hide(paste0(category, "_toggles_", parent_tab_id))
           
-          parent_toggles_div <- div(
-            make_card("",
-              shiny.fluent::Stack(horizontal = TRUE, tokens = list(childrenGap = 10),
-                shiny.fluent::ActionButton.shinyInput(ns(paste0(category, "_add_widget_", parent_tab_id)), i18n$t("new_widget"), iconProps = list(iconName = "Add"),
-                  onClick = htmlwidgets::JS(paste0("item => Shiny.setInputValue('", id, "-", category, "_add_widget_trigger', Math.random())"))),
-                shiny.fluent::ActionButton.shinyInput(ns(paste0(category, "_edit_tab_", parent_tab_id)), i18n$t("edit_tab"), iconProps = list(iconName = "Edit"),
-                  onClick = htmlwidgets::JS(paste0("item => Shiny.setInputValue('", id, "-edit_tab_trigger', Math.random())"))),
-                div(style = "width:20px;")
-              )
-            )
-          )
+          # parent_toggles_div <- div(
+          #   make_card("",
+          #     shiny.fluent::Stack(horizontal = TRUE, tokens = list(childrenGap = 10),
+          #       shiny.fluent::ActionButton.shinyInput(ns(paste0(category, "_add_widget_", parent_tab_id)), i18n$t("new_widget"), iconProps = list(iconName = "Add"),
+          #         onClick = htmlwidgets::JS(paste0("item => Shiny.setInputValue('", id, "-", category, "_add_widget_trigger', Math.random())"))),
+          #       shiny.fluent::ActionButton.shinyInput(ns(paste0(category, "_edit_tab_", parent_tab_id)), i18n$t("edit_tab"), iconProps = list(iconName = "Edit"),
+          #         onClick = htmlwidgets::JS(paste0("item => Shiny.setInputValue('", id, "-edit_tab_trigger', Math.random())"))),
+          #       div(style = "width:20px;")
+          #     )
+          #   )
+          # )
           
           insertUI(selector = paste0("#", ns("study_cards")), where = "beforeEnd", ui = uiOutput(ns(paste0(category, "_toggles_", parent_tab_id))))
-          output[[paste0(category, "_toggles_", parent_tab_id)]] <- renderUI(parent_toggles_div)
+          # output[[paste0(category, "_toggles_", parent_tab_id)]] <- renderUI(parent_toggles_div)
         }
       }
       
@@ -2700,18 +2699,18 @@ mod_data_server <- function(id = character(), r = shiny::reactiveValues(), d = s
         r[[paste0(category, "_opened_cards")]] <- c(r[[paste0(category, "_opened_cards")]], paste0(category, "_widget_", widget_id))
       })
       
-      toggles_div <- div(
-        make_card("",
-          shiny.fluent::Stack(horizontal = TRUE, tokens = list(childrenGap = 10),
-            shiny.fluent::ActionButton.shinyInput(ns(paste0(category, "_add_widget_", tab_id)), i18n$t("new_widget"), iconProps = list(iconName = "Add"),
-              onClick = htmlwidgets::JS(paste0("item => Shiny.setInputValue('", id, "-", category, "_add_widget_trigger', Math.random())"))),
-            shiny.fluent::ActionButton.shinyInput(ns(paste0(category, "_edit_tab_", tab_id)), i18n$t("edit_tab"), iconProps = list(iconName = "Edit"),
-              onClick = htmlwidgets::JS(paste0("item => Shiny.setInputValue('", id, "-edit_tab_trigger', Math.random())"))),
-            div(style = "width:20px;"),
-            toggles
-          )
-        )
-      )
+      # toggles_div <- div(
+      #   make_card("",
+      #     shiny.fluent::Stack(horizontal = TRUE, tokens = list(childrenGap = 10),
+      #       shiny.fluent::ActionButton.shinyInput(ns(paste0(category, "_add_widget_", tab_id)), i18n$t("new_widget"), iconProps = list(iconName = "Add"),
+      #         onClick = htmlwidgets::JS(paste0("item => Shiny.setInputValue('", id, "-", category, "_add_widget_trigger', Math.random())"))),
+      #       shiny.fluent::ActionButton.shinyInput(ns(paste0(category, "_edit_tab_", tab_id)), i18n$t("edit_tab"), iconProps = list(iconName = "Edit"),
+      #         onClick = htmlwidgets::JS(paste0("item => Shiny.setInputValue('", id, "-edit_tab_trigger', Math.random())"))),
+      #       div(style = "width:20px;"),
+      #       toggles
+      #     )
+      #   )
+      # )
       
       r[[paste0(category, "_opened_cards")]] <- c(r[[paste0(category, "_opened_cards")]], paste0(category, "_toggles_", tab_id))
       
@@ -2720,7 +2719,7 @@ mod_data_server <- function(id = character(), r = shiny::reactiveValues(), d = s
       
       # Add tab toggles UI
       # insertUI(selector = paste0("#", ns("study_cards")), where = "afterBegin", ui = uiOutput(ns(paste0(category, "_toggles_", tab_id))))
-      output[[paste0(category, "_toggles_", tab_id)]] <- renderUI(toggles_div)
+      # output[[paste0(category, "_toggles_", tab_id)]] <- renderUI(toggles_div)
       
       # Add widget UI
       insertUI(selector = paste0("#", ns("study_cards")), where = "beforeEnd", ui = uiOutput(ns(paste0(category, "_widget_", widget_id))))
@@ -2814,28 +2813,28 @@ mod_data_server <- function(id = character(), r = shiny::reactiveValues(), d = s
       })
       
       # Does this tab have sub-tabs ?
-      if (r[[paste0(category, "_tabs")]] %>% dplyr::filter(parent_tab_id == tab_id) %>% nrow() > 0) toggles_div <- div(
-        make_card("",
-          shiny.fluent::Stack(horizontal = TRUE, tokens = list(childrenGap = 10),
-            shiny.fluent::ActionButton.shinyInput(ns(paste0(category, "_edit_tab_", tab_id)), i18n$t("edit_tab"), iconProps = list(iconName = "Edit"),
-              onClick = htmlwidgets::JS(paste0("item => Shiny.setInputValue('", id, "-edit_tab_trigger', Math.random())"))),
-            div(shiny.fluent::MessageBar(i18n$t("tab_contains_sub_tabs"), messageBarType = 5), style = "margin-top:4px;")
-          )
-        )
-      )
-      
-      else toggles_div <- div(
-        make_card("",
-          shiny.fluent::Stack(horizontal = TRUE, tokens = list(childrenGap = 10),
-            shiny.fluent::ActionButton.shinyInput(ns(paste0(category, "_add_widget_", tab_id)), i18n$t("new_widget"), iconProps = list(iconName = "Add"),
-              onClick = htmlwidgets::JS(paste0("item => Shiny.setInputValue('", id, "-", category, "_add_widget_trigger', Math.random())"))),
-            shiny.fluent::ActionButton.shinyInput(ns(paste0(category, "_edit_tab_", tab_id)), i18n$t("edit_tab"), iconProps = list(iconName = "Edit"),
-              onClick = htmlwidgets::JS(paste0("item => Shiny.setInputValue('", id, "-edit_tab_trigger', Math.random())"))),
-            div(style = "width:20px;"),
-            toggles
-          )
-        )
-      )
+      # if (r[[paste0(category, "_tabs")]] %>% dplyr::filter(parent_tab_id == tab_id) %>% nrow() > 0) toggles_div <- div(
+      #   make_card("",
+      #     shiny.fluent::Stack(horizontal = TRUE, tokens = list(childrenGap = 10),
+      #       shiny.fluent::ActionButton.shinyInput(ns(paste0(category, "_edit_tab_", tab_id)), i18n$t("edit_tab"), iconProps = list(iconName = "Edit"),
+      #         onClick = htmlwidgets::JS(paste0("item => Shiny.setInputValue('", id, "-edit_tab_trigger', Math.random())"))),
+      #       div(shiny.fluent::MessageBar(i18n$t("tab_contains_sub_tabs"), messageBarType = 5), style = "margin-top:4px;")
+      #     )
+      #   )
+      # )
+      # 
+      # else toggles_div <- div(
+      #   make_card("",
+      #     shiny.fluent::Stack(horizontal = TRUE, tokens = list(childrenGap = 10),
+      #       shiny.fluent::ActionButton.shinyInput(ns(paste0(category, "_add_widget_", tab_id)), i18n$t("new_widget"), iconProps = list(iconName = "Add"),
+      #         onClick = htmlwidgets::JS(paste0("item => Shiny.setInputValue('", id, "-", category, "_add_widget_trigger', Math.random())"))),
+      #       shiny.fluent::ActionButton.shinyInput(ns(paste0(category, "_edit_tab_", tab_id)), i18n$t("edit_tab"), iconProps = list(iconName = "Edit"),
+      #         onClick = htmlwidgets::JS(paste0("item => Shiny.setInputValue('", id, "-edit_tab_trigger', Math.random())"))),
+      #       div(style = "width:20px;"),
+      #       toggles
+      #     )
+      #   )
+      # )
       
       r[[paste0(category, "_opened_cards")]] <- c(r[[paste0(category, "_opened_cards")]], paste0(category, "_toggles_", tab_id))
       
@@ -2846,7 +2845,7 @@ mod_data_server <- function(id = character(), r = shiny::reactiveValues(), d = s
       shinyjs::hide(paste0(category, "_edit_tab"))
       
       # Add tab toggles UI
-      output[[paste0(category, "_toggles_", tab_id)]] <- renderUI(toggles_div)
+      # output[[paste0(category, "_toggles_", tab_id)]] <- renderUI(toggles_div)
     })
   })
 }

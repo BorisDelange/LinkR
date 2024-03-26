@@ -102,6 +102,10 @@ mod_page_sidenav_ui <- function(id = character(), i18n = character()){
         )
       ),
       div(class = "extended_sidenav",
+        shiny.fluent::ActionButton.shinyInput(ns("add_tab"), i18n$t("add_tab"), iconProps = list(iconName = "Add")),
+        shiny.fluent::ActionButton.shinyInput(ns("edit_tab"), i18n$t("edit_tab"), iconProps = list(iconName = "Edit")),
+        shiny.fluent::ActionButton.shinyInput(ns("add_widget"), i18n$t("new_widget"), iconProps = list(iconName = "Add")),
+        hr(),
         dropdowns("subset"),
         br(), div(id = ns("hr1"), hr()),
         dropdowns(c("person", "visit_detail")),
@@ -128,6 +132,10 @@ mod_page_sidenav_ui <- function(id = character(), i18n = character()){
       )    
     ),
     div(class = "extended_sidenav",
+      shiny.fluent::ActionButton.shinyInput(ns("add_tab"), i18n$t("add_tab"), iconProps = list(iconName = "Add")),
+      shiny.fluent::ActionButton.shinyInput(ns("edit_tab"), i18n$t("edit_tab"), iconProps = list(iconName = "Edit")),
+      shiny.fluent::ActionButton.shinyInput(ns("add_widget"), i18n$t("new_widget"), iconProps = list(iconName = "Add")),
+      hr(),
       dropdowns(c("subset")),
       div(
         onclick = paste0("Shiny.setInputValue('", id, "-show_hide_sidenav', Math.random());"),
