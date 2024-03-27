@@ -770,8 +770,8 @@ mod_data_server <- function(id = character(), r = shiny::reactiveValues(), d = s
         shinyjs::show(paste0(category, "_no_tabs_to_display"))
       }
       
-      output$study_menu <- renderUI(tagList(
-        breadcrumbs, pivots
+      output$study_menu <- renderUI(div(
+        breadcrumbs, pivots,
         # div(
         #   pivots,
         #   shiny.fluent::Pivot(
@@ -782,7 +782,7 @@ mod_data_server <- function(id = character(), r = shiny::reactiveValues(), d = s
         #     )),
         #     selectedKey = NULL
         #   ),
-        #   style = "display:flex;"
+        style = "display:flex; justify-content:space-between; margin:5px 13px 0px 0px;"
         # )
       ))
       
@@ -891,7 +891,7 @@ mod_data_server <- function(id = character(), r = shiny::reactiveValues(), d = s
         
         # Add gridstack div
         gridstack_id <- paste0(category, "_gridstack_", tab_id)
-        gridstack_div <- div(id = ns(gridstack_id), class = "grid-stack")
+        gridstack_div <- div(id = ns(gridstack_id), class = "grid-stack", style = "margin-left:-18px;")
         
         hide_div <- TRUE
         if (!is.na(selected_tab)) if (tab_id == selected_tab) hide_div <- FALSE
@@ -1029,24 +1029,45 @@ mod_data_server <- function(id = character(), r = shiny::reactiveValues(), d = s
             # if (!is.na(selected_tab)) if (tab_id == selected_tab) hide_div <- FALSE
             # if (hide_div) style <- "display:none;"
             
+            # ui_output <- div(
+            #   id = ns(paste0(category, "_widget_", widget_id)),
+            #   make_shiny_ace_card("",
+            #     div(
+            #       div(id = ns(paste0(category, "_widget_plugin_ui_", widget_id)), code_ui),
+            #       div(
+            #         id = ns(paste0(category, "_widget_settings_remove_buttons_", widget_id)),
+            #         shiny.fluent::Stack(horizontal = TRUE, tokens = list(childrenGap = 2),
+            #           uiOutput(ns(paste0("additional_buttons_", widget_id))),
+            #           settings_widget_button,
+            #           actionButton(ns(paste0(category, "_remove_widget_", widget_id)), "", icon = icon("trash-alt"))
+            #         ),
+            #         style = "position:absolute; top:8px; right: 10px;"
+            #       )
+            #     ),
+            #     style = "position:relative;"
+            #   ),
+            #   style = "height:100%;"
+            # )
+            
             ui_output <- div(
               id = ns(paste0(category, "_widget_", widget_id)),
-              make_shiny_ace_card("",
-                div(
-                  div(id = ns(paste0(category, "_widget_plugin_ui_", widget_id)), code_ui),
-                  div(
-                    id = ns(paste0(category, "_widget_settings_remove_buttons_", widget_id)),
-                    shiny.fluent::Stack(horizontal = TRUE, tokens = list(childrenGap = 2),
-                      uiOutput(ns(paste0("additional_buttons_", widget_id))),
-                      settings_widget_button,
-                      actionButton(ns(paste0(category, "_remove_widget_", widget_id)), "", icon = icon("trash-alt"))
-                    ),
-                    style = "position:absolute; top:8px; right: 10px;"
-                  )
+              # make_shiny_ace_card("",
+              # div(
+              code_ui,
+              # div(id = ns(paste0(category, "_widget_plugin_ui_", widget_id)), code_ui),
+              div(
+                id = ns(paste0(category, "_widget_settings_remove_buttons_", widget_id)),
+                shiny.fluent::Stack(horizontal = TRUE, tokens = list(childrenGap = 2),
+                                    uiOutput(ns(paste0("additional_buttons_", widget_id))),
+                                    settings_widget_button,
+                                    actionButton(ns(paste0(category, "_remove_widget_", widget_id)), "", icon = icon("trash-alt"))
                 ),
-                style = "position:relative;"
+                style = "position:absolute; top:8px; right: 10px;"
               ),
-              style = "height:100%;"
+              # ),
+              # style = "position:relative;"
+              # ),
+              style = "height:100%; position:relative; background-color:white; margin:10px; padding:10px 20px 10px 20px; box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 3px 6px 0 rgba(0, 0, 0, 0.19);"
             )
             
             # ui_output <- uiOutput(ns(paste0(category, "_widget_", widget_id)))
