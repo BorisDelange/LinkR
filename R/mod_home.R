@@ -17,15 +17,13 @@ mod_home_ui <- function(id = character(), i18n = character()){
     # shiny.fluent::reactOutput(ns("help_panel")),
     # shiny.fluent::reactOutput(ns("help_modal")),
     div(
-      shiny.fluent::Breadcrumb(items = list(list(key = page, text = i18n$t("projects")))), br(),
+      div(shiny.fluent::Breadcrumb(items = list(list(key = page, text = i18n$t("projects")))), style = "margin-left:10px"),
       # shiny.fluent::Stack(
         # horizontal = TRUE, tokens = list(childrenGap = 18),
-        div(shiny.fluent::SearchBox.shinyInput(ns("search_project")), style = "width:370px; margin-left:10px;"),
+        div(shiny.fluent::SearchBox.shinyInput(ns("search_project")), style = "width:320px; margin:10px 0 0 10px;"),
         # div(shiny.fluent::PrimaryButton.shinyInput(ns("add_project"), text = i18n$t("create_project"))),
       # ), 
-      br(),
-      uiOutput(ns("projects")),
-      style = "margin-left:20px;"
+      uiOutput(ns("projects"))
     ),
     br()
   )
@@ -142,23 +140,26 @@ mod_home_server <- function(id = character(), r = shiny::reactiveValues(), d = s
       for (i in unique(projects$study_id)){
         row <- projects %>% dplyr::filter(study_id == i)
         
-        users_ui <- tagList()
+        personas <- list()
         study_users <- row %>% dplyr::filter(name == "user_allowed_read") %>% dplyr::distinct(value_num) %>% dplyr::pull(value_num)
         for (j in study_users){
           user <- r$projects_users %>% dplyr::filter(id == j)
-          users_ui <- tagList(users_ui, 
-            div(
-              id = ns(paste0("study_", i, "_user_", j)),
-              user$initials,
-              tags$span(
-                id = ns("bd-tooltip"),
-                style = "visibility:hidden; white-space:nowrap; position:fixed; background-color:white; color:black; padding:5px; border-radius:5px; box-shadow:0 5px 15px rgba(0,0,0,0.3); font-size:12px; font-weight:normal; z-index:1;",
-                user$name
-              ),
-              style = "position:relative; width:25px; height:25px; border-radius:50%; color:white; background-color:#95a5a6; font-size:12px; font-weight:bold; display:flex; justify-content:center; align-items:center;"
-            )
+          personas <- rlist::list.append(personas, 
+            list(personaName = user$name)
+            # div(
+            #   id = ns(paste0("study_", i, "_user_", j)),
+            #   user$initials,
+            #   tags$span(
+            #     id = ns("bd-tooltip"),
+            #     style = "visibility:hidden; white-space:nowrap; position:fixed; background-color:white; color:black; padding:5px; border-radius:5px; box-shadow:0 5px 15px rgba(0,0,0,0.3); font-size:12px; font-weight:normal; z-index:1;",
+            #     user$name
+            #   ),
+            #   style = "position:relative; width:25px; height:25px; border-radius:50%; color:white; background-color:#95a5a6; font-size:12px; font-weight:bold; display:flex; justify-content:center; align-items:center;"
+            # )
           )
         }
+        
+        users_ui <- shiny.fluent::Facepile(personas = personas)
         
         project_name <- row %>% dplyr::filter(name == paste0("name_", language)) %>% dplyr::pull(value)
         max_length <- 45
@@ -169,16 +170,12 @@ mod_home_server <- function(id = character(), r = shiny::reactiveValues(), d = s
             href = shiny.router::route_link("patient_level_data"),
             onClick = paste0("Shiny.setInputValue('", id, "-selected_project', ", i, ", {priority: 'event'});"),
             div(
-              span(project_name, style = "font-weight:bold; font-size:16px;"),
+              class = "project_card",
+              tags$h1(project_name),
+              users_ui,
               div(
-                users_ui,
-                style = "display:flex; gap:5px; margin-top:10px;"
-              ),
-              div(
-                "Short description of my study",
-                style = "margin-top:10px;"
-              ),
-              style = "width:350px; height:165px; box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19); margin:10px; padding:10px;"
+                "Short description of my study"
+              )
             ),
             class = "no-hover-effect"
           ),
@@ -186,7 +183,7 @@ mod_home_server <- function(id = character(), r = shiny::reactiveValues(), d = s
         )
       }
       
-      projects_ui <- div(projects_ui, style = "display:flex; flex-wrap:wrap; justify-content:flex-start; gap:15px;")
+      projects_ui <- div(projects_ui, class = "projects_container")
       
       output$projects <- renderUI(projects_ui)
     })

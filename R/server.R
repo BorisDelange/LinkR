@@ -244,9 +244,9 @@ app_server <- function(language = "en", languages = tibble::tibble(), i18n = cha
     })
     
     # Code style for help pages
-    r$code_style <- paste0("display:block; padding: 9.5px; margin: 0 10px 10px 0px; font-size:13px; line-height:1.42857143; color: #333; ",
-      "word-break: break-all; word-wrap: break-word; background-color:#f5f5f5; border: 1px solid #ccc; border-radius: 4px;",
-      "position:relative;")
+    # r$code_style <- paste0("display:block; padding: 9.5px; margin: 0 10px 10px 0px; font-size:13px; line-height:1.42857143; color: #333; ",
+    #   "word-break: break-all; word-wrap: break-word; background-color:#f5f5f5; border: 1px solid #ccc; border-radius: 4px;",
+    #   "position:relative;")
     
     # Route pages
     if (debug) cat(paste0("\n", now(), " - server - shiny.router"))

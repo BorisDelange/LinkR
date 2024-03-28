@@ -45,16 +45,7 @@ app_ui <- function(request, css, language, languages, i18n = character(), users_
       # Pages without sidenav
       if (page %in% c("home", "plugins_patient_lvl", "plugins_aggregated")) shiny.router::route(page_url,
         div(
-          style = paste0(
-            "display: grid;",
-            "grid-template-columns: 60px 240px 1fr;",
-            "grid-template-rows: 54px 1fr 45px;",
-            "grid-template-areas:",
-            "\"header header header\" ",
-            "\"sidenav main main\" ",
-            "\"footer footer footer\";",
-            "height: 100vh;"
-          ),
+          class = "grid-container-without-sidenav",
           mod_page_header_ui(id = page, i18n = i18n),
           mod_page_sidenav_ui(id = page, i18n = i18n),
           mod_page_main_ui(id = page, language = language, languages = languages, i18n = i18n, users_accesses_toggles_options = users_accesses_toggles_options),
@@ -69,7 +60,7 @@ app_ui <- function(request, css, language, languages, i18n = character(), users_
   # Secure page with ShinyManager
   # shinymanager::secure_app(
     tagList(
-      golem_add_external_resources(css),
+      golem_add_external_resources(),
       shiny.fluent::fluentPage(page)
     )#,
     # enable_admin = FALSE, language = tolower(language), fab_position = "none"
@@ -86,7 +77,7 @@ app_ui <- function(request, css, language, languages, i18n = character(), users_
 #' @importFrom golem add_resource_path activate_js favicon bundle_resources
 #' @noRd
 
-golem_add_external_resources <- function(css){
+golem_add_external_resources <- function(){
   
   add_resource_path('www', app_sys('app/www'))
   
@@ -99,8 +90,8 @@ golem_add_external_resources <- function(css){
       path = app_sys('app/www'),
       app_title = 'LinkR'
     ),
-    # Link to CSS file
-    tags$link(href = css, rel = "stylesheet", type = "text/css"),
+    tags$link(href = "style.css", rel = "stylesheet", type = "text/css"),
+    tags$link(href = "fluent_style.css", rel = "stylesheet", type = "text/css"),
     
     # Add gridstacks.js
     tags$link(rel = "stylesheet", href = "https://cdnjs.cloudflare.com/ajax/libs/gridstack.js/10.1.0/gridstack.min.css"),
@@ -148,18 +139,16 @@ golem_add_external_resources <- function(css){
     # Shinyjs is used to show and hide message bars
     shinyjs::useShinyjs(),
     
-    # marker_div,
-    
     # Shinybusy is used to add a busy bar on top of the page, when there are loading times
     shinybusy::add_busy_bar(timeout = 1000, color = "#0D98FF", height = "3px"),
     
     # A function to make info button works, on the header
-    tags$script(
-      "$(function() {
-          $('.ms-Button--commandBar').on('click', function() {
-            Shiny.setInputValue('header_active_page', $(this).attr('id'));
-          })
-        })"
-    )
+    # tags$script(
+    #   "$(function() {
+    #       $('.ms-Button--commandBar').on('click', function() {
+    #         Shiny.setInputValue('header_active_page', $(this).attr('id'));
+    #       })
+    #     })"
+    # )
   )
 }

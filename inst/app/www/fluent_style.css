@@ -1,310 +1,111 @@
-.header {
-  grid-area: header;
-  background-color: #fff;
-  display: flex;
+.ms-TextField, .ms-Dropdown, .ms-ComboBox, .ms-Toggle, .ms-Button, .ms-Facepile, .msSearchBox {
+  margin: 6px 0px;
 }
-
-.title {
-  padding: 2px 10px 0px 10px;
-  color: #737373;
-  margin: 10px 0px 0px 0px;
-  width: 160px;
+.ms-SearchBox-field {
+  font-size: 12px;
+  height: 20px;
 }
-
-.logo {
-  margin: 15px 0px 0px 25px;
+.ms-SearchBox {
+  height: 25px;
 }
-
-.link_image_container:hover {
-  background-color: #f0f0f0; /* Couleur de fond grisé */
+.ms-SearchBox-icon {
+  font-size: 12px;
 }
-
-.link_image_container {
+.ms-SearchBox-clearButton .ms-Icon {
+  font-size: 12px;
+}
+.ms-SearchBox-clearButton {
+  width: 20px;
+  height: 22px; 
   display: flex;
   align-items: center;
   justify-content: center;
-  height: 35px;
-  width: 32px;
-  padding: 3px 3px 0px 3px;
-  margin: 8px 0px 3px 0px;
-  z-index:10;
 }
-
-.header_left_bar {
-  margin: 5px 0px 0px -15px;
-  z-index:5;
+.ms-Button {
+  padding: 5px 5px;
+  height: 25px;
+  font-size: 12px;
+  min-width: 0px;
 }
-
-.header_right_bar {
-  position: absolute;
-  right: 27px;
-  top: 14px;
+.ms-Icon {
+  font-size: 14px;
 }
-
-.header_center_bar {
-  margin: 11px 0px 0px 0px;
+.ms-TextField-fieldGroup {
+  height: 25px;
 }
-
-body {
-  background-color: rgba(225, 223, 221, 0.2);
-  min-height: 600px;
+.ms-TextField-field {
+  font-size: 12px;
+}
+.ms-Toggle-background {
+  width: 35px;
+  height: 18px;
+}
+.ms-Toggle-background:after {
+  line-height: 20px;
+}
+.ms-Breadcrumb-itemLink, .ms-Breadcrumb-item {
+  font-size: 16px;
+  padding: 4px 6px;
+  height: auto;
+  line-height: 1;
+}
+.ms-Dropdown-container .ms-Dropdown, .ms-ComboBox-container .ms-ComboBox {
+  height: 25px;
+  line-height: 25px;
+}
+.ms-ComboBox-container .ms-ComboBox-Input {
+    font-size: 12px;
+    height: 25px;
+    line-height: 25px;
+}
+.ms-Dropdown-container .ms-Dropdown-title {
+  font-size: 12px;
+}
+.ms-ComboBox-option {
+    height: 25px;
+    min-height: 25px;
+    line-height: 25px;
+    margin: 0;
+}
+.ms-ComboBox .ms-Button.ms-ComboBox-CaretDown-button {
+    height: 25px;
+    margin-top: 0;
+}
+.ms-Dropdown-caretDownWrapper {
+  height: 25px;
+  display: flex;
+  align-items: center;
+}
+.ms-Dropdown-title {
+  height: 25px;
+  min-height: 25px;
+  line-height: 25px;
+}
+.ms-Dropdown-item .ms-Button-flexContainer {
+  align-items: center;
+  height: 100%;
+}
+.ms-Dropdown-items .ms-Dropdown-item {
+  height: 25px;
+  min-height: 25px;
+  line-height: 25px;
   margin: 0;
 }
-
-.grid-container {
-  display: grid;
-  grid-template-columns: 60px 240px 1fr;
-  grid-template-rows: 54px 1fr 45px;
-  grid-template-areas:
-    "header header header"
-    "sidenav sidenav main"
-    "footer footer footer";
-  height: 100vh;
+.ms-Facepile .ms-Persona-initials {
+  font-size: 12px;
+  height: 24px;
+  width: 24px;
+  line-height: 24px;
+  margin: 8px 0px;
 }
-
-.main {
-  grid-area: main;
-  background-color: #faf9f8;
-  padding-left: 0px;
-  padding-right: 30px;
-  max-width: calc(100% - 40px);
-  overflow: auto;
-  position:relative;
+.ms-Persona-imageArea {
+  width: 24px;
 }
-
-.footer {
-  grid-area: footer;
-  background-color: #f3f2f1;
-  padding: 12px 20px;
-}
-
-.main_right_side {
-  position: absolute;
-  right: 0;
-  width: 100%;
-}
-
-.sidenav {
-  grid-area: sidenav;
-  height: 100%;
-  position: relative;
-}
-
-.extended_sidenav {
-  grid-area: sidenav;
-  background-color: #fff;
-  padding: 10px 20px 20px 20px;
-  width: 240px;
-  height: calc(100% - 30px);
-  position: absolute;
-  left: 0;
-}
-
-.reduced_sidenav {
-  grid-area: sidenav;
-  background-color: white;
-  display: none;
-  width: 65px;
-  height: 100%;
-  position: absolute;
-  right: 0;
-}
-
-.page-title {
-  padding: 52px 0px;
-}
-
-.card {
-  background: #fff;
-  padding: 20px;
-  margin: 10px 0px 0px 0px;
-  border-radius: 2px;
-  background-clip: padding-box;
-  max-width: calc(100% - 40px);
-}
-
-/* Search column in datatable, with type is factor */
-td[data-type="factor"] input {
-  width: 200px !important;
-}
-
-.input_title_first {
-  margin: 0px 0px 10px 0px;
-  font-weight: bold;
-}
-
-.input_title {
-  margin: 10px 0px 10px 0px;
-  font-weight: bold;
-}
-
-.toggle_title {
-  font-weight: bold; 
-  margin-right: 30px;
-}
-
-.inline_choicegroup .ms-ChoiceField {
-  display: inline-block;
-  padding: 0px 20px 0px 0px;
-  font-weight: bold;
-}
-
-.block_choicegroup .ms-ChoiceField {
-  font-weight: bold;
-}
-
-.router-hidden {
-  display: none;
-}
-
-.datatable_length {
-  float: right;
-  margin-left: 10px;
-}
-
-a, a:visited {
-  color:#000000;
-}
-
-a:hover {
-  color: #129AFD;
-}
-
-.vocabulary_table table tbody td {
-  height:15px;
-  white-space: nowrap;
-}
-
-.vocabulary_table table tbody td div{
-  height:18px;
-  word-wrap:break-word;
-  position:relative;
-  top:-4px;
-}
-
-.colour1{background-color:#f94144;}
-.colour2{background-color:#277da1;}
-.colour3{background-color:#f9c74f;}
-.colour4{background-color:#f3722c;}
-.colour5{background-color:#577590;}
-.colour6{background-color:#90be6d;}
-.colour7{background-color:#f8961e;}
-.colour8{background-color:#4d908e;}
-.colour9{background-color:#f9844a;}
-.colour10{background-color:#43aa8b;}
-.colour11{background-color:#168aad;}
-.colour12{background-color:#ff4d6d;}
-
-/*.markdown pre code {
+.ms-CommandBar {
   padding: 0;
-  font-size: inherit;
-  color: inherit;
-  white-space: pre-wrap;
   background-color: transparent;
-  border-radius: 0;
-}*/
-
-pre code {
-  border-radius: 5px;
 }
-
-.help_code {
-  position: relative;
-  display: block;
-}
-.help_copy_button:hover {
-  color: black;
-}
-.help_copy_button {
-  position: absolute;
-  top: 10px;
-  right: 10px;
-  color: white;
-}
-
-.message_bars {
-  overflow-y: scroll; 
-  width: 100%;
-  position: fixed; 
-  z-index: 100;
-}
-
-.message_bar_container {
-  position: relative;
-  margin-top: 10px;
-  width: calc(100% - 330px);
-  height: 35px;
-  z-index: 1;
-}
-
-.message_bar {
-  width: 100%;
-  height: 100%;
-}
-
-.message_bar_close_button {
-  position: absolute;
-  top: 0px;
-  right: 0px;
-  z-index: 2;
-}
-
-a.no-hover-effect {
-  color: black;
-  text-decoration: none;
-}
-
-a.no-hover-effect:hover {
-  color: black;
-}
-
-.button_hide_sidenav {
-  width: 0;
-  height: 0;
-  border-top: 30px solid transparent;
-  border-bottom: 30px solid transparent;
-  border-left: 13px solid #e7e7e7;
-  margin-right: -10px;
-  z-index:3;
-  position: absolute;
-  top: 50%;
-  right: -3px;
-  cursor: pointer;
-}
-
-.button_hide_sidenav:hover {
-  border-left: 13px solid #ABABAB;
-}
-
-.button_show_sidenav {
-  width: 0;
-  height: 0;
-  border-top: 30px solid transparent;
-  border-bottom: 30px solid transparent;
-  border-right: 13px solid #e7e7e7;
-  margin-right: -10px;
-  z-index:3;
-  position: absolute;
-  top: 50%;
-  right: 10px;
-  cursor: pointer;
-}
-
-.button_show_sidenav:hover {
-  border-right: 13px solid #ABABAB;
-}
-
-.datatable_link {
-  font-weight: bold;
-  color: #0078D4;
-  text-decoration: none;
-}
-
-.datatable_link:hover {
-  text-decoration: underline;
-  color: #0062AD;
-}
-
-.datatable_link:visited {
-  color: #0078D4;
+.ms-Pivot .ms-Button {
+  height: 30px;
+  padding: 10px;
 }

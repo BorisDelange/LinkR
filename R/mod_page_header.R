@@ -12,19 +12,7 @@ mod_page_header_ui <- function(id = character(), i18n = character()){
   
   ns <- NS(id)
   
-  if (id == "home"){
-    console_input <- ""
-  #   title_div <- ""
-  }
-  else {
-    console_input <- shiny.fluent::CommandBarButton.shinyInput(ns("console"), iconProps = list("iconName" = "Code"))
-  #   title_div <- div(
-  #     shiny.fluent::Text(variant = "xLarge", "LinkR"),
-  #     class = "title",
-  #     style = "cursor: pointer;",
-  #     onclick = paste0("window.location.href='", shiny.router::route_link("/"), "';")
-  #   )
-  }
+  console_input <- shiny.fluent::CommandBarButton.shinyInput(ns("console"), iconProps = list("iconName" = "Code"))
   
   if (id %in% c("home", "settings_datasets", "settings_vocabularies", "plugins_patient_lvl", "plugins_aggregated", "scripts")){
     command_bar <- div(
@@ -48,22 +36,15 @@ mod_page_header_ui <- function(id = character(), i18n = character()){
           # Discover
           shiny.fluent::CommandBarItem("", "World")
         )
-      ),
-      style = "position:relative; z-index:1; margin-right:35px;"
+      )
     )
-    
-    sidenav_button <- ""
   }
   
   else {
     command_bar <- tagList(
       tags$a(
-        href = shiny.router::route_link("/"),
-        div(
-          uiOutput(ns("selected_project")),
-          style = paste0("background-color:#0084D8; color:white; font-weight:bold; border-radius:5px; ",
-            "padding:3px 8px 3px 8px; height:20px; margin:10px 0px 0px 25px; dispaly:inline-block; width:195px; text-align:center;")
-        ),
+        href = shiny.router::route_link("patient_level_data"),
+        div(uiOutput(ns("selected_project")), class = "selected_project_div"),
         style = "z-index:2; text-decoration:none; margin-left:-28px;",
       ),
       div(
@@ -108,19 +89,9 @@ mod_page_header_ui <- function(id = character(), i18n = character()){
             # shiny.fluent::CommandBarItem("", "Cloud")
           )
         ),
-        style = "display:inline-block; margin-left:-15px; z-index:1;"
+        style = "display:inline-block; margin-left:8px;"
       )
     )
-    
-    # sidenav_button <- div(
-    #   tags$a(
-    #     tags$img(src = "www/sidebar.png", style = "width:16px; height:auto; display:block; margin-top:8px; margin-left:8px;"), 
-    #     href = "javascript:void(0);", 
-    #     onclick = paste0("event.preventDefault(); Shiny.setInputValue('", id, "-show_hide_sidenav', Math.random()); return false;"),
-    #     style = "display: block; width:100%; height:100%;"
-    #   ), 
-    #   class = "link_image_container"
-    # )
   }
   
   div(
@@ -170,9 +141,8 @@ mod_page_header_ui <- function(id = character(), i18n = character()){
       )
     ),
     div(
-      htmltools::img(src = "www/logo.png", style = "height:25px; margin-left:-10px;"),
+      htmltools::img(src = "www/logo.png"),
       class = "logo",
-      style = "cursor:pointer; z-index:10; position:relative; width:65px; display:flex; justify-content:center; margin-left:5px; margin-right:8px;",
       onclick = paste0("window.location.href='", shiny.router::route_link("/"), "';")
     ),
     # title_div,
@@ -197,21 +167,21 @@ mod_page_header_ui <- function(id = character(), i18n = character()){
         #   )
         # ),
         command_bar,
-        uiOutput(ns("current_page"), style = "font-weight:bold; margin-top:12px; display:inline-block;"),
+        uiOutput(ns("current_page"), class = "current_page"),
         style = "display:flex;"
       )
     ),
     div(class = "header_right_bar",
-        shiny.fluent::Stack(horizontal = TRUE, tokens = (childrenGap = 0),
-          uiOutput(ns("user")),
+        # shiny.fluent::Stack(horizontal = TRUE, tokens = (childrenGap = 0),
+        #   uiOutput(ns("user")),
       # shiny.fluent::Stack(horizontal = TRUE, tokens = (childrenGap = 0),
       #   shiny.fluent::CommandBar(),
       #   div(uiOutput(ns("username")), style = "font-weight:bold; padding: 12px 10px 0px 0px;"),
-          console_input
+          # console_input
       #   shiny.fluent::CommandBarButton.shinyInput(ns("help"), iconProps = list("iconName" = "Help")),
       #   shiny.fluent::CommandBarButton.shinyInput("settings", iconProps = list("iconName" = "Settings"), href = shiny.router::route_link("settings/general_settings")),
       #   shiny.fluent::CommandBarButton.shinyInput(".shinymanager_logout", iconProps = list("iconName" = "PowerButton"))
-      )
+      # )
     )
   )
 }

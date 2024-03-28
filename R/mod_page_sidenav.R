@@ -20,7 +20,8 @@ mod_page_sidenav_ui <- function(id = character(), i18n = character()){
     div(
       class = "sidenav",
       div(class = "reduced_sidenav"),
-      div(class = "extended_sidenav")
+      # div(class = "extended_sidenav")
+      style = "border-right: solid 1px #ccc;"
     ) -> result
   }
 
