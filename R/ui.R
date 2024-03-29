@@ -25,8 +25,8 @@ app_ui <- function(request, css, language, languages, i18n = character(), users_
     "patient_level_data", 
     "aggregated_data",
     "plugins",
-    "plugins_patient_lvl",
-    "plugins_aggregated",
+    # "plugins_patient_lvl",
+    # "plugins_aggregated",
     "settings/general_settings",
     "settings/app_db",
     "settings/git",
@@ -43,7 +43,7 @@ app_ui <- function(request, css, language, languages, i18n = character(), users_
       if (page_url == "/") page <- "home" else page <- page_url
       
       # Pages without sidenav
-      if (page %in% c("home", "plugins_patient_lvl", "plugins_aggregated")) shiny.router::route(page_url,
+      if (page %in% c("home")) shiny.router::route(page_url,
         div(
           class = "grid-container-without-sidenav",
           mod_page_header_ui(id = page, i18n = i18n),
@@ -140,15 +140,6 @@ golem_add_external_resources <- function(){
     shinyjs::useShinyjs(),
     
     # Shinybusy is used to add a busy bar on top of the page, when there are loading times
-    shinybusy::add_busy_bar(timeout = 1000, color = "#0D98FF", height = "3px"),
-    
-    # A function to make info button works, on the header
-    # tags$script(
-    #   "$(function() {
-    #       $('.ms-Button--commandBar').on('click', function() {
-    #         Shiny.setInputValue('header_active_page', $(this).attr('id'));
-    #       })
-    #     })"
-    # )
+    shinybusy::add_busy_bar(timeout = 1000, color = "#0D98FF", height = "3px")
   )
 }

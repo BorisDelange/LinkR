@@ -18,16 +18,13 @@ body {
 }
 
 .logo {
-  margin: 8px 8px 0px 5px;
+  margin: 10px 8px 0px 0px;
   cursor: pointer;
-  z-index: 10;
-  position: relative;
   width: 50px;
   height: 20px;
   display: flex;
   justify-content: center;
-  margin-left: 5px;
-  margin-right: 8px;
+  z-index: 10;
 }
 
 .link_image_container:hover {
@@ -57,7 +54,7 @@ body {
 }
 .grid-container {
   display: grid;
-  grid-template-columns: 60px 240px 1fr;
+  grid-template-columns: 50px 200px 1fr;
   grid-template-rows: 40px 1fr 35px;
   grid-template-areas:
     "header header header"
@@ -67,7 +64,7 @@ body {
 }
 .grid-container-without-sidenav {
   display: grid;
-  grid-template-columns: 60px 240px 1fr;
+  grid-template-columns: 50px 200px 1fr;
   grid-template-rows: 40px 1fr 35px;
   grid-template-areas:
     "header header header"
@@ -110,7 +107,7 @@ body {
 .extended_sidenav {
   grid-area: sidenav;
   padding: 10px 20px 20px 20px;
-  width: 240px;
+  width: 200px;
   height: calc(100% - 30px);
   position: absolute;
   left: 0;
@@ -151,7 +148,6 @@ td[data-type="factor"] input {
 }
 
 .input_title {
-  margin: 10px 0px 10px 0px;
   font-weight: bold;
   font-size: 12px;
 }
@@ -261,8 +257,8 @@ a.no-hover-effect:hover {
   height: 0;
   border-top: 30px solid transparent;
   border-bottom: 30px solid transparent;
-  border-left: 13px solid #e7e7e7;
-  margin-right: -10px;
+  border-right: 13px solid #D8D8D8;
+  margin-right: 3px;
   z-index:3;
   position: absolute;
   top: 50%;
@@ -271,7 +267,7 @@ a.no-hover-effect:hover {
 }
 
 .button_hide_sidenav:hover {
-  border-left: 13px solid #ABABAB;
+  border-right: 13px solid #BDBDBD;
 }
 
 .button_show_sidenav {
@@ -279,8 +275,8 @@ a.no-hover-effect:hover {
   height: 0;
   border-top: 30px solid transparent;
   border-bottom: 30px solid transparent;
-  border-right: 13px solid #e7e7e7;
-  margin-right: -10px;
+  border-left: 13px solid #D8D8D8;
+  margin-right: -23px;
   z-index:3;
   position: absolute;
   top: 50%;
@@ -289,7 +285,7 @@ a.no-hover-effect:hover {
 }
 
 .button_show_sidenav:hover {
-  border-right: 13px solid #ABABAB;
+  border-left: 13px solid #BDBDBD;
 }
 
 .datatable_link {
@@ -306,27 +302,31 @@ a.no-hover-effect:hover {
 .datatable_link:visited {
   color: #0078D4;
 }
-
-.selected_project_div {
+.selected_project_container, .selected_plugin_container {
+  width: 196px;
+  display: flex;
+  justify-content: center;
+  margin-left: 16px;
+}
+.selected_project, .selected_plugin {
   background-color: #0084D8;
   color: white;
   font-weight: bold;
   font-size: 12px;
   border-radius: 5px;
-  padding: 1px;
-  height: 20px;
-  margin: 8px 19px 0px 25px;
-  width: 210px;
+  padding: 5px 10px;
+  margin: 8px 0px;
   text-align: center;
+  line-height: 16px;
 }
 
-.projects_container {
+.projects_container, .plugins_container {
   display: flex;
   flex-wrap: wrap;
   justify-content: flex-start;
   gap: 10px;
 }
-.project_card {
+.project_card, .plugin_card {
   width: 300px;
   height: 150px;
   box-shadow: 0 2px 4px 0 rgba(0, 0, 0, 0.2), 0 3px 10px 0 rgba(0, 0, 0, 0.19);
@@ -334,9 +334,10 @@ a.no-hover-effect:hover {
   padding: 2px 10px 2px 10px;
   font-size: 12px;
 }
-.project_card h1 {
+.project_card h1, .plugin_card h1 {
   font-weight: bold;
   font-size: 14px;
+  margin-bottom: 0px;
 }
 .current_page {
   font-size: 12px;
@@ -346,4 +347,70 @@ a.no-hover-effect:hover {
 .btn {
   font-size: 10px;
   height: 20px;
+}
+.sidenav_top {
+  display: flex;
+  height: 25px;
+}
+.active-file {
+  margin: 10px;
+}
+.directory-browser {
+  margin-top: 10px;
+  padding-bottom: 5px;
+  display: flex;
+  font-size: 12px;
+  overflow-y: auto;
+  border-bottom: solid 1px #ccc;
+}
+.directory-sep {
+  padding: 3px 0px;
+}
+.file-browser {
+  margin-top: 10px;
+  height: 100%;
+  overflow-y: auto;
+  font-size: 12px;
+}
+.files-list {
+   list-style: none;
+   padding: 0;
+   margin: 0;
+}
+.file-item, .directory-item {
+  padding: 3px 5px;
+  cursor: pointer;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  height: 15px;
+}
+.file-item-title {
+  display: flex;
+  align-items: center;
+}
+.file-item-icons {
+  display: flex;
+  align-items: center;
+}
+.file-item-icons .small_icon_button .ms-Button-icon:hover {
+  color: #61AEF9;
+}
+.file-item:hover, .directory-item:hover {
+  background-color: #f0f0f0; 
+}
+.small_textfield .ms-TextField-fieldGroup {
+  height: 20px;
+}
+.small_textfield .ms-TextField-field {
+  font-size: 12px;
+}
+.small_textfield .ms-TextField-errorMessage {
+  font-size: 12px;
+  padding-top: 0px;
+}
+.fa-folder, .fa-file {
+  margin-right: 5px;
+  width: 15px;
+  color:#505050;
 }

@@ -312,43 +312,6 @@ mod_my_studies_server <- function(id = character(), r = shiny::reactiveValues(),
     
     observeEvent(r$show_message_bar, show_message_bar(output, r$show_message_bar$message, r$show_message_bar$type, i18n = i18n, ns = ns))
     
-    # --- --- --- --- --- ---
-    # Help for this page ----
-    # --- --- --- --- --- ---
-    
-    observeEvent(input$help, if (id == shiny.router::get_page() %>% stringr::str_replace_all("/", "_")) r$help_my_studies_open_panel <- TRUE)
-    observeEvent(input$hide_panel, r$help_my_studies_open_panel <- FALSE)
-    
-    r$help_my_studies_open_panel_light_dismiss <- TRUE
-    observeEvent(input$show_modal, r$help_my_studies_open_modal <- TRUE)
-    observeEvent(input$hide_modal, {
-      r$help_my_studies_open_modal <- FALSE
-      r$help_my_studies_open_panel_light_dismiss <- TRUE
-    })
-    
-    observeEvent(shiny.router::get_page(), {
-      if (debug) cat(paste0("\n", now(), " - mod_my_studies - ", id, " - observer shiny_router::change_page"))
-    # 
-    #   # Close help pages when page changes
-    #   r$help_my_studies_open_panel <- FALSE
-    #   r$help_my_studies_open_modal <- FALSE
-      
-      # Load Export studies page, to load DT (doesn't update with other DT if not already loaded once)
-      if (shiny.router::get_page() == "my_studies" & length(r$studes_page_loaded) == 0 & length(r$selected_dataset) > 0){
-        sapply(c("studies_datatable_card", "export_study_card"), function(card) if (card %in% r$user_accesses) shinyjs::show(card))
-        shinyjs::delay(500, sapply(c("studies_datatable_card", "export_study_card"), shinyjs::hide))
-        r$studes_page_loaded <- TRUE
-      }
-    })
-    
-    sapply(1:10, function(i){
-      observeEvent(input[[paste0("help_page_", i)]], r[[paste0("help_my_studies_page_", i)]] <- now())
-    })
-    
-    help_my_studies(output = output, r = r, id = id, language = language, i18n = i18n, ns = ns)
-    
-    observeEvent(input$copy_code_1, r$help_my_studies_copy_code_1 <- now())
-    
     # --- --- --- --- --- -
     # Update dropdowns ----
     # --- --- --- --- --- -

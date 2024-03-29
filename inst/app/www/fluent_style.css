@@ -1,9 +1,18 @@
-.ms-TextField, .ms-Dropdown, .ms-ComboBox, .ms-Toggle, .ms-Button, .ms-Facepile, .msSearchBox {
+.ms-TextField, .ms-Dropdown, .ms-ComboBox, .ms-Toggle, .ms-Button, .ms-SearchBox, .ms-MessageBar {
   margin: 6px 0px;
 }
-.ms-SearchBox-field {
+.ms-ContextualMenu-linkContent {
+  height: 25px;
+  line-height: 25px;
   font-size: 12px;
-  height: 20px;
+}
+.ms-ContextualMenu-item {
+  height: 25px;
+  line-height: 25px;
+  font-size: 12px;
+}
+.ms-ContextualMenu-icon {
+  font-size: 14px;
 }
 .ms-SearchBox {
   height: 25px;
@@ -35,6 +44,10 @@
 }
 .ms-TextField-field {
   font-size: 12px;
+}
+.ms-TextField-errorMessage {
+  font-size: 12px;
+  padding-top: 0px;
 }
 .ms-Toggle-background {
   width: 35px;
@@ -105,7 +118,40 @@
   padding: 0;
   background-color: transparent;
 }
+.ms-Button--commandBar .ms-Button-menuIcon {
+  display: none;
+}
+.ms-ContextualMenu-link {
+  background-color: white;
+  font-size: 12px;
+  height: 25px;
+}
+.ms-ContextualMenu-link:hover {
+  background-color: #ECEBE9;
+  color: #61AEF9;
+}
 .ms-Pivot .ms-Button {
   height: 30px;
   padding: 10px;
+}
+.ms-MessageBar {
+  height: 25px;
+  min-height: 0;
+  display: flex;
+  justify-content: center;
+}
+.ms-MessageBar-icon {
+  font-size: 12px;
+  margin-top: 10px;
+}
+.ms-MessageBar-innerText {
+  font-size: 12px;
+}
+.small_icon_button .ms-Button-icon {
+  font-size: 12px;
+  color: black;;
+}
+.small_icon_button .ms-Button {
+  width: 24px;
+  height: 24px
 }

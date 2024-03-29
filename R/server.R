@@ -266,14 +266,14 @@ app_server <- function(language = "en", languages = tibble::tibble(), i18n = cha
       # Get authorized data ----
       # --- --- --- --- --- -- -
       
-      sapply(c("datasets", "plugins", "git_repos"), function(table){
-        if (paste0(table, "_see_all_data") %not_in% r$user_accesses){
-          if (nrow(r[[table]]) > 0){
-            r[[table]] <- get_authorized_data(r = r, table = table)
-            r[[paste0(table, "_temp")]] <- r[[table]] %>% dplyr::mutate(modified = FALSE)
-          }
-        }
-      })
+      # sapply(c("datasets", "plugins", "git_repos"), function(table){
+      #   if (paste0(table, "_see_all_data") %not_in% r$user_accesses){
+      #     if (nrow(r[[table]]) > 0){
+      #       r[[table]] <- get_authorized_data(r = r, table = table)
+      #       r[[paste0(table, "_temp")]] <- r[[table]] %>% dplyr::mutate(modified = FALSE)
+      #     }
+      #   }
+      # })
       
       # --- --- --- --- --- -- -
       # Load server tabs ----
@@ -331,6 +331,9 @@ app_server <- function(language = "en", languages = tibble::tibble(), i18n = cha
       #   mod_page_sidenav_server(page, r, d, m, i18n, language, perf_monitoring, debug)
       #   mod_page_header_server(page, r, d, m, language, i18n, perf_monitoring, debug)
       # })
+      mod_plugins_server("plugins", r, d, m, language, i18n, perf_monitoring, debug)
+      mod_page_sidenav_server("plugins", r, d, m, i18n, language, perf_monitoring, debug)
+      mod_page_header_server("plugins", r, d, m, language, i18n, perf_monitoring, debug)
       
       # if (perf_monitoring) monitor_perf(r = r, action = "stop", task = "server - load server tabs - plugins")
       # if (debug) cat(paste0("\n", now(), " - server - load server tabs - general_settings"))

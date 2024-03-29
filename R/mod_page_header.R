@@ -14,7 +14,7 @@ mod_page_header_ui <- function(id = character(), i18n = character()){
   
   console_input <- shiny.fluent::CommandBarButton.shinyInput(ns("console"), iconProps = list("iconName" = "Code"))
   
-  if (id %in% c("home", "settings_datasets", "settings_vocabularies", "plugins_patient_lvl", "plugins_aggregated", "scripts")){
+  if (id %in% c("home", "settings_datasets", "settings_vocabularies", "plugins", "scripts")){
     command_bar <- div(
       shiny.fluent::CommandBar(
         items = list(
@@ -29,7 +29,7 @@ mod_page_header_ui <- function(id = character(), i18n = character()){
           # Develop
           shiny.fluent::CommandBarItem("", "CodeEdit",
             subMenuProps = list(items = list(
-              list(text = i18n$t("plugins"), iconProps = list(iconName = "Code"), href = shiny.router::route_link("plugins_patient_lvl")),
+              list(text = i18n$t("plugins"), iconProps = list(iconName = "Code"), href = shiny.router::route_link("plugins")),
               list(text = i18n$t("data_cleaning"), iconProps = list(iconName = "CodeEdit"), href = shiny.router::route_link("scripts"))
             ))
           ),
@@ -44,7 +44,7 @@ mod_page_header_ui <- function(id = character(), i18n = character()){
     command_bar <- tagList(
       tags$a(
         href = shiny.router::route_link("patient_level_data"),
-        div(uiOutput(ns("selected_project")), class = "selected_project_div"),
+        div(div(uiOutput(ns("selected_project")), class = "selected_project"), class = "selected_project_container"),
         style = "z-index:2; text-decoration:none; margin-left:-28px;",
       ),
       div(
@@ -177,7 +177,7 @@ mod_page_header_ui <- function(id = character(), i18n = character()){
       # shiny.fluent::Stack(horizontal = TRUE, tokens = (childrenGap = 0),
       #   shiny.fluent::CommandBar(),
       #   div(uiOutput(ns("username")), style = "font-weight:bold; padding: 12px 10px 0px 0px;"),
-          # console_input
+          console_input
       #   shiny.fluent::CommandBarButton.shinyInput(ns("help"), iconProps = list("iconName" = "Help")),
       #   shiny.fluent::CommandBarButton.shinyInput("settings", iconProps = list("iconName" = "Settings"), href = shiny.router::route_link("settings/general_settings")),
       #   shiny.fluent::CommandBarButton.shinyInput(".shinymanager_logout", iconProps = list("iconName" = "PowerButton"))
@@ -240,7 +240,7 @@ mod_page_header_server <- function(id = character(), r = shiny::reactiveValues()
       observeEvent(m$selected_study, {
         if (debug) cat(paste0("\n", now(), " - mod_data - ", id, " - observer m$selected_study"))
         
-        project_name <- r$projects %>% dplyr::filter(study_id == m$selected_study, name == paste0("name_", language)) %>% dplyr::pull(value)
+        project_name <- r$projects_long %>% dplyr::filter(study_id == m$selected_study, name == paste0("name_", language)) %>% dplyr::pull(value)
         max_length <- 27
         if (nchar(project_name) > max_length) project_name <- paste0(substr(project_name, 1, max_length - 3), "...")
         output$selected_project <- renderUI(project_name)

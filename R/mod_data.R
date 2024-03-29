@@ -168,15 +168,15 @@ mod_data_ui <- function(id = character(), i18n = character()){
     shiny.fluent::reactOutput(ns("help_panel")),
     shiny.fluent::reactOutput(ns("help_modal")),
     shiny.fluent::reactOutput(ns("tab_delete_confirm")), shiny.fluent::reactOutput(ns("widget_delete_confirm")),
-    div(id = ns("initial_breadcrumb"),
-      shiny.fluent::Breadcrumb(items = list(
-        list(key = "main", text = i18n$t(paste0(category, "_data")), href = paste0("#!/", page_name), isCurrentItem = TRUE)),
-        maxDisplayedItems = 3)
-    ),
-    div(
-      id = ns("choose_a_study_card"),
-      make_card("", div(shiny.fluent::MessageBar(i18n$t("choose_study_and_dataset_left_side"), messageBarType = 5), style = "margin-top:10px;"))
-    ),
+    # div(id = ns("initial_breadcrumb"),
+    #   shiny.fluent::Breadcrumb(items = list(
+    #     list(key = "main", text = i18n$t(paste0(category, "_data")), href = paste0("#!/", page_name), isCurrentItem = TRUE)),
+    #     maxDisplayedItems = 3)
+    # ),
+    # div(
+    #   id = ns("choose_a_study_card"),
+    #   make_card("", div(shiny.fluent::MessageBar(i18n$t("choose_study_and_dataset_left_side"), messageBarType = 5), style = "margin-top:10px;"))
+    # ),
     shinyjs::hidden(uiOutput(ns("study_menu"))),
     div(id = ns("study_cards")),
     shinyjs::hidden(
@@ -313,26 +313,6 @@ mod_data_server <- function(id = character(), r = shiny::reactiveValues(), d = s
     
     if (perf_monitoring) monitor_perf(r = r, action = "stop", task = paste0("mod_data - ", id, " - initiate vars"))
     
-    # --- --- --- --- --- ---
-    # Help for this page ----
-    # --- --- --- --- --- ---
-    
-    observeEvent(input$help, if (id == shiny.router::get_page()) r[[paste0("help_data_", category, "_open_panel")]] <- TRUE)
-    observeEvent(input$hide_panel, r[[paste0("help_data_", category, "_open_panel")]] <- FALSE)
-    
-    r[[paste0("help_data_", category, "_open_panel_light_dismiss")]] <- TRUE
-    observeEvent(input$show_modal, r[[paste0("help_data_", category, "_open_modal")]] <- TRUE)
-    observeEvent(input$hide_modal, {
-      r[[paste0("help_data_", category, "_open_modal")]] <- FALSE
-      r[[paste0("help_data_", category, "_open_panel_light_dismiss")]] <- TRUE
-    })
-    
-    sapply(1:10, function(i){
-      observeEvent(input[[paste0("help_page_", i)]], r[[paste0("help_data_", category, "_page_", i)]] <- now())
-    })
-    
-    help_data(output = output, r = r, id = id, category = category, language = language, i18n = i18n, ns = ns)
-    
     # --- --- --- --
     # Load data ----
     # --- --- --- --
@@ -438,8 +418,8 @@ mod_data_server <- function(id = character(), r = shiny::reactiveValues(), d = s
       # r[[paste0(category, "_cards")]] <- character()
       
       # Hide "choose a study" card
-      shinyjs::hide("choose_a_study_card")
-      shinyjs::hide("initial_breadcrumb")
+      # shinyjs::hide("choose_a_study_card")
+      # shinyjs::hide("initial_breadcrumb")
       shinyjs::show("study_menu")
       
       # Reset selected key
@@ -509,12 +489,12 @@ mod_data_server <- function(id = character(), r = shiny::reactiveValues(), d = s
       
       if (debug) cat(paste0("\n", now(), " - mod_data - ", id, " - observer r$..load_display_tabs"))
       if (perf_monitoring) monitor_perf(r = r, action = "start")
-      print("1")
+      
       # Load study informations
       # For one study, you choose ONE patient_lvl or aggregated data tab family
       study_infos <- r$studies %>% dplyr::filter(id == m$selected_study)
       # study_infos <- DBI::dbGetQuery(r$db, paste0("SELECT * FROM studies WHERE id = ", m$selected_study))
-      print("2")
+      
       # Check if users has access only to aggregated data
       # r$options %>% dplyr::filter(category == "dataset" & link_id == r$selected_dataset & name == "show_only_aggregated_data") %>%
       #   dplyr::pull(value_num) -> r[[paste0(category, "_show_only_aggregated_data")]]
@@ -524,14 +504,14 @@ mod_data_server <- function(id = character(), r = shiny::reactiveValues(), d = s
       #   study_infos[[paste0(category, "_tab_group_id")]], " AND deleted IS FALSE"))
       tab_group_id <- study_infos[[paste0(category, "_tab_group_id")]]
       display_tabs <- r[[paste0(category, "_tabs")]] %>% dplyr::filter(tab_group_id == !!tab_group_id) 
-      print("3")
+      
       # Tabs without parent are set to level 1
       display_tabs <- display_tabs %>% 
         dplyr::mutate(level = dplyr::case_when(is.na(parent_tab_id) ~ 1L, TRUE ~ NA_integer_))
       
       # Prevent infinite loop, max loops = 7
       i <- 1
-      print("4")
+      
       # Creating levels for distinct tabs
       while(nrow(display_tabs %>% dplyr::filter(is.na(level))) > 0 & i <= 7){
         display_tabs <-
@@ -702,7 +682,7 @@ mod_data_server <- function(id = character(), r = shiny::reactiveValues(), d = s
           
           if (nb_levels == 1) is_current_item <- TRUE else is_current_item <- FALSE
           
-          first_list_element <- list(key = "main", text = i18n$t(page_name), href = paste0("#!/", page_name), isCurrentItem = FALSE,
+          first_list_element <- list(key = "main", text = shiny.fluent::FontIcon(iconName = "Home"), href = paste0("#!/", page_name), isCurrentItem = FALSE,
             onClick = htmlwidgets::JS(paste0("item => {",
               "Shiny.setInputValue('", id, "-study_go_to_tab', ", study_first_tab_id, ");",
               "Shiny.setInputValue('", id, "-study_go_to_tab_trigger', Math.random());",
@@ -721,7 +701,7 @@ mod_data_server <- function(id = character(), r = shiny::reactiveValues(), d = s
               else is_current_item <- FALSE
               
               breadcrumb_list <- rlist::list.append(breadcrumb_list, list(
-                key = "main", text = row$name, href = paste0("#!/", page_name), isCurrentItem = is_current_item,
+                key = "main", text = shiny.fluent::FontIcon(iconName = "Home"), href = paste0("#!/", page_name), isCurrentItem = is_current_item,
                 onClick = htmlwidgets::JS(paste0("item => {",
                   "Shiny.setInputValue('", id, "-study_go_to_tab', ", row$id, ");",
                   "Shiny.setInputValue('", id, "-study_go_to_tab_trigger', Math.random());",
@@ -733,7 +713,8 @@ mod_data_server <- function(id = character(), r = shiny::reactiveValues(), d = s
           
           breadcrumb <- div(
             id = ns(paste0(category, "_study_breadcrumb_", tab_group_id, "_", tab_sub_group)),
-            shiny.fluent::Breadcrumb(items = breadcrumb_list, maxDisplayedItems = 3)
+            shiny.fluent::Breadcrumb(items = breadcrumb_list, maxDisplayedItems = 3),
+            style = "display:flex;"
           )
           
           if (is.na(r[[paste0(category, "_selected_tab")]]) & i > 1) breadcrumb <- shinyjs::hidden(breadcrumb)
@@ -749,7 +730,7 @@ mod_data_server <- function(id = character(), r = shiny::reactiveValues(), d = s
         
         breadcrumbs <- div(
           id = ns(paste0(category, "_study_breadcrumb_", tab_group_id, "_0")),
-          shiny.fluent::Breadcrumb(items = list(list(key = "main", text = i18n$t(page_name), href = paste0("#!/", page_name), isCurrentItem = FALSE,
+          shiny.fluent::Breadcrumb(items = list(list(key = "main", text = shiny.fluent::FontIcon(iconName = "Home"), href = paste0("#!/", page_name), isCurrentItem = FALSE,
             onClick = htmlwidgets::JS(paste0("item => {",
               "Shiny.setInputValue('", id, "-study_go_to_tab', 0);",
               "Shiny.setInputValue('", id, "-study_go_to_tab_trigger', Math.random());",
@@ -855,8 +836,8 @@ mod_data_server <- function(id = character(), r = shiny::reactiveValues(), d = s
       
       if (debug) cat(paste0("\n", now(), " - mod_data - ", id, " - observer r$studies"))
       
-      shinyjs::show("initial_breadcrumb")
-      shinyjs::show("choose_a_study_card")
+      # shinyjs::show("initial_breadcrumb")
+      # shinyjs::show("choose_a_study_card")
       shinyjs::hide("study_menu")
       sapply(r[[paste0(category, "_cards")]], shinyjs::hide)
     })
@@ -900,7 +881,7 @@ mod_data_server <- function(id = character(), r = shiny::reactiveValues(), d = s
         insertUI(selector = paste0("#", ns("study_cards")), where = "beforeEnd", ui = gridstack_div)
         r[[paste0(category, "_cards")]] <- c(r[[paste0(category, "_cards")]], gridstack_id)
         
-        shinyjs::delay(100, shinyjs::runjs(paste0("
+        shinyjs::delay(200, shinyjs::runjs(paste0("
           if (!window.gridStackInstances['", tab_id, "']) {
             import('https://esm.sh/gridstack').then((module) => {
               const GridStack = module.GridStack;
@@ -1084,7 +1065,7 @@ mod_data_server <- function(id = character(), r = shiny::reactiveValues(), d = s
             
             # ui_output <- make_shiny_ace_card("Title", "content")
             
-            shinyjs::delay(100, shinyjs::runjs(sprintf("
+            shinyjs::delay(200, shinyjs::runjs(sprintf("
               var grid = window.gridStackInstances['%s'];
               if (grid) {
                 grid.addWidget({w: 12, h: 4, content: `%s`});

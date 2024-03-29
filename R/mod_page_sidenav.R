@@ -12,6 +12,15 @@ mod_page_sidenav_ui <- function(id = character(), i18n = character()){
   ns <- NS(id)
   result <- ""
   
+  hide_sidenav <- div(
+    onclick = paste0("Shiny.setInputValue('", id, "-show_hide_sidenav', Math.random());"),
+    class = "button_hide_sidenav"
+  )
+  show_sidenav <- div(
+    onclick = paste0("Shiny.setInputValue('", id, "-show_hide_sidenav', Math.random());"),
+    class = "button_show_sidenav"
+  )
+  
   # --- --- -
   # Home ----
   # --- --- -
@@ -20,7 +29,6 @@ mod_page_sidenav_ui <- function(id = character(), i18n = character()){
     div(
       class = "sidenav",
       div(class = "reduced_sidenav"),
-      # div(class = "extended_sidenav")
       style = "border-right: solid 1px #ccc;"
     ) -> result
   }
@@ -51,7 +59,7 @@ mod_page_sidenav_ui <- function(id = character(), i18n = character()){
         result <<- tagList(result,
           div(id = ns(paste0(name, "_title")), class = "input_title", i18n$t(name)),
           shiny.fluent::Stack(horizontal = TRUE, tokens = list(childrenGap = 5),
-            div(shiny.fluent::ComboBox.shinyInput(ns(name), allowFreeform = allowFreeform, autoComplete = autoComplete), style = paste0("min-width:", width, "; max-width:", width, ";"))
+            div(shiny.fluent::ComboBox.shinyInput(ns(name), allowFreeform = allowFreeform, autoComplete = autoComplete), style = "width:200px")
           )
         )
       })
@@ -97,25 +105,16 @@ mod_page_sidenav_ui <- function(id = character(), i18n = character()){
   if (id == "patient_level_data"){
     div(class = "sidenav",
       div(class = "reduced_sidenav",
-        div(
-          onclick = paste0("Shiny.setInputValue('", id, "-show_hide_sidenav', Math.random());"),
-          class = "button_hide_sidenav"
-        )
+        show_sidenav
       ),
       div(class = "extended_sidenav",
-        shiny.fluent::ActionButton.shinyInput(ns("add_tab"), i18n$t("add_tab"), iconProps = list(iconName = "Add")),
-        shiny.fluent::ActionButton.shinyInput(ns("edit_tab"), i18n$t("edit_tab"), iconProps = list(iconName = "Edit")),
-        shiny.fluent::ActionButton.shinyInput(ns("add_widget"), i18n$t("new_widget"), iconProps = list(iconName = "Add")),
-        hr(),
+        # shiny.fluent::ActionButton.shinyInput(ns("add_tab"), i18n$t("add_tab"), iconProps = list(iconName = "Add")),
+        # shiny.fluent::ActionButton.shinyInput(ns("edit_tab"), i18n$t("edit_tab"), iconProps = list(iconName = "Edit")),
+        # shiny.fluent::ActionButton.shinyInput(ns("add_widget"), i18n$t("new_widget"), iconProps = list(iconName = "Add")),
         dropdowns("subset"),
-        br(), div(id = ns("hr1"), hr()),
         dropdowns(c("person", "visit_detail")),
-        br(), div(id = ns("hr2"), hr()),
         uiOutput(ns("person_info")),
-        div(
-          onclick = paste0("Shiny.setInputValue('", id, "-show_hide_sidenav', Math.random());"),
-          class = "button_show_sidenav"
-        )
+        hide_sidenav
       )
     ) -> result
   }
@@ -126,12 +125,7 @@ mod_page_sidenav_ui <- function(id = character(), i18n = character()){
   
   if (id == "aggregated_data") div(
     class = "sidenav",
-    div(class = "reduced_sidenav",
-      div(
-        onclick = paste0("Shiny.setInputValue('", id, "-show_hide_sidenav', Math.random());"),
-        class = "button_hide_sidenav"
-      )    
-    ),
+    div(class = "reduced_sidenav", show_sidenav),
     div(class = "extended_sidenav",
       shiny.fluent::CommandBar(
         
@@ -141,10 +135,7 @@ mod_page_sidenav_ui <- function(id = character(), i18n = character()){
       # shiny.fluent::ActionButton.shinyInput(ns("add_widget"), i18n$t("new_widget"), iconProps = list(iconName = "Add")),
       hr(),
       dropdowns(c("subset")),
-      div(
-        onclick = paste0("Shiny.setInputValue('", id, "-show_hide_sidenav', Math.random());"),
-        class = "button_show_sidenav"
-      )
+      hide_sidenav
     )
   ) -> result
   
@@ -152,12 +143,50 @@ mod_page_sidenav_ui <- function(id = character(), i18n = character()){
   # Plugins ----
   # --- --- -- -
   
-  if (id %in% c("plugins_patient_lvl", "plugins_aggregated")){
+  if (id %in% c("plugins")){
     
     div(
       class = "sidenav",
-      div(class = "reduced_sidenav"),
-      div(class = "extended_sidenav", style = "width:20px;")
+      div(class = "reduced_sidenav", show_sidenav),
+      div(class = "extended_sidenav",
+        shinyjs::hidden(
+          div(
+            id = ns("edit_code_sidenav"),
+            div(
+              class = "sidenav_top",
+              div(shiny.fluent::IconButton.shinyInput(ns("add_file"), iconProps = list(iconName = "Add")), class = "small_icon_button"),
+              div(shiny.fluent::IconButton.shinyInput(ns("add_folder"), iconProps = list(iconName = "FabricNewFolder")), class = "small_icon_button")
+            ),
+            div(
+              class = "directory-browser",
+              div(class = "directory-item", tags$i(class = "fa fa-folder")),
+              div(class = "directory-sep", " / "),
+              div(class = "directory-item", "My folder"),
+              div(class = "directory-sep", " / "),
+              div(class = "directory-item", "My folder 2")
+            ),
+            div(class = "file-browser", 
+                tags$li(class = "directory-item", tags$i(class = "fa fa-folder"), "Dossier"),
+                tags$li(class = "file-item", 
+                  div(tags$i(class = "fa fa-file"), 
+                    shinyjs::hidden(div(id = "file_name_edit_div1", shiny.fluent::TextField.shinyInput("file_name1"), class = "small_textfield")),
+                    div(id = "file_name_div1", "Fichier 1.R"),
+                    class = "file-item-title"
+                  ),
+                  div(
+                    shinyjs::hidden(div(id = "save_div1", shiny.fluent::IconButton.shinyInput("save1", iconProps = list(iconName = "CheckMark")), class = "small_icon_button")),
+                    div(id = "edit_div1", shiny.fluent::IconButton.shinyInput("edit1", iconProps = list(iconName = "Edit")), class = "small_icon_button"),
+                    div(shiny.fluent::IconButton.shinyInput("delete1", iconProps = list(iconName = "Delete")), class = "small_icon_button"),
+                    class = "file-item-icons"
+                  )
+                ),
+                tags$li(class = "file-item", tags$i(class = "fa fa-file"), "Fichier 2.py"),
+                tags$li(class = "file-item", tags$i(class = "fa fa-file"), "Fichier 3.txt")
+            )
+          )
+        ),
+        hide_sidenav
+      )
     ) -> result
   }
   
@@ -250,6 +279,15 @@ mod_page_sidenav_server <- function(id = character(), r = shiny::reactiveValues(
     # --- --- -- -
     # Plugins ----
     # --- --- -- -
+    
+    if (id == "plugins"){
+      observeEvent(r$plugins_current_tab, {
+        if (debug) cat(paste0("\n", now(), " - mod_page_sidenav - observer r$plugins_current_tab"))
+        
+        if (r$plugins_current_tab == "edit_code") shinyjs::show("edit_code_sidenav")
+        else shinyjs::hide("edit_code_sidenav")
+      })
+    }
     
     # if (id %in% c("plugins_patient_lvl", "plugins_aggregated")){
     #   

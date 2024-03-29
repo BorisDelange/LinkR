@@ -58,7 +58,7 @@ mod_page_main_ui <- function(id = character(), language = "en", languages = tibb
   # Plugins ----
   # --- --- -- -
   
-  if (id %in% c("plugins_patient_lvl", "plugins_aggregated")) mod_plugins_ui(id = id, i18n = i18n, language = language, languages = languages) -> result
+  if (id == "plugins") mod_plugins_ui(id = "plugins", i18n = i18n, language = language, languages = languages) -> result
   
   # --- --- --- -
   # Settings ----
