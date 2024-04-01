@@ -376,6 +376,7 @@ a.no-hover-effect:hover {
   height: 100%;
   overflow-y: auto;
   font-size: 12px;
+  padding-bottom: 8px;
 }
 .files-list {
    list-style: none;
@@ -395,6 +396,9 @@ a.no-hover-effect:hover {
   align-items: center;
 }
 .file-item-icons {
+  display: none;
+}
+.file-item:hover .file-item-icons {
   display: flex;
   align-items: center;
 }
@@ -403,6 +407,40 @@ a.no-hover-effect:hover {
 }
 .file-item:hover, .directory-item:hover {
   background-color: #f0f0f0; 
+}
+.tabs {
+  display: flex;
+  padding: 10px 0;
+  font-size: 12px;
+}
+.tab {
+  padding: 3px 2px 3px 10px;
+  background-color: #ddd;
+  margin-right: 2px;
+  cursor: pointer;
+  display: flex;
+  justify-content: space-between;
+}
+.tab:hover {
+  background-color: #eeeeee;
+}
+.tab.active {
+  background-color: #eeeeee;
+}
+.close-tab {
+  padding-left: 10px;
+}
+.close-tab .ms-Icon {
+  font-size: 8px;
+  width: 15px;
+  height: 15px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-top: 1px;
+}
+.close-tab .ms-Icon:hover {
+  background-color: white;
 }
 .small_icon_button .ms-Button-icon {
   font-size: 12px;
@@ -448,4 +486,12 @@ a.no-hover-effect:hover {
 .card_bottom {
   display: flex;
   justify-content: space-between;
+}
+.widget {
+  font-size: 12px;
+  height: 100%;
+  position: relative;
+  margin: 10px;
+  padding: 10px 20px 10px 20px;
+  box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 3px 6px 0 rgba(0, 0, 0, 0.19);
 }

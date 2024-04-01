@@ -157,7 +157,8 @@ mod_page_sidenav_ui <- function(id = character(), i18n = character()){
               class = "sidenav_top",
               div(shiny.fluent::IconButton.shinyInput(ns("edit_code_add_file"), iconProps = list(iconName = "Add")), class = "small_icon_button"),
               div(shiny.fluent::IconButton.shinyInput(ns("edit_code_add_folder"), iconProps = list(iconName = "FabricNewFolder")), class = "small_icon_button"),
-              div(shiny.fluent::IconButton.shinyInput(ns("save_plugin_code"), iconProps = list(iconName = "Save")), class = "small_icon_button")
+              div(shiny.fluent::IconButton.shinyInput(ns("save_plugin_code"), iconProps = list(iconName = "Save")), class = "small_icon_button"),
+              div(shiny.fluent::IconButton.shinyInput(ns("run_plugin_code"), iconProps = list(iconName = "Play")), class = "small_icon_button")
             ),
             uiOutput(ns("edit_code_directory_browser")),
             uiOutput(ns("edit_code_files_browser"))
