@@ -121,11 +121,10 @@ mod_home_server <- function(id = character(), r = shiny::reactiveValues(), d = s
             onClick = paste0("Shiny.setInputValue('", id, "-selected_project', ", i, ", {priority: 'event'});"),
             div(
               class = "project_card",
-              tags$h1(project_name),
-              users_ui,
-              # row %>% dplyr::slice(1) %>% dplyr::pull(update_datetime),
               div(
-                "Short description of my study"
+                tags$h1(project_name),
+                users_ui,
+                div("Short description of my study")
               )
             ),
             class = "no-hover-effect"

@@ -333,6 +333,9 @@ a.no-hover-effect:hover {
   margin: 10px;
   padding: 2px 10px 2px 10px;
   font-size: 12px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
 }
 .project_card h1, .plugin_card h1 {
   font-weight: bold;
@@ -351,11 +354,13 @@ a.no-hover-effect:hover {
 .sidenav_top {
   display: flex;
   height: 25px;
+  border-bottom: solid 1px #ccc;
+  padding-bottom: 10px;
 }
 .active-file {
   margin: 10px;
 }
-.directory-browser {
+.directories-browser {
   margin-top: 10px;
   padding-bottom: 5px;
   display: flex;
@@ -366,7 +371,7 @@ a.no-hover-effect:hover {
 .directory-sep {
   padding: 3px 0px;
 }
-.file-browser {
+.files-browser {
   margin-top: 10px;
   height: 100%;
   overflow-y: auto;
@@ -399,6 +404,14 @@ a.no-hover-effect:hover {
 .file-item:hover, .directory-item:hover {
   background-color: #f0f0f0; 
 }
+.small_icon_button .ms-Button-icon {
+  font-size: 12px;
+  color: black;;
+}
+.small_icon_button .ms-Button {
+  width: 24px;
+  height: 24px
+}
 .small_textfield .ms-TextField-fieldGroup {
   height: 20px;
 }
@@ -413,4 +426,26 @@ a.no-hover-effect:hover {
   margin-right: 5px;
   width: 15px;
   color:#505050;
+}
+.prog_label {
+  padding: 2px 7px;
+  margin: 0px 2px 2px 0;
+  height: 16px;
+  border-radius: 15px;
+  color: white;
+  font-size: 11px;
+  display: inline-block;
+}
+.python_label {
+  background-color: #3572A5;
+}
+.r_label {
+  background-color: #198CE7;
+}
+.card_labels {
+  display: flex;
+}
+.card_bottom {
+  display: flex;
+  justify-content: space-between;
 }

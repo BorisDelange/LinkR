@@ -148,44 +148,23 @@ mod_page_sidenav_ui <- function(id = character(), i18n = character()){
     div(
       class = "sidenav",
       div(class = "reduced_sidenav", show_sidenav),
+      # shinyjs::hidden(
       div(class = "extended_sidenav",
         shinyjs::hidden(
           div(
             id = ns("edit_code_sidenav"),
             div(
               class = "sidenav_top",
-              div(shiny.fluent::IconButton.shinyInput(ns("add_file"), iconProps = list(iconName = "Add")), class = "small_icon_button"),
-              div(shiny.fluent::IconButton.shinyInput(ns("add_folder"), iconProps = list(iconName = "FabricNewFolder")), class = "small_icon_button")
+              div(shiny.fluent::IconButton.shinyInput(ns("edit_code_add_file"), iconProps = list(iconName = "Add")), class = "small_icon_button"),
+              div(shiny.fluent::IconButton.shinyInput(ns("edit_code_add_folder"), iconProps = list(iconName = "FabricNewFolder")), class = "small_icon_button"),
+              div(shiny.fluent::IconButton.shinyInput(ns("save_plugin_code"), iconProps = list(iconName = "Save")), class = "small_icon_button")
             ),
-            div(
-              class = "directory-browser",
-              div(class = "directory-item", tags$i(class = "fa fa-folder")),
-              div(class = "directory-sep", " / "),
-              div(class = "directory-item", "My folder"),
-              div(class = "directory-sep", " / "),
-              div(class = "directory-item", "My folder 2")
-            ),
-            div(class = "file-browser", 
-                tags$li(class = "directory-item", tags$i(class = "fa fa-folder"), "Dossier"),
-                tags$li(class = "file-item", 
-                  div(tags$i(class = "fa fa-file"), 
-                    shinyjs::hidden(div(id = "file_name_edit_div1", shiny.fluent::TextField.shinyInput("file_name1"), class = "small_textfield")),
-                    div(id = "file_name_div1", "Fichier 1.R"),
-                    class = "file-item-title"
-                  ),
-                  div(
-                    shinyjs::hidden(div(id = "save_div1", shiny.fluent::IconButton.shinyInput("save1", iconProps = list(iconName = "CheckMark")), class = "small_icon_button")),
-                    div(id = "edit_div1", shiny.fluent::IconButton.shinyInput("edit1", iconProps = list(iconName = "Edit")), class = "small_icon_button"),
-                    div(shiny.fluent::IconButton.shinyInput("delete1", iconProps = list(iconName = "Delete")), class = "small_icon_button"),
-                    class = "file-item-icons"
-                  )
-                ),
-                tags$li(class = "file-item", tags$i(class = "fa fa-file"), "Fichier 2.py"),
-                tags$li(class = "file-item", tags$i(class = "fa fa-file"), "Fichier 3.txt")
-            )
+            uiOutput(ns("edit_code_directory_browser")),
+            uiOutput(ns("edit_code_files_browser"))
           )
         ),
         hide_sidenav
+      # )
       )
     ) -> result
   }
@@ -249,20 +228,29 @@ mod_page_sidenav_server <- function(id = character(), r = shiny::reactiveValues(
     
     # Show / hide sidenav
     
-    r$show_hide_sidenav <- "hide"
+    # r$show_hide_sidenav <- "hide"
+    
+    if (id == "plugins") r[[paste0(id, "_show_hide_sidenav")]] <- "hide"
     
     observeEvent(input$show_hide_sidenav, {
       if (debug) cat(paste0("\n", now(), " - mod_page_sidenav - observer input$show_hide_sidenav"))
+      
+      if (r[[paste0(id, "_show_hide_sidenav")]] == "hide") r[[paste0(id, "_show_hide_sidenav")]] <- "show"
+      else r[[paste0(id, "_show_hide_sidenav")]] <- "hide"
+    })
 
-      if (r$show_hide_sidenav == "hide"){
-        r$show_hide_sidenav <- "show"
+    observeEvent(r[[paste0(id, "_show_hide_sidenav")]], {
+      if (debug) cat(paste0("\n", now(), " - mod_page_sidenav - observer r$..show_hide_sidenav"))
+      
+      if (r[[paste0(id, "_show_hide_sidenav")]] == "hide"){
+        # r[[paste0(id, "_show_hide_sidenav")]] <- "show"
         shinyjs::runjs(paste0("$('.extended_sidenav').css('display', 'none');"))
         shinyjs::runjs(paste0("$('.reduced_sidenav').css('display', 'block');"))
         shinyjs::runjs(paste0("$('.grid-container').css('grid-template-areas', '\"header header header\" \"sidenav main main\" \"footer footer footer\"');"))
         shinyjs::runjs(paste0("$('.main').css('left', '20px');"))
       }
       else {
-        r$show_hide_sidenav <- "hide"
+        # r[[paste0(id, "_show_hide_sidenav")]] <- "hide"
         shinyjs::runjs(paste0("$('.extended_sidenav').css('display', 'block');"))
         shinyjs::runjs(paste0("$('.reduced_sidenav').css('display', 'none');"))
         shinyjs::runjs(paste0("$('.grid-container').css('grid-template-areas', '\"header header header\" \"sidenav sidenav main\" \"footer footer footer\"');"))
@@ -280,14 +268,16 @@ mod_page_sidenav_server <- function(id = character(), r = shiny::reactiveValues(
     # Plugins ----
     # --- --- -- -
     
-    if (id == "plugins"){
-      observeEvent(r$plugins_current_tab, {
-        if (debug) cat(paste0("\n", now(), " - mod_page_sidenav - observer r$plugins_current_tab"))
-        
-        if (r$plugins_current_tab == "edit_code") shinyjs::show("edit_code_sidenav")
-        else shinyjs::hide("edit_code_sidenav")
-      })
-    }
+    # if (id == "plugins"){
+    #   observeEvent(r$plugins_current_tab, {
+    #     if (debug) cat(paste0("\n", now(), " - mod_page_sidenav - observer r$plugins_current_tab"))
+    #     
+    #     if (r$plugins_current_tab %in% c(""))
+    #     
+    #     if (r$plugins_current_tab == "edit_code") shinyjs::show("edit_code_sidenav")
+    #     else shinyjs::hide("edit_code_sidenav")
+    #   })
+    # }
     
     # if (id %in% c("plugins_patient_lvl", "plugins_aggregated")){
     #   

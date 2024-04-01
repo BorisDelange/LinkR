@@ -56,6 +56,9 @@
 .ms-Toggle-background:after {
   line-height: 20px;
 }
+.ms-Breadcrumb {
+  display: flex;
+}
 .ms-Breadcrumb-itemLink, .ms-Breadcrumb-item {
   font-size: 16px;
   padding: 4px 6px;
@@ -105,14 +108,18 @@
   margin: 0;
 }
 .ms-Facepile .ms-Persona-initials {
-  font-size: 12px;
-  height: 24px;
-  width: 24px;
-  line-height: 24px;
-  margin: 8px 0px;
+  font-size: 11px;
+  height: 22px;
+  width: 22px;
+  line-height: 22px;
+  margin: 11px 0px;
 }
 .ms-Persona-imageArea {
   width: 24px;
+}
+.ms-Persona-primaryText {
+  font-size: 11px;
+  margin-left: -5px;
 }
 .ms-CommandBar {
   padding: 0;

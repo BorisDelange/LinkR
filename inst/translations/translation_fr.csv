@@ -297,7 +297,9 @@ subsets_creation_card,Créer un subset
 subsets_datatable_card,Gérer les subsets
 subsets_edit_code_card,Editer le code d'un subset
 plugins,Plugins
+patient_lvl_plugin,Plugin de données individuelles
 patient_lvl_plugins,Plugins de données individuelles
+aggregated_plugin,Plugin de données agrégées
 aggregated_plugins,Plugins de données agrégées
 all_plugins_card,Accéder au catalogue des plugins
 all_scripts_card,Tous les scripts

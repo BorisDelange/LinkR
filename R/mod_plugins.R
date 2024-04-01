@@ -569,8 +569,6 @@ mod_plugins_ui <- function(id = character(), i18n = character(), language = tibb
     #     ), br()
     #   )
     # )
-    
-    style = "margin-left:20px;"
   )
 }
 
@@ -605,9 +603,9 @@ mod_plugins_server <- function(id = character(), r = shiny::reactiveValues(), d 
     # Close message bar
     sapply(1:20, function(i) observeEvent(input[[paste0("close_message_bar_", i)]], shinyjs::hide(paste0("message_bar", i))))
     
-    # --- --- --- --- -
-    # Show plugins ----
-    # --- --- --- --- -
+    # --- --- --- --- --
+    # Plugins cards ----
+    # --- --- --- --- --
     
     observeEvent(shiny.router::get_page(), {
       if (debug) cat(paste0("\n", now(), " - mod_plugins - observer shiny_router::change_page"))
@@ -626,7 +624,7 @@ mod_plugins_server <- function(id = character(), r = shiny::reactiveValues(), d 
         LEFT JOIN options AS u ON p.id = u.link_id AND u.category = 'plugin' AND u.name = 'user_allowed_read'
         WHERE (r.value = 'everybody' OR (r.value = 'people_picker' AND u.value_num = {r$user_id})) AND p.deleted IS FALSE
       )
-      SELECT p.id AS plugin_id, p.update_datetime, o.*
+      SELECT p.id, p.update_datetime, p.tab_type_id, o.name, o.value, o.value_num
         FROM plugins p
         INNER JOIN selected_plugins ON p.id = selected_plugins.id
         LEFT JOIN options o ON o.category = 'plugin' AND p.id = o.link_id", .con = r$db)
@@ -637,7 +635,7 @@ mod_plugins_server <- function(id = character(), r = shiny::reactiveValues(), d 
       sql <- glue::glue_sql("SELECT id, CONCAT(firstname, ' ', lastname) AS name, CONCAT(SUBSTRING(firstname, 1, 1), SUBSTRING(lastname, 1, 1)) AS initials FROM users", .con = r$db)
       r$plugins_users <- DBI::dbGetQuery(r$db, sql)
       
-      sql <- glue::glue_sql("SELECT * FROM plugins WHERE id IN ({unique(r$plugins_long$plugin_id)*})", .con = r$db)
+      sql <- glue::glue_sql("SELECT * FROM plugins WHERE id IN ({unique(r$plugins_long$id)*})", .con = r$db)
       r$plugins_wide <- DBI::dbGetQuery(r$db, sql)
       
       r$reload_plugins_list <- now()
@@ -649,7 +647,7 @@ mod_plugins_server <- function(id = character(), r = shiny::reactiveValues(), d 
       if (input$search_plugin == "") r$filtered_plugins_long <- r$plugins_long
       else {
         filtered_ids <- r$plugins_long %>% dplyr::filter(name == paste0("name_", language) & grepl(tolower(input$search_plugin), tolower(value)))
-        r$filtered_plugins_long <- r$plugins_long %>% dplyr::filter(plugin_id %in% filtered_ids)
+        r$filtered_plugins_long <- r$plugins_long %>% dplyr::filter(id %in% filtered_ids)
       }
       
       r$reload_plugins_list <- now()
@@ -664,8 +662,8 @@ mod_plugins_server <- function(id = character(), r = shiny::reactiveValues(), d 
 
       plugins_ui <- tagList()
 
-      for (i in unique(plugins$plugin_id)){
-        row <- plugins %>% dplyr::filter(plugin_id == i)
+      for (i in unique(plugins$id)){
+        row <- plugins %>% dplyr::filter(id == i)
 
         personas <- list()
         plugin_users <- row %>% dplyr::filter(name == "user_allowed_read") %>% dplyr::distinct(value_num) %>% dplyr::pull(value_num)
@@ -677,6 +675,20 @@ mod_plugins_server <- function(id = character(), r = shiny::reactiveValues(), d 
         users_ui <- shiny.fluent::Facepile(personas = personas)
 
         plugin_name <- row %>% dplyr::filter(name == paste0("name_", language)) %>% dplyr::pull(value)
+        plugin_type <- row %>% dplyr::slice(1) %>% dplyr::pull(tab_type_id)
+        if (plugin_type == 1) {
+          plugin_type_icon <- div(shiny.fluent::FontIcon(iconName = "Contact"), class = "small_icon_button")
+          plugin_type_text <- i18n$t("patient_lvl_plugin")
+        }
+        else {
+          plugin_type_icon <- div(shiny.fluent::FontIcon(iconName = "Group"), class = "small_icon_button")
+          plugin_type_text <- i18n$t("aggregated_plugin")
+        }
+        
+        plugin_type_icon <- shiny.fluent::HoverCard(type = "PlainCard", plainCardProps = htmlwidgets::JS(paste0("{
+          onRenderPlainCard: (a, b, c) => '", plugin_type_text, "',
+          style: { padding: '5px', fontSize: '12px'}
+            }")), plugin_type_icon)
 
         max_length <- 45
         if (nchar(plugin_name) > max_length) plugin_name <- paste0(substr(plugin_name, 1, max_length - 3), "...")
@@ -687,10 +699,19 @@ mod_plugins_server <- function(id = character(), r = shiny::reactiveValues(), d 
             onClick = paste0("Shiny.setInputValue('", id, "-selected_plugin', ", i, ", {priority: 'event'});"),
             div(
               class = "plugin_card",
-              tags$h1(plugin_name),
-              users_ui,
               div(
-                "Short description of my plugin"
+                tags$h1(plugin_name),
+                users_ui,
+                div("Short description of my plugin")
+              ),
+              div(
+                div(
+                  div("R", class = "prog_label r_label"),
+                  div("Python", class = "prog_label python_label"),
+                  class = "card_labels"
+                ),
+                plugin_type_icon,
+                class = "card_bottom"
               )
             ),
             class = "no-hover-effect"
@@ -704,30 +725,6 @@ mod_plugins_server <- function(id = character(), r = shiny::reactiveValues(), d 
       output$plugins <- renderUI(plugins_ui)
     })
     
-    observeEvent(input$selected_plugin, {
-      if (debug) cat(paste0("\n", now(), " - mod_plugins - observer input$selected_plugin"))
-      
-      shinyjs::hide("all_plugins")
-      shinyjs::show("one_plugin")
-      
-      plugin <- r$plugins_wide %>% dplyr::filter(id == input$selected_plugin)
-      
-      output$plugin_breadcrumb <- renderUI(
-        shiny.fluent::Breadcrumb(items = list(
-          list(key = "main", text = i18n$t("plugins"), href = shiny.router::route_link("plugins"), 
-            onClick = htmlwidgets::JS(paste0("item => { Shiny.setInputValue('", id, "-show_plugins_home', Math.random()); }"))),
-          list(key = "main", text = plugin$name))
-        )
-      )
-    })
-    
-    observeEvent(input$show_plugins_home, {
-      if (debug) cat(paste0("\n", now(), " - mod_plugins - observer input$show_plugins_home"))
-      
-      shinyjs::hide("one_plugin")
-      shinyjs::show("all_plugins")
-    })
-    
     # --- --- --- --- --- ---
     # Show or hide cards ----
     # --- --- --- --- --- ---
@@ -735,27 +732,99 @@ mod_plugins_server <- function(id = character(), r = shiny::reactiveValues(), d 
     observeEvent(input$current_tab, {
       if (debug) cat(paste0("\n", now(), " - mod_plugins - observer input$current_tab"))
       
-      r$plugins_current_tab <- input$current_tab
+      if (input$current_tab %in% c("edit_code")) r$plugins_show_hide_sidenav <- "show"
+      else r$plugins_show_hide_sidenav <- "hide"
+      
+      divs <- c("summary", "edit_options", "edit_code", "edit_description")
+      divs <- setdiff(divs, input$current_tab)
+      divs <- c(paste0(divs, "_sidenav"), paste0(divs, "_div"))
+      
+      sapply(c(divs), shinyjs::hide)
+      sapply(c(paste0(input$current_tab, "_div"), paste0(input$current_tab, "_sidenav")), shinyjs::show)
     })
     
-    # cards <- c("all_plugins_card", "plugins_datatable_card", "plugins_edit_code_card",
-    #   "plugins_options_card", "import_plugin_card", "export_plugin_card", "plugin_details_card")
-    # show_or_hide_cards(r = r, input = input, session = session, id = id, cards = cards)
-    # 
-    # # Show first card
-    # if ("plugins_datatable_card" %in% r$user_accesses) shinyjs::show("plugins_datatable_card")
-    # else shinyjs::show("plugins_datatable_card_forbidden")
-    # 
-    # # Current pivot item
-    # observeEvent(input$current_tab, {
-    #   if (debug) cat(paste0("\n", now(), " - mod_plugins - ", id, " - observer input$current_tab"))
-    #   
-    #   r[[paste0(id, "_current_tab")]] <- input$current_tab
-    # })
+    observeEvent(input$show_plugins_home, {
+      if (debug) cat(paste0("\n", now(), " - mod_plugins - observer input$show_plugins_home"))
+      
+      shinyjs::hide("one_plugin")
+      shinyjs::show("all_plugins")
+      r$plugins_show_hide_sidenav <- "hide"
+    })
     
     # --- --- --- --- --- --- -
     # A plugin is selected ----
     # --- --- --- --- --- --- -
+    
+    observeEvent(input$selected_plugin, {
+      if (debug) cat(paste0("\n", now(), " - mod_plugins - observer input$selected_plugin"))
+      
+      shinyjs::hide("all_plugins")
+      shinyjs::show("one_plugin")
+      
+      plugin_wide <- r$plugins_wide %>% dplyr::filter(id == input$selected_plugin)
+      plugin_long <- r$plugins_long %>% dplyr::filter(id == input$selected_plugin)
+      
+      if (plugin_wide$tab_type_id == 1) r$selected_plugin_type <- "patient_lvl"
+      else r$selected_plugin_type <- "aggregated"
+      r$selected_plugin_name <- plugin_wide$name
+      r$selected_plugin_unique_id <- plugin_long %>% dplyr::filter(name == "unique_id") %>% dplyr::pull(value)
+      
+      output$plugin_breadcrumb <- renderUI(
+        shiny.fluent::Breadcrumb(items = list(
+          list(key = "main", text = i18n$t("plugins"), href = shiny.router::route_link("plugins"), 
+               onClick = htmlwidgets::JS(paste0("item => { Shiny.setInputValue('", id, "-show_plugins_home', Math.random()); }"))),
+          list(key = "main", text = r$selected_plugin_name))
+        )
+      )
+      
+      r$plugins_show_hide_sidenav <- "hide"
+      
+      # Load plugin code files
+      r$reload_plugin_code_files <- now()
+    })
+    
+    observeEvent(r$reload_plugin_code_files, {
+      if (debug) cat(paste0("\n", now(), " - mod_plugins - observer r$load_plugin_code_files"))
+      
+      plugin_folder <- paste0(r$app_folder, "/plugins/", r$selected_plugin_type, "/", r$selected_plugin_unique_id)
+      files_list <- list.files(path = plugin_folder, pattern = "(?i)*.\\.(r|py|csv)$")
+      if (length(files_list) > 0) files_list <- tibble::tibble(id = 1:length(files_list), filename = files_list)
+      
+      output$edit_code_directory_browser <- renderUI(div(
+        class = "directories-browser",
+        div(class = "directory-item", tags$i(class = "fa fa-folder")),
+        div(class = "directory-sep", " / ")
+      ))
+      
+      files_ui <- tagList()
+      if (length(files_list) > 0){
+        for (i in 1:nrow(files_list)){
+          file <- files_list %>% dplyr::filter(id == i)
+          
+          files_ui <- tagList(files_ui,
+            tags$li(class = "file-item",
+              div(
+                class = "file-item-title",
+                tags$i(class = "fa fa-file"),
+                shinyjs::hidden(div(id = paste0("edit_code_edit_filename_textfield_div_", file$id), shiny.fluent::TextField.shinyInput(paste0("edit_code_edit_filename_textfield_", file$id)), class = "small_textfield")),
+                div(id = paste0("edit_code_filename_div_", file$id), file$filename)
+              ),
+              div(
+                class = "file-item-icons",
+                shinyjs::hidden(div(id = paste0("edit_code_save_filename_button_div_", file$id), shiny.fluent::IconButton.shinyInput(paste0("edit_code_save_filename_button_", file$id), iconProps = list(iconName = "CheckMark")), class = "small_icon_button")),
+                div(id = paste0("edit_code_edit_filename_button_div_", file$id), shiny.fluent::IconButton.shinyInput(paste0("edit_code_edit_filename_button_", file$id), iconProps = list(iconName = "Edit")), class = "small_icon_button"),
+                div(shiny.fluent::IconButton.shinyInput(paste0("edit_code_delete_file_button_", file$id), iconProps = list(iconName = "Delete")), class = "small_icon_button")
+              )
+            )
+          )
+        }
+      }
+      
+      output$edit_code_files_browser <- renderUI(div(
+        class = "files-browser",
+        files_ui
+      ))
+    })
     
     # observeEvent(input$selected_plugin, {
     #   if (debug) cat(paste0("\n", now(), " - mod_plugins - ", id, " - observer input$selected_plugin"))
@@ -2963,10 +3032,10 @@ mod_plugins_server <- function(id = character(), r = shiny::reactiveValues(), d 
     #         # Create a new dataframe with base & current language cols
     #         data_lang <- data[, c("base", lang)]
     #         
-    #         file_name <- paste0(new_dir, "/translation_", lang, ".csv")
+    #         filename <- paste0(new_dir, "/translation_", lang, ".csv")
     #         
     #         # Create csv
-    #         write.csv(data_lang, file_name, row.names = FALSE)
+    #         write.csv(data_lang, filename, row.names = FALSE)
     #       }
     #     },
     #     error = function(e) report_bug(r = r, output = output, error_message = "error_creating_translations_file",

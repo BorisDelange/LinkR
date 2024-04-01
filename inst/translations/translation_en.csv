@@ -297,8 +297,10 @@ subsets_creation_card,Create a subset
 subsets_datatable_card,Subsets management
 subsets_edit_code_card,Edit subset code
 plugins,Plugins
-patient_lvl_plugins,Patient-level plugins
-aggregated_plugins,Aggregated plugins
+patient_lvl_plugin,Patient-level data plugin
+patient_lvl_plugins,Patient-level data plugins
+aggregated_plugin,Aggregated data plugin
+aggregated_plugins,Aggregated data plugins
 all_plugins_card,Access to plugins catalog
 all_scripts_card,All scripts
 all_datasets_card,All datasets

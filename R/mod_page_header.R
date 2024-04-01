@@ -196,8 +196,6 @@ mod_page_header_server <- function(id = character(), r = shiny::reactiveValues()
     ns <- session$ns
     
     # Show / hide sidenav
-    
-    # r$show_hide_sidenav <- "hide"
   
     # observeEvent(input$show_hide_sidenav, {
     #   if (debug) cat(paste0("\n", now(), " - mod_page_header - observer input$show_hide_sidenav"))
@@ -217,6 +215,16 @@ mod_page_header_server <- function(id = character(), r = shiny::reactiveValues()
     #     shinyjs::runjs(paste0("$('.main').css('left', '0px');"))
     #   }
     # })
+    
+    # Unlock reactivity on plugins page
+    if (id == "plugins"){
+      r$plugins_ui_loaded <- FALSE
+      observeEvent(shiny.router::get_page(), {
+        req(shiny.router::get_page() == "plugins", !r$plugins_ui_loaded)
+        shinyjs::show("plugins") 
+        r$plugins_ui_loaded <- TRUE
+      })
+    }
     
     # output$username <- renderUI(r$username)
     output$user <- renderUI(
@@ -251,7 +259,7 @@ mod_page_header_server <- function(id = character(), r = shiny::reactiveValues()
     
     observeEvent(input$console, {
       if (debug) cat(paste0("\n", now(), " - mod_data - ", id, " - observer input$console"))
-      r$open_modal_console <- TRUE
+      # r$open_modal_console <- TRUE
       shinyjs::show("console")
     })
     
