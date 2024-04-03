@@ -105,6 +105,10 @@ golem_add_external_resources <- function(){
       });
     ")),
     
+    # Add jquery
+    tags$link(rel = "stylesheet", href = "https://code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css"),
+    tags$script(src = "https://code.jquery.com/ui/1.12.1/jquery-ui.js"),
+    
     # Add highlight.js
     tags$link(rel = "stylesheet", href = "https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.3.1/styles/tomorrow-night-blue.min.css"),
     tags$script(src = "https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.3.1/highlight.min.js"),

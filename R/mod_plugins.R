@@ -190,10 +190,10 @@ mod_plugins_ui <- function(id = character(), i18n = character(), language = tibb
         shinyjs::hidden(
           div(
             id = ns("run_code_div"),
-            div(textOutput(ns("run_code_datetime_code_execution")), style = "color:#878787;"),
-            div(id = ns("run_code_cards"))
+            div(textOutput(ns("run_code_datetime_code_execution")), style = "color:#878787; font-size:12px; margin-left:8px;"),
+            uiOutput(ns("run_code_cards")),
             # uiOutput(ns("run_code_result_ui")), br(),
-            # div(verbatimTextOutput(ns("run_code_result_server")),
+            div(verbatimTextOutput(ns("run_code_result_server")), style = "font-size:12px; margin-left:8px; padding-top:10px;")
             #   style = "width: 99%; border-style: dashed; border-width: 1px; padding: 0px 8px 0px 8px; margin-right: 5px;")
           )
         )
@@ -1123,6 +1123,36 @@ mod_plugins_server <- function(id = character(), r = shiny::reactiveValues(), d 
       # Switch to 'Test' tab
       shinyjs::runjs(glue::glue("$('#{id}-plugin_pivot button[name=\"{i18n$t('test_code')}\"]').click();"))
       
+      # Create translations file
+
+        tryCatch({
+          # Create plugin folder in translations folder if doesn't exist
+          new_dir <- paste0(r$app_folder, "/translations/", r$selected_plugin_unique_id)
+          if (!dir.exists(new_dir)) dir.create(new_dir)
+
+          # Get translations file
+          translations <- readLines(paste0(r$plugin_folder, "/translations.csv"), warn = FALSE)
+          
+          # Create a csv with all languages
+          data <- read.csv(text = translations, header = TRUE, stringsAsFactors = FALSE)
+
+          # Create one csv by language
+          for(lang in names(data)[-1]){
+            # Create a new dataframe with base & current language cols
+            data_lang <- data[, c("base", lang)]
+            filename <- paste0(new_dir, "/translation_", lang, ".csv")
+            write.csv(data_lang, filename, row.names = FALSE)
+          }
+        },
+        error = function(e) report_bug(r = r, output = output, error_message = "error_creating_translations_file",
+          error_name = paste0(id, " - create translations files"), category = "Error", error_report = toString(e), i18n = i18n, ns = ns))
+
+        tryCatch({
+          i18np <- suppressWarnings(shiny.i18n::Translator$new(translation_csvs_path = new_dir))
+          i18np$set_translation_language(language)},
+          error = function(e) report_bug(r = r, output = output, error_message = "error_creating_new_translator",
+            error_name = paste0(id, " - create i18np translator"), category = "Error", error_report = toString(e), i18n = i18n, ns = ns))
+      
       # Get vocabulary concepts
 
       # if (length(r[[paste0(prefix, "_plugin_vocabulary_selected_concepts")]]) > 0) selected_concepts <- r[[paste0(prefix, "_plugin_vocabulary_selected_concepts")]]
@@ -1174,115 +1204,78 @@ mod_plugins_server <- function(id = character(), r = shiny::reactiveValues(), d 
       if (r$selected_plugin_type == 1) server_code <- server_code %>% stringr::str_replace_all("%patient_id%", as.character(selected_person))
 
       # Add gridstacks div
-      gridstack_id <- paste0("gridstack_", widget_id)
-      gridstack_div <- div(id = ns(gridstack_id), class = "grid-stack", style = "margin-left:-18px;")
+      # gridstack_id <- paste0("gridstack_", widget_id)
+      # gridstack_div <- div(id = ns(gridstack_id), class = "grid-stack", style = "margin-left:-18px;")
       
-      insertUI(selector = paste0("#", ns("run_code_cards")), where = "beforeEnd", ui = gridstack_div)
+      # insertUI(selector = paste0("#", ns("run_code_cards")), where = "beforeEnd", ui = gridstack_div)
       
-      shinyjs::delay(200, shinyjs::runjs(paste0("
-        if (!window.gridStackInstances['gridstack_", widget_id, "']) {
-          import('https://esm.sh/gridstack').then((module) => {
-            const GridStack = module.GridStack;
-            window.gridStackInstances['gridstack_", widget_id, "'] = GridStack.init({
-              cellHeight: 70,
-              acceptWidgets: true,
-              staticGrid: false
-            }, '#", ns(gridstack_id), "');
-          });
-        }
-      ")))
-      shinyjs::hide(paste0("gridstack_", widget_id - 1))
-      print(widget_id)
+      # shinyjs::delay(200, shinyjs::runjs(paste0("
+      #   if (!window.gridStackInstances['gridstack_", widget_id, "']) {
+      #     import('https://esm.sh/gridstack').then((module) => {
+      #       const GridStack = module.GridStack;
+      #       window.gridStackInstances['gridstack_", widget_id, "'] = GridStack.init({
+      #         cellHeight: 70,
+      #         acceptWidgets: true,
+      #         staticGrid: false
+      #       }, '#", ns(gridstack_id), "');
+      #     });
+      #   }
+      # ")))
+      # shinyjs::hide(paste0("gridstack_", widget_id - 1))
       
       ui_output <- div(
+        id = ns(paste0("plugin_widget_", widget_id)),
+        div(tryCatch(eval(parse(text = ui_code)), error = function(e) p(toString(e)), warning = function(w) p(toString(w)))),
         div(
-          div(tryCatch(eval(parse(text = ui_code)), error = function(e) p(toString(e)), warning = function(w) p(toString(w))))#,
-          # div(
-          #   id = ns(paste0("plugins_widget_settings_remove_buttons_", widget_id)),
-          #   uiOutput(ns(paste0("additional_buttons_", widget_id))),
-          #   style = "position:absolute; top:8px; right: 10px;"
-          # )
+          id = ns(paste0("plugins_widget_settings_remove_buttons_", widget_id)),
+          uiOutput(ns(paste0("additional_buttons_", widget_id))),
+          style = "position:absolute; top:8px; right: 10px;"
         ),
-        class = "widget"
+        class = "widget",
+        style = "overflow:hidden;"
       )
+      output$run_code_cards <- renderUI(ui_output)
+      # insertUI(selector = paste0("#", ns("run_code_cards")), where = "beforeEnd", ui = ui_output)
+      
+      # shinyjs::delay(400, {
+      #   shinyjs::runjs(sprintf("
+      #   var grid = window.gridStackInstances['%s'];
+      #   if (grid) {
+      #     grid.addWidget({w: 6, h: 5, content: `%s`});
+      #   }
+      #   $('div#%s .ui-resizable-handle.ui-resizable-se').css({'right': '18px', 'bottom': '18px'});
+      # ", paste0("gridstack_", widget_id), ui_output, ns(gridstack_id)))
+      # })
       
       shinyjs::delay(400, {
-        shinyjs::runjs(sprintf("
-        var grid = window.gridStackInstances['%s'];
-        if (grid) {
-          grid.addWidget({w: 6, h: 5, content: `%s`});
-        }
-        // Cibler correctement les poignées de redimensionnement à l'intérieur des widgets de la grille
-        $('div#%s .ui-resizable-handle.ui-resizable-se').css({'right': '18px', 'bottom': '18px'});
-      ", paste0("gridstack_", widget_id), ui_output, ns(gridstack_id)))
+        shinyjs::runjs(sprintf("$('#%s').resizable();", ns(paste0("plugin_widget_", widget_id))))
       })
-      
-      
-      
 
-    #   # Create translations file
-    #   
-    #   if (input$ace_edit_code_translations != ""){
-    #     
-    #     tryCatch({
-    #       # Get plugin unique_id
-    #       plugin_unique_id <- r$options %>% dplyr::filter(category == "plugin", name == "unique_id", link_id == !!link_id) %>% dplyr::pull(value)
-    #       
-    #       # Create plugin folder in translations folder if doesn't exist
-    #       new_dir <- paste0(r$app_folder, "/translations/", plugin_unique_id)
-    #       if (!dir.exists(new_dir)) dir.create(new_dir)
-    #       
-    #       # Create a csv with all languages
-    #       data <- read.csv(text = input$ace_edit_code_translations, header = TRUE, stringsAsFactors = FALSE)
-    #       
-    #       # Create one csv by language
-    #       for(lang in names(data)[-1]){
-    #         # Create a new dataframe with base & current language cols
-    #         data_lang <- data[, c("base", lang)]
-    #         
-    #         filename <- paste0(new_dir, "/translation_", lang, ".csv")
-    #         
-    #         # Create csv
-    #         write.csv(data_lang, filename, row.names = FALSE)
-    #       }
-    #     },
-    #     error = function(e) report_bug(r = r, output = output, error_message = "error_creating_translations_file",
-    #       error_name = paste0(id, " - create translations files"), category = "Error", error_report = toString(e), i18n = i18n, ns = ns))
-    #     
-    #     tryCatch({
-    #       i18np <- suppressWarnings(shiny.i18n::Translator$new(translation_csvs_path = new_dir))
-    #       i18np$set_translation_language(language)},
-    #       error = function(e) report_bug(r = r, output = output, error_message = "error_creating_new_translator",
-    #         error_name = paste0(id, " - create i18np translator"), category = "Error", error_report = toString(e), i18n = i18n, ns = ns))
-    #   }
-    #   
-    #   # New environment, to authorize access to selected variables from shinyAce editor
-    #   # We choose which vars to keep access to
-    #   
-    #   # Variables to hide
-    #   new_env_vars <- list("r" = NA)
-    #   
-    #   # Variables to keep
-    #   variables_to_keep <- c("d", "m", "session_code", "session_num", "i18n", "selected_concepts", "debug")
-    #   if (exists("i18np")) variables_to_keep <- c(variables_to_keep, "i18np")
-    #   
-    #   for (var in variables_to_keep) new_env_vars[[var]] <- eval(parse(text = var))
-    #   new_env <- rlang::new_environment(data = new_env_vars, parent = pryr::where("r"))
-    #   
-    #   options('cli.num_colors' = 1)
-    #   
-    #   # Capture console output of our code
-    #   captured_output <- capture.output(
-    #     tryCatch(eval(parse(text = server_code), envir = new_env), error = function(e) print(e), warning = function(w) print(w)))
-    #   
-    #   # Restore normal value
-    #   options('cli.num_colors' = NULL)
-    #   
-    #   output$code_result_server <- renderText(paste(captured_output, collapse = "\n"))
-    #   
-    #   output$datetime_code_execution <- renderText(format_datetime(now(), language))
-    #   
-    #   if (perf_monitoring) monitor_perf(r = r, action = "stop", task = paste0("mod_plugins - observer r$..trigger_code"))
+      # New environment, to authorize access to selected variables from shinyAce editor
+      # We choose which vars to keep access to
+
+      # Variables to hide
+      new_env_vars <- list("r" = NA)
+
+      # Variables to keep
+      variables_to_keep <- c("d", "m", "session_code", "session_num", "i18n", "selected_concepts", "debug")
+      if (exists("i18np")) variables_to_keep <- c(variables_to_keep, "i18np")
+
+      for (var in variables_to_keep) new_env_vars[[var]] <- eval(parse(text = var))
+      new_env <- rlang::new_environment(data = new_env_vars, parent = pryr::where("r"))
+
+      options('cli.num_colors' = 1)
+
+      # Capture console output of our code
+      captured_output <- capture.output(
+        tryCatch(eval(parse(text = server_code), envir = new_env), error = function(e) print(e), warning = function(w) print(w)))
+
+      # Restore normal value
+      options('cli.num_colors' = NULL)
+
+      output$run_code_result_server <- renderText(paste(captured_output, collapse = "\n"))
+
+      output$run_code_datetime_code_execution <- renderText(format_datetime(now(), language))
     })
     
     # observeEvent(input$selected_plugin, {
