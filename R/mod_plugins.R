@@ -183,7 +183,7 @@ mod_plugins_ui <- function(id = character(), i18n = character(), language = tibb
           div(
             id = ns("edit_code_div"),
             div(uiOutput(ns("edit_code_tabs")), style = "margin-bottom: -15px"),
-            uiOutput(ns("edit_code_editors")),
+            div(id = ns("edit_code_editors_div")),
             div(id = ns("test"))
           )
         ),
@@ -191,7 +191,8 @@ mod_plugins_ui <- function(id = character(), i18n = character(), language = tibb
           div(
             id = ns("run_code_div"),
             div(textOutput(ns("run_code_datetime_code_execution")), style = "color:#878787;"),
-            shiny::uiOutput(ns("run_code_result_ui")), br(),
+            div(id = ns("run_code_cards"))
+            # uiOutput(ns("run_code_result_ui")), br(),
             # div(verbatimTextOutput(ns("run_code_result_server")),
             #   style = "width: 99%; border-style: dashed; border-width: 1px; padding: 0px 8px 0px 8px; margin-right: 5px;")
           )
@@ -769,6 +770,12 @@ mod_plugins_server <- function(id = character(), r = shiny::reactiveValues(), d 
     # A plugin is selected ----
     # --- --- --- --- --- --- -
     
+    # Initiate plugins files var
+    r$plugin_edit_code_files_list <- tibble::tibble(id = integer(), plugin_id = integer(), filename = character())
+    
+    # Initiate editors var
+    r$plugin_edit_code_editors <- c()
+    
     observeEvent(input$selected_plugin, {
       if (debug) cat(paste0("\n", now(), " - mod_plugins - observer input$selected_plugin"))
       
@@ -797,11 +804,11 @@ mod_plugins_server <- function(id = character(), r = shiny::reactiveValues(), d 
       r$plugins_show_hide_sidenav <- "hide"
       r$plugin_current_tab <- "summary"
       
-      # Reload edit_code_editors div
-      output$edit_code_editors <- renderUI(div(id = ns("edit_code_editors_div")))
+      # Hide all editors
+      sapply(paste0("edit_code_editor_div_", r$plugin_edit_code_editors), shinyjs::hide)
       
       # Load plugin code files
-      shinyjs::delay(2000, r$reload_plugin_code_files <- now())
+      r$reload_plugin_code_files <- now()
     })
     
     observeEvent(r$reload_plugin_code_files, {
@@ -824,17 +831,37 @@ mod_plugins_server <- function(id = character(), r = shiny::reactiveValues(), d 
       
       # List files in the plugin folder
       
-      r$plugin_edit_code_files_list <- list.files(path = r$plugin_folder, pattern = "(?i)*.\\.(r|py|csv)$")
-      if (length(r$plugin_edit_code_files_list) > 0) r$plugin_edit_code_files_list <- tibble::tibble(id = 1:length(r$plugin_edit_code_files_list), filename = r$plugin_edit_code_files_list)
+      files_list <- list.files(path = r$plugin_folder, pattern = "(?i)*.\\.(r|py|csv)$")
+      if (length(files_list) > 0){
+        for (i in 1:length(files_list)){
+          file_name <- files_list[i]
+          
+          file_names <- r$plugin_edit_code_files_list %>% dplyr::filter(plugin_id == r$selected_plugin) %>% dplyr::pull(filename)
+          if (length(file_names) == 0) file_names <- c()
+          
+          if (file_name %not_in% file_names){
+            r$plugin_edit_code_files_list <- 
+              r$plugin_edit_code_files_list %>% dplyr::bind_rows(
+                tibble::tibble(
+                  id = 1 + if(length(r$plugin_edit_code_files_list$id) > 0) max(r$plugin_edit_code_files_list$id) else 0, 
+                  plugin_id = r$selected_plugin,
+                  filename = file_name
+                )
+              )
+          }
+        }
+      }
       
       # Synchronize with database. Add files in database if don't exist.
       
       sql <- glue::glue_sql("SELECT * FROM options WHERE category = 'plugin_code' AND link_id = {r$selected_plugin} AND deleted IS FALSE", .con = r$db)
       plugin_files_db <- DBI::dbGetQuery(r$db, sql)
       
-      if (length(r$plugin_edit_code_files_list) > 0){
-        for (i in 1:nrow(r$plugin_edit_code_files_list)){
-          file <- r$plugin_edit_code_files_list %>% dplyr::filter(id == i)
+      plugin_edit_code_files_list <- r$plugin_edit_code_files_list %>% dplyr::filter(plugin_id == r$selected_plugin)
+      
+      if (nrow(plugin_edit_code_files_list) > 0){
+        for (i in 1:nrow(plugin_edit_code_files_list)){
+          file <- plugin_edit_code_files_list[i, ]
           if (file$filename %not_in% plugin_files_db$name){
               options_new_row_id <- get_last_row(r$db, "options") + 1
               new_options <- tibble::tibble(
@@ -867,8 +894,14 @@ mod_plugins_server <- function(id = character(), r = shiny::reactiveValues(), d 
             writeLines(file_code, paste0(r$app_folder, "/", file$name))
             
             # Add file to r$plugin_edit_code_files_list
-            if (length(r$plugin_edit_code_files_list) == 0) r$plugin_edit_code_files_list <- tibble::tibble(id = 1L, filename = file$name)
-            else r$plugin_edit_code_files_list <- r$plugin_edit_code_files_list %>% dplyr::bind_rows(tibble::tibble(id = max(r$plugin_edit_code_files_list$id) + 1, filename = file$name))
+            r$plugin_edit_code_files_list <- 
+              r$plugin_edit_code_files_list %>% dplyr::bind_rows(
+                tibble::tibble(
+                  id = 1 + if(length(r$plugin_edit_code_files_list$id) > 0) max(r$plugin_edit_code_files_list$id) else 0, 
+                  plugin_id = r$selected_plugin,
+                  filename = file$name
+                )
+              )
           }
         }
       }
@@ -882,9 +915,9 @@ mod_plugins_server <- function(id = character(), r = shiny::reactiveValues(), d 
       ))
       
       files_ui <- tagList()
-      if (length(r$plugin_edit_code_files_list) > 0){
-        for (i in 1:nrow(r$plugin_edit_code_files_list)){
-          file <- r$plugin_edit_code_files_list %>% dplyr::filter(id == i)
+      if (nrow(plugin_edit_code_files_list) > 0){
+        for (i in 1:nrow(plugin_edit_code_files_list)){
+          file <- plugin_edit_code_files_list[i, ]
           
           files_ui <- tagList(files_ui,
             tags$li(
@@ -923,25 +956,29 @@ mod_plugins_server <- function(id = character(), r = shiny::reactiveValues(), d 
       # Create ace editors for server.R, ui.R and translations.csv
       for (filename in c("server.R", "ui.R", "translations.csv")){
         file_code <- readLines(paste0(r$plugin_folder, "/", filename), warn = FALSE)
-        file_id <- r$plugin_edit_code_files_list %>% dplyr::filter(filename == !!filename) %>% dplyr::pull(id)
+        file_id <- r$plugin_edit_code_files_list %>% dplyr::filter(plugin_id == r$selected_plugin, filename == !!filename) %>% dplyr::pull(id)
         file_ext <- sub(".*\\.", "", tolower(filename))
         
-        insertUI(selector = paste0("#", ns("edit_code_editors_div")), where = "beforeEnd", ui = shinyjs::hidden(div(
-          id = ns(paste0("edit_code_editor_div_", file_id)),
-          shinyAce::aceEditor(
-            ns(paste0("edit_code_editor_", file_id)), value = file_code, mode = file_ext,
-            code_hotkeys = list(
-              file_ext, list(
-                run_selection = list(win = "CTRL-ENTER", mac = "CTRL-ENTER|CMD-ENTER"),
-                run_all = list(win = "CTRL-SHIFT-ENTER", mac = "CTRL-SHIFT-ENTER|CMD-SHIFT-ENTER"),
-                save = list(win = "CTRL-S", mac = "CTRL-S|CMD-S"),
-                comment = list(win = "CTRL-SHIFT-C", mac = "CTRL-SHIFT-C|CMD-SHIFT-C")
-              )
+        if (file_id %not_in% r$plugin_edit_code_editors){
+          insertUI(selector = paste0("#", ns("edit_code_editors_div")), where = "beforeEnd", ui = shinyjs::hidden(div(
+            id = ns(paste0("edit_code_editor_div_", file_id)),
+            shinyAce::aceEditor(
+              ns(paste0("edit_code_editor_", file_id)), value = file_code, mode = file_ext,
+              code_hotkeys = list(
+                file_ext, list(
+                  run_selection = list(win = "CTRL-ENTER", mac = "CTRL-ENTER|CMD-ENTER"),
+                  run_all = list(win = "CTRL-SHIFT-ENTER", mac = "CTRL-SHIFT-ENTER|CMD-SHIFT-ENTER"),
+                  save = list(win = "CTRL-S", mac = "CTRL-S|CMD-S"),
+                  comment = list(win = "CTRL-SHIFT-C", mac = "CTRL-SHIFT-C|CMD-SHIFT-C")
+                )
+              ),
+              autoScrollEditorIntoView = TRUE, minLines = 50, maxLines = 50, debounce = 100, fontSize = 10, showPrintMargin = FALSE
             ),
-            autoScrollEditorIntoView = TRUE, minLines = 50, maxLines = 50, debounce = 100, fontSize = 10, showPrintMargin = FALSE
-          ),
-          style = "width: 100%;"
-        )))
+            style = "width: 100%;"
+          )))
+          
+          r$plugin_edit_code_editors <- c(r$plugin_edit_code_editors, file_id) 
+        }
         
         # Add observers for editor hotkeys
         observeEvent(input[[paste0("edit_code_editor_", file_id, "_run_all")]], {
@@ -1003,28 +1040,7 @@ mod_plugins_server <- function(id = character(), r = shiny::reactiveValues(), d 
       
       # Add editor UI or show it if already exists
       
-      if (r$edit_plugin_code_open_new_editor){
-        
-        # Update editor with file code
-        file_code <- readLines(paste0(r$plugin_folder, "/", file_row$filename), warn = FALSE)
-        
-        # insertUI(selector = paste0("#", ns("edit_code_editors_div")), where = "beforeEnd", ui = div(
-        #   id = ns(paste0("edit_code_editor_div_", file_id)),
-        #   shinyAce::aceEditor(
-        #     ns(paste0("edit_code_editor_", file_id)), value = file_code, mode = file_ext,
-        #     code_hotkeys = list(
-        #       file_ext, list(
-        #         run_selection = list(win = "CTRL-ENTER", mac = "CTRL-ENTER|CMD-ENTER"),
-        #         run_all = list(win = "CTRL-SHIFT-ENTER", mac = "CTRL-SHIFT-ENTER|CMD-SHIFT-ENTER"),
-        #         save = list(win = "CTRL-S", mac = "CTRL-S|CMD-S"),
-        #         comment = list(win = "CTRL-SHIFT-C", mac = "CTRL-SHIFT-C|CMD-SHIFT-C")
-        #       )
-        #     ),
-        #     autoScrollEditorIntoView = TRUE, minLines = 50, maxLines = 50, debounce = 100, fontSize = 10, showPrintMargin = FALSE
-        #   ),
-        #   style = "width: 100%;"
-        # ))
-      }
+      if (r$edit_plugin_code_open_new_editor) file_code <- readLines(paste0(r$plugin_folder, "/", file_row$filename), warn = FALSE)
       else shinyjs::delay(50, shinyjs::show(paste0("edit_code_editor_div_", file_id)))
       
       # Hide other editors
@@ -1098,6 +1114,9 @@ mod_plugins_server <- function(id = character(), r = shiny::reactiveValues(), d 
       r$run_plugin_code <- now()
     })
     
+    # Initiate widgets var
+    r$run_plugin_last_widget_id <- get_last_row(r$db, "widgets") + 10^6 %>% as.integer()
+    
     observeEvent(r$run_plugin_code, {
       if (debug) cat(paste0("\n", now(), " - mod_plugins - observer r$run_plugin_code"))
 
@@ -1116,10 +1135,11 @@ mod_plugins_server <- function(id = character(), r = shiny::reactiveValues(), d 
         mapped_to_concept_id = integer(), merge_mapped_concepts = logical())
 
       # Get ui & server code
-      ui_code <- input[[paste0("edit_code_editor_", r$plugin_edit_code_files_list %>% dplyr::filter(filename == "ui.R") %>% dplyr::pull(id))]]
-      server_code <- input[[paste0("edit_code_editor_", r$plugin_edit_code_files_list %>% dplyr::filter(filename == "server.R") %>% dplyr::pull(id))]]
+      ui_code <- input[[paste0("edit_code_editor_", r$plugin_edit_code_files_list %>% dplyr::filter(plugin_id == r$selected_plugin, filename == "ui.R") %>% dplyr::pull(id))]]
+      server_code <- input[[paste0("edit_code_editor_", r$plugin_edit_code_files_list %>% dplyr::filter(plugin_id == r$selected_plugin, filename == "server.R") %>% dplyr::pull(id))]]
 
-      widget_id <- get_last_row(r$db, "widgets") + 10^6 %>% as.integer()
+      widget_id <- r$run_plugin_last_widget_id + 1
+      r$run_plugin_last_widget_id <- widget_id
 
       # Create a session number, to inactivate older observers
       # Reset all older observers
@@ -1153,26 +1173,52 @@ mod_plugins_server <- function(id = character(), r = shiny::reactiveValues(), d 
 
       if (r$selected_plugin_type == 1) server_code <- server_code %>% stringr::str_replace_all("%patient_id%", as.character(selected_person))
 
-      output$run_code_result_ui <- renderUI(
+      # Add gridstacks div
+      gridstack_id <- paste0("gridstack_", widget_id)
+      gridstack_div <- div(id = ns(gridstack_id), class = "grid-stack", style = "margin-left:-18px;")
+      
+      insertUI(selector = paste0("#", ns("run_code_cards")), where = "beforeEnd", ui = gridstack_div)
+      
+      shinyjs::delay(200, shinyjs::runjs(paste0("
+        if (!window.gridStackInstances['gridstack_", widget_id, "']) {
+          import('https://esm.sh/gridstack').then((module) => {
+            const GridStack = module.GridStack;
+            window.gridStackInstances['gridstack_", widget_id, "'] = GridStack.init({
+              cellHeight: 70,
+              acceptWidgets: true,
+              staticGrid: false
+            }, '#", ns(gridstack_id), "');
+          });
+        }
+      ")))
+      shinyjs::hide(paste0("gridstack_", widget_id - 1))
+      print(widget_id)
+      
+      ui_output <- div(
         div(
-          div(
-            div(tryCatch(eval(parse(text = ui_code)), error = function(e) p(toString(e)), warning = function(w) p(toString(w)))),
-            div(
-              id = ns(paste0("plugins_widget_settings_remove_buttons_", widget_id)),
-              uiOutput(ns(paste0("additional_buttons_", widget_id))),
-              style = "position:absolute; top:8px; right: 10px;"
-            )
-          ),
-          class = "widget"
-        )
+          div(tryCatch(eval(parse(text = ui_code)), error = function(e) p(toString(e)), warning = function(w) p(toString(w))))#,
+          # div(
+          #   id = ns(paste0("plugins_widget_settings_remove_buttons_", widget_id)),
+          #   uiOutput(ns(paste0("additional_buttons_", widget_id))),
+          #   style = "position:absolute; top:8px; right: 10px;"
+          # )
+        ),
+        class = "widget"
       )
       
-      # shinyjs::delay(200, shinyjs::runjs(sprintf("
-      #   var grid = window.gridStackInstances['plugin_ui'];
-      #   if (grid) {
-      #     grid.addWidget({w: 12, h: 4, content: `%s`});
-      #   }
-      # ", ui_output)))
+      shinyjs::delay(400, {
+        shinyjs::runjs(sprintf("
+        var grid = window.gridStackInstances['%s'];
+        if (grid) {
+          grid.addWidget({w: 6, h: 5, content: `%s`});
+        }
+        // Cibler correctement les poignées de redimensionnement à l'intérieur des widgets de la grille
+        $('div#%s .ui-resizable-handle.ui-resizable-se').css({'right': '18px', 'bottom': '18px'});
+      ", paste0("gridstack_", widget_id), ui_output, ns(gridstack_id)))
+      })
+      
+      
+      
 
     #   # Create translations file
     #   

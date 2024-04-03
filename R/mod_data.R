@@ -888,8 +888,7 @@ mod_data_server <- function(id = character(), r = shiny::reactiveValues(), d = s
               window.gridStackInstances['", tab_id, "'] = GridStack.init({
                 cellHeight: 70,
                 acceptWidgets: true,
-                staticGrid: false,
-                removable: '#", id, "-widget_trash',
+                staticGrid: false
               }, '#", ns(gridstack_id), "');
             });
           }
