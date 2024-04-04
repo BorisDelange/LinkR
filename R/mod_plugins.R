@@ -610,16 +610,25 @@ mod_plugins_server <- function(id = character(), r = shiny::reactiveValues(), d 
     # Close message bar
     sapply(1:20, function(i) observeEvent(input[[paste0("close_message_bar_", i)]], shinyjs::hide(paste0("message_bar", i))))
     
+    code_hotkeys <- list(
+      run_selection = list(win = "CTRL-ENTER", mac = "CTRL-ENTER|CMD-ENTER"),
+      run_all = list(win = "CTRL-SHIFT-ENTER", mac = "CTRL-SHIFT-ENTER|CMD-SHIFT-ENTER"),
+      save = list(win = "CTRL-S", mac = "CTRL-S|CMD-S"),
+      comment = list(win = "CTRL-SHIFT-C", mac = "CTRL-SHIFT-C|CMD-SHIFT-C")
+    )
+    
     # --- --- --- --- --
     # Plugins cards ----
     # --- --- --- --- --
     
-    observeEvent(shiny.router::get_page(), {
-      if (debug) cat(paste0("\n", now(), " - mod_plugins - observer shiny_router::change_page"))
-
-      req(shiny.router::get_page() == "plugins")
-      r$reload_plugins <- now()
-    })
+    # observeEvent(shiny.router::get_page(), {
+    #   if (debug) cat(paste0("\n", now(), " - mod_plugins - observer shiny_router::change_page"))
+    # 
+    #   req(shiny.router::get_page() == "plugins")
+    #   r$reload_plugins <- now()
+    # })
+    
+    r$reload_plugins <- now()
       
     observeEvent(r$reload_plugins, {
       if (debug) cat(paste0("\n", now(), " - mod_plugins - observer r$reload_plugins"))
@@ -774,7 +783,7 @@ mod_plugins_server <- function(id = character(), r = shiny::reactiveValues(), d 
     r$plugin_edit_code_files_list <- tibble::tibble(id = integer(), plugin_id = integer(), filename = character())
     
     # Initiate editors var
-    r$plugin_edit_code_editors <- c()
+    r$edit_plugin_code_editors <- c()
     
     observeEvent(input$selected_plugin, {
       if (debug) cat(paste0("\n", now(), " - mod_plugins - observer input$selected_plugin"))
@@ -805,7 +814,7 @@ mod_plugins_server <- function(id = character(), r = shiny::reactiveValues(), d 
       r$plugin_current_tab <- "summary"
       
       # Hide all editors
-      sapply(paste0("edit_code_editor_div_", r$plugin_edit_code_editors), shinyjs::hide)
+      sapply(paste0("edit_code_editor_div_", r$edit_plugin_code_editors), shinyjs::hide)
       
       # Load plugin code files
       r$reload_plugin_code_files <- now()
@@ -832,6 +841,10 @@ mod_plugins_server <- function(id = character(), r = shiny::reactiveValues(), d 
       # List files in the plugin folder
       
       files_list <- list.files(path = r$plugin_folder, pattern = "(?i)*.\\.(r|py|csv)$")
+      
+      sql <- glue::glue_sql("SELECT * FROM options WHERE category = 'plugin_code' AND link_id = {r$selected_plugin} AND deleted IS FALSE", .con = r$db)
+      plugin_files_db <- DBI::dbGetQuery(r$db, sql)
+      
       if (length(files_list) > 0){
         for (i in 1:length(files_list)){
           file_name <- files_list[i]
@@ -840,22 +853,16 @@ mod_plugins_server <- function(id = character(), r = shiny::reactiveValues(), d 
           if (length(file_names) == 0) file_names <- c()
           
           if (file_name %not_in% file_names){
-            r$plugin_edit_code_files_list <- 
-              r$plugin_edit_code_files_list %>% dplyr::bind_rows(
-                tibble::tibble(
-                  id = 1 + if(length(r$plugin_edit_code_files_list$id) > 0) max(r$plugin_edit_code_files_list$id) else 0, 
-                  plugin_id = r$selected_plugin,
-                  filename = file_name
-                )
-              )
+            # Get option id from db
+            options_id <- plugin_files_db %>% dplyr::filter(link_id == r$selected_plugin, name == file_name) %>% dplyr::pull(id)
+            if (length(options_id) == 0) options_id <- NA_integer_
+            
+            r$plugin_edit_code_files_list <- r$plugin_edit_code_files_list %>% dplyr::bind_rows(tibble::tibble(id = options_id, plugin_id = r$selected_plugin, filename = file_name))
           }
         }
       }
       
       # Synchronize with database. Add files in database if don't exist.
-      
-      sql <- glue::glue_sql("SELECT * FROM options WHERE category = 'plugin_code' AND link_id = {r$selected_plugin} AND deleted IS FALSE", .con = r$db)
-      plugin_files_db <- DBI::dbGetQuery(r$db, sql)
       
       plugin_edit_code_files_list <- r$plugin_edit_code_files_list %>% dplyr::filter(plugin_id == r$selected_plugin)
       
@@ -869,6 +876,10 @@ mod_plugins_server <- function(id = character(), r = shiny::reactiveValues(), d 
                 value = NA_character_, value_num = NA_real_, creator_id = r$user_id, datetime = now(), deleted = FALSE
               )
               DBI::dbAppendTable(r$db, "options", new_options)
+              
+              r$plugin_edit_code_files_list <- 
+                r$plugin_edit_code_files_list %>% 
+                dplyr::mutate(id = dplyr::case_when(plugin_id == r$selected_plugin & filename == file$filename) ~ options_new_row_id, TRUE ~ id)
               
               file_code <- readLines(paste0(r$plugin_folder, "/", file$filename), warn = FALSE) %>% toString()
               new_code <- tibble::tibble(
@@ -888,70 +899,32 @@ mod_plugins_server <- function(id = character(), r = shiny::reactiveValues(), d 
           if (!file.exists(paste0(r$plugin_folder, "/", file$name))){
             # Get code
             sql <- glue::glue_sql("SELECT * FROM code WHERE category = 'plugin' AND link_id = {file$id} AND deleted IS FALSE", .con = r$db)
-            file_code <- DBI::dbGetQuery(r$db, sql) %>% dplyr::pull(code)
+            row <- DBI::dbGetQuery(r$db, sql)
             
             # Create file
-            writeLines(file_code, paste0(r$app_folder, "/", file$name))
+            writeLines(row$code, paste0(r$plugin_folder, "/", file$name))
             
             # Add file to r$plugin_edit_code_files_list
-            r$plugin_edit_code_files_list <- 
-              r$plugin_edit_code_files_list %>% dplyr::bind_rows(
-                tibble::tibble(
-                  id = 1 + if(length(r$plugin_edit_code_files_list$id) > 0) max(r$plugin_edit_code_files_list$id) else 0, 
-                  plugin_id = r$selected_plugin,
-                  filename = file$name
-                )
-              )
+            r$plugin_edit_code_files_list <- r$plugin_edit_code_files_list %>% dplyr::bind_rows(tibble::tibble(id = row$link_id, plugin_id = r$selected_plugin, filename = file$name))
           }
         }
       }
       
-      # Render UI
-      
-      output$edit_code_directory_browser <- renderUI(div(
-        class = "directories-browser",
-        div(class = "directory-item", tags$i(class = "fa fa-folder")),
-        div(class = "directory-sep", " / ")
-      ))
-      
-      files_ui <- tagList()
-      if (nrow(plugin_edit_code_files_list) > 0){
-        for (i in 1:nrow(plugin_edit_code_files_list)){
-          file <- plugin_edit_code_files_list[i, ]
-          
-          files_ui <- tagList(files_ui,
-            tags$li(
-              id = ns(paste0("edit_code_file_div_", file$id)),
-              class = "file-item",
-              div(
-                class = "file-item-title",
-                tags$i(class = "fa fa-file"),
-                shinyjs::hidden(div(id = paste0("edit_code_edit_filename_textfield_div_", file$id), shiny.fluent::TextField.shinyInput(paste0("edit_code_edit_filename_textfield_", file$id)), class = "small_textfield")),
-                div(id = paste0("edit_code_filename_div_", file$id), file$filename)
-              ),
-              div(
-                class = "file-item-icons",
-                shinyjs::hidden(div(id = paste0("edit_code_save_filename_button_div_", file$id), shiny.fluent::IconButton.shinyInput(paste0("edit_code_save_filename_button_", file$id), iconProps = list(iconName = "CheckMark")), class = "small_icon_button")),
-                div(id = paste0("edit_code_edit_filename_button_div_", file$id), shiny.fluent::IconButton.shinyInput(paste0("edit_code_edit_filename_button_", file$id), iconProps = list(iconName = "Edit")), class = "small_icon_button"),
-                div(shiny.fluent::IconButton.shinyInput(paste0("edit_code_delete_file_button_", file$id), iconProps = list(iconName = "Delete")), class = "small_icon_button")
-              ),
-              onClick = htmlwidgets::JS(paste0("Shiny.setInputValue('", id, "-edit_code_selected_file', this.id, {priority: 'event'});"))
-            )
-          )
-        }
-      }
-      
-      output$edit_code_files_browser <- renderUI(div(
-        class = "files-browser",
-        files_ui
-      ))
+      # Reload files browser
+      r$edit_plugin_code_reload_files_browser <- now()
       
       # Initiate plugin tabs
-      r$edit_plugin_code_tabs <- tibble::tibble(id = integer(), filename = character())
+      r$edit_plugin_code_tabs <- 
+        r$plugin_edit_code_files_list %>%
+        dplyr::filter(plugin_id == r$selected_plugin, filename %in% c("server.R", "ui.R", "translations.csv")) %>%
+        dplyr::select(id, filename)
       r$edit_plugin_code_reload_files_tab <- now()
       
       # Initiate plugin editors
-      r$edit_plugin_code_editors <- r$plugin_edit_code_files_list %>% dplyr::filter(filename %in% c("server.R", "ui.R", "translations.csv"))
+      r$edit_plugin_code_editors <- 
+        r$plugin_edit_code_files_list %>% 
+        dplyr::filter(plugin_id == r$selected_plugin, filename %in% c("server.R", "ui.R", "translations.csv")) %>% 
+        dplyr::pull(id)
       
       # Create ace editors for server.R, ui.R and translations.csv
       for (filename in c("server.R", "ui.R", "translations.csv")){
@@ -959,26 +932,25 @@ mod_plugins_server <- function(id = character(), r = shiny::reactiveValues(), d 
         file_id <- r$plugin_edit_code_files_list %>% dplyr::filter(plugin_id == r$selected_plugin, filename == !!filename) %>% dplyr::pull(id)
         file_ext <- sub(".*\\.", "", tolower(filename))
         
-        if (file_id %not_in% r$plugin_edit_code_editors){
-          insertUI(selector = paste0("#", ns("edit_code_editors_div")), where = "beforeEnd", ui = shinyjs::hidden(div(
-            id = ns(paste0("edit_code_editor_div_", file_id)),
-            shinyAce::aceEditor(
-              ns(paste0("edit_code_editor_", file_id)), value = file_code, mode = file_ext,
-              code_hotkeys = list(
-                file_ext, list(
-                  run_selection = list(win = "CTRL-ENTER", mac = "CTRL-ENTER|CMD-ENTER"),
-                  run_all = list(win = "CTRL-SHIFT-ENTER", mac = "CTRL-SHIFT-ENTER|CMD-SHIFT-ENTER"),
-                  save = list(win = "CTRL-S", mac = "CTRL-S|CMD-S"),
-                  comment = list(win = "CTRL-SHIFT-C", mac = "CTRL-SHIFT-C|CMD-SHIFT-C")
-                )
-              ),
-              autoScrollEditorIntoView = TRUE, minLines = 50, maxLines = 50, debounce = 100, fontSize = 10, showPrintMargin = FALSE
-            ),
-            style = "width: 100%;"
-          )))
+        # if (file_id %not_in% r$edit_plugin_code_editors){
+        ui_div <- div(
+          id = ns(paste0("edit_code_editor_div_", file_id)),
+          shinyAce::aceEditor(
+            ns(paste0("edit_code_editor_", file_id)), value = file_code, mode = file_ext,
+            code_hotkeys = list(file_ext, code_hotkeys),
+            autoScrollEditorIntoView = TRUE, minLines = 50, maxLines = 50, debounce = 100, fontSize = 10, showPrintMargin = FALSE
+          ),
+          style = "width: 100%;"
+        )
+        
+        if (filename != "ui.R") ui_div <- shinyjs::hidden(ui_div)
+        
+        r$edit_plugin_code_open_new_tab <- "ui"
           
-          r$plugin_edit_code_editors <- c(r$plugin_edit_code_editors, file_id) 
-        }
+        insertUI(selector = paste0("#", ns("edit_code_editors_div")), where = "beforeEnd", ui = ui_div)
+        
+        r$edit_plugin_code_editors <- c(r$edit_plugin_code_editors, file_id)
+        # }
         
         # Add observers for editor hotkeys
         observeEvent(input[[paste0("edit_code_editor_", file_id, "_run_all")]], {
@@ -990,6 +962,53 @@ mod_plugins_server <- function(id = character(), r = shiny::reactiveValues(), d 
           r$run_plugin_code <- now()
         })
       }
+    })
+    
+    observeEvent(r$edit_plugin_code_reload_files_browser, {
+      if (debug) cat(paste0("\n", now(), " - mod_plugins - observer r$edit_plugin_code_reload_files_browser"))
+      
+      output$edit_code_directory_browser <- renderUI(div(
+        class = "directories-browser",
+        div(class = "directory-item", tags$i(class = "fa fa-folder")),
+        div(class = "directory-sep", " / ")
+      ))
+      
+      plugin_edit_code_files_list <- r$plugin_edit_code_files_list %>% dplyr::filter(plugin_id == r$selected_plugin)
+      
+      files_ui <- tagList()
+      if (nrow(plugin_edit_code_files_list) > 0){
+        for (i in 1:nrow(plugin_edit_code_files_list)){
+          file <- plugin_edit_code_files_list[i, ]
+          
+          if (file$filename %in% c("ui.R", "server.R", "translations.csv")) icons_div <- tagList()
+          else icons_div <- div(
+            class = "file-item-icons",
+            shinyjs::hidden(div(id = paste0("edit_code_save_filename_button_div_", file$id), shiny.fluent::IconButton.shinyInput(paste0("edit_code_save_filename_button_", file$id), iconProps = list(iconName = "CheckMark")), class = "small_icon_button")),
+            div(id = paste0("edit_code_edit_filename_button_div_", file$id), shiny.fluent::IconButton.shinyInput(paste0("edit_code_edit_filename_button_", file$id), iconProps = list(iconName = "Edit")), class = "small_icon_button"),
+            div(shiny.fluent::IconButton.shinyInput(paste0("edit_code_delete_file_button_", file$id), iconProps = list(iconName = "Delete")), class = "small_icon_button")
+          )
+          
+          files_ui <- tagList(files_ui,
+            tags$li(
+              id = ns(paste0("edit_code_file_div_", file$id)),
+              class = "file-item",
+              div(
+                class = "file-item-title",
+                tags$i(class = "fa fa-file"),
+                shinyjs::hidden(div(id = paste0("edit_code_edit_filename_textfield_div_", file$id), shiny.fluent::TextField.shinyInput(paste0("edit_code_edit_filename_textfield_", file$id)), class = "small_textfield")),
+                div(id = paste0("edit_code_filename_div_", file$id), file$filename)
+              ),
+              icons_div,
+              onClick = htmlwidgets::JS(paste0("Shiny.setInputValue('", id, "-edit_code_selected_file', this.id, {priority: 'event'});"))
+            )
+          )
+        }
+      }
+      
+      output$edit_code_files_browser <- renderUI(div(
+        class = "files-browser",
+        files_ui
+      ))
     })
     
     observeEvent(r$reload_plugin_pivot, {
@@ -1025,27 +1044,38 @@ mod_plugins_server <- function(id = character(), r = shiny::reactiveValues(), d 
       # Open a new tab ?
       if (file_id %not_in% r$edit_plugin_code_tabs$id){
         r$edit_plugin_code_tabs <- r$edit_plugin_code_tabs %>% dplyr::bind_rows(file_row)
-        r$edit_plugin_code_open_new_tab <- TRUE
+        r$edit_plugin_code_open_new_tab <- "new_tab"
       }
-      else r$edit_plugin_code_open_new_tab <- FALSE
+      else r$edit_plugin_code_open_new_tab <- "none"
       
       r$edit_plugin_code_reload_files_tab <- now()
       
+      # Hide all editors
+      sapply(paste0("edit_code_editor_div_", r$edit_plugin_code_editors), shinyjs::hide)
+      
       # Create an ace editor ?
-      if (file_id %not_in% r$edit_plugin_code_editors$id){
-        r$edit_plugin_code_editors <- r$edit_plugin_code_editors %>% dplyr::bind_rows(file_row)
+      if (file_id %not_in% r$edit_plugin_code_editors){
+        r$edit_plugin_code_editors <- c(r$edit_plugin_code_editors, file_id) 
         r$edit_plugin_code_open_new_editor <- TRUE
       }
       else r$edit_plugin_code_open_new_editor <- FALSE
       
       # Add editor UI or show it if already exists
-      
-      if (r$edit_plugin_code_open_new_editor) file_code <- readLines(paste0(r$plugin_folder, "/", file_row$filename), warn = FALSE)
+      if (r$edit_plugin_code_open_new_editor){
+        file_code <- readLines(paste0(r$plugin_folder, "/", file_row$filename), warn = FALSE)
+        
+        # Create editor
+        insertUI(selector = paste0("#", ns("edit_code_editors_div")), where = "beforeEnd", ui = div(
+          id = ns(paste0("edit_code_editor_div_", file_id)),
+          shinyAce::aceEditor(
+            ns(paste0("edit_code_editor_", file_id)), value = "", mode = "r",
+            code_hotkeys = list("r", code_hotkeys),
+            autoScrollEditorIntoView = TRUE, minLines = 50, maxLines = 50, debounce = 100, fontSize = 10, showPrintMargin = FALSE
+          ),
+          style = "width:100%;"
+        ))
+      }
       else shinyjs::delay(50, shinyjs::show(paste0("edit_code_editor_div_", file_id)))
-      
-      # Hide other editors
-      hide_ids <- setdiff(r$edit_plugin_code_editors$id, file_id)
-      sapply(hide_ids, function(file_id) shinyjs::hide(paste0("edit_code_editor_div_", file_id)))
     })
     
     # Reload tabs UI
@@ -1060,12 +1090,15 @@ mod_plugins_server <- function(id = character(), r = shiny::reactiveValues(), d 
           plugin <- r$edit_plugin_code_tabs[i, ]
           
           tab_class <- "tab"
-          if (r$edit_plugin_code_open_new_tab){
-            if (i == nrow(r$edit_plugin_code_tabs)) tab_class <- "tab active"
+          if (r$edit_plugin_code_open_new_tab != "none"){
+            if (r$edit_plugin_code_open_new_tab == "ui" & plugin$filename == "ui.R") tab_class <- "tab active"
+            else if (i == nrow(r$edit_plugin_code_tabs)) tab_class <- "tab active"
           }
           else {
-            new_plugin_id <- as.integer(sub(paste0(id, "-edit_code_file_div_"), "", input$edit_code_selected_file))
-            if (plugin$id == new_plugin_id) tab_class <- "tab active"
+            if (length(input$edit_code_selected_file) > 0){
+              new_plugin_id <- as.integer(sub(paste0(id, "-edit_code_file_div_"), "", input$edit_code_selected_file))
+              if (plugin$id == new_plugin_id) tab_class <- "tab active"
+            }
           }
           
           tabs_ui <- tagList(tabs_ui, div(
@@ -1202,26 +1235,6 @@ mod_plugins_server <- function(id = character(), r = shiny::reactiveValues(), d 
         stringr::str_replace_all("\r", "\n")
 
       if (r$selected_plugin_type == 1) server_code <- server_code %>% stringr::str_replace_all("%patient_id%", as.character(selected_person))
-
-      # Add gridstacks div
-      # gridstack_id <- paste0("gridstack_", widget_id)
-      # gridstack_div <- div(id = ns(gridstack_id), class = "grid-stack", style = "margin-left:-18px;")
-      
-      # insertUI(selector = paste0("#", ns("run_code_cards")), where = "beforeEnd", ui = gridstack_div)
-      
-      # shinyjs::delay(200, shinyjs::runjs(paste0("
-      #   if (!window.gridStackInstances['gridstack_", widget_id, "']) {
-      #     import('https://esm.sh/gridstack').then((module) => {
-      #       const GridStack = module.GridStack;
-      #       window.gridStackInstances['gridstack_", widget_id, "'] = GridStack.init({
-      #         cellHeight: 70,
-      #         acceptWidgets: true,
-      #         staticGrid: false
-      #       }, '#", ns(gridstack_id), "');
-      #     });
-      #   }
-      # ")))
-      # shinyjs::hide(paste0("gridstack_", widget_id - 1))
       
       ui_output <- div(
         id = ns(paste0("plugin_widget_", widget_id)),
@@ -1235,17 +1248,6 @@ mod_plugins_server <- function(id = character(), r = shiny::reactiveValues(), d 
         style = "overflow:hidden;"
       )
       output$run_code_cards <- renderUI(ui_output)
-      # insertUI(selector = paste0("#", ns("run_code_cards")), where = "beforeEnd", ui = ui_output)
-      
-      # shinyjs::delay(400, {
-      #   shinyjs::runjs(sprintf("
-      #   var grid = window.gridStackInstances['%s'];
-      #   if (grid) {
-      #     grid.addWidget({w: 6, h: 5, content: `%s`});
-      #   }
-      #   $('div#%s .ui-resizable-handle.ui-resizable-se').css({'right': '18px', 'bottom': '18px'});
-      # ", paste0("gridstack_", widget_id), ui_output, ns(gridstack_id)))
-      # })
       
       shinyjs::delay(400, {
         shinyjs::runjs(sprintf("$('#%s').resizable();", ns(paste0("plugin_widget_", widget_id))))
@@ -1278,66 +1280,59 @@ mod_plugins_server <- function(id = character(), r = shiny::reactiveValues(), d 
       output$run_code_datetime_code_execution <- renderText(format_datetime(now(), language))
     })
     
-    # observeEvent(input$selected_plugin, {
-    #   if (debug) cat(paste0("\n", now(), " - mod_plugins - ", id, " - observer input$selected_plugin"))
-    #   
-    #   shinyjs::hide("plugins_datatable_card")
-    #   shinyjs::show("plugin_details_card")
-    # })
-    
-    # --- --- --- --- --- --- --
-    # Load page from header ----
-    # --- --- --- --- --- --- --
-    
-    # observeEvent(shiny.router::get_page(), {
-    #   if (debug) cat(paste0("\n", now(), " - mod_plugins - ", id, " - observer shiny_router::change_page"))
-    # # 
-    # #   if (prefix == "aggregated" & shiny.router::get_page() == "plugins" & r$plugins_page == "plugins_patient_lvl") shiny.router::change_page("plugins_patient_lvl")
-    # #   else if (prefix == "patient_lvl" & shiny.router::get_page() == "plugins" & r$plugins_page == "plugins_aggregated") shiny.router::change_page("plugins_aggregated")
-    # # 
-    # #   # Close help pages when page changes
-    # #   # r[[paste0("help_plugins_", prefix, "_open_panel")]] <- FALSE
-    # #   # r[[paste0("help_plugins_", prefix, "_open_modal")]] <- FALSE
-    #   
-    #   # Load Export plugins page, to load DT (doesn't update with other DT if not already loaded once)
-    #   if (shiny.router::get_page() == paste0("plugins_", prefix) & length(r[[paste0(prefix, "_plugins_page_loaded")]]) == 0){
-    #     sapply(c("plugins_datatable_card", "export_plugin_card"), function(card) if (card %in% r$user_accesses) shinyjs::show(card))
-    #     shinyjs::delay(500, sapply(c("plugins_datatable_card", "export_plugin_card"), shinyjs::hide))
-    #     r[[paste0(prefix, "_plugins_page_loaded")]] <- TRUE
-    #   }
-    # })
-    
-    # --- --- --- --- --- -
-    # Update dropdowns ----
-    # --- --- --- --- --- -
-    
-    # observeEvent(r$plugins, {
-    #   
-    #   if (debug) cat(paste0("\n", now(), " - mod_plugins - observer r$plugins"))
-    #   
-    #   options <- convert_tibble_to_list(r$plugins %>% dplyr::filter(tab_type_id == !!tab_type_id) %>% dplyr::arrange(name), key_col = "id", text_col = "name")
-    #   
-    #   shiny.fluent::updateComboBox.shinyInput(session, "code_selected_plugin", options = options)
-    #   shiny.fluent::updateComboBox.shinyInput(session, "options_selected_plugin", options = options)
-    #   
-    #   # Reload category dropdowns
-    #   
-    #   categories_options <-
-    #     tibble::tibble(key = "all", text = i18n$t("all_categories")) %>%
-    #     dplyr::bind_rows(
-    #       r$plugins %>%
-    #         dplyr::left_join(
-    #           r$options %>% dplyr::filter(category == "plugin", name == paste0("category_", language)) %>% dplyr::select(id = link_id, category = value),
-    #           by = "id") %>%
-    #         dplyr::filter(tab_type_id == !!tab_type_id & category != "" & !is.na(category)) %>%
-    #         dplyr::group_by(category) %>% dplyr::slice(1) %>% dplyr::ungroup() %>%
-    #         dplyr::select(key = category, text = category) %>%
-    #         dplyr::arrange(key)
-    #     )
-    # 
-    #   shiny.fluent::updateDropdown.shinyInput(session, "local_plugins_category",
-    #     options = convert_tibble_to_list(categories_options, key_col = "key", text_col = "text"), value = "all")
-    # })
+    # Create a file
+    observeEvent(input$edit_code_add_file, {
+      if (debug) cat(paste0("\n", now(), " - mod_plugins - observer input$edit_code_add_file"))
+      
+      # List files to create new filename
+      files_list <- list.files(path = r$plugin_folder, pattern = "(?i)*.\\.(r|py|csv)$")
+      base_name <- "untitled"
+      extension <- ".R"
+      i <- 1
+      new_filename <- paste0(base_name, extension)
+      while(new_filename %in% files_list) {
+        i <- i + 1
+        new_filename <- paste0(base_name, i, extension)
+      }
+      
+      # Create file
+      writeLines("", paste0(r$plugin_folder, "/", new_filename))
+      
+      # Add file in database
+      options_new_row_id <- get_last_row(r$db, "options") + 1
+      new_options <- tibble::tibble(
+        id = options_new_row_id, category = "plugin_code", link_id = {r$selected_plugin}, name = {new_filename},
+        value = NA_character_, value_num = NA_real_, creator_id = r$user_id, datetime = now(), deleted = FALSE
+      )
+      DBI::dbAppendTable(r$db, "options", new_options)
+      
+      new_code <- tibble::tibble(
+        id = get_last_row(r$db, "code") + 1, category = "plugin", link_id = {options_new_row_id}, code = "",
+        creator_id = r$user_id, datetime = now(), deleted = FALSE
+      )
+      DBI::dbAppendTable(r$db, "code", new_code)
+      
+      # Update files browser
+      r$plugin_edit_code_files_list <- r$plugin_edit_code_files_list %>% dplyr::bind_rows(tibble::tibble(id = options_new_row_id, plugin_id = r$selected_plugin, filename = new_filename))
+      
+      r$edit_plugin_code_reload_files_browser <- now()
+      
+      # Hide all editors
+      sapply(paste0("edit_code_editor_div_", r$edit_plugin_code_editors), shinyjs::hide)
+      
+      # Create editor
+      insertUI(selector = paste0("#", ns("edit_code_editors_div")), where = "beforeEnd", ui = div(
+        id = ns(paste0("edit_code_editor_div_", options_new_row_id)),
+        shinyAce::aceEditor(
+          ns(paste0("edit_code_editor_", options_new_row_id)), value = "", mode = "r",
+          code_hotkeys = list("r", code_hotkeys),
+          autoScrollEditorIntoView = TRUE, minLines = 50, maxLines = 50, debounce = 100, fontSize = 10, showPrintMargin = FALSE
+        ),
+        style = "width:100%;"
+      ))
+      
+      r$edit_plugin_code_editors <- c(r$edit_plugin_code_editors, options_new_row_id)
+    })
     
     # --- --- --- --- -- -
     # Plugins catalog ----

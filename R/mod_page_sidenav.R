@@ -155,10 +155,26 @@ mod_page_sidenav_ui <- function(id = character(), i18n = character()){
             id = ns("edit_code_sidenav"),
             div(
               class = "sidenav_top",
-              div(shiny.fluent::IconButton.shinyInput(ns("edit_code_add_file"), iconProps = list(iconName = "Add")), class = "small_icon_button"),
-              div(shiny.fluent::IconButton.shinyInput(ns("edit_code_add_folder"), iconProps = list(iconName = "FabricNewFolder")), class = "small_icon_button"),
-              div(shiny.fluent::IconButton.shinyInput(ns("save_plugin_code"), iconProps = list(iconName = "Save")), class = "small_icon_button"),
-              div(shiny.fluent::IconButton.shinyInput(ns("run_plugin_code"), iconProps = list(iconName = "Play")), class = "small_icon_button")
+              div(
+                shiny.fluent::HoverCard(type = "PlainCard", plainCardProps = htmlwidgets::JS(paste0("{onRenderPlainCard: (a, b, c) => '", i18n$t("add_file"), "', style: {padding: '5px', fontSize: '12px'}}")), 
+                  shiny.fluent::IconButton.shinyInput(ns("edit_code_add_file"), iconProps = list(iconName = "Add"))),
+                class = "small_icon_button"
+              ),
+              div(
+                shiny.fluent::HoverCard(type = "PlainCard", plainCardProps = htmlwidgets::JS(paste0("{onRenderPlainCard: (a, b, c) => '", i18n$t("add_folder"), "', style: {padding: '5px', fontSize: '12px'}}")), 
+                  shiny.fluent::IconButton.shinyInput(ns("edit_code_add_folder"), iconProps = list(iconName = "FabricNewFolder"))),
+                class = "small_icon_button"
+              ),
+              div(
+                shiny.fluent::HoverCard(type = "PlainCard", plainCardProps = htmlwidgets::JS(paste0("{onRenderPlainCard: (a, b, c) => '", i18n$t("save_current_file"), "', style: {padding: '5px', fontSize: '12px'}}")), 
+                  shiny.fluent::IconButton.shinyInput(ns("save_plugin_code"), iconProps = list(iconName = "Save"))),
+                class = "small_icon_button"
+              ),
+              div(
+                shiny.fluent::HoverCard(type = "PlainCard", plainCardProps = htmlwidgets::JS(paste0("{onRenderPlainCard: (a, b, c) => '", i18n$t("run_plugin_code"), "', style: {padding: '5px', fontSize: '12px'}}")), 
+                  shiny.fluent::IconButton.shinyInput(ns("run_plugin_code"), iconProps = list(iconName = "Play"))),
+                class = "small_icon_button"
+              )
             ),
             uiOutput(ns("edit_code_directory_browser")),
             uiOutput(ns("edit_code_files_browser"))
@@ -269,52 +285,6 @@ mod_page_sidenav_server <- function(id = character(), r = shiny::reactiveValues(
     # Plugins ----
     # --- --- -- -
     
-    # if (id == "plugins"){
-    #   observeEvent(r$plugins_current_tab, {
-    #     if (debug) cat(paste0("\n", now(), " - mod_page_sidenav - observer r$plugins_current_tab"))
-    #     
-    #     if (r$plugins_current_tab %in% c(""))
-    #     
-    #     if (r$plugins_current_tab == "edit_code") shinyjs::show("edit_code_sidenav")
-    #     else shinyjs::hide("edit_code_sidenav")
-    #   })
-    # }
-    
-    # if (id %in% c("plugins_patient_lvl", "plugins_aggregated")){
-    #   
-    #   # Current tab
-    #   observeEvent(r[[paste0(id, "_current_tab")]], {
-    #     if (debug) cat(paste0("\n", now(), " - mod_page_sidenav - observer r$..current_tab"))
-    #     
-    #     current_tab <- r[[paste0(id, "_current_tab")]]
-    #     
-    #     sapply(c(paste0(id, "_edit_code_div")), shinyjs::hide)
-    #     
-    #     if (current_tab == "plugins_edit_code_card") shinyjs::show(paste0(id, "_edit_code_div"))
-    #   })
-    #   
-    #   # Display
-    #   sapply(c("plugin", "script", "concepts", "editor", "code_result"), function(name) observeEvent(input[[paste0(id, "_edit_code_", name, "_div")]], {
-    #     r[[paste0(id, "_edit_code_", name, "_div")]] <- input[[paste0(id, "_edit_code_", name, "_div")]]
-    #   }))
-    #   
-    #   observeEvent(input[[paste0(id, "_edit_code_side_by_side_divs")]], {
-    #     r[[paste0(id, "_edit_code_side_by_side_divs")]] <- input[[paste0(id, "_edit_code_side_by_side_divs")]]
-    #   })
-    #   
-    #   # Edit code commands
-    #   observeEvent(input[[paste0(id, "_edit_code_ui_server")]], {
-    #     if (debug) cat(paste0("\n", now(), " - mod_page_sidenav - observer input$edit_code_ui_server"))
-    #     r[[paste0(id, "_edit_code_ui_server")]] <- input[[paste0(id, "_edit_code_ui_server")]]
-    #   })
-    #   
-    #   # Edit code actions
-    #   
-    #   sapply(c("save", "execute"), function(name) observeEvent(input[[paste0(id, "_edit_code_", name, "_code")]], {
-    #     if (debug) cat(paste0("\n", now(), " - mod_page_sidenav - observer input$.._edit_code_", name, "_code"))
-    #     r[[paste0(id, "_edit_code_", name, "_code")]] <- input[[paste0(id, "_edit_code_", name, "_code")]]
-    #   }))
-    # }
     
     if (id %in% c("my_studies", "my_subsets", "messages", "vocabularies", "scripts", "patient_level_data", "aggregated_data")){
       

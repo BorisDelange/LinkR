@@ -255,8 +255,28 @@ app_server <- function(language = "en", languages = tibble::tibble(), i18n = cha
     # Keep trace of loaded observers (not to have multiple identical observers)
     r$loaded_observers <- ""
     
-    # Load tabs
-    # Don't load tabs user has no access to
+    # Load pages
+    
+    r$loaded_pages <- list()
+    observeEvent(shiny.router::get_page(), {
+      if (debug) cat(paste0("\n", now(), " - server - observer shiny_router::change_page"))
+
+      if(shiny.router::get_page() == "plugins" & length(r$loaded_pages$plugins) == 0){
+        r$loaded_pages$plugins <- TRUE
+        mod_plugins_server("plugins", r, d, m, language, i18n, perf_monitoring, debug)
+        mod_page_sidenav_server("plugins", r, d, m, i18n, language, perf_monitoring, debug)
+        mod_page_header_server("plugins", r, d, m, language, i18n, perf_monitoring, debug)
+      }
+      
+      if(shiny.router::get_page() %in% c("patient_level_data", "aggregated_data") & length(r$loaded_pages$data) == 0){
+        r$loaded_pages$data <- TRUE 
+        sapply(c("patient_level_data", "aggregated_data"), function(page){
+          mod_data_server(page, r, d, m, language, i18n, perf_monitoring, debug)
+          mod_page_sidenav_server(page, r, d, m, i18n, language, perf_monitoring, debug)
+          mod_page_header_server(page, r, d, m, language, i18n, perf_monitoring, debug)
+        })
+      }
+    })
     
     observeEvent(r$user_accesses, {
       
@@ -290,14 +310,14 @@ app_server <- function(language = "en", languages = tibble::tibble(), i18n = cha
       mod_home_server("home", r, d, m, language, i18n, perf_monitoring, debug, show_home_page)
       mod_page_header_server("home", r, d, m, language, i18n, perf_monitoring, debug)
       
-      if (perf_monitoring) monitor_perf(r = r, action = "stop", task = "server - load server tabs - home")
-      if (debug) cat(paste0("\n", now(), " - server - load server tabs - data"))
-
-      sapply(c("patient_level_data", "aggregated_data"), function(page){
-        mod_data_server(page, r, d, m, language, i18n, perf_monitoring, debug)
-        mod_page_sidenav_server(page, r, d, m, i18n, language, perf_monitoring, debug)
-        mod_page_header_server(page, r, d, m, language, i18n, perf_monitoring, debug)
-      })
+      # if (perf_monitoring) monitor_perf(r = r, action = "stop", task = "server - load server tabs - home")
+      # if (debug) cat(paste0("\n", now(), " - server - load server tabs - data"))
+      # 
+      # sapply(c("patient_level_data", "aggregated_data"), function(page){
+      #   mod_data_server(page, r, d, m, language, i18n, perf_monitoring, debug)
+      #   mod_page_sidenav_server(page, r, d, m, i18n, language, perf_monitoring, debug)
+      #   mod_page_header_server(page, r, d, m, language, i18n, perf_monitoring, debug)
+      # })
 
       # if (perf_monitoring) monitor_perf(r = r, action = "stop", task = "server - load server tabs - data")
       # if (debug) cat(paste0("\n", now(), " - server - load server tabs - my_studies / my_subsets / vocabularies / scripts"))
@@ -331,9 +351,9 @@ app_server <- function(language = "en", languages = tibble::tibble(), i18n = cha
       #   mod_page_sidenav_server(page, r, d, m, i18n, language, perf_monitoring, debug)
       #   mod_page_header_server(page, r, d, m, language, i18n, perf_monitoring, debug)
       # })
-      mod_plugins_server("plugins", r, d, m, language, i18n, perf_monitoring, debug)
-      mod_page_sidenav_server("plugins", r, d, m, i18n, language, perf_monitoring, debug)
-      mod_page_header_server("plugins", r, d, m, language, i18n, perf_monitoring, debug)
+      # mod_plugins_server("plugins", r, d, m, language, i18n, perf_monitoring, debug)
+      # mod_page_sidenav_server("plugins", r, d, m, i18n, language, perf_monitoring, debug)
+      # mod_page_header_server("plugins", r, d, m, language, i18n, perf_monitoring, debug)
       
       # if (perf_monitoring) monitor_perf(r = r, action = "stop", task = "server - load server tabs - plugins")
       # if (debug) cat(paste0("\n", now(), " - server - load server tabs - general_settings"))

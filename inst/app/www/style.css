@@ -412,6 +412,7 @@ a.no-hover-effect:hover {
   display: flex;
   padding: 10px 0;
   font-size: 12px;
+  overflow-x: auto;
 }
 .tab {
   padding: 3px 2px 3px 10px;

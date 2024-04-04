@@ -1027,3 +1027,7 @@ projects,Projets
 create_project,Créer un projet
 options,Options
 test_code,Test
+add_folder,Créer un dossier
+add_file,Créer un fichier
+save_current_file,Sauvegarder le fichier actuel
+run_plugin_code,Exécuter le plugin
