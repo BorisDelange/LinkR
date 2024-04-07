@@ -1031,3 +1031,5 @@ add_folder,Add a new folder
 add_file,Add a new file
 save_current_file,Save current file
 run_plugin_code,Exécuter le code du plugin
+invalid_file_extension,Invalid file extension
+invalid_filename,Invalid file name

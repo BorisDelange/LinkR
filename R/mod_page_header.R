@@ -168,6 +168,7 @@ mod_page_header_ui <- function(id = character(), i18n = character()){
         # ),
         command_bar,
         uiOutput(ns("current_page"), class = "current_page"),
+        div(class = "message_bars", uiOutput(ns("message_bar"))),
         style = "display:flex;"
       )
     ),

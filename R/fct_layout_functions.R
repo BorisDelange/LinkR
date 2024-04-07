@@ -516,27 +516,19 @@ render_datatable <- function(output, ns = character(), i18n = character(), data 
 show_message_bar <- function(output, message = character(), type = "severeWarning", i18n = character(), time = 7000, ns = character()){
   type <- switch(type, "info" = 0, "error" = 1, "blocked" = 2, "severeWarning" = 3, "success" = 4, "warning" = 5)
   
-  id <- sample(1:20, 1)
-  
-  shinyjs::show(paste0("message_bar", id))
-  shinyjs::delay(time, shinyjs::hide(paste0("message_bar", id)))
-  
   output_message <- i18n$t(message)
   
-  if (length(ns) > 0){
-    output[[paste0("message_bar", id)]] <- renderUI(div(
-      class = "message_bar_container",
-      div(shiny.fluent::MessageBar(output_message, messageBarType = type), class = "message_bar"),
-      div(
-        shiny.fluent::IconButton.shinyInput(ns(paste0("close_message_bar_", id)), "", iconProps = list(iconName = "Cancel")), 
-        class = "message_bar_close_button"
-      ))
-    )
-  }
-  else {
-    output[[paste0("message_bar", id)]] <- renderUI(div(
-      class = "message_bar_container",
-      div(shiny.fluent::MessageBar(output_message, messageBarType = type), class = "message_bar")
+  shinyjs::hide("message_bar")
+  
+  output$message_bar <- renderUI(div(
+    class = "message_bar_container",
+    div(shiny.fluent::MessageBar(output_message, messageBarType = type), class = "message_bar"),
+    div(
+      shiny.fluent::IconButton.shinyInput(ns("close_message_bar"), "", iconProps = list(iconName = "Cancel")), 
+      class = "message_bar_close_button"
     ))
-  }
+  )
+  
+  shinyjs::delay(50, shinyjs::show("message_bar"))
+  shinyjs::delay(time, shinyjs::hide("message_bar"))
 }

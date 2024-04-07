@@ -225,15 +225,11 @@ pre code {
 
 .message_bar_container {
   position: relative;
-  margin-top: 10px;
-  width: calc(100% - 330px);
+  display: flex;
+  justify-content: center;
+  align-items: center;
   height: 35px;
   z-index: 1;
-}
-
-.message_bar {
-  width: 100%;
-  height: 100%;
 }
 
 .message_bar_close_button {
@@ -450,6 +446,9 @@ a.no-hover-effect:hover {
 .small_icon_button .ms-Button {
   width: 24px;
   height: 24px
+}
+.small_textfield {
+  width: 120px;
 }
 .small_textfield .ms-TextField-fieldGroup {
   height: 20px;

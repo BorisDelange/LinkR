@@ -126,10 +126,10 @@ render_settings_datatable_card <- function(i18n = character(), ns = character(),
 render_settings_default_elements <- function(ns = character()){
   
   message_bars <- tagList()
-  for (i in 1:20) message_bars <- tagList(message_bars, shiny::uiOutput(ns(paste0("message_bar", i))))
+  # for (i in 1:20) message_bars <- tagList(message_bars, shiny::uiOutput(ns(paste0("message_bar", i))))
   
-  div(
-    div(class = "message_bars", message_bars), 
-    shiny.fluent::reactOutput(ns("delete_confirm"))
-  )
+  # div(
+  #   div(class = "message_bars", uiOutput(ns("message_bar"))), 
+  #   shiny.fluent::reactOutput(ns("delete_confirm"))
+  # )
 }
