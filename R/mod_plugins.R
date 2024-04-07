@@ -10,143 +10,19 @@
 mod_plugins_ui <- function(id = character(), i18n = character(), language = tibble::tibble(), languages = character()){
   ns <- NS(id)
   
-  # cards <- c("all_plugins_card", "plugins_datatable_card", "plugins_edit_code_card", "plugins_options_card", "import_plugin_card", "export_plugin_card", "plugin_details_card")
-  # 
-  # forbidden_cards <- tagList()
-  # sapply(cards, function(card){
-  #   forbidden_cards <<- tagList(forbidden_cards, forbidden_card(ns = ns, name = card, i18n = i18n))
-  # })
-  
-  # vocabulary_concepts_div <- tags$details(
-  #   style = "border:solid 2px #F0F0F0; font-weight:bold;",
-  #   tags$summary(i18n$t("concepts")),
-  #   # id = ns("concepts_div"),
-  #   shiny.fluent::Stack(horizontal = TRUE, tokens = list(childrenGap = 20),
-  #     make_combobox(i18n = i18n, ns = ns, label = "vocabulary", id = "vocabulary", allowFreeform = FALSE, multiSelect = FALSE, width = "300px"),
-  #     make_dropdown(i18n = i18n, ns = ns, label = "columns_concepts", id = "vocabulary_concepts_table_cols", width = "300px", multiSelect = TRUE,
-  #       options = list(
-  #         list(key = 0, text = i18n$t("concept_id")),
-  #         list(key = 1, text = i18n$t("concept_name")),
-  #         list(key = 2, text = i18n$t("concept_display_name")),
-  #         list(key = 3, text = i18n$t("domain_id")),
-  #         list(key = 4, text = i18n$t("concept_class_id")),
-  #         list(key = 5, text = i18n$t("standard_concept")),
-  #         list(key = 6, text = i18n$t("concept_code")),
-  #         list(key = 7, text = i18n$t("num_patients")),
-  #         list(key = 8, text = i18n$t("num_rows")),
-  #         list(key = 9, text = i18n$t("action"))
-  #       ),
-  #       value = c(0, 1, 2, 7, 8, 9)
-  #     ),
-  #     # Not used for the moment
-  #     shinyjs::hidden(
-  #       make_dropdown(i18n = i18n, ns = ns, label = "columns_mapped_concepts", id = "vocabulary_mapped_concepts_table_cols", width = "300px", multiSelect = TRUE,
-  #         options = list(
-  #           list(key = 1, text = i18n$t("concept_id")),
-  #           list(key = 2, text = i18n$t("relationship_id")),
-  #           list(key = 3, text = i18n$t("mapped_concept_id")),
-  #           list(key = 4, text = i18n$t("concept_name_2")),
-  #           list(key = 5, text = i18n$t("concept_display_name_2")),
-  #           list(key = 6, text = i18n$t("domain_id")),
-  #           list(key = 7, text = i18n$t("num_patients")),
-  #           list(key = 8, text = i18n$t("num_rows")),
-  #           list(key = 10, text = i18n$t("action"))
-  #         ),
-  #         value = c(2, 3, 4, 5, 7, 8, 9)
-  #       )
-  #     )
-  #   ),
-  #   # Not used for the moment
-  #   shinyjs::hidden(
-  #     div(
-  #       shiny.fluent::Stack(horizontal = TRUE, tokens = list(childrenGap = 0),
-  #         div(
-  #           shiny.fluent::Stack(horizontal = TRUE, tokens = list(childrenGap = 10),
-  #             div(shiny.fluent::Toggle.shinyInput(ns("show_mapped_concepts"), value = FALSE), style = "margin-top:30px; margin-bottom:5px;"),
-  #             div(i18n$t("show_mapped_concepts"), style = "font-weight:bold; margin-top:30px; margin-bottom:5px;")
-  #           ),
-  #           style = "width:330px;"
-  #         ),
-  #         shinyjs::hidden(
-  #           div(
-  #             id = ns("merge_mapped_concepts_div"),
-  #             shiny.fluent::Stack(horizontal = TRUE, tokens = list(childrenGap = 10),
-  #               div(shiny.fluent::Toggle.shinyInput(ns("merge_mapped_concepts"), value = TRUE), style = "margin-top:30px;; margin-bottom:5px; margin-left:-10px;"),
-  #               div(i18n$t("merge_mapped_concepts"), style = "font-weight:bold; margin-top:30px;; margin-bottom:5px;")
-  #             ),
-  #             style = "width:330px;"
-  #           )
-  #         ),
-  #         div(
-  #           shiny.fluent::Stack(horizontal = TRUE, tokens = list(childrenGap = 10),
-  #             div(shiny.fluent::Toggle.shinyInput(ns("hide_concepts_datatables"), value = FALSE), style = "margin-top:30px;; margin-bottom:5px; margin-left:-20px;"),
-  #             div(i18n$t("hide_concepts_datatables"), style = "font-weight:bold; margin-top:30px; margin-bottom:5px;")
-  #           )
-  #         )
-  #       )
-  #     )
-  #   ),
-  #   shiny.fluent::Stack(
-  #     horizontal = TRUE, tokens = list(childrenGap = 20),
-  #     div(
-  #       div(id = ns("vocabulary_selected_concepts_title"), class = "input_title", i18n$t("vocabulary_selected_concepts")),
-  #       div(shiny.fluent::Dropdown.shinyInput(ns("vocabulary_selected_concepts"), value = NULL, options = list(), multiSelect = TRUE,
-  #         onChanged = htmlwidgets::JS(paste0("item => Shiny.setInputValue('", id, "-vocabulary_selected_concepts_trigger', Math.random())"))), style = "width:620px;")
-  #     ),
-  #     div(shiny.fluent::DefaultButton.shinyInput(ns("reset_vocabulary_concepts"), i18n$t("reset")), style = "margin-top:39px;")
-  #   ),
-  #   div(DT::DTOutput(ns("plugin_vocabulary_concepts")), class = "vocabulary_table"),
-  #   div(DT::DTOutput(ns("plugin_vocabulary_mapped_concepts")), class = "vocabulary_table"),
-  #   # div(id = ns("blank_space"), br()),
-  #   style = "position:relative; z-index:1;"
-  # )
-  
-  # Plugins options & description divs (with distinct languages fields)
-  # plugin_options_divs <- tagList()
-  # plugin_description_divs <- tagList()
-  # 
-  # for (lang in languages$code){
-  #   
-  #   plugin_options_div <- div(
-  #     id = ns(paste0("plugin_options_", lang, "_div")),
-  #     shiny.fluent::Stack(horizontal = TRUE, tokens = list(childrenGap = 20),
-  #       div(
-  #         div(class = "input_title", paste0(i18n$t("name"), " (", toupper(lang), ")")),
-  #         div(shiny.fluent::TextField.shinyInput(ns(paste0("plugin_name_", lang))), style = "width:320px;")
-  #       ),
-  #       div(
-  #         div(class = "input_title", paste0(i18n$t("category"), " (", toupper(lang), ")")),
-  #         div(shiny.fluent::TextField.shinyInput(ns(paste0("plugin_category_", lang))), style = "width:320px;")
-  #       )
-  #     )
-  #   )
-  #   
-  #   plugin_description_div <- div(
-  #     id = ns(paste0("plugin_description_", lang, "_div")),
-  #     div(paste0(i18n$t("description"), " (", toupper(lang), ") :"), style = "font-weight:bold; margin-top:7px; margin-right:5px;"),
-  #     shinyAce::aceEditor(ns(paste0("plugin_description_", lang)), "", mode = "markdown", 
-  #       code_hotkeys = list(
-  #         "markdown", 
-  #         list(
-  #           save = list(win = "CTRL-S", mac = "CTRL-S|CMD-S"),
-  #           run_all = list(win = "CTRL-SHIFT-ENTER|CTRL-ENTER", mac = "CTRL-SHIFT-ENTER|CMD-SHIFT-ENTER|CTRL-ENTER|CMD-ENTER"),
-  #           comment = list(win = "CTRL-SHIFT-C", mac = "CTRL-SHIFT-C|CMD-SHIFT-C")
-  #         )
-  #       ),
-  #     autoScrollEditorIntoView = TRUE, minLines = 30, maxLines = 1000), style = "width: 100%;")
-  #   
-  #   plugin_options_divs <- tagList(plugin_options_divs, plugin_options_div)
-  #   plugin_description_divs <- tagList(plugin_description_divs, plugin_description_div)
-  # }
-  
   div(
     class = "main",
+    
+    # All plugins ----
+    
     div(
       id = ns("all_plugins"),
       shiny.fluent::Breadcrumb(items = list(list(key = "main", text = i18n$t("plugins"))), maxDisplayedItems = 3),
       div(shiny.fluent::SearchBox.shinyInput(ns("search_plugin")), style = "width:320px; margin:10px 0 0 10px;"),
       uiOutput(ns("plugins"))
     ),
+    
+    # One plugin si selected ----
     
     shinyjs::hidden(
       div(
@@ -182,390 +58,29 @@ mod_plugins_ui <- function(id = character(), i18n = character(), language = tibb
             id = ns("run_code_div"),
             div(textOutput(ns("run_code_datetime_code_execution")), style = "color:#878787; font-size:12px; margin-left:8px;"),
             uiOutput(ns("run_code_cards")),
-            # uiOutput(ns("run_code_result_ui")), br(),
             div(verbatimTextOutput(ns("run_code_result_server")), style = "font-size:12px; margin-left:8px; padding-top:10px;")
-            #   style = "width: 99%; border-style: dashed; border-width: 1px; padding: 0px 8px 0px 8px; margin-right: 5px;")
           )
         )
       )
     ),
     
-    # --- --- -- -- --
-    # Pivot items ----
-    # --- --- -- -- --
+    # Delete a file modal ----
     
-    # div(
-    #   shiny.fluent::Pivot(
-    #     id = ns("plugins_pivot"),
-    #     onLinkClick = htmlwidgets::JS(paste0("item => Shiny.setInputValue('", id, "-current_tab', item.props.id)")),
-    #     # shiny.fluent::PivotItem(id = "all_plugins_card", itemKey = "all_plugins_card", headerText = i18n$t("all_plugins")),
-    #     shiny.fluent::PivotItem(id = "plugins_datatable_card", itemKey = "plugins_datatable_card", headerText = i18n$t("plugins_management")),
-    #     shiny.fluent::PivotItem(id = "plugins_edit_code_card", itemKey = "plugins_edit_code_card", headerText = i18n$t("edit_plugin_code")),
-    #     shiny.fluent::PivotItem(id = "plugins_options_card", itemKey = "plugins_options_card", headerText = i18n$t("plugin_options")),
-    #     shiny.fluent::PivotItem(id = "import_plugin_card", itemKey = "import_plugin_card", headerText = i18n$t("import_plugins")),
-    #     shiny.fluent::PivotItem(id = "export_plugin_card", itemKey = "export_plugin_card", headerText = i18n$t("export_plugins"))
-    #   ),
-    #   style = "margin-top: 10px;"
-    # ),
-    # forbidden_cards,
-    
-    # --- --- --- --- --- -- -
-    # Plugin details card ----
-    # --- --- --- --- --- -- -
-    
-    # shinyjs::hidden(
-    #   div(
-    #     id = ns("plugin_details_card"),
-    #     div(
-    #       div(
-    #         "Plugin details / options",
-    #         style = "flex:1; width:50%; height:165px; box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19); margin:10px; padding:10px;"
-    #       ),
-    #       div(
-    #         "Plugin description",
-    #         style = "flex:1; width:50%; height:165px; box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19); margin:10px; padding:10px;"
-    #       ),
-    #       style = "display:flex; flex-wrap:nowrap;"
-    #     ),
-    #     div(
-    #       div(
-    #         "Plugin scripts",
-    #         style = "flex:1; width:50%; height:165px; box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19); margin:10px; padding:10px;"
-    #       ),
-    #       style = "display:flex; flex-wrap:nowrap;"
-    #     )
-    #   )
-    # ),
-    
-    # --- --- --- --- --- --- -
-    # Plugins catalog card ----
-    # --- --- --- --- --- --- -
-    
-    # shinyjs::hidden(
-    #   div(
-    #     id = ns("all_plugins_card"),
-    #     div(id = ns("all_plugins_document_cards"),
-    #       make_card("",#i18n$t("all_plugins"),
-    #         div(
-    #           shiny.fluent::Stack(horizontal = TRUE, tokens = list(childrenGap = 20),
-    #             div(
-    #               shiny.fluent::ChoiceGroup.shinyInput(ns("all_plugins_source"), value = "local", options = list(
-    #                 list(key = "local", text = i18n$t("local_plural")),
-    #                 list(key = "remote_git", text = i18n$t("on_remote_git_repo"))
-    #               ), className = "inline_choicegroup"),
-    #               style = "width:322px;"
-    #             ),
-    #             shinyjs::hidden(
-    #               div(
-    #                 id = ns("remote_git_repo_div"),
-    #                 shiny.fluent::Stack(horizontal = TRUE, tokens = list(childrenGap = 10),
-    #                   div(strong(i18n$t("remote_git_repo")), style = "margin-top:8px;"),
-    #                   div(shiny.fluent::Dropdown.shinyInput(ns("remote_git_repo")), style = "width:322px;margin-top:3px;")
-    #                 )
-    #               )
-    #             )
-    #           ),
-    #           div(
-    #             id = ns("all_plugins_local_div"),
-    #             make_dropdown(i18n = i18n, ns = ns, label = "category", id = "local_plugins_category", width = "322px"),
-    #             uiOutput(ns("all_plugins_local"))
-    #           ),
-    #           div(
-    #             id = ns("all_plugins_remote_git_div"),
-    #             make_dropdown(i18n = i18n, ns = ns, label = "category", id = "remote_git_plugins_category", width = "322px"),
-    #             uiOutput(ns("all_plugins_remote_git"))
-    #           ), br(),
-    #           div(shiny.fluent::DefaultButton.shinyInput(ns("reload_plugins_document_cards"), i18n$t("refresh")), style = "margin-top:2px; width:320px;")
-    #         )
-    #       )
-    #     ),
-    #     shinyjs::hidden(
-    #       div(id = ns("all_plugins_plugin_details"),
-    #         make_card(
-    #           uiOutput(ns("all_plugins_plugin_details_title")),
-    #           uiOutput(ns("all_plugins_plugin_details_content"))
-    #         )
-    #       )
-    #     ), br(),
-    #   )
-    # ),
-    
-    # --- --- --- --- --- -- -- --
-    # Plugins management card ----
-    # --- --- --- --- --- -- -- --
-    
-    # shinyjs::hidden(
-    #   div(
-    #     id = ns("plugins_datatable_card"),
-    #     make_card("",
-    #       # div(
-    #         # shiny.fluent::Stack(horizontal = TRUE, tokens = list(childrenGap = 20),
-    #         #   make_textfield(i18n = i18n, ns = ns, label = "name", id = "plugin_name", width = "300px"),
-    #         #   div(shiny.fluent::PrimaryButton.shinyInput(ns("add_plugin"), i18n$t("add")), style = "margin-top:39px;"),
-    #         #   style = "position:relative; z-index:1; width:500px;"
-    #         # ),
-    #         div(DT::DTOutput(ns("plugins_datatable")), style = "margin-top:-30px; z-index:2"),
-    #         # div(
-    #         #   shiny.fluent::DefaultButton.shinyInput(ns("delete_selection"), i18n$t("delete_selection")),
-    #         #   style = "position:relative; z-index:2; margin-top:-30px;"
-    #         # )
-    #       # )
-    #       style = "padding-top:40px;"
-    #     )
-    #   )
-    # ),
-    
-    # --- --- --- --- --- --- --
-    # Edit plugin code card ----
-    # --- --- --- --- --- --- --
-    
-    # shinyjs::hidden(
-    #   div(
-    #     id = ns("plugins_edit_code_card"),
-    #     make_shiny_ace_card("",
-    #       div(
-    #         shiny.fluent::Stack(
-    #           tokens = list(childrenGap = 5),
-    #           div(
-    #             id = ns("plugin_div"),
-    #             make_combobox(i18n = i18n, ns = ns, label = "plugin", id = "code_selected_plugin",
-    #               width = "300px", allowFreeform = FALSE, multiSelect = FALSE)
-    #           ),
-    #           vocabulary_concepts_div,
-    #           div(
-    #             id = ns("script_div"),
-    #             div(
-    #               id = ns("code_ui_selected_script_div"),
-    #               shiny.fluent::Stack(
-    #                 horizontal = TRUE, tokens = list(childrenGap = 20),
-    #                 make_dropdown(i18n = i18n, ns = ns, label = "script", id = "code_ui_selected_script", width = "300px"),
-    #                 div(shiny.fluent::DefaultButton.shinyInput(ns("delete_ui_script"), i18n$t("delete")), style = "margin-top:39px;")
-    #               )
-    #             ),
-    #             div(
-    #               id = ns("code_server_selected_script_div"),
-    #               shiny.fluent::Stack(
-    #                 horizontal = TRUE, tokens = list(childrenGap = 20),
-    #                 make_dropdown(i18n = i18n, ns = ns, label = "script", id = "code_server_selected_script", width = "300px"),
-    #                 div(shiny.fluent::DefaultButton.shinyInput(ns("delete_server_script"), i18n$t("delete")), style = "margin-top:39px;")
-    #               )
-    #             ),
-    #             div(
-    #               id = ns("add_script_div"),
-    #               shiny.fluent::Stack(
-    #                 horizontal = TRUE,
-    #                 tokens = list(childrenGap = 20),
-    #                 div(
-    #                   div(class = "input_title", i18n$t("script_name")),
-    #                   div(shiny.fluent::TextField.shinyInput(ns("add_script_name")), style = "width:300px;")
-    #                 ),
-    #                 div(
-    #                   div(class = "input_title", i18n$t("programming_language")),
-    #                   div(shiny.fluent::Dropdown.shinyInput(ns("add_script_programming_language"),
-    #                     options = list(
-    #                       list(key = 1L, text = "R"),
-    #                       list(key = 2L, text = "Python")
-    #                     ),
-    #                     value = 1L
-    #                   ), style = "width:300px;")
-    #                 ),
-    #                 div(shiny.fluent::PrimaryButton.shinyInput(ns("add_script"), i18n$t("add")), style = "margin-top:39px;")
-    #               )
-    #             ),
-    #             div(style = "visibility:hidden;", shiny.fluent::DefaultButton.shinyInput(ns("delete_script")))
-    #           ),
-    #           br(),
-    #         ),
-    #         div(
-    #           id = ns("edit_and_result_div"),
-    #           style = "display:block;",
-    #           div(
-    #             id = ns("editor_div"),
-    #               div(
-    #                 id = ns("ace_edit_code_ui_div"),
-    #                 shinyAce::aceEditor(
-    #                 ns("ace_edit_code_ui"), "", mode = "r", 
-    #                 code_hotkeys = list(
-    #                   "r", list(
-    #                     run_selection = list(win = "CTRL-ENTER", mac = "CTRL-ENTER|CMD-ENTER"),
-    #                     run_all = list(win = "CTRL-SHIFT-ENTER", mac = "CTRL-SHIFT-ENTER|CMD-SHIFT-ENTER"),
-    #                     save = list(win = "CTRL-S", mac = "CTRL-S|CMD-S"),
-    #                     comment = list(win = "CTRL-SHIFT-C", mac = "CTRL-SHIFT-C|CMD-SHIFT-C")
-    #                   )
-    #                 ),
-    #                 autoScrollEditorIntoView = TRUE, minLines = 30, maxLines = 45
-    #               ), 
-    #               style = "width: 100%;"
-    #             ),
-    #             shinyjs::hidden(
-    #               div(
-    #                 id = ns("ace_edit_code_server_div"),
-    #                 shinyAce::aceEditor(
-    #                   ns("ace_edit_code_server"), "", mode = "r", 
-    #                   code_hotkeys = list(
-    #                     "r", list(
-    #                       run_selection = list(win = "CTRL-ENTER", mac = "CTRL-ENTER|CMD-ENTER"),
-    #                       run_all = list(win = "CTRL-SHIFT-ENTER", mac = "CTRL-SHIFT-ENTER|CMD-SHIFT-ENTER"),
-    #                       save = list(win = "CTRL-S", mac = "CTRL-S|CMD-S"),
-    #                       comment = list(win = "CTRL-SHIFT-C", mac = "CTRL-SHIFT-C|CMD-SHIFT-C")
-    #                     )
-    #                   ),
-    #                   autoScrollEditorIntoView = TRUE, minLines = 30, maxLines = 45
-    #                 ), 
-    #                 style = "width: 100%;"
-    #               )
-    #             ),
-    #             shinyjs::hidden(
-    #               div(
-    #                 id = ns("ace_edit_code_translations_div"),
-    #                 shinyAce::aceEditor(
-    #                 ns("ace_edit_code_translations"), "", mode = "text",
-    #                 code_hotkeys = list("r", 
-    #                   list(
-    #                     save = list(win = "CTRL-S", mac = "CTRL-S|CMD-S"),
-    #                     comment = list(win = "CTRL-SHIFT-C", mac = "CTRL-SHIFT-C|CMD-SHIFT-C")
-    #                   )
-    #                 ),
-    #                 autoScrollEditorIntoView = TRUE, minLines = 30, maxLines = 45
-    #               ), 
-    #               style = "width: 100%;")
-    #             ),
-    #             style = "padding-right:10px; width:50%;",
-    #           ),
-    #           div(
-    #             id = ns("code_result_div"),
-    #             shiny.fluent::Stack(
-    #               tokens = list(childrenGap = 5),
-    #               div(textOutput(ns("datetime_code_execution")), style = "color:#878787;"),
-    #               shiny::uiOutput(ns("code_result_ui")), br(),
-    #               div(verbatimTextOutput(ns("code_result_server")), 
-    #                 style = "width: 99%; border-style: dashed; border-width: 1px; padding: 0px 8px 0px 8px; margin-right: 5px;")
-    #             ),
-    #             style = "padding-left:10px; width:50%;",
-    #           )
-    #         )
-    #       )
-    #     ), br()
-    #   )
-    # ),
-    
-    # --- --- --- --- -- -- --
-    # Plugin options card ----
-    # --- --- --- --- -- -- --
-    
-    # shinyjs::hidden(
-    #   div(
-    #     id = ns("plugins_options_card"),
-    #     make_shiny_ace_card("",#i18n$t("plugin_options"),
-    #       div(
-    #         shiny.fluent::Stack(
-    #           tokens = list(childrenGap = 5),
-    #           shiny.fluent::Stack(horizontal = TRUE, tokens = list(childrenGap = 20),
-    #             make_combobox(i18n = i18n, ns = ns, label = "plugin", id = "options_selected_plugin",
-    #               width = "320px", allowFreeform = FALSE, multiSelect = FALSE),
-    #             make_dropdown(i18n = i18n, ns = ns, label = "language", id = "plugin_language", 
-    #               options = convert_tibble_to_list(languages, key_col = "code", text_col = "language"), value = language, width = "320px"),
-    #             make_textfield(i18n = i18n, ns = ns, label = "version", id = "plugin_version", width = "80px")
-    #           ),
-    #           make_textfield(i18n = i18n, ns = ns, label = "author_s", id = "plugin_author", width = "660px"),
-    #           plugin_options_divs, br(),
-    #           div(
-    #             div(class = "input_title", paste0(i18n$t("grant_access_to"), " :")),
-    #             shiny.fluent::ChoiceGroup.shinyInput(ns("users_allowed_read_group"), options = list(
-    #               list(key = "everybody", text = i18n$t("everybody")),
-    #               list(key = "people_picker", text = i18n$t("choose_users"))
-    #             ), className = "inline_choicegroup"),
-    #             shinyjs::hidden(uiOutput(ns("users_allowed_read_div")))
-    #           ), br(),
-    #           shiny.fluent::Stack(horizontal = TRUE, tokens = list(childrenGap = 20),
-    #             make_dropdown(i18n = i18n, ns = ns, label = "image", id = "plugin_image", width = "320px"),
-    #             div(shiny.fluent::DefaultButton.shinyInput(ns("delete_image"), i18n$t("delete_this_image")), style = "margin-top:39px;"),
-    #             div(shiny.fluent::DefaultButton.shinyInput(ns("import_image"), i18n$t("import_image")), style = "margin-top:39px;"),
-    #             div(
-    #               shiny.fluent::Stack(horizontal = TRUE, tokens = list(childrenGap = 10),
-    #                 make_toggle(i18n = i18n, ns = ns, label = "resize_image", inline = TRUE)), 
-    #             style = "margin-top:44px;"),
-    #           ), 
-    #           br(),
-    #           shinyjs::hidden(
-    #             div(
-    #               id = ns("render_image_div"),
-    #               div(imageOutput(ns("render_image")), style = "border:solid #ECEBE9 1px; width:318px; height:200px;"), br()
-    #             )
-    #           )
-    #         ),
-    #         plugin_description_divs,
-    #         shiny.fluent::Stack(
-    #           tokens = list(childrenGap = 5),
-    #           shiny.fluent::Stack(horizontal = TRUE, tokens = list(childrenGap = 10),
-    #             shiny.fluent::PrimaryButton.shinyInput(ns("save_plugin_options"), i18n$t("save")),
-    #             shiny.fluent::DefaultButton.shinyInput(ns("execute_options_description"), i18n$t("preview"))
-    #           ),
-    #           br(),
-    #           div(id = ns("description_markdown_output"),
-    #             uiOutput(ns("description_markdown_result")), 
-    #             style = "width: 99%; border-style: dashed; border-width: 1px; padding:0px 8px 0px 8px; margin-right: 5px;"),
-    #           div(style = "display:none;", fileInput(ns("import_image_file"), label = "", multiple = FALSE, accept = c(".jpg", ".jpeg", ".png", ".svg")))
-    #         )
-    #       )
-    #     ), br()
-    #   )
-    # ),
-    
-    # --- --- --- --- --- -- -
-    # Import plugins card ----
-    # --- --- --- --- --- -- -
-    
-    # shinyjs::hidden(
-    #   div(
-    #     id = ns("import_plugin_card"),
-    #     make_card("",#i18n$t("import_plugins"),
-    #       div(br(),
-    #         shiny.fluent::Stack(horizontal = TRUE, tokens = list(childrenGap = 10), 
-    #           make_toggle(i18n = i18n, ns = ns, label = "replace_already_existing_plugins", inline = TRUE)), br(),
-    #         shiny.fluent::Stack(horizontal = TRUE, tokens = list(childrenGap = 10),
-    #           shiny.fluent::DefaultButton.shinyInput(ns("import_plugins_browse"), i18n$t("choose_zip_file"), style = "width:270px;"),
-    #           uiOutput(ns("import_plugins_status"))), br(),
-    #         shiny.fluent::PrimaryButton.shinyInput(ns("import_plugins_button"), i18n$t("import_plugins"), iconProps = list(iconName = "Download"), style = "width:270px;"), br(),
-    #         shinyjs::hidden(
-    #           div(
-    #             id = ns("imported_plugins_div"), br(),
-    #             strong(i18n$t("imported_plugins")),
-    #             div(DT::DTOutput(ns("imported_plugins")))
-    #           )
-    #         ),
-    #         div(style = "display:none;", fileInput(ns("import_plugins_upload"), label = "", multiple = FALSE, accept = ".zip"))
-    #       )
-    #     ), br()
-    #   )
-    # ),
-    
-    # --- --- --- --- --- -- -
-    # Export plugins card ----
-    # --- --- --- --- --- -- -
-    
-    # shinyjs::hidden(
-    #   div(
-    #     id = ns("export_plugin_card"),
-    #     make_shiny_ace_card("",#i18n$t("export_plugins"),
-    #       div(
-    #         shiny.fluent::Stack(
-    #           horizontal = TRUE, tokens = list(childrenGap = 10),
-    #           div(
-    #             div(id = ns("plugins_to_export_title"), class = "input_title", i18n$t("plugins_to_export")),
-    #             shiny.fluent::Dropdown.shinyInput(ns("plugins_to_export"), multiSelect = TRUE,
-    #               onChanged = htmlwidgets::JS(paste0("item => Shiny.setInputValue('", id, "-plugins_to_export_trigger', Math.random())"))),
-    #             style = "width:400px;"
-    #           ),
-    #           div(shiny.fluent::PrimaryButton.shinyInput(ns("export_selected_plugins"), 
-    #             i18n$t("export_plugins"), iconProps = list(iconName = "Upload")), style = "margin-top:39px;")
-    #         ),
-    #         div(DT::DTOutput(ns("plugins_to_export_datatable"))),
-    #         div(style = "visibility:hidden;", downloadButton(ns("export_plugins_download"), label = ""))
-    #       )
-    #     ), br()
-    #   )
-    # )
+    shinyjs::hidden(
+      div(
+        id = ns("delete_file_modal"),
+        div(
+          tags$h1(i18n$t("delete_file_title")), tags$p(i18n$t("delete_file_text")),
+          div(
+            shiny.fluent::DefaultButton.shinyInput(ns("close_file_deletion_modal"), i18n$t("dont_delete")),
+            shiny.fluent::PrimaryButton.shinyInput(ns("confirm_file_deletion"), i18n$t("delete")),
+            class = "delete_modal_buttons"
+          ),
+          class = "delete_modal_content"
+        ),
+        class = "delete_modal"
+      )
+    )
   )
 }
 
@@ -764,7 +279,7 @@ mod_plugins_server <- function(id = character(), r = shiny::reactiveValues(), d 
     
     ## Initiate vars ----
     
-    r$plugin_edit_code_files_list <- tibble::tibble(id = integer(), plugin_id = integer(), filename = character())
+    r$edit_plugin_code_files_list <- tibble::tibble(id = integer(), plugin_id = integer(), filename = character())
     r$edit_plugin_code_editors <- tibble::tibble(id = integer(), plugin_id = integer(), filename = character())
     
     ## Reload plugin pivot ----
@@ -859,7 +374,7 @@ mod_plugins_server <- function(id = character(), r = shiny::reactiveValues(), d 
         for (i in 1:length(files_list)){
           file_name <- files_list[i]
           
-          file_names <- r$plugin_edit_code_files_list %>% dplyr::filter(plugin_id == r$selected_plugin) %>% dplyr::pull(filename)
+          file_names <- r$edit_plugin_code_files_list %>% dplyr::filter(plugin_id == r$selected_plugin) %>% dplyr::pull(filename)
           if (length(file_names) == 0) file_names <- c()
           
           if (file_name %not_in% file_names){
@@ -867,18 +382,18 @@ mod_plugins_server <- function(id = character(), r = shiny::reactiveValues(), d 
             options_id <- plugin_files_db %>% dplyr::filter(link_id == r$selected_plugin, value == file_name) %>% dplyr::pull(id)
             if (length(options_id) == 0) options_id <- NA_integer_
             
-            r$plugin_edit_code_files_list <- r$plugin_edit_code_files_list %>% dplyr::bind_rows(tibble::tibble(id = options_id, plugin_id = r$selected_plugin, filename = file_name))
+            r$edit_plugin_code_files_list <- r$edit_plugin_code_files_list %>% dplyr::bind_rows(tibble::tibble(id = options_id, plugin_id = r$selected_plugin, filename = file_name))
           }
         }
       }
       
       # Synchronize with database. Add files in database if don't exist.
       
-      plugin_edit_code_files_list <- r$plugin_edit_code_files_list %>% dplyr::filter(plugin_id == r$selected_plugin)
+      edit_plugin_code_files_list <- r$edit_plugin_code_files_list %>% dplyr::filter(plugin_id == r$selected_plugin)
       
-      if (nrow(plugin_edit_code_files_list) > 0){
-        for (i in 1:nrow(plugin_edit_code_files_list)){
-          file <- plugin_edit_code_files_list[i, ]
+      if (nrow(edit_plugin_code_files_list) > 0){
+        for (i in 1:nrow(edit_plugin_code_files_list)){
+          file <- edit_plugin_code_files_list[i, ]
           if (file$filename %not_in% plugin_files_db$value){
             options_new_row_id <- as.integer(get_last_row(r$db, "options") + 1)
             new_options <- tibble::tibble(
@@ -887,8 +402,8 @@ mod_plugins_server <- function(id = character(), r = shiny::reactiveValues(), d 
             )
             DBI::dbAppendTable(r$db, "options", new_options)
             
-            r$plugin_edit_code_files_list <- 
-              r$plugin_edit_code_files_list %>% 
+            r$edit_plugin_code_files_list <- 
+              r$edit_plugin_code_files_list %>% 
               dplyr::mutate(id = dplyr::case_when(plugin_id == r$selected_plugin & filename == file$filename ~ options_new_row_id, TRUE ~ id))
             
             file_code <- readLines(paste0(r$plugin_folder, "/", file$filename), warn = FALSE) %>% toString()
@@ -906,16 +421,16 @@ mod_plugins_server <- function(id = character(), r = shiny::reactiveValues(), d 
       if (nrow(plugin_files_db) > 0){
         for (i in 1:nrow(plugin_files_db)){
           file <- plugin_files_db[i, ]
-          if (!file.exists(paste0(r$plugin_folder, "/", file$name))){
+          if (!file.exists(paste0(r$plugin_folder, "/", file$value))){
             # Get code
             sql <- glue::glue_sql("SELECT * FROM code WHERE category = 'plugin' AND link_id = {file$id} AND deleted IS FALSE", .con = r$db)
             row <- DBI::dbGetQuery(r$db, sql)
             
             # Create file
-            writeLines(row$code, paste0(r$plugin_folder, "/", file$name))
+            writeLines(row$code, paste0(r$plugin_folder, "/", file$value))
             
-            # Add file to r$plugin_edit_code_files_list
-            r$plugin_edit_code_files_list <- r$plugin_edit_code_files_list %>% dplyr::bind_rows(tibble::tibble(id = row$link_id, plugin_id = r$selected_plugin, filename = file$name))
+            # Add file to r$edit_plugin_code_files_list
+            r$edit_plugin_code_files_list <- r$edit_plugin_code_files_list %>% dplyr::bind_rows(tibble::tibble(id = file$id, plugin_id = r$selected_plugin, filename = file$value))
           }
         }
       }
@@ -925,8 +440,11 @@ mod_plugins_server <- function(id = character(), r = shiny::reactiveValues(), d 
       
       # Initiate plugin tabs
       r$edit_plugin_code_tabs <- 
-        r$plugin_edit_code_files_list %>%
+        r$edit_plugin_code_files_list %>%
         dplyr::filter(plugin_id == r$selected_plugin, filename %in% c("server.R", "ui.R", "translations.csv")) %>%
+        dplyr::mutate(temp_id = dplyr::case_when(filename == "ui.R" ~ 1, filename == "server.R" ~ 2, filename == "translations.csv" ~ 3)) %>%
+        dplyr::arrange(temp_id) %>%
+        dplyr::select(-temp_id) %>%
         dplyr::select(id, filename)
       r$edit_plugin_code_reload_files_tab <- now()
       
@@ -934,10 +452,12 @@ mod_plugins_server <- function(id = character(), r = shiny::reactiveValues(), d 
       r$edit_plugin_code_open_new_tab <- "ui"
       
       # Create ace editors for server.R, ui.R and translations.csv
-      for (filename in c("server.R", "ui.R", "translations.csv")){
+      for (filename in c("ui.R", "server.R", "translations.csv")){
         file_code <- readLines(paste0(r$plugin_folder, "/", filename), warn = FALSE)
-        file_id <- r$plugin_edit_code_files_list %>% dplyr::filter(plugin_id == r$selected_plugin, filename == !!filename) %>% dplyr::pull(id)
+        file_id <- r$edit_plugin_code_files_list %>% dplyr::filter(plugin_id == r$selected_plugin, filename == !!filename) %>% dplyr::pull(id)
         file_ext <- sub(".*\\.", "", tolower(filename))
+        
+        if (filename == "ui.R") r$edit_plugin_code_current_file <- file_id
         
         if (file_id %in% r$edit_plugin_code_editors$id & filename == "ui.R") shinyjs::show(paste0("edit_code_editor_div_", file_id))
         else {
@@ -955,7 +475,7 @@ mod_plugins_server <- function(id = character(), r = shiny::reactiveValues(), d 
           
           insertUI(selector = paste0("#", ns("edit_code_editors_div")), where = "beforeEnd", ui = ui_div)
           
-          r$edit_plugin_code_editors <- r$edit_plugin_code_editors %>% dplyr::bind_rows(r$plugin_edit_code_files_list %>% dplyr::filter(id == file_id))
+          r$edit_plugin_code_editors <- r$edit_plugin_code_editors %>% dplyr::bind_rows(r$edit_plugin_code_files_list %>% dplyr::filter(id == file_id))
           
           # Add observers for editor hotkeys
           observeEvent(input[[paste0("edit_code_editor_", file_id, "_run_all")]], {
@@ -981,12 +501,17 @@ mod_plugins_server <- function(id = character(), r = shiny::reactiveValues(), d 
         div(class = "directory-sep", " / ")
       ))
       
-      plugin_edit_code_files_list <- r$plugin_edit_code_files_list %>% dplyr::filter(plugin_id == r$selected_plugin)
+      filenames_order <- c("ui.R", "server.R", "translations.csv")
+      edit_plugin_code_files_list <- 
+        r$edit_plugin_code_files_list %>%
+        dplyr::filter(plugin_id == r$selected_plugin) %>%
+        dplyr::mutate(filename = factor(filename, levels = c(filenames_order, setdiff(unique(filename), filenames_order)))) %>%
+        dplyr::arrange(filename)
       
       files_ui <- tagList()
-      if (nrow(plugin_edit_code_files_list) > 0){
-        for (i in 1:nrow(plugin_edit_code_files_list)){
-          file <- plugin_edit_code_files_list[i, ]
+      if (nrow(edit_plugin_code_files_list) > 0){
+        for (i in 1:nrow(edit_plugin_code_files_list)){
+          file <- edit_plugin_code_files_list[i, ]
           
           if (file$filename %in% c("ui.R", "server.R", "translations.csv")) icons_div <- tagList()
           else icons_div <- div(
@@ -1011,7 +536,14 @@ mod_plugins_server <- function(id = character(), r = shiny::reactiveValues(), d 
                 "Shiny.setInputValue('", id, "-edit_code_edit_filename_trigger', Math.random(), {priority: 'event'});"
               )
             ),
-            div(shiny.fluent::IconButton.shinyInput(paste0("edit_code_delete_file_button_", file$id), iconProps = list(iconName = "Delete")), class = "small_icon_button"),
+            div(
+              shiny.fluent::IconButton.shinyInput(paste0("edit_code_delete_file_button_", file$id), iconProps = list(iconName = "Delete")), 
+              class = "small_icon_button",
+              onclick = paste0(
+                "Shiny.setInputValue('", id, "-edit_code_delete_file', ", file$id, ", {priority: 'event'});",
+                "Shiny.setInputValue('", id, "-edit_code_delete_file_trigger', Math.random(), {priority: 'event'});"
+              )
+            ),
             onclick = "event.stopPropagation();"
           )
           
@@ -1059,7 +591,7 @@ mod_plugins_server <- function(id = character(), r = shiny::reactiveValues(), d 
           tab_class <- "tab"
           if (r$edit_plugin_code_open_new_tab != "none"){
             if (r$edit_plugin_code_open_new_tab == "ui" & file$filename == "ui.R") tab_class <- "tab active"
-            else if (i == nrow(r$edit_plugin_code_tabs)) tab_class <- "tab active"
+            else if (r$edit_plugin_code_open_new_tab == "new_tab" & i == nrow(r$edit_plugin_code_tabs)) tab_class <- "tab active"
           }
           else {
             if (length(input$edit_code_selected_file) > 0){
@@ -1092,12 +624,13 @@ mod_plugins_server <- function(id = character(), r = shiny::reactiveValues(), d 
       output$edit_code_tabs <- renderUI(tabs_ui)
     })
     
-    # Change file tab
+    ## Change file tab ----
     
     observeEvent(input$edit_code_selected_tab, {
       if (debug) cat(paste0("\n", now(), " - mod_plugins - observer input$edit_code_selected_tab"))
       
       current_file_id <- sub(paste0(id, "-edit_code_tab_"), "", input$edit_code_selected_tab)
+      r$edit_plugin_code_current_file <- current_file_id
       
       # Set current file tab active
       shinyjs::removeClass(selector = paste0("#", id, "-edit_code_tabs .tab"), class = "active")
@@ -1117,8 +650,10 @@ mod_plugins_server <- function(id = character(), r = shiny::reactiveValues(), d 
       if (debug) cat(paste0("\n", now(), " - mod_plugins - observer input$edit_code_selected_file"))
       
       file_id <- as.integer(sub(paste0(id, "-edit_code_file_div_"), "", input$edit_code_selected_file))
-      file_row <- r$plugin_edit_code_files_list %>% dplyr::filter(id == file_id)
+      file_row <- r$edit_plugin_code_files_list %>% dplyr::filter(id == file_id)
       file_ext <- sub(".*\\.", "", tolower(file_row$filename))
+      
+      r$edit_plugin_code_current_file <- file_id
       
       # Open a new tab ?
       if (file_id %not_in% r$edit_plugin_code_tabs$id){
@@ -1134,7 +669,7 @@ mod_plugins_server <- function(id = character(), r = shiny::reactiveValues(), d 
       
       # Create an ace editor ?
       if (file_id %not_in% r$edit_plugin_code_editors$id){
-        r$edit_plugin_code_editors <- r$edit_plugin_code_editors %>% dplyr::bind_rows(r$plugin_edit_code_files_list %>% dplyr::filter(id == file_id))
+        r$edit_plugin_code_editors <- r$edit_plugin_code_editors %>% dplyr::bind_rows(r$edit_plugin_code_files_list %>% dplyr::filter(id == file_id))
         r$edit_plugin_code_open_new_editor <- TRUE
       }
       else r$edit_plugin_code_open_new_editor <- FALSE
@@ -1171,12 +706,15 @@ mod_plugins_server <- function(id = character(), r = shiny::reactiveValues(), d 
       
       # Show editor of last file
       last_file_id <- r$edit_plugin_code_tabs %>% dplyr::slice(nrow(r$edit_plugin_code_tabs)) %>% dplyr::pull(id)
-      if (length(last_file_id) > 0) shinyjs::show(paste0("edit_code_editor_div_", last_file_id))
+      r$edit_plugin_code_current_file <- last_file_id
+      r$edit_plugin_code_open_new_tab <- "new_tab"
+      if (length(last_file_id) > 0) shinyjs::delay(50, shinyjs::show(paste0("edit_code_editor_div_", last_file_id)))
       
       r$edit_plugin_code_reload_files_tab <- now()
     })
     
     ## Create a file ----
+    
     observeEvent(input$edit_code_add_file, {
       if (debug) cat(paste0("\n", now(), " - mod_plugins - observer input$edit_code_add_file"))
       
@@ -1209,7 +747,7 @@ mod_plugins_server <- function(id = character(), r = shiny::reactiveValues(), d 
       DBI::dbAppendTable(r$db, "code", new_code)
       
       # Update files browser
-      r$plugin_edit_code_files_list <- r$plugin_edit_code_files_list %>% dplyr::bind_rows(tibble::tibble(id = options_new_row_id, plugin_id = r$selected_plugin, filename = new_filename))
+      r$edit_plugin_code_files_list <- r$edit_plugin_code_files_list %>% dplyr::bind_rows(tibble::tibble(id = options_new_row_id, plugin_id = r$selected_plugin, filename = new_filename))
       
       r$edit_plugin_code_reload_files_browser <- now()
       
@@ -1227,15 +765,36 @@ mod_plugins_server <- function(id = character(), r = shiny::reactiveValues(), d 
         style = "width:100%;"
       ))
       
-      r$edit_plugin_code_editors <- r$edit_plugin_code_editors %>% dplyr::bind_rows(r$plugin_edit_code_files_list %>% dplyr::filter(id == options_new_row_id))
+      r$edit_plugin_code_editors <- r$edit_plugin_code_editors %>% dplyr::bind_rows(r$edit_plugin_code_files_list %>% dplyr::filter(id == options_new_row_id))
       
-      file_row <- r$plugin_edit_code_files_list %>% dplyr::filter(id == options_new_row_id)
+      r$edit_plugin_code_current_file <- options_new_row_id
+      
+      file_row <- r$edit_plugin_code_files_list %>% dplyr::filter(id == options_new_row_id)
       r$edit_plugin_code_tabs <- r$edit_plugin_code_tabs %>% dplyr::bind_rows(file_row)
       r$edit_plugin_code_reload_files_tab <- now()
       r$edit_plugin_code_open_new_tab <- "new_tab"
     })
     
     ## Save updates ----
+    
+    observeEvent(input$save_file_code, {
+      if (debug) cat(paste0("\n", now(), " - mod_plugins - observer input$save_file_code"))
+      
+      req(length(r$edit_plugin_code_current_file) > 0)
+      
+      file <- r$edit_plugin_code_files_list %>% dplyr::filter(id == r$edit_plugin_code_current_file)
+      new_code <- input[[paste0("edit_code_editor_", file$id)]]
+      
+      # Update file
+      writeLines(new_code, paste0(r$plugin_folder, "/", file$filename))
+      
+      # Update database
+      sql <- glue::glue_sql("UPDATE code SET code = {new_code} WHERE category = 'plugin' AND link_id = {file$id}", .con = r$db)
+      query <- DBI::dbSendStatement(r$db, sql)
+      DBI::dbClearResult(query)
+      
+      show_message_bar(output,  "modif_saved", "success", i18n = i18n, ns = ns)
+    })
     
     ## Rename a file ----
     
@@ -1256,7 +815,7 @@ mod_plugins_server <- function(id = character(), r = shiny::reactiveValues(), d 
       file_id <- input$edit_code_save_filename
       textfield_id <- paste0("edit_code_edit_filename_textfield_", file_id)
       
-      old_name <- r$plugin_edit_code_files_list %>% dplyr::filter(id == file_id) %>% dplyr::pull(filename)
+      old_name <- r$edit_plugin_code_files_list %>% dplyr::filter(id == file_id) %>% dplyr::pull(filename)
       new_name <- input[[textfield_id]]
       
       # Check extension
@@ -1296,7 +855,7 @@ mod_plugins_server <- function(id = character(), r = shiny::reactiveValues(), d 
       shinyjs::runjs(paste0("document.getElementById('", id, "-edit_code_tab_", file_id, "').childNodes[0].nodeValue = '", new_name, "';"))
       
       # Update files browser
-      r$plugin_edit_code_files_list <- r$plugin_edit_code_files_list %>% dplyr::mutate(filename = dplyr::case_when(id == file_id ~ new_name, TRUE ~ filename))
+      r$edit_plugin_code_files_list <- r$edit_plugin_code_files_list %>% dplyr::mutate(filename = dplyr::case_when(id == file_id ~ new_name, TRUE ~ filename))
       shinyjs::runjs(paste0("document.getElementById('", id, "-edit_code_filename_div_", file_id, "').childNodes[0].nodeValue = '", new_name, "';"))
       
       show_message_bar(output,  "modif_saved", "success", i18n = i18n, ns = ns)
@@ -1306,6 +865,53 @@ mod_plugins_server <- function(id = character(), r = shiny::reactiveValues(), d 
     })
     
     ## Delete a file ----
+    
+    observeEvent(input$edit_code_delete_file_trigger, {
+      if (debug) cat(paste0("\n", now(), " - mod_plugins - observer input$edit_code_delete_file_trigger"))
+      shinyjs::show("delete_file_modal")
+    })
+    
+    observeEvent(input$close_file_deletion_modal, {
+      if (debug) cat(paste0("\n", now(), " - mod_plugins - observer input$close_file_deletion_modal"))
+      shinyjs::hide("delete_file_modal")
+    })
+    
+    observeEvent(input$confirm_file_deletion, {
+      if (debug) cat(paste0("\n", now(), " - mod_plugins - observer input$confirm_file_deletion"))
+      
+      file_id <- input$edit_code_delete_file
+      filename <- r$edit_plugin_code_files_list %>% dplyr::filter(id == file_id) %>% dplyr::pull(filename)
+      
+      # Delete file
+      file.remove(paste0(r$plugin_folder, "/", filename))
+      
+      # Remove from database
+      sql <- glue::glue_sql("UPDATE options SET deleted = TRUE WHERE id = {file_id}", .con = r$db)
+      query <- DBI::dbSendStatement(r$db, sql)
+      DBI::dbClearResult(query)
+      
+      # Reload files browser
+      r$edit_plugin_code_files_list <- r$edit_plugin_code_files_list %>% dplyr::filter(id != file_id)
+      r$edit_plugin_code_reload_files_browser <- now()
+      
+      # Reload tabs if file is opened
+      reload_tabs <- FALSE
+      if (file_id %in% r$edit_plugin_code_tabs$id) reload_tabs <- TRUE
+      r$edit_plugin_code_tabs <- r$edit_plugin_code_tabs %>% dplyr::filter(id != file_id)
+      if (reload_tabs) r$edit_plugin_code_reload_files_tab <- now()
+      
+      # Hide all editors
+      sapply(paste0("edit_code_editor_div_", r$edit_plugin_code_editors$id), shinyjs::hide)
+      
+      # Show editor of last file
+      last_file_id <- r$edit_plugin_code_tabs %>% dplyr::slice(nrow(r$edit_plugin_code_tabs)) %>% dplyr::pull(id)
+      r$edit_plugin_code_current_file <- last_file_id
+      r$edit_plugin_code_open_new_tab <- "new_tab"
+      if (length(last_file_id) > 0) shinyjs::delay(50, shinyjs::show(paste0("edit_code_editor_div_", last_file_id)))
+      
+      shinyjs::hide("delete_file_modal")
+      show_message_bar(output,  "file_deleted", "warning", i18n = i18n, ns = ns)
+    })
     
     ## Run plugin code ----
     
@@ -1365,8 +971,8 @@ mod_plugins_server <- function(id = character(), r = shiny::reactiveValues(), d 
         mapped_to_concept_id = integer(), merge_mapped_concepts = logical())
 
       # Get ui & server code
-      ui_code <- input[[paste0("edit_code_editor_", r$plugin_edit_code_files_list %>% dplyr::filter(plugin_id == r$selected_plugin, filename == "ui.R") %>% dplyr::pull(id))]]
-      server_code <- input[[paste0("edit_code_editor_", r$plugin_edit_code_files_list %>% dplyr::filter(plugin_id == r$selected_plugin, filename == "server.R") %>% dplyr::pull(id))]]
+      ui_code <- input[[paste0("edit_code_editor_", r$edit_plugin_code_files_list %>% dplyr::filter(plugin_id == r$selected_plugin, filename == "ui.R") %>% dplyr::pull(id))]]
+      server_code <- input[[paste0("edit_code_editor_", r$edit_plugin_code_files_list %>% dplyr::filter(plugin_id == r$selected_plugin, filename == "server.R") %>% dplyr::pull(id))]]
 
       widget_id <- r$run_plugin_last_widget_id + 1
       r$run_plugin_last_widget_id <- widget_id
