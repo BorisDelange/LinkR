@@ -36,7 +36,8 @@ mod_page_header_ui <- function(id = character(), i18n = character()){
           # Discover
           shiny.fluent::CommandBarItem("", "World")
         )
-      )
+      ),
+      class = "header_command_bar"
     )
   }
   
@@ -83,19 +84,38 @@ mod_page_header_ui <- function(id = character(), i18n = character()){
             ),
             # Show results
             shiny.fluent::CommandBarItem("", "Play")
-            # Develop
-            # shiny.fluent::CommandBarItem("", "CodeEdit"),
-            # Discover
-            # shiny.fluent::CommandBarItem("", "Cloud")
           )
         ),
+        class = "header_command_bar",
         style = "display:inline-block; margin-left:8px;"
       )
     )
   }
   
-  div(
-    class = "header",
+  tagList(
+    div(
+      class = "header",
+      div(
+        class = "header_left_bar",
+        div(
+          tags$img(src = "www/logo.png"),
+          class = "logo",
+          onclick = paste0("window.location.href='", shiny.router::route_link("/"), "';")
+        ),
+        div(
+          command_bar,
+          uiOutput(ns("current_page"), class = "current_page"),
+          div(class = "message_bars", uiOutput(ns("message_bar"))),
+          style = "display:flex;"
+        )
+      ),
+      div(class = "header_right_bar",
+        #   uiOutput(ns("user")),
+        #   div(uiOutput(ns("username")), style = "font-weight:bold; padding: 12px 10px 0px 0px;"),
+            console_input
+        # )
+      )
+    ),
     div(
       id = ns("console"),
       style = "display: none; position: fixed; z-index:10; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.5);",
@@ -139,50 +159,6 @@ mod_page_header_ui <- function(id = character(), i18n = character()){
           )
         )
       )
-    ),
-    div(
-      htmltools::img(src = "www/logo.png"),
-      class = "logo",
-      onclick = paste0("window.location.href='", shiny.router::route_link("/"), "';")
-    ),
-    # title_div,
-    # sidenav_button,
-    div(class = "header_left_bar",
-      div(
-        # shiny.fluent::CommandBar(
-        #   items = list(
-        #     shiny.fluent::CommandBarItem(i18n$t("data"), "OfflineStorage",
-        #       subMenuProps = list(items = list(
-        #         list(text = i18n$t("access_to_data"), iconProps = list(iconName = "BIDashboard"), href = shiny.router::route_link("data")),
-        #         list(text = i18n$t("data_cleaning"), iconProps = list(iconName = "CodeEdit"), href = shiny.router::route_link("scripts")),
-        #         list(text = i18n$t("my_studies"), iconProps = list(iconName = "CustomList"), href = shiny.router::route_link("my_studies")),
-        #         list(text = i18n$t("my_subsets"), iconProps = list(iconName = "People"), href = shiny.router::route_link("my_subsets"))
-        #     ))),
-        #     shiny.fluent::CommandBarItem(i18n$t("messages"), "Chat", href = shiny.router::route_link("messages")),
-        #     shiny.fluent::CommandBarItem(i18n$t("vocabularies"), "AllApps", href = shiny.router::route_link("vocabularies")),
-        #     shiny.fluent::CommandBarItem(i18n$t("plugins"), "Code", subMenuProps = list(items = list(
-        #       list(text = i18n$t("patient_lvl_data"), iconProps = list(iconName = "Contact"), href = shiny.router::route_link("plugins_patient_lvl")),
-        #       list(text = i18n$t("aggregated_data"), iconProps = list(iconName = "Group"), href = shiny.router::route_link("plugins_aggregated"))
-        #     )))
-        #   )
-        # ),
-        command_bar,
-        uiOutput(ns("current_page"), class = "current_page"),
-        div(class = "message_bars", uiOutput(ns("message_bar"))),
-        style = "display:flex;"
-      )
-    ),
-    div(class = "header_right_bar",
-        # shiny.fluent::Stack(horizontal = TRUE, tokens = (childrenGap = 0),
-        #   uiOutput(ns("user")),
-      # shiny.fluent::Stack(horizontal = TRUE, tokens = (childrenGap = 0),
-      #   shiny.fluent::CommandBar(),
-      #   div(uiOutput(ns("username")), style = "font-weight:bold; padding: 12px 10px 0px 0px;"),
-          console_input
-      #   shiny.fluent::CommandBarButton.shinyInput(ns("help"), iconProps = list("iconName" = "Help")),
-      #   shiny.fluent::CommandBarButton.shinyInput("settings", iconProps = list("iconName" = "Settings"), href = shiny.router::route_link("settings/general_settings")),
-      #   shiny.fluent::CommandBarButton.shinyInput(".shinymanager_logout", iconProps = list("iconName" = "PowerButton"))
-      # )
     )
   )
 }

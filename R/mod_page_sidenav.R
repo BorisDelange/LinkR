@@ -28,8 +28,8 @@ mod_page_sidenav_ui <- function(id = character(), i18n = character()){
   if (id == "home"){
     div(
       class = "sidenav",
-      div(class = "reduced_sidenav"),
-      style = "border-right: solid 1px #ccc;"
+      # div(class = "reduced_sidenav"),
+      # style = "border-right: solid 1px #ccc;"
     ) -> result
   }
 
@@ -147,42 +147,42 @@ mod_page_sidenav_ui <- function(id = character(), i18n = character()){
 
     div(
       class = "sidenav",
-      div(class = "reduced_sidenav", show_sidenav),
+      # div(class = "reduced_sidenav", show_sidenav),
       # shinyjs::hidden(
-      div(class = "extended_sidenav",
-        shinyjs::hidden(
+      # div(class = "extended_sidenav",
+      shinyjs::hidden(
+        div(
+          id = ns("edit_code_sidenav"),
           div(
-            id = ns("edit_code_sidenav"),
+            class = "sidenav_top",
             div(
-              class = "sidenav_top",
-              div(
-                shiny.fluent::HoverCard(type = "PlainCard", plainCardProps = htmlwidgets::JS(paste0("{onRenderPlainCard: (a, b, c) => '", i18n$t("add_file"), "', style: {padding: '5px', fontSize: '12px'}}")),
-                  shiny.fluent::IconButton.shinyInput(ns("edit_code_add_file"), iconProps = list(iconName = "Add"))),
-                class = "small_icon_button"
-              ),
-              div(
-                shiny.fluent::HoverCard(type = "PlainCard", plainCardProps = htmlwidgets::JS(paste0("{onRenderPlainCard: (a, b, c) => '", i18n$t("add_folder"), "', style: {padding: '5px', fontSize: '12px'}}")),
-                  shiny.fluent::IconButton.shinyInput(ns("edit_code_add_folder"), iconProps = list(iconName = "FabricNewFolder"))),
-                class = "small_icon_button"
-              ),
-              div(
-                shiny.fluent::HoverCard(type = "PlainCard", plainCardProps = htmlwidgets::JS(paste0("{onRenderPlainCard: (a, b, c) => '", i18n$t("save_current_file"), "', style: {padding: '5px', fontSize: '12px'}}")),
-                  shiny.fluent::IconButton.shinyInput(ns("save_file_code"), iconProps = list(iconName = "Save"))),
-                class = "small_icon_button"
-              ),
-              div(
-                shiny.fluent::HoverCard(type = "PlainCard", plainCardProps = htmlwidgets::JS(paste0("{onRenderPlainCard: (a, b, c) => '", i18n$t("run_plugin_code"), "', style: {padding: '5px', fontSize: '12px'}}")),
-                  shiny.fluent::IconButton.shinyInput(ns("run_plugin_code"), iconProps = list(iconName = "Play"))),
-                class = "small_icon_button"
-              )
+              shiny.fluent::HoverCard(type = "PlainCard", plainCardProps = htmlwidgets::JS(paste0("{onRenderPlainCard: (a, b, c) => '", i18n$t("add_file"), "', style: {padding: '5px', fontSize: '12px'}}")),
+                shiny.fluent::IconButton.shinyInput(ns("edit_code_add_file"), iconProps = list(iconName = "Add"))),
+              class = "small_icon_button"
             ),
-            uiOutput(ns("edit_code_directory_browser")),
-            uiOutput(ns("edit_code_files_browser"))
-          )
-        ),
-        hide_sidenav
+            div(
+              shiny.fluent::HoverCard(type = "PlainCard", plainCardProps = htmlwidgets::JS(paste0("{onRenderPlainCard: (a, b, c) => '", i18n$t("add_folder"), "', style: {padding: '5px', fontSize: '12px'}}")),
+                shiny.fluent::IconButton.shinyInput(ns("edit_code_add_folder"), iconProps = list(iconName = "FabricNewFolder"))),
+              class = "small_icon_button"
+            ),
+            div(
+              shiny.fluent::HoverCard(type = "PlainCard", plainCardProps = htmlwidgets::JS(paste0("{onRenderPlainCard: (a, b, c) => '", i18n$t("save_current_file"), "', style: {padding: '5px', fontSize: '12px'}}")),
+                shiny.fluent::IconButton.shinyInput(ns("save_file_code"), iconProps = list(iconName = "Save"))),
+              class = "small_icon_button"
+            ),
+            div(
+              shiny.fluent::HoverCard(type = "PlainCard", plainCardProps = htmlwidgets::JS(paste0("{onRenderPlainCard: (a, b, c) => '", i18n$t("run_plugin_code"), "', style: {padding: '5px', fontSize: '12px'}}")),
+                shiny.fluent::IconButton.shinyInput(ns("run_plugin_code"), iconProps = list(iconName = "Play"))),
+              class = "small_icon_button"
+            )
+          ),
+          uiOutput(ns("edit_code_directory_browser")),
+          uiOutput(ns("edit_code_files_browser"))
+        )
+      ),
+      hide_sidenav
       # )
-      )
+      # )
     ) -> result
   }
   

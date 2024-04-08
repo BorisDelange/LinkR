@@ -43,17 +43,21 @@ app_ui <- function(request, css, language, languages, i18n = character(), users_
       if (page_url == "/") page <- "home" else page <- page_url
       
       # Pages without sidenav
-      if (page %in% c("home")) class = "grid-container-without-sidenav"
-      else class = "grid-container"
+      # if (page %in% c("home")) class = "grid-container-without-sidenav"
+      # else class = "grid-container"
       
       shiny.router::route(page_url,
         div(
-            class = class,
-            mod_page_header_ui(id = page, i18n = i18n),
+          class = "page_container",
+          # class = class,
+          mod_page_header_ui(id = page, i18n = i18n),
+          div(
             mod_page_sidenav_ui(id = page, i18n = i18n),
             mod_page_main_ui(id = page, language = language, languages = languages, i18n = i18n, users_accesses_toggles_options = users_accesses_toggles_options),
-            mod_page_footer_ui(i18n = i18n)
-          )
+            class = "main_container"
+          ),
+          mod_page_footer_ui(i18n = i18n)
+        )
       )
         # make_layout(language = language, languages = languages, page = page, i18n = i18n, users_accesses_toggles_options = users_accesses_toggles_options))
       

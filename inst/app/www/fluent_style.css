@@ -1,28 +1,35 @@
 .ms-TextField, .ms-Dropdown, .ms-ComboBox, .ms-Toggle, .ms-Button, .ms-SearchBox, .ms-MessageBar {
   margin: 6px 0px;
 }
+
 .ms-ContextualMenu-linkContent {
   height: 25px;
   line-height: 25px;
   font-size: 12px;
 }
+
 .ms-ContextualMenu-item {
   height: 25px;
   line-height: 25px;
   font-size: 12px;
 }
+
 .ms-ContextualMenu-icon {
   font-size: 14px;
 }
+
 .ms-SearchBox {
   height: 25px;
 }
+
 .ms-SearchBox-icon {
   font-size: 12px;
 }
+
 .ms-SearchBox-clearButton .ms-Icon {
   font-size: 12px;
 }
+
 .ms-SearchBox-clearButton {
   width: 20px;
   height: 22px; 
@@ -30,83 +37,102 @@
   align-items: center;
   justify-content: center;
 }
+
 .ms-Button {
   padding: 5px 5px;
   height: 25px;
   font-size: 12px;
   min-width: 0px;
 }
+
 .ms-Icon {
   font-size: 14px;
 }
+
 .ms-TextField-fieldGroup {
   height: 25px;
 }
+
 .ms-TextField-field {
   font-size: 12px;
 }
+
 .ms-TextField-errorMessage {
   font-size: 12px;
   padding-top: 0px;
 }
+
 .ms-Toggle-background {
   width: 35px;
   height: 18px;
 }
+
 .ms-Toggle-background:after {
   line-height: 20px;
 }
+
 .ms-Breadcrumb {
   display: flex;
 }
+
 .ms-Breadcrumb-itemLink, .ms-Breadcrumb-item {
   font-size: 16px;
   padding: 4px 6px;
   height: auto;
   line-height: 1;
 }
+
 .ms-Dropdown-container .ms-Dropdown, .ms-ComboBox-container .ms-ComboBox {
   height: 25px;
   line-height: 25px;
 }
+
 .ms-ComboBox-container .ms-ComboBox-Input {
     font-size: 12px;
     height: 25px;
     line-height: 25px;
 }
+
 .ms-Dropdown-container .ms-Dropdown-title {
   font-size: 12px;
 }
+
 .ms-ComboBox-option {
     height: 25px;
     min-height: 25px;
     line-height: 25px;
     margin: 0;
 }
+
 .ms-ComboBox .ms-Button.ms-ComboBox-CaretDown-button {
     height: 25px;
     margin-top: 0;
 }
+
 .ms-Dropdown-caretDownWrapper {
   height: 25px;
   display: flex;
   align-items: center;
 }
+
 .ms-Dropdown-title {
   height: 25px;
   min-height: 25px;
   line-height: 25px;
 }
+
 .ms-Dropdown-item .ms-Button-flexContainer {
   align-items: center;
   height: 100%;
 }
+
 .ms-Dropdown-items .ms-Dropdown-item {
   height: 25px;
   min-height: 25px;
   line-height: 25px;
   margin: 0;
 }
+
 .ms-Facepile .ms-Persona-initials {
   font-size: 11px;
   height: 22px;
@@ -114,50 +140,53 @@
   line-height: 22px;
   margin: 11px 0px;
 }
+
 .ms-Persona-imageArea {
   width: 24px;
 }
+
 .ms-Persona-primaryText {
   font-size: 11px;
   margin-left: -5px;
 }
-.ms-CommandBar {
-  padding: 0;
-  background-color: transparent;
-}
-.ms-Button--commandBar .ms-Button-menuIcon {
-  display: none;
-}
+
 .ms-ContextualMenu-link {
   background-color: white;
   font-size: 12px;
   height: 25px;
 }
+
 .ms-ContextualMenu-link:hover {
   background-color: #ECEBE9;
   color: #61AEF9;
 }
+
 .ms-Pivot .ms-Button {
   height: 30px;
   padding: 10px;
 }
+
 .ms-MessageBar {
   height: 25px;
   min-height: 0;
   display: flex;
   justify-content: center;
 }
+
 .ms-MessageBar-icon {
   font-size: 12px;
   margin-top: 10px;
 }
+
 .ms-MessageBar-innerText {
   font-size: 12px;
 }
+
 .small_icon_button .ms-Button-icon {
   font-size: 12px;
   color: black;;
 }
+
 .small_icon_button .ms-Button {
   width: 24px;
   height: 24px

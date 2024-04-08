@@ -1,20 +1,34 @@
-body {
+/* --------------- */
+/* GLOBAL */
+/* --------------- */
+
+body, html {
   font-size: 12px;
   background-color: white;
-  min-height: 600px;
   margin: 0;
-}
-.header {
-  grid-area: header;
-  display: flex;
-  border-bottom: solid 1px #ccc;
+  height: 100%;
 }
 
-.title {
-  padding: 2px 10px 0px 10px;
-  color: #737373;
-  margin: 10px 0px 0px 0px;
-  width: 160px;
+.page_container {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+}
+
+.main_container {
+  display: flex;
+  height: 100%;
+}
+
+/* --------------- */
+/* HEADER */
+/* --------------- */
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  border-bottom: solid 1px #ccc;
+  height: 40px;
 }
 
 .logo {
@@ -27,88 +41,164 @@ body {
   z-index: 10;
 }
 
-.link_image_container:hover {
-  background-color: #f0f0f0; /* Couleur de fond grisé */
-}
-
-.link_image_container {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  height: 35px;
-  width: 32px;
-  padding: 3px 3px 0px 3px;
-  margin: 8px 0px 3px 0px;
-  z-index:10;
-}
-
 .header_left_bar {
-  margin: 0px 0px 0px -3px;
-  z-index: 5;
+  display: flex;
 }
 
 .header_right_bar {
-  position: absolute;
-  right: 27px;
-  top: 14px;
-}
-.grid-container {
-  display: grid;
-  grid-template-columns: 50px 200px 1fr;
-  grid-template-rows: 40px 1fr 35px;
-  grid-template-areas:
-    "header header header"
-    "sidenav sidenav main"
-    "footer footer footer";
-  height: 100vh;
-}
-.grid-container-without-sidenav {
-  display: grid;
-  grid-template-columns: 50px 200px 1fr;
-  grid-template-rows: 40px 1fr 35px;
-  grid-template-areas:
-    "header header header"
-    "sidenav main main"
-    "footer footer footer";
-  height: 100vh;
+  
 }
 
-.main {
-  grid-area: main;
-  padding-left: 10px;
-  padding-right: 10px;
-  max-width: calc(100% - 40px);
-  overflow: auto;
-  position:relative;
+.header_command_bar {
+  margin-left: 35px;
 }
 
-.footer {
-  grid-area: footer;
-  padding: 12px 20px;
-  border-top: solid 1px #ccc;
+.header_command_bar .ms-CommandBar {
+  padding: 0;
+  background-color: transparent;
+}
+
+.header_command_bar .ms-Button--commandBar {
+  height: 40px;
+  margin-top: 0;
   display: flex;
-  justify-content: space-between;
-  font-size: 12px;
   align-items: center;
+  justify-content: center;
 }
 
-.main_right_side {
-  position: absolute;
-  right: 0;
-  width: 100%;
+.header_command_bar .ms-Button--commandBar .ms-Button-menuIcon {
+  display: none;
 }
+
+.header_command_bar .ms-Button--commandBar .ms-Icon {
+  font-size: 15px;
+  color: gray;
+}
+
+.header_command_bar .ms-Button--commandBar:hover .ms-Icon {
+  font-size: 15px;
+  color: rgb(0, 120, 212);
+}
+
+.message_bars {
+  overflow-y: scroll; 
+  width: 100%;
+  position: fixed; 
+  z-index: 100;
+}
+
+.message_bar_container {
+  position: relative;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 35px;
+  z-index: 1;
+}
+
+.message_bar_close_button {
+  position: absolute;
+  top: 0px;
+  right: 0px;
+  z-index: 2;
+}
+
+/* --------------- */
+/* SIDENAV */
+/* --------------- */
 
 .sidenav {
-  grid-area: sidenav;
   height: 100%;
-  position: relative;
+  width: 200px;
+  padding: 10px 20px 0px 20px;
+  overflow-y: auto;
+  border-right: solid 1px #ccc;
 }
 
+
+.button_hide_sidenav {
+  width: 0;
+  height: 0;
+  border-top: 30px solid transparent;
+  border-bottom: 30px solid transparent;
+  border-right: 13px solid #D8D8D8;
+  margin-right: 3px;
+  z-index:3;
+  position: absolute;
+  top: 50%;
+  right: -3px;
+  cursor: pointer;
+}
+
+.button_hide_sidenav:hover {
+  border-right: 13px solid #BDBDBD;
+}
+
+.button_show_sidenav {
+  width: 0;
+  height: 0;
+  border-top: 30px solid transparent;
+  border-bottom: 30px solid transparent;
+  border-left: 13px solid #D8D8D8;
+  margin-right: -23px;
+  z-index:3;
+  position: absolute;
+  top: 50%;
+  right: 10px;
+  cursor: pointer;
+}
+
+.button_show_sidenav:hover {
+  border-left: 13px solid #BDBDBD;
+}
+
+/* --------------- */
+/* MAIN */
+/* --------------- */
+
+.main {
+  flex-grow: 1;
+  overflow-y: auto;
+  margin: 0px 5px;
+}
+
+/* --------------- */
+/* FOOTER */
+/* --------------- */
+
+.footer {
+  width: 100%;
+  border-top: solid 1px #ccc;
+}
+
+.footer_content {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 12px;
+  padding: 12px 20px;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+/*
 .extended_sidenav {
   grid-area: sidenav;
-  padding: 10px 20px 20px 20px;
+  padding: 10px 20px 0px 20px;
   width: 200px;
   height: calc(100% - 30px);
+  overflow-y: auto;
   position: absolute;
   left: 0;
   border-right: solid 1px #ccc;
@@ -123,10 +213,7 @@ body {
   right: 0;
   border-right: solid 1px #ccc;
 }
-
-.page-title {
-  padding: 52px 0px;
-}
+*/
 
 .card {
   background: #fff;
@@ -216,28 +303,6 @@ pre code {
   color: white;
 }
 
-.message_bars {
-  overflow-y: scroll; 
-  width: 100%;
-  position: fixed; 
-  z-index: 100;
-}
-
-.message_bar_container {
-  position: relative;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  height: 35px;
-  z-index: 1;
-}
-
-.message_bar_close_button {
-  position: absolute;
-  top: 0px;
-  right: 0px;
-  z-index: 2;
-}
 
 a.no-hover-effect {
   color: black;
@@ -248,41 +313,6 @@ a.no-hover-effect:hover {
   color: black;
 }
 
-.button_hide_sidenav {
-  width: 0;
-  height: 0;
-  border-top: 30px solid transparent;
-  border-bottom: 30px solid transparent;
-  border-right: 13px solid #D8D8D8;
-  margin-right: 3px;
-  z-index:3;
-  position: absolute;
-  top: 50%;
-  right: -3px;
-  cursor: pointer;
-}
-
-.button_hide_sidenav:hover {
-  border-right: 13px solid #BDBDBD;
-}
-
-.button_show_sidenav {
-  width: 0;
-  height: 0;
-  border-top: 30px solid transparent;
-  border-bottom: 30px solid transparent;
-  border-left: 13px solid #D8D8D8;
-  margin-right: -23px;
-  z-index:3;
-  position: absolute;
-  top: 50%;
-  right: 10px;
-  cursor: pointer;
-}
-
-.button_show_sidenav:hover {
-  border-left: 13px solid #BDBDBD;
-}
 
 .datatable_link {
   font-weight: bold;
@@ -300,7 +330,7 @@ a.no-hover-effect:hover {
 }
 
 .selected_project_container, .selected_plugin_container {
-  width: 196px;
+  width: 195px;
   display: flex;
   justify-content: center;
   margin-left: 16px;
@@ -380,7 +410,7 @@ a.no-hover-effect:hover {
 
 .files-browser {
   margin-top: 10px;
-  height: 100%;
+  max-height: 100%;
   overflow-y: auto;
   font-size: 12px;
   padding-bottom: 8px;
@@ -567,3 +597,4 @@ a.no-hover-effect:hover {
   justify-content: flex-end;
   gap: 5px;
 }
+
