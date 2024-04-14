@@ -75,6 +75,10 @@ mod_page_sidenav_ui <- function(id = character(), i18n = character()){
         id = ns("large_sidenav")
       ),
       div(
+        div(
+          create_hover_card(ui = shiny.fluent::IconButton.shinyInput(ns("execute_code"), iconProps = list(iconName = "Play")), text = i18n$t("run_code")),
+          class = "reduced_sidenav_buttons"
+        ),
         id = ns("reduced_sidenav")
       ),
       show_hide_sidenav
@@ -162,79 +166,6 @@ mod_page_sidenav_ui <- function(id = character(), i18n = character()){
     ) -> result
   }
   
-  # --- --- --- --
-  # Dropdowns ----
-  # --- --- --- --
-  
-  if (id %in% c("my_studies", "my_subsets", "messages", "vocabularies", "scripts", "patient_level_data", "aggregated_data")){
-    
-    dropdowns <- function(names){
-      
-      result <- tagList()
-      
-      sapply(names, function(name){
-        
-        if (name == "person"){
-          allowFreeform <- TRUE
-          autoComplete <- "off"
-        } else {
-          allowFreeform <- FALSE
-          autoComplete <- "on"
-        }
-        
-        width <- "250px"
-        
-        result <<- tagList(result,
-          div(id = ns(paste0(name, "_title")), class = "input_title", i18n$t(name)),
-          shiny.fluent::Stack(horizontal = TRUE, tokens = list(childrenGap = 5),
-            div(shiny.fluent::ComboBox.shinyInput(ns(name), allowFreeform = allowFreeform, autoComplete = autoComplete), style = "width:200px")
-          )
-        )
-      })
-      
-      result
-    }
-  }
-  
-  # --- --- --- --- --- ---
-  # Patient-level data ----
-  # --- --- --- --- --- ---
-  
-  if (id == "patient_level_data"){
-    div(class = "sidenav",
-      # div(class = "reduced_sidenav",
-      show_hide_sidenav,
-      # ),
-      # div(class = "extended_sidenav",
-        # shiny.fluent::ActionButton.shinyInput(ns("add_tab"), i18n$t("add_tab"), iconProps = list(iconName = "Add")),
-        # shiny.fluent::ActionButton.shinyInput(ns("edit_tab"), i18n$t("edit_tab"), iconProps = list(iconName = "Edit")),
-        # shiny.fluent::ActionButton.shinyInput(ns("add_widget"), i18n$t("new_widget"), iconProps = list(iconName = "Add")),
-      dropdowns("subset"),
-      dropdowns(c("person", "visit_detail")),
-      uiOutput(ns("person_info"))
-      # )
-    ) -> result
-  }
-  
-  # --- --- --- --- -- -
-  # Aggregated data ----
-  # --- --- --- --- -- -
-  
-  if (id == "aggregated_data") div(
-    class = "sidenav",
-    # div(class = "reduced_sidenav", show_hide_sidenav),
-    # div(class = "extended_sidenav",
-    shiny.fluent::CommandBar(
-      
-    ),
-    # shiny.fluent::ActionButton.shinyInput(ns("add_tab"), i18n$t("add_tab"), iconProps = list(iconName = "Add")),
-    # shiny.fluent::ActionButton.shinyInput(ns("edit_tab"), i18n$t("edit_tab"), iconProps = list(iconName = "Edit")),
-    # shiny.fluent::ActionButton.shinyInput(ns("add_widget"), i18n$t("new_widget"), iconProps = list(iconName = "Add")),
-    hr(),
-    dropdowns(c("subset")),
-    show_hide_sidenav
-  ) -> result
-  
   # --- --- --
   # Users ----
   # --- --- --
@@ -294,6 +225,169 @@ mod_page_sidenav_ui <- function(id = character(), i18n = character()){
   # --- -- -
   
   if (id == "log") {
+    div(
+      id = ns("sidenav"),
+      class = "sidenav",
+      div(
+        id = ns("large_sidenav")
+      ),
+      div(
+        id = ns("reduced_sidenav")
+      ),
+      show_hide_sidenav
+    ) -> result
+  }
+  
+  # --- --- --- --
+  # Dropdowns ----
+  # --- --- --- --
+  
+  if (id %in% c("my_studies", "my_subsets", "messages", "vocabularies", "scripts", "patient_level_data", "aggregated_data")){
+    
+    dropdowns <- function(names){
+      
+      result <- tagList()
+      
+      sapply(names, function(name){
+        
+        if (name == "person"){
+          allowFreeform <- TRUE
+          autoComplete <- "off"
+        } else {
+          allowFreeform <- FALSE
+          autoComplete <- "on"
+        }
+        
+        width <- "250px"
+        
+        result <<- tagList(result,
+           div(id = ns(paste0(name, "_title")), class = "input_title", i18n$t(name)),
+           shiny.fluent::Stack(horizontal = TRUE, tokens = list(childrenGap = 5),
+            div(shiny.fluent::ComboBox.shinyInput(ns(name), allowFreeform = allowFreeform, autoComplete = autoComplete), style = "width:200px")
+           )
+        )
+      })
+      
+      result
+    }
+  }
+  
+  # --- --- --- -
+  # Concepts ----
+  # --- --- --- -
+  
+  if (id == "concepts") {
+    div(
+      id = ns("sidenav"),
+      class = "sidenav",
+      div(
+        id = ns("large_sidenav")
+      ),
+      div(
+        id = ns("reduced_sidenav")
+      ),
+      show_hide_sidenav
+    ) -> result
+  }
+  
+  # --- --- --- --- --- ---
+  # Patient-level data ----
+  # --- --- --- --- --- ---
+  
+  if (id == "patient_level_data"){
+    div(class = "sidenav",
+        # div(class = "reduced_sidenav",
+        show_hide_sidenav,
+        # ),
+        # div(class = "extended_sidenav",
+        # shiny.fluent::ActionButton.shinyInput(ns("add_tab"), i18n$t("add_tab"), iconProps = list(iconName = "Add")),
+        # shiny.fluent::ActionButton.shinyInput(ns("edit_tab"), i18n$t("edit_tab"), iconProps = list(iconName = "Edit")),
+        # shiny.fluent::ActionButton.shinyInput(ns("add_widget"), i18n$t("new_widget"), iconProps = list(iconName = "Add")),
+        dropdowns("subset"),
+        dropdowns(c("person", "visit_detail")),
+        uiOutput(ns("person_info"))
+        # )
+    ) -> result
+  }
+  
+  # --- --- --- --- -- -
+  # Aggregated data ----
+  # --- --- --- --- -- -
+  
+  if (id == "aggregated_data") div(
+    class = "sidenav",
+    # div(class = "reduced_sidenav", show_hide_sidenav),
+    # div(class = "extended_sidenav",
+    shiny.fluent::CommandBar(
+      
+    ),
+    # shiny.fluent::ActionButton.shinyInput(ns("add_tab"), i18n$t("add_tab"), iconProps = list(iconName = "Add")),
+    # shiny.fluent::ActionButton.shinyInput(ns("edit_tab"), i18n$t("edit_tab"), iconProps = list(iconName = "Edit")),
+    # shiny.fluent::ActionButton.shinyInput(ns("add_widget"), i18n$t("new_widget"), iconProps = list(iconName = "Add")),
+    hr(),
+    dropdowns(c("subset")),
+    show_hide_sidenav
+  ) -> result
+  
+  # --- --- -- -
+  # Subsets ----
+  # --- --- -- -
+  
+  if (id == "subsets") {
+    div(
+      id = ns("sidenav"),
+      class = "sidenav",
+      div(
+        id = ns("large_sidenav")
+      ),
+      div(
+        id = ns("reduced_sidenav")
+      ),
+      show_hide_sidenav
+    ) -> result
+  }
+  
+  # --- --- --- -
+  # Messages ----
+  # --- --- --- -
+  
+  if (id == "messages") {
+    div(
+      id = ns("sidenav"),
+      class = "sidenav",
+      div(
+        id = ns("large_sidenav")
+      ),
+      div(
+        id = ns("reduced_sidenav")
+      ),
+      show_hide_sidenav
+    ) -> result
+  }
+  
+  # --- --- --- --- -- -
+  # Project console ----
+  # --- --- --- --- -- -
+  
+  if (id == "project_console") {
+    div(
+      id = ns("sidenav"),
+      class = "sidenav",
+      div(
+        id = ns("large_sidenav")
+      ),
+      div(
+        id = ns("reduced_sidenav")
+      ),
+      show_hide_sidenav
+    ) -> result
+  }
+  
+  # --- --- --
+  # Tasks ----
+  # --- --- --
+  
+  if (id == "tasks") {
     div(
       id = ns("sidenav"),
       class = "sidenav",

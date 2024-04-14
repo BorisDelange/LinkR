@@ -1,21 +1,5 @@
 #' @noRd
-app_ui <- function(language, languages, i18n, users_accesses_toggles_options, debug) {
-  
-  pages <- c(
-    "/",
-    "datasets",
-    "vocabularies",
-    "console",
-    "plugins",
-    "data_cleaning",
-    "catalog",
-    "patient_level_data",
-    "aggregated_data",
-    "users",
-    "app_db",
-    "git_repos",
-    "log"
-  )
+app_ui <- function(pages, language, languages, i18n, users_accesses_toggles_options, debug) {
   
   do.call(shiny.router::router_ui,
     lapply(pages, function(page_url){

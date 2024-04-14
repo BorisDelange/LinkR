@@ -170,12 +170,35 @@ linkr <- function(
       "only_me")
   )
   
+  pages <- c(
+    # Main pages
+    "/",
+    "datasets",
+    "vocabularies",
+    "console",
+    "plugins",
+    "data_cleaning",
+    "catalog",
+    "users",
+    "app_db",
+    "git_repos",
+    "log",
+    # Project pages
+    "concepts",
+    "patient_level_data",
+    "aggregated_data",
+    "subsets",
+    "messages",
+    "project_console",
+    "tasks"
+  )
+  
   # Load UI & server
   
   if (debug) cat(paste0("\n", now(), " - linkr - load UI & server"))
   shinyApp(
-    ui = app_ui(language, languages, i18n, users_accesses_toggles_options, debug),
-    server = app_server(language, languages, i18n, app_folder, debug, local, users_accesses_toggles_options),
+    ui = app_ui(pages, language, languages, i18n, users_accesses_toggles_options, debug),
+    server = app_server(pages, language, languages, i18n, app_folder, debug, local, users_accesses_toggles_options),
     options = options
   )
 }

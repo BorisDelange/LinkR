@@ -146,6 +146,10 @@ body, html {
   border-left: 13px solid #BDBDBD;
 }
 
+.reduced_sidenav_buttons .ms-Button {
+  width: 40px;
+}
+
 /* --------------- */
 /* MAIN */
 /* --------------- */
@@ -181,33 +185,6 @@ body, html {
 
 
 
-
-
-
-
-
-/*
-.extended_sidenav {
-  grid-area: sidenav;
-  padding: 10px 20px 0px 20px;
-  width: 200px;
-  height: calc(100% - 30px);
-  overflow-y: auto;
-  position: absolute;
-  left: 0;
-  border-right: solid 1px #ccc;
-}
-
-.reduced_sidenav {
-  grid-area: sidenav;
-  display: none;
-  width: 65px;
-  height: 100%;
-  position: absolute;
-  right: 0;
-  border-right: solid 1px #ccc;
-}
-*/
 
 .card {
   font-size: 12px;

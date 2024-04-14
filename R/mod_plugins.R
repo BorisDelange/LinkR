@@ -1,5 +1,5 @@
 #' @noRd
-mod_plugins_ui <- function(id = character(), language = tibble::tibble(), languages = character(), i18n = character()){
+mod_plugins_ui <- function(id, language, languages, i18n){
   ns <- NS(id)
   
   div(
@@ -59,9 +59,8 @@ mod_plugins_ui <- function(id = character(), language = tibble::tibble(), langua
           div(
             id = ns("edit_code_div"),
             div(uiOutput(ns("edit_code_tabs")), style = "margin-bottom: -15px"),
-            div(id = ns("edit_code_editors_div"), style = "height:calc(100% - 30px);"),
-            div(id = ns("test")),
-            style = "height:100%;"
+            div(id = ns("edit_code_editors_div"), style = "height: calc(100% - 30px);"),
+            style = "height: 100%;"
           )
         ),
         shinyjs::hidden(
@@ -97,15 +96,11 @@ mod_plugins_ui <- function(id = character(), language = tibble::tibble(), langua
 }
 
 #' @noRd 
-mod_plugins_server <- function(id = character(), r = shiny::reactiveValues(), d = shiny::reactiveValues(), m = shiny::reactiveValues(),
-  language = "en", i18n = character(), debug = FALSE){
+mod_plugins_server <- function(id, r, d, m, language, i18n, debug){
   moduleServer(id, function(input, output, session){
     ns <- session$ns
     
     if (debug) cat(paste0("\n", now(), " - mod_plugins - start"))
-    
-    # Close message bar
-    sapply(1:20, function(i) observeEvent(input[[paste0("close_message_bar_", i)]], shinyjs::hide(paste0("message_bar", i))))
     
     code_hotkeys <- list(
       run_selection = list(win = "CTRL-ENTER", mac = "CTRL-ENTER|CMD-ENTER"),

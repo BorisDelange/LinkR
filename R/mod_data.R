@@ -825,7 +825,7 @@ mod_data_server <- function(id = character(), r = shiny::reactiveValues(), d = s
     
     observeEvent(r[[paste0(category, "_load_ui_cards")]], {
       
-      if (debug) cat(paste0("\n", now(), " - mod_data - ", id, " - observer r$..load_ui_cards"))(r = r, action = "start")
+      if (debug) cat(paste0("\n", now(), " - mod_data - ", id, " - observer r$..load_ui_cards"))
       
       # Don't reload study UI if already loaded
       req(m$selected_study %not_in% r[[paste0(category, "_loaded_studies")]])

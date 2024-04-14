@@ -5,125 +5,126 @@ mod_users_ui <- function(id = character(), language = "en", languages = tibble::
   # Three distinct pages in the settings/users page : users, accesses & statuses
   # For each "sub page", create a creation & a management cards
   
-  cards <- tagList()
-  
-  # We create one tab by "sub page"
-  
-  cards_names <- c(
-    "users_creation_card", "users_management_card", 
-    "users_accesses_management_card", "users_accesses_options_card",
-    "users_statuses_management_card")
-  
-  sapply(cards_names, function(card) cards <<- tagList(cards, 
-    div(id = ns(card), mod_sub_users_ui(id = paste0("settings_users_", substr(card, 1, nchar(card) - 5)), i18n = i18n, users_accesses_toggles_options = users_accesses_toggles_options))))
-  
-  pivots <- tagList()
-  forbidden_cards <- tagList()
-  sapply(cards_names, function(card){
-    pivots <<- tagList(pivots, shiny.fluent::PivotItem(id = card, itemKey = card, headerText = i18n$t(card)))
-    forbidden_cards <<- tagList(forbidden_cards, forbidden_card(ns = ns, name = card, i18n = i18n))
-  })
-  
-  div(class = "main",
-    render_settings_default_elements(ns = ns),
-    shiny.fluent::reactOutput(ns("help_panel")),
-    shiny.fluent::reactOutput(ns("help_modal")),
-    shiny.fluent::Breadcrumb(items = list(
-      list(key = "users", text = i18n$t("users"))
-    ), maxDisplayedItems = 3),
-    div(id = ns("pivot"),
-      shiny.fluent::Pivot(
-        id = ns("users_pivot"),
-        onLinkClick = htmlwidgets::JS(paste0("item => Shiny.setInputValue('", id, "-current_tab', item.props.id)")),
-        pivots
-      )
-    ),
-    forbidden_cards,
-    cards
-  )
-}
-
-mod_sub_users_ui <- function(id = character(), i18n = character(), users_accesses_toggles_options = tibble::tibble()){
-  ns <- NS(id)
-  
-  page <- substr(id, nchar("settings_users_") + 1, nchar(id))
-  
-  if (page == "users_creation"){
-    div(id = ns("creation_card"),
-      make_card(
-        i18n$t(page),
-        div(
-          shiny.fluent::Stack(
-            horizontal = TRUE, tokens = list(childrenGap = 20),
-            make_textfield(i18n = i18n, ns = ns, label = "username", id = "username", width = "300px"),
-            make_textfield(i18n = i18n, ns = ns, label = "firstname", id = "firstname", width = "300px"),
-            make_textfield(i18n = i18n, ns = ns, label = "lastname", id = "lastname", width = "300px")
-          ),
-          shiny.fluent::Stack(
-            horizontal = TRUE, tokens = list(childrenGap = 20),
-            make_textfield(i18n = i18n, ns = ns, label = "password", id = "password", width = "300px", type = "password", canRevealPassword = TRUE),
-            make_dropdown(i18n = i18n, ns = ns, label = "user_access", id = "user_access", multiSelect = FALSE, width = "300px"),
-            make_dropdown(i18n = i18n, ns = ns, label = "user_status", id = "user_status", multiSelect = FALSE, width = "300px")
-          ), br(),
-          shiny.fluent::PrimaryButton.shinyInput(ns("add"), i18n$t("add"))
-        )
-      )
-    ) -> result
-  }
-  
-  if (page == "users_management") result <- render_settings_datatable_card(i18n = i18n, ns = ns, title = page)
-  
-  if (page %in% c("users_accesses_management", "users_statuses_management")) result <- render_settings_datatable_card(i18n = i18n, ns = ns, title = page, 
-    inputs = c("name" = "textfield", "description" = "textfield"))
-  
-  if (page == "users_accesses_options"){
-    
-    # Create users_accesses_toggles_options_result
-    
-    users_accesses_toggles_options_result <- tagList()
-    
-    for (i in 1:nrow(users_accesses_toggles_options)){
-      sub_results <- tagList()
-      
-      if (users_accesses_toggles_options[[i, "toggles"]] != ""){
-        # j <- 0
-        for (toggle in users_accesses_toggles_options[[i, "toggles"]][[1]]){
-
-          # Create toggle
-          sub_results <- tagList(sub_results, shiny.fluent::Stack(horizontal = TRUE, tokens = list(childrenGap = 10), 
-            make_toggle(i18n = i18n, ns = ns, label = paste0(toggle, "_user_access_description"), id = paste0("toggle_", toggle), inline = TRUE, value = FALSE, bold = FALSE)))
-        }
-      }
-        
-      label <- users_accesses_toggles_options[[i, "name"]]
-      
-      sub_results <- tagList(br(), sub_results, hr())
-      
-      users_accesses_toggles_options_result <- tagList(users_accesses_toggles_options_result, br(), shiny.fluent::Stack(horizontal = TRUE, tokens = list(childrenGap = 10),
-        make_toggle(i18n = i18n, ns = ns, label = label, id = paste0("toggle_", label), inline = TRUE, value = FALSE)),
-        div(id = ns(paste0("sub_results_", label, "_div")), sub_results)
-      )
-    }
-    
-    tagList(
-      forbidden_card(ns = ns, name = "options_card", i18n = i18n),
-      div(id = ns("options_card"),
-        make_card(i18n$t("accesses_opts"),
-          div(
-            make_combobox(i18n = i18n, ns = ns, label = "user_access", id = "options_selected",
-              width = "300px", allowFreeform = FALSE, multiSelect = FALSE), br(),
-            users_accesses_toggles_options_result, br(),
-            shiny.fluent::Stack(horizontal = TRUE, tokens = list(childrenGap = 10),
-              shiny.fluent::DefaultButton.shinyInput(ns("select_all"), i18n$t("select_all")),
-              shiny.fluent::DefaultButton.shinyInput(ns("unselect_all"), i18n$t("unselect_all")),
-              shiny.fluent::PrimaryButton.shinyInput(ns("options_save"), i18n$t("save")))
-          )
-        )    
-      )
-    ) -> result
-  }
-  
-  tagList(render_settings_default_elements(ns = ns), result, br())
+#   cards <- tagList()
+#   
+#   # We create one tab by "sub page"
+#   
+#   cards_names <- c(
+#     "users_creation_card", "users_management_card", 
+#     "users_accesses_management_card", "users_accesses_options_card",
+#     "users_statuses_management_card")
+#   
+#   sapply(cards_names, function(card) cards <<- tagList(cards, 
+#     div(id = ns(card), mod_sub_users_ui(id = paste0("settings_users_", substr(card, 1, nchar(card) - 5)), i18n = i18n, users_accesses_toggles_options = users_accesses_toggles_options))))
+#   
+#   pivots <- tagList()
+#   forbidden_cards <- tagList()
+#   sapply(cards_names, function(card){
+#     pivots <<- tagList(pivots, shiny.fluent::PivotItem(id = card, itemKey = card, headerText = i18n$t(card)))
+#     forbidden_cards <<- tagList(forbidden_cards, forbidden_card(ns = ns, name = card, i18n = i18n))
+#   })
+#   
+#   div(class = "main",
+#     render_settings_default_elements(ns = ns),
+#     shiny.fluent::reactOutput(ns("help_panel")),
+#     shiny.fluent::reactOutput(ns("help_modal")),
+#     shiny.fluent::Breadcrumb(items = list(
+#       list(key = "users", text = i18n$t("users"))
+#     ), maxDisplayedItems = 3),
+#     div(id = ns("pivot"),
+#       shiny.fluent::Pivot(
+#         id = ns("users_pivot"),
+#         onLinkClick = htmlwidgets::JS(paste0("item => Shiny.setInputValue('", id, "-current_tab', item.props.id)")),
+#         pivots
+#       )
+#     ),
+#     forbidden_cards,
+#     cards
+#   )
+# }
+# 
+# mod_sub_users_ui <- function(id = character(), i18n = character(), users_accesses_toggles_options = tibble::tibble()){
+#   ns <- NS(id)
+#   
+#   page <- substr(id, nchar("settings_users_") + 1, nchar(id))
+#   
+#   if (page == "users_creation"){
+#     div(id = ns("creation_card"),
+#       make_card(
+#         i18n$t(page),
+#         div(
+#           shiny.fluent::Stack(
+#             horizontal = TRUE, tokens = list(childrenGap = 20),
+#             make_textfield(i18n = i18n, ns = ns, label = "username", id = "username", width = "300px"),
+#             make_textfield(i18n = i18n, ns = ns, label = "firstname", id = "firstname", width = "300px"),
+#             make_textfield(i18n = i18n, ns = ns, label = "lastname", id = "lastname", width = "300px")
+#           ),
+#           shiny.fluent::Stack(
+#             horizontal = TRUE, tokens = list(childrenGap = 20),
+#             make_textfield(i18n = i18n, ns = ns, label = "password", id = "password", width = "300px", type = "password", canRevealPassword = TRUE),
+#             make_dropdown(i18n = i18n, ns = ns, label = "user_access", id = "user_access", multiSelect = FALSE, width = "300px"),
+#             make_dropdown(i18n = i18n, ns = ns, label = "user_status", id = "user_status", multiSelect = FALSE, width = "300px")
+#           ), br(),
+#           shiny.fluent::PrimaryButton.shinyInput(ns("add"), i18n$t("add"))
+#         )
+#       )
+#     ) -> result
+#   }
+#   
+#   if (page == "users_management") result <- render_settings_datatable_card(i18n = i18n, ns = ns, title = page)
+#   
+#   if (page %in% c("users_accesses_management", "users_statuses_management")) result <- render_settings_datatable_card(i18n = i18n, ns = ns, title = page, 
+#     inputs = c("name" = "textfield", "description" = "textfield"))
+#   
+#   if (page == "users_accesses_options"){
+#     
+#     # Create users_accesses_toggles_options_result
+#     
+#     users_accesses_toggles_options_result <- tagList()
+#     
+#     for (i in 1:nrow(users_accesses_toggles_options)){
+#       sub_results <- tagList()
+#       
+#       if (users_accesses_toggles_options[[i, "toggles"]] != ""){
+#         # j <- 0
+#         for (toggle in users_accesses_toggles_options[[i, "toggles"]][[1]]){
+# 
+#           # Create toggle
+#           sub_results <- tagList(sub_results, shiny.fluent::Stack(horizontal = TRUE, tokens = list(childrenGap = 10), 
+#             make_toggle(i18n = i18n, ns = ns, label = paste0(toggle, "_user_access_description"), id = paste0("toggle_", toggle), inline = TRUE, value = FALSE, bold = FALSE)))
+#         }
+#       }
+#         
+#       label <- users_accesses_toggles_options[[i, "name"]]
+#       
+#       sub_results <- tagList(br(), sub_results, hr())
+#       
+#       users_accesses_toggles_options_result <- tagList(users_accesses_toggles_options_result, br(), shiny.fluent::Stack(horizontal = TRUE, tokens = list(childrenGap = 10),
+#         make_toggle(i18n = i18n, ns = ns, label = label, id = paste0("toggle_", label), inline = TRUE, value = FALSE)),
+#         div(id = ns(paste0("sub_results_", label, "_div")), sub_results)
+#       )
+#     }
+#     
+#     tagList(
+#       forbidden_card(ns = ns, name = "options_card", i18n = i18n),
+#       div(id = ns("options_card"),
+#         make_card(i18n$t("accesses_opts"),
+#           div(
+#             make_combobox(i18n = i18n, ns = ns, label = "user_access", id = "options_selected",
+#               width = "300px", allowFreeform = FALSE, multiSelect = FALSE), br(),
+#             users_accesses_toggles_options_result, br(),
+#             shiny.fluent::Stack(horizontal = TRUE, tokens = list(childrenGap = 10),
+#               shiny.fluent::DefaultButton.shinyInput(ns("select_all"), i18n$t("select_all")),
+#               shiny.fluent::DefaultButton.shinyInput(ns("unselect_all"), i18n$t("unselect_all")),
+#               shiny.fluent::PrimaryButton.shinyInput(ns("options_save"), i18n$t("save")))
+#           )
+#         )    
+#       )
+#     ) -> result
+#   }
+#   
+#   tagList(render_settings_default_elements(ns = ns), result, br())
+  tagList()
 }
 
 #' @noRd 

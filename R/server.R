@@ -1,5 +1,5 @@
 #' @noRd
-app_server <- function(language, languages, i18n, app_folder, debug, local, users_accesses_toggles_options){
+app_server <- function(pages, language, languages, i18n, app_folder, debug, local, users_accesses_toggles_options){
   function(input, output, session ) {
     
     if (debug) cat(paste0("\n", now(), " - server - init"))
@@ -228,13 +228,18 @@ app_server <- function(language, languages, i18n, app_folder, debug, local, user
     # Load pages
     
     r$loaded_pages <- list()
-    sapply(c("home", "datasets", "vocabularies", "console", "plugins", "data_cleaning", "catalog", "patient_level_data", "aggregated_data", "users", "app_db", "git_repos", "log"), function(page){
+    
+    sapply(pages, function(page){
+      
+      if (page == "/") page <- "home"
+      
       observeEvent(shiny.router::get_page(), {
         if (shiny.router::get_page() == "/") current_page <- "home"
         else current_page <- shiny.router::get_page()
         
         if (current_page == page & length(r$loaded_pages[[page]]) == 0) {
           if (debug) cat(paste0("\n", now(), " - server - load ", page, " server"))
+          
           r$loaded_pages[[page]] <- TRUE
           
           if (page %in% c("patient_level_data", "aggregated_data")) do.call("mod_data_server", list(page, r, d, m, language, i18n, debug))

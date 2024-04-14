@@ -1,13 +1,5 @@
-#' vocabularies UI Function
-#'
-#' @description A shiny Module.
-#'
-#' @param id,input,output,session Internal parameters for {shiny}.
-#'
 #' @noRd 
-#'
-#' @importFrom shiny NS tagList 
-mod_vocabularies_ui <- function(id = character(), i18n = character()){
+mod_concepts_ui <- function(id, language, languages, i18n){
   ns <- NS(id)
   
   cards <- c("vocabularies_concepts_card", "vocabularies_mapping_card")
@@ -243,11 +235,8 @@ mod_vocabularies_ui <- function(id = character(), i18n = character()){
   )
 }
 
-#' vocabularies Server Functions
-#'
 #' @noRd 
-mod_vocabularies_server <- function(id = character(), r = shiny::reactiveValues(), d = shiny::reactiveValues(), m = shiny::reactiveValues(),
-  i18n = character(), language = "en", perf_monitoring = FALSE, debug = FALSE){
+mod_concepts_server <- function(id, r, d, m, language, i18n, debug){
   moduleServer(id, function(input, output, session){
     ns <- session$ns
     
