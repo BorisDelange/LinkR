@@ -1,20 +1,5 @@
-#' The application server-side
-#' 
-#' @param input,output,session Internal parameters for {shiny}. 
-#' @param router Router used with shiny.router library
-#' @param language Default language to use in the App (character)
-#' @param i18n shiny.i18n object for translations
-#' @param app_folder Location of the application folder (character).
-#' @param perf_monitoring Monitor app performances (logical)
-#' @param debug Debug mode : steps and errors will by displayed in the console (logical)
-#' @param local Run the app in local mode, do not load files on the internet (logical)
-#' @param show_home_page Should the home page be loaded ? (logical)
-#' @param users_accesses_toggles_options A tibble containing users accesses, to add in database if no internet access (tibble)
-#' @import shiny
 #' @noRd
-
-app_server <- function(language = "en", languages = tibble::tibble(), i18n = character(), app_folder = character(), 
-  perf_monitoring = FALSE, debug = FALSE, local = FALSE, show_home_page = TRUE, users_accesses_toggles_options = tibble::tibble()){
+app_server <- function(language, languages, i18n, app_folder, debug, local, users_accesses_toggles_options){
   function(input, output, session ) {
     
     if (debug) cat(paste0("\n", now(), " - server - init"))
@@ -93,15 +78,6 @@ app_server <- function(language = "en", languages = tibble::tibble(), i18n = cha
     else has_internet <- curl::has_internet()
     r$has_internet <- has_internet
     
-    # Perf monitoring & debug
-    if (debug) cat(paste0("\n", now(), " - server - perf_monitoring"))
-    r$perf_monitoring <- perf_monitoring
-    r$debug <- debug
-    
-    r$perf_monitoring_table <- tibble::tibble(task = character(), datetime_start = lubridate::ymd_hms(), datetime_stop = lubridate::ymd_hms())
-    datetime_start <- now()
-    datetime_stop <- now()
-    
     # Create r$server_tabs_groups_loaded & r$ui_tabs_groups_loaded
     r$server_tabs_groups_loaded <- ""
     r$ui_tabs_groups_loaded <- ""
@@ -113,7 +89,6 @@ app_server <- function(language = "en", languages = tibble::tibble(), i18n = cha
     
     # App db folder
     app_db_folder <- paste0(app_folder, "/app_database")
-    # r$app_db_folder <- app_db_folder
     
     # Get translations
     
@@ -236,17 +211,12 @@ app_server <- function(language = "en", languages = tibble::tibble(), i18n = cha
       unlink(temp_files_folder, recursive = TRUE, force = TRUE)
       dir.create(temp_files_folder)
       
-      for (folder in c("markdowns", "plugins", "scripts", "vocabularies", "datasets", "studies", "app_db", "git_repos")){
+      for (folder in c("markdowns", "plugins", "data_cleaning_scripts", "vocabularies", "datasets", "studies", "app_db", "git_repos")){
         sub_folder <- paste0(app_folder, "/temp_files/", r$user_id, "/", folder)
         unlink(sub_folder, recursive = TRUE, force = TRUE)
         if (!dir.exists(sub_folder)) dir.create(sub_folder)
       }
     })
-    
-    # Code style for help pages
-    # r$code_style <- paste0("display:block; padding: 9.5px; margin: 0 10px 10px 0px; font-size:13px; line-height:1.42857143; color: #333; ",
-    #   "word-break: break-all; word-wrap: break-word; background-color:#f5f5f5; border: 1px solid #ccc; border-radius: 4px;",
-    #   "position:relative;")
     
     # Route pages
     if (debug) cat(paste0("\n", now(), " - server - shiny.router"))
@@ -258,160 +228,26 @@ app_server <- function(language = "en", languages = tibble::tibble(), i18n = cha
     # Load pages
     
     r$loaded_pages <- list()
-    observeEvent(shiny.router::get_page(), {
-      if (debug) cat(paste0("\n", now(), " - server - observer shiny_router::change_page"))
-
-      if(shiny.router::get_page() == "plugins" & length(r$loaded_pages$plugins) == 0){
-        r$loaded_pages$plugins <- TRUE
-        mod_plugins_server("plugins", r, d, m, language, i18n, perf_monitoring, debug)
-        mod_page_sidenav_server("plugins", r, d, m, i18n, language, perf_monitoring, debug)
-        mod_page_header_server("plugins", r, d, m, language, i18n, perf_monitoring, debug)
-      }
-      
-      if(shiny.router::get_page() %in% c("patient_level_data", "aggregated_data") & length(r$loaded_pages$data) == 0){
-        r$loaded_pages$data <- TRUE 
-        sapply(c("patient_level_data", "aggregated_data"), function(page){
-          mod_data_server(page, r, d, m, language, i18n, perf_monitoring, debug)
-          mod_page_sidenav_server(page, r, d, m, i18n, language, perf_monitoring, debug)
-          mod_page_header_server(page, r, d, m, language, i18n, perf_monitoring, debug)
-        })
-      }
-    })
-    
-    observeEvent(r$user_accesses, {
-      
-      if (debug) cat(paste0("\n", now(), " - server - observer r$user_accesses"))
-      
-      # --- --- --- --- --- -- -
-      # Get authorized data ----
-      # --- --- --- --- --- -- -
-      
-      # sapply(c("datasets", "plugins", "git_repos"), function(table){
-      #   if (paste0(table, "_see_all_data") %not_in% r$user_accesses){
-      #     if (nrow(r[[table]]) > 0){
-      #       r[[table]] <- get_authorized_data(r = r, table = table)
-      #       r[[paste0(table, "_temp")]] <- r[[table]] %>% dplyr::mutate(modified = FALSE)
-      #     }
-      #   }
-      # })
-      
-      # --- --- --- --- --- -- -
-      # Load server tabs ----
-      # --- --- --- --- --- -- -
-      
-      if (debug) cat(paste0("\n", now(), " - server - load server tabs"))
-      if (perf_monitoring) monitor_perf(r = r, action = "start")
-      
-      if (debug) cat(paste0("\n", now(), " - server - load server tabs - home"))
-      # sapply(c("home", "home_get_started", "home_tutorials", "home_resources", "home_dev"), function(page){
-      #   mod_home_server(page, r, language, i18n, perf_monitoring, debug, show_home_page)
-      #   mod_page_header_server(page, r, d, m, language, i18n, perf_monitoring, debug)
-      # })
-      mod_home_server("home", r, d, m, language, i18n, perf_monitoring, debug, show_home_page)
-      mod_page_header_server("home", r, d, m, language, i18n, perf_monitoring, debug)
-      
-      # if (perf_monitoring) monitor_perf(r = r, action = "stop", task = "server - load server tabs - home")
-      # if (debug) cat(paste0("\n", now(), " - server - load server tabs - data"))
-      # 
-      # sapply(c("patient_level_data", "aggregated_data"), function(page){
-      #   mod_data_server(page, r, d, m, language, i18n, perf_monitoring, debug)
-      #   mod_page_sidenav_server(page, r, d, m, i18n, language, perf_monitoring, debug)
-      #   mod_page_header_server(page, r, d, m, language, i18n, perf_monitoring, debug)
-      # })
-
-      # if (perf_monitoring) monitor_perf(r = r, action = "stop", task = "server - load server tabs - data")
-      # if (debug) cat(paste0("\n", now(), " - server - load server tabs - my_studies / my_subsets / vocabularies / scripts"))
-      # 
-      mod_my_studies_server("my_studies", r, d, m, i18n, language, db_col_types, perf_monitoring, debug)
-      # if (perf_monitoring) monitor_perf(r = r, action = "stop", task = "server - load server tabs - my_studies")
-      # mod_my_subsets_server("my_subsets", r, d, m, i18n, language, perf_monitoring, debug)
-      # if (perf_monitoring) monitor_perf(r = r, action = "stop", task = "server - load server tabs - my_subsets")
-      # mod_vocabularies_server("vocabularies", r, d, m, i18n, language, perf_monitoring, debug)
-      # if (perf_monitoring) monitor_perf(r = r, action = "stop", task = "server - load server tabs - vocabularies")
-      # mod_scripts_server("scripts", r, d, m, language, i18n, perf_monitoring, debug)
-      # if (perf_monitoring) monitor_perf(r = r, action = "stop", task = "server - load server tabs - scripts")
-      # 
-      # sapply(c("my_studies", "my_subsets", "vocabularies", "scripts"), function(page){
-      #   mod_page_sidenav_server(page, r, d, m, i18n, language, perf_monitoring, debug)
-      #   mod_page_header_server(page, r, d, m, language, i18n, perf_monitoring, debug)
-      # })
-      # 
-      # if (perf_monitoring) monitor_perf(r = r, action = "stop", task = "server - load server tabs - my_studies / my_subsets / vocabularies / scripts - sidenav")
-      # if (debug) cat(paste0("\n", now(), " - server - load server tabs - messages"))
-      # 
-      # mod_messages_server("messages", r, d, m, i18n, language, perf_monitoring, debug)
-      # mod_page_sidenav_server("messages", r, d, m, i18n, language, perf_monitoring, debug)
-      # mod_page_header_server("messages", r, d, m, language, i18n, perf_monitoring, debug)
-      # 
-      # if (perf_monitoring) monitor_perf(r = r, action = "stop", task = "server - load server tabs - messages")
-      # if (debug) cat(paste0("\n", now(), " - server - load server tabs - plugins"))
-      # 
-      # sapply(c("plugins_patient_lvl", "plugins_aggregated"), function(page){
-      #   mod_plugins_server(page, r, d, m, language, i18n, perf_monitoring, debug)
-      #   mod_page_sidenav_server(page, r, d, m, i18n, language, perf_monitoring, debug)
-      #   mod_page_header_server(page, r, d, m, language, i18n, perf_monitoring, debug)
-      # })
-      # mod_plugins_server("plugins", r, d, m, language, i18n, perf_monitoring, debug)
-      # mod_page_sidenav_server("plugins", r, d, m, i18n, language, perf_monitoring, debug)
-      # mod_page_header_server("plugins", r, d, m, language, i18n, perf_monitoring, debug)
-      
-      # if (perf_monitoring) monitor_perf(r = r, action = "stop", task = "server - load server tabs - plugins")
-      # if (debug) cat(paste0("\n", now(), " - server - load server tabs - general_settings"))
-      # 
-      # mod_settings_general_server("settings_general_settings", r, i18n, perf_monitoring, debug)
-      # mod_page_sidenav_server("settings_general_settings", r, d, m, i18n, language, perf_monitoring, debug)
-      # mod_page_header_server("settings_general_settings", r, d, m, language, i18n, perf_monitoring, debug)
-      # if (perf_monitoring) monitor_perf(r = r, action = "stop", task = "server - load server tabs - general_settings")
-      # if (debug) cat(paste0("\n", now(), " - server - load server tabs - settings_app_db"))
-      # 
-      # mod_settings_app_database_server("settings_app_db", r, m, i18n, language, db_col_types, app_folder, perf_monitoring, debug)
-      # mod_page_sidenav_server("settings_app_db", r, d, m, i18n, language, perf_monitoring, debug)
-      # mod_page_header_server("settings_app_db", r, d, m, language, i18n, perf_monitoring, debug)
-      # if (perf_monitoring) monitor_perf(r = r, action = "stop", task = "server - load server tabs - settings_app_db")
-      # if (debug) cat(paste0("\n", now(), " - server - load server tabs - settings_git"))
-      # 
-      # mod_settings_git_server("settings_git", r, d, m, i18n, language, perf_monitoring, debug)
-      # mod_page_header_server("settings_git", r, d, m, language, i18n, perf_monitoring, debug)
-      # if (perf_monitoring) monitor_perf(r = r, action = "stop", task = "server - load server tabs - settings_git")
-      # if (debug) cat(paste0("\n", now(), " - server - load server tabs - settings_users"))
-      # 
-      # mod_settings_users_server("settings_users", r, m, i18n, language, perf_monitoring, debug, users_accesses_toggles_options)
-      # mod_page_sidenav_server("settings_users", r, d, m, i18n, language, perf_monitoring, debug)
-      # mod_page_header_server("settings_users", r, d, m, language, i18n, perf_monitoring, debug)
-      # 
-      # sapply(c("users", "users_statuses", "users_accesses"), function(page){
-      #   mod_settings_users_server(paste0("settings_users_", page, "_creation"), r, m, i18n, language, perf_monitoring, debug, users_accesses_toggles_options)
-      #   mod_settings_users_server(paste0("settings_users_", page, "_management"), r, m, i18n, language, perf_monitoring, debug, users_accesses_toggles_options)
-      #   mod_settings_users_server(paste0("settings_users_", page, "_options"), r, m, i18n, language, perf_monitoring, debug, users_accesses_toggles_options)
-      # })
-      # 
-      # if (perf_monitoring) monitor_perf(r = r, action = "stop", task = "server - load server tabs - settings_users")
-      # if (debug) cat(paste0("\n", now(), " - server - load server tabs - settings_dev"))
-      # mod_settings_dev_server("settings_dev", r, d, m, i18n, language, perf_monitoring, debug)
-      # mod_page_sidenav_server("settings_dev", r, d, m, i18n, language, perf_monitoring, debug)
-      # mod_page_header_server("settings_dev", r, d, m, language, i18n, perf_monitoring, debug)
-      # 
-      # if (perf_monitoring) monitor_perf(r = r, action = "stop", task = "server - load server tabs - settings_dev")
-      # # if (debug) cat(paste0("\n", now(), " - server - load server tabs - data_sources / datasets / vocabularies"))
-      # if (debug) cat(paste0("\n", now(), " - server - load server tabs - datasets / vocabularies"))
-      # 
-      # # sapply(c("data_sources", "datasets", "vocabularies"), function(page){
-      # sapply(c("datasets", "vocabularies"), function(page){
-      #   mod_settings_data_management_server(paste0("settings_", page), r, d, m, i18n, language, perf_monitoring, debug)
-      #   mod_page_sidenav_server(paste0("settings_", page), r, d, m, i18n, language, perf_monitoring, debug)
-      #   mod_page_header_server(paste0("settings_", page), r, d, m, language, i18n, perf_monitoring, debug)
-      #   if (perf_monitoring) monitor_perf(r = r, action = "stop", task = paste0("server - load server tabs - ", page))
-      # })
-      # 
-      # if (debug) cat(paste0("\n", now(), " - server - load server tabs - settings_log"))
-      # mod_settings_log_server("settings_log", r, i18n, language, perf_monitoring, debug)
-      # mod_page_sidenav_server("settings_log", r, d, m, i18n, language, perf_monitoring, debug)
-      # mod_page_header_server("settings_log", r, d, m, language, i18n, perf_monitoring, debug)
-      # if (perf_monitoring) monitor_perf(r = r, action = "stop", task = "server - load server tabs - settings_log")
-      # if (debug) cat(paste0("\n", now(), " - server - load server tabs - end"))
-      
-      r$end_load_tabs <- TRUE
-      
+    sapply(c("home", "datasets", "vocabularies", "console", "plugins", "data_cleaning", "catalog", "patient_level_data", "aggregated_data", "users", "app_db", "git_repos", "log"), function(page){
+      observeEvent(shiny.router::get_page(), {
+        if (shiny.router::get_page() == "/") current_page <- "home"
+        else current_page <- shiny.router::get_page()
+        
+        if (current_page == page & length(r$loaded_pages[[page]]) == 0) {
+          if (debug) cat(paste0("\n", now(), " - server - load ", page, " server"))
+          r$loaded_pages[[page]] <- TRUE
+          
+          if (page %in% c("patient_level_data", "aggregated_data")) do.call("mod_data_server", list(page, r, d, m, language, i18n, debug))
+          else {
+            if (page == "users") args <- list(page, r, d, m, language, i18n, debug, users_accesses_toggles_options)
+            else args <- list(page, r, d, m, language, i18n, debug)
+            do.call(paste0("mod_", page, "_server"), args)
+          }
+          
+          mod_page_sidenav_server(page, r, d, m, i18n, language, debug)
+          mod_page_header_server(page, r, d, m, language, i18n, debug)
+        }
+      })
     })
   }
 }

@@ -1,67 +1,44 @@
-#' The application User-Interface
-#' 
-#' @param request Internal parameter for `{shiny}`. 
-#' @param css CSS file location (character)
-#' @param language Default language to use in the App (character)
-#' @param i18n shiny.i18n object for translations
-#' @param users_accesses_toggles_options A tibble containing users accesses, to add in database if no internet access (tibble)
-#' @param debug Debug mode : steps and errors will by displayed in the console (logical)
-#' @import shiny
 #' @noRd
-
-app_ui <- function(request, css, language, languages, i18n = character(), users_accesses_toggles_options = tibble::tibble(), debug = FALSE) {
+app_ui <- function(language, languages, i18n, users_accesses_toggles_options, debug) {
   
   pages <- c(
-    "/", 
-    # "home/get_started", 
-    # "home/tutorials", 
-    # "home/resources",
-    "my_studies", 
-    "my_subsets",
-    "messages",
-    "vocabularies", 
-    "data", 
-    "scripts", 
-    "patient_level_data", 
-    "aggregated_data",
+    "/",
+    "datasets",
+    "vocabularies",
+    "console",
     "plugins",
-    # "plugins_patient_lvl",
-    # "plugins_aggregated",
-    "settings/general_settings",
-    "settings/app_db",
-    "settings/git",
-    "settings/users", 
-    "settings/dev", 
-    "settings/data_sources",
-    "settings/datasets", 
-    "settings/vocabularies",
-    "settings/log")
+    "data_cleaning",
+    "catalog",
+    "patient_level_data",
+    "aggregated_data",
+    "users",
+    "app_db",
+    "git_repos",
+    "log"
+  )
   
   do.call(shiny.router::router_ui,
     lapply(pages, function(page_url){
       if (debug) cat(paste0("\n", now(), " - ui - make_router - ", page_url))
-      if (page_url == "/") page <- "home" else page <- page_url
       
-      # Pages without sidenav
-      # if (page %in% c("home")) class = "grid-container-without-sidenav"
-      # else class = "grid-container"
+      if (page_url == "/") page <- "home" else page <- page_url
+      if (page %in% c("patient_level_data", "aggregated_data")) fct <- "data" else fct <- page
+      
+      args <- list(page, language, languages, i18n)
+      if (page == "users") args <- list(page, language, languages, i18n, users_accesses_toggles_options)
       
       shiny.router::route(page_url,
         div(
           class = "page_container",
-          # class = class,
           mod_page_header_ui(id = page, i18n = i18n),
           div(
             mod_page_sidenav_ui(id = page, i18n = i18n),
-            mod_page_main_ui(id = page, language = language, languages = languages, i18n = i18n, users_accesses_toggles_options = users_accesses_toggles_options),
+            do.call(paste0("mod_", fct, "_ui"), args),
             class = "main_container"
           ),
           mod_page_footer_ui(i18n = i18n)
         )
       )
-        # make_layout(language = language, languages = languages, page = page, i18n = i18n, users_accesses_toggles_options = users_accesses_toggles_options))
-      
-      # else shiny.router::route(page_url, make_layout(language = language, languages = languages, page = page, i18n = i18n, users_accesses_toggles_options = users_accesses_toggles_options))
     })
   ) -> page
   
@@ -75,16 +52,7 @@ app_ui <- function(request, css, language, languages, i18n = character(), users_
   # )
 }
 
-#' Add external Resources to the Application
-#' 
-#' This function is internally used to add external 
-#' resources inside the Shiny application. 
-#' 
-#' @param css CSS file location (character)
-#' @import shiny
-#' @importFrom golem add_resource_path activate_js favicon bundle_resources
 #' @noRd
-
 golem_add_external_resources <- function(){
   
   add_resource_path('www', app_sys('app/www'))

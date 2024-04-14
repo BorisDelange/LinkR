@@ -107,6 +107,7 @@ import_and_export_scripts,Import and export scripts
 on_remote_git_repo,On remote git repository
 remote_git_repo,Remote git repository
 remote_git_repos,Remote git repositories
+git_repos,Git repositories
 git_repo,Git repository
 local_plugins,Local plugins
 local_plugins_short,Local
@@ -1035,3 +1036,8 @@ invalid_file_extension,Invalid file extension
 invalid_filename,Invalid file name
 delete_file_title,Delete a file
 delete_file_text,Confirm deletion of this file?
+configure,Configurer
+develop,Développer
+discover,Découvrir
+app_settings,Application settings
+catalog,Catalog

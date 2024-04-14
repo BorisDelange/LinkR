@@ -1,4 +1,4 @@
-#' Run the Shiny Application
+#' Run the Shiny application
 #'
 #' @description 
 #' Runs the LinkR Shiny Application.\cr
@@ -8,25 +8,20 @@
 #' @param language Default language to use in the App (character)
 #' @param app_folder Location of the application folder (character).
 #' @param local Run the app in local mode, do not load files on the internet (logical)
-#' @param show_home_page Should the home page be loaded ? (logical)
-#' @param perf_monitoring Monitor app performances (logical)
 #' @param debug Debug mode : steps and errors will by displayed in the console (logical)
 #' @param port Port used by shiny app (integer)
 #' @examples 
 #' \dontrun{
-#' linkr(language = "en", perf_monitoring = FALSE, debug = FALSE, local = FALSE)
+#' linkr(language = "en", debug = FALSE, local = FALSE)
 #' }
 #' @export
 #' @importFrom shiny shinyApp
-#' @importFrom golem with_golem_options 
 #' @importFrom magrittr %>%
 
 linkr <- function(
   language = "en",
   app_folder = character(),
   local = FALSE,
-  show_home_page = TRUE,
-  perf_monitoring = FALSE,
   debug = FALSE,
   port = 3838
 ) {
@@ -40,7 +35,7 @@ linkr <- function(
   
   # suppressMessages(require(shinyTree))
   
-  if (!is.logical(perf_monitoring) | !is.logical(debug) | !is.logical(local)) stop("perf_monitoring, debug or local are not logical")
+  if (!is.logical(debug) | !is.logical(local)) stop("debug or local are not logical")
   
   # Create app folder if it doesn't exist
   if (debug) cat(paste0("\n", now(), " - linkr - app_folder"))
@@ -87,8 +82,6 @@ linkr <- function(
   )
   
   options(digits.secs = 0)
-
-  css <- "fluent_style.css"
   
   # Toggles for users accesses
   
@@ -117,8 +110,7 @@ linkr <- function(
       "users_statuses_management_card"),
     "dev", c(
       "dev_edit_r_code_card",
-      "dev_edit_python_code_card",
-      "dev_perf_monitoring_card"),
+      "dev_edit_python_code_card"),
     "data_sources", c(
       "data_sources_datatable_card"),
     "datasets", c(
@@ -181,14 +173,9 @@ linkr <- function(
   # Load UI & server
   
   if (debug) cat(paste0("\n", now(), " - linkr - load UI & server"))
-  with_golem_options(
-    app = shinyApp(
-      ui = app_ui(css = css, language = language, languages = languages, i18n = i18n, users_accesses_toggles_options = users_accesses_toggles_options, debug = debug),
-      server = app_server(language = language, languages = languages, i18n = i18n, app_folder = app_folder, 
-        perf_monitoring = perf_monitoring, debug = debug, local = local, show_home_page = show_home_page,
-        users_accesses_toggles_options = users_accesses_toggles_options),
-      options = options
-    ), 
-    golem_opts = list()
+  shinyApp(
+    ui = app_ui(language, languages, i18n, users_accesses_toggles_options, debug),
+    server = app_server(language, languages, i18n, app_folder, debug, local, users_accesses_toggles_options),
+    options = options
   )
 }

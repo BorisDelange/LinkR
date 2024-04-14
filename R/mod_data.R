@@ -8,7 +8,7 @@
 #'
 #' @importFrom shiny NS tagList 
 
-mod_data_ui <- function(id = character(), i18n = character()){
+mod_data_ui <- function(id = character(), language = "en", languages = tibble::tibble(), i18n = character()){
   ns <- NS(id)
   result <- ""
   language <- "EN"
@@ -221,12 +221,10 @@ mod_data_ui <- function(id = character(), i18n = character()){
 #'
 #' @noRd 
 
-mod_data_server <- function(id = character(), r = shiny::reactiveValues(), d = shiny::reactiveValues(), m = shiny::reactiveValues(), 
-  language = "en", i18n = character(), perf_monitoring = FALSE, debug = FALSE){
+mod_data_server <- function(id = character(), r = shiny::reactiveValues(), d = shiny::reactiveValues(), m = shiny::reactiveValues(), language = "en", i18n = character(), debug = FALSE){
   moduleServer(id, function(input, output, session){
     ns <- session$ns
     
-    if (perf_monitoring) monitor_perf(r = r, action = "start")
     if (debug) cat(paste0("\n", now(), " - mod_data - ", id, " - start"))
     
     sapply(1:20, function(i) observeEvent(input[[paste0("close_message_bar_", i)]], shinyjs::hide(paste0("message_bar", i))))
@@ -259,7 +257,6 @@ mod_data_server <- function(id = character(), r = shiny::reactiveValues(), d = s
     # This allows to show message in multiple pages at the same time (eg when loading a dataset in Studies page, render message bar in Subsets page)
     
     observeEvent(r$show_message_bar, show_message_bar(output, r$show_message_bar$message, r$show_message_bar$type, i18n = i18n, ns = ns))
-    if (perf_monitoring) monitor_perf(r = r, action = "stop", task = paste0("mod_data - ", id, " - show_message_bars"))
     
     # --- --- --- --- --
     # Initiate vars ----
@@ -311,8 +308,6 @@ mod_data_server <- function(id = character(), r = shiny::reactiveValues(), d = s
     #   shinyjs::delay(1000, r[[paste0(category, "_initialize_sortable")]] <- now())
     # })
     
-    if (perf_monitoring) monitor_perf(r = r, action = "stop", task = paste0("mod_data - ", id, " - initiate vars"))
-    
     # --- --- --- --
     # Load data ----
     # --- --- --- --
@@ -322,7 +317,6 @@ mod_data_server <- function(id = character(), r = shiny::reactiveValues(), d = s
       observeEvent(m$selected_person, {
         
         if (debug) cat(paste0("\n", now(), " - mod_data - ", id, " - observer m$selected_person"))
-        if (perf_monitoring) monitor_perf(r = r, action = "start")
         
         # Reset variables
         
@@ -341,14 +335,11 @@ mod_data_server <- function(id = character(), r = shiny::reactiveValues(), d = s
         
         # Reset selected_visit_detail
         m$selected_visit_detail <- NA_integer_
-        
-        if (perf_monitoring) monitor_perf(r = r, action = "stop", task = paste0("mod_data - ", id, " - observer m$selected_person"))
       })
       
       observeEvent(m$selected_visit_detail, {
         
         if (debug) cat(paste0("\n", now(), " - mod_data - ", id, " - observer m$selected_visit_detail"))
-        if (perf_monitoring) monitor_perf(r = r, action = "start")
         
         req(d$data_person)
         
@@ -361,8 +352,6 @@ mod_data_server <- function(id = character(), r = shiny::reactiveValues(), d = s
           for(table in visit_detail_tables) if (d$data_person[[table]] %>% dplyr::count() %>% dplyr::pull() > 0) d$data_visit_detail[[table]] <- 
               d$data_person[[table]] %>% dplyr::filter(visit_detail_id == selected_visit_detail)
         }
-        
-        if (perf_monitoring) monitor_perf(r = r, action = "stop", task = paste0("mod_data - ", id, " - observer m$selected_visit_detail"))
       })
     }
     
@@ -371,7 +360,6 @@ mod_data_server <- function(id = character(), r = shiny::reactiveValues(), d = s
       observeEvent(m$subset_persons, {
         
         if (debug) cat(paste0("\n", now(), " - mod_data - ", id, " - observer m$subset_persons"))
-        if (perf_monitoring) monitor_perf(r = r, action = "start")
         
         # Reset variables
         
@@ -389,8 +377,6 @@ mod_data_server <- function(id = character(), r = shiny::reactiveValues(), d = s
           }
           else d$data_subset[[table]] <- tibble::tibble()
         }
-        
-        if (perf_monitoring) monitor_perf(r = r, action = "stop", task = paste0("mod_data - ", id, " - observer m$subset_persons"))
       })
     }
     
@@ -403,7 +389,6 @@ mod_data_server <- function(id = character(), r = shiny::reactiveValues(), d = s
     observeEvent(m$selected_study, {
       
       if (debug) cat(paste0("\n", now(), " - mod_data - ", id, " - observer m$selected_study"))
-      if (perf_monitoring) monitor_perf(r = r, action = "start")
       
       # Hide UI from previous loaded study
       # Don't use removeUI, cause when you switch study, it is deleted and cannot be reinserted
@@ -461,8 +446,6 @@ mod_data_server <- function(id = character(), r = shiny::reactiveValues(), d = s
         value = NULL)
       
       r[[paste0(category, "_reload_plugins_dropdown")]] <- now()
-      
-      if (perf_monitoring) monitor_perf(r = r, action = "stop", task = paste0("mod_data - ", id, " - observer m$selected_study"))
     })
     
     # Reload plugins dropdown
@@ -488,7 +471,6 @@ mod_data_server <- function(id = character(), r = shiny::reactiveValues(), d = s
     observeEvent(r[[paste0(category, "_load_display_tabs")]], {
       
       if (debug) cat(paste0("\n", now(), " - mod_data - ", id, " - observer r$..load_display_tabs"))
-      if (perf_monitoring) monitor_perf(r = r, action = "start")
       
       # Load study informations
       # For one study, you choose ONE patient_lvl or aggregated data tab family
@@ -556,8 +538,6 @@ mod_data_server <- function(id = character(), r = shiny::reactiveValues(), d = s
       
       # Load UI cards
       if (grepl("first_load_ui", r[[paste0(category, "_load_display_tabs")]])) r[[paste0(category, "_load_ui_cards")]] <- now()
-      
-      if (perf_monitoring) monitor_perf(r = r, action = "stop", task = paste0("mod_data - ", id, " - observer r$..load_display_tabs"))
     })
     
     # --- --- -- -
@@ -574,7 +554,6 @@ mod_data_server <- function(id = character(), r = shiny::reactiveValues(), d = s
     
     observeEvent(r[[paste0(category, "_load_ui_menu")]], {
       if (debug) cat(paste0("\n", now(), " - mod_data - ", id, " - r$..load_ui_menu"))
-      if (perf_monitoring) monitor_perf(r = r, action = "start")
       
       tab_group_id <- r[[paste0(category, "_display_tabs")]] %>% dplyr::slice(1) %>% dplyr::pull(tab_group_id)
       
@@ -770,8 +749,6 @@ mod_data_server <- function(id = character(), r = shiny::reactiveValues(), d = s
       r[[paste0(category, "_hide_ui")]] <- now()
       
       shinyjs::delay(2000, r[[paste0(category, "_initialize_sortable")]] <- now())
-      
-      if (perf_monitoring) monitor_perf(r = r, action = "stop", task = paste0("mod_data - ", id, " - r$..display_tabs"))
     })
     
     observeEvent(r[[paste0(category, "_initialize_sortable")]], {
@@ -848,8 +825,7 @@ mod_data_server <- function(id = character(), r = shiny::reactiveValues(), d = s
     
     observeEvent(r[[paste0(category, "_load_ui_cards")]], {
       
-      if (debug) cat(paste0("\n", now(), " - mod_data - ", id, " - observer r$..load_ui_cards"))
-      if (perf_monitoring) monitor_perf(r = r, action = "start")
+      if (debug) cat(paste0("\n", now(), " - mod_data - ", id, " - observer r$..load_ui_cards"))(r = r, action = "start")
       
       # Don't reload study UI if already loaded
       req(m$selected_study %not_in% r[[paste0(category, "_loaded_studies")]])
@@ -1117,8 +1093,6 @@ mod_data_server <- function(id = character(), r = shiny::reactiveValues(), d = s
       # Reload UI menu (problem for displaying cards : blanks if we do not do that)
       # shinyjs::delay(100, r[[paste0(category, "_load_ui_menu")]] <- now())
       # r[[paste0(category, "_load_ui_menu")]] <- now()
-      
-      if (perf_monitoring) monitor_perf(r = r, action = "stop", task = paste0("mod_data - ", id, " - observer r$..load_ui_cards"))
     })
     
     # --- --- --- --- --- ---
@@ -1143,7 +1117,6 @@ mod_data_server <- function(id = character(), r = shiny::reactiveValues(), d = s
     observeEvent(r[[paste0(category, "_load_server")]], {
       
       if (debug) cat(paste0("\n", now(), " - mod_data - ", id, " - observer r$..load_server"))
-      if (perf_monitoring) monitor_perf(r = r, action = "start")
       
       req(!is.na(m$selected_study))
       
@@ -1301,8 +1274,6 @@ mod_data_server <- function(id = character(), r = shiny::reactiveValues(), d = s
           }
         })
       }
-      
-      if (perf_monitoring) monitor_perf(r = r, action = "stop", task = paste0("mod_data - ", id, " - observer r$..load_server"))
     })
     
     # --- --- --- --- --- --- -- -
@@ -1316,7 +1287,6 @@ mod_data_server <- function(id = character(), r = shiny::reactiveValues(), d = s
     observeEvent(r[[paste0(category, "_widget_settings_trigger")]], {
       
       if (debug) cat(paste0("\n", now(), " - mod_data - ", id, " - observer r$..widget_settings_trigger"))
-      if (perf_monitoring) monitor_perf(r = r, action = "start")
       
       sapply(r[[paste0(category, "_opened_cards")]], shinyjs::hide)
       shinyjs::show(paste0(category, "_widget_settings"))
@@ -1345,8 +1315,6 @@ mod_data_server <- function(id = character(), r = shiny::reactiveValues(), d = s
         r[[paste0(category, "_widget_vocabulary_update_selected_concepts_dropdown")]] <- now()
         r[[paste0(category, "_widget_vocabulary_update_selected_concepts_dropdown_type")]] <- "widget_settings"
       }
-      
-      if (perf_monitoring) monitor_perf(r = r, action = "stop", task = paste0("mod_data - ", id, " - observer r$..widget_settings_trigger"))
     })
     
     # Close button clicked
@@ -1360,7 +1328,6 @@ mod_data_server <- function(id = character(), r = shiny::reactiveValues(), d = s
     observeEvent(input$widget_settings_save, {
       
       if (debug) cat(paste0("\n", now(), " - mod_data - ", id, " - observer input$..widget_settings_save"))
-      if (perf_monitoring) monitor_perf(r = r, action = "start")
       
       new_data <- list()
       
@@ -1542,8 +1509,6 @@ mod_data_server <- function(id = character(), r = shiny::reactiveValues(), d = s
       # Hide settings card and show opened cards
       shinyjs::hide(paste0(category, "_widget_settings"))
       sapply(r[[paste0(category, "_opened_cards")]], shinyjs::show)
-      
-      if (perf_monitoring) monitor_perf(r = r, action = "stop", task = paste0("mod_data - ", id, " - observer input$..widget_settings_save"))
     })
     
     # --- --- --- --- --- --- --- --- --- -- -
@@ -1553,7 +1518,6 @@ mod_data_server <- function(id = character(), r = shiny::reactiveValues(), d = s
     observeEvent(input$study_pivot_order, {
 
       if (debug) cat(paste0("\n", now(), " - mod_data - ", id, " - observer input$study_pivot_order"))
-      if (perf_monitoring) monitor_perf(r = r, action = "start")
       
       new_pivot_order <- tibble::tibble(name = stringr::str_split(input$study_pivot_order, "\n") %>% unlist() %>% sub("^ ", "", .)) %>%
         dplyr::mutate(display_order = 1:dplyr::n())
@@ -1587,8 +1551,6 @@ mod_data_server <- function(id = character(), r = shiny::reactiveValues(), d = s
         dplyr::arrange(id)
 
       r[[paste0(category, "_load_display_tabs")]] <- now()
-
-      if (perf_monitoring) monitor_perf(r = r, action = "stop", task = paste0("mod_data - ", id, " - observer input$study_pivot_oder"))
     })
     
     # --- --- --- --- --- --- --- --- ---
@@ -1598,7 +1560,6 @@ mod_data_server <- function(id = character(), r = shiny::reactiveValues(), d = s
     observeEvent(r[[paste0(category, "_selected_tab")]], {
       
       if (debug) cat(paste0("\n", now(), " - mod_data - ", id, " - observer r$..selected_tab"))
-      if (perf_monitoring) monitor_perf(r = r, action = "start")
       
       req(!grepl("show_tab", r[[paste0(category, "_selected_tab")]]))
       
@@ -1640,8 +1601,6 @@ mod_data_server <- function(id = character(), r = shiny::reactiveValues(), d = s
       #   }
       #   
       # })
-      
-      if (perf_monitoring) monitor_perf(r = r, action = "stop", task = paste0("mod_data - ", id, " - observer r$..selected_tab"))
     })
     
     # --- --- --- - -
@@ -1676,7 +1635,6 @@ mod_data_server <- function(id = character(), r = shiny::reactiveValues(), d = s
     observeEvent(input$add_tab_button, {
       
       if (debug) cat(paste0("\n", now(), " - mod_data - ", id, " - observer input$add_tab_button"))
-      if (perf_monitoring) monitor_perf(r = r, action = "start")
       
       study <- r$studies %>% dplyr::filter(id == m$selected_study)
       selected_tab <- r[[paste0(category, "_selected_tab")]]
@@ -1791,8 +1749,6 @@ mod_data_server <- function(id = character(), r = shiny::reactiveValues(), d = s
       
       # Hide currently opened cards
       sapply(r[[paste0(category, "_opened_cards")]], shinyjs::hide)
-      
-      if (perf_monitoring) monitor_perf(r = r, action = "stop", task = paste0("mod_data - ", id, " - observer input$add_tab_button"))
     })
     
     # --- --- --- -- -
@@ -1924,7 +1880,6 @@ mod_data_server <- function(id = character(), r = shiny::reactiveValues(), d = s
     observeEvent(r[[tab_information_variable]], {
       
       if (debug) cat(paste0("\n", now(), " - mod_data - ", id, " - observer r$..tab_deleted"))
-      if (perf_monitoring) monitor_perf(r = r, action = "start")
       
       table <- paste0(category, "_tabs")
       deleted_tab_id <- r[[paste0(category, "_tab_deleted")]]
@@ -1991,8 +1946,6 @@ mod_data_server <- function(id = character(), r = shiny::reactiveValues(), d = s
       
       # Hide edit_tab div
       shinyjs::hide(paste0(category, "_edit_tab"))
-      
-      if (perf_monitoring) monitor_perf(r = r, action = "stop", task = paste0("mod_data - ", id, " - observer r$..tab_deleted"))
     })
     
     # --- --- --- --- --
@@ -2050,7 +2003,6 @@ mod_data_server <- function(id = character(), r = shiny::reactiveValues(), d = s
     
     observeEvent(r[[paste0(category, "_reload_widget_vocabulary_concepts")]], {
       
-      if (perf_monitoring) monitor_perf(r = r, action = "start")
       if (debug) cat(paste0("\n", now(), " - mod_data - ", id, " observer r$..reload_widget_vocabulary_concepts"))
       
       req(length(d$dataset_all_concepts) > 0, nrow(d$dataset_all_concepts) > 0)
@@ -2118,8 +2070,6 @@ mod_data_server <- function(id = character(), r = shiny::reactiveValues(), d = s
         if (input[[paste0(type, "_hide_concepts_datatables")]]) shinyjs::show(paste0(type, "_blank_space")) else shinyjs::hide(paste0(type, "_blank_space"))
       }
       else DT::replaceData(r[[paste0(category, "_", type, "_vocabulary_concepts_proxy")]], r[[paste0(category, "_", type, "_vocabulary_concepts")]], resetPaging = FALSE, rownames = FALSE)
-      
-      if (perf_monitoring) monitor_perf(r = r, action = "stop", task = paste0("mod_data - ", id, " - observer r$..reload_widget_vocabulary_concepts"))
     })
     
     # Update which cols are hidden
@@ -2313,8 +2263,6 @@ mod_data_server <- function(id = character(), r = shiny::reactiveValues(), d = s
     })
     
     observeEvent(r[[paste0(category, "_widget_concept_selected")]], {
-      
-      if (perf_monitoring) monitor_perf(r = r, action = "start")
       if (debug) cat(paste0("\n", now(), " - mod_data - ", id, " - observer r$..widget_concept_selected"))
       
       type <- r[[paste0(category, "_widget_concept_selected_type")]]
@@ -2376,8 +2324,6 @@ mod_data_server <- function(id = character(), r = shiny::reactiveValues(), d = s
       
       r[[paste0(category, "_widget_vocabulary_update_selected_concepts_dropdown")]] <- now()
       r[[paste0(category, "_widget_vocabulary_update_selected_concepts_dropdown_type")]] <- type
-      
-      if (perf_monitoring) monitor_perf(r = r, action = "stop", task = paste0("mod_data - ", id, " - observer r$..widget_concept_selected"))
       
     })
     
@@ -2457,7 +2403,6 @@ mod_data_server <- function(id = character(), r = shiny::reactiveValues(), d = s
     observeEvent(input$widget_creation_save, {
       
       if (debug) cat(paste0("\n", now(), " - mod_data - ", id, " - observer input$widget_creation_save"))
-      if (perf_monitoring) monitor_perf(r = r, action = "start")
       
       new_data <- list()
       
@@ -2779,8 +2724,6 @@ mod_data_server <- function(id = character(), r = shiny::reactiveValues(), d = s
       # Reload UI menu
       r[[paste0(category, "_load_display_tabs")]] <- now()
       # r[[paste0(category, "_load_ui_menu")]] <- now()
-      
-      if (perf_monitoring) monitor_perf(r = r, action = "stop", task = paste0("mod_data - ", id, " - observer input$widget_creation_save"))
     })
     
     # --- --- --- --- --- -

@@ -1,13 +1,5 @@
-#' plugins UI Function
-#'
-#' @description A shiny Module.
-#'
-#' @param id,input,output,session Internal parameters for {shiny}.
-#'
-#' @noRd 
-#'
-#' @importFrom shiny NS tagList 
-mod_plugins_ui <- function(id = character(), i18n = character(), language = tibble::tibble(), languages = character()){
+#' @noRd
+mod_plugins_ui <- function(id = character(), language = tibble::tibble(), languages = character(), i18n = character()){
   ns <- NS(id)
   
   div(
@@ -33,7 +25,25 @@ mod_plugins_ui <- function(id = character(), i18n = character(), language = tibb
           style = "display:flex; justify-content:space-between;"
         ),
         div(
-          id = ns("summary_div")
+          id = ns("summary_div"),
+          div(
+            div(
+              div(
+                "Summary",
+                class = "card"
+              ),
+              div(
+                "Code",
+                class = "card"
+              ),
+              style = "display:flex; flex-direction:column;"
+            ),
+            div(
+              "Description",
+              class = "card"
+            ),
+            style = "display:flex; justify-content:space-between;"
+          )
         ),
         shinyjs::hidden(
           div(
@@ -49,8 +59,9 @@ mod_plugins_ui <- function(id = character(), i18n = character(), language = tibb
           div(
             id = ns("edit_code_div"),
             div(uiOutput(ns("edit_code_tabs")), style = "margin-bottom: -15px"),
-            div(id = ns("edit_code_editors_div")),
-            div(id = ns("test"))
+            div(id = ns("edit_code_editors_div"), style = "height:calc(100% - 30px);"),
+            div(id = ns("test")),
+            style = "height:100%;"
           )
         ),
         shinyjs::hidden(
@@ -60,7 +71,8 @@ mod_plugins_ui <- function(id = character(), i18n = character(), language = tibb
             uiOutput(ns("run_code_cards")),
             div(verbatimTextOutput(ns("run_code_result_server")), style = "font-size:12px; margin-left:8px; padding-top:10px;")
           )
-        )
+        ),
+        style = "height:100%; display:flex; flex-direction:column;"
       )
     ),
     
@@ -84,33 +96,13 @@ mod_plugins_ui <- function(id = character(), i18n = character(), language = tibb
   )
 }
 
-#' plugins Server Functions
-#'
 #' @noRd 
 mod_plugins_server <- function(id = character(), r = shiny::reactiveValues(), d = shiny::reactiveValues(), m = shiny::reactiveValues(),
-  language = "en", i18n = character(), perf_monitoring = FALSE, debug = FALSE){
+  language = "en", i18n = character(), debug = FALSE){
   moduleServer(id, function(input, output, session){
     ns <- session$ns
     
     if (debug) cat(paste0("\n", now(), " - mod_plugins - start"))
-    
-    # col_types <- tibble::tribble(
-    #   ~table, ~col_types,
-    #   "plugins", "iccicl",
-    #   "code", "icicicl"
-    # )
-    # 
-    # # Prefix depending on page id
-    # if (id == "plugins_patient_lvl"){
-    #   prefix <- "patient_lvl"
-    #   tab_type_id <- 1 
-    # }
-    # if (id == "plugins_aggregated"){
-    #   prefix <- "aggregated"
-    #   tab_type_id <- 2
-    # }
-    
-    # r[[paste0(prefix, "_plugins_datatable_loaded")]] <- FALSE
     
     # Close message bar
     sapply(1:20, function(i) observeEvent(input[[paste0("close_message_bar_", i)]], shinyjs::hide(paste0("message_bar", i))))
@@ -201,10 +193,7 @@ mod_plugins_server <- function(id = character(), r = shiny::reactiveValues(), d 
           plugin_type_text <- i18n$t("aggregated_plugin")
         }
         
-        plugin_type_icon <- shiny.fluent::HoverCard(type = "PlainCard", plainCardProps = htmlwidgets::JS(paste0("{
-          onRenderPlainCard: (a, b, c) => '", plugin_type_text, "',
-          style: { padding: '5px', fontSize: '12px'}
-            }")), plugin_type_icon)
+        plugin_type_icon <- create_hover_card(ui = plugin_type_icon, text = plugin_type_text)
 
         max_length <- 45
         if (nchar(plugin_name) > max_length) plugin_name <- paste0(substr(plugin_name, 1, max_length - 3), "...")
@@ -239,6 +228,9 @@ mod_plugins_server <- function(id = character(), r = shiny::reactiveValues(), d 
       plugins_ui <- div(plugins_ui, class = "plugins_container")
 
       output$plugins <- renderUI(plugins_ui)
+      
+      # Unlock reactivity
+      shinyjs::show("plugins")
     })
     
     # --- --- --- --- --- ---
@@ -254,23 +246,22 @@ mod_plugins_server <- function(id = character(), r = shiny::reactiveValues(), d 
     observeEvent(r$plugin_current_tab, {
       if (debug) cat(paste0("\n", now(), " - mod_plugins - observer r$plugin_current_tab"))
       
-      if (r$plugin_current_tab %in% c("edit_code")) r$plugins_show_hide_sidenav <- "show"
-      else r$plugins_show_hide_sidenav <- "hide"
-      
       divs <- c("summary", "edit_options", "edit_code", "edit_description", "run_code")
       divs <- setdiff(divs, r$plugin_current_tab)
       divs <- c(paste0(divs, "_sidenav"), paste0(divs, "_div"))
       
       sapply(c(divs), shinyjs::hide)
       sapply(c(paste0(r$plugin_current_tab, "_div"), paste0(r$plugin_current_tab, "_sidenav")), shinyjs::show)
+      
+      if (r$plugin_current_tab == "edit_code") r$plugins_show_hide_sidenav <- "show"
+      else r$plugins_show_hide_sidenav <- "hide"
     })
     
     observeEvent(input$show_plugins_home, {
       if (debug) cat(paste0("\n", now(), " - mod_plugins - observer input$show_plugins_home"))
       
-      shinyjs::hide("one_plugin")
+      sapply(c("one_plugin", "edit_code_sidenav"), shinyjs::hide)
       shinyjs::show("all_plugins")
-      r$plugins_show_hide_sidenav <- "hide"
     })
     
     # --- --- --- --- --- --- -
@@ -329,7 +320,6 @@ mod_plugins_server <- function(id = character(), r = shiny::reactiveValues(), d 
       )
       
       r$reload_plugin_pivot <- now()
-      r$plugins_show_hide_sidenav <- "hide"
       r$plugin_current_tab <- "summary"
       
       # Hide all editors
@@ -338,6 +328,10 @@ mod_plugins_server <- function(id = character(), r = shiny::reactiveValues(), d 
       # Load plugin code files
       r$reload_plugin_code_files <- now()
     })
+    
+    # --- --- --- --- -- -
+    # Pluigin summary ----
+    # --- --- --- --- -- -
     
     # --- --- --- --- --- -
     # Edit plugin code ----
@@ -466,9 +460,9 @@ mod_plugins_server <- function(id = character(), r = shiny::reactiveValues(), d 
             shinyAce::aceEditor(
               ns(paste0("edit_code_editor_", file_id)), value = file_code, mode = file_ext,
               code_hotkeys = list(file_ext, code_hotkeys),
-              autoScrollEditorIntoView = TRUE, minLines = 50, maxLines = 50, debounce = 100, fontSize = 10, showPrintMargin = FALSE
+              autoScrollEditorIntoView = TRUE, height = "100%", debounce = 100, fontSize = 10, showPrintMargin = FALSE
             ),
-            style = "width: 100%;"
+            style = "width:100%; height:100%; display:flex; flex-direction:column;"
           )
           
           if (filename != "ui.R") ui_div <- shinyjs::hidden(ui_div)
@@ -688,7 +682,7 @@ mod_plugins_server <- function(id = character(), r = shiny::reactiveValues(), d 
           shinyAce::aceEditor(
             ns(paste0("edit_code_editor_", file_id)), value = file_code, mode = "r",
             code_hotkeys = list("r", code_hotkeys),
-            autoScrollEditorIntoView = TRUE, minLines = 50, maxLines = 50, debounce = 100, fontSize = 10, showPrintMargin = FALSE
+            autoScrollEditorIntoView = TRUE, height = "100%", debounce = 100, fontSize = 10, showPrintMargin = FALSE
           ),
           style = "width:100%;"
         ))
@@ -768,7 +762,7 @@ mod_plugins_server <- function(id = character(), r = shiny::reactiveValues(), d 
         shinyAce::aceEditor(
           ns(paste0("edit_code_editor_", options_new_row_id)), value = "", mode = "r",
           code_hotkeys = list("r", code_hotkeys),
-          autoScrollEditorIntoView = TRUE, minLines = 50, maxLines = 50, debounce = 100, fontSize = 10, showPrintMargin = FALSE
+          autoScrollEditorIntoView = TRUE, height = "100%", debounce = 100, fontSize = 10, showPrintMargin = FALSE
         ),
         style = "width:100%;"
       ))

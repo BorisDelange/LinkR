@@ -7,7 +7,7 @@
 #' @noRd 
 #'
 #' @importFrom shiny NS tagList 
-mod_home_ui <- function(id = character(), i18n = character()){
+mod_home_ui <- function(id = character(), language = "en", languages = tibble::tibble(), i18n = character()){
   ns <- NS(id)
   
   if (id == "home") page <- "home" else page <- substr(id, 6, nchar(id))
@@ -26,11 +26,10 @@ mod_home_ui <- function(id = character(), i18n = character()){
 #'
 #' @noRd 
 mod_home_server <- function(id = character(), r = shiny::reactiveValues(), d = shiny::reactiveValues(), m = shiny::reactiveValues(), 
-    language = "en", i18n = character(), perf_monitoring = FALSE, debug = FALSE, show_home_page = TRUE){
+    language = "en", i18n = character(), debug = FALSE){
   moduleServer(id, function(input, output, session){
     ns <- session$ns
     
-    if(perf_monitoring) monitor_perf(r = r, action = "start")
     if (debug) cat(paste0("\n", now(), " - mod_home - ", id, " - start"))
     
     # if (id == "home") page <- "home" else page <- substr(id, 6, nchar(id))
@@ -136,6 +135,9 @@ mod_home_server <- function(id = character(), r = shiny::reactiveValues(), d = s
       projects_ui <- div(projects_ui, class = "projects_container")
       
       output$projects <- renderUI(projects_ui)
+      
+      # Unlock reactivity
+      shinyjs::show("projects")
     })
     
     observeEvent(input$selected_project, {

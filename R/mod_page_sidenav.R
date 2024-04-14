@@ -1,24 +1,12 @@
-#' page_sidenav UI Function
-#'
-#' @description A shiny Module.
-#'
-#' @param id,input,output,session Internal parameters for {shiny}.
-#'
-#' @noRd 
-#'
-#' @importFrom shiny NS tagList 
-
+#' @noRd
 mod_page_sidenav_ui <- function(id = character(), i18n = character()){
   ns <- NS(id)
   result <- ""
   
-  hide_sidenav <- div(
+  show_hide_sidenav <- div(
+    id = ns("show_hide_sidenav"),
+    class = "button_sidenav button_hide_sidenav",
     onclick = paste0("Shiny.setInputValue('", id, "-show_hide_sidenav', Math.random());"),
-    class = "button_hide_sidenav"
-  )
-  show_sidenav <- div(
-    onclick = paste0("Shiny.setInputValue('", id, "-show_hide_sidenav', Math.random());"),
-    class = "button_show_sidenav"
   )
   
   # --- --- -
@@ -27,12 +15,152 @@ mod_page_sidenav_ui <- function(id = character(), i18n = character()){
   
   if (id == "home"){
     div(
+      id = ns("sidenav"),
       class = "sidenav",
-      # div(class = "reduced_sidenav"),
-      # style = "border-right: solid 1px #ccc;"
+      div(
+        id = ns("large_sidenav")
+      ),
+      div(
+        id = ns("reduced_sidenav")
+      ),
+      show_hide_sidenav
     ) -> result
   }
-
+  
+  # --- --- --- -
+  # Datasets ----
+  # --- --- --- -
+  
+  if (id == "datasets"){
+    div(
+      id = ns("sidenav"),
+      class = "sidenav",
+      div(
+        id = ns("large_sidenav")
+      ),
+      div(
+        id = ns("reduced_sidenav")
+      ),
+      show_hide_sidenav
+    ) -> result
+  }
+  
+  # --- --- --- --- -
+  # Vocabularies ----
+  # --- --- --- --- -
+  
+  if (id == "vocabularies"){
+    div(
+      id = ns("sidenav"),
+      class = "sidenav",
+      div(
+        id = ns("large_sidenav")
+      ),
+      div(
+        id = ns("reduced_sidenav")
+      ),
+      show_hide_sidenav
+    ) -> result
+  }
+  
+  # --- --- -- -
+  # Console ----
+  # --- --- -- -
+  
+  if (id == "console"){
+    div(
+      id = ns("sidenav"),
+      class = "sidenav",
+      div(
+        id = ns("large_sidenav")
+      ),
+      div(
+        id = ns("reduced_sidenav")
+      ),
+      show_hide_sidenav
+    ) -> result
+  }
+  
+  # --- --- -- -
+  # Plugins ----
+  # --- --- -- -
+  
+  if (id %in% c("plugins")){
+    
+    div(
+      id = ns("sidenav"),
+      class = "sidenav",
+      div(
+        id = ns("large_sidenav"),
+        shinyjs::hidden(
+          div(
+            id = ns("edit_code_sidenav"),
+            div(
+              class = "sidenav_top",
+              div(
+                create_hover_card(ui = shiny.fluent::IconButton.shinyInput(ns("edit_code_add_file"), iconProps = list(iconName = "Add")), text = i18n$t("add_file")),
+                class = "small_icon_button"
+              ),
+              div(
+                create_hover_card(ui = shiny.fluent::IconButton.shinyInput(ns("edit_code_add_folder"), iconProps = list(iconName = "FabricNewFolder")), text = i18n$t("add_folder")),
+                class = "small_icon_button"
+              ),
+              div(
+                create_hover_card(ui = shiny.fluent::IconButton.shinyInput(ns("save_file_code"), iconProps = list(iconName = "Save")), text = i18n$t("save_current_file")),
+                class = "small_icon_button"
+              ),
+              div(
+                create_hover_card(ui = shiny.fluent::IconButton.shinyInput(ns("run_plugin_code"), iconProps = list(iconName = "Play")), text = i18n$t("run_plugin_code")),
+                class = "small_icon_button"
+              )
+            ),
+            uiOutput(ns("edit_code_directory_browser")),
+            uiOutput(ns("edit_code_files_browser"))
+          )
+        )
+      ),
+      div(
+        id = ns("reduced_sidenav")
+      ),
+      show_hide_sidenav
+    ) -> result
+  }
+  
+  # --- --- --- --- --- --- --
+  # Data cleaning scripts ----
+  # --- --- --- --- --- --- --
+  
+  if (id == "data_cleaning"){
+    div(
+      id = ns("sidenav"),
+      class = "sidenav",
+      div(
+        id = ns("large_sidenav")
+      ),
+      div(
+        id = ns("reduced_sidenav")
+      ),
+      show_hide_sidenav
+    ) -> result
+  }
+  
+  # --- --- -- -
+  # Catalog ----
+  # --- --- -- -
+  
+  if (id == "catalog"){
+    div(
+      id = ns("sidenav"),
+      class = "sidenav",
+      div(
+        id = ns("large_sidenav")
+      ),
+      div(
+        id = ns("reduced_sidenav")
+      ),
+      show_hide_sidenav
+    ) -> result
+  }
   
   # --- --- --- --
   # Dropdowns ----
@@ -68,54 +196,23 @@ mod_page_sidenav_ui <- function(id = character(), i18n = character()){
     }
   }
   
-  # --- --- --- ---
-  # My studies ----
-  # --- --- --- ---
-  
-  if (id == "my_studies") div(class = "sidenav", div(class = "reduced_sidenav"), div(class = "extended_sidenav", dropdowns(c("dataset")))) -> result
-  
-  # --- --- --- ---
-  # My subsets ----
-  # --- --- --- ---
-  
-  if (id == "my_subsets") div(class = "sidenav", div(class = "reduced_sidenav"), div(class = "extended_sidenav", dropdowns(c("dataset", "study")))) -> result
-  
-  # --- --- --- -
-  # Messages ----
-  # --- --- --- -
-  
-  if (id == "messages") div(class = "sidenav", div(class = "reduced_sidenav"), div(class = "extended_sidenav", dropdowns(c("dataset", "study")))) -> result
-  
-  # --- --- --- --- -
-  # Vocabularies ----
-  # --- --- --- --- -
-  
-  if (id == "vocabularies") div(class = "sidenav", div(class = "reduced_sidenav"), div(class = "extended_sidenav", dropdowns(c("dataset")))) -> result
-  
-  # --- --- -- -
-  # Scripts ----
-  # --- --- -- -
-  
-  if (id == "scripts") div(class = "sidenav", div(class = "reduced_sidenav"), div(class = "extended_sidenav", dropdowns(c("dataset")))) -> result
-  
   # --- --- --- --- --- ---
   # Patient-level data ----
   # --- --- --- --- --- ---
   
   if (id == "patient_level_data"){
     div(class = "sidenav",
-      div(class = "reduced_sidenav",
-        show_sidenav
-      ),
-      div(class = "extended_sidenav",
+      # div(class = "reduced_sidenav",
+      show_hide_sidenav,
+      # ),
+      # div(class = "extended_sidenav",
         # shiny.fluent::ActionButton.shinyInput(ns("add_tab"), i18n$t("add_tab"), iconProps = list(iconName = "Add")),
         # shiny.fluent::ActionButton.shinyInput(ns("edit_tab"), i18n$t("edit_tab"), iconProps = list(iconName = "Edit")),
         # shiny.fluent::ActionButton.shinyInput(ns("add_widget"), i18n$t("new_widget"), iconProps = list(iconName = "Add")),
-        dropdowns("subset"),
-        dropdowns(c("person", "visit_detail")),
-        uiOutput(ns("person_info")),
-        hide_sidenav
-      )
+      dropdowns("subset"),
+      dropdowns(c("person", "visit_detail")),
+      uiOutput(ns("person_info"))
+      # )
     ) -> result
   }
   
@@ -125,119 +222,96 @@ mod_page_sidenav_ui <- function(id = character(), i18n = character()){
   
   if (id == "aggregated_data") div(
     class = "sidenav",
-    div(class = "reduced_sidenav", show_sidenav),
-    div(class = "extended_sidenav",
-      shiny.fluent::CommandBar(
-        
-      ),
-      # shiny.fluent::ActionButton.shinyInput(ns("add_tab"), i18n$t("add_tab"), iconProps = list(iconName = "Add")),
-      # shiny.fluent::ActionButton.shinyInput(ns("edit_tab"), i18n$t("edit_tab"), iconProps = list(iconName = "Edit")),
-      # shiny.fluent::ActionButton.shinyInput(ns("add_widget"), i18n$t("new_widget"), iconProps = list(iconName = "Add")),
-      hr(),
-      dropdowns(c("subset")),
-      hide_sidenav
-    )
+    # div(class = "reduced_sidenav", show_hide_sidenav),
+    # div(class = "extended_sidenav",
+    shiny.fluent::CommandBar(
+      
+    ),
+    # shiny.fluent::ActionButton.shinyInput(ns("add_tab"), i18n$t("add_tab"), iconProps = list(iconName = "Add")),
+    # shiny.fluent::ActionButton.shinyInput(ns("edit_tab"), i18n$t("edit_tab"), iconProps = list(iconName = "Edit")),
+    # shiny.fluent::ActionButton.shinyInput(ns("add_widget"), i18n$t("new_widget"), iconProps = list(iconName = "Add")),
+    hr(),
+    dropdowns(c("subset")),
+    show_hide_sidenav
   ) -> result
   
-  # --- --- -- -
-  # Plugins ----
-  # --- --- -- -
+  # --- --- --
+  # Users ----
+  # --- --- --
   
-  if (id %in% c("plugins")){
-
+  if (id == "users") {
     div(
+      id = ns("sidenav"),
       class = "sidenav",
-      # div(class = "reduced_sidenav", show_sidenav),
-      # shinyjs::hidden(
-      # div(class = "extended_sidenav",
-      shinyjs::hidden(
-        div(
-          id = ns("edit_code_sidenav"),
-          div(
-            class = "sidenav_top",
-            div(
-              shiny.fluent::HoverCard(type = "PlainCard", plainCardProps = htmlwidgets::JS(paste0("{onRenderPlainCard: (a, b, c) => '", i18n$t("add_file"), "', style: {padding: '5px', fontSize: '12px'}}")),
-                shiny.fluent::IconButton.shinyInput(ns("edit_code_add_file"), iconProps = list(iconName = "Add"))),
-              class = "small_icon_button"
-            ),
-            div(
-              shiny.fluent::HoverCard(type = "PlainCard", plainCardProps = htmlwidgets::JS(paste0("{onRenderPlainCard: (a, b, c) => '", i18n$t("add_folder"), "', style: {padding: '5px', fontSize: '12px'}}")),
-                shiny.fluent::IconButton.shinyInput(ns("edit_code_add_folder"), iconProps = list(iconName = "FabricNewFolder"))),
-              class = "small_icon_button"
-            ),
-            div(
-              shiny.fluent::HoverCard(type = "PlainCard", plainCardProps = htmlwidgets::JS(paste0("{onRenderPlainCard: (a, b, c) => '", i18n$t("save_current_file"), "', style: {padding: '5px', fontSize: '12px'}}")),
-                shiny.fluent::IconButton.shinyInput(ns("save_file_code"), iconProps = list(iconName = "Save"))),
-              class = "small_icon_button"
-            ),
-            div(
-              shiny.fluent::HoverCard(type = "PlainCard", plainCardProps = htmlwidgets::JS(paste0("{onRenderPlainCard: (a, b, c) => '", i18n$t("run_plugin_code"), "', style: {padding: '5px', fontSize: '12px'}}")),
-                shiny.fluent::IconButton.shinyInput(ns("run_plugin_code"), iconProps = list(iconName = "Play"))),
-              class = "small_icon_button"
-            )
-          ),
-          uiOutput(ns("edit_code_directory_browser")),
-          uiOutput(ns("edit_code_files_browser"))
-        )
+      div(
+        id = ns("large_sidenav")
       ),
-      hide_sidenav
-      # )
-      # )
+      div(
+        id = ns("reduced_sidenav")
+      ),
+      show_hide_sidenav
     ) -> result
   }
   
-  # --- --- --- -
-  # Settings ----
-  # --- --- --- -
+  # --- --- --- --- -
+  # App database ----
+  # --- --- --- --- -
   
-  if (grepl("^settings", id)){
-    
-    links_data_management <- list()
-    
-    lapply(c("datasets", "vocabularies"), function(page){
-      links_data_management <<- rlist::list.append(links_data_management, list(name = i18n$t(page),
-        id = ns(page), key = page, url = shiny.router::route_link(paste0("settings/", page))))
-    })
-    
-    links <- list()
-    for(page in c("general_settings", "app_db", "git", "users", "dev", "data_management", "log")){
-      # Sub links for data management
-      if (page == "data_management") links <- rlist::list.append(links, list(name = i18n$t(page),
-        id = ns(page), key = page, links = links_data_management, selectedKey = substr(id, nchar("settings") + 2, 100), isExpanded = TRUE))
-
-      # No sub links
-      else if (page == "git") links <- rlist::list.append(links, list(name = i18n$t("remote_git_repos"), id = ns(page), key = page, url = shiny.router::route_link(paste0("settings/", page))))
-      else links <- rlist::list.append(links, list(name = i18n$t(page), id = ns(page), key = page, url = shiny.router::route_link(paste0("settings/", page))))
-    }
-    
-    div(class = "sidenav",
-      div(class = "reduced_sidenav"),
-      div(class = "extended_sidenav",
-        shiny.fluent::Nav(
-          groups = list(
-            list(links = links)
-          ),
-          selectedKey = substr(id, nchar("settings") + 2, 100),
-          styles = list(
-            root = list(
-              height = "100%",
-              boxSizing = "border-box",
-              overflowY = "auto"
-            )
-          )
-        )
-      )
+  if (id == "app_db") {
+    div(
+      id = ns("sidenav"),
+      class = "sidenav",
+      div(
+        id = ns("large_sidenav")
+      ),
+      div(
+        id = ns("reduced_sidenav")
+      ),
+      show_hide_sidenav
+    ) -> result
+  }
+  
+  # --- --- --- --
+  # Git repos ----
+  # --- --- --- --
+  
+  if (id == "git_repos") {
+    div(
+      id = ns("sidenav"),
+      class = "sidenav",
+      div(
+        id = ns("large_sidenav")
+      ),
+      div(
+        id = ns("reduced_sidenav")
+      ),
+      show_hide_sidenav
+    ) -> result
+  }
+  
+  # --- -- -
+  # Log ----
+  # --- -- -
+  
+  if (id == "log") {
+    div(
+      id = ns("sidenav"),
+      class = "sidenav",
+      div(
+        id = ns("large_sidenav")
+      ),
+      div(
+        id = ns("reduced_sidenav")
+      ),
+      show_hide_sidenav
     ) -> result
   }
   
   result
 }
-    
-#' page_sidenav Server Functions
-#'
+
 #' @noRd 
-mod_page_sidenav_server <- function(id = character(), r = shiny::reactiveValues(), d = shiny::reactiveValues(), 
-  m = shiny::reactiveValues(), i18n = character(), language = "en", perf_monitoring = FALSE, debug = FALSE){
+mod_page_sidenav_server <- function(id = character(), r = shiny::reactiveValues(), d = shiny::reactiveValues(), m = shiny::reactiveValues(), i18n = character(), language = "en", debug = FALSE){
   moduleServer(id, function(input, output, session){
     ns <- session$ns
     
@@ -247,32 +321,47 @@ mod_page_sidenav_server <- function(id = character(), r = shiny::reactiveValues(
     
     # r$show_hide_sidenav <- "hide"
     
-    if (id == "plugins") r[[paste0(id, "_show_hide_sidenav")]] <- "hide"
+    js_vars <- paste0("
+      var sidenav = document.getElementById('", id, "-sidenav');
+      var currentWidth = window.getComputedStyle(sidenav).getPropertyValue('width');
+      var button = document.getElementById('", id, "-show_hide_sidenav');
+      var large_sidenav = document.getElementById('", id, "-large_sidenav');
+      var reduced_sidenav = document.getElementById('", id, "-reduced_sidenav');
+      var header_command_bar = document.getElementById('", id, "-header_command_bar');
+    ")
+    js_show_sidenav <- paste0("
+      sidenav.style.width = '200px';
+      sidenav.style.minWidth = '200px';
+      sidenav.style.padding = '10px 20px 0px 20px';
+      button.classList.add('button_hide_sidenav');
+      button.classList.remove('button_show_sidenav');
+      large_sidenav.style.display = 'block';
+      reduced_sidenav.style.display = 'none';
+      header_command_bar.style.marginLeft = '193px';
+    ")
+    js_hide_sidenav <- paste0("
+      sidenav.style.width = '40px';
+      sidenav.style.minWidth = '40px';
+      sidenav.style.padding = 0;
+      button.classList.remove('button_hide_sidenav');
+      button.classList.add('button_show_sidenav');
+      large_sidenav.style.display = 'none';
+      reduced_sidenav.style.display = 'block';
+      header_command_bar.style.marginLeft = '10px';
+    ")
+    
+    if (id %in% c("home", "datasets", "vocabularies", "console", "plugins", "data_cleaning", "catalog", "users", "app_db")) r[[paste0(id, "_show_hide_sidenav")]] <- "hide"
+    
+    observeEvent(r[[paste0(id, "_show_hide_sidenav")]], {
+      if (debug) cat(paste0("\n", now(), " - mod_page_sidenav - observer r$.._show_hide_sidenav"))
+      if (r[[paste0(id, "_show_hide_sidenav")]] == "hide") shinyjs::runjs(paste0(js_vars, js_hide_sidenav))
+      else shinyjs::runjs(paste0(js_vars, js_show_sidenav))
+    })
     
     observeEvent(input$show_hide_sidenav, {
       if (debug) cat(paste0("\n", now(), " - mod_page_sidenav - observer input$show_hide_sidenav"))
       
-      if (r[[paste0(id, "_show_hide_sidenav")]] == "hide") r[[paste0(id, "_show_hide_sidenav")]] <- "show"
-      else r[[paste0(id, "_show_hide_sidenav")]] <- "hide"
-    })
-
-    observeEvent(r[[paste0(id, "_show_hide_sidenav")]], {
-      if (debug) cat(paste0("\n", now(), " - mod_page_sidenav - observer r$..show_hide_sidenav"))
-      
-      if (r[[paste0(id, "_show_hide_sidenav")]] == "hide"){
-        # r[[paste0(id, "_show_hide_sidenav")]] <- "show"
-        shinyjs::runjs(paste0("$('.extended_sidenav').css('display', 'none');"))
-        shinyjs::runjs(paste0("$('.reduced_sidenav').css('display', 'block');"))
-        shinyjs::runjs(paste0("$('.grid-container').css('grid-template-areas', '\"header header header\" \"sidenav main main\" \"footer footer footer\"');"))
-        shinyjs::runjs(paste0("$('.main').css('left', '20px');"))
-      }
-      else {
-        # r[[paste0(id, "_show_hide_sidenav")]] <- "hide"
-        shinyjs::runjs(paste0("$('.extended_sidenav').css('display', 'block');"))
-        shinyjs::runjs(paste0("$('.reduced_sidenav').css('display', 'none');"))
-        shinyjs::runjs(paste0("$('.grid-container').css('grid-template-areas', '\"header header header\" \"sidenav sidenav main\" \"footer footer footer\"');"))
-        shinyjs::runjs(paste0("$('.main').css('left', '0px');"))
-      }
+      shinyjs::runjs(paste0(js_vars, " if (currentWidth === '200px') {", js_hide_sidenav, "} else { ", js_show_sidenav, "}"))
     })
     
     # --- --- --- -
@@ -286,7 +375,7 @@ mod_page_sidenav_server <- function(id = character(), r = shiny::reactiveValues(
     # --- --- -- -
     
     
-    if (id %in% c("my_studies", "my_subsets", "messages", "vocabularies", "scripts", "patient_level_data", "aggregated_data")){
+    # if (id %in% c("my_studies", "my_subsets", "messages", "vocabularies", "data_cleaning", "patient_level_data", "aggregated_data")){
       
       # --- --- --- --- --- --- --- --- -
       # Patient-lvl & agregated data ----
@@ -712,6 +801,6 @@ mod_page_sidenav_server <- function(id = character(), r = shiny::reactiveValues(
           if (perf_monitoring) monitor_perf(r = r, action = "stop", task = paste0("mod_page_sidenav - observer input$visit_detail"))
         })
       }
-    }
+    # }
   })
 }

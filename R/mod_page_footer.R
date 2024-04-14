@@ -1,12 +1,4 @@
-#' page_footer UI Function
-#'
-#' @description A shiny Module.
-#'
-#' @param id,input,output,session Internal parameters for {shiny}.
-#'
-#' @noRd 
-#'
-#' @importFrom shiny NS tagList 
+#' @noRd
 mod_page_footer_ui <- function(i18n = character()){
   div(
     class = "footer",

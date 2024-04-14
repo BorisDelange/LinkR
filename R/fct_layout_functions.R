@@ -30,6 +30,18 @@ format_datetime <- function(datetime = character(), language = "en", sec = TRUE,
   datetime
 }
 
+#' Create a hover card
+#' 
+#' @description Displays a card when hovering an UI element
+#' @param ui UI element (character)
+#' @param text Text to display in the card (character)
+create_hover_card <- function(ui = character(), text = character()){
+  shiny.fluent::HoverCard(type = "PlainCard", plainCardProps = htmlwidgets::JS(paste0("{
+    onRenderPlainCard: (a, b, c) => '", text, "',
+    style: { padding: '5px', fontSize: '12px'}
+      }")), ui)
+}
+
 #' Make a shiny.fluent card
 #' 
 #' @description Creates a shiny.fluent card. Code available in shiny.fluent github pages (Articles).
@@ -129,47 +141,6 @@ make_dropdown <- function(i18n = character(), ns = character(), id = NA_characte
     div(id = ns(paste0(id, "_title")), class = "input_title", i18n$t(label)),
     div(shiny.fluent::Dropdown.shinyInput(ns(id), value = value, options = options, multiSelect = multiSelect, disabled = disabled), style = style)
   )
-}
-
-#' Make layout
-#' 
-#' @description Creates a complete layout with header, sidenav, main & footer
-#' @param language Language used ("en" or "fr") (character)
-#' @param page Name of the page (character)
-#' @param i18n Translator object from shiny.i18n library
-#' @param users_accesses_toggles_options A tibble containing users accesses, to add in database if no internet access (tibble)
-#' @examples
-#' \dontrun{
-#' make_layout(language = "fr", page = "my_subsets", i18n = i18n, users_accesses_toggles_options = users_accesses_toggles_options)
-#' }
-make_layout <- function(language = "en", languages = tibble::tibble(), page = character(), i18n = character(), users_accesses_toggles_options = tibble::tibble()){
-  div(class = "grid-container",
-    mod_page_header_ui(id = stringr::str_replace(page, "/", "_"), i18n = i18n),
-    mod_page_sidenav_ui(id = stringr::str_replace(page, "/", "_"), i18n = i18n),
-    mod_page_main_ui(id = stringr::str_replace(page, "/", "_"), language = language, languages = languages, i18n = i18n, users_accesses_toggles_options = users_accesses_toggles_options),
-    mod_page_footer_ui(i18n = i18n)
-  )
-}
-
-#' Make a page
-#' 
-#' @description Creates a shiny.fluent page. Code available in shiny.fluent github pages (Articles). 
-#' @param title Title of the page (character)
-#' @param subtitle Subtitle of the page (character)
-#' @param contents Contents of the page (character)
-#' @return Shiny UI elements / HTML code
-#' @examples
-#' \dontrun{
-#' make_page(title = "My page title", subtitle = "My page subtitle", contents = "shiny::div('My page content')")
-#' }
-
-make_page <- function (title = character(), subtitle = character(), contents = character()) {
-  tagList(div(
-    class = "page-title",
-    htmltools::span(title, class = "ms-fontSize-32 ms-fontWeight-semibold", style = "color: #323130"),
-    htmltools::span(subtitle, class = "ms-fontSize-14 ms-fontWeight-regular", style = "color: #605E5C; margin: 14px;")
-  ),
-  contents)
 }
 
 #' Make people picker

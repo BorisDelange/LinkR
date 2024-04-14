@@ -2,6 +2,10 @@
   margin: 6px 0px;
 }
 
+.ms-Label {
+  font-size: 12px;
+}
+
 .ms-ContextualMenu-linkContent {
   height: 25px;
   line-height: 25px;
@@ -95,6 +99,11 @@
 
 .ms-Dropdown-container .ms-Dropdown-title {
   font-size: 12px;
+}
+
+.ms-Dropdown-label {
+  font-size: 12px;
+  padding: 0px;
 }
 
 .ms-ComboBox-option {
