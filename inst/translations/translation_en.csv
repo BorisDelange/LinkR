@@ -203,12 +203,13 @@ change_password_card,Change password
 app_db,App database
 app_db_long,Application database
 connection_type,Connection type
-db_connection_infos_card,Database connection informations
-db_datatable_card,Database tables
-db_request_card,Request database
+db_connection_infos_card,Set up
+db_datatable_card,Tables
+db_request_card,Request
 db_save_long,Export database
 db_save_card,Export database
-db_export_and_restore,Export and restore database
+db_save_and_restore_card,Export or restore database
+db_export_and_restore,Export / restore
 database_structure,Database structure
 db_restore_long,Restore database
 db_restore_card,Restore database
@@ -221,8 +222,10 @@ app_db_tables_long,Database tables
 db_connexion_type,Connection type
 local,Local
 local_plural,Local
+local_db_connection,Local connection
 distant,Distant
 remote,Remote
+remote_db_connection,Remote connection
 dbname,Database name
 main_db_name,Main database name
 main_db,Main database
@@ -505,6 +508,8 @@ never,Never
 same_level_current_tab,Same level of current tab
 level_under,Level under
 add_tab,Add a tab
+add_tab_or_widget,Add a tab or a widget
+edit_page,Edit page
 edit_a_tab,Edit a tab
 invalid_dataset_id_value,Variable dataset_id must be of integer type
 var_type_not_valid,Variable type is not valid

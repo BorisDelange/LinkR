@@ -23,25 +23,38 @@ mod_data_ui <- function(id = character(), language = "en", languages = tibble::t
     page_name <- "aggregated_data"
   }
   
-  # --- --- --- --- --- --
-  # Tab creation card ----
-  # --- --- --- --- --- --
+  # --- --- --- --- --- -- -
+  # Create an tab modal ----
+  # --- --- --- --- --- -- -
   
-  tab_creation_options <- list(
-    list(key = "same_level", text = i18n$t("same_level_current_tab")),
-    list(key = "level_under", text = i18n$t("level_under"))
-  )
-  
-  tab_creation_card <- make_card(
-    title = i18n$t("add_tab"),
-    content = div(
-      actionButton(ns(paste0(category, "_close_add_tab")), "", icon = icon("xmark"), style = "position:absolute; top:10px; right:10px;"),
-      shiny.fluent::Stack(horizontal = TRUE, tokens = list(childrenGap = 50),
-        make_textfield(ns = ns, label = "name", id = "tab_name", width = "300px", i18n = i18n),
-        div(shiny.fluent::ChoiceGroup.shinyInput(ns("add_tab_type"), value = "same_level", 
-          options = tab_creation_options, className = "inline_choicegroup"), style = "padding-top:35px;")
-      ), br(),
-      shiny.fluent::PrimaryButton.shinyInput(ns("add_tab_button"), i18n$t("add")), br()
+  add_element_modal <- shinyjs::hidden(
+    div(
+      id = ns("add_tab_modal"),
+      div(
+        div(
+          tags$h1(i18n$t("add_a_tab")),
+          shiny.fluent::IconButton.shinyInput(ns("close_add_tab_modal"), iconProps = list(iconName = "ChromeClose")),
+          class = "create_element_modal_head small_close_button"
+        ),
+        div(
+          shiny.fluent::ChoiceGroup.shinyInput(
+            ns("add_tab_type"), value = "same_level", 
+            options = list(
+              list(key = "same_level", text = i18n$t("same_level_current_tab")),
+              list(key = "level_under", text = i18n$t("level_under"))
+            ),
+            className = "inline_choicegroup"
+          ),
+          make_textfield(ns = ns, label = "name", id = "tab_name", width = "200px", i18n = i18n),
+          class = "create_element_modal_body"
+        ),
+        div(
+          shiny.fluent::PrimaryButton.shinyInput(ns("add_tab_button"), i18n$t("add")),
+          class = "create_element_modal_buttons"
+        ),
+        class = "create_tab_modal_content"
+      ),
+      class = "create_element_modal"
     )
   )
   
@@ -49,125 +62,124 @@ mod_data_ui <- function(id = character(), language = "en", languages = tibble::t
   # Tab edition card ----
   # --- --- --- --- --- -
   
-  tab_edition_card <- make_card(
-    title = i18n$t("edit_tab"),
-    content = div(
-      actionButton(ns(paste0(category, "_close_edit_tab")), "", icon = icon("xmark"), style = "position:absolute; top:10px; right:10px;"),
-      make_textfield(ns = ns, label = "name", id = "edit_tab_name", width = "300px", i18n = i18n), br(),
-      shiny.fluent::Stack(horizontal = TRUE, tokens = list(childrenGap = 10),
-        shiny.fluent::PrimaryButton.shinyInput(ns("edit_tab_save"), i18n$t("save")),
-        shiny.fluent::DefaultButton.shinyInput(ns("remove_tab"), i18n$t("delete_tab"))
-      ), 
-      br()
-    )
-  )
+  # tab_edition_card <- make_card(
+  #   title = i18n$t("edit_tab"),
+  #   content = div(
+  #     actionButton(ns(paste0(category, "_close_edit_tab")), "", icon = icon("xmark"), style = "position:absolute; top:10px; right:10px;"),
+  #     make_textfield(ns = ns, label = "name", id = "edit_tab_name", width = "300px", i18n = i18n), br(),
+  #     shiny.fluent::Stack(horizontal = TRUE, tokens = list(childrenGap = 10),
+  #       shiny.fluent::PrimaryButton.shinyInput(ns("edit_tab_save"), i18n$t("save")),
+  #       shiny.fluent::DefaultButton.shinyInput(ns("remove_tab"), i18n$t("delete_tab"))
+  #     ), 
+  #     br()
+  #   )
+  # )
   
   # --- --- --- --- --- --- --- --- --- -
   # Widget creation & settings cards ----
   # --- --- --- --- --- --- --- --- --- -
   
-  for (type in c("widget_creation", "widget_settings")){
-    
-    if (type == "widget_creation") plugin_div <- make_combobox(i18n = i18n, ns = ns, label = "plugin", id = paste0(type, "_plugin"), allowFreeform = FALSE, multiSelect = FALSE, width = "300px")
-    if (type == "widget_settings") plugin_div <- make_textfield(i18n = i18n, ns = ns, label = "plugin", id = paste0(type, "_plugin"), disabled = TRUE, width = "300px")
-    
-    widget_card <- make_card(
-      title = i18n$t(type),
-      content = div(
-        actionButton(ns(paste0(category, "_close_", type)), "", icon = icon("xmark"), style = "position:absolute; top:10px; right:10px;"),
-        shiny.fluent::Stack(horizontal = TRUE, tokens = list(childrenGap = 20),
-          make_textfield(i18n = i18n, ns = ns, label = "name", id = paste0(type, "_name"), width = "300px"),
-          plugin_div
-        ),
-        shiny.fluent::Stack(horizontal = TRUE, tokens = list(childrenGap = 20),
-          make_combobox(i18n = i18n, ns = ns, label = "vocabulary", id = paste0(type, "_vocabulary"), allowFreeform = FALSE, multiSelect = FALSE, width = "300px"),
-          make_dropdown(i18n = i18n, ns = ns, label = "columns_concepts", id = paste0(type, "_vocabulary_concepts_table_cols"), width = "300px", multiSelect = TRUE,
-            options = list(
-              list(key = 0, text = i18n$t("concept_id")),
-              list(key = 1, text = i18n$t("concept_name")),
-              list(key = 2, text = i18n$t("concept_display_name")),
-              list(key = 3, text = i18n$t("domain_id")),
-              list(key = 4, text = i18n$t("concept_class_id")),
-              list(key = 5, text = i18n$t("standard_concept")),
-              list(key = 6, text = i18n$t("concept_code")),
-              list(key = 7, text = i18n$t("num_patients")),
-              list(key = 8, text = i18n$t("num_rows")),
-              list(key = 9, text = i18n$t("action"))
-            ),
-            value = c(0, 1, 2, 7, 8, 9)
-          ),
-          shinyjs::hidden(
-            make_dropdown(i18n = i18n, ns = ns, label = "columns_mapped_concepts", id = paste0(type, "_vocabulary_mapped_concepts_table_cols"), width = "300px", multiSelect = TRUE,
-              options = list(
-                list(key = 1, text = i18n$t("concept_id")),
-                list(key = 2, text = i18n$t("relationship_id")),
-                list(key = 3, text = i18n$t("mapped_concept_id")),
-                list(key = 4, text = i18n$t("concept_name_2")),
-                list(key = 5, text = i18n$t("concept_display_name_2")),
-                list(key = 6, text = i18n$t("domain_id")),
-                list(key = 7, text = i18n$t("num_patients")),
-                list(key = 8, text = i18n$t("num_rows")),
-                list(key = 9, text = i18n$t("action"))
-              ),
-              value = c(2, 3, 4, 5, 7, 8, 9)
-            )
-          )
-        ),
-        shinyjs::hidden(
-          div(
-            shiny.fluent::Stack(horizontal = TRUE, tokens = list(childrenGap = 0),
-              div(
-                shiny.fluent::Stack(horizontal = TRUE, tokens = list(childrenGap = 10),
-                  div(shiny.fluent::Toggle.shinyInput(ns(paste0(type, "_show_mapped_concepts")), value = FALSE), style = "margin-top:30px; margin-bottom:5px;"),
-                  div(i18n$t("show_mapped_concepts"), style = "font-weight:bold; margin-top:30px;; margin-bottom:5px;")
-                ),
-                style = "width:330px;"
-              ),
-              shinyjs::hidden(
-                div(
-                  id = ns("widget_creation_show_mapped_concepts_div"),
-                  shiny.fluent::Stack(horizontal = TRUE, tokens = list(childrenGap = 10),
-                    div(shiny.fluent::Toggle.shinyInput(ns(paste0(type, "_merge_mapped_concepts")), value = TRUE), style = "margin-top:30px;; margin-bottom:5px; margin-left:-10px;"),
-                    div(i18n$t("merge_mapped_concepts"), style = "font-weight:bold; margin-top:30px;; margin-bottom:5px;")
-                  ),
-                  style = "width:330px;"
-                )
-              ),
-              div(
-                shiny.fluent::Stack(horizontal = TRUE, tokens = list(childrenGap = 10),
-                  div(shiny.fluent::Toggle.shinyInput(ns(paste0(type, "_hide_concepts_datatables")), value = FALSE), style = "margin-top:30px;; margin-bottom:5px; margin-left:-10px;"),
-                  div(i18n$t("hide_concepts_datatables"), style = "font-weight:bold; margin-top:30px;; margin-bottom:5px;")
-                )
-              )
-            )
-          )
-        ),
-        shiny.fluent::Stack(
-          horizontal = TRUE, tokens = list(childrenGap = 20),
-          div(
-            div(id = ns(paste0(type, "_vocabulary_selected_concepts_title")), class = "input_title", i18n$t("vocabulary_selected_concepts")),
-            div(shiny.fluent::Dropdown.shinyInput(ns(paste0(type, "_vocabulary_selected_concepts")), value = NULL, options = list(), multiSelect = TRUE,
-              onChanged = htmlwidgets::JS(paste0("item => Shiny.setInputValue('", id, "-", type, "_vocabulary_selected_concepts_trigger', Math.random())"))), style = "width:620px;")
-          ),
-          div(shiny.fluent::DefaultButton.shinyInput(ns(paste0(type, "_reset_vocabulary_concepts")), i18n$t("reset")), style = "margin-top:39px;")
-        ),
-        div(DT::DTOutput(ns(paste0(type, "_vocabulary_concepts"))), class = "vocabulary_table"),
-        div(DT::DTOutput(ns(paste0(type, "_vocabulary_mapped_concepts"))), class = "vocabulary_table"),
-        div(id = ns(paste0(type, "_blank_space")), br()),
-        div(shiny.fluent::PrimaryButton.shinyInput(ns(paste0(type, "_save")), i18n$t(paste0(type, "_save"))))
-      )
-    )
-    
-    if (type == "widget_creation") widget_creation_card <- widget_card
-    if (type == "widget_settings") widget_settings_card <- widget_card
-  }
+  # for (type in c("widget_creation", "widget_settings")){
+  #   
+  #   if (type == "widget_creation") plugin_div <- make_combobox(i18n = i18n, ns = ns, label = "plugin", id = paste0(type, "_plugin"), allowFreeform = FALSE, multiSelect = FALSE, width = "300px")
+  #   if (type == "widget_settings") plugin_div <- make_textfield(i18n = i18n, ns = ns, label = "plugin", id = paste0(type, "_plugin"), disabled = TRUE, width = "300px")
+  #   
+  #   widget_card <- make_card(
+  #     title = i18n$t(type),
+  #     content = div(
+  #       actionButton(ns(paste0(category, "_close_", type)), "", icon = icon("xmark"), style = "position:absolute; top:10px; right:10px;"),
+  #       shiny.fluent::Stack(horizontal = TRUE, tokens = list(childrenGap = 20),
+  #         make_textfield(i18n = i18n, ns = ns, label = "name", id = paste0(type, "_name"), width = "300px"),
+  #         plugin_div
+  #       ),
+  #       shiny.fluent::Stack(horizontal = TRUE, tokens = list(childrenGap = 20),
+  #         make_combobox(i18n = i18n, ns = ns, label = "vocabulary", id = paste0(type, "_vocabulary"), allowFreeform = FALSE, multiSelect = FALSE, width = "300px"),
+  #         make_dropdown(i18n = i18n, ns = ns, label = "columns_concepts", id = paste0(type, "_vocabulary_concepts_table_cols"), width = "300px", multiSelect = TRUE,
+  #           options = list(
+  #             list(key = 0, text = i18n$t("concept_id")),
+  #             list(key = 1, text = i18n$t("concept_name")),
+  #             list(key = 2, text = i18n$t("concept_display_name")),
+  #             list(key = 3, text = i18n$t("domain_id")),
+  #             list(key = 4, text = i18n$t("concept_class_id")),
+  #             list(key = 5, text = i18n$t("standard_concept")),
+  #             list(key = 6, text = i18n$t("concept_code")),
+  #             list(key = 7, text = i18n$t("num_patients")),
+  #             list(key = 8, text = i18n$t("num_rows")),
+  #             list(key = 9, text = i18n$t("action"))
+  #           ),
+  #           value = c(0, 1, 2, 7, 8, 9)
+  #         ),
+  #         shinyjs::hidden(
+  #           make_dropdown(i18n = i18n, ns = ns, label = "columns_mapped_concepts", id = paste0(type, "_vocabulary_mapped_concepts_table_cols"), width = "300px", multiSelect = TRUE,
+  #             options = list(
+  #               list(key = 1, text = i18n$t("concept_id")),
+  #               list(key = 2, text = i18n$t("relationship_id")),
+  #               list(key = 3, text = i18n$t("mapped_concept_id")),
+  #               list(key = 4, text = i18n$t("concept_name_2")),
+  #               list(key = 5, text = i18n$t("concept_display_name_2")),
+  #               list(key = 6, text = i18n$t("domain_id")),
+  #               list(key = 7, text = i18n$t("num_patients")),
+  #               list(key = 8, text = i18n$t("num_rows")),
+  #               list(key = 9, text = i18n$t("action"))
+  #             ),
+  #             value = c(2, 3, 4, 5, 7, 8, 9)
+  #           )
+  #         )
+  #       ),
+  #       shinyjs::hidden(
+  #         div(
+  #           shiny.fluent::Stack(horizontal = TRUE, tokens = list(childrenGap = 0),
+  #             div(
+  #               shiny.fluent::Stack(horizontal = TRUE, tokens = list(childrenGap = 10),
+  #                 div(shiny.fluent::Toggle.shinyInput(ns(paste0(type, "_show_mapped_concepts")), value = FALSE), style = "margin-top:30px; margin-bottom:5px;"),
+  #                 div(i18n$t("show_mapped_concepts"), style = "font-weight:bold; margin-top:30px;; margin-bottom:5px;")
+  #               ),
+  #               style = "width:330px;"
+  #             ),
+  #             shinyjs::hidden(
+  #               div(
+  #                 id = ns("widget_creation_show_mapped_concepts_div"),
+  #                 shiny.fluent::Stack(horizontal = TRUE, tokens = list(childrenGap = 10),
+  #                   div(shiny.fluent::Toggle.shinyInput(ns(paste0(type, "_merge_mapped_concepts")), value = TRUE), style = "margin-top:30px;; margin-bottom:5px; margin-left:-10px;"),
+  #                   div(i18n$t("merge_mapped_concepts"), style = "font-weight:bold; margin-top:30px;; margin-bottom:5px;")
+  #                 ),
+  #                 style = "width:330px;"
+  #               )
+  #             ),
+  #             div(
+  #               shiny.fluent::Stack(horizontal = TRUE, tokens = list(childrenGap = 10),
+  #                 div(shiny.fluent::Toggle.shinyInput(ns(paste0(type, "_hide_concepts_datatables")), value = FALSE), style = "margin-top:30px;; margin-bottom:5px; margin-left:-10px;"),
+  #                 div(i18n$t("hide_concepts_datatables"), style = "font-weight:bold; margin-top:30px;; margin-bottom:5px;")
+  #               )
+  #             )
+  #           )
+  #         )
+  #       ),
+  #       shiny.fluent::Stack(
+  #         horizontal = TRUE, tokens = list(childrenGap = 20),
+  #         div(
+  #           div(id = ns(paste0(type, "_vocabulary_selected_concepts_title")), class = "input_title", i18n$t("vocabulary_selected_concepts")),
+  #           div(shiny.fluent::Dropdown.shinyInput(ns(paste0(type, "_vocabulary_selected_concepts")), value = NULL, options = list(), multiSelect = TRUE,
+  #             onChanged = htmlwidgets::JS(paste0("item => Shiny.setInputValue('", id, "-", type, "_vocabulary_selected_concepts_trigger', Math.random())"))), style = "width:620px;")
+  #         ),
+  #         div(shiny.fluent::DefaultButton.shinyInput(ns(paste0(type, "_reset_vocabulary_concepts")), i18n$t("reset")), style = "margin-top:39px;")
+  #       ),
+  #       div(DT::DTOutput(ns(paste0(type, "_vocabulary_concepts"))), class = "vocabulary_table"),
+  #       div(DT::DTOutput(ns(paste0(type, "_vocabulary_mapped_concepts"))), class = "vocabulary_table"),
+  #       div(id = ns(paste0(type, "_blank_space")), br()),
+  #       div(shiny.fluent::PrimaryButton.shinyInput(ns(paste0(type, "_save")), i18n$t(paste0(type, "_save"))))
+  #     )
+  #   )
+  #   
+  #   if (type == "widget_creation") widget_creation_card <- widget_card
+  #   if (type == "widget_settings") widget_settings_card <- widget_card
+  # }
   
   div(
     class = "main",
-    render_settings_default_elements(ns = ns),
-    shiny.fluent::reactOutput(ns("help_panel")),
-    shiny.fluent::reactOutput(ns("help_modal")),
-    shiny.fluent::reactOutput(ns("tab_delete_confirm")), shiny.fluent::reactOutput(ns("widget_delete_confirm")),
+    add_element_modal,
+    # render_settings_default_elements(ns = ns),
+    # shiny.fluent::reactOutput(ns("tab_delete_confirm")), shiny.fluent::reactOutput(ns("widget_delete_confirm")),
     # div(id = ns("initial_breadcrumb"),
     #   shiny.fluent::Breadcrumb(items = list(
     #     list(key = "main", text = i18n$t(paste0(category, "_data")), href = paste0("#!/", page_name), isCurrentItem = TRUE)),
@@ -179,34 +191,34 @@ mod_data_ui <- function(id = character(), language = "en", languages = tibble::t
     # ),
     shinyjs::hidden(uiOutput(ns("study_menu"))),
     div(id = ns("study_cards")),
-    shinyjs::hidden(
-      div(
-        id = ns(paste0(category, "_add_widget")),
-        widget_creation_card,
-        style = "position:relative;"
-      )
-    ),
-    shinyjs::hidden(
-      div(
-        id = ns(paste0(category, "_widget_settings")),
-        widget_settings_card,
-        style = "position:relative;"
-      )
-    ),
-    shinyjs::hidden(
-      div(
-        id = ns(paste0(category, "_add_tab")),
-        tab_creation_card,
-        style = "position:relative;"
-      )
-    ), 
-    shinyjs::hidden(
-      div(
-        id = ns(paste0(category, "_edit_tab")),
-        tab_edition_card,
-        style = "position:relative;"
-      )
-    ),
+    # shinyjs::hidden(
+    #   div(
+    #     id = ns(paste0(category, "_add_widget")),
+    #     widget_creation_card,
+    #     style = "position:relative;"
+    #   )
+    # ),
+    # shinyjs::hidden(
+    #   div(
+    #     id = ns(paste0(category, "_widget_settings")),
+    #     widget_settings_card,
+    #     style = "position:relative;"
+    #   )
+    # ),
+    # shinyjs::hidden(
+    #   div(
+    #     id = ns(paste0(category, "_add_tab")),
+    #     tab_creation_card,
+    #     style = "position:relative;"
+    #   )
+    # ), 
+    # shinyjs::hidden(
+    #   div(
+    #     id = ns(paste0(category, "_edit_tab")),
+    #     tab_edition_card,
+    #     style = "position:relative;"
+    #   )
+    # ),
     shinyjs::hidden(
       div(
         id = ns(paste0(category, "_no_tabs_to_display")),
@@ -676,23 +688,24 @@ mod_data_server <- function(id = character(), r = shiny::reactiveValues(), d = s
               
               row <- tabs_tree[j, ]
               
-              if (row$level == nb_levels - 1) is_current_item <- TRUE
-              else is_current_item <- FALSE
-              
-              breadcrumb_list <- rlist::list.append(breadcrumb_list, list(
-                key = "main", text = shiny.fluent::FontIcon(iconName = "Home"), href = paste0("#!/", page_name), isCurrentItem = is_current_item,
-                onClick = htmlwidgets::JS(paste0("item => {",
-                  "Shiny.setInputValue('", id, "-study_go_to_tab', ", row$id, ");",
-                  "Shiny.setInputValue('", id, "-study_go_to_tab_trigger', Math.random());",
-                  "}"
+              if (row$level == nb_levels - 1) breadcrumb_list <- rlist::list.append(breadcrumb_list, list(key = "main", text = row$name, isCurrentItem = TRUE))
+              else {
+                breadcrumb_list <- rlist::list.append(breadcrumb_list, list(
+                  key = "main", text = row$name,
+                  onClick = htmlwidgets::JS(paste0(
+                    "item => {",
+                      "Shiny.setInputValue('", id, "-study_go_to_tab', ", row$id, ");",
+                      "Shiny.setInputValue('", id, "-study_go_to_tab_trigger', Math.random());",
+                    "}"
+                  ))
                 ))
-              ))
+              }
             }
           }
           
           breadcrumb <- div(
             id = ns(paste0(category, "_study_breadcrumb_", tab_group_id, "_", tab_sub_group)),
-            shiny.fluent::Breadcrumb(items = breadcrumb_list, maxDisplayedItems = 3),
+            shiny.fluent::Breadcrumb(items = breadcrumb_list, maxDisplayedItems = 5),
             style = "display:flex;"
           )
           
@@ -731,19 +744,8 @@ mod_data_server <- function(id = character(), r = shiny::reactiveValues(), d = s
       }
       
       output$study_menu <- renderUI(div(
-        breadcrumbs, pivots,
-        # div(
-        #   pivots,
-        #   shiny.fluent::Pivot(
-        #     shiny.fluent::PivotItem(id = paste0(category, "_add_tab"), headerText = span(i18n$t("add_tab"), style = "padding-left:5px;"), itemIcon = "Add"),
-        #     onLinkClick = htmlwidgets::JS(paste0("item => {",
-        #       "Shiny.setInputValue('", id, "-study_add_new_tab', Math.random());",
-        #       "}"
-        #     )),
-        #     selectedKey = NULL
-        #   ),
+        div(breadcrumbs), div(pivots),
         style = "display:flex; justify-content:space-between; margin:5px 13px 0px 0px;"
-        # )
       ))
       
       r[[paste0(category, "_hide_ui")]] <- now()
@@ -1095,21 +1097,6 @@ mod_data_server <- function(id = character(), r = shiny::reactiveValues(), d = s
       # r[[paste0(category, "_load_ui_menu")]] <- now()
     })
     
-    # --- --- --- --- --- ---
-    # Close creation div ----
-    # --- --- --- --- --- ---
-    
-    observeEvent(input[[paste0(category, "_close_widget_creation")]], {
-      
-      if (debug) cat(paste0("\n", now(), " - mod_data - ", id, " - observer input$..close_add_widget"))
-      
-      # Show opened cards before opening Add widget div
-      sapply(r[[paste0(category, "_opened_cards")]], shinyjs::show)
-      
-      # Hide Add widget div
-      shinyjs::hide(paste0(category, "_add_widget"))
-    })
-    
     # --- --- --- -- -
     # Load server ----
     # --- --- --- -- -
@@ -1276,9 +1263,101 @@ mod_data_server <- function(id = character(), r = shiny::reactiveValues(), d = s
       }
     })
     
-    # --- --- --- --- --- --- -- -
-    # Other server reactivity ----
-    # --- --- --- --- --- --- -- -
+    # --- --- --- --
+    # Add a tab ----
+    # --- --- --- --
+    
+    observeEvent(input$add_tab, {
+      if (debug) cat(paste0("\n", now(), " - mod_data - ", id, " - observer input$add_tab"))
+      shinyjs::show("add_tab_modal")
+    })
+    
+    observeEvent(input$close_add_tab_modal, {
+      if (debug) cat(paste0("\n", now(), " - mod_data - ", id, " - observer input$close_add_tab_modal"))
+      shinyjs::hide("add_tab_modal")
+    })
+    
+    # Add button clicked
+    observeEvent(input$add_tab_button, {
+      
+      if (debug) cat(paste0("\n", now(), " - mod_data - ", id, " - observer input$add_tab_button"))
+      
+      selected_tab <- r[[paste0(category, "_selected_tab")]]
+      tab <- r[[paste0(category, "_tabs")]] %>% dplyr::filter(id == selected_tab)
+      
+      new_data <- list()
+      new_data$name <- coalesce2(type = "char", x = input$tab_name)
+      new_data$description <- ""
+      
+      # Required textfields
+      required_textfields <- "name"
+      
+      # Fields requiring unique value
+      req_unique_values <- "name"
+      
+      # Get tab_group_id
+      new_data$tab_group <-
+        DBI::dbGetQuery(r$db, glue::glue_sql("SELECT {`paste0(category, '_tab_group_id')`} FROM studies WHERE id = {m$selected_study}", .con = r$db)) %>%
+        dplyr::pull()
+      
+      # If it is the first tab to be created
+      if (nrow(tab) == 0){
+        new_data$parent_tab <- NA_integer_
+        new_data$display_order <- 1
+      }
+      
+      # If already existing tabs
+      if (nrow(tab) > 0){
+        
+        # If tab is at the same level of current tab, get common parent_tab_id
+        # Calculate display order
+        
+        if (input$add_tab_type == "same_level") new_data$parent_tab <- tab %>% dplyr::pull(parent_tab_id)
+        if (input$add_tab_type == "level_under") new_data$parent_tab <- tab %>% dplyr::pull(id)
+        
+        # Calculate display order
+        if (!is.na(new_data$parent_tab)) sql <- glue::glue_sql("SELECT COALESCE(MAX(display_order), 0) FROM tabs WHERE tab_group_id = {new_data$tab_group} AND parent_tab_id = {new_data$parent_tab}", .con = r$db)
+        if (is.na(new_data$parent_tab)) sql <- glue::glue_sql("SELECT COALESCE(MAX(display_order), 0) FROM tabs WHERE tab_group_id = {new_data$tab_group} AND parent_tab_id IS NULL", .con = r$db)
+        
+        new_data$display_order <- DBI::dbGetQuery(r$db, sql) %>% dplyr::pull() + 1
+        
+        # Can't add a tab at the level under if there are tabs elements attached to current tab
+        if (input$add_tab_type == "level_under"){
+          selected_tab <- r[[paste0(category, "_selected_tab")]]
+          widgets <- r[[paste0(category, "_widgets")]] %>% dplyr::filter(tab_id == selected_tab, !deleted) %>%
+            dplyr::rename(widget_id = id)
+          if (nrow(widgets) > 0) show_message_bar(output, message = "add_tab_has_widgets", i18n = i18n, ns = ns)
+          req(nrow(widgets) == 0)
+        }
+      }
+      
+      if (is.na(new_data$name)) shiny.fluent::updateTextField.shinyInput(session, "tab_name", errorMessage = i18n$t("provide_valid_name"))
+      req(!is.na(new_data$name))
+      
+      add_settings_new_data(session = session, output = output, r = r, m = m, i18n = i18n, id = id,
+        data = new_data, table = paste0(category, "_tabs"), required_textfields = required_textfields, req_unique_values = req_unique_values)
+      
+      # Reset fields
+      
+      shiny.fluent::updateTextField.shinyInput(session, "tab_name", value = "")
+      shiny.fluent::updateChoiceGroup.shinyInput(session, "add_tab_type", value = "same_level")
+      
+      # Reload UI, with new tab opened
+      
+      tab_id <- get_last_row(r$db, "tabs")
+      r[[paste0(category, "_selected_tab")]] <- tab_id
+      r[[paste0(category, "_load_display_tabs")]] <- now()
+      
+      # Reload UI menu and set to added tab
+      r[[paste0(category, "_selected_tab")]] <- tab_id
+      r[[paste0(category, "_load_ui_menu")]] <- now()
+      
+      # Hide currently opened cards
+      sapply(r[[paste0(category, "_opened_cards")]], shinyjs::hide)
+      
+      # Hide add tab model
+      shinyjs::hide("add_tab_modal")
+    })
     
     # --- --- --- --- -- -
     ## Widget settings ----
@@ -1603,153 +1682,7 @@ mod_data_server <- function(id = character(), r = shiny::reactiveValues(), d = s
       # })
     })
     
-    # --- --- --- - -
-    ## Add a tab ----
-    # --- --- --- - -
     
-    observeEvent(input$add_tab, {
-      
-      if (debug) cat(paste0("\n", now(), " - mod_data - ", id, " - observer input$add_tab"))
-
-      sapply(r[[paste0(category, "_opened_cards")]], shinyjs::hide)
-      shinyjs::hide(paste0(category, "_add_widget"))
-      shinyjs::hide(paste0(category, "_edit_tab"))
-      shinyjs::hide(paste0(category, "_widget_settings"))
-      shinyjs::show(paste0(category, "_add_tab"))
-      shinyjs::hide(paste0(category, "_no_tabs_to_display"))
-    })
-    
-    # Close creation div
-    observeEvent(input[[paste0(category, "_close_add_tab")]], {
-      
-      if (debug) cat(paste0("\n", now(), " - mod_data - ", id, " - observer input$..close_add_tab"))
-      
-      # Show opened cards before opening Add widget div
-      sapply(r[[paste0(category, "_opened_cards")]], shinyjs::show)
-      
-      # Hide Add tab div
-      shinyjs::hide(paste0(category, "_add_tab"))
-    })
-    
-    # Add button clicked
-    observeEvent(input$add_tab_button, {
-      
-      if (debug) cat(paste0("\n", now(), " - mod_data - ", id, " - observer input$add_tab_button"))
-      
-      study <- r$studies %>% dplyr::filter(id == m$selected_study)
-      selected_tab <- r[[paste0(category, "_selected_tab")]]
-      tab <- r[[paste0(category, "_tabs")]] %>% dplyr::filter(id == selected_tab)
-      
-      new_data <- list()
-      new_data$name <- coalesce2(type = "char", x = input$tab_name)
-      new_data$description <- ""
-      
-      # Required textfields
-      required_textfields <- "name"
-      
-      # Fields requiring unique value
-      req_unique_values <- "name"
-      
-      # Get tab_group_id
-      new_data$tab_group <- study %>% dplyr::pull(paste0(category, "_tab_group_id"))
-      
-      # If it is the first tab to be created
-      if (nrow(tab) == 0){
-        new_data$parent_tab <- NA_integer_
-        new_data$display_order <- 1
-      }
-      
-      # If already existing tabs
-      if (nrow(tab) > 0){
-        
-        # If tab is at the same level of current tab, get common parent_tab_id
-        # Calculate display order
-        
-        if (input$add_tab_type == "same_level") new_data$parent_tab <- tab %>% dplyr::pull(parent_tab_id)
-        if (input$add_tab_type == "level_under") new_data$parent_tab <- tab %>% dplyr::pull(id)
-        
-        # Calculate display order
-        if (!is.na(new_data$parent_tab)) sql <- glue::glue_sql("SELECT COALESCE(MAX(display_order), 0) FROM tabs
-            WHERE tab_group_id = {new_data$tab_group} AND parent_tab_id = {new_data$parent_tab}", .con = r$db)
-        if (is.na(new_data$parent_tab)) sql <- glue::glue_sql("SELECT COALESCE(MAX(display_order), 0) FROM tabs
-            WHERE tab_group_id = {new_data$tab_group} AND parent_tab_id IS NULL", .con = r$db)
-        
-        new_data$display_order <- DBI::dbGetQuery(r$db, sql) %>% dplyr::pull() + 1
-        
-        # Can't add a tab at the level under if there are tabs elements attached to current tab
-        if (input$add_tab_type == "level_under"){
-          selected_tab <- r[[paste0(category, "_selected_tab")]]
-          widgets <- r[[paste0(category, "_widgets")]] %>% dplyr::filter(tab_id == selected_tab, !deleted) %>%
-            dplyr::rename(widget_id = id)
-          if (nrow(widgets) > 0) show_message_bar(output, message = "add_tab_has_widgets", i18n = i18n, ns = ns)
-          req(nrow(widgets) == 0)
-        }
-      }
-      
-      if (is.na(new_data$name)) shiny.fluent::updateTextField.shinyInput(session, "tab_name", errorMessage = i18n$t("provide_valid_name"))
-      req(!is.na(new_data$name))
-      
-      add_settings_new_data(session = session, output = output, r = r, m = m, i18n = i18n, id = id,
-        data = new_data, table = paste0(category, "_tabs"), required_textfields = required_textfields, req_unique_values = req_unique_values)
-      
-      # Reset fields
-      
-      shiny.fluent::updateTextField.shinyInput(session, "tab_name", value = "")
-      shiny.fluent::updateChoiceGroup.shinyInput(session, "add_tab_type", value = "same_level")
-      
-      # Reload UI, with new tab opened
-      
-      tab_id <- get_last_row(r$db, "tabs")
-      r[[paste0(category, "_selected_tab")]] <- tab_id
-      r[[paste0(category, "_load_display_tabs")]] <- now()
-      
-      # Add Toggles div
-      
-      # toggles_div <- div(
-      #   make_card("",
-      #     shiny.fluent::Stack(horizontal = TRUE, tokens = list(childrenGap = 10),
-      #       shiny.fluent::ActionButton.shinyInput(ns(paste0(category, "_add_widget_", tab_id)), i18n$t("new_widget"), iconProps = list(iconName = "Add"),
-      #         onClick = htmlwidgets::JS(paste0("item => Shiny.setInputValue('", id, "-", category, "_add_widget_trigger', Math.random())"))),
-      #       shiny.fluent::ActionButton.shinyInput(ns(paste0(category, "_edit_tab_", tab_id)), i18n$t("edit_tab"), iconProps = list(iconName = "Edit"),
-      #         onClick = htmlwidgets::JS(paste0("item => Shiny.setInputValue('", id, "-edit_tab_trigger', Math.random())"))),
-      #       div(style = "width:20px;")
-      #     )
-      #   )
-      # )
-      
-      # insertUI(selector = paste0("#", ns("study_cards")), where = "beforeEnd", ui = uiOutput(ns(paste0(category, "_toggles_", tab_id))))
-      # output[[paste0(category, "_toggles_", tab_id)]] <- renderUI(toggles_div)
-      
-      # If this is a sub-tab, change toggles div of parent tab also
-      parent_tab_id <- r[[paste0(category, "_tabs")]] %>% dplyr::filter(id == tab_id) %>% dplyr::pull(parent_tab_id)
-      if(!is.na(parent_tab_id)){
-        
-        shinyjs::hide(paste0(category, "_toggles_", parent_tab_id))
-        
-        # parent_toggles_div <- div(
-        #   make_card("",
-        #     shiny.fluent::Stack(horizontal = TRUE, tokens = list(childrenGap = 10),
-        #       shiny.fluent::ActionButton.shinyInput(ns(paste0(category, "_edit_tab_", tab_id)), i18n$t("edit_tab"), iconProps = list(iconName = "Edit"),
-        #         onClick = htmlwidgets::JS(paste0("item => Shiny.setInputValue('", id, "-edit_tab_trigger', Math.random())"))),
-        #       div(shiny.fluent::MessageBar(i18n$t("tab_contains_sub_tabs"), messageBarType = 5), style = "margin-top:4px;")
-        #     )
-        #   )
-        # )
-        
-        insertUI(selector = paste0("#", ns("study_cards")), where = "beforeEnd", ui = shinyjs::hidden(uiOutput(ns(paste0(category, "_toggles_", parent_tab_id)))))
-        # output[[paste0(category, "_toggles_", parent_tab_id)]] <- renderUI(parent_toggles_div)
-      }
-      
-      # Add toggles div to vector of cards
-      # r[[paste0(category, "_cards")]] <- c(isolate(r[[paste0(category, "_cards")]]), paste0(category, "_toggles_", tab_id))
-      
-      # Reload UI menu and set to added tab
-      r[[paste0(category, "_selected_tab")]] <- tab_id
-      r[[paste0(category, "_load_ui_menu")]] <- now()
-      
-      # Hide currently opened cards
-      sapply(r[[paste0(category, "_opened_cards")]], shinyjs::hide)
-    })
     
     # --- --- --- -- -
     ## Edit a tab ----

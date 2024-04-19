@@ -295,18 +295,34 @@ mod_page_sidenav_ui <- function(id = character(), i18n = character()){
   # --- --- --- --- --- ---
   
   if (id == "patient_level_data"){
-    div(class = "sidenav",
-        # div(class = "reduced_sidenav",
-        show_hide_sidenav,
-        # ),
-        # div(class = "extended_sidenav",
-        # shiny.fluent::ActionButton.shinyInput(ns("add_tab"), i18n$t("add_tab"), iconProps = list(iconName = "Add")),
-        # shiny.fluent::ActionButton.shinyInput(ns("edit_tab"), i18n$t("edit_tab"), iconProps = list(iconName = "Edit")),
-        # shiny.fluent::ActionButton.shinyInput(ns("add_widget"), i18n$t("new_widget"), iconProps = list(iconName = "Add")),
+    div(
+      id = ns("sidenav"),
+      class = "sidenav",
+      div(
+        id = ns("large_sidenav"),
+        div(
+          class = "sidenav_top",
+          div(
+            create_hover_card(ui = shiny.fluent::IconButton.shinyInput(ns("add_tab"), iconProps = list(iconName = "Boards")), text = i18n$t("add_a_tab")),
+            class = "small_icon_button"
+          ),
+          div(
+            create_hover_card(ui = shiny.fluent::IconButton.shinyInput(ns("add_widget"), iconProps = list(iconName = "RectangularClipping")), text = i18n$t("add_a_widget")),
+            class = "small_icon_button"
+          ),
+          div(
+            create_hover_card(ui = shiny.fluent::IconButton.shinyInput(ns("edit_page"), iconProps = list(iconName = "Edit")), text = i18n$t("edit_page")),
+            class = "small_icon_button"
+          )
+        ), br(),
         dropdowns("subset"),
         dropdowns(c("person", "visit_detail")),
         uiOutput(ns("person_info"))
-        # )
+      ),
+      div(
+        id = ns("reduced_sidenav")
+      ),
+      show_hide_sidenav,
     ) -> result
   }
   
@@ -405,7 +421,7 @@ mod_page_sidenav_ui <- function(id = character(), i18n = character()){
 }
 
 #' @noRd 
-mod_page_sidenav_server <- function(id = character(), r = shiny::reactiveValues(), d = shiny::reactiveValues(), m = shiny::reactiveValues(), i18n = character(), language = "en", debug = FALSE){
+mod_page_sidenav_server <- function(id = character(), r = shiny::reactiveValues(), d = shiny::reactiveValues(), m = shiny::reactiveValues(), language = "en", i18n = character(), debug = FALSE){
   moduleServer(id, function(input, output, session){
     ns <- session$ns
     

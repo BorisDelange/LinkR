@@ -9,75 +9,34 @@ mod_app_db_ui <- function(id = character(), language = "en", languages = tibble:
     forbidden_cards <<- tagList(forbidden_cards, forbidden_card(ns = ns, name = card, i18n = i18n))
   })
   
-  main_db_tables <- list(
-    list(key = "users", text = "users"),
-    list(key = "users_accesses", text = "users_accesses"),
-    list(key = "users_statuses", text = "users_statuses"),
-    list(key = "data_sources", text = "data_sources"),
-    list(key = "datasets", text = "datasets"),
-    list(key = "studies", text = "studies"),
-    list(key = "plugins", text = "plugins"),
-    list(key = "scripts", text = "scripts"),
-    list(key = "tabs_groups", text = "tabs_groups"),
-    list(key = "tabs", text = "tabs"),
-    list(key = "widgets", text = "widgets"),
-    list(key = "code", text = "code"),
-    list(key = "options", text = "options"),
-    list(key = "messages", text = "messages"),
-    list(key = "conversations", text = "conversations"),
-    list(key = "user_deleted_conversations", text = "user_deleted_conversations"),
-    list(key = "inbox_messages", text = "inbox_messages"),
-    list(key = "log", text = "log"),
-    list(key = "git_repos", text = "git_repos")
-  )
-  
   main_db_values <- c("users", "users_accesses", "users_statuses", "data_sources", "datasets", "studies", "plugins", "scripts",
     "tabs_groups", "tabs", "widgets", "code", "options", "messages", "conversations", "user_deleted_conversations", "inbox_messages", "git_repos")
-  
-  public_db_tables <- list(
-    list(key = "persons_options", text = "persons_options"),
-    list(key = "widgets_options", text = "widgets_options"),
-    list(key = "subsets", text = "subsets"),
-    list(key = "subset_persons", text = "subset_persons"),
-    list(key = "concept", text = "concept"),
-    list(key = "concept_dataset", text = "concept_dataset"),
-    list(key = "concept_user", text = "concept_user"),
-    list(key = "vocabulary", text = "vocabulary"),
-    list(key = "domain", text = "domain"),
-    list(key = "concept_class", text = "concept_class"),
-    list(key = "concept_relationship", text = "concept_relationship"),
-    list(key = "concept_relationship_user", text = "concept_relationship_user"),
-    list(key = "concept_relationship_evals", text = "concept_relationship_evals"),
-    list(key = "relationship", text = "relationship"),
-    list(key = "concept_synonym", text = "concept_synonym"),
-    list(key = "concept_ancestor", text = "concept_ancestor"),
-    list(key = "drug_strength", text = "drug_strength"),
-    list(key = "widgets_concepts", text = "widgets_concepts")
-  )
+  main_db_tables <- tibble::tibble(text = main_db_values) %>% convert_tibble_to_list(key_col = "text", text_col = "text")
   
   public_db_values <- c("persons_options", "widgets_options", "subsets", "subset_persons", "concept", "concept_dataset",
     "concept_user", "vocabulary", "domain", "concept_class", "concept_relationship", "concept_relationship_user", "concept_relationship_evals",
     "relationship", "concept_synonym", "concept_ancestor", "drug_strength", "widgets_concepts")
+  public_db_tables <- tibble::tibble(text = public_db_values) %>% convert_tibble_to_list(key_col = "text", text_col = "text")
   
-  div(class = "main",
-    render_settings_default_elements(ns = ns),
-    shiny.fluent::reactOutput(ns("help_panel")),
-    shiny.fluent::reactOutput(ns("help_modal")),
-    shiny.fluent::Breadcrumb(items = list(
-      list(key = "app_db", text = i18n$t("app_db_long"))
-    ), maxDisplayedItems = 3),
+  div(
+    id = ns("main"), class = "main",
     
     # --- --- -- -- --
     # Pivot items ----
     # --- --- -- -- --
     
-    shiny.fluent::Pivot(
-      onLinkClick = htmlwidgets::JS(paste0("item => Shiny.setInputValue('", id, "-current_tab', item.props.id)")),
-      shiny.fluent::PivotItem(id = "db_connection_infos_card", itemKey = "db_connection_infos_card", headerText = i18n$t("db_connection_infos_card")),
-      shiny.fluent::PivotItem(id = "db_datatable_card", itemKey = "db_datatable_card", headerText = i18n$t("db_datatable_card")),
-      shiny.fluent::PivotItem(id = "db_request_card", itemKey = "db_request_card", headerText = i18n$t("db_request_card")),
-      shiny.fluent::PivotItem(id = "db_save_card", itemKey = "db_save_card", headerText = i18n$t("db_save_card")),
-      shiny.fluent::PivotItem(id = "db_restore_card", itemKey = "db_restore_card", headerText = i18n$t("db_restore_card"))
+    div(
+      div(),
+      div(
+        shiny.fluent::Pivot(
+          onLinkClick = htmlwidgets::JS(paste0("item => Shiny.setInputValue('", id, "-current_tab', item.props.id)")),
+          shiny.fluent::PivotItem(id = "db_connection_infos_card", itemKey = "db_connection_infos_card", headerText = i18n$t("db_connection_infos_card")),
+          shiny.fluent::PivotItem(id = "db_datatable_card", itemKey = "db_datatable_card", headerText = i18n$t("db_datatable_card")),
+          shiny.fluent::PivotItem(id = "db_request_card", itemKey = "db_request_card", headerText = i18n$t("db_request_card")),
+          shiny.fluent::PivotItem(id = "db_save_restore_card", itemKey = "db_save_card", headerText = i18n$t("db_save_and_restore_card"))
+        )
+      ),
+      style = "display:flex; justify-content:space-between;"
     ),
     
     forbidden_cards,
@@ -89,70 +48,74 @@ mod_app_db_ui <- function(id = character(), language = "en", languages = tibble:
     shinyjs::hidden(
       div(
         id = ns("db_connection_infos_card"),
-        make_card(
-          i18n$t("connection_infos"),
+        div(
           div(
             div(
-              div(class = "input_title", i18n$t("connection_type")),
               shiny.fluent::ChoiceGroup.shinyInput(ns("connection_type"), options = list(
-                  list(key = "local", text = i18n$t("local")),
-                  list(key = "remote", text = i18n$t("remote"))
+                  list(key = "local", text = i18n$t("local_db_connection")),
+                  list(key = "remote", text = i18n$t("remote_db_connection"))
                 ), className = "inline_choicegroup")
-            ),
+            ), br(),
             div(
               id = ns("connection_infos_div"),
-              shiny.fluent::Stack(horizontal = TRUE, tokens = list(childrenGap = 30),
-                make_dropdown(i18n = i18n, ns = ns, label = "sql_lib", options = list(
+              make_dropdown(i18n = i18n, ns = ns, label = "sql_lib", options = list(
                   list(key = "postgres", text = "PostgreSQL"),
                   list(key = "sqlite", text = "SQLite")
-                ), value = "postgres", width = "300px"),
-                make_textfield(i18n, ns, "host", width = "300px")
+                ), value = "postgres", width = "200px"),
+              div(
+                make_textfield(i18n, ns, "host", width = "200px"),
+                make_textfield(i18n, ns, "port", width = "200px"),
+                make_textfield(i18n, ns, "user", width = "200px"),
+                make_textfield(i18n, ns, "password", type = "password", canRevealPassword = TRUE, width = "200px"),
+                style = "display: flex; gap: 10px;"
               ),
-              shiny.fluent::Stack(horizontal = TRUE, tokens = list(childrenGap = 30),
-                make_textfield(i18n, ns, "main_db_name", width = "300px"),
-                shinyjs::hidden(
-                  div(
-                    id = ns("test_connection_main_db_success_div"),
-                    shiny::textOutput(ns("test_connection_main_db_success")),
-                    style = "margin-top:44px; font-weight:bold; color:#0078D4;"
-                  )
-                ),
-                shinyjs::hidden(
-                  div(
-                    id = ns("test_connection_main_db_failure_div"),
-                    shiny::textOutput(ns("test_connection_main_db_failure")), 
-                    style = "margin-top:44px; padding-left:30px; margin-left:-30px; color:red;"
-                  )
-                )
+              div(
+                make_textfield(i18n, ns, "main_db_name", width = "200px"),
+                uiOutput(ns("main_db_connection_result")),
+                # shinyjs::hidden(
+                #   div(
+                #     id = ns("test_connection_main_db_success_div"),
+                #     shiny::textOutput(ns("test_connection_main_db_success")),
+                #     style = "margin-top:44px; font-weight:bold; color:#0078D4;"
+                #   )
+                # ),
+                # shinyjs::hidden(
+                #   div(
+                #     id = ns("test_connection_main_db_failure_div"),
+                #     shiny::textOutput(ns("test_connection_main_db_failure")), 
+                #     style = "margin-top:44px; padding-left:30px; margin-left:-30px; color:red;"
+                #   )
+                # ),
+                style = "display: flex; gap: 10px;"
               ),
-              shiny.fluent::Stack(horizontal = TRUE, tokens = list(childrenGap = 30),
-                make_textfield(i18n, ns, "public_db_name", width = "300px"),
-                shinyjs::hidden(
-                div(
-                    id = ns("test_connection_public_db_success_div"),
-                    shiny::textOutput(ns("test_connection_public_db_success")), 
-                    style = "margin-top:44px; padding-left:30px; font-weight:bold; color:#0078D4;"
-                  )
-                ),
-                shinyjs::hidden(
-                  div(
-                    id = ns("test_connection_public_db_failure_div"),
-                    shiny::textOutput(ns("test_connection_public_db_failure")), 
-                    style = "margin-top:44px; margin-left:-30px; color:red;"
-                  )
-                )
-              ),
-              shiny.fluent::Stack(horizontal = TRUE, tokens = list(childrenGap = 30),
-                make_textfield(i18n, ns, "port", width = "300px"),
-                make_textfield(i18n, ns, "user", width = "300px"),
-                make_textfield(i18n, ns, "password", type = "password", canRevealPassword = TRUE, width = "300px")
+              div(
+                make_textfield(i18n, ns, "public_db_name", width = "200px"),
+                uiOutput(ns("public_db_connection_result")),
+                # shinyjs::hidden(
+                # div(
+                #     id = ns("test_connection_public_db_success_div"),
+                #     shiny::textOutput(ns("test_connection_public_db_success")), 
+                #     style = "margin-top:44px; padding-left:30px; font-weight:bold; color:#0078D4;"
+                #   )
+                # ),
+                # shinyjs::hidden(
+                #   div(
+                #     id = ns("test_connection_public_db_failure_div"),
+                #     shiny::textOutput(ns("test_connection_public_db_failure")), 
+                #     style = "margin-top:44px; margin-left:-30px; color:red;"
+                #   )
+                # )
+                style = "display: flex; gap: 10px;"
               )
-            ), br(),
-            shiny.fluent::Stack(horizontal = TRUE, tokens = list(childrenGap = 10),
-              shiny.fluent::PrimaryButton.shinyInput(ns("db_connection_save"), i18n$t("save")),
-              shiny.fluent::DefaultButton.shinyInput(ns("test_connection"), i18n$t("test_connection"))
             ),
-          )
+            div(
+              shiny.fluent::PrimaryButton.shinyInput(ns("db_connection_save"), i18n$t("save")),
+              shiny.fluent::DefaultButton.shinyInput(ns("test_connection"), i18n$t("test_connection")),
+              style = "display: flex; gap: 10px;"
+            )
+          ),
+          class = "card",
+          style = "padding: 15px 20px 10px 20px; max-width: 950px; overflow-x: auto;"
         )
       )
     ),
@@ -301,55 +264,27 @@ mod_app_db_server <- function(id = character(), r = shiny::reactiveValues(), m =
   moduleServer(id, function(input, output, session){
     ns <- session$ns
     
-    # # Close message bar
-    # sapply(1:20, function(i) observeEvent(input[[paste0("close_message_bar_", i)]], shinyjs::hide(paste0("message_bar", i))))
-    # 
-    # app_db_folder = paste0(app_folder, "/app_database")
-    # 
-    # # --- --- --- --- --- ---
-    # # Show or hide cards ----
-    # # --- --- --- --- --- ---
-    # 
-    # cards <- c("db_connection_infos_card", "db_datatable_card", "db_request_card", "db_save_card", "db_restore_card")
-    # show_or_hide_cards(r = r, input = input, session = session, id = id, cards = cards)
-    # 
-    # # Show first card
+    # Unlock reactivity
+    
+    r$reload_app_db_page <- now()
+    
+    observeEvent(r$reload_app_db_page, {
+      if (debug) cat(paste0("\n", now(), " - mod_app_db - r$reload_app_db_page"))
+      shinyjs::show("main")
+    })
+    
+    # --- --- --- --- --- ---
+    # Show or hide cards ----
+    # --- --- --- --- --- ---
+
+    cards <- c("db_connection_infos_card", "db_datatable_card", "db_request_card", "db_save_card", "db_restore_card")
+    show_or_hide_cards(r = r, input = input, session = session, id = id, cards = cards)
+
+    # Show first card
+    shinyjs::show("db_connection_infos_card")
     # if ("db_connection_infos_card" %in% r$user_accesses) shinyjs::show("db_connection_infos_card")
     # else shinyjs::show("db_connection_infos_card_forbidden")
-    # 
-    # # --- --- --- --- --- ---
-    # # Help for this page ----
-    # # --- --- --- --- --- ---
-    # 
-    # observeEvent(input$help, if (id == shiny.router::get_page() %>% stringr::str_replace_all("/", "_")) r$help_app_database_open_panel <- TRUE)
-    # observeEvent(input$hide_panel, r$help_app_database_open_panel <- FALSE)
-    # 
-    # r$help_app_database_open_panel_light_dismiss <- TRUE
-    # observeEvent(input$show_modal, r$help_app_database_open_modal <- TRUE)
-    # observeEvent(input$hide_modal, {
-    #   r$help_app_database_open_modal <- FALSE
-    #   r$help_app_database_open_panel_light_dismiss <- TRUE
-    # })
-    # 
-    # # observeEvent(shiny.router::get_page(), {
-    # #   if (debug) cat(paste0("\n", now(), " - mod_app_db - ", id, " - observer shiny_router::change_page"))
-    # # 
-    # #   # Close help pages when page changes
-    # #   r$help_app_database_open_panel <- FALSE
-    # #   r$help_app_database_open_modal <- FALSE
-    # # })
-    # 
-    # sapply(1:10, function(i){
-    #   observeEvent(input[[paste0("help_page_", i)]], r[[paste0("help_app_database_page_", i)]] <- now())
-    # })
-    # 
-    # help_app_database(output = output, r = r, id = id, language = language, i18n = i18n, ns = ns)
-    # 
-    # observeEvent(input$copy_code_1, r$help_app_database_copy_code_1 <- now())
-    # observeEvent(input$copy_code_2, r$help_app_database_copy_code_2 <- now())
-    # observeEvent(input$copy_code_3, r$help_app_database_copy_code_3 <- now())
-    # observeEvent(input$copy_code_4, r$help_app_database_copy_code_4 <- now())
-    # 
+
     # # --- --- --- --- --- -- -
     # # Update choiceGroups ----
     # # --- --- --- --- --- -- -
@@ -449,65 +384,62 @@ mod_app_db_server <- function(id = character(), r = shiny::reactiveValues(), m =
     #   if (perf_monitoring) monitor_perf(r = r, action = "stop", task = paste0("mod_app_db - observer input$db_connection_save"))
     # })
     # 
-    # # --- --- --- --- -- -
-    # # Test connection ----
-    # # --- --- --- --- -- -
-    # 
-    # # When test connection button is clicked
-    # 
-    # observeEvent(input$test_connection, {
-    #   
-    #   if (perf_monitoring) monitor_perf(r = r, action = "start")
-    #   if (debug) cat(paste0("\n", now(), " - mod_app_db - observer input$test_connection"))
-    #   
-    #   # Before testing connection, make sure fields are filled
-    #   db_checks <- c("main_db_name" = FALSE, "public_db_name" = FALSE, "host" = FALSE, "port" = FALSE, "user" = FALSE, "password" = FALSE)
-    #   sapply(names(db_checks), function(name){
-    #     shiny.fluent::updateTextField.shinyInput(session, name, errorMessage = NULL)
-    #     if (!is.null(input[[name]])){
-    #       if (name != "port" & input[[name]] != "") db_checks[[name]] <<- TRUE
-    #       if (name == "port" & input[[name]] != "" & grepl("^[0-9]+$", input[[name]])) db_checks[[name]] <<- TRUE
-    #     }
-    #   })
-    #   
-    #   # Reset output textfields
-    #   output$test_connection_main_db_success <- renderText("")
-    #   output$test_connection_main_db_failure <- renderText("")
-    #   output$test_connection_public_db_success <- renderText("")
-    #   output$test_connection_public_db_failure <- renderText("")
-    #   
-    #   sapply(names(db_checks), function(name) if (!db_checks[[name]]) shiny.fluent::updateTextField.shinyInput(session, name, errorMessage = i18n$t(paste0("provide_valid_", name))))
-    #   
-    #   req(db_checks[["main_db_name"]], db_checks[["public_db_name"]], db_checks[["host"]], db_checks[["port"]], db_checks[["user"]], db_checks[["password"]])
-    #   
-    #   # If checks are OK, test connection
-    #   sapply(c("main_db", "public_db"), function(db_type){
-    #     
-    #     code <- paste0("DBI::dbConnect(RPostgres::Postgres(),
-    #       dbname = '", input[[paste0(db_type, "_name")]], "', host = '", input$host, "', port = ", input$port,
-    #       ", user = '", input$user, "', password = '", input$password, "')")
-    #     result_success <- ""
-    #     result_failure <- ""
-    #     result <- capture.output(
-    #       tryCatch(eval(parse(text = isolate(code))), error = function(e) print(e), warning = function(w) print(w))
-    #     )
-    #     
-    #     if (length(result) > 1){
-    #       if (!grepl("exception|error|warning|fatal", tolower(result[1]))) result_success <- i18n$t("successfully_connected")
-    #       if (grepl("exception|error|warning|fatal", tolower(result[1]))) result_failure <- result[1]
-    #     }
-    #     if (length(result) == 1){
-    #       if (!grepl("exception|error|warning|fatal", tolower(result))) result_success <- i18n$t("successfully_connected")
-    #       if (grepl("exception|error|warning|fatal", tolower(result))) result_failure <- result
-    #     }
-    #     
-    #     output[[paste0("test_connection_", db_type, "_success")]] <- renderText(result_success)
-    #     output[[paste0("test_connection_", db_type, "_failure")]] <- renderText(result_failure)
-    #   })
-    #   
-    #   if (perf_monitoring) monitor_perf(r = r, action = "stop", task = paste0("mod_app_db - observer input$test_connection"))
-    # })
-    # 
+    # --- --- --- --- -- -
+    # Test connection ----
+    # --- --- --- --- -- -
+
+    # When test connection button is clicked
+
+    observeEvent(input$test_connection, {
+
+      if (debug) cat(paste0("\n", now(), " - mod_app_db - observer input$test_connection"))
+
+      # Before testing connection, make sure fields are filled
+      db_checks <- c("main_db_name" = FALSE, "public_db_name" = FALSE, "host" = FALSE, "port" = FALSE, "user" = FALSE, "password" = FALSE)
+      sapply(names(db_checks), function(name){
+        shiny.fluent::updateTextField.shinyInput(session, name, errorMessage = NULL)
+        if (!is.null(input[[name]])){
+          if (name != "port" & input[[name]] != "") db_checks[[name]] <<- TRUE
+          if (name == "port" & input[[name]] != "" & grepl("^[0-9]+$", input[[name]])) db_checks[[name]] <<- TRUE
+        }
+      })
+
+      # Reset output textfields
+      output$test_connection_main_db_success <- renderText("")
+      output$test_connection_main_db_failure <- renderText("")
+      output$test_connection_public_db_success <- renderText("")
+      output$test_connection_public_db_failure <- renderText("")
+
+      sapply(names(db_checks), function(name) if (!db_checks[[name]]) shiny.fluent::updateTextField.shinyInput(session, name, errorMessage = i18n$t(paste0("provide_valid_", name))))
+
+      req(db_checks[["main_db_name"]], db_checks[["public_db_name"]], db_checks[["host"]], db_checks[["port"]], db_checks[["user"]], db_checks[["password"]])
+
+      # If checks are OK, test connection
+      sapply(c("main_db", "public_db"), function(db_type){
+
+        code <- paste0("DBI::dbConnect(RPostgres::Postgres(),
+          dbname = '", input[[paste0(db_type, "_name")]], "', host = '", input$host, "', port = ", input$port,
+          ", user = '", input$user, "', password = '", input$password, "')")
+        result_success <- ""
+        result_failure <- ""
+        result <- capture.output(
+          tryCatch(eval(parse(text = isolate(code))), error = function(e) print(e), warning = function(w) print(w))
+        )
+
+        if (length(result) > 1){
+          if (!grepl("exception|error|warning|fatal", tolower(result[1]))) result_success <- i18n$t("successfully_connected")
+          if (grepl("exception|error|warning|fatal", tolower(result[1]))) result_failure <- result[1]
+        }
+        if (length(result) == 1){
+          if (!grepl("exception|error|warning|fatal", tolower(result))) result_success <- i18n$t("successfully_connected")
+          if (grepl("exception|error|warning|fatal", tolower(result))) result_failure <- result
+        }
+
+        output[[paste0("test_connection_", db_type, "_success")]] <- renderText(result_success)
+        output[[paste0("test_connection_", db_type, "_failure")]] <- renderText(result_failure)
+      })
+    })
+
     # # --- --- --- --
     # # DB tables ----
     # # --- --- --- --

@@ -9,6 +9,8 @@ data_model,Modèle de données
 tabs,Onglets
 whats_a_tab,Qu'est ce qu'un onglet ?
 add_tab,Ajouter un onglet
+add_tab_or_widget,Ajouter un onglet ou un widget
+edit_page,Editer la page
 widgets,Widgets
 whats_a_widget,Qu'est ce qu'un widget ?
 add_a_widget,Ajouter un widget
@@ -203,11 +205,12 @@ change_password_card,Changer le mot de passe
 app_db,BDD de l'application
 app_db_long,Base de données de l'application
 connection_type,Type de connexion
-db_connection_infos_card,Informations de connexion
-db_datatable_card,Tables de la BDD
-db_request_card,Requêter la BDD
+db_connection_infos_card,Configurer
+db_datatable_card,Tables
+db_request_card,Requêter
 db_save_long,Exporter la base de données
 db_save_card,Exporter la BDD
+db_save_and_restore_card,Exporter / restaurer
 db_export_and_restore,Exporter et restaurer la base de données
 database_structure,Structure de la base de données
 db_restore_long,Restaurer la base de données
@@ -221,8 +224,10 @@ app_db_tables_long,Tables de la base de données
 db_connexion_type,Type de connexion
 local,Locale
 local_plural,Locaux
+local_db_connection,Connexion locale
 distant,Distante
 remote,Distante
+remote_db_connection,Connexion distante
 dbname,Nom de la BDD
 main_db_name,Nom de la BDD principale
 main_db,BDD principale

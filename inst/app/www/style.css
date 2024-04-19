@@ -1,5 +1,5 @@
 /* --------------- */
-/* GLOBAL */
+/* GLOBAL          */
 /* --------------- */
 
 body, html {
@@ -21,7 +21,7 @@ body, html {
 }
 
 /* --------------- */
-/* HEADER */
+/* HEADER          */
 /* --------------- */
 
 .header {
@@ -43,10 +43,6 @@ body, html {
 
 .header_left_bar {
   display: flex;
-}
-
-.header_right_bar {
-  
 }
 
 .header_command_bar {
@@ -105,7 +101,7 @@ body, html {
 }
 
 /* --------------- */
-/* SIDENAV */
+/* SIDENAV         */
 /* --------------- */
 
 .sidenav {
@@ -151,7 +147,7 @@ body, html {
 }
 
 /* --------------- */
-/* MAIN */
+/* MAIN            */
 /* --------------- */
 
 .main {
@@ -161,7 +157,7 @@ body, html {
 }
 
 /* --------------- */
-/* FOOTER */
+/* FOOTER          */
 /* --------------- */
 
 .footer {
@@ -177,6 +173,60 @@ body, html {
   padding: 10px 20px 10px 15px;
 }
 
+/* --------------- */
+/* MODALS          */
+/* --------------- */
+
+.delete_modal, .create_element_modal {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: fixed;
+  z-index:10;
+  left: 0;
+  top: 0; 
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0,0,0,0.2);
+}
+
+.delete_modal_content {
+  background: #fff;
+  padding: 5px 10px 10px 15px;
+  width: 400px;
+  height: 100px;
+}
+
+.delete_modal_content h1, .create_element_modal h1 {
+  font-size: 14px;
+}
+
+.delete_modal_content p {
+  font-size: 12px;
+}
+
+.delete_modal_buttons, .create_element_modal_buttons {
+  display: flex;
+  justify-content: flex-end;
+  gap: 5px;
+}
+
+.create_tab_modal_content {
+  background: #fff;
+  padding: 5px 10px 10px 15px;
+  width: 600px;
+  height: 150px;
+}
+
+.create_element_modal_head {
+  display: flex;
+  justify-content: space-between;
+}
+
+.create_element_modal_body {
+  font-size: 12px;
+  height: calc(100% - 70px);
+}
 
 
 
@@ -473,6 +523,16 @@ a.no-hover-effect:hover {
 .small_icon_button .ms-Button {
   width: 24px;
   height: 24px
+}
+
+.small_close_button .ms-Button-icon {
+  font-size: 10px;
+  color: black;;
+}
+
+.small_close_button .ms-Button {
+  width: 20px;
+  height: 20px
 }
 
 .small_textfield {

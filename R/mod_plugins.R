@@ -273,19 +273,21 @@ mod_plugins_server <- function(id, r, d, m, language, i18n, debug){
     observeEvent(r$reload_plugin_pivot, {
       if (debug) cat(paste0("\n", now(), " - mod_plugins - observer r$reload_plugin_pivot"))
       
-      output$plugin_pivot <- renderUI(shiny.fluent::Pivot(
-        id = ns("plugin_pivot"),
-        onLinkClick = htmlwidgets::JS(paste0(
-          "item => {",
-            "Shiny.setInputValue('", id, "-current_tab', item.props.id);",
-            "Shiny.setInputValue('", id, "-current_tab_trigger', Math.random());",
-          "}")),
-        shiny.fluent::PivotItem(id = "summary", itemKey = "summary", headerText = i18n$t("summary")),
-        shiny.fluent::PivotItem(id = "edit_options", itemKey = "edit_options", headerText = i18n$t("options")),
-        shiny.fluent::PivotItem(id = "edit_description", itemKey = "edit_description", headerText = i18n$t("description")),
-        shiny.fluent::PivotItem(id = "edit_code", itemKey = "edit_code", headerText = i18n$t("code")),
-        shiny.fluent::PivotItem(id = "run_code", itemKey = "run_code", headerText = i18n$t("test_code"))
-      ))
+      output$plugin_pivot <- renderUI(
+        shiny.fluent::Pivot(
+          id = ns("plugin_pivot"),
+          onLinkClick = htmlwidgets::JS(paste0(
+            "item => {",
+              "Shiny.setInputValue('", id, "-current_tab', item.props.id);",
+              "Shiny.setInputValue('", id, "-current_tab_trigger', Math.random());",
+            "}")),
+          shiny.fluent::PivotItem(id = "summary", itemKey = "summary", headerText = i18n$t("summary")),
+          shiny.fluent::PivotItem(id = "edit_options", itemKey = "edit_options", headerText = i18n$t("options")),
+          shiny.fluent::PivotItem(id = "edit_description", itemKey = "edit_description", headerText = i18n$t("description")),
+          shiny.fluent::PivotItem(id = "edit_code", itemKey = "edit_code", headerText = i18n$t("code")),
+          shiny.fluent::PivotItem(id = "run_code", itemKey = "run_code", headerText = i18n$t("test_code"))
+        )
+      )
     })
     
     ## Selected plugin ----

@@ -75,12 +75,18 @@
   line-height: 20px;
 }
 
+.ms-TextField-reveal {
+  margin: 0;
+  height: 100%;
+  width: 40px;
+}
+
 .ms-Breadcrumb {
   display: flex;
 }
 
 .ms-Breadcrumb-itemLink, .ms-Breadcrumb-item {
-  font-size: 16px;
+  font-size: 14px;
   padding: 4px 6px;
   height: auto;
   line-height: 1;
@@ -199,4 +205,30 @@
 .small_icon_button .ms-Button {
   width: 24px;
   height: 24px
+}
+
+.ms-ChoiceField-field::before {
+  transform: scale(0.7);
+}
+
+.ms-ChoiceField-field.is-checked::after {
+  width: 8px;
+  height: 8px;
+  left: 6px;
+  top: 6px;
+  border-width: 4px;
+  border-color: rgb(0, 120, 212);
+}
+/*.ms-ChoiceField-field::after {
+  width: 8px;
+  height: 8px;
+  left: 6px;
+  top: 6px;
+  border-width: 4px;
+  border-color: rgb(0, 120, 212);
+}*/
+
+.ms-ChoiceFieldLabel {
+  font-size: 12px;
+  padding-top: 1px;
 }

@@ -1,13 +1,5 @@
-#' home UI Function
-#'
-#' @description A shiny Module.
-#'
-#' @param id,input,output,session Internal parameters for {shiny}.
-#'
-#' @noRd 
-#'
-#' @importFrom shiny NS tagList 
-mod_home_ui <- function(id = character(), language = "en", languages = tibble::tibble(), i18n = character()){
+#' @noRd
+mod_home_ui <- function(id, language, languages, i18n){
   ns <- NS(id)
   
   if (id == "home") page <- "home" else page <- substr(id, 6, nchar(id))
@@ -22,25 +14,12 @@ mod_home_ui <- function(id = character(), language = "en", languages = tibble::t
   )
 }
 
-#' home Server Functions
-#'
 #' @noRd 
-mod_home_server <- function(id = character(), r = shiny::reactiveValues(), d = shiny::reactiveValues(), m = shiny::reactiveValues(), 
-    language = "en", i18n = character(), debug = FALSE){
+mod_home_server <- function(id, r, d, m, language, i18n, debug){
   moduleServer(id, function(input, output, session){
     ns <- session$ns
     
     if (debug) cat(paste0("\n", now(), " - mod_home - ", id, " - start"))
-    
-    # if (id == "home") page <- "home" else page <- substr(id, 6, nchar(id))
-    
-    # observeEvent(input$current_tab, {
-    #   
-    #   if (debug) cat(paste0("\n", now(), " - mod_home - ", id, " - observer input$current_tab"))
-    #   
-    #   sapply(cards %>% setdiff(., input$current_tab), shinyjs::hide)
-    #   shinyjs::show(input$current_tab)
-    # })
     
     # --- --- --- --- --
     # Show projects ----
@@ -141,7 +120,16 @@ mod_home_server <- function(id = character(), r = shiny::reactiveValues(), d = s
     })
     
     observeEvent(input$selected_project, {
-      if (debug) cat(paste0("\n", now(), " - mod_home - ", id, " - observer input$selected_project"))
+      if (debug) cat(paste0("\n", now(), " - mod_home - observer input$selected_project"))
+      
+      # Load data pages if not already loaded
+      if (length(r$loaded_pages$patient_level_data) == 0) r$load_page <- "patient_level_data"
+    })
+    
+    observeEvent(r$load_project_trigger, {
+      if (debug) cat(paste0("\n", now(), " - mod_home - observer r$load_project_trigger"))
+      
+      req(length(input$selected_project) > 0)
       
       m$selected_study <- input$selected_project
     })
