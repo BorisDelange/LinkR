@@ -627,17 +627,14 @@ patient_lvl_tabs_delete_subtext,Do you want to delete this tab?
 patient_lvl_tab_deleted,Tab removed
 patient_lvl_tab_added,Tab added
 patient_lvl_widget_added,Widget added
-patient_lvl_widgets_delete,Widget removal
-patient_lvl_widgets_delete_subtext,Do you want to delete this widget?
-patient_lvl_widget_deleted,Widget removed
+delete_widget_title,Delete a widget
+delete_widget_text,Confirm deletion of this widget?
+widget_deleted,Widget removed
 aggregated_tabs_delete,Tab removal
 aggregated_tabs_delete_subtext,Do you want to delete this tab?
 aggregated_tab_deleted,Tab removed
 aggregated_tab_added,Tab added
 aggregated_widget_added,Widget added
-aggregated_widgets_delete,Widget removal
-aggregated_widgets_delete_subtext,Do you want to delete this widget?
-aggregated_widget_deleted,Widget removed
 tab_contains_sub_tabs,This tab contains sub-tabs. Click again on the tab link to show sub-tabs.
 add_tab_has_widgets, Can't add a tab under this tab because it contains at least one widget. Delete these widgets first.
 widget_name, Widget name
@@ -1050,3 +1047,4 @@ explore_data,Explore data
 configure_project,Configure project
 tasks,Tasks
 report_results,Report results
+delete_widget,Delete widget

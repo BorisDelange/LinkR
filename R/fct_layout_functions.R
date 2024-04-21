@@ -103,6 +103,7 @@ make_combobox <- function(i18n = character(), ns = character(), id = NA_characte
   style <- ""
   if (!is.null(width)) style <- paste0(style, "width: ", width, ";")
   div(
+    id = ns(paste0(id, "_div")),
     div(class = "input_title", i18n$t(label)),
     div(shiny.fluent::ComboBox.shinyInput(ns(id), value = value, options = options, multiSelect = multiSelect, 
       allowFreeform = allowFreeform, autoComplete = autoComplete,

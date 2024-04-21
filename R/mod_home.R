@@ -27,6 +27,7 @@ mod_home_server <- function(id, r, d, m, language, i18n, debug){
     
     r$reload_projects_data <- now()
     
+    # Reload projects data
     observeEvent(r$reload_projects_data, {
       if (debug) cat(paste0("\n", now(), " - mod_home - ", id, " - observer r$reload_projects_data"))
       
@@ -55,6 +56,7 @@ mod_home_server <- function(id, r, d, m, language, i18n, debug){
       r$reload_projects_list <- now()
     })
     
+    # Search a project
     observeEvent(input$search_project, {
       if (debug) cat(paste0("\n", now(), " - mod_home - ", id, " - observer input$search_project"))
       
@@ -67,6 +69,7 @@ mod_home_server <- function(id, r, d, m, language, i18n, debug){
       r$reload_projects_list <- now()
     })
     
+    # Reload projects list
     observeEvent(r$reload_projects_list, {
       if (debug) cat(paste0("\n", now(), " - mod_home - ", id, " - observer r$reload_projects_list"))
       
@@ -119,13 +122,18 @@ mod_home_server <- function(id, r, d, m, language, i18n, debug){
       shinyjs::show("projects")
     })
     
+    # A project is selected
     observeEvent(input$selected_project, {
       if (debug) cat(paste0("\n", now(), " - mod_home - observer input$selected_project"))
       
-      # Load data pages if not already loaded
+      # Load data & cencept pages if not already loaded
+      # If not already loaded, project is loaded after data pages server side is loaded
+      # Else, project is loaded directly
       if (length(r$loaded_pages$patient_level_data) == 0) r$load_page <- "patient_level_data"
+      else r$load_project_trigger <- now()
     })
     
+    # Trigger to load a project
     observeEvent(r$load_project_trigger, {
       if (debug) cat(paste0("\n", now(), " - mod_home - observer r$load_project_trigger"))
       

@@ -259,8 +259,7 @@ mod_app_db_ui <- function(id = character(), language = "en", languages = tibble:
 }
 
 #' @noRd
-mod_app_db_server <- function(id = character(), r = shiny::reactiveValues(), m = shiny::reactiveValues(), i18n = character(),
-  language = "en", db_col_types = character(), app_folder = character(), perf_monitoring = FALSE, debug = FALSE){
+mod_app_db_server <- function(id, r, d, m, i18n, language, db_col_types, app_folder, debug){
   moduleServer(id, function(input, output, session){
     ns <- session$ns
     

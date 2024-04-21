@@ -218,6 +218,13 @@ body, html {
   height: 150px;
 }
 
+.create_widget_modal_content {
+  background: #fff;
+  padding: 5px 10px 10px 15px;
+  width: 1200px;
+  height: 800px;
+}
+
 .create_element_modal_head {
   display: flex;
   justify-content: space-between;
@@ -226,6 +233,18 @@ body, html {
 .create_element_modal_body {
   font-size: 12px;
   height: calc(100% - 70px);
+  overflow-y: auto;
+}
+
+/* ---------------- */
+/* FIGURES          */
+/* ---------------- */
+
+.dygraph-label, .dygraph-axis-label {
+  font-size: 12px !important;
+}
+.dygraph-legend {
+  font-size: 12px !important;
 }
 
 
@@ -235,6 +254,19 @@ body, html {
 
 
 
+
+
+
+
+
+
+
+.person_info {
+  border-top: solid 1px #ccc;
+  margin-top: 10px;
+  padding-top: 10px;
+  font-size: 12px;
+}
 
 .card {
   font-size: 12px;
@@ -255,7 +287,7 @@ td[data-type="factor"] input {
 }
 
 .input_title {
-  font-weight: bold;
+  font-weight: 600;
   font-size: 12px;
 }
 
@@ -592,6 +624,11 @@ a.no-hover-effect:hover {
   margin: 10px;
   padding: 0px 10px 5px 10px;
   box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 3px 6px 0 rgba(0, 0, 0, 0.19);
+}
+.widget_buttons {
+  position: absolute;
+  top: 0px;
+  right: 7px;
 }
 
 .delete_modal {

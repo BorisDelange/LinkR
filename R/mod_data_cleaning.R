@@ -341,8 +341,7 @@ mod_data_cleaning_ui <- function(id = character(), language = "en", languages = 
 }
 
 #' @noRd 
-mod_data_cleaning_server <- function(id = character(), r = shiny::reactiveValues(), d = shiny::reactiveValues(), m = shiny::reactiveValues(), 
-  language = "en", i18n = character(), perf_monitoring = FALSE, debug = FALSE){
+mod_data_cleaning_server <- function(id, r, d, m, language, i18n, debug){
   moduleServer(id, function(input, output, session){
     ns <- session$ns
     

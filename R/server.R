@@ -263,6 +263,7 @@ app_server <- function(pages, language, languages, i18n, app_folder, debug, loca
       
       # Data pages are loaded from mod_home (when a project is selected)
       if (page %in% c("patient_level_data", "aggregated_data")){
+        
         sapply(c("patient_level_data", "aggregated_data"), function(page){
           mod_data_server(page, r, d, m, language, i18n, debug)
           mod_page_sidenav_server(page, r, d, m, language, i18n, debug)
@@ -271,6 +272,12 @@ app_server <- function(pages, language, languages, i18n, app_folder, debug, loca
           
           r$load_project_trigger <- now()
         })
+        
+        # Also load concepts page
+        mod_concepts_server("concepts", r, d, m, language, i18n, debug)
+        mod_page_sidenav_server("concepts", r, d, m, language, i18n, debug)
+        mod_page_header_server("concepts", r, d, m, language, i18n, debug)
+        r$loaded_pages$concepts <- TRUE
       }
       else {
         if (page == "users") args <- list(page, r, d, m, language, i18n, debug, users_accesses_toggles_options)
