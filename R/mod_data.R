@@ -737,38 +737,8 @@ mod_data_server <- function(id = character(), r = shiny::reactiveValues(), d = s
       # Update r var
       r[[paste0(category, "_widgets")]] <- r[[paste0(category, "_widgets")]] %>% dplyr::filter(id != widget_id)
       
-      # Remove UI
-      # removeUI(selector = paste0("#", ns(paste0(category, "_widget_", widget_id))))
-      
-      # sql <- glue::glue_sql("SELECT DISTINCT(tab_id) FROM widgets WHERE id = {widget_id}", .con = r$db)
-      # tab_id <- DBI::dbGetQuery(r$db, sql) %>% dplyr::pull()
-      
-      # Get widget ids
-      # widgets <- r[[paste0(category, "_widgets")]] %>% dplyr::filter(tab_id == !!tab_id) %>% dplyr::rename(widget_id = id) %>% dplyr::arrange(display_order)
-      # distinct_widgets <- unique(widgets$widget_id)
-      
-      # Reset opened cards
-      # r[[paste0(category, "_opened_cards")]] <- ""
-      
-      # Loop over distinct cards (tabs elements), for this tab
-      # Use sapply instead of for loop, cause with for loop, widget_id doesn't change
-      # sapply(distinct_widgets, function(widget_id){
-      #   
-      #   # Get name of widget
-      #   widget_name <- widgets %>% dplyr::filter(widget_id == !!widget_id) %>% dplyr::slice(1) %>% dplyr::pull(name)
-      #   
-      #   toggles <<- tagList(toggles,
-      #                       shiny.fluent::Toggle.shinyInput(ns(paste0(category, "_widget_", widget_id, "_toggle")), value = TRUE, style = "margin-top:10px;"),
-      #                       div(class = "toggle_title", widget_name, style = "padding-top:10px;"))
-      #   
-      #   # Add to the list of opened cards
-      #   r[[paste0(category, "_opened_cards")]] <- c(r[[paste0(category, "_opened_cards")]], paste0(category, "_widget_", widget_id))
-      # })
-      # 
-      # r[[paste0(category, "_opened_cards")]] <- c(r[[paste0(category, "_opened_cards")]], paste0(category, "_toggles_", tab_id))
-      
-      # Show opened cards
-      # sapply(r[[paste0(category, "_opened_cards")]], shinyjs::show)
+      # Remove widget from gridstacks
+      # ...
       
       # Close modal
       shinyjs::hide("delete_widget_modal")
@@ -1229,15 +1199,14 @@ mod_data_server <- function(id = character(), r = shiny::reactiveValues(), d = s
     # --- --- --- --- -- -
     
     observeEvent(r[[paste0(category, "_load_ui_cards")]], {
-      
       if (debug) cat(paste0("\n", now(), " - mod_data - ", id, " - observer r$..load_ui_cards"))
       
       # Don't reload study UI if already loaded
       req(m$selected_study %not_in% r[[paste0(category, "_loaded_studies")]])
       
-      distinct_tabs <- r[[paste0(category, "_display_tabs")]] %>% dplyr::pull(id)
+      distinct_tabs <- r[[paste0(category, "_display_tabs")]]$id
       
-      code_ui <- tagList("")
+      code_ui <- tagList()
       
       all_groups <- NA_integer_
       
@@ -1248,8 +1217,6 @@ mod_data_server <- function(id = character(), r = shiny::reactiveValues(), d = s
       if (grepl("show_tab", selected_tab)) selected_tab <- as.integer(substr(selected_tab, nchar("show_tab_") + 1, 100))
       
       sapply(distinct_tabs, function(tab_id){
-        
-        # toggles <- tagList()
         
         # Add gridstack div
         gridstack_id <- paste0(category, "_gridstack_", tab_id)
@@ -1290,80 +1257,70 @@ mod_data_server <- function(id = character(), r = shiny::reactiveValues(), d = s
           # Use sapply instead of for loop, cause with for loop, widget_id doesn't change
           sapply(distinct_widgets, function(widget_id){
             
-            # Load selected concepts
+            # Load over selected concepts
             selected_concepts <- widgets_concepts %>% dplyr::filter(widget_id == !!widget_id) %>%
               dplyr::select(concept_id, concept_name, concept_display_name, domain_id, mapped_to_concept_id, merge_mapped_concepts)
             
             # Load UI code for this widget
             plugin_id <- widgets %>% dplyr::filter(widget_id == !!widget_id) %>% dplyr::slice(1) %>% dplyr::pull(plugin_id)
-            # if (length(plugin_id) != 0) code_ui_card <- r$code %>% dplyr::filter(link_id == plugin_id, category == "plugin_ui") %>% dplyr::pull(code)
             
             # Check if plugin has been deleted
-            # check_deleted_plugin <- DBI::dbGetQuery(r$db, paste0("SELECT * FROM plugins WHERE id = ", plugin_id)) %>% dplyr::pull(deleted)
-            check_deleted_plugin <- r$plugins %>% dplyr::filter(id == plugin_id)
-            if (nrow(check_deleted_plugin) == 0){
+            check_deleted_plugin <- nrow(DBI::dbGetQuery(r$db, paste0("SELECT * FROM plugins WHERE id = ", plugin_id))) == 0
+            if (check_deleted_plugin){
               code_ui_card <- paste0("div(shiny.fluent::MessageBar('", i18n$t("plugin_deleted"), "', messageBarType = 5), style = 'margin-top:10px;')")
               settings_widget_button <- ""
             }
-            if (nrow(check_deleted_plugin) > 0){
+            else {
               
-              code_ui_card <- r$code %>% dplyr::filter(link_id == plugin_id, category == "plugin_ui") %>% dplyr::pull(code)
-              settings_widget_button <- actionButton(ns(paste0(category, "_widget_settings_", widget_id)), "", icon = icon("cog"))
+              # Get plugin unique_id
+              plugin_unique_id <- r$options %>% dplyr::filter(category == "plugin", name == "unique_id", link_id == plugin_id) %>% dplyr::pull(value)
               
-              # Create translations file & var
+              # Get plugin folder
+              plugin_folder <- paste0(r$app_folder, "/plugins/", category, "/", plugin_unique_id)
               
-              plugin_translations <- r$code %>% dplyr::filter(link_id == plugin_id, category == "plugin_translations") %>% dplyr::pull(code)
+              # code_ui_card <- r$code %>% dplyr::filter(link_id == plugin_id, category == "plugin_ui") %>% dplyr::pull(code)
+              # settings_widget_button <- actionButton(ns(paste0(category, "_widget_settings_", widget_id)), "", icon = icon("cog"))
               
-              if (plugin_translations != ""){
+              # Create translations files
+              tryCatch({
+                # Create plugin folder in translations folder if doesn't exist
+                new_dir <- paste0(r$app_folder, "/translations/", plugin_unique_id)
+                if (!dir.exists(new_dir)) dir.create(new_dir)
                 
-                tryCatch({
-                  # Get plugin unique_id
-                  plugin_unique_id <- r$options %>% dplyr::filter(category == "plugin", name == "unique_id", link_id == plugin_id) %>% dplyr::pull(value)
-                  
-                  # Create plugin folder in translations folder if doesn't exist
-                  new_dir <- paste0(r$app_folder, "/translations/", plugin_unique_id)
-                  if (!dir.exists(new_dir)) dir.create(new_dir)
-                  
-                  # Create a csv with all languages
-                  data <- read.csv(text = plugin_translations, header = TRUE, stringsAsFactors = FALSE)
-                  
-                  # Create one csv by language
-                  for(lang in names(data)[-1]){
-                    file_name <- paste0(new_dir, "/translation_", lang, ".csv")
-                    
-                    if (!file.exists(file_name)){
-                      # Create a new dataframe with base & current language cols
-                      data_lang <- data[, c("base", lang)]
-                      
-                      # Create csv
-                      write.csv(data_lang, file_name, row.names = FALSE)
-                    }
-                  }
-                },
-                  error = function(e) report_bug(r = r, output = output, error_message = "error_creating_translations_file",
-                    error_name = paste0(id, " - create translations files - plugin_id ", plugin_id), category = "Error", error_report = toString(e), i18n = i18n, ns = ns))
+                # Get translations file
+                translations <- readLines(paste0(plugin_folder, "/translations.csv"), warn = FALSE)
                 
-                tryCatch({
-                  i18np <- suppressWarnings(shiny.i18n::Translator$new(translation_csvs_path = new_dir))
-                  i18np$set_translation_language(language)},
-                  error = function(e) report_bug(r = r, output = output, error_message = "error_creating_new_translator",
-                    error_name = paste0(id, " - create i18np translator - plugin_id ", plugin_id), category = "Error", error_report = toString(e), i18n = i18n, ns = ns))
-              }
+                # Create a csv with all languages
+                data <- read.csv(text = translations, header = TRUE, stringsAsFactors = FALSE)
+                
+                # Create one csv by language
+                for(lang in names(data)[-1]){
+                  # Create a new dataframe with base & current language cols
+                  data_lang <- data[, c("base", lang)]
+                  filename <- paste0(new_dir, "/translation_", lang, ".csv")
+                  write.csv(data_lang, filename, row.names = FALSE)
+                }
+              }, error = function(e) report_bug(r = r, output = output, error_message = "error_creating_translations_file",
+                  error_name = paste0(id, " - create translations files - plugin_id ", plugin_id), category = "Error", error_report = toString(e), i18n = i18n, ns = ns))
+              
+              tryCatch({
+                i18np <- suppressWarnings(shiny.i18n::Translator$new(translation_csvs_path = new_dir))
+                i18np$set_translation_language(language)},
+                error = function(e) report_bug(r = r, output = output, error_message = "error_creating_new_translator",
+                  error_name = paste0(id, " - create i18np translator - plugin_id ", plugin_id), category = "Error", error_report = toString(e), i18n = i18n, ns = ns))
             }
             
             # Get name of widget
             widget_name <- widgets %>% dplyr::filter(widget_id == !!widget_id) %>% dplyr::slice(1) %>% dplyr::pull(name)
             
-            # Append a toggle to our cards list
-            # r[[paste0(category, "_cards")]] <- c(r[[paste0(category, "_cards")]], paste0(category, "_widget_", widget_id))
+            # Get UI code from db. Try to run plugin UI code
             
-            # toggles <<- tagList(toggles,
-            #   shiny.fluent::Toggle.shinyInput(ns(paste0(category, "_widget_", widget_id, "_toggle")), value = TRUE, style = "margin-top:10px;"),
-            #   div(class = "toggle_title", widget_name, style = "padding-top:10px;"))
+            sql <- glue::glue_sql("SELECT id FROM options WHERE link_id = {plugin_id} AND name = 'filename' AND value = 'ui.R'", .con = r$db)
+            code_id <- DBI::dbGetQuery(r$db, sql) %>% dplyr::pull()
             
-            # Try to run plugin UI code
-            # ID of UI element is in the following format : "group_[ID]"
-            # tryCatch({
+            sql <- glue::glue_sql("SELECT code FROM code WHERE category = 'plugin' AND link_id = {code_id}", .con = r$db)
+            code_ui_card <- DBI::dbGetQuery(r$db, sql) %>% dplyr::pull()
+            
             code_ui_card <- code_ui_card %>%
               stringr::str_replace_all("%tab_id%", as.character(tab_id)) %>%
               stringr::str_replace_all("%widget_id%", as.character(widget_id)) %>%
@@ -1376,17 +1333,18 @@ mod_data_server <- function(id = character(), r = shiny::reactiveValues(), d = s
             # Widget card
             
             code_ui <- tryCatch(eval(parse(text = code_ui_card)), error = function(e){
-              report_bug(r = r, output = output, error_message = "error_run_plugin_ui_code",
+              report_bug(r = r, output = output, error_message = "error_run_plugin_code_ui_card",
                 error_name = paste0(id, " - run ui code - ", widget_id), category = "Error", error_report = toString(e), i18n = i18n, ns = ns)
               p(toString(e))
             }, warning = function(w){
-              report_bug(r = r, output = output, error_message = "error_run_plugin_ui_code",
+              report_bug(r = r, output = output, error_message = "error_run_plugin_code_ui_card",
                 error_name = paste0(id, " - run ui code - ", widget_id), category = "Error", error_report = toString(w), i18n = i18n, ns = ns)
               p(toString(w))
             })
-            
+              
             ui_output <- div(
               id = ns(paste0(category, "_widget_", widget_id)),
+              plugin_id, br(),
               code_ui,
               div(
                 id = ns(paste0(category, "_widget_settings_remove_buttons_", widget_id)),
@@ -1415,50 +1373,11 @@ mod_data_server <- function(id = character(), r = shiny::reactiveValues(), d = s
           })
         }
         
-        # Put all div together
-        
-        # r[[paste0(category, "_cards")]] <- c(r[[paste0(category, "_cards")]], paste0(category, "_toggles_", tab_id))
-        
-        # Does this tab have sub-tabs ?
-        # if (r[[paste0(category, "_tabs")]] %>% dplyr::filter(parent_tab_id == tab_id) %>% nrow() > 0) toggles_div <- div(
-        #   make_card("",
-        #     shiny.fluent::Stack(horizontal = TRUE, tokens = list(childrenGap = 10),
-        #       shiny.fluent::ActionButton.shinyInput(ns(paste0(category, "_edit_tab_", tab_id)), i18n$t("edit_tab"), iconProps = list(iconName = "Edit"),
-        #         onClick = htmlwidgets::JS(paste0("item => Shiny.setInputValue('", id, "-edit_tab_trigger', Math.random())"))),
-        #       div(shiny.fluent::MessageBar(i18n$t("tab_contains_sub_tabs"), messageBarType = 5), style = "margin-top:4px;")
-        #     )
-        #   )
-        # )
-        # 
-        # else toggles_div <- div(
-        #   make_card("",
-        #     shiny.fluent::Stack(horizontal = TRUE, tokens = list(childrenGap = 10),
-        #       # shiny.fluent::ActionButton.shinyInput(ns(paste0(category, "_add_widget_", tab_id)), i18n$t("new_widget"), iconProps = list(iconName = "Add"),
-        #       #   onClick = htmlwidgets::JS(paste0("item => Shiny.setInputValue('", id, "-", category, "_add_widget_trigger', Math.random())"))),
-        #       # shiny.fluent::ActionButton.shinyInput(ns(paste0(category, "_edit_tab_", tab_id)), i18n$t("edit_tab"), iconProps = list(iconName = "Edit"),
-        #       #   onClick = htmlwidgets::JS(paste0("item => Shiny.setInputValue('", id, "-edit_tab_trigger', Math.random())"))),
-        #       # div(style = "width:20px;"),
-        #       toggles
-        #     )
-        #   )
-        # )
-        
-        # ui_output <- uiOutput(ns(paste0(category, "_toggles_", tab_id)))
-        # hide_div <- TRUE
-        # if (!is.na(selected_tab)) if (tab_id == selected_tab) hide_div <- FALSE
-        # if (hide_div) ui_output <- shinyjs::hidden(ui_output)
-        
-        # insertUI(selector = paste0("#", ns("study_cards")), where = "afterBegin", ui = ui_output)
-        # output[[paste0(category, "_toggles_", tab_id)]] <- renderUI(toggles_div)
         
       })
       
       # Indicate that this study has been loaded, so that UI elements aren't loaded twice
       r[[paste0(category, "_loaded_studies")]] <- c(r[[paste0(category, "_loaded_studies")]], m$selected_study)
-      
-      # Reload UI menu (problem for displaying cards : blanks if we do not do that)
-      # shinyjs::delay(100, r[[paste0(category, "_load_ui_menu")]] <- now())
-      # r[[paste0(category, "_load_ui_menu")]] <- now()
     })
     
     # --- --- --- -- -
@@ -1517,10 +1436,16 @@ mod_data_server <- function(id = character(), r = shiny::reactiveValues(), d = s
             ids <- widgets %>% dplyr::filter(widget_id == !!widget_id) %>% dplyr::slice(1) %>% dplyr::select(plugin_id, tab_id)
             
             # Check if plugin has been deleted
-            check_deleted_plugin <- DBI::dbGetQuery(r$db, paste0("SELECT * FROM plugins WHERE id = ", ids$plugin_id)) %>% dplyr::pull(deleted)
+            check_deleted_plugin <- nrow(DBI::dbGetQuery(r$db, paste0("SELECT * FROM plugins WHERE id = ", ids$plugin_id))) == 0
             if (!check_deleted_plugin){
               
-              code_server_card <- r$code %>%
+              sql <- glue::glue_sql("SELECT id FROM options WHERE link_id = {ids$plugin_id} AND name = 'filename' AND value = 'server.R'", .con = r$db)
+              code_id <- DBI::dbGetQuery(r$db, sql) %>% dplyr::pull()
+              
+              sql <- glue::glue_sql("SELECT code FROM code WHERE category = 'plugin' AND link_id = {code_id}", .con = r$db)
+              server_code <- DBI::dbGetQuery(r$db, sql) %>% dplyr::pull()
+              
+              server_code <- r$code %>%
                 dplyr::filter(link_id == ids$plugin_id, category == "plugin_server") %>%
                 dplyr::pull(code) %>%
                 stringr::str_replace_all("%tab_id%", as.character(ids$tab_id)) %>%
@@ -1531,53 +1456,53 @@ mod_data_server <- function(id = character(), r = shiny::reactiveValues(), d = s
                 stringr::str_replace_all("''", "'")
               
               # If it is an aggregated plugin, change %study_id% with current selected study
-              if (length(m$selected_study) > 0) code_server_card <- code_server_card %>% stringr::str_replace_all("%study_id%", as.character(m$selected_study))
+              if (length(m$selected_study) > 0) server_code <- server_code %>% stringr::str_replace_all("%study_id%", as.character(m$selected_study))
             }
-            else code_server_card <- ""
+            else server_code <- ""
             
             # Create translations file & var
-            if (!check_deleted_plugin){
-              
-              plugin_translations <- r$code %>%
-                dplyr::filter(link_id == ids$plugin_id, category == "plugin_translations") %>%
-                dplyr::pull(code)
-              
-              if (plugin_translations != ""){
-                
-                tryCatch({
-                  # Get plugin unique_id
-                  plugin_unique_id <- r$options %>% dplyr::filter(category == "plugin", name == "unique_id", link_id == !!ids$plugin_id) %>% dplyr::pull(value)
-                  
-                  # Create plugin folder in translations folder if doesn't exist
-                  new_dir <- paste0(r$app_folder, "/translations/", plugin_unique_id)
-                  if (!dir.exists(new_dir)) dir.create(new_dir)
-                  
-                  # Create a csv with all languages
-                  data <- read.csv(text = plugin_translations, header = TRUE, stringsAsFactors = FALSE)
-                  
-                  # Create one csv by language
-                  for(lang in names(data)[-1]){
-                    file_name <- paste0(new_dir, "/translation_", lang, ".csv")
-                    
-                    if (!file.exists(file_name)){
-                      # Create a new dataframe with base & current language cols
-                      data_lang <- data[, c("base", lang)]
-                      
-                      # Create csv
-                      write.csv(data_lang, file_name, row.names = FALSE)
-                    }
-                  }
-                },
-                  error = function(e) report_bug(r = r, output = output, error_message = "error_creating_translations_file",
-                    error_name = paste0(id, " - create translations files - plugin_id ", ids$plugin_id), category = "Error", error_report = toString(e), i18n = i18n, ns = ns))
-                
-                tryCatch({
-                  i18np <- suppressWarnings(shiny.i18n::Translator$new(translation_csvs_path = new_dir))
-                  i18np$set_translation_language(language)},
-                  error = function(e) report_bug(r = r, output = output, error_message = "error_creating_new_translator",
-                    error_name = paste0(id, " - create i18np translator - plugin_id ", ids$plugin_id), category = "Error", error_report = toString(e), i18n = i18n, ns = ns))
-              }
-            }
+            # if (!check_deleted_plugin){
+            #   
+            #   plugin_translations <- r$code %>%
+            #     dplyr::filter(link_id == ids$plugin_id, category == "plugin_translations") %>%
+            #     dplyr::pull(code)
+            #   
+            #   if (plugin_translations != ""){
+            #     
+            #     tryCatch({
+            #       # Get plugin unique_id
+            #       plugin_unique_id <- r$options %>% dplyr::filter(category == "plugin", name == "unique_id", link_id == !!ids$plugin_id) %>% dplyr::pull(value)
+            #       
+            #       # Create plugin folder in translations folder if doesn't exist
+            #       new_dir <- paste0(r$app_folder, "/translations/", plugin_unique_id)
+            #       if (!dir.exists(new_dir)) dir.create(new_dir)
+            #       
+            #       # Create a csv with all languages
+            #       data <- read.csv(text = plugin_translations, header = TRUE, stringsAsFactors = FALSE)
+            #       
+            #       # Create one csv by language
+            #       for(lang in names(data)[-1]){
+            #         file_name <- paste0(new_dir, "/translation_", lang, ".csv")
+            #         
+            #         if (!file.exists(file_name)){
+            #           # Create a new dataframe with base & current language cols
+            #           data_lang <- data[, c("base", lang)]
+            #           
+            #           # Create csv
+            #           write.csv(data_lang, file_name, row.names = FALSE)
+            #         }
+            #       }
+            #     },
+            #       error = function(e) report_bug(r = r, output = output, error_message = "error_creating_translations_file",
+            #         error_name = paste0(id, " - create translations files - plugin_id ", ids$plugin_id), category = "Error", error_report = toString(e), i18n = i18n, ns = ns))
+            #     
+            #     tryCatch({
+            #       i18np <- suppressWarnings(shiny.i18n::Translator$new(translation_csvs_path = new_dir))
+            #       i18np$set_translation_language(language)},
+            #       error = function(e) report_bug(r = r, output = output, error_message = "error_creating_new_translator",
+            #         error_name = paste0(id, " - create i18np translator - plugin_id ", ids$plugin_id), category = "Error", error_report = toString(e), i18n = i18n, ns = ns))
+            #   }
+            # }
             
             # Create a session number, to inactivate older observers
             # Reset all older observers for this widget_id
@@ -1599,7 +1524,7 @@ mod_data_server <- function(id = character(), r = shiny::reactiveValues(), d = s
             for (var in variables_to_keep) new_env_vars[[var]] <- eval(parse(text = var))
             
             new_env <- rlang::new_environment(data = new_env_vars, parent = pryr::where("r"))
-            tryCatch(eval(parse(text = code_server_card), envir = new_env),
+            tryCatch(eval(parse(text = server_code), envir = new_env),
               error = function(e) report_bug(r = r, output = output, error_message = "error_run_plugin_server_code",
                 error_name = paste0(id, " - run_study_server_code - run_plugin_code - plugin_id ", ids$plugin_id), category = "Error", error_report = toString(e), i18n = i18n, ns = ns))
             
@@ -2833,11 +2758,11 @@ mod_data_server <- function(id = character(), r = shiny::reactiveValues(), d = s
         stringr::str_replace_all("%study_id%", as.character(isolate(m$selected_study)))
       
       code_ui <- tryCatch(eval(parse(text = code_ui_card)), error = function(e){
-        report_bug(r = r, output = output, error_message = "error_run_plugin_ui_code",
+        report_bug(r = r, output = output, error_message = "error_run_plugin_code_ui_card",
           error_name = paste0(id, " - run ui code - ", widget_id), category = "Error", error_report = toString(e), i18n = i18n, ns = ns)
         p(toString(e))
       }, warning = function(w){
-        report_bug(r = r, output = output, error_message = "error_run_plugin_ui_code",
+        report_bug(r = r, output = output, error_message = "error_run_plugin_code_ui_card",
           error_name = paste0(id, " - run ui code - ", widget_id), category = "Error", error_report = toString(w), i18n = i18n, ns = ns)
         p(toString(w))
       })
