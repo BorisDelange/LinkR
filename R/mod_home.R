@@ -11,7 +11,7 @@ mod_home_ui <- function(id, language, languages, i18n){
       div(shiny.fluent::SearchBox.shinyInput(ns("search_project")), style = "width:320px; margin:10px 0 0 10px;"),
       uiOutput(ns("projects"))
     ),
-    uiOutput("gridster_1")
+    uiOutput(ns("gridster_1"))
   )
 }
 
@@ -36,7 +36,7 @@ mod_home_server <- function(id, r, d, m, language, i18n, debug){
         tags$ul(
           tags$li(
             id = "widget_3",
-            `data-row` = 1, `data-col` = 1, `data-sizex` = 1, `data-sizey` = 1,
+            `data-row` = 1, `data-col` = 1, `data-sizex` = 4, `data-sizey` = 4,
             div("Widget 3", style = "background-color: #ccc; height: 100%; width:100%; border: solid 1px;")
           ),
           tags$li(
