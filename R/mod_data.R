@@ -814,7 +814,7 @@ mod_data_server <- function(id = character(), r = shiny::reactiveValues(), d = s
       if (debug) cat(paste0("\n", now(), " - mod_data - ", id, " - observer input$edit_page_on"))
       
       # Enable gridster edition
-      sapply(r[[paste0(category, "_cards")]], function(gridster_id) shinyjs::runjs(paste0(gridster_id, ".enable();")))
+      sapply(r[[paste0(category, "_cards")]], function(gridster_id) shinyjs::runjs(paste0(gridster_id, ".enable().enable_resize();")))
       shinyjs::addClass(selector = ".gridster", class = "editable_gridster")
       
       # Show edit and delete widget buttons
@@ -829,7 +829,7 @@ mod_data_server <- function(id = character(), r = shiny::reactiveValues(), d = s
       if (debug) cat(paste0("\n", now(), " - mod_data - ", id, " - observer input$edit_page_off"))
       
       # Disable gridster edition
-      sapply(r[[paste0(category, "_cards")]], function(gridster_id) shinyjs::runjs(paste0(gridster_id, ".disable();")))
+      sapply(r[[paste0(category, "_cards")]], function(gridster_id) shinyjs::runjs(paste0(gridster_id, ".disable().disable_resize();")))
       shinyjs::removeClass(selector = ".gridster", class = "editable_gridster")
       
       # Hide edit and delete widget buttons
@@ -1454,13 +1454,14 @@ mod_data_server <- function(id = character(), r = shiny::reactiveValues(), d = s
         shinyjs::delay(100, shinyjs::runjs(paste0("
           $(document).ready(function() {
             window.", gridster_id, " = $('#", ns(gridster_id), " ul').gridster({
-              widget_margins: [30, 10],
+              namespace: '#", ns(gridster_id), "',
+              widget_margins: [15, 15],
               widget_base_dimensions: [100, 100],
               resize: {
                 enabled: true
               }
             }).data('gridster');
-            ", gridster_id, ".disable();
+            ", gridster_id, ".disable().disable_resize();
           });"
         )))
         

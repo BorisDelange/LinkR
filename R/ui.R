@@ -60,18 +60,6 @@ golem_add_external_resources <- function(){
     # Add gridster.js
     tags$script(src = 'jquery.dsmorse-gridster.min.js'),
     tags$link(rel = 'stylesheet', type = 'text/css', href = 'jquery.dsmorse-gridster.min.css'),
-    tags$script("
-      function initGridster() {
-        gridster_1 = $('#gridster_1_div ul').gridster({
-          widget_margins: [10, 10],
-          widget_base_dimensions: [100, 100],
-          resize: {
-            enabled: true,
-            handles: 'e, se, s, sw, w'
-          }
-        }).data('gridster');
-      }"
-    ),
     # tags$script(src = 'jquery.gridster.min.js'),
     # tags$link(rel = 'stylesheet', type = 'text/css', href = 'jquery.gridster.min.css'),
     
