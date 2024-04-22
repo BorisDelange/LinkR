@@ -264,6 +264,7 @@ body, html {
 .gridster ul {
   max-width: calc(100% - 40px);
   box-sizing: border-box;
+  margin-top: 0;
 }
 
 .gridster .preview-holder {
