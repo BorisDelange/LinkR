@@ -10,7 +10,8 @@ mod_home_ui <- function(id, language, languages, i18n){
       div(shiny.fluent::Breadcrumb(items = list(list(key = page, text = i18n$t("projects")))), style = "margin-left:10px"),
       div(shiny.fluent::SearchBox.shinyInput(ns("search_project")), style = "width:320px; margin:10px 0 0 10px;"),
       uiOutput(ns("projects"))
-    )
+    ),
+    uiOutput("gridster_1")
   )
 }
 
@@ -20,6 +21,38 @@ mod_home_server <- function(id, r, d, m, language, i18n, debug){
     ns <- session$ns
     
     if (debug) cat(paste0("\n", now(), " - mod_home - ", id, " - start"))
+    
+    output$gridster_1 <- renderUI({
+    
+      shinyjs::delay(100, shinyjs::runjs("
+        $(document).ready(function() {
+          initGridster();
+        });"
+      ))
+      
+      div(
+        id = "gridster_1_div",
+        class = "gridster editable_gridster",
+        tags$ul(
+          tags$li(
+            id = "widget_3",
+            `data-row` = 1, `data-col` = 1, `data-sizex` = 1, `data-sizey` = 1,
+            div("Widget 3", style = "background-color: #ccc; height: 100%; width:100%; border: solid 1px;")
+          ),
+          tags$li(
+            id = "widget_2",
+            `data-row` = 1, `data-col` = 1, `data-sizex` = 1, `data-sizey` = 1,
+            div("Widget 2", style = "background-color: #ccc; height: 100%; width:100%; border: solid 1px;")
+          ),
+          tags$li(
+            id = "widget_1",
+            `data-row` = 1, `data-col` = 1, `data-sizex` = 1, `data-sizey` = 1,
+            div("Widget 1", style = "background-color: #ccc; height: 100%; width:100%; border: solid 1px;")
+          )
+        ),
+        style = "background-color: #ddd; border: solid 1px; width:100%; height:100%;"
+      )
+    })
     
     # --- --- --- --- --
     # Show projects ----

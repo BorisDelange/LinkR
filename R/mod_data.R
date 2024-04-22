@@ -156,7 +156,7 @@ mod_data_ui <- function(id = character(), language = "en", languages = tibble::t
     add_widget_modal,
     delete_wigdet_modal,
     shinyjs::hidden(uiOutput(ns("study_menu"))),
-    div(id = ns("study_cards")),
+    div(id = ns("study_cards"), style = "overflow: hidden;"),
     # div(id = ns("widgets")),
     shinyjs::hidden(
       div(
@@ -1110,7 +1110,7 @@ mod_data_server <- function(id = character(), r = shiny::reactiveValues(), d = s
           breadcrumb <- div(
             id = ns(paste0(category, "_study_breadcrumb_", tab_group_id, "_", tab_sub_group)),
             shiny.fluent::Breadcrumb(items = breadcrumb_list, maxDisplayedItems = 5),
-            style = "display:flex;"
+            style = "margin-left: 10px;"
           )
           
           if (is.na(r[[paste0(category, "_selected_tab")]]) & i > 1) breadcrumb <- shinyjs::hidden(breadcrumb)
@@ -1413,8 +1413,12 @@ mod_data_server <- function(id = character(), r = shiny::reactiveValues(), d = s
             # Insert into a gridster widget
             ui_output <- tags$li(
               id = ns(paste0(category, "_widget_", widget_id)),
-              `data-row` = 1, `data-col` = 1, `data-sizex` = 1, `data-sizey` = 1,
-              ui_output
+              `data-row` = 1, `data-col` = 1, `data-sizex` = 6, `data-sizey` = 2,
+              ui_output,
+              # div(
+              #   "Test",
+              class = "gridster_widget"
+              # )
             )
               
             widgets_ui <<- tagList(widgets_ui, ui_output)
@@ -1438,7 +1442,7 @@ mod_data_server <- function(id = character(), r = shiny::reactiveValues(), d = s
         
         # Add gridster div
         gridster_id <- paste0(category, "_gridster_", tab_id)
-        gridster_div <- div(id = ns(gridster_id), class = "gridster", tags$ul(widgets_ui), style = "margin-left:-18px;")
+        gridster_div <- div(id = ns(gridster_id), class = "gridster", tags$ul(widgets_ui))
         
         hide_div <- TRUE
         if (!is.na(selected_tab)) if (tab_id == selected_tab) hide_div <- FALSE
@@ -1450,9 +1454,8 @@ mod_data_server <- function(id = character(), r = shiny::reactiveValues(), d = s
         shinyjs::delay(100, shinyjs::runjs(paste0("
           $(document).ready(function() {
             window.", gridster_id, " = $('#", ns(gridster_id), " ul').gridster({
-              widget_margins: [20, 10],
-              widget_base_dimensions: [650, 200],
-              max_cols: 12,
+              widget_margins: [30, 10],
+              widget_base_dimensions: [100, 100],
               resize: {
                 enabled: true
               }

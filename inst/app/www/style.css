@@ -113,6 +113,7 @@ body, html {
   overflow-y: auto;
   border-right: solid 1px #ccc;
   transition: width 0.3s ease-in-out, min-width 0.3s ease-in-out, padding 0.3s ease-in-out;
+  z-index: 100;
 }
 
 .button_sidenav {
@@ -153,7 +154,7 @@ body, html {
 .main {
   flex-grow: 1;
   overflow-y: auto;
-  margin: 0px 15px;
+  margin: 0px 15px 0px 5px;
 }
 
 /* --------------- */
@@ -249,20 +250,37 @@ body, html {
 }
 
 /* ---------------- */
-/* GRIDSTER          */
+/* WIDGETS          */
 /* ---------------- */
 
 .editable_gridster {
   cursor: pointer;
 }
 
-div.gridster > ul, ol {
+.gridster > ul, ol {
   list-style: none;
 }
 
+.gridster ul {
+  max-width: calc(100% - 40px);
+  box-sizing: border-box;
+}
 
+.gridster .preview-holder {
+    background-color: #ccc;
+    opacity: 0.5;
+}
 
+.gridster_widget {
+  box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 3px 6px 0 rgba(0, 0, 0, 0.19);
+  overflow: hidden;
+  font-size: 12px;
+  z-index: 10;
+}
 
+.widget {
+  padding: 0px 10px 5px 10px;
+}
 
 
 
@@ -624,18 +642,6 @@ a.no-hover-effect:hover {
   justify-content: space-between;
 }
 
-.widget {
-  font-size: 12px;
-  /*height: calc(100% - 40px);*/
-  height: 100%;
-  width: 100%;
-  position: relative;
-  margin: 10px;
-  padding: 0px 10px 5px 10px;
-  box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 3px 6px 0 rgba(0, 0, 0, 0.19);
-  overflow: hidden;
-  z-index: 10;
-}
 .widget_buttons {
   position: absolute;
   top: 0px;

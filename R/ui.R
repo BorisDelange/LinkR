@@ -53,11 +53,27 @@ golem_add_external_resources <- function(){
     tags$link(href = "style.css", rel = "stylesheet", type = "text/css"),
     tags$link(href = "fluent_style.css", rel = "stylesheet", type = "text/css"),
     
+    # Add jquery
+    tags$link(rel = "stylesheet", href = "https://code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css"),
+    tags$script(src = "https://code.jquery.com/ui/1.12.1/jquery-ui.js"),
+    
     # Add gridster.js
-    # tags$script(src = 'jquery.dsmorse-gridster.min.js'),
-    # tags$link(rel = 'stylesheet', type = 'text/css', href = 'jquery.dsmorse-gridster.min.css'),
-    tags$script(src = 'jquery.gridster.min.js'),
-    tags$link(rel = 'stylesheet', type = 'text/css', href = 'jquery.gridster.min.css'),
+    tags$script(src = 'jquery.dsmorse-gridster.min.js'),
+    tags$link(rel = 'stylesheet', type = 'text/css', href = 'jquery.dsmorse-gridster.min.css'),
+    tags$script("
+      function initGridster() {
+        gridster_1 = $('#gridster_1_div ul').gridster({
+          widget_margins: [10, 10],
+          widget_base_dimensions: [100, 100],
+          resize: {
+            enabled: true,
+            handles: 'e, se, s, sw, w'
+          }
+        }).data('gridster');
+      }"
+    ),
+    # tags$script(src = 'jquery.gridster.min.js'),
+    # tags$link(rel = 'stylesheet', type = 'text/css', href = 'jquery.gridster.min.css'),
     
     # Add highlight.js
     tags$link(rel = "stylesheet", href = "https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.3.1/styles/tomorrow-night-blue.min.css"),
