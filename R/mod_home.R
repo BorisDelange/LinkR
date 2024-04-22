@@ -96,6 +96,10 @@ mod_home_server <- function(id, r, d, m, language, i18n, debug){
         max_length <- 45
         if (nchar(project_name) > max_length) project_name <- paste0(substr(project_name, 1, max_length - 3), "...")
         
+        study_description <- "Short description of my study"
+        if (i == 10) study_description <- "Etude du pronostic des patients avec pneumopathies graves admis en réanimation"
+        else if (i == 17) study_description <- "Dashboard d'indicateurs de qualité des soins en réanimation"
+        
         projects_ui <- tagList(
           tags$a(
             href = shiny.router::route_link("patient_level_data"),
@@ -105,7 +109,7 @@ mod_home_server <- function(id, r, d, m, language, i18n, debug){
               div(
                 tags$h1(project_name),
                 users_ui,
-                div("Short description of my study")
+                study_description
               )
             ),
             class = "no-hover-effect"

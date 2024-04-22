@@ -11,6 +11,7 @@ whats_a_tab,Qu'est ce qu'un onglet ?
 add_tab,Ajouter un onglet
 add_tab_or_widget,Ajouter un onglet ou un widget
 edit_page,Editer la page
+exit_edit_page,Fermer l'édition de la page
 widgets,Widgets
 whats_a_widget,Qu'est ce qu'un widget ?
 add_a_widget,Ajouter un widget

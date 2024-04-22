@@ -510,6 +510,7 @@ level_under,Level under
 add_tab,Add a tab
 add_tab_or_widget,Add a tab or a widget
 edit_page,Edit page
+quit_edit_page,Quit edit page
 edit_a_tab,Edit a tab
 invalid_dataset_id_value,Variable dataset_id must be of integer type
 var_type_not_valid,Variable type is not valid

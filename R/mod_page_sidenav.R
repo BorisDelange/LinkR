@@ -277,8 +277,16 @@ mod_page_sidenav_ui <- function(id = character(), i18n = character()){
             class = "small_icon_button"
           ),
           div(
-            create_hover_card(ui = shiny.fluent::IconButton.shinyInput(ns("edit_page"), iconProps = list(iconName = "Edit")), text = i18n$t("edit_page")),
-            class = "small_icon_button"
+            id = ns("edit_page_on_div"),
+            create_hover_card(ui = shiny.fluent::IconButton.shinyInput(ns("edit_page_on"), iconProps = list(iconName = "Edit")), text = i18n$t("edit_page")),
+            class = "small_icon_button",
+          ),
+          shinyjs::hidden(
+            div(
+              id = ns("edit_page_off_div"),
+              shiny.fluent::IconButton.shinyInput(ns("edit_page_off"), iconProps = list(iconName = "Accept")),
+              class = "small_icon_button",
+            )
           )
         ), br(),
         make_combobox(i18n, ns, id = "subset", label = "subset", width = "200px"),
