@@ -188,6 +188,7 @@ body, html {
   width: 100%;
   height: 100%;
   background-color: rgba(0,0,0,0.2);
+  z-index: 100;
 }
 
 .delete_modal_content {
@@ -247,11 +248,17 @@ body, html {
   font-size: 12px !important;
 }
 
+/* ---------------- */
+/* GRIDSTER          */
+/* ---------------- */
 
+.editable_gridster {
+  cursor: pointer;
+}
 
-
-
-
+div.gridster > ul, ol {
+  list-style: none;
+}
 
 
 
@@ -619,49 +626,19 @@ a.no-hover-effect:hover {
 
 .widget {
   font-size: 12px;
-  height: calc(100% - 40px);
+  /*height: calc(100% - 40px);*/
+  height: 100%;
+  width: 100%;
   position: relative;
   margin: 10px;
   padding: 0px 10px 5px 10px;
   box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 3px 6px 0 rgba(0, 0, 0, 0.19);
+  overflow: hidden;
+  z-index: 10;
 }
 .widget_buttons {
   position: absolute;
   top: 0px;
   right: 7px;
-}
-
-.delete_modal {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  position: fixed;
-  z-index:10;
-  left: 0;
-  top: 0; 
-  width: 100%;
-  height: 100%;
-  background-color: rgba(0,0,0,0.2);
-}
-
-.delete_modal_content {
-  background: #fff;
-  padding: 5px 10px 10px 15px;
-  width: 400px;
-  height: 100px;
-}
-
-.delete_modal_content h1 {
-  font-size: 14px;
-}
-
-.delete_modal_content p {
-  font-size: 12px;
-}
-
-.delete_modal_buttons {
-  display: flex;
-  justify-content: flex-end;
-  gap: 5px;
 }
 

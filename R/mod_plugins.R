@@ -1019,8 +1019,8 @@ mod_plugins_server <- function(id, r, d, m, language, i18n, debug){
           uiOutput(ns(paste0("additional_buttons_", widget_id))),
           style = "position:absolute; top:8px; right: 10px;"
         ),
-        class = "widget",
-        style = "overflow:hidden; width:calc(50% - 20px); height:300px;"
+        class = "widget"#,
+        # style = "overflow:hidden; width:calc(50% - 20px); height:300px;"
       )
       output$run_code_cards <- renderUI(ui_output)
       

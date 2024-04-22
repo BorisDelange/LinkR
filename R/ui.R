@@ -54,12 +54,16 @@ golem_add_external_resources <- function(){
     tags$link(href = "fluent_style.css", rel = "stylesheet", type = "text/css"),
     
     # Add gridstacks.js
-    tags$link(rel = "stylesheet", href = "https://cdnjs.cloudflare.com/ajax/libs/gridstack.js/10.1.0/gridstack.min.css"),
-    tags$script(HTML("
-      document.addEventListener('DOMContentLoaded', function() {
-        window.gridStackInstances = {};
-      });
-    ")),
+    # tags$link(rel = "stylesheet", href = "https://cdnjs.cloudflare.com/ajax/libs/gridstack.js/10.1.0/gridstack.min.css"),
+    # tags$script(HTML("
+    #   document.addEventListener('DOMContentLoaded', function() {
+    #     window.gridStackInstances = {};
+    #   });
+    # ")),
+    
+    # Add gridster.js
+    tags$script(src = 'jquery.gridster.min.js'),
+    tags$link(rel = 'stylesheet', type = 'text/css', href = 'jquery.gridster.min.css'),
     
     # Add jquery
     tags$link(rel = "stylesheet", href = "https://code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css"),
