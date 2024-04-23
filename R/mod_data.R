@@ -198,7 +198,7 @@ mod_data_server <- function(id = character(), r = shiny::reactiveValues(), d = s
     r[[paste0(category, "_loaded_studies")]] <- integer()
     
     # Initiate var for list of cards
-    r[[paste0(category, "_cards")]] <- character()
+    r[[paste0(category, "_grids")]] <- character()
     
     # --- --- --- --- --- --- --
     # A project is selected ----
@@ -237,13 +237,10 @@ mod_data_server <- function(id = character(), r = shiny::reactiveValues(), d = s
       r[[paste0(category, "_selected_tab")]] <- NA_integer_
       
       # Reset displayed tabs
-      r[[paste0(category, "_opened_cards")]] <- ""
+      r[[paste0(category, "_opened_grids")]] <- ""
       
       # Load tabs
       r[[paste0(category, "_reload_tabs")]] <- paste0("ui_first_load_", now())
-      
-      # Run observers
-      r[[paste0(category, "_load_server")]] <- now()
       
       r[[paste0(category, "_load_ui_stage")]] <- "first_time"
       
@@ -910,13 +907,13 @@ mod_data_server <- function(id = character(), r = shiny::reactiveValues(), d = s
             # Load widgets concepts
             widgets_concepts <- r[[paste0(category, "_widgets_concepts")]] %>% dplyr::inner_join(widgets %>% dplyr::select(widget_id), by = "widget_id")
             
-            # Get widget ID
-            distinct_widgets <- unique(widgets$widget_id)
+            # Get widgets ids
+            widgets_ids <- unique(widgets$widget_id)
             
             ### Loop over widgets ----
             
             # Use sapply instead of for loop, cause with for loop, widget_id doesn't change
-            sapply(distinct_widgets, function(widget_id){
+            sapply(widgets_ids, function(widget_id){
               
               # Load over selected concepts
               selected_concepts <- 
@@ -945,7 +942,7 @@ mod_data_server <- function(id = character(), r = shiny::reactiveValues(), d = s
                 code_ui_card <- r$code %>% dplyr::filter(link_id == plugin_id, category == "plugin_ui") %>% dplyr::pull(code)
                 # settings_widget_button <- actionButton(ns(paste0(category, "_widget_settings_", widget_id)), "", icon = icon("cog"))
                 
-                # Create translations files
+                # Create translations files and var
                 tryCatch({
                   # Create plugin folder in translations folder if doesn't exist
                   new_dir <- paste0(r$app_folder, "/translations/", plugin_unique_id)
@@ -984,10 +981,10 @@ mod_data_server <- function(id = character(), r = shiny::reactiveValues(), d = s
               ui_code <- 
                 DBI::dbGetQuery(r$db, sql) %>% 
                 dplyr::pull() %>%
-                stringr::str_replace_all("%study_id%", as.character(m$selected_study)) %>%
                 stringr::str_replace_all("%tab_id%", as.character(tab_id)) %>%
                 stringr::str_replace_all("%widget_id%", as.character(widget_id)) %>%
                 stringr::str_replace_all("%req%", "req(m[[session_code]] == session_num)\nreq(m$selected_study == %study_id%)") %>%
+                stringr::str_replace_all("%study_id%", as.character(m$selected_study)) %>%
                 stringr::str_replace_all("\r", "\n") %>%
                 stringr::str_replace_all("''", "'")
               
@@ -1020,7 +1017,7 @@ mod_data_server <- function(id = character(), r = shiny::reactiveValues(), d = s
               # Insert into a gridster widget
               ui_output <- tags$li(
                 id = ns(paste0(category, "_widget_", widget_id)),
-                `data-row` = 1, `data-col` = 1, `data-sizex` = 6, `data-sizey` = 2,
+                `data-row` = 1, `data-col` = 1, `data-sizex` = 10, `data-sizey` = 2,
                 ui_output,
                 class = "gridster_widget"
               )
@@ -1038,14 +1035,17 @@ mod_data_server <- function(id = character(), r = shiny::reactiveValues(), d = s
           if (hide_div) gridster_div <- shinyjs::hidden(gridster_div)
           
           insertUI(selector = paste0("#", ns("study_cards")), where = "beforeEnd", ui = gridster_div)
-          r[[paste0(category, "_cards")]] <- c(r[[paste0(category, "_cards")]], gridster_id)
+          r[[paste0(category, "_grids")]] <- c(r[[paste0(category, "_grids")]], gridster_id)
           
           shinyjs::delay(100, shinyjs::runjs(paste0("
             $(document).ready(function() {
               window.", gridster_id, " = $('#", ns(gridster_id), " ul').gridster({
                 namespace: '#", ns(gridster_id), "',
                 widget_margins: [15, 15],
-                widget_base_dimensions: [100, 100],
+                widget_base_dimensions: ['auto', 100],
+                min_cols: 1,
+                max_cols: 20,
+                helper: 'clone',
                 resize: {
                   enabled: true
                 }
@@ -1057,6 +1057,9 @@ mod_data_server <- function(id = character(), r = shiny::reactiveValues(), d = s
         
         # Indicate that this study has been loaded, so that UI elements aren't loaded twice
         r[[paste0(category, "_loaded_studies")]] <- c(r[[paste0(category, "_loaded_studies")]], m$selected_study)
+        
+        # Load server after UI has been loaded
+        r[[paste0(category, "_load_server")]] <- now()
       })
       
       # --- --- --- -- -
@@ -1067,26 +1070,18 @@ mod_data_server <- function(id = character(), r = shiny::reactiveValues(), d = s
         
         if (debug) cat(paste0("\n", now(), " - mod_data - ", id, " - observer r$..load_server"))
         
-        req(!is.na(m$selected_study))
+        # Get tabs and widgets
         
-        # Get tabs elements, arrange them by display_order
-        
-        tab_group <- r$studies %>% dplyr::filter(id == m$selected_study) %>% dplyr::pull(paste0(category, "_tab_group_id"))
-        tabs <- r[[paste0(category, "_tabs")]] %>% dplyr::filter(tab_group_id == tab_group) %>% dplyr::select(tab_id = id)
+        tabs <- r[[paste0(category, "_tabs")]] %>% dplyr::select(tab_id = id)
         widgets <- r[[paste0(category, "_widgets")]] %>% dplyr::inner_join(tabs, by = "tab_id") %>% dplyr::rename(widget_id = id)
         widgets_concepts <- r[[paste0(category, "_widgets_concepts")]] %>% dplyr::inner_join(widgets %>% dplyr::select(widget_id), by = "widget_id")
         
-        # --- --- --- --- --- --- --- ---
-        ## Run server code for cards ----
-        # --- --- --- --- --- --- --- ---
-        
         if (nrow(widgets) > 0){
           
-          # Get widget widget_id
-          distinct_widgets <- unique(widgets$widget_id)
+          widgets_ids <- unique(widgets$widget_id)
           
-          # Loop over distinct cards
-          sapply(distinct_widgets, function(widget_id){
+          ## Loop over widgets ----
+          sapply(widgets_ids, function(widget_id){
             
             # Run plugin server code
             # Only if this code has not been already loaded
@@ -1097,22 +1092,22 @@ mod_data_server <- function(id = character(), r = shiny::reactiveValues(), d = s
               # Add the trace_code to loaded plugins list
               r$server_tabs_groups_loaded <- c(r$server_tabs_groups_loaded, trace_code)
               
-              # selected_concepts <- widgets_concepts %>% dplyr::filter(widget_id == !!widget_id) %>%
-              #   dplyr::select(concept_id, concept_name, concept_display_name, domain_id,
-              #     mapped_to_concept_id, merge_mapped_concepts)
-              selected_concepts <- tibble::tibble(
-                concept_id = integer(), concept_name = character(), concept_display_name = character(), domain_id = character(),
-                mapped_to_concept_id = integer(), merge_mapped_concepts = logical())
+              selected_concepts <- 
+                widgets_concepts %>% 
+                dplyr::filter(widget_id == !!widget_id) %>%
+                dplyr::select(concept_id, concept_name, concept_display_name, domain_id, mapped_to_concept_id, merge_mapped_concepts)
               
               # Get plugin code
               
               ids <- widgets %>% dplyr::filter(widget_id == !!widget_id) %>% dplyr::slice(1) %>% dplyr::select(plugin_id, tab_id)
+              plugin_id <- ids$plugin_id
+              tab_id <- ids$tab_id
               
               # Check if plugin has been deleted
-              check_deleted_plugin <- nrow(DBI::dbGetQuery(r$db, paste0("SELECT * FROM plugins WHERE id = ", ids$plugin_id))) == 0
+              check_deleted_plugin <- nrow(DBI::dbGetQuery(r$db, paste0("SELECT * FROM plugins WHERE id = ", plugin_id))) == 0
               if (!check_deleted_plugin){
                 
-                sql <- glue::glue_sql("SELECT id FROM options WHERE link_id = {ids$plugin_id} AND name = 'filename' AND value = 'server.R'", .con = r$db)
+                sql <- glue::glue_sql("SELECT id FROM options WHERE link_id = {plugin_id} AND name = 'filename' AND value = 'server.R'", .con = r$db)
                 code_id <- DBI::dbGetQuery(r$db, sql) %>% dplyr::pull()
                 
                 sql <- glue::glue_sql("SELECT code FROM code WHERE category = 'plugin' AND link_id = {code_id}", .con = r$db)
@@ -1120,7 +1115,7 @@ mod_data_server <- function(id = character(), r = shiny::reactiveValues(), d = s
                 
                 server_code <- 
                   server_code %>%
-                  stringr::str_replace_all("%tab_id%", as.character(ids$tab_id)) %>%
+                  stringr::str_replace_all("%tab_id%", as.character(tab_id)) %>%
                   stringr::str_replace_all("%widget_id%", as.character(widget_id)) %>%
                   stringr::str_replace_all("%req%", "req(m[[session_code]] == session_num)\nreq(m$selected_study == %study_id%)") %>%
                   stringr::str_replace_all("%study_id%", as.character(m$selected_study)) %>%
@@ -1130,49 +1125,20 @@ mod_data_server <- function(id = character(), r = shiny::reactiveValues(), d = s
               }
               else server_code <- ""
               
-              # Create translations file & var
-              # if (!check_deleted_plugin){
-              #   
-              #   plugin_translations <- r$code %>%
-              #     dplyr::filter(link_id == ids$plugin_id, category == "plugin_translations") %>%
-              #     dplyr::pull(code)
-              #   
-              #   if (plugin_translations != ""){
-              #     
-              #     tryCatch({
-              #       # Get plugin unique_id
-              #       plugin_unique_id <- r$options %>% dplyr::filter(category == "plugin", name == "unique_id", link_id == !!ids$plugin_id) %>% dplyr::pull(value)
-              #       
-              #       # Create plugin folder in translations folder if doesn't exist
-              #       new_dir <- paste0(r$app_folder, "/translations/", plugin_unique_id)
-              #       if (!dir.exists(new_dir)) dir.create(new_dir)
-              #       
-              #       # Create a csv with all languages
-              #       data <- read.csv(text = plugin_translations, header = TRUE, stringsAsFactors = FALSE)
-              #       
-              #       # Create one csv by language
-              #       for(lang in names(data)[-1]){
-              #         file_name <- paste0(new_dir, "/translation_", lang, ".csv")
-              #         
-              #         if (!file.exists(file_name)){
-              #           # Create a new dataframe with base & current language cols
-              #           data_lang <- data[, c("base", lang)]
-              #           
-              #           # Create csv
-              #           write.csv(data_lang, file_name, row.names = FALSE)
-              #         }
-              #       }
-              #     },
-              #       error = function(e) report_bug(r = r, output = output, error_message = "error_creating_translations_file",
-              #         error_name = paste0(id, " - create translations files - plugin_id ", ids$plugin_id), category = "Error", error_report = toString(e), i18n = i18n, ns = ns))
-              #     
-              #     tryCatch({
-              #       i18np <- suppressWarnings(shiny.i18n::Translator$new(translation_csvs_path = new_dir))
-              #       i18np$set_translation_language(language)},
-              #       error = function(e) report_bug(r = r, output = output, error_message = "error_creating_new_translator",
-              #         error_name = paste0(id, " - create i18np translator - plugin_id ", ids$plugin_id), category = "Error", error_report = toString(e), i18n = i18n, ns = ns))
-              #   }
-              # }
+              # Create translations var (translations files are created in UI)
+              if (!check_deleted_plugin){
+
+                # Get plugin unique_id
+                sql <- glue::glue_sql("SELECT value FROM options WHERE category = 'plugin' AND name = 'unique_id' AND link_id = {plugin_id}", .con = r$db)
+                plugin_unique_id <- DBI::dbGetQuery(r$db, sql) %>% dplyr::pull()
+                
+                translations_dir <- paste0(r$app_folder, "/translations/", plugin_unique_id)
+                
+                tryCatch({
+                  i18np <- suppressWarnings(shiny.i18n::Translator$new(translation_csvs_path = translations_dir))
+                  i18np$set_translation_language(language)},
+                  error = function(e) cat(paste0("\n", now(), " - mod_data - ", id, " - error creating translator - plugin_id = ", plugin_id)))
+              }
               
               # Create a session number, to inactivate older observers
               # Reset all older observers for this widget_id
@@ -1195,8 +1161,7 @@ mod_data_server <- function(id = character(), r = shiny::reactiveValues(), d = s
               
               new_env <- rlang::new_environment(data = new_env_vars, parent = pryr::where("r"))
               tryCatch(eval(parse(text = server_code), envir = new_env),
-                error = function(e) report_bug(r = r, output = output, error_message = "error_run_plugin_server_code",
-                error_name = paste0(id, " - run_study_server_code - run_plugin_code - plugin_id ", ids$plugin_id), category = "Error", error_report = toString(e), i18n = i18n, ns = ns))
+                error = function(e) cat(paste0("\n", now(), " - mod_data - ", id, " - error running server code - plugin_id = ", plugin_id, " - error = ", toString(e))))
               
               # Observer for widget deletion
               observeEvent(input[[paste0(category, "_remove_widget_", widget_id)]], {
@@ -1228,10 +1193,10 @@ mod_data_server <- function(id = character(), r = shiny::reactiveValues(), d = s
       
       # req(!grepl("show_tab", r[[paste0(category, "_selected_tab")]]))
       
-      # Hide all cards
-      sapply(r[[paste0(category, "_cards")]], shinyjs::hide)
+      # Hide all grids
+      sapply(r[[paste0(category, "_grids")]], shinyjs::hide)
       
-      # Show gridster card of this tab
+      # Display grid of this tab
       shinyjs::show(paste0(category, "_gridster_", r[[paste0(category, "_selected_tab")]]))
     })
     
@@ -1363,8 +1328,8 @@ mod_data_server <- function(id = character(), r = shiny::reactiveValues(), d = s
       # Reload UI menu and set to added tab
       r[[paste0(category, "_reload_menu")]] <- now()
       
-      # Hide currently opened cards
-      sapply(r[[paste0(category, "_opened_cards")]], shinyjs::hide)
+      # Hide currently opened grids
+      sapply(r[[paste0(category, "_opened_grids")]], shinyjs::hide)
       
       # Hide add tab model
       shinyjs::hide("add_tab_modal")
@@ -1378,7 +1343,7 @@ mod_data_server <- function(id = character(), r = shiny::reactiveValues(), d = s
     #   
     #   if (debug) cat(paste0("\n", now(), " - mod_data - ", id, " - observer input$edit_tab"))
     #   
-    #   sapply(r[[paste0(category, "_opened_cards")]], shinyjs::hide)
+    #   sapply(r[[paste0(category, "_opened_grids")]], shinyjs::hide)
     #   shinyjs::hide(paste0(category, "_add_widget"))
     #   shinyjs::hide(paste0(category, "_widget_settings"))
     #   shinyjs::show(paste0(category, "_edit_tab"))
@@ -1427,7 +1392,7 @@ mod_data_server <- function(id = character(), r = shiny::reactiveValues(), d = s
     #   show_message_bar(output, message = "modif_saved", type = "success", i18n = i18n, ns = ns)
     #   
     #   # Show opened cards before opening Add widget div
-    #   sapply(r[[paste0(category, "_opened_cards")]], shinyjs::show)
+    #   sapply(r[[paste0(category, "_opened_grids")]], shinyjs::show)
     #   
     #   # Hide Edit widget div
     #   shinyjs::hide(paste0(category, "_edit_tab"))
@@ -1442,7 +1407,7 @@ mod_data_server <- function(id = character(), r = shiny::reactiveValues(), d = s
     #   if (debug) cat(paste0("\n", now(), " - mod_data - ", id, " - observer input$..close_edit_tab"))
     #   
     #   # Show opened cards before opening Add widget div
-    #   sapply(r[[paste0(category, "_opened_cards")]], shinyjs::show)
+    #   sapply(r[[paste0(category, "_opened_grids")]], shinyjs::show)
     #   
     #   # Hide Edit widget div
     #   shinyjs::hide(paste0(category, "_edit_tab"))
@@ -1514,7 +1479,7 @@ mod_data_server <- function(id = character(), r = shiny::reactiveValues(), d = s
     #   }
     #   
     #   r[[paste0(category, "_selected_tab")]] <- show_tab_id
-    #   sapply(r[[paste0(category, "_opened_cards")]], shinyjs::hide)
+    #   sapply(r[[paste0(category, "_opened_grids")]], shinyjs::hide)
     #   shinyjs::show(paste0(category, "_toggles_", show_tab_id))
     #   
     #   # Reload UI menu
@@ -2135,40 +2100,31 @@ mod_data_server <- function(id = character(), r = shiny::reactiveValues(), d = s
       
       widgets <- r[[paste0(category, "_widgets")]] %>% dplyr::filter(tab_id == !!tab_id) %>% dplyr::rename(widget_id = id) %>% dplyr::arrange(display_order)
       
-      # Get widget ids
-      distinct_widgets <- unique(widgets$widget_id)
+      # Get widgets ids
+      widgets_ids <- unique(widgets$widget_id)
       
-      # Reset opened cards
-      r[[paste0(category, "_opened_cards")]] <- ""
+      # Reset opened grids
+      r[[paste0(category, "_opened_grids")]] <- ""
       
-      # Loop over distinct cards (widgets), for this tab
+      # Loop over distinct grids, for this tab
       
       # Use sapply instead of for loop, cause with for loop, widget_id doesn't change
-      sapply(distinct_widgets, function(widget_id){
+      sapply(widgets_ids, function(widget_id){
         
         # Get name of widget
         widget_name <- widgets %>% dplyr::filter(widget_id == !!widget_id) %>% dplyr::slice(1) %>% dplyr::pull(name)
         
-        # Add to the list of opened cards
-        r[[paste0(category, "_opened_cards")]] <- c(r[[paste0(category, "_opened_cards")]], paste0(category, "_widget_", widget_id))
+        # Add to the list of opened grids
+        r[[paste0(category, "_opened_grids")]] <- c(r[[paste0(category, "_opened_grids")]], paste0(category, "_widget_", widget_id))
       })
       
-      r[[paste0(category, "_opened_cards")]] <- c(r[[paste0(category, "_opened_cards")]], paste0(category, "_toggles_", tab_id))
+      r[[paste0(category, "_opened_grids")]] <- c(r[[paste0(category, "_opened_grids")]], paste0(category, "_toggles_", tab_id))
       
-      # Show opened cards
-      sapply(r[[paste0(category, "_opened_cards")]], shinyjs::show)
+      # Display opened grids
+      sapply(r[[paste0(category, "_opened_grids")]], shinyjs::show)
       
-      # Add tab toggles UI
-      # insertUI(selector = paste0("#", ns("study_cards")), where = "afterBegin", ui = uiOutput(ns(paste0(category, "_toggles_", tab_id))))
-      # output[[paste0(category, "_toggles_", tab_id)]] <- renderUI(toggles_div)
-      
-      # Add widget UI
-      # insertUI(selector = paste0("#", ns("study_cards")), where = "beforeEnd", ui = uiOutput(ns(paste0(category, "_widget_", widget_id))))
-      # output[[paste0(category, "_widget_", widget_id)]] <- renderUI(element_code)
-      
-      # Reload UI menu
+      # Reload menu
       r[[paste0(category, "_reload_tabs")]] <- now()
-      # r[[paste0(category, "_reload_menu")]] <- now()
     })
     
     # --- --- --- --- -- -
@@ -2179,7 +2135,7 @@ mod_data_server <- function(id = character(), r = shiny::reactiveValues(), d = s
     #   
     #   if (debug) cat(paste0("\n", now(), " - mod_data - ", id, " - observer r$..widget_settings_trigger"))
     #   
-    #   sapply(r[[paste0(category, "_opened_cards")]], shinyjs::hide)
+    #   sapply(r[[paste0(category, "_opened_grids")]], shinyjs::hide)
     #   shinyjs::show(paste0(category, "_widget_settings"))
     #   r[[paste0(category, "_widget_card_selected_type")]] <- "widget_settings"
     #   
@@ -2212,7 +2168,7 @@ mod_data_server <- function(id = character(), r = shiny::reactiveValues(), d = s
     # observeEvent(input[[paste0(category, "_close_widget_settings")]], {
     #   if (debug) cat(paste0("\n", now(), " - mod_data - ", id, " - observer input$..close_widget_settings"))
     #   shinyjs::hide(paste0(category, "_widget_settings"))
-    #   sapply(r[[paste0(category, "_opened_cards")]], shinyjs::show)
+    #   sapply(r[[paste0(category, "_opened_grids")]], shinyjs::show)
     # })
     # 
     # # Save updates
@@ -2362,14 +2318,14 @@ mod_data_server <- function(id = character(), r = shiny::reactiveValues(), d = s
     #   
     #   widgets <- r[[paste0(category, "_widgets")]] %>% dplyr::filter(tab_id == ids$tab_id) %>% dplyr::rename(widget_id = id) %>% dplyr::arrange(display_order)
     #   
-    #   # Get widget widget_id
-    #   distinct_widgets <- unique(widgets$widget_id)
+    #   # Get widgets ids
+    #   widgets_ids <- unique(widgets$widget_id)
     #   
     #   toggles <- tagList()
     #   
     #   # Loop over distinct cards (tabs elements), for this tab
     #   # Use sapply instead of for loop, cause with for loop, widget_id doesn't change
-    #   sapply(distinct_widgets, function(widget_id){
+    #   sapply(widgets_ids, function(widget_id){
     #     
     #     # Get name of widget
     #     widget_name <- widgets %>% dplyr::filter(widget_id == !!widget_id) %>% dplyr::slice(1) %>% dplyr::pull(name)
@@ -2379,7 +2335,7 @@ mod_data_server <- function(id = character(), r = shiny::reactiveValues(), d = s
     #                         div(class = "toggle_title", widget_name, style = "padding-top:10px;"))
     #     
     #     # Add to the list of opened cards
-    #     r[[paste0(category, "_opened_cards")]] <- c(r[[paste0(category, "_opened_cards")]], paste0(category, "_widget_", widget_id))
+    #     r[[paste0(category, "_opened_grids")]] <- c(r[[paste0(category, "_opened_grids")]], paste0(category, "_widget_", widget_id))
     #   })
     #   
     #   # toggles_div <- div(
@@ -2399,7 +2355,7 @@ mod_data_server <- function(id = character(), r = shiny::reactiveValues(), d = s
     #   
     #   # Hide settings card and show opened cards
     #   shinyjs::hide(paste0(category, "_widget_settings"))
-    #   sapply(r[[paste0(category, "_opened_cards")]], shinyjs::show)
+    #   sapply(r[[paste0(category, "_opened_grids")]], shinyjs::show)
     # })
     
     # --- --- --- --- -- -
@@ -2438,11 +2394,13 @@ mod_data_server <- function(id = character(), r = shiny::reactiveValues(), d = s
     # Edit page ----
     # --- --- --- --
     
+    r[[paste0(category, "_edit_page_activated")]] <- FALSE
+    
     observeEvent(input$edit_page_on, {
       if (debug) cat(paste0("\n", now(), " - mod_data - ", id, " - observer input$edit_page_on"))
       
       # Enable gridster edition
-      sapply(r[[paste0(category, "_cards")]], function(gridster_id) shinyjs::runjs(paste0(gridster_id, ".enable().enable_resize();")))
+      sapply(r[[paste0(category, "_grids")]], function(gridster_id) shinyjs::runjs(paste0(gridster_id, ".enable().enable_resize();")))
       shinyjs::addClass(selector = ".gridster", class = "editable_gridster")
       
       # Show edit and delete widget buttons
@@ -2451,13 +2409,16 @@ mod_data_server <- function(id = character(), r = shiny::reactiveValues(), d = s
       # Show quit edit page button
       shinyjs::hide("edit_page_on_div")
       shinyjs::delay(100, shinyjs::show("edit_page_off_div"))
+      
+      # Hide resize button when sidenav is displayed or not
+      r[[paste0(category, "_edit_page_activated")]] <- TRUE
     })
     
     observeEvent(input$edit_page_off, {
       if (debug) cat(paste0("\n", now(), " - mod_data - ", id, " - observer input$edit_page_off"))
       
       # Disable gridster edition
-      sapply(r[[paste0(category, "_cards")]], function(gridster_id) shinyjs::runjs(paste0(gridster_id, ".disable().disable_resize();")))
+      sapply(r[[paste0(category, "_grids")]], function(gridster_id) shinyjs::runjs(paste0(gridster_id, ".disable().disable_resize();")))
       shinyjs::removeClass(selector = ".gridster", class = "editable_gridster")
       
       # Hide edit and delete widget buttons
@@ -2466,6 +2427,9 @@ mod_data_server <- function(id = character(), r = shiny::reactiveValues(), d = s
       # Show edit page button
       shinyjs::hide("edit_page_off_div")
       shinyjs::delay(50, shinyjs::show("edit_page_on_div"))
+      
+      # Hide resize button when sidenav is displayed or not
+      r[[paste0(category, "_edit_page_activated")]] <- FALSE
     })
   })
 }

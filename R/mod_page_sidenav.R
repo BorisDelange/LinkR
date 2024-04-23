@@ -437,6 +437,7 @@ mod_page_sidenav_server <- function(id = character(), r = shiny::reactiveValues(
     
     observeEvent(r[[paste0(id, "_show_hide_sidenav")]], {
       if (debug) cat(paste0("\n", now(), " - mod_page_sidenav - observer r$.._show_hide_sidenav"))
+      
       if (r[[paste0(id, "_show_hide_sidenav")]] == "hide") shinyjs::runjs(paste0(js_vars, js_hide_sidenav))
       else shinyjs::runjs(paste0(js_vars, js_show_sidenav))
     })
@@ -445,6 +446,22 @@ mod_page_sidenav_server <- function(id = character(), r = shiny::reactiveValues(
       if (debug) cat(paste0("\n", now(), " - mod_page_sidenav - observer input$show_hide_sidenav"))
       
       shinyjs::runjs(paste0(js_vars, " if (currentWidth === '200px') {", js_hide_sidenav, "} else { ", js_show_sidenav, "}"))
+      
+      if (id %in% c("patient_level_data", "aggregated_data") ){
+        if (id == "patient_level_data") category <- "patient_lvl"
+        else category <- "aggregated"
+
+        if (length(r[[paste0(category, "_selected_tab")]]) > 0){
+          if (!is.na(r[[paste0(category, "_selected_tab")]]) & r[[paste0(category, "_selected_tab")]] != 0){
+            
+            shinyjs::delay(300, shinyjs::runjs("window.dispatchEvent(new Event('resize'));"))
+            
+            gridster_id <- paste0(category, "_gridster_", r[[paste0(category, "_selected_tab")]])
+            if (r[[paste0(category, "_edit_page_activated")]]) shinyjs::runjs(paste0("setTimeout(function() { ", gridster_id, ".resize(); }, 400);"))
+            else shinyjs::delay(400, shinyjs::runjs(paste0(gridster_id, ".disable_resize();")))
+          }
+        }
+      }
     })
   })
 }
