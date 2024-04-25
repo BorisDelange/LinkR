@@ -458,7 +458,7 @@ mod_page_sidenav_server <- function(id = character(), r = shiny::reactiveValues(
             
             gridster_id <- paste0(category, "_gridster_", r[[paste0(category, "_selected_tab")]])
             if (r[[paste0(category, "_edit_page_activated")]]) shinyjs::runjs(paste0("setTimeout(function() { ", gridster_id, ".resize(); }, 400);"))
-            else shinyjs::delay(400, shinyjs::runjs(paste0(gridster_id, ".disable_resize();")))
+            else shinyjs::delay(400, shinyjs::runjs(paste0(gridster_id, ".disable().disable_resize();")))
           }
         }
       }

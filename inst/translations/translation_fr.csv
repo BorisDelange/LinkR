@@ -623,19 +623,14 @@ only_aggregated_data_authorized,Seules les données agrégées sont autorisées 
 remove_tab,Supprimer l'onglet
 edit_tab,Editer l'onglet
 new_widget,Ajouter un widget
-patient_lvl_tabs_delete,Suppression d'onglet
-patient_lvl_tabs_delete_subtext,Confirmer la suppression de cet onglet ?
-patient_lvl_tab_deleted,Onglet supprimé
-patient_lvl_tab_added,Onglet ajouté
-patient_lvl_widget_added,Widget ajouté
+tabs_delete,Suppression d'onglet
+tabs_delete_subtext,Confirmer la suppression de cet onglet ?
+tab_deleted,Onglet supprimé
+tab_added,Onglet ajouté
+widget_added,Widget ajouté
 delete_widget_title,Suppression de widget
 delete_widget_text,Confirmer la suppression de ce widget ?
 widget_deleted,Widget supprimé
-aggregated_tabs_delete,Suppression d'onglet
-aggregated_tabs_delete_subtext,Confirmer la suppression de cet onglet ?
-aggregated_tab_deleted,Onglet supprimé
-aggregated_tab_added,Onglet ajouté
-aggregated_widget_added,Widget ajouté
 tab_contains_sub_tabs,Cet onglet contient des sous-onglets. Cliquer de nouveau sur le lien de l'onglet pour afficher les sous-onglets.
 add_tab_has_widgets,Impossible d'ajouter un onglet en-dessous de celui-ci parce qu'il contient au moins un widget. Supprimer ces widgets avant.
 widget_name,Nom du widget
@@ -1049,3 +1044,4 @@ configure_project,Configurer le projet
 tasks,Tâches
 report_results,Présenter les résultats
 delete_widget,Supprimer le widget
+choose_a_plugin,Choisir un plugin

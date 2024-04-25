@@ -2,15 +2,14 @@
 % Please edit documentation in R/linkr.R
 \name{linkr}
 \alias{linkr}
-\title{Run the Shiny Application}
+\title{Run the Shiny application}
 \usage{
 linkr(
   language = "en",
   app_folder = character(),
   local = FALSE,
-  show_home_page = TRUE,
-  perf_monitoring = FALSE,
-  debug = FALSE
+  debug = FALSE,
+  port = 3838
 )
 }
 \arguments{
@@ -20,11 +19,9 @@ linkr(
 
 \item{local}{Run the app in local mode, do not load files on the internet (logical)}
 
-\item{show_home_page}{Should the home page be loaded ? (logical)}
-
-\item{perf_monitoring}{Monitor app performances (logical)}
-
 \item{debug}{Debug mode : steps and errors will by displayed in the console (logical)}
+
+\item{port}{Port used by shiny app (integer)}
 }
 \description{
 Runs the LinkR Shiny Application.\cr
@@ -34,6 +31,6 @@ a 'linkr' folder will be created in the folder returned by path.expand("~").\cr
 }
 \examples{
 \dontrun{
-linkr(language = "en", perf_monitoring = FALSE, debug = FALSE, local = FALSE)
+linkr(language = "en", debug = FALSE, local = FALSE)
 }
 }

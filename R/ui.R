@@ -39,14 +39,14 @@ app_ui <- function(pages, language, languages, i18n, users_accesses_toggles_opti
 #' @noRd
 golem_add_external_resources <- function(){
   
-  add_resource_path('www', app_sys('app/www'))
+  golem::add_resource_path('www', app_sys('app/www'))
   
   # Marker is used to highlight some text
   # if (require("marker")) marker_div <- marker::useMarker() else marker_div <- ""
  
   tags$head(
-    favicon(ext = "png"),
-    bundle_resources(
+    golem::favicon(ext = "png"),
+    golem::bundle_resources(
       path = app_sys('app/www'),
       app_title = 'LinkR'
     ),
