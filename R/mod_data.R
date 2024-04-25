@@ -892,136 +892,16 @@ mod_data_server <- function(id = character(), r = shiny::reactiveValues(), d = s
         all_groups <- NA_integer_
         
         # Loop over distinct tabs, for this study
-        
-        ### Loop over tabs ----
-        sapply(distinct_tabs, function(tab_id) load_tab_ui(tab_id))
+        # Load front-end & back-end
+        for(tab_id in distinct_tabs){
+          load_tab_ui(tab_id)
+          load_tab_server(tab_id)
+        }
         
         # Indicate that this study has been loaded, so that UI elements aren't loaded twice
         r[[paste0(category, "_loaded_studies")]] <- c(r[[paste0(category, "_loaded_studies")]], m$selected_study)
-        
-        # Load server after UI has been loaded
-        r[[paste0(category, "_load_server")]] <- now()
       })
       
-      # --- --- --- -- -
-      # Load server ----
-      # --- --- --- -- -
-      
-      observeEvent(r[[paste0(category, "_load_server")]], {
-        
-        if (debug) cat(paste0("\n", now(), " - mod_data - ", id, " - observer r$..load_server"))
-        
-        # Get tabs and widgets
-        
-        tabs <- r[[paste0(category, "_tabs")]] %>% dplyr::select(tab_id = id)
-        widgets <- r[[paste0(category, "_widgets")]] %>% dplyr::inner_join(tabs, by = "tab_id") %>% dplyr::rename(widget_id = id)
-        widgets_concepts <- r[[paste0(category, "_widgets_concepts")]] %>% dplyr::inner_join(widgets %>% dplyr::select(widget_id), by = "widget_id")
-        
-        if (nrow(widgets) > 0){
-          
-          widgets_ids <- unique(widgets$widget_id)
-          
-          ## Loop over widgets ----
-          sapply(widgets_ids, function(widget_id){
-            
-            # Run plugin server code
-            # Only if this code has not been already loaded
-            trace_code <- paste0(category, "_", widget_id, "_", m$selected_study)
-            # if (trace_code %in% r$server_tabs_groups_loaded) print(trace_code)
-            if (trace_code %not_in% r$server_tabs_groups_loaded){
-              
-              # Add the trace_code to loaded plugins list
-              r$server_tabs_groups_loaded <- c(r$server_tabs_groups_loaded, trace_code)
-              
-              selected_concepts <- 
-                widgets_concepts %>% 
-                dplyr::filter(widget_id == !!widget_id) %>%
-                dplyr::select(concept_id, concept_name, concept_display_name, domain_id, mapped_to_concept_id, merge_mapped_concepts)
-              
-              # Get plugin code
-              
-              ids <- widgets %>% dplyr::filter(widget_id == !!widget_id) %>% dplyr::slice(1) %>% dplyr::select(plugin_id, tab_id)
-              plugin_id <- ids$plugin_id
-              tab_id <- ids$tab_id
-              
-              # Check if plugin has been deleted
-              check_deleted_plugin <- nrow(DBI::dbGetQuery(r$db, paste0("SELECT * FROM plugins WHERE id = ", plugin_id))) == 0
-              if (!check_deleted_plugin){
-                
-                sql <- glue::glue_sql("SELECT id FROM options WHERE link_id = {plugin_id} AND name = 'filename' AND value = 'server.R'", .con = r$db)
-                code_id <- DBI::dbGetQuery(r$db, sql) %>% dplyr::pull()
-                
-                sql <- glue::glue_sql("SELECT code FROM code WHERE category = 'plugin' AND link_id = {code_id}", .con = r$db)
-                server_code <- DBI::dbGetQuery(r$db, sql) %>% dplyr::pull()
-                
-                server_code <- 
-                  server_code %>%
-                  stringr::str_replace_all("%tab_id%", as.character(tab_id)) %>%
-                  stringr::str_replace_all("%widget_id%", as.character(widget_id)) %>%
-                  stringr::str_replace_all("%req%", "req(m[[session_code]] == session_num)\nreq(m$selected_study == %study_id%)") %>%
-                  stringr::str_replace_all("%study_id%", as.character(m$selected_study)) %>%
-                  stringr::str_replace_all("\r", "\n") %>%
-                  stringr::str_replace_all("''", "'")
-                
-              }
-              else server_code <- ""
-              
-              # Create translations var (translations files are created in UI)
-              if (!check_deleted_plugin){
-
-                # Get plugin unique_id
-                sql <- glue::glue_sql("SELECT value FROM options WHERE category = 'plugin' AND name = 'unique_id' AND link_id = {plugin_id}", .con = r$db)
-                plugin_unique_id <- DBI::dbGetQuery(r$db, sql) %>% dplyr::pull()
-                
-                translations_dir <- paste0(r$app_folder, "/translations/", plugin_unique_id)
-                
-                tryCatch({
-                  i18np <- suppressWarnings(shiny.i18n::Translator$new(translation_csvs_path = translations_dir))
-                  i18np$set_translation_language(language)},
-                  error = function(e) cat(paste0("\n", now(), " - mod_data - ", id, " - error creating translator - plugin_id = ", plugin_id)))
-              }
-              
-              # Create a session number, to inactivate older observers
-              # Reset all older observers for this widget_id
-              
-              session_code <- paste0(category, "_widget_", widget_id)
-              if (length(m[[session_code]]) == 0) session_num <- 1L
-              if (length(m[[session_code]]) > 0) session_num <- m[[session_code]] + 1
-              m[[session_code]] <- session_num
-              
-              # NB : req(m[[session_code]] == session_num) must be put at the beginning of each observeEvent in plugins code
-              
-              # Variables to hide
-              new_env_vars <- list("r" = NA)
-              
-              # Variables to keep
-              variables_to_keep <- c("d", "m", "session_code", "session_num", "i18n", "selected_concepts", "debug")
-              if (exists("i18np")) variables_to_keep <- c(variables_to_keep, "i18np")
-              
-              for (var in variables_to_keep) new_env_vars[[var]] <- eval(parse(text = var))
-              
-              new_env <- rlang::new_environment(data = new_env_vars, parent = pryr::where("r"))
-              tryCatch(eval(parse(text = server_code), envir = new_env),
-                error = function(e) cat(paste0("\n", now(), " - mod_data - ", id, " - error running server code - plugin_id = ", plugin_id, " - error = ", toString(e))))
-              
-              # Observer for widget deletion
-              observeEvent(input[[paste0(category, "_remove_widget_", widget_id)]], {
-                if (debug) cat(paste0("\n", now(), " - mod_data - ", id, " - observer input$..remove_widget.."))
-                r[[paste0(category, "_selected_widget")]] <- widget_id
-                shinyjs::show("delete_widget_modal")
-              })
-              
-              # Observer for widget settings
-              observeEvent(input[[paste0(category, "_widget_settings_", widget_id)]], {
-                if (debug) cat(paste0("\n", now(), " - mod_data - ", id, " - observer input$..widget_settings.."))
-                r[[paste0(category, "_widget_settings_trigger")]] <- now()
-                r[[paste0(category, "_widget_settings")]] <- widget_id
-              })
-            }
-          })
-        }
-      })
-    
     # |-------------------------------- -----
     
     # --- --- --- --- --- --
@@ -1765,49 +1645,10 @@ mod_data_server <- function(id = character(), r = shiny::reactiveValues(), d = s
       shiny.fluent::updateTextField.shinyInput(session, "widget_creation_name", value = "")
       shiny.fluent::updateDropdown.shinyInput(session, "widget_creation_plugin", options = plugin_options, value = NULL)
       
-      ## Load front-end ----
+      # Load front-end & back-end
       
       load_tab_ui(tab_id)
-      
-      # Create translations files and var
-      # plugin_translations_dir <- paste0(r$app_folder, "/translations/", plugin_unique_id)
-      # create_translations_files(plugin_translations_dir, plugin_folder)
-      # 
-      # tryCatch({
-      #   i18np <- suppressWarnings(shiny.i18n::Translator$new(translation_csvs_path = plugin_translations_dir))
-      #   i18np$set_translation_language(language)},
-      #   error = function(e) cat(paste0("\n", now(), " - mod_data - ", id, " - error creating translator - plugin_id = ", plugin_id)))
-      
-      # Get UI code from db. Try to run plugin UI code
-      
-      # sql <- glue::glue_sql("SELECT id FROM options WHERE link_id = {plugin_id} AND name = 'filename' AND value = 'ui.R'", .con = r$db)
-      # code_id <- DBI::dbGetQuery(r$db, sql) %>% dplyr::pull()
-      # 
-      # sql <- glue::glue_sql("SELECT code FROM code WHERE category = 'plugin' AND link_id = {code_id}", .con = r$db)
-      # ui_code <- DBI::dbGetQuery(r$db, sql) %>% dplyr::pull() %>% convert_ui_code(m$selected_study, tab_id, widget_id, session_code)
-      # ui_code <- tryCatch(
-      #   eval(parse(text = ui_code)), 
-      #   error = function(e) cat(paste0("\n", now(), " - mod_data - ", id, " - error loading UI code - widget_id = ", widget_id, " - ", toString(e))),
-      #   warning = function(w) cat(paste0("\n", now(), " - mod_data - ", id, " - error loading UI code - widget_id = ", widget_id, " - ", toString(w)))
-      # )
-      
-      # ui_output_id <- paste0(category, "_widget_output_", widget_id)
-      # ui_output <- create_widget(category, widget_id, uiOutput(ns(ui_output_id)))
-      
-      # Insert into a gridster widget
-      # ui_output <- tags$li(
-      #   id = ns(paste0(category, "_widget_", widget_id)),
-      #   `data-row` = 1, `data-col` = 1, `data-sizex` = 10, `data-sizey` = 2,
-      #   ui_output,
-      #   class = "gridster_widget"
-      # ) %>% gsub("\n", " ", .) %>% gsub("'", "\\'", .) %>% gsub("\"", "\\\"", .)
-      # 
-      # gridster_id <- paste0(category, "_gridster_", tab_id)
-      # 
-      # shinyjs::runjs(paste0("
-      #   var new_widget = '", ui_output, "';
-      #   ", gridster_id, ".add_widget(new_widget, 10, 2, 1, 1);
-      # "))
+      load_tab_server(tab_id)
       
       # Clode modal
       shinyjs::hide("add_widget_modal")
@@ -2276,21 +2117,19 @@ mod_data_server <- function(id = character(), r = shiny::reactiveValues(), d = s
         # Get widgets ids
         widgets_ids <- unique(widgets$widget_id)
         
-        ### Loop over widgets ----
-        
         # Use sapply instead of for loop, cause with for loop, widget_id doesn't change
         i <- 1
         j <- 1
         k <- FALSE
         
-        sapply(widgets_ids, function(widget_id){
+        for(widget_id in widgets_ids){
           
           # Loop for widget position in gridster
           if (k) {
-            if (j == 1) j <<- 11 else j <<- 1
-            if (j == 1) i <<- i + 1
+            if (j == 1) j <- 11 else j <- 1
+            if (j == 1) i <- i + 1
           }
-          k <<- TRUE
+          k <- TRUE
           
           # print(paste0("tab. ", tab_id, " / widget = ", widget_id, "/ ", "i = ", i, " / j = ", j, " / k = ", k))
           
@@ -2360,8 +2199,8 @@ mod_data_server <- function(id = character(), r = shiny::reactiveValues(), d = s
             class = "gridster_widget"
           )
           
-          widgets_ui <<- tagList(widgets_ui, ui_output)
-        })
+          widgets_ui <- tagList(widgets_ui, ui_output)
+        }
       }
       
       # Add gridster div
@@ -2379,15 +2218,10 @@ mod_data_server <- function(id = character(), r = shiny::reactiveValues(), d = s
       # if (gridster_id %in% r[[paste0(category, "_grids")]]) removeUI(selector = ui_selector)
       # insertUI(selector = ui_selector, where = "beforeEnd", ui = gridster_div)
       if (gridster_id %not_in% r[[paste0(category, "_grids")]]) insertUI(selector = ui_selector, where = "beforeEnd", ui = ui_output)
-      shinyjs::delay(100, output[[ui_output_id]] <- renderUI(gridster_div))
+      output[[ui_output_id]] <- renderUI(gridster_div)
       
-      r[[paste0(category, "_grids")]] <- c(r[[paste0(category, "_grids")]], gridster_id)
-      
-      run_gridster_code(gridster_id)
-    }
-    
-    run_gridster_code <- function(gridster_id){
-      shinyjs::delay(100, shinyjs::runjs(paste0("
+      # Run gridster code
+      shinyjs::delay(300, shinyjs::delay(300, shinyjs::runjs(paste0("
         $(document).ready(function() {
           window.", gridster_id, " = $('#", ns(gridster_id), " ul').gridster({
             namespace: '#", ns(gridster_id), "',
@@ -2400,9 +2234,122 @@ mod_data_server <- function(id = character(), r = shiny::reactiveValues(), d = s
               enabled: true
             }
           }).data('gridster');
+          
           ", gridster_id, ".disable().disable_resize();
-        });"
-      )))
+        });"))))
+      
+      r[[paste0(category, "_grids")]] <- c(r[[paste0(category, "_grids")]], gridster_id)
+    }
+    
+    load_tab_server <- function(tab_id){
+      
+      # Get tabs and widgets
+      
+      widgets <- r[[paste0(category, "_widgets")]] %>% dplyr::filter(tab_id == !!tab_id) %>% dplyr::rename(widget_id = id)
+      widgets_concepts <- r[[paste0(category, "_widgets_concepts")]] %>% dplyr::inner_join(widgets %>% dplyr::select(widget_id), by = "widget_id")
+      
+      req(nrow(widgets) > 0)
+        
+      widgets_ids <- unique(widgets$widget_id)
+      
+      # Loop over widgets
+      sapply(widgets_ids, function(widget_id){
+        
+        # Run plugin server code
+        # Only if this code has not been already loaded
+        trace_code <- paste0(category, "_", widget_id, "_", m$selected_study)
+        # if (trace_code %in% r$server_tabs_groups_loaded) print(trace_code)
+        if (trace_code %not_in% r$server_tabs_groups_loaded){
+          
+          # Add the trace_code to loaded plugins list
+          r$server_tabs_groups_loaded <- c(r$server_tabs_groups_loaded, trace_code)
+          
+          selected_concepts <- 
+            widgets_concepts %>% 
+            dplyr::filter(widget_id == !!widget_id) %>%
+            dplyr::select(concept_id, concept_name, concept_display_name, domain_id, mapped_to_concept_id, merge_mapped_concepts)
+          
+          # Get plugin code
+          
+          ids <- widgets %>% dplyr::filter(widget_id == !!widget_id) %>% dplyr::slice(1) %>% dplyr::select(plugin_id, tab_id)
+          plugin_id <- ids$plugin_id
+          tab_id <- ids$tab_id
+          
+          # Check if plugin has been deleted
+          check_deleted_plugin <- nrow(DBI::dbGetQuery(r$db, paste0("SELECT * FROM plugins WHERE id = ", plugin_id))) == 0
+          if (!check_deleted_plugin){
+            
+            sql <- glue::glue_sql("SELECT id FROM options WHERE link_id = {plugin_id} AND name = 'filename' AND value = 'server.R'", .con = r$db)
+            code_id <- DBI::dbGetQuery(r$db, sql) %>% dplyr::pull()
+            
+            sql <- glue::glue_sql("SELECT code FROM code WHERE category = 'plugin' AND link_id = {code_id}", .con = r$db)
+            server_code <- DBI::dbGetQuery(r$db, sql) %>% dplyr::pull()
+            
+            server_code <- 
+              server_code %>%
+              stringr::str_replace_all("%tab_id%", as.character(tab_id)) %>%
+              stringr::str_replace_all("%widget_id%", as.character(widget_id)) %>%
+              stringr::str_replace_all("%req%", "req(m[[session_code]] == session_num)\nreq(m$selected_study == %study_id%)") %>%
+              stringr::str_replace_all("%study_id%", as.character(m$selected_study)) %>%
+              stringr::str_replace_all("\r", "\n") %>%
+              stringr::str_replace_all("''", "'")
+            
+          }
+          else server_code <- ""
+          
+          # Create translations var (translations files are created in UI)
+          if (!check_deleted_plugin){
+            
+            # Get plugin unique_id
+            sql <- glue::glue_sql("SELECT value FROM options WHERE category = 'plugin' AND name = 'unique_id' AND link_id = {plugin_id}", .con = r$db)
+            plugin_unique_id <- DBI::dbGetQuery(r$db, sql) %>% dplyr::pull()
+            
+            translations_dir <- paste0(r$app_folder, "/translations/", plugin_unique_id)
+            
+            tryCatch({
+              i18np <- suppressWarnings(shiny.i18n::Translator$new(translation_csvs_path = translations_dir))
+              i18np$set_translation_language(language)},
+              error = function(e) cat(paste0("\n", now(), " - mod_data - ", id, " - error creating translator - plugin_id = ", plugin_id)))
+          }
+          
+          # Create a session number, to inactivate older observers
+          # Reset all older observers for this widget_id
+          
+          session_code <- paste0(category, "_widget_", widget_id)
+          if (length(m[[session_code]]) == 0) session_num <- 1L
+          if (length(m[[session_code]]) > 0) session_num <- m[[session_code]] + 1
+          m[[session_code]] <- session_num
+          
+          # NB : req(m[[session_code]] == session_num) must be put at the beginning of each observeEvent in plugins code
+          
+          # Variables to hide
+          new_env_vars <- list("r" = NA)
+          
+          # Variables to keep
+          variables_to_keep <- c("d", "m", "session_code", "session_num", "i18n", "selected_concepts", "debug")
+          if (exists("i18np")) variables_to_keep <- c(variables_to_keep, "i18np")
+          
+          for (var in variables_to_keep) new_env_vars[[var]] <- eval(parse(text = var))
+          
+          new_env <- rlang::new_environment(data = new_env_vars, parent = pryr::where("r"))
+          tryCatch(eval(parse(text = server_code), envir = new_env),
+                   error = function(e) cat(paste0("\n", now(), " - mod_data - ", id, " - error running server code - plugin_id = ", plugin_id, " - error = ", toString(e))))
+          
+          # Observer for widget deletion
+          observeEvent(input[[paste0(category, "_remove_widget_", widget_id)]], {
+            if (debug) cat(paste0("\n", now(), " - mod_data - ", id, " - observer input$..remove_widget.."))
+            r[[paste0(category, "_selected_widget")]] <- widget_id
+            shinyjs::show("delete_widget_modal")
+          })
+          
+          # Observer for widget settings
+          observeEvent(input[[paste0(category, "_widget_settings_", widget_id)]], {
+            if (debug) cat(paste0("\n", now(), " - mod_data - ", id, " - observer input$..widget_settings.."))
+            r[[paste0(category, "_widget_settings_trigger")]] <- now()
+            r[[paste0(category, "_widget_settings")]] <- widget_id
+          })
+        }
+      })
     }
   })
 }
