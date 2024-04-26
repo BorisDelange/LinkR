@@ -154,7 +154,6 @@ body, html {
 .main {
   flex-grow: 1;
   overflow-y: auto;
-  margin: 0px 15px 0px 5px;
 }
 
 /* --------------- */
@@ -178,7 +177,7 @@ body, html {
 /* MODALS          */
 /* --------------- */
 
-.delete_modal, .create_element_modal {
+.delete_modal, .create_element_modal, .load_status_modal {
   display: flex;
   align-items: center;
   justify-content: center;
@@ -192,14 +191,17 @@ body, html {
   z-index: 100;
 }
 
-.delete_modal_content {
+.delete_modal_content, .create_tab_modal_content, .create_widget_modal_content, .load_status_modal_content {
   background: #fff;
   padding: 5px 10px 10px 15px;
+}
+
+.delete_modal_content {
   width: 400px;
   height: 100px;
 }
 
-.delete_modal_content h1, .create_element_modal h1 {
+.delete_modal_content h1, .create_element_modal h1, .load_status_modal h1 {
   font-size: 14px;
 }
 
@@ -214,15 +216,11 @@ body, html {
 }
 
 .create_tab_modal_content {
-  background: #fff;
-  padding: 5px 10px 10px 15px;
   width: 600px;
   height: 180px;
 }
 
 .create_widget_modal_content {
-  background: #fff;
-  padding: 5px 10px 10px 15px;
   width: 1200px;
   height: 800px;
 }
@@ -236,6 +234,11 @@ body, html {
   font-size: 12px;
   height: calc(100% - 70px);
   overflow-y: auto;
+}
+
+.load_status_modal_content {
+  width: 600px;
+  min-height: 200px;
 }
 
 /* ---------------- */

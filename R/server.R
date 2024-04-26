@@ -28,6 +28,9 @@ app_server <- function(pages, language, languages, i18n, app_folder, debug, loca
     # App version
     r$app_version <- "0.2.0.9085"
     
+    # Var for project load status
+    r$project_load_status_displayed <- FALSE
+    
     # Col types of database tables, to import and restore database
     
     db_col_types <- tibble::tribble(

@@ -455,10 +455,11 @@ mod_page_sidenav_server <- function(id = character(), r = shiny::reactiveValues(
           if (!is.na(r[[paste0(category, "_selected_tab")]]) & r[[paste0(category, "_selected_tab")]] != 0){
             
             shinyjs::delay(300, shinyjs::runjs("window.dispatchEvent(new Event('resize'));"))
-            
-            gridster_id <- paste0(category, "_gridster_", r[[paste0(category, "_selected_tab")]])
-            if (r[[paste0(category, "_edit_page_activated")]]) shinyjs::runjs(paste0("setTimeout(function() { ", gridster_id, ".resize(); }, 400);"))
-            else shinyjs::delay(400, shinyjs::runjs(paste0(gridster_id, ".disable().disable_resize();")))
+
+            for (gridster_id in r[[paste0(category, "_grids")]]){
+              if (r[[paste0(category, "_edit_page_activated")]]) shinyjs::delay(400, shinyjs::runjs(paste0(gridster_id, ".resize();")))
+              else shinyjs::delay(400, shinyjs::runjs(paste0(gridster_id, ".disable().disable_resize();")))
+            }
           }
         }
       }
