@@ -232,30 +232,20 @@ app_server <- function(pages, language, languages, i18n, app_folder, debug, loca
     
     r$loaded_pages <- list()
     
-    sapply(pages[!pages %in% c("patient_level_data", "aggregated_data")], function(page){
+    sapply(pages, function(page){
       
       if (page == "/") page <- "home"
       
       observeEvent(shiny.router::get_page(), {
         if (shiny.router::get_page() == "/") current_page <- "home"
+        else if (shiny.router::get_page() == "data"){
+          if (length(shiny.router::get_query_param()$type) > 0) r$data_page <- shiny.router::get_query_param()$type
+          else r$data_page <- "patient_lvl"
+          current_page <- "data"
+        }
         else current_page <- shiny.router::get_page()
         
-        if (current_page == page & length(r$loaded_pages[[page]]) == 0) {
-          r$load_page <- page
-          # if (debug) cat(paste0("\n", now(), " - server - load ", page, " server"))
-          
-          # r$loaded_pages[[page]] <- TRUE
-          
-          # if (page %in% c("patient_level_data", "aggregated_data")) mod_data_server(page, r, d, m, language, i18n, debug)
-          # else {
-          #   if (page == "users") args <- list(page, r, d, m, language, i18n, debug, users_accesses_toggles_options)
-          #   else args <- list(page, r, d, m, language, i18n, debug)
-          #   do.call(paste0("mod_", page, "_server"), args)
-          # }
-          # 
-          # mod_page_sidenav_server(page, r, d, m, language, i18n, debug)
-          # mod_page_header_server(page, r, d, m, language, i18n, debug)
-        }
+        if (current_page == page & length(r$loaded_pages[[page]]) == 0) r$load_page <- page
       })
     })
     
@@ -265,22 +255,22 @@ app_server <- function(pages, language, languages, i18n, app_folder, debug, loca
       page <- r$load_page
       
       # Data pages are loaded from mod_home (when a project is selected)
-      if (page %in% c("patient_level_data", "aggregated_data")){
+      if (page == "data"){
         
-        sapply(c("patient_level_data", "aggregated_data"), function(page){
-          mod_data_server(page, r, d, m, language, i18n, debug)
-          mod_page_sidenav_server(page, r, d, m, language, i18n, debug)
-          mod_page_header_server(page, r, d, m, language, i18n, debug)
-          r$loaded_pages[[page]] <- TRUE
-          
-          r$load_project_trigger <- now()
-        })
+        # sapply(c("patient_level_data", "aggregated_data"), function(page){
+        mod_data_server("data", r, d, m, language, i18n, debug)
+        mod_page_sidenav_server("data", r, d, m, language, i18n, debug)
+        mod_page_header_server("data", r, d, m, language, i18n, debug)
+        r$loaded_pages$data <- TRUE
+        # })
         
         # Also load concepts page
         mod_concepts_server("concepts", r, d, m, language, i18n, debug)
         mod_page_sidenav_server("concepts", r, d, m, language, i18n, debug)
         mod_page_header_server("concepts", r, d, m, language, i18n, debug)
         r$loaded_pages$concepts <- TRUE
+        
+        r$load_project_trigger <- now()
       }
       else {
         if (page == "users") args <- list(page, r, d, m, language, i18n, debug, users_accesses_toggles_options)

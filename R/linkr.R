@@ -185,8 +185,9 @@ linkr <- function(
     "log",
     # Project pages
     "concepts",
-    "patient_level_data",
-    "aggregated_data",
+    # "patient_level_data",
+    # "aggregated_data",
+    "data",
     "subsets",
     "messages",
     "project_console",

@@ -51,7 +51,7 @@ mod_home_server <- function(id, r, d, m, language, i18n, debug){
       # Load r$studies (to work with old version)
       sql <- glue::glue_sql("SELECT * FROM studies WHERE id IN ({unique(r$projects_long$study_id)*})", .con = r$db)
       r$projects_wide <- DBI::dbGetQuery(r$db, sql)
-      r$studies <- r$projects_wide
+      # r$studies <- r$projects_wide
       
       r$reload_projects_list <- now()
     })
@@ -102,7 +102,7 @@ mod_home_server <- function(id, r, d, m, language, i18n, debug){
         
         projects_ui <- tagList(
           tags$a(
-            href = shiny.router::route_link("patient_level_data"),
+            href = shiny.router::route_link("data"),
             onClick = paste0("Shiny.setInputValue('", id, "-selected_project', ", i, ", {priority: 'event'});"),
             div(
               class = "project_card",
@@ -134,10 +134,12 @@ mod_home_server <- function(id, r, d, m, language, i18n, debug){
       # If not already loaded, project is loaded after data pages server side is loaded
       # Else, project is loaded directly
       # Delay to change page before executing server
-      shinyjs::delay(100, {
-        if (length(r$loaded_pages$patient_level_data) == 0) r$load_page <- "patient_level_data"
-        else r$load_project_trigger <- now()
-      })
+      
+      if (length(r$loaded_pages$data) == 0){
+        r$load_page <- "data"
+        r$data_page <- "patient_lvl"
+      }
+      else r$load_project_trigger <- now()
     })
     
     # Trigger to load a project
@@ -146,7 +148,8 @@ mod_home_server <- function(id, r, d, m, language, i18n, debug){
       
       req(length(input$selected_project) > 0)
       
-      m$selected_study <- input$selected_project
+      # shiny.router::change_page("patient_level_data")
+      shinyjs::delay(500, m$selected_study <- input$selected_project)
     })
     
     if (debug) cat(paste0("\n", now(), " - mod_home - ", id, " - end"))

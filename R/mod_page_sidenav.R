@@ -260,7 +260,7 @@ mod_page_sidenav_ui <- function(id = character(), i18n = character()){
   # Patient-level data ----
   # --- --- --- --- --- ---
   
-  if (id == "patient_level_data"){
+  if (id == "data"){
     div(
       id = ns("sidenav"),
       class = "sidenav",
@@ -306,18 +306,41 @@ mod_page_sidenav_ui <- function(id = character(), i18n = character()){
   # --- --- --- --- -- -
   
   if (id == "aggregated_data") div(
-    class = "sidenav",
-    # div(class = "reduced_sidenav", show_hide_sidenav),
-    # div(class = "extended_sidenav",
-    shiny.fluent::CommandBar(
-      
-    ),
-    # shiny.fluent::ActionButton.shinyInput(ns("add_tab"), i18n$t("add_tab"), iconProps = list(iconName = "Add")),
-    # shiny.fluent::ActionButton.shinyInput(ns("edit_tab"), i18n$t("edit_tab"), iconProps = list(iconName = "Edit")),
-    # shiny.fluent::ActionButton.shinyInput(ns("add_widget"), i18n$t("new_widget"), iconProps = list(iconName = "Add")),
-    hr(),
-    make_combobox(i18n, ns, id = "subset", label = "subset", width = "200px"),
-    show_hide_sidenav
+    div(
+      id = ns("sidenav"),
+      class = "sidenav",
+      div(
+        id = ns("large_sidenav"),
+        div(
+          class = "sidenav_top",
+          div(
+            create_hover_card(ui = shiny.fluent::IconButton.shinyInput(ns("add_tab"), iconProps = list(iconName = "Boards")), text = i18n$t("add_a_tab")),
+            class = "small_icon_button"
+          ),
+          div(
+            create_hover_card(ui = shiny.fluent::IconButton.shinyInput(ns("add_widget"), iconProps = list(iconName = "RectangularClipping")), text = i18n$t("add_a_widget")),
+            class = "small_icon_button"
+          ),
+          div(
+            id = ns("edit_page_on_div"),
+            create_hover_card(ui = shiny.fluent::IconButton.shinyInput(ns("edit_page_on"), iconProps = list(iconName = "Edit")), text = i18n$t("edit_page")),
+            class = "small_icon_button",
+          ),
+          shinyjs::hidden(
+            div(
+              id = ns("edit_page_off_div"),
+              shiny.fluent::IconButton.shinyInput(ns("edit_page_off"), iconProps = list(iconName = "Accept")),
+              class = "small_icon_button",
+            )
+          )
+        ), br(),
+        make_combobox(i18n, ns, id = "subset", label = "subset", width = "200px")
+      ),
+      div(
+        id = ns("reduced_sidenav")
+      ),
+      show_hide_sidenav,
+    ) -> result
   ) -> result
   
   # --- --- -- -
@@ -443,21 +466,19 @@ mod_page_sidenav_server <- function(id = character(), r = shiny::reactiveValues(
     })
     
     observeEvent(input$show_hide_sidenav, {
-      if (debug) cat(paste0("\n", now(), " - mod_page_sidenav - observer input$show_hide_sidenav"))
+      if (debug) cat(paste0("\n", now(), " - mod_page_sidenav - ", id, " - observer input$show_hide_sidenav"))
       
       shinyjs::runjs(paste0(js_vars, " if (currentWidth === '200px') {", js_hide_sidenav, "} else { ", js_show_sidenav, "}"))
       
-      if (id %in% c("patient_level_data", "aggregated_data") ){
-        if (id == "patient_level_data") category <- "patient_lvl"
-        else category <- "aggregated"
+      if (id == "data"){
 
-        if (length(r[[paste0(category, "_selected_tab")]]) > 0){
-          if (!is.na(r[[paste0(category, "_selected_tab")]]) & r[[paste0(category, "_selected_tab")]] != 0){
+        if (length(r$selected_tab) > 0){
+          if (!is.na(r$selected_tab) & r$selected_tab != 0){
             
             shinyjs::delay(300, shinyjs::runjs("window.dispatchEvent(new Event('resize'));"))
 
-            for (gridster_id in r[[paste0(category, "_grids")]]){
-              if (r[[paste0(category, "_edit_page_activated")]]) shinyjs::delay(400, shinyjs::runjs(paste0(gridster_id, ".resize();")))
+            for (gridster_id in r$grids){
+              if (r$edit_page_activated) shinyjs::delay(400, shinyjs::runjs(paste0(gridster_id, ".resize();")))
               else shinyjs::delay(400, shinyjs::runjs(paste0(gridster_id, ".disable().disable_resize();")))
             }
           }

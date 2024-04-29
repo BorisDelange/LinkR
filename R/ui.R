@@ -6,7 +6,6 @@ app_ui <- function(pages, language, languages, i18n, users_accesses_toggles_opti
       if (debug) cat(paste0("\n", now(), " - ui - make_router - ", page_url))
       
       if (page_url == "/") page <- "home" else page <- page_url
-      if (page %in% c("patient_level_data", "aggregated_data")) fct <- "data" else fct <- page
       
       args <- list(page, language, languages, i18n)
       if (page == "users") args <- list(page, language, languages, i18n, users_accesses_toggles_options)
@@ -17,7 +16,7 @@ app_ui <- function(pages, language, languages, i18n, users_accesses_toggles_opti
           mod_page_header_ui(id = page, i18n = i18n),
           div(
             mod_page_sidenav_ui(id = page, i18n = i18n),
-            do.call(paste0("mod_", fct, "_ui"), args),
+            do.call(paste0("mod_", page, "_ui"), args),
             class = "main_container"
           ),
           mod_page_footer_ui(i18n = i18n)
@@ -86,8 +85,8 @@ golem_add_external_resources <- function(){
     
     # Script to make an input when a text is entered in the person ComboBox.shinyInput
     tags$script("
-      $(document).on('keyup', '#patient_level_data-person-input', function() {
-        Shiny.setInputValue('patient_level_data-person_trigger', $(this).val());
+      $(document).on('keyup', '#data-person-input', function() {
+        Shiny.setInputValue('data-person_trigger', $(this).val());
       });
     "),
     

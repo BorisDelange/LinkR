@@ -73,8 +73,8 @@ mod_page_header_ui <- function(id = character(), i18n = character()){
             shiny.fluent::CommandBarItem("", "BIDashboard",
               subMenuProps = list(items = list(
                 list(text = i18n$t("concepts"), iconProps = list(iconName = "AllApps"), href = shiny.router::route_link("concepts")),
-                list(text = i18n$t("patient_lvl_data"), iconProps = list(iconName = "Contact"), href = shiny.router::route_link("patient_level_data")),
-                list(text = i18n$t("aggregated_data"), iconProps = list(iconName = "People"), href = shiny.router::route_link("aggregated_data"))
+                list(text = i18n$t("patient_lvl_data"), iconProps = list(iconName = "Contact"), href = shiny.router::route_link("data?type=patient_lvl")),
+                list(text = i18n$t("aggregated_data"), iconProps = list(iconName = "People"), href = shiny.router::route_link("data?type=aggregated"))
               )),
               title = i18n$t("explore_data")
             ),
@@ -190,13 +190,19 @@ mod_page_header_server <- function(id = character(), r = shiny::reactiveValues()
     
     # Show current page
     
-    output$current_page <- renderUI(i18n$t(id))
+    if (id == "data"){
+      observeEvent(shiny.router::get_page(), {
+        if (debug) cat(paste0("\n", now(), " - mod_page_header - ", id, " - observer shiny.router::change_page()"))
+        output$current_page <- renderUI(i18n$t(paste0(r$data_page, "_data")))
+      })
+    }
+    else output$current_page <- renderUI(i18n$t(id))
     
     # Selected project
     
-    if (id %in% c("concepts", "patient_level_data", "aggregated_data", "subsets", "messages", "project_console", "tasks")){
+    if (id %in% c("concepts", "data", "subsets", "messages", "project_console", "tasks")){
       observeEvent(m$selected_study, {
-        if (debug) cat(paste0("\n", now(), " - mod_data - ", id, " - observer m$selected_study"))
+        if (debug) cat(paste0("\n", now(), " - mod_page_header - ", id, " - observer m$selected_study"))
         
         project_name <- r$projects_long %>% dplyr::filter(study_id == m$selected_study, name == paste0("name_", language)) %>% dplyr::pull(value)
         max_length <- 27
