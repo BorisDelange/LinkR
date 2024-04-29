@@ -62,7 +62,7 @@ mod_page_header_ui <- function(id = character(), i18n = character()){
   else {
     command_bar <- tagList(
       tags$a(
-        href = shiny.router::route_link("patient_level_data"),
+        href = shiny.router::route_link("data?type=patient_lvl"),
         div(div(uiOutput(ns("selected_project")), class = "selected_project"), class = "selected_project_container"),
         style = "z-index:2; text-decoration:none; margin-left:-28px;",
       ),

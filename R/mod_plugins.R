@@ -123,7 +123,7 @@ mod_plugins_server <- function(id, r, d, m, language, i18n, debug){
         FROM plugins p
         LEFT JOIN options AS r ON p.id = r.link_id AND r.category = 'plugin' AND r.name = 'users_allowed_read_group'
         LEFT JOIN options AS u ON p.id = u.link_id AND u.category = 'plugin' AND u.name = 'user_allowed_read'
-        WHERE (r.value = 'everybody' OR (r.value = 'people_picker' AND u.value_num = {r$user_id})) AND p.deleted IS FALSE
+        WHERE (r.value = 'everybody' OR (r.value = 'people_picker' AND u.value_num = {r$user_id}))
       )
       SELECT p.id, p.update_datetime, p.tab_type_id, o.name, o.value, o.value_num
         FROM plugins p
@@ -339,10 +339,14 @@ mod_plugins_server <- function(id, r, d, m, language, i18n, debug){
     observeEvent(r$reload_plugin_code_files, {
       if (debug) cat(paste0("\n", now(), " - mod_plugins - observer r$load_plugin_code_files"))
       
-      r$selected_plugin_folder <- paste0(r$app_folder, "/plugins/", r$selected_plugin_type, "/", r$selected_plugin_unique_id)
+      plugin_folder <- paste0(r$app_folder, "/plugins/", r$selected_plugin_type, "/", r$selected_plugin_unique_id)
+      r$selected_plugin_folder <- plugin_folder
+      
+      # Create folder if doesn't exist
+      if (!dir.exists(plugin_folder)) dir.create(plugin_folder)
       
       # Retro-compatibility : convert UI / server / translations entries from database to files
-      sql <- glue::glue_sql("SELECT * FROM code WHERE category IN ('plugin_ui', 'plugin_server', 'plugin_translations') AND link_id = {r$selected_plugin} AND deleted IS FALSE", .con = r$db)
+      sql <- glue::glue_sql("SELECT * FROM code WHERE category IN ('plugin_ui', 'plugin_server', 'plugin_translations') AND link_id = {r$selected_plugin}", .con = r$db)
       old_plugin_files <- DBI::dbGetQuery(r$db, sql)
       if (nrow(old_plugin_files) > 0){
         for (filename in c("server.R", "ui.R", "translations.csv")){
@@ -358,7 +362,7 @@ mod_plugins_server <- function(id, r, d, m, language, i18n, debug){
       
       files_list <- list.files(path = r$selected_plugin_folder, pattern = "(?i)*.\\.(r|py|csv|css|js)$")
       
-      sql <- glue::glue_sql("SELECT * FROM options WHERE category = 'plugin_code' AND link_id = {r$selected_plugin} AND deleted IS FALSE", .con = r$db)
+      sql <- glue::glue_sql("SELECT * FROM options WHERE category = 'plugin_code' AND link_id = {r$selected_plugin}", .con = r$db)
       plugin_files_db <- DBI::dbGetQuery(r$db, sql)
       
       if (length(files_list) > 0){
@@ -414,7 +418,7 @@ mod_plugins_server <- function(id, r, d, m, language, i18n, debug){
           file <- plugin_files_db[i, ]
           if (!file.exists(paste0(r$selected_plugin_folder, "/", file$value))){
             # Get code
-            sql <- glue::glue_sql("SELECT * FROM code WHERE category = 'plugin' AND link_id = {file$id} AND deleted IS FALSE", .con = r$db)
+            sql <- glue::glue_sql("SELECT * FROM code WHERE category = 'plugin' AND link_id = {file$id}", .con = r$db)
             row <- DBI::dbGetQuery(r$db, sql)
             
             # Create file
@@ -833,7 +837,7 @@ mod_plugins_server <- function(id, r, d, m, language, i18n, debug){
       else {
         check_used_name <- !file.exists(paste0(r$selected_plugin_folder, "/", new_name))
         if (!check_used_name) {
-          sql <- glue::glue_sql("SELECT * FROM options WHERE category = 'plugin_code' AND name = 'filename' AND value = {new_name} AND deleted IS FALSE", .con = r$db)
+          sql <- glue::glue_sql("SELECT * FROM options WHERE category = 'plugin_code' AND name = 'filename' AND value = {new_name}", .con = r$db)
           used_name <- DBI::dbGetQuery(r$db, sql)
           check_used_name <- !nrow(used_name) > 0
         }

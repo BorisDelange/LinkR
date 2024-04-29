@@ -472,15 +472,17 @@ mod_page_sidenav_server <- function(id = character(), r = shiny::reactiveValues(
       
       if (id == "data"){
 
-        if (length(r$selected_tab) > 0){
-          if (!is.na(r$selected_tab) & r$selected_tab != 0){
-            
+        category <- r$data_page
+        
+        if (length(r[[paste0(category, "_selected_tab")]]) > 0){
+          if (!is.na(r[[paste0(category, "_selected_tab")]]) & r[[paste0(category, "_selected_tab")]] != 0){
             shinyjs::delay(300, shinyjs::runjs("window.dispatchEvent(new Event('resize'));"))
-
-            for (gridster_id in r$grids){
-              if (r$edit_page_activated) shinyjs::delay(400, shinyjs::runjs(paste0(gridster_id, ".resize();")))
-              else shinyjs::delay(400, shinyjs::runjs(paste0(gridster_id, ".disable().disable_resize();")))
-            }
+            sapply(r$data_grids, function(gridster_id){
+              if (length(r$edit_page_activated) > 0){
+                if (r$edit_page_activated) shinyjs::delay(400, shinyjs::runjs(paste0(gridster_id, ".enable().resize();")))
+                else shinyjs::delay(400, shinyjs::runjs(paste0(gridster_id, ".disable().disable_resize();")))
+              }
+            })
           }
         }
       }

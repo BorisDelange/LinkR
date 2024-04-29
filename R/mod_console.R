@@ -34,8 +34,10 @@ mod_console_server <- function(id = character(), r = shiny::reactiveValues(), d 
     
     r$load_console <- now()
     
-    observeEvent(r$load_console, {
-      if (debug) cat(paste0("\n", now(), " - mod_console - observer r$load_console"))
+    # Unlock reactivity
+    observeEvent(shiny.router::get_page(), {
+      req(shiny.router::get_page() == "console")
+      if (debug) cat(paste0("\n", now(), " - mod_console - observer shiny.router::get_page()"))
       
       shinyjs::show("console")
     })

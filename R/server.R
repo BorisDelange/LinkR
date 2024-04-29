@@ -32,7 +32,6 @@ app_server <- function(pages, language, languages, i18n, app_folder, debug, loca
     r$project_load_status_displayed <- FALSE
     
     # Col types of database tables, to import and restore database
-    
     db_col_types <- tibble::tribble(
       ~table, ~col_types, ~db,
       "users", "icccciicl", "main",
@@ -81,9 +80,8 @@ app_server <- function(pages, language, languages, i18n, app_folder, debug, loca
     else has_internet <- curl::has_internet()
     r$has_internet <- has_internet
     
-    # Create r$server_tabs_groups_loaded & r$ui_tabs_groups_loaded
-    r$server_tabs_groups_loaded <- ""
-    r$ui_tabs_groups_loaded <- ""
+    # Create r$server_tabs_groups_loaded
+    r$server_tabs_groups_loaded <- character()
     
     # App folder
     if (debug) cat(paste0("\n", now(), " - server - app_folder"))
@@ -108,9 +106,6 @@ app_server <- function(pages, language, languages, i18n, app_folder, debug, loca
     r$language <- language
     m$language <- language
     
-    # Save currently opened toggles (used to reload cards when we load a page, restart reactivity)
-    r$activated_toggles <- ""
-    
     # Connection to database
     # If connection informations have been given in linkr() function, use these informations
     if (debug) cat(paste0("\n", now(), " - server - app_db"))
@@ -118,9 +113,6 @@ app_server <- function(pages, language, languages, i18n, app_folder, debug, loca
     m$local_db <- DBI::dbConnect(RSQLite::SQLite(), paste0(app_db_folder, "/linkr_public"))
     
     db_local_main <- get_db(r = r, m = m, app_db_folder = app_db_folder)
-    
-    # r$db <- get_db(r = r, app_db_folder = app_db_folder, type = "main")
-    # m$db <- get_db(r = r, app_db_folder = app_db_folder, type = "plugins")
     
     # Close DB connection on exit
     # And restore initial working directory
@@ -145,6 +137,32 @@ app_server <- function(pages, language, languages, i18n, app_folder, debug, loca
       # Load database
       load_database(r = r, m = m, i18n = i18n)
       
+      # Retro-compatibility : delete all insertions with DELETED IS TRUE
+      sql <- glue::glue_sql("SELECT * FROM options WHERE name = 'unused_rows_deleted' AND value = 'true'", .con = r$db)
+      if (nrow(DBI::dbGetQuery(r$db, sql)) == 0){
+        
+        for (i in 1:nrow(db_col_types)){
+          row <- db_col_types[i, ]
+          
+          if (row$table %not_in% c("user_deleted_conversations", "log", "concept", "concept_dataset", "concept_user", "domain",
+            "concept_class", "concept_relationship", "concept_relationship_user", "concept_relationship_evals", "relationship",
+            "concept_synonym", "concept_ancestor", "drug_strength")){
+            
+            if (row$db == "main") db <- r$db
+            else db <- m$db
+            
+            sql <- glue::glue_sql("DELETE FROM {row$table} WHERE deleted = TRUE", .con = db)
+            query <- DBI::dbSendStatement(db, sql)
+            DBI::dbClearResult(query)
+          }
+        }
+        
+        new_data <- tibble::tibble(
+          id = get_last_row(r$db, "options") + 1, category = 'link_settings', link_id = NA_integer_, name = 'unused_rows_deleted', value = 'true',
+          value_num = NA_integer_, creator_id = NA_integer_, datetime = now(), deleted = FALSE
+        )
+        DBI::dbAppendTable(r$db, "options", new_data)
+      }
     })
     
     # Secure the app with shinymanager
