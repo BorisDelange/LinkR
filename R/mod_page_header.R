@@ -64,7 +64,7 @@ mod_page_header_ui <- function(id = character(), i18n = character()){
       tags$a(
         href = shiny.router::route_link("data?type=patient_lvl"),
         div(div(uiOutput(ns("selected_project")), class = "selected_project"), class = "selected_project_container"),
-        style = "z-index:2; text-decoration:none; margin-left:-28px;",
+        style = "z-index:200; text-decoration:none; margin-left:-28px;",
       ),
       div(
         shiny.fluent::CommandBar(
@@ -115,6 +115,7 @@ mod_page_header_ui <- function(id = character(), i18n = character()){
           command_bar,
           uiOutput(ns("current_page"), class = "current_page"),
           div(class = "message_bars", uiOutput(ns("message_bar"))),
+          # div(class = "message_bars", shiny.fluent::MessageBar("test")),
           style = "display:flex;"
         )
       ),
@@ -205,9 +206,10 @@ mod_page_header_server <- function(id = character(), r = shiny::reactiveValues()
         if (debug) cat(paste0("\n", now(), " - mod_page_header - ", id, " - observer m$selected_study"))
         
         project_name <- r$projects_long %>% dplyr::filter(study_id == m$selected_study, name == paste0("name_", language)) %>% dplyr::pull(value)
+        project_name_short <- project_name
         max_length <- 27
-        if (nchar(project_name) > max_length) project_name <- paste0(substr(project_name, 1, max_length - 3), "...")
-        output$selected_project <- renderUI(project_name)
+        if (nchar(project_name_short) > max_length) project_name_short <- paste0(substr(project_name_short, 1, max_length - 3), "...")
+        output$selected_project <- renderUI(create_hover_card(ui = project_name_short, text = project_name))
       })
     }
   })

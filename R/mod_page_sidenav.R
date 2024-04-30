@@ -256,9 +256,9 @@ mod_page_sidenav_ui <- function(id = character(), i18n = character()){
     ) -> result
   }
   
-  # --- --- --- --- --- ---
-  # Patient-level data ----
-  # --- --- --- --- --- ---
+  # --- --- -
+  # Data ----
+  # --- --- -
   
   if (id == "data"){
     div(
@@ -300,48 +300,6 @@ mod_page_sidenav_ui <- function(id = character(), i18n = character()){
       show_hide_sidenav,
     ) -> result
   }
-  
-  # --- --- --- --- -- -
-  # Aggregated data ----
-  # --- --- --- --- -- -
-  
-  if (id == "aggregated_data") div(
-    div(
-      id = ns("sidenav"),
-      class = "sidenav",
-      div(
-        id = ns("large_sidenav"),
-        div(
-          class = "sidenav_top",
-          div(
-            create_hover_card(ui = shiny.fluent::IconButton.shinyInput(ns("add_tab"), iconProps = list(iconName = "Boards")), text = i18n$t("add_a_tab")),
-            class = "small_icon_button"
-          ),
-          div(
-            create_hover_card(ui = shiny.fluent::IconButton.shinyInput(ns("add_widget"), iconProps = list(iconName = "RectangularClipping")), text = i18n$t("add_a_widget")),
-            class = "small_icon_button"
-          ),
-          div(
-            id = ns("edit_page_on_div"),
-            create_hover_card(ui = shiny.fluent::IconButton.shinyInput(ns("edit_page_on"), iconProps = list(iconName = "Edit")), text = i18n$t("edit_page")),
-            class = "small_icon_button",
-          ),
-          shinyjs::hidden(
-            div(
-              id = ns("edit_page_off_div"),
-              shiny.fluent::IconButton.shinyInput(ns("edit_page_off"), iconProps = list(iconName = "Accept")),
-              class = "small_icon_button",
-            )
-          )
-        ), br(),
-        make_combobox(i18n, ns, id = "subset", label = "subset", width = "200px")
-      ),
-      div(
-        id = ns("reduced_sidenav")
-      ),
-      show_hide_sidenav,
-    ) -> result
-  ) -> result
   
   # --- --- -- -
   # Subsets ----

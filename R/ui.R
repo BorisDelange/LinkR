@@ -1,3 +1,4 @@
+#' @import shiny
 #' @noRd
 app_ui <- function(pages, language, languages, i18n, users_accesses_toggles_options, debug) {
   

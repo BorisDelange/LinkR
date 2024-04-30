@@ -38,16 +38,18 @@ body, html {
   height: 20px;
   display: flex;
   justify-content: center;
-  z-index: 10;
+  z-index: 250;
 }
 
 .header_left_bar {
   display: flex;
+  z-index: 200;
 }
 
 .header_command_bar {
   margin-left: 193px;
-  transition: margin-left 0.3s ease-in-out
+  transition: margin-left 0.3s ease-in-out;
+  z-index: 200;
 }
 
 .header_command_bar .ms-CommandBar {
@@ -154,6 +156,7 @@ body, html {
 .main {
   flex-grow: 1;
   overflow-y: auto;
+  margin: 0px 10px 0px 18px;
 }
 
 /* --------------- */
@@ -188,7 +191,7 @@ body, html {
   width: 100%;
   height: 100%;
   background-color: rgba(0,0,0,0.2);
-  z-index: 100;
+  z-index: 500;
 }
 
 .delete_modal_content, .create_tab_modal_content, .create_widget_modal_content, .load_status_modal_content {
@@ -275,15 +278,39 @@ body, html {
     opacity: 0.5;
 }
 
-.gridster_widget {
+.gridster_widget, .plugin_code_widget {
   box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 3px 6px 0 rgba(0, 0, 0, 0.19);
   overflow: hidden;
   font-size: 12px;
   z-index: 10;
 }
 
+.plugin_code_widget {
+  max-width: calc(100% - 20px);
+  margin: 10px 0 0 5px;
+}
+
 .widget {
   padding: 0px 10px 5px 10px;
+}
+
+/* --------------------- */
+/* PLUGINS PAGE          */
+/* --------------------- */
+
+.plugins_summary_container {
+  display: flex;
+  justify-content: space-between;
+}
+
+.plugins_summary_left {
+  display: flex;
+  flex-direction: column;
+  width: 50%;
+}
+
+.plugins_summary_right {
+  width: 50%;
 }
 
 

@@ -152,18 +152,17 @@ mod_data_ui <- function(id = character(), language = "en", languages = tibble::t
   for (category in c("patient_lvl", "aggregated")) study_divs <- tagList(
     study_divs, 
     shinyjs::hidden(uiOutput(ns(paste0(category, "_study_menu")))),
-    # div(id = ns(paste0(category, "_study_widgets")), style = "overflow: hidden;"),
     shinyjs::hidden(div(id = ns(paste0(category, "_no_tabs_to_display")), shiny.fluent::MessageBar(i18n$t("no_tabs_to_display_click_add_tab"), messageBarType = 5))),
   )
   
   div(
-    class = "main",
+    class = "main", style = "margin-left: 10px;",
     add_tab_modal,
     add_widget_modal,
     delete_wigdet_modal,
     load_status_modal,
     study_divs,
-    div(id = ns("study_widgets"), style = "overflow: hidden;")
+    div(id = ns("study_widgets"))
   )
 }
 
@@ -994,9 +993,6 @@ mod_data_server <- function(id = character(), r = shiny::reactiveValues(), d = s
           
           displayed_category <- r$data_page
           hidden_category <- categories[categories != displayed_category]
-          
-          # shinyjs::show(paste0(displayed_category, "_study_widgets"))
-          # shinyjs::hide(paste0(hidden_category, "_study_widgets"))
         })
         
         # Indicate that this study has been loaded, so that UI elements aren't loaded twice
@@ -1691,14 +1687,17 @@ mod_data_server <- function(id = character(), r = shiny::reactiveValues(), d = s
       if (is.na(widget_name) | widget_name == "") shiny.fluent::updateTextField.shinyInput(session, "widget_creation_name", errorMessage = i18n$t("provide_valid_name"))
       req(!is.na(widget_name) & widget_name != "")
       
-      selected_tab <- r[[paste0(category, "_selected_tab")]]
-      plugin_id <- input$widget_creation_plugin$key
-      tab_id <- r[[paste0(category, "_selected_tab")]]
-      
+      # Check if plugin dropdown is not empty
       if (r$data_page == "patient_lvl") tab_type_id <- 1 else tab_type_id <- 2
-      
       sql <- glue::glue_sql("SELECT * FROM plugins WHERE tab_type_id = {tab_type_id} ORDER BY name", .con = r$db)
       plugin_options <- DBI::dbGetQuery(r$db, sql) %>% convert_tibble_to_list(key_col = "id", text_col = "name", i18n = i18n)
+      
+      if (length(input$widget_creation_plugin$key) == 0) shiny.fluent::updateDropdown.shinyInput(session, "widget_creation_plugin", errorMessage = i18n$t("choose_a_plugin"), options = plugin_options)
+      req(length(input$widget_creation_plugin$key) > 0)
+      
+      plugin_id <- input$widget_creation_plugin$key
+      selected_tab <- r[[paste0(category, "_selected_tab")]]
+      tab_id <- r[[paste0(category, "_selected_tab")]]
       
       sql <- glue::glue_sql("SELECT value FROM options WHERE category = 'plugin' AND name = 'unique_id' AND link_id = {plugin_id}", .con = r$db)
       plugin_unique_id <- DBI::dbGetQuery(r$db, sql) %>% dplyr::pull()
@@ -1711,11 +1710,6 @@ mod_data_server <- function(id = character(), r = shiny::reactiveValues(), d = s
       
       if (name_already_used) shiny.fluent::updateTextField.shinyInput(session, "widget_creation_name", errorMessage = i18n$t("name_already_used"))
       req(!name_already_used)
-      
-      # Check if plugin dropdown is not empty
-      
-      if (length(input$widget_creation_plugin$key) == 0) shiny.fluent::updateDropdown.shinyInput(session, "widget_creation_plugin", errorMessage = i18n$t("choose_a_plugin"), options = plugin_options)
-      req(length(input$widget_creation_plugin$key) > 0)
       
       # Add widget in db
       widget_id <- get_last_row(r$db, "widgets") + 1
@@ -1770,7 +1764,13 @@ mod_data_server <- function(id = character(), r = shiny::reactiveValues(), d = s
       
       ## Load front-end & back-end ----
       
-      load_tab_ui(category, tab_id)
+      # gridster_id <- paste0("gridster_", r[[paste0(category, "_selected_tab")]])
+      
+      # shinyjs::runjs(paste0(
+      #   gridster_id, ".add_widget('<li><div style=\"background-color: #ccc; height: 100%; width:100%; border: solid 1px;\">Widget 5</div></li>', 10, 2);
+      # "))
+      
+      load_tab_ui(category, tab_id, widget_id, "add")
       load_tab_server(tab_id)
       
       # Clode modal
@@ -2093,26 +2093,27 @@ mod_data_server <- function(id = character(), r = shiny::reactiveValues(), d = s
     # Module functions ####
     # --- --- --- --- --- -
     
-    create_widget <- function(widget_id, ui_code){
+    create_widget <- function(widget_id, ui_code, show_edit_buttons = FALSE){
+      edit_buttons <- div(
+        id = ns(paste0("widget_settings_remove_buttons_", widget_id)),
+        div(
+          div(
+            shiny.fluent::IconButton.shinyInput(ns(paste0("widget_settings_", widget_id)), iconProps = list(iconName = "Settings")),
+            class = "small_icon_button"
+          ),
+          div(
+            shiny.fluent::IconButton.shinyInput(ns(paste0("remove_widget_", widget_id)), iconProps = list(iconName = "Delete")),
+            class = "small_icon_button"
+          ),
+          style = "display: flex; gap: 2px;"
+        ),
+        class = "widget_buttons"
+      )
+    if (!show_edit_buttons) edit_buttons <- shinyjs::hidden(edit_buttons)
+      
      div(
         ui_code,
-        shinyjs::hidden(
-          div(
-            id = ns(paste0("widget_settings_remove_buttons_", widget_id)),
-            div(
-              div(
-                shiny.fluent::IconButton.shinyInput(ns(paste0("widget_settings_", widget_id)), iconProps = list(iconName = "Settings")),
-                class = "small_icon_button"
-              ),
-              div(
-                shiny.fluent::IconButton.shinyInput(ns(paste0("remove_widget_", widget_id)), iconProps = list(iconName = "Delete")),
-                class = "small_icon_button"
-              ),
-              style = "display: flex; gap: 2px;"
-            ),
-            class = "widget_buttons"
-          )
-        ),
+        edit_buttons,
         class = "widget"
       )
     }
@@ -2162,7 +2163,7 @@ mod_data_server <- function(id = character(), r = shiny::reactiveValues(), d = s
       # }, error = function(e) cat(paste0("\n", now(), " - mod_data - error creating translations file - plugin_id = ", plugin_id)))
     }
     
-    load_tab_ui <- function(category, tab_id){
+    load_tab_ui <- function(category, tab_id, widget_id = NA_integer_, action = "reload"){
       
       if (r$project_load_status_displayed) r$project_load_status$widgets_ui_starttime <- now("%Y-%m-%d %H:%M:%OS3")
       
@@ -2170,7 +2171,9 @@ mod_data_server <- function(id = character(), r = shiny::reactiveValues(), d = s
       
       widgets_ui <- tagList()
       
-      widgets <- r$data_widgets %>% dplyr::filter(tab_id == !!tab_id) %>% dplyr::rename(widget_id = id)
+      if (action == "reload") widgets <- r$data_widgets %>% dplyr::filter(tab_id == !!tab_id)
+      else if (action == "add") widgets <- r$data_widgets %>% dplyr::filter(id == !!widget_id)
+      widgets <- widgets %>% dplyr::rename(widget_id = id)
       
       if (nrow(widgets) > 0){
         
@@ -2261,47 +2264,71 @@ mod_data_server <- function(id = character(), r = shiny::reactiveValues(), d = s
         }
       }
       
-      # Add gridster div
       gridster_id <- paste0("gridster_", tab_id)
-      gridster_div <- div(id = ns(gridster_id), class = "gridster", tags$ul(widgets_ui))
       
-      hide_div_code <- paste0("$('#", ns(gridster_id), "').css('display', 'none');")
-      if (category == "patient_lvl" & !is.na(selected_tab)) if (tab_id == selected_tab) hide_div_code <- ""
-      
-      ui_output_id <- paste0("ui_output_", tab_id)
-      ui_output <- uiOutput(ns(ui_output_id))
-      
-      # ui_selector <- paste0("#", ns(paste0(category, "_study_widgets")))
-      ui_selector <- paste0("#", ns("study_widgets"))
-      if (gridster_id %not_in% r$data_grids) insertUI(selector = ui_selector, where = "beforeEnd", ui = ui_output)
-      output[[ui_output_id]] <- renderUI(gridster_div)
-      
-      # Run gridster code
-      shinyjs::delay(100, shinyjs::delay(100, {
-        shinyjs::runjs(paste0("
-          $(document).ready(function() {
-            window.", gridster_id, " = $('#", ns(gridster_id), " ul').gridster({
-              namespace: '#", ns(gridster_id), "',
-              widget_margins: [15, 15],
-              widget_base_dimensions: ['auto', 100],
-              autogenerate_stylesheet: true,
-              min_cols: 1,
-              max_cols: 20,
-              helper: 'clone',
-              resize: {
-                enabled: true
-              }
-            }).data('gridster');
-            
-            ", gridster_id, ".disable().disable_resize();
-            
-            ", hide_div_code, "
-          });"))
-      }))
-      
-      r$data_grids <- c(r$data_grids, gridster_id)
-      
-      r$data_ui_loaded <- TRUE
+      if (action == "reload"){
+        
+        # Add gridster div
+        gridster_div <- div(id = ns(gridster_id), class = "gridster", tags$ul(widgets_ui))
+        
+        hide_div_code <- paste0("$('#", ns(gridster_id), "').css('display', 'none');")
+        if (category == "patient_lvl" & !is.na(selected_tab)) if (tab_id == selected_tab) hide_div_code <- ""
+        
+        ui_output_id <- paste0("ui_output_", tab_id)
+        ui_output <- uiOutput(ns(ui_output_id))
+        
+        # ui_selector <- paste0("#", ns(paste0(category, "_study_widgets")))
+        ui_selector <- paste0("#", ns("study_widgets"))
+        if (gridster_id %not_in% r$data_grids) insertUI(selector = ui_selector, where = "beforeEnd", ui = ui_output)
+        output[[ui_output_id]] <- renderUI(gridster_div)
+        
+        # Run gridster code
+        shinyjs::delay(100, shinyjs::delay(100, {
+          shinyjs::runjs(paste0("
+            $(document).ready(function() {
+              window.", gridster_id, " = $('#", ns(gridster_id), " ul').gridster({
+                namespace: '#", ns(gridster_id), "',
+                widget_margins: [15, 15],
+                widget_base_dimensions: ['auto', 100],
+                autogenerate_stylesheet: true,
+                min_cols: 1,
+                max_cols: 20,
+                helper: 'clone',
+                resize: {
+                  enabled: true
+                }
+              }).data('gridster');
+              
+              ", gridster_id, ".disable().disable_resize();
+              
+              ", hide_div_code, "
+            });"))
+        }))
+        
+        r$data_grids <- c(r$data_grids, gridster_id)
+        
+        r$data_ui_loaded <- TRUE
+      }
+      else if (action == "add"){
+        ui_output <- create_widget(widget_id, ui_code, show_edit_buttons = r$data_edit_page_activated)
+        
+        ui_output <- tags$li(
+          id = ns(paste0("widget_", widget_id)),
+          ui_output,
+          class = "gridster_widget"
+        )
+        
+        ui_output <- 
+          ui_output %>%
+          as.character() %>%
+          gsub("\n", "", ., fixed = TRUE) %>%
+          gsub("'", "\\'", ., fixed = TRUE)
+        
+        if (r$data_edit_page_activated) edit_page_code <- ".enable().enable_resize()"
+        else edit_page_code <- ""
+        
+        shinyjs::runjs(paste0(gridster_id, ".add_widget('", ui_output, "', 10, 2)", edit_page_code, ";"))
+      }
       
       if (r$project_load_status_displayed) r$project_load_status$widgets_ui_endtime <- now("%Y-%m-%d %H:%M:%OS3")
     }

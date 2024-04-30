@@ -30,19 +30,22 @@ mod_plugins_ui <- function(id, language, languages, i18n){
             div(
               div(
                 "Summary",
-                class = "card"
+                class = "card", style = "min-height: 200px;"
               ),
               div(
                 "Code",
-                class = "card"
+                class = "card", style = "min-height: 200px;"
               ),
-              style = "display:flex; flex-direction:column;"
+              class = "plugins_summary_left"
             ),
             div(
-              "Description",
-              class = "card"
+              div(
+                "Description",
+                class = "card", style = "min-height: 200px;"
+              ),
+              class = "plugins_summary_right"
             ),
-            style = "display:flex; justify-content:space-between;"
+            class = "plugins_summary_container"
           )
         ),
         shinyjs::hidden(
@@ -71,7 +74,7 @@ mod_plugins_ui <- function(id, language, languages, i18n){
             div(verbatimTextOutput(ns("run_code_result_server")), style = "font-size:12px; margin-left:8px; padding-top:10px;")
           )
         ),
-        style = "height:100%; display:flex; flex-direction:column;"
+        style = "height: 100%; display: flex; flex-direction: column;"
       )
     ),
     
@@ -451,6 +454,7 @@ mod_plugins_server <- function(id, r, d, m, language, i18n, debug){
         file_code <- readLines(paste0(r$selected_plugin_folder, "/", filename), warn = FALSE)
         file_id <- r$edit_plugin_code_files_list %>% dplyr::filter(plugin_id == r$selected_plugin, filename == !!filename) %>% dplyr::pull(id)
         file_ext <- sub(".*\\.", "", tolower(filename))
+        ace_mode <- switch(file_ext, "r" = "r", "py" = "python", "r")
         
         if (filename == "ui.R") r$edit_plugin_code_selected_file <- file_id
         
@@ -459,11 +463,11 @@ mod_plugins_server <- function(id, r, d, m, language, i18n, debug){
           ui_div <- div(
             id = ns(paste0("edit_code_editor_div_", file_id)),
             shinyAce::aceEditor(
-              ns(paste0("edit_code_editor_", file_id)), value = file_code, mode = file_ext,
+              ns(paste0("edit_code_editor_", file_id)), value = file_code, mode = ace_mode,
               code_hotkeys = list(file_ext, code_hotkeys),
               autoScrollEditorIntoView = TRUE, height = "100%", debounce = 100, fontSize = 10, showPrintMargin = FALSE
             ),
-            style = "width:100%; height:100%; display:flex; flex-direction:column;"
+            style = "width: 100%; height: 100%; display: flex; flex-direction: column;"
           )
           
           if (filename != "ui.R") ui_div <- shinyjs::hidden(ui_div)
@@ -651,6 +655,7 @@ mod_plugins_server <- function(id, r, d, m, language, i18n, debug){
       file_id <- as.integer(sub(paste0(id, "-edit_code_file_div_"), "", input$edit_code_selected_file))
       file_row <- r$edit_plugin_code_files_list %>% dplyr::filter(id == file_id)
       file_ext <- sub(".*\\.", "", tolower(file_row$filename))
+      ace_mode <- switch(file_ext, "r" = "r", "py" = "python", "r")
       
       r$edit_plugin_code_selected_file <- file_id
       
@@ -681,11 +686,11 @@ mod_plugins_server <- function(id, r, d, m, language, i18n, debug){
         insertUI(selector = paste0("#", ns("edit_code_editors_div")), where = "beforeEnd", ui = div(
           id = ns(paste0("edit_code_editor_div_", file_id)),
           shinyAce::aceEditor(
-            ns(paste0("edit_code_editor_", file_id)), value = file_code, mode = "r",
-            code_hotkeys = list("r", code_hotkeys),
+            ns(paste0("edit_code_editor_", file_id)), value = file_code, mode = ace_mode,
+            code_hotkeys = list(file_ext, code_hotkeys),
             autoScrollEditorIntoView = TRUE, height = "100%", debounce = 100, fontSize = 10, showPrintMargin = FALSE
           ),
-          style = "width:100%;"
+          style = "width: 100%; height: 100%; display: flex; flex-direction: column;"
         ))
       }
       else shinyjs::delay(50, shinyjs::show(paste0("edit_code_editor_div_", file_id)))
@@ -765,7 +770,7 @@ mod_plugins_server <- function(id, r, d, m, language, i18n, debug){
           code_hotkeys = list("r", code_hotkeys),
           autoScrollEditorIntoView = TRUE, height = "100%", debounce = 100, fontSize = 10, showPrintMargin = FALSE
         ),
-        style = "width:100%;"
+        style = "width: 100%; height: 100%; display: flex; flex-direction: column;"
       ))
       
       r$edit_plugin_code_editors <- r$edit_plugin_code_editors %>% dplyr::bind_rows(r$edit_plugin_code_files_list %>% dplyr::filter(id == options_new_row_id))
@@ -1017,6 +1022,7 @@ mod_plugins_server <- function(id, r, d, m, language, i18n, debug){
       
       ui_output <- div(
         id = ns(paste0("plugin_widget_", widget_id)),
+        class = "plugin_code_widget", style = "max-width: calc(100% - 40px);",
         div(tryCatch(eval(parse(text = ui_code)), error = function(e) p(toString(e)), warning = function(w) p(toString(w)))),
         div(
           id = ns(paste0("plugins_widget_settings_remove_buttons_", widget_id)),
