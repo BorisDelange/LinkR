@@ -1034,6 +1034,8 @@ invalid_file_extension,Invalid file extension
 invalid_filename,Invalid file name
 delete_file_title,Delete a file
 delete_file_text,Confirm deletion of this file?
+delete_plugin_title,Delete a plugin
+delete_plugin_text,Confirm deletion of this plugin?
 configure,Configurer
 develop,Développer
 discover,Découvrir
@@ -1045,3 +1047,5 @@ tasks,Tasks
 report_results,Report results
 delete_widget,Delete widget
 choose_a_plugin,Choose a plugin
+data_type,Data type
+informations,Informations

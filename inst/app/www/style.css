@@ -17,7 +17,7 @@ body, html {
 
 .main_container {
   display: flex;
-  height: 100%;
+  height: calc(100% - 80px);
 }
 
 /* --------------- */
@@ -108,7 +108,6 @@ body, html {
 
 .sidenav {
   position: relative;
-  height: 100%;
   width: 200px;
   min-width: 200px;
   padding: 10px 20px 0px 20px;
@@ -194,9 +193,10 @@ body, html {
   z-index: 500;
 }
 
-.delete_modal_content, .create_tab_modal_content, .create_widget_modal_content, .load_status_modal_content {
+.delete_modal_content, .create_tab_modal_content, .create_widget_modal_content, .load_status_modal_content, .create_plugin_modal_content {
   background: #fff;
   padding: 5px 10px 10px 15px;
+  position: relative;
 }
 
 .delete_modal_content {
@@ -213,19 +213,21 @@ body, html {
 }
 
 .delete_modal_buttons, .create_element_modal_buttons {
+  position: absolute;
+  right: 10px;
+  bottom: 3px;
   display: flex;
-  justify-content: flex-end;
   gap: 5px;
 }
 
 .create_tab_modal_content {
   width: 600px;
-  height: 180px;
+  padding-bottom: 30px;
 }
 
 .create_widget_modal_content {
   width: 1200px;
-  height: 800px;
+  padding-bottom: 50px;
 }
 
 .create_element_modal_head {
@@ -242,6 +244,11 @@ body, html {
 .load_status_modal_content {
   width: 600px;
   min-height: 200px;
+}
+
+.create_plugin_modal_content {
+  width: 500px;
+  padding-bottom: 30px;
 }
 
 /* ---------------- */
@@ -294,6 +301,15 @@ body, html {
   padding: 0px 10px 5px 10px;
 }
 
+/* ---------------- */
+/* BUTTONS          */
+/* ---------------- */
+
+.delete_button .ms-Button {
+  background-color: #f44336;
+  border: #f44336;
+}
+
 /* --------------------- */
 /* PLUGINS PAGE          */
 /* --------------------- */
@@ -301,6 +317,7 @@ body, html {
 .plugins_summary_container {
   display: flex;
   justify-content: space-between;
+  height: calc(100% - 50px);
 }
 
 .plugins_summary_left {
@@ -311,7 +328,18 @@ body, html {
 
 .plugins_summary_right {
   width: 50%;
+  calc(100% - 16px)
 }
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -330,6 +358,10 @@ body, html {
   margin: 10px;
   padding: 0px 10px 5px 10px;
   box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 3px 6px 0 rgba(0, 0, 0, 0.19);
+}
+
+.card h1 {
+  font-size: 14px;
 }
 
 /* Search column in datatable, with type is factor */
@@ -410,7 +442,6 @@ pre code {
   right: 10px;
   color: white;
 }
-
 
 a.no-hover-effect {
   color: black;

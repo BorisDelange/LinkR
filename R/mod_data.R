@@ -89,7 +89,7 @@ mod_data_ui <- function(id = character(), language = "en", languages = tibble::t
                 list(key = 8, text = i18n$t("num_rows")),
                 list(key = 9, text = i18n$t("action"))
               ),
-              value = c(0, 1, 2, 7, 8, 9) ,
+              value = c(0, 1, 2, 7, 8, 9),
               width = "200px"
             ),
             style = "display: flex; gap: 10px;"
@@ -1756,6 +1756,7 @@ mod_data_server <- function(id = character(), r = shiny::reactiveValues(), d = s
         shiny.fluent::updateDropdown.shinyInput(session, "widget_creation_vocabulary_selected_concepts", options = list(), multiSelect = TRUE, multiSelectDelimiter = " || ")
       }
       
+      # Notify user
       show_message_bar(output, message = "widget_added", type = "success", i18n = i18n, ns = ns)
       
       # Reset fields
@@ -1773,9 +1774,8 @@ mod_data_server <- function(id = character(), r = shiny::reactiveValues(), d = s
       load_tab_ui(category, tab_id, widget_id, "add")
       load_tab_server(tab_id)
       
-      # Clode modal
+      # Close modal
       shinyjs::hide("add_widget_modal")
-      
     })
     
     # --- --- --- --- -- -

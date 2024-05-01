@@ -97,6 +97,15 @@
   line-height: 25px;
 }
 
+.ms-Dropdown-optionText {
+  font-size: 12px;
+}
+
+.ms-Checkbox-checkbox {
+  width: 15px;
+  height: 15px;
+}
+
 .ms-ComboBox-container .ms-ComboBox-Input {
     font-size: 12px;
     height: 25px;

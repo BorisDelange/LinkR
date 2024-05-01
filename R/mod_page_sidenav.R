@@ -98,7 +98,7 @@ mod_page_sidenav_ui <- function(id = character(), i18n = character()){
         id = ns("large_sidenav"),
         shinyjs::hidden(
           div(
-            id = ns("edit_code_sidenav"),
+            id = ns("edit_code_large_sidenav"),
             div(
               class = "sidenav_top",
               div(
@@ -124,7 +124,12 @@ mod_page_sidenav_ui <- function(id = character(), i18n = character()){
         )
       ),
       div(
-        id = ns("reduced_sidenav")
+        id = ns("reduced_sidenav"),
+        div(
+          id = ns("all_plugins_reduced_sidenav"),
+          create_hover_card(ui = shiny.fluent::IconButton.shinyInput(ns("create_plugin"), iconProps = list(iconName = "Add")), text = i18n$t("create_plugin")),
+          class = "reduced_sidenav_buttons"
+        )
       ),
       show_hide_sidenav
     ) -> result

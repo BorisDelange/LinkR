@@ -1034,6 +1034,8 @@ invalid_file_extension,Extension du fichier non valide
 invalid_filename,Nom du fichier non valide
 delete_file_title,Supprimer un fichier
 delete_file_text,Confirmer la suppression de ce fichier ?
+delete_plugin_title,Supprimer un plugin
+delete_plugin_text,Confirmer la suppression de ce plugin ?
 configure,Configurer
 develop,Développer
 discover,Découvrir
@@ -1045,3 +1047,5 @@ tasks,Tâches
 report_results,Présenter les résultats
 delete_widget,Supprimer le widget
 choose_a_plugin,Choisir un plugin
+data_type,Type de données
+informations,Informations
