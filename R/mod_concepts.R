@@ -2,237 +2,238 @@
 mod_concepts_ui <- function(id, language, languages, i18n){
   ns <- NS(id)
   
-  cards <- c("vocabularies_concepts_card", "vocabularies_mapping_card")
-  
-  forbidden_cards <- tagList()
-  sapply(cards, function(card){
-    forbidden_cards <<- tagList(forbidden_cards, forbidden_card(ns = ns, name = card, i18n = i18n))
-  })
-  
-  div(
-    class = "main",
-    render_settings_default_elements(ns = ns),
-    shiny.fluent::reactOutput(ns("help_panel")),
-    shiny.fluent::reactOutput(ns("help_modal")),
-    shiny.fluent::reactOutput(ns("dataset_all_concepts_reload_cache")),
-    shiny.fluent::Breadcrumb(items = list(
-      list(key = "vocabularies_main", text = i18n$t("vocabularies"))
-    ), maxDisplayedItems = 3),
-    
-    # --- --- -- -- --
-    # Pivot items ----
-    # --- --- -- -- --
-    
-    # shinyjs::hidden(
-    div(id = ns("menu"),
-      shiny.fluent::Pivot(
-        onLinkClick = htmlwidgets::JS(paste0("item => Shiny.setInputValue('", id, "-current_tab', item.props.id)")),
-        shiny.fluent::PivotItem(id = "vocabularies_concepts_card", itemKey = "vocabularies_concepts_card", headerText = i18n$t("concepts")),
-        shiny.fluent::PivotItem(id = "vocabularies_mapping_card", itemKey = "vocabularies_mapping_card", headerText = i18n$t("concepts_mapping"))
-      )
-    ),
-    # ),
-    
-    # div(
-    #   id = ns("choose_a_dataset_card"),
-    #   make_card("", div(shiny.fluent::MessageBar(i18n$t("choose_a_damatart_left_side"), messageBarType = 5), style = "margin-top:10px;"))
-    # ),
-    forbidden_cards,
-    
-    # --- --- --- --- --
-    # Concepts card ----
-    # --- --- --- --- --
-    
-    shinyjs::hidden(
-      div(
-        id = ns("vocabularies_concepts_card"),
-        make_card(i18n$t("concepts"),
-          div(
-            shinyjs::hidden(
-              div(
-                id = ns("vocabularies_concepts_div"),
-                shiny.fluent::Stack(horizontal = TRUE, tokens = list(childrenGap = 10),
-                  make_combobox(i18n = i18n, ns = ns, label = "vocabulary", id = "vocabulary", width = "300px", allowFreeform = FALSE, multiSelect = FALSE),
-                  div(style = "width:20px;"),
-                  make_dropdown(i18n = i18n, ns = ns, label = "columns", id = "vocabulary_table_cols", width = "300px", multiSelect = TRUE,
-                    options = list(
-                      list(key = 1, text = i18n$t("vocabulary_id_1")),
-                      list(key = 2, text = i18n$t("concept_id_1")),
-                      list(key = 3, text = i18n$t("concept_name_1")),
-                      list(key = 4, text = i18n$t("concept_display_name_1")),
-                      list(key = 5, text = i18n$t("relationship_id")),
-                      list(key = 6, text = i18n$t("vocabulary_id_2")),
-                      list(key = 7, text = i18n$t("concept_id_2")),
-                      list(key = 8, text = i18n$t("concept_name_2")),
-                      list(key = 9, text = i18n$t("domain_id")),
-                      list(key = 10, text = i18n$t("concept_class_id")),
-                      list(key = 11, text = i18n$t("standard_concept")),
-                      list(key = 12, text = i18n$t("concept_code")),
-                      list(key = 13, text = i18n$t("valid_start_date")),
-                      list(key = 14, text = i18n$t("valid_end_date")),
-                      list(key = 15, text = i18n$t("invalid_reason")),
-                      list(key = 16, text = i18n$t("num_patients")),
-                      list(key = 17, text = i18n$t("num_rows"))
-                    ),
-                    value = c(2, 3, 4, 9, 16, 17)
-                  ),
-                  div(style = "width:10px;"),
-                  div(shiny.fluent::Toggle.shinyInput(ns("vocabulary_show_mapped_concepts"), value = FALSE), style = "margin-top:45px;"),
-                  div(i18n$t("show_mapped_concepts"), style = "font-weight:bold; margin-top:45px; margin-right:30px;")
-                ),
-                div(
-                  id = ns("vocabulary_concepts_table_view_div"),
-                  DT::DTOutput(ns("vocabulary_concepts")),
-                  div(id = ns("br_div"), br()),
-                  shiny.fluent::Stack(horizontal = TRUE, tokens = list(childrenGap = 10),
-                    shiny.fluent::DefaultButton.shinyInput(ns("reload_vocabulary_concepts_cache"), i18n$t("reload_cache")),
-                    shiny.fluent::PrimaryButton.shinyInput(ns("save_vocabulary_concepts"), i18n$t("save"))
-                  ), br(),
-                  div(
-                    id = ns("vocabulary_datatable_selected_item_div"),
-                    div(uiOutput(ns("vocabulary_datatable_selected_item")), style = "display:relative; float:left; width:50%;"),
-                    div(
-                      shiny.fluent::Stack(horizontal = TRUE, tokens = list(childrenGap = 10),
-                        div(shiny.fluent::Dropdown.shinyInput(ns("vocabulary_datatable_selected_item_plot_variable")), style = "width:50%; margin-left:42px;")
-                      ),
-                      uiOutput(ns("vocabulary_datatable_selected_item_error_message")),
-                      plotly::plotlyOutput(ns("vocabulary_datatable_selected_item_plot"), height = "280px"), 
-                      style = "display:relative; float:right; width:50%;"
-                    )
-                  )
-                )
-              )
-            ),
-            div(
-              id = ns("choose_a_dataset_card"),
-              div(shiny.fluent::MessageBar(i18n$t("choose_a_damatart_left_side"), messageBarType = 5), style = "margin-top:10px;")
-            )
-          )
-        )
-      )
-    ),
-    
-    # --- --- --- -- --
-    # Mapping card ----
-    # --- --- --- -- --
-    
-    shinyjs::hidden(
-      div(
-        id = ns("vocabularies_mapping_card"),
-        make_card(i18n$t("concepts_mapping"),
-          div(
-            shiny.fluent::reactOutput(ns("mappings_delete_confirm")),
-            div(
-              shiny.fluent::Pivot(
-                id = ns("vocabularies_mapping_pivot"),
-                onLinkClick = htmlwidgets::JS(paste0("item => Shiny.setInputValue('", id, "-mapping_current_tab', item.props.id)")),
-                shiny.fluent::PivotItem(id = "vocabularies_mapping_add", itemKey = "vocabularies_mapping_add", headerText = i18n$t("add")),
-                shiny.fluent::PivotItem(id = "vocabularies_mapping_management", itemKey = "vocabularies_mapping_management", headerText = i18n$t("evaluate_and_edit"))
-              )
-            ),
-            div(
-              id = ns("vocabularies_mapping_add_div"),
-              div(
-                div(
-                  shiny.fluent::Stack(horizontal = TRUE, tokens = list(childrenGap = 10),
-                    make_combobox(i18n = i18n, ns = ns, label = "vocabulary_1", id = "vocabulary_mapping_1", width = "300px", allowFreeform = FALSE, multiSelect = FALSE),
-                    div(style = "width:10px;"),
-                    div(shiny.fluent::Toggle.shinyInput(ns("vocabulary_show_only_not_mapped_concepts"), value = FALSE), style = "margin-top:45px;"),
-                    div(i18n$t("show_only_not_mapped_concepts"), style = "font-weight:bold; margin-top:45px; margin-right:30px;")
-                  ),
-                  DT::DTOutput(ns("vocabulary_mapping_1_dt"))
-                ),
-                div(
-                  shiny.fluent::Stack(horizontal = TRUE, tokens = list(childrenGap = 10),
-                    make_combobox(i18n = i18n, ns = ns, label = "vocabulary_2", id = "vocabulary_mapping_2", width = "300px", allowFreeform = FALSE, multiSelect = FALSE),
-                    div(style = "width:10px;"),
-                    div(shiny.fluent::Toggle.shinyInput(ns("vocabulary_show_only_used_concepts"), value = TRUE), style = "margin-top:45px;"),
-                    div(i18n$t("show_only_used_concepts"), style = "font-weight:bold; margin-top:45px; margin-right:30px;")
-                  ),
-                  DT::DTOutput(ns("vocabulary_mapping_2_dt"))
-                ),
-                style = "width:100%; display:grid; grid-template-columns:1fr 1fr; grid-gap:20px;"
-              ), br(),
-              shinyjs::hidden(
-                div(
-                  id = ns("vocabulary_mapping_selected_concepts_div"),
-                  br(),
-                  div(
-                    div(uiOutput(ns("vocabulary_mapping_selected_concept_1")), style = "border:dashed 1px; padding:10px;"),
-                    div(
-                      shiny.fluent::Stack(horizontal = TRUE, tokens = list(childrenGap = 10),
-                        div(shiny.fluent::Toggle.shinyInput(ns("show_all_relationships"), value = FALSE), style = "margin-top:30px; margin-bottom:5px;"),
-                        div(i18n$t("show_all_relationships"), style = "font-weight:bold; margin-top:30px; margin-bottom:5px;")
-                      ),
-                      make_combobox(i18n = i18n, ns = ns, label = "concept_1_is_to_concept_2", id = "relationship_id", width = "300px", multiSelect = FALSE, allowFreeform = FALSE,
-                        options = list(
-                          list(key = "Maps to", text = i18n$t("maps_to")),
-                          list(key = "Mapped from", text = i18n$t("mapped_from")),
-                          list(key = "Is a", text = i18n$t("is_a")),
-                          list(key = "Subsumes", text = i18n$t("subsumes"))
-                        ),
-                        value = "Maps to")
-                    ),
-                    div(uiOutput(ns("vocabulary_mapping_selected_concept_2")), style = "border:dashed 1px; padding:10px;"),
-                    style = "width:100%; display:grid; grid-template-columns:2fr 1fr 2fr; grid-gap:20px;"
-                  ),
-                  make_textfield(label = "comment", id = "mapping_comment", i18n = i18n, ns = ns), br(),
-                  shiny.fluent::PrimaryButton.shinyInput(ns("add_mapping"), i18n$t("add")),
-                  br(),
-                  DT::DTOutput(ns("vocabulary_added_mappings"))
-                )
-              )
-            ),
-            div(
-              id = ns("vocabularies_mapping_management_div"),
-              shiny.fluent::Stack(horizontal = TRUE, tokens = list(childrenGap = 10),
-                make_dropdown(i18n = i18n, ns = ns, label = "columns", id = "vocabulary_mapping_eval_cols", width = "300px", multiSelect = TRUE,
-                  options = list(
-                    list(key = 1, text = i18n$t("vocabulary_id_1")),
-                    list(key = 2, text = i18n$t("concept_id_1")),
-                    list(key = 3, text = i18n$t("concept_name_1")),
-                    list(key = 4, text = i18n$t("relationship_id")),
-                    list(key = 5, text = i18n$t("vocabulary_id_2")),
-                    list(key = 6, text = i18n$t("concept_id_2")),
-                    list(key = 7, text = i18n$t("concept_name_2")),
-                    list(key = 8, text = i18n$t("comment")),
-                    list(key = 9, text = i18n$t("creator")),
-                    list(key = 10, text = i18n$t("datetime")),
-                    list(key = 11, text = i18n$t("positive_evals")),
-                    list(key = 12, text = i18n$t("negative_evals")),
-                    list(key = 13, text = i18n$t("action"))
-                  ),
-                  value = c(2, 4, 6, 10, 11, 12, 13)
-                ), div(style = "width:10px;"),
-                div(shiny.fluent::Toggle.shinyInput(ns("vocabulary_show_only_not_evaluated_concepts"), value = FALSE), style = "margin-top:45px;"),
-                div(i18n$t("vocabulary_show_only_not_evaluated_concepts"), style = "font-weight:bold; margin-top:45px; margin-right:30px;"),
-                div(shiny.fluent::Toggle.shinyInput(ns("vocabulary_show_mapping_details"), value = TRUE), style = "margin-top:45px;"),
-                div(i18n$t("vocabulary_show_mapping_details"), style = "font-weight:bold; margin-top:45px; margin-right:30px;")
-              ),
-              div(DT::DTOutput(ns("vocabulary_evaluate_mappings")), style = "z-index:2"),
-              div(
-                shiny.fluent::Stack(horizontal = TRUE, tokens = list(childrenGap = 10),
-                  shiny.fluent::PrimaryButton.shinyInput(ns("save_mappings_evaluation"), i18n$t("save")),
-                  shiny.fluent::DefaultButton.shinyInput(ns("mapping_delete_selection"), i18n$t("delete_selection"))
-                ),
-                style = "position:relative; z-index:1; margin-top:-30px; width:500px;"), br(),
-                shinyjs::hidden(
-                  div(
-                    id = ns("vocabulary_mapping_details_div"),
-                    div(uiOutput(ns("vocabulary_mapping_details_left")), style = "border:dashed 1px; padding:10px; margin:10px; flex:1;"),
-                    div(uiOutput(ns("vocabulary_mapping_details_center")), style = "border:dashed 1px; padding:10px; margin:10px; flex:1;"),
-                    div(uiOutput(ns("vocabulary_mapping_details_right")), style = "border:dashed 1px; padding:10px; margin:10px; flex:1;"),
-                    style = "display:flex;"
-                  )
-                )
-              # )
-            )
-            # )
-          )
-        )
-      )
-    ), br()
-  )
+  # cards <- c("vocabularies_concepts_card", "vocabularies_mapping_card")
+  # 
+  # forbidden_cards <- tagList()
+  # sapply(cards, function(card){
+  #   forbidden_cards <<- tagList(forbidden_cards, forbidden_card(ns = ns, name = card, i18n = i18n))
+  # })
+  # 
+  # div(
+  #   class = "main",
+  #   render_settings_default_elements(ns = ns),
+  #   shiny.fluent::reactOutput(ns("help_panel")),
+  #   shiny.fluent::reactOutput(ns("help_modal")),
+  #   shiny.fluent::reactOutput(ns("dataset_all_concepts_reload_cache")),
+  #   shiny.fluent::Breadcrumb(items = list(
+  #     list(key = "vocabularies_main", text = i18n$t("vocabularies"))
+  #   ), maxDisplayedItems = 3),
+  #   
+  #   # --- --- -- -- --
+  #   # Pivot items ----
+  #   # --- --- -- -- --
+  #   
+  #   # shinyjs::hidden(
+  #   div(id = ns("menu"),
+  #     shiny.fluent::Pivot(
+  #       onLinkClick = htmlwidgets::JS(paste0("item => Shiny.setInputValue('", id, "-current_tab', item.props.id)")),
+  #       shiny.fluent::PivotItem(id = "vocabularies_concepts_card", itemKey = "vocabularies_concepts_card", headerText = i18n$t("concepts")),
+  #       shiny.fluent::PivotItem(id = "vocabularies_mapping_card", itemKey = "vocabularies_mapping_card", headerText = i18n$t("concepts_mapping"))
+  #     )
+  #   ),
+  #   # ),
+  #   
+  #   # div(
+  #   #   id = ns("choose_a_dataset_card"),
+  #   #   make_card("", div(shiny.fluent::MessageBar(i18n$t("choose_a_damatart_left_side"), messageBarType = 5), style = "margin-top:10px;"))
+  #   # ),
+  #   forbidden_cards,
+  #   
+  #   # --- --- --- --- --
+  #   # Concepts card ----
+  #   # --- --- --- --- --
+  #   
+  #   shinyjs::hidden(
+  #     div(
+  #       id = ns("vocabularies_concepts_card"),
+  #       make_card(i18n$t("concepts"),
+  #         div(
+  #           shinyjs::hidden(
+  #             div(
+  #               id = ns("vocabularies_concepts_div"),
+  #               shiny.fluent::Stack(horizontal = TRUE, tokens = list(childrenGap = 10),
+  #                 make_combobox(i18n = i18n, ns = ns, label = "vocabulary", id = "vocabulary", width = "300px", allowFreeform = FALSE, multiSelect = FALSE),
+  #                 div(style = "width:20px;"),
+  #                 make_dropdown(i18n = i18n, ns = ns, label = "columns", id = "vocabulary_table_cols", width = "300px", multiSelect = TRUE,
+  #                   options = list(
+  #                     list(key = 1, text = i18n$t("vocabulary_id_1")),
+  #                     list(key = 2, text = i18n$t("concept_id_1")),
+  #                     list(key = 3, text = i18n$t("concept_name_1")),
+  #                     list(key = 4, text = i18n$t("concept_display_name_1")),
+  #                     list(key = 5, text = i18n$t("relationship_id")),
+  #                     list(key = 6, text = i18n$t("vocabulary_id_2")),
+  #                     list(key = 7, text = i18n$t("concept_id_2")),
+  #                     list(key = 8, text = i18n$t("concept_name_2")),
+  #                     list(key = 9, text = i18n$t("domain_id")),
+  #                     list(key = 10, text = i18n$t("concept_class_id")),
+  #                     list(key = 11, text = i18n$t("standard_concept")),
+  #                     list(key = 12, text = i18n$t("concept_code")),
+  #                     list(key = 13, text = i18n$t("valid_start_date")),
+  #                     list(key = 14, text = i18n$t("valid_end_date")),
+  #                     list(key = 15, text = i18n$t("invalid_reason")),
+  #                     list(key = 16, text = i18n$t("num_patients")),
+  #                     list(key = 17, text = i18n$t("num_rows"))
+  #                   ),
+  #                   value = c(2, 3, 4, 9, 16, 17)
+  #                 ),
+  #                 div(style = "width:10px;"),
+  #                 div(shiny.fluent::Toggle.shinyInput(ns("vocabulary_show_mapped_concepts"), value = FALSE), style = "margin-top:45px;"),
+  #                 div(i18n$t("show_mapped_concepts"), style = "font-weight:bold; margin-top:45px; margin-right:30px;")
+  #               ),
+  #               div(
+  #                 id = ns("vocabulary_concepts_table_view_div"),
+  #                 DT::DTOutput(ns("vocabulary_concepts")),
+  #                 div(id = ns("br_div"), br()),
+  #                 shiny.fluent::Stack(horizontal = TRUE, tokens = list(childrenGap = 10),
+  #                   shiny.fluent::DefaultButton.shinyInput(ns("reload_vocabulary_concepts_cache"), i18n$t("reload_cache")),
+  #                   shiny.fluent::PrimaryButton.shinyInput(ns("save_vocabulary_concepts"), i18n$t("save"))
+  #                 ), br(),
+  #                 div(
+  #                   id = ns("vocabulary_datatable_selected_item_div"),
+  #                   div(uiOutput(ns("vocabulary_datatable_selected_item")), style = "display:relative; float:left; width:50%;"),
+  #                   div(
+  #                     shiny.fluent::Stack(horizontal = TRUE, tokens = list(childrenGap = 10),
+  #                       div(shiny.fluent::Dropdown.shinyInput(ns("vocabulary_datatable_selected_item_plot_variable")), style = "width:50%; margin-left:42px;")
+  #                     ),
+  #                     uiOutput(ns("vocabulary_datatable_selected_item_error_message")),
+  #                     plotly::plotlyOutput(ns("vocabulary_datatable_selected_item_plot"), height = "280px"), 
+  #                     style = "display:relative; float:right; width:50%;"
+  #                   )
+  #                 )
+  #               )
+  #             )
+  #           ),
+  #           div(
+  #             id = ns("choose_a_dataset_card"),
+  #             div(shiny.fluent::MessageBar(i18n$t("choose_a_damatart_left_side"), messageBarType = 5), style = "margin-top:10px;")
+  #           )
+  #         )
+  #       )
+  #     )
+  #   ),
+  #   
+  #   # --- --- --- -- --
+  #   # Mapping card ----
+  #   # --- --- --- -- --
+  #   
+  #   shinyjs::hidden(
+  #     div(
+  #       id = ns("vocabularies_mapping_card"),
+  #       make_card(i18n$t("concepts_mapping"),
+  #         div(
+  #           shiny.fluent::reactOutput(ns("mappings_delete_confirm")),
+  #           div(
+  #             shiny.fluent::Pivot(
+  #               id = ns("vocabularies_mapping_pivot"),
+  #               onLinkClick = htmlwidgets::JS(paste0("item => Shiny.setInputValue('", id, "-mapping_current_tab', item.props.id)")),
+  #               shiny.fluent::PivotItem(id = "vocabularies_mapping_add", itemKey = "vocabularies_mapping_add", headerText = i18n$t("add")),
+  #               shiny.fluent::PivotItem(id = "vocabularies_mapping_management", itemKey = "vocabularies_mapping_management", headerText = i18n$t("evaluate_and_edit"))
+  #             )
+  #           ),
+  #           div(
+  #             id = ns("vocabularies_mapping_add_div"),
+  #             div(
+  #               div(
+  #                 shiny.fluent::Stack(horizontal = TRUE, tokens = list(childrenGap = 10),
+  #                   make_combobox(i18n = i18n, ns = ns, label = "vocabulary_1", id = "vocabulary_mapping_1", width = "300px", allowFreeform = FALSE, multiSelect = FALSE),
+  #                   div(style = "width:10px;"),
+  #                   div(shiny.fluent::Toggle.shinyInput(ns("vocabulary_show_only_not_mapped_concepts"), value = FALSE), style = "margin-top:45px;"),
+  #                   div(i18n$t("show_only_not_mapped_concepts"), style = "font-weight:bold; margin-top:45px; margin-right:30px;")
+  #                 ),
+  #                 DT::DTOutput(ns("vocabulary_mapping_1_dt"))
+  #               ),
+  #               div(
+  #                 shiny.fluent::Stack(horizontal = TRUE, tokens = list(childrenGap = 10),
+  #                   make_combobox(i18n = i18n, ns = ns, label = "vocabulary_2", id = "vocabulary_mapping_2", width = "300px", allowFreeform = FALSE, multiSelect = FALSE),
+  #                   div(style = "width:10px;"),
+  #                   div(shiny.fluent::Toggle.shinyInput(ns("vocabulary_show_only_used_concepts"), value = TRUE), style = "margin-top:45px;"),
+  #                   div(i18n$t("show_only_used_concepts"), style = "font-weight:bold; margin-top:45px; margin-right:30px;")
+  #                 ),
+  #                 DT::DTOutput(ns("vocabulary_mapping_2_dt"))
+  #               ),
+  #               style = "width:100%; display:grid; grid-template-columns:1fr 1fr; grid-gap:20px;"
+  #             ), br(),
+  #             shinyjs::hidden(
+  #               div(
+  #                 id = ns("vocabulary_mapping_selected_concepts_div"),
+  #                 br(),
+  #                 div(
+  #                   div(uiOutput(ns("vocabulary_mapping_selected_concept_1")), style = "border:dashed 1px; padding:10px;"),
+  #                   div(
+  #                     shiny.fluent::Stack(horizontal = TRUE, tokens = list(childrenGap = 10),
+  #                       div(shiny.fluent::Toggle.shinyInput(ns("show_all_relationships"), value = FALSE), style = "margin-top:30px; margin-bottom:5px;"),
+  #                       div(i18n$t("show_all_relationships"), style = "font-weight:bold; margin-top:30px; margin-bottom:5px;")
+  #                     ),
+  #                     make_combobox(i18n = i18n, ns = ns, label = "concept_1_is_to_concept_2", id = "relationship_id", width = "300px", multiSelect = FALSE, allowFreeform = FALSE,
+  #                       options = list(
+  #                         list(key = "Maps to", text = i18n$t("maps_to")),
+  #                         list(key = "Mapped from", text = i18n$t("mapped_from")),
+  #                         list(key = "Is a", text = i18n$t("is_a")),
+  #                         list(key = "Subsumes", text = i18n$t("subsumes"))
+  #                       ),
+  #                       value = "Maps to")
+  #                   ),
+  #                   div(uiOutput(ns("vocabulary_mapping_selected_concept_2")), style = "border:dashed 1px; padding:10px;"),
+  #                   style = "width:100%; display:grid; grid-template-columns:2fr 1fr 2fr; grid-gap:20px;"
+  #                 ),
+  #                 make_textfield(label = "comment", id = "mapping_comment", i18n = i18n, ns = ns), br(),
+  #                 shiny.fluent::PrimaryButton.shinyInput(ns("add_mapping"), i18n$t("add")),
+  #                 br(),
+  #                 DT::DTOutput(ns("vocabulary_added_mappings"))
+  #               )
+  #             )
+  #           ),
+  #           div(
+  #             id = ns("vocabularies_mapping_management_div"),
+  #             shiny.fluent::Stack(horizontal = TRUE, tokens = list(childrenGap = 10),
+  #               make_dropdown(i18n = i18n, ns = ns, label = "columns", id = "vocabulary_mapping_eval_cols", width = "300px", multiSelect = TRUE,
+  #                 options = list(
+  #                   list(key = 1, text = i18n$t("vocabulary_id_1")),
+  #                   list(key = 2, text = i18n$t("concept_id_1")),
+  #                   list(key = 3, text = i18n$t("concept_name_1")),
+  #                   list(key = 4, text = i18n$t("relationship_id")),
+  #                   list(key = 5, text = i18n$t("vocabulary_id_2")),
+  #                   list(key = 6, text = i18n$t("concept_id_2")),
+  #                   list(key = 7, text = i18n$t("concept_name_2")),
+  #                   list(key = 8, text = i18n$t("comment")),
+  #                   list(key = 9, text = i18n$t("creator")),
+  #                   list(key = 10, text = i18n$t("datetime")),
+  #                   list(key = 11, text = i18n$t("positive_evals")),
+  #                   list(key = 12, text = i18n$t("negative_evals")),
+  #                   list(key = 13, text = i18n$t("action"))
+  #                 ),
+  #                 value = c(2, 4, 6, 10, 11, 12, 13)
+  #               ), div(style = "width:10px;"),
+  #               div(shiny.fluent::Toggle.shinyInput(ns("vocabulary_show_only_not_evaluated_concepts"), value = FALSE), style = "margin-top:45px;"),
+  #               div(i18n$t("vocabulary_show_only_not_evaluated_concepts"), style = "font-weight:bold; margin-top:45px; margin-right:30px;"),
+  #               div(shiny.fluent::Toggle.shinyInput(ns("vocabulary_show_mapping_details"), value = TRUE), style = "margin-top:45px;"),
+  #               div(i18n$t("vocabulary_show_mapping_details"), style = "font-weight:bold; margin-top:45px; margin-right:30px;")
+  #             ),
+  #             div(DT::DTOutput(ns("vocabulary_evaluate_mappings")), style = "z-index:2"),
+  #             div(
+  #               shiny.fluent::Stack(horizontal = TRUE, tokens = list(childrenGap = 10),
+  #                 shiny.fluent::PrimaryButton.shinyInput(ns("save_mappings_evaluation"), i18n$t("save")),
+  #                 shiny.fluent::DefaultButton.shinyInput(ns("mapping_delete_selection"), i18n$t("delete_selection"))
+  #               ),
+  #               style = "position:relative; z-index:1; margin-top:-30px; width:500px;"), br(),
+  #               shinyjs::hidden(
+  #                 div(
+  #                   id = ns("vocabulary_mapping_details_div"),
+  #                   div(uiOutput(ns("vocabulary_mapping_details_left")), style = "border:dashed 1px; padding:10px; margin:10px; flex:1;"),
+  #                   div(uiOutput(ns("vocabulary_mapping_details_center")), style = "border:dashed 1px; padding:10px; margin:10px; flex:1;"),
+  #                   div(uiOutput(ns("vocabulary_mapping_details_right")), style = "border:dashed 1px; padding:10px; margin:10px; flex:1;"),
+  #                   style = "display:flex;"
+  #                 )
+  #               )
+  #             # )
+  #           )
+  #           # )
+  #         )
+  #       )
+  #     )
+  #   ), br()
+  # )
+  div()
 }
 
 #' @noRd 

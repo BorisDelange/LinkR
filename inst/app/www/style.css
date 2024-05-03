@@ -144,8 +144,12 @@ body, html {
   border-left: 13px solid #BDBDBD;
 }
 
-.reduced_sidenav_buttons .ms-Button {
+.reduced_sidenav_buttons .ms-Button, .reduced_sidenav_buttons_11 .ms-Button {
   width: 40px;
+}
+
+.reduced_sidenav_buttons_11 .ms-Icon {
+  font-size: 11px;
 }
 
 /* --------------- */

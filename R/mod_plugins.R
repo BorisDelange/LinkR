@@ -106,7 +106,7 @@ mod_plugins_ui <- function(id, language, languages, i18n){
             id = ns("run_code_div"),
             div(textOutput(ns("run_code_datetime_code_execution")), style = "color:#878787; font-size:12px; margin-left:8px;"),
             # uiOutput(ns("run_code_cards")),
-            div(id = ns("run_code_gridstack"), class = "grid-stack"),
+            div(id = ns("gridstack_plugin_run_code"), class = "grid-stack"),
             div(verbatimTextOutput(ns("run_code_result_server")), style = "font-size:12px; margin-left:8px; padding-top:10px;")
           )
         ),
@@ -324,6 +324,12 @@ mod_plugins_server <- function(id, r, d, m, language, i18n, debug){
       sapply(c("one_plugin", "edit_code_large_sidenav"), shinyjs::hide)
       sapply(c("all_plugins", "all_plugins_reduced_sidenav"), shinyjs::show)
       r$plugins_show_hide_sidenav <- "hide"
+      
+      # Delete current widget
+      shinyjs::runjs(paste0("
+        var grid = window.gridStackInstances['plugin_run_code'];
+        var current_widget = grid.el.querySelector('#", ns(paste0("plugins_gridstack_item_", r$run_plugin_last_widget_id)), "');
+        if (current_widget) grid.removeWidget(current_widget);"))
     })
     
     # |-------------------------------- -----
@@ -1065,21 +1071,7 @@ mod_plugins_server <- function(id, r, d, m, language, i18n, debug){
       shinyjs::runjs(glue::glue("$('#{id}-plugin_pivot button[name=\"{i18n$t('test_code')}\"]').click();"))
       
       # Initiate gridstack if not already initiated
-      if (!r$initiate_plugin_gridstack){
-        shinyjs::runjs(paste0("
-          if (!window.gridStackInstances['", r$run_plugin_tab_id, "']) {
-            import('https://esm.sh/gridstack').then((module) => {
-              const GridStack = module.GridStack;
-              window.gridStackInstances['", r$run_plugin_tab_id, "'] = GridStack.init({
-                cellHeight: 100,
-                staticGrid: false,
-                float: true,
-                margin: 10
-              }, '#", ns("run_code_gridstack"), "');
-            });
-          }
-        "))
-      }
+      if (!r$initiate_plugin_gridstack) create_gridstack_instance(id, "plugin_run_code")
       
       # Create translations file
 
@@ -1141,9 +1133,9 @@ mod_plugins_server <- function(id, r, d, m, language, i18n, debug){
       # NB : req(m[[session_code]] == session_num) & req(m$selected_study == %study_id%) must be put at the beginning of each observeEvent in plugins code
 
       study_id <- NA_integer_
-      selected_person <- NA_integer_
+      patient_id <- NA_integer_
       if (length(m$selected_study) > 0) study_id <- m$selected_study
-      if (r$selected_plugin_type == 1 & length(m$selected_person) > 0) selected_person <- m$selected_person
+      if (length(m$selected_person) > 0) patient_id <- m$selected_person
       
       # Replace %import_script% tags
       import_scripts <- regmatches(ui_code, gregexpr("%import_script\\(['\"](.*?)['\"]\\)%", ui_code, perl = TRUE))[[1]]
@@ -1164,90 +1156,17 @@ mod_plugins_server <- function(id, r, d, m, language, i18n, debug){
         }
       }
       
-      ui_code <- ui_code %>%
-        stringr::str_replace_all("%tab_id%", "1") %>%
-        stringr::str_replace_all("%widget_id%", as.character(widget_id)) %>%
-        stringr::str_replace_all("%study_id%", as.character(study_id)) %>%
-        stringr::str_replace_all("\r", "\n")
+      ui_code <- process_widget_code(ui_code, 1, widget_id, study_id, patient_id)
+      server_code <- process_widget_code(server_code, 1, widget_id, study_id, patient_id)
       
-      if (r$selected_plugin_type == 1) ui_code <- ui_code %>% stringr::str_replace_all("%patient_id%", as.character(selected_person))
-      
-      server_code <- server_code %>%
-        stringr::str_replace_all("%tab_id%", "1") %>%
-        stringr::str_replace_all("%widget_id%", as.character(widget_id)) %>%
-        stringr::str_replace_all("%req%", "req(m[[session_code]] == session_num)\nreq(m$selected_study == %study_id%)") %>%
-        stringr::str_replace_all("%study_id%", as.character(study_id)) %>%
-        stringr::str_replace_all("\r", "\n")
-
-      if (r$selected_plugin_type == 1) server_code <- server_code %>% stringr::str_replace_all("%patient_id%", as.character(selected_person))
-      
-      edit_buttons <- div(
-        id = ns(paste0("plugin_widget_remove_buttons_", widget_id)),
-        div(
-          div(
-            shiny.fluent::IconButton.shinyInput(ns(paste0("plugin_widget_", widget_id)), iconProps = list(iconName = "Settings")),
-            class = "small_icon_button"
-          ),
-          div(
-            shiny.fluent::IconButton.shinyInput(ns(paste0("plugin_widget_", widget_id)), iconProps = list(iconName = "Delete")),
-            class = "small_icon_button"
-          ),
-          style = "display: flex; gap: 2px;"
-        ),
-        class = "widget_buttons"
+      ui_code <- tryCatch(
+        eval(parse(text = ui_code)),
+        error = function(e) cat(paste0("\n", now(), " - mod_plugins - error loading UI code - widget_id = ", widget_id, " - ", toString(e))),
+        warning = function(w) cat(paste0("\n", now(), " - mod_plugins - error loading UI code - widget_id = ", widget_id, " - ", toString(w)))
       )
       
-      ui_output <-
-        div(
-          id = ns(paste0("plugin_gridstack_item_", widget_id)),
-          class = "grid-stack-item",
-          div(
-            class = "grid-stack-item-content",
-            div(
-              tryCatch(
-                eval(parse(text = ui_code)), 
-                error = function(e) cat(paste0("\n", now(), " - mod_plugins - error loading UI code - widget_id = ", widget_id, " - ", toString(e))),
-                warning = function(w) cat(paste0("\n", now(), " - mod_plugins - error loading UI code - widget_id = ", widget_id, " - ", toString(w)))
-              ),
-              edit_buttons,
-              class = "widget"
-            )
-          )
-        )
-      # output$run_code_cards <- renderUI(ui_output)
-      
-      # shinyjs::delay(400, {
-      #   shinyjs::runjs(sprintf("$('#%s').resizable();", ns(paste0("plugin_widget_", widget_id))))
-      # })
-      
-      shinyjs::delay(200, shinyjs::runjs(paste0("
-        var grid = window.gridStackInstances['", r$run_plugin_tab_id, "'];
-        
-        if (grid) {
-          // Remove previous widget
-          var previous_widget = grid.el.querySelector('#", ns(paste0("plugin_gridstack_item_", previous_widget_id)), "');
-          if (previous_widget) grid.removeWidget(previous_widget);
-          
-          // Add new widget
-          grid.addWidget(`", ui_output, "`, {w: 6, h: 4});
-          
-          // Load react components
-          $(document).on('shiny:idle', function(event) {
-            document.querySelectorAll('.react-container').forEach(container => {
-              const reactDataScript = container.querySelector('.react-data');
-              if (reactDataScript) {
-                jsmodule['@/shiny.react'].findAndRenderReactData();
-              }
-            });
-          });
-          
-          // Rebind Shiny components
-          setTimeout(function() {
-            Shiny.unbindAll();
-            Shiny.bindAll();
-          }, 100);
-        }
-      ")))
+      ui_output <- create_widget(id, widget_id, ui_code)
+      add_widget_to_gridstack(id, "plugin_run_code", ui_output, previous_widget_id)
 
       # New environment, to authorize access to selected variables from shinyAce editor
       # We choose which vars to keep access to
@@ -1274,6 +1193,50 @@ mod_plugins_server <- function(id, r, d, m, language, i18n, debug){
       output$run_code_result_server <- renderText(paste(captured_output, collapse = "\n"))
 
       output$run_code_datetime_code_execution <- renderText(format_datetime(now(), language))
+    })
+    
+    ## Edit run code page ----
+    
+    r$plugin_run_code_edit_page_activated <- FALSE
+    
+    observeEvent(input$edit_page_on, {
+      if (debug) cat(paste0("\n", now(), " - mod_plugins - observer input$edit_page_on"))
+      
+      # Enable gridstack edition
+      shinyjs::runjs("
+        const grid = window.gridStackInstances['plugin_run_code'];
+        grid.setStatic(false);
+      ")
+      
+      # Show edit and delete widget buttons
+      shinyjs::show(paste0("plugins_widget_settings_buttons_", r$run_plugin_last_widget_id))
+      
+      # Show quit edit page button
+      shinyjs::hide("edit_page_on_div")
+      shinyjs::show("edit_page_off_div")
+
+      # Hide resize button when sidenav is displayed or not
+      r$plugin_run_code_edit_page_activated <- TRUE
+    })
+    
+    observeEvent(input$edit_page_off, {
+      if (debug) cat(paste0("\n", now(), " - mod_plugins - observer input$edit_page_off"))
+      
+      # Disable gridstack edition
+      shinyjs::runjs("
+        const grid = window.gridStackInstances['plugin_run_code'];
+        grid.setStatic(true);
+      ")
+      
+      # Hide edit and delete widget buttons
+      shinyjs::hide(paste0("plugins_widget_settings_buttons_", r$run_plugin_last_widget_id))
+      
+      # Show edit page button
+      shinyjs::hide("edit_page_off_div")
+      shinyjs::delay(50, shinyjs::show("edit_page_on_div"))
+      
+      # Hide resize button when sidenav is displayed or not
+      r$plugin_run_code_edit_page_activated <- FALSE
     })
     
     # |-------------------------------- -----
@@ -3500,7 +3463,7 @@ mod_plugins_server <- function(id, r, d, m, language, i18n, debug){
     #     div(
     #       div(tryCatch(eval(parse(text = ui_code)), error = function(e) p(toString(e)), warning = function(w) p(toString(w)))),
     #       div(
-    #         id = ns(paste0("plugins_widget_settings_remove_buttons_", widget_id)),
+    #         id = ns(paste0("plugins_widget_settings_settings_buttons_", widget_id)),
     #         shiny.fluent::Stack(horizontal = TRUE, tokens = list(childrenGap = 2),
     #           uiOutput(ns(paste0("additional_buttons_", widget_id))),
     #           actionButton(ns(paste0("plugins_widget_settings_", widget_id)), "", icon = icon("cog")),

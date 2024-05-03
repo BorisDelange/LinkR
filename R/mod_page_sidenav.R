@@ -129,6 +129,25 @@ mod_page_sidenav_ui <- function(id = character(), i18n = character()){
           id = ns("all_plugins_reduced_sidenav"),
           create_hover_card(ui = shiny.fluent::IconButton.shinyInput(ns("create_plugin"), iconProps = list(iconName = "Add")), text = i18n$t("create_plugin")),
           class = "reduced_sidenav_buttons"
+        ),
+        shinyjs::hidden(
+          div(
+            id = ns("run_code_reduced_sidenav"),
+            div(
+              div(
+                id = ns("edit_page_on_div"),
+                create_hover_card(ui = shiny.fluent::IconButton.shinyInput(ns("edit_page_on"), iconProps = list(iconName = "Edit")), text = i18n$t("edit_page")),
+                class = "reduced_sidenav_buttons_11",
+              ),
+              shinyjs::hidden(
+                div(
+                  id = ns("edit_page_off_div"),
+                  shiny.fluent::IconButton.shinyInput(ns("edit_page_off"), iconProps = list(iconName = "Accept")),
+                  class = "reduced_sidenav_buttons_11",
+                )
+              )
+            )
+          )
         )
       ),
       show_hide_sidenav
@@ -432,23 +451,6 @@ mod_page_sidenav_server <- function(id = character(), r = shiny::reactiveValues(
       if (debug) cat(paste0("\n", now(), " - mod_page_sidenav - ", id, " - observer input$show_hide_sidenav"))
       
       shinyjs::runjs(paste0(js_vars, " if (currentWidth === '200px') {", js_hide_sidenav, "} else { ", js_show_sidenav, "}"))
-      
-      if (id == "data"){
-
-        category <- r$data_page
-        
-        if (length(r[[paste0(category, "_selected_tab")]]) > 0){
-          if (!is.na(r[[paste0(category, "_selected_tab")]]) & r[[paste0(category, "_selected_tab")]] != 0){
-            shinyjs::delay(300, shinyjs::runjs("window.dispatchEvent(new Event('resize'));"))
-            sapply(r$data_grids, function(gridster_id){
-              if (length(r$edit_page_activated) > 0){
-                if (r$edit_page_activated) shinyjs::delay(400, shinyjs::runjs(paste0(gridster_id, ".enable().resize();")))
-                else shinyjs::delay(400, shinyjs::runjs(paste0(gridster_id, ".disable().disable_resize();")))
-              }
-            })
-          }
-        }
-      }
     })
   })
 }
