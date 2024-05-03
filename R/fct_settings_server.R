@@ -1424,7 +1424,7 @@ update_settings_datatable <- function(input, tab_id = character(), r = shiny::re
         }, ignoreInit = TRUE)
         
         # Keep trace that this observer has been loaded
-        r$loaded_observers <- c(r$loaded_observers, paste0(tab_id, "-", observer_name))
+        # r$loaded_observers <- c(r$loaded_observers, paste0(tab_id, "-", observer_name))
       }
     })
   })

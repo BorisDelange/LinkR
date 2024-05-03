@@ -414,8 +414,8 @@ type_must_be_date,doit être de type date
 type_must_be_datetime,doit être de type datetime
 omop_version_must_be_numeric,La version OMOP doit être de type numérique
 vocabulary_no_data_to_insert,Pas de nouvelles données à insérer dans la base de données
-column,La colonne
-columns,Les colonnes
+column,Colonne
+columns,Colonnes
 columns_concepts,Colonnes des concepts
 columns_mapped_concepts,Colonnes des concepts alignés
 import_vocabulary_table_success,Table de terminologie ajoutée avec succès

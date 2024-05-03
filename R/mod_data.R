@@ -193,6 +193,12 @@ mod_data_server <- function(id = character(), r = shiny::reactiveValues(), d = s
     # Initiate var for list of cards
     r$data_grids <- character()
     
+    # Tabs server code already loaded
+    r$widgets_server_code_loaded <- character()
+    
+    # Project loading status
+    r$project_load_status_displayed <- FALSE
+    
     # --- --- --- --- --- -
     # Change data page ----
     # --- --- --- --- --- -
@@ -359,7 +365,8 @@ mod_data_server <- function(id = character(), r = shiny::reactiveValues(), d = s
         dataset_id <- r$selected_dataset
         
         # Get OMOP version for this dataset
-        omop_version <- r$options %>% dplyr::filter(category == "dataset" & link_id == dataset_id & name == "omop_version") %>% dplyr::pull(value)
+        sql <- glue::glue_sql("SELECT value FROM options WHERE category = 'dataset' AND link_id = {dataset_id} AND name = 'omop_version'", .con = r$db)
+        omop_version <- DBI::dbGetQuery(r$db, sql) %>% dplyr::pull()
         m$omop_version <- omop_version
         
         # Get dataset code from db
@@ -2354,10 +2361,10 @@ mod_data_server <- function(id = character(), r = shiny::reactiveValues(), d = s
           # Only if this code has not been already loaded
           trace_code <- paste0(widget_id, "_", m$selected_study)
           
-          if (trace_code %not_in% r$server_tabs_groups_loaded){
+          if (trace_code %not_in% r$widgets_server_code_loaded){
             
             # Add the trace_code to loaded plugins list
-            r$server_tabs_groups_loaded <- c(r$server_tabs_groups_loaded, trace_code)
+            r$widgets_server_code_loaded <- c(r$widgets_server_code_loaded, trace_code)
             
             selected_concepts <- 
               widgets_concepts %>% 

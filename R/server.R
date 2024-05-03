@@ -7,10 +7,11 @@ app_server <- function(pages, language, languages, i18n, app_folder, debug, loca
     language <- tolower(language)
     
     if (debug) cat(paste0("\n", now(), " - server - reactive values"))
+    
     # Create r reactive value, for the application processings
     r <- reactiveValues()
     
-    # Create d reactive value, for dataset data
+    # Create d reactive value, for projects data
     d <- reactiveValues()
     main_tables <- c("condition_occurrence", "drug_exposure", "procedure_occurrence", "device_exposure", "measurement",
       "observation", "death", "note", "note_nlp", "specimen", "fact_relationship", "payer_plan_period", "cost", 
@@ -19,7 +20,7 @@ app_server <- function(pages, language, languages, i18n, app_folder, debug, loca
       "location", "care_site", "provider")
     sapply(main_tables, function(table) d[[table]] <- tibble::tibble())
     
-    # Create m reactive value, for plugins & tabs data
+    # Create m reactive value, for plugins & widgets data
     m <- reactiveValues()
     
     # Create o reactive values, for observers inactivation
@@ -27,9 +28,6 @@ app_server <- function(pages, language, languages, i18n, app_folder, debug, loca
     
     # App version
     r$app_version <- "0.2.0.9085"
-    
-    # Var for project load status
-    r$project_load_status_displayed <- FALSE
     
     # Col types of database tables, to import and restore database
     db_col_types <- tibble::tribble(
@@ -80,9 +78,6 @@ app_server <- function(pages, language, languages, i18n, app_folder, debug, loca
     else has_internet <- curl::has_internet()
     r$has_internet <- has_internet
     
-    # Create r$server_tabs_groups_loaded
-    r$server_tabs_groups_loaded <- character()
-    
     # App folder
     if (debug) cat(paste0("\n", now(), " - server - app_folder"))
     r$app_folder <- app_folder
@@ -95,12 +90,6 @@ app_server <- function(pages, language, languages, i18n, app_folder, debug, loca
     
     if (debug) cat(paste0("\n", now(), " - server - translations"))
     
-    # translations_path <- "inst/translations"
-    # if (!dir.exists(translations_path)) translations_path <- paste0(find.package("linkr"), "/translations")
-    # if (!dir.exists(translations_path)) print("Translations path not found")
-    # 
-    # i18n <- suppressWarnings(shiny.i18n::Translator$new(translation_csvs_path = translations_path))
-    # i18n$set_translation_language(language)
     r$i18n <- i18n
     r$languages <- languages
     r$language <- language
@@ -131,11 +120,18 @@ app_server <- function(pages, language, languages, i18n, app_folder, debug, loca
       if (debug) cat(paste0("\n", now(), " - server - observer r$db"))
       
       # Add default values in database, if it is empty
-      insert_default_data(output = output, r = r, m = m, i18n = i18n, language = language, db_col_types = db_col_types, 
-        users_accesses_toggles_options = users_accesses_toggles_options)
+      insert_default_data(output = output, r = r, m = m, i18n = i18n, language = language, db_col_types = db_col_types, users_accesses_toggles_options = users_accesses_toggles_options)
       
       # Load database
-      load_database(r = r, m = m, i18n = i18n)
+      # load_database(r = r, m = m, i18n = i18n)
+      
+      # Load plugins
+      sql <- glue::glue_sql("SELECT * FROM plugins", .con = r$db)
+      r$plugins <- DBI::dbGetQuery(r$db, sql)
+      
+      # Load vocabularies
+      sql <- glue::glue_sql("SELECT * FROM vocabulary", .con = m$db)
+      r$vocabulary <- DBI::dbGetQuery(m$db, sql)
       
       # Retro-compatibility : delete all insertions with DELETED IS TRUE
       sql <- glue::glue_sql("SELECT * FROM options WHERE name = 'unused_rows_deleted' AND value = 'true'", .con = r$db)
@@ -167,8 +163,7 @@ app_server <- function(pages, language, languages, i18n, app_folder, debug, loca
     
     # Secure the app with shinymanager
     
-    if (debug) cat(paste0("\n", now(), " - server - shinyManager"))
-    
+    # if (debug) cat(paste0(c"\n", now(), " - server - shinyManager"))
     
     # res_auth <- shinymanager::secure_server(check_credentials = function(user, password) {
     #   password <- rlang::hash(password)
@@ -191,39 +186,39 @@ app_server <- function(pages, language, languages, i18n, app_folder, debug, loca
       m$user_id <- user_id
       
       # # add_log_entry(r = r, category = trad$session, name = trad$session_starts, value = "")
-      id_row <- get_last_row(db_local_main, "log") + 1
-      sql <- glue::glue_sql("INSERT INTO log(id, category, name, value, creator_id, datetime) SELECT {id_row}, {trad$session}, {trad$session_starts}, '', {user_id}, {now()}", .con = db_local_main)
-      query <- DBI::dbSendStatement(db_local_main, sql)
-      DBI::dbClearResult(query)
+      # id_row <- get_last_row(db_local_main, "log") + 1
+      # sql <- glue::glue_sql("INSERT INTO log(id, category, name, value, creator_id, datetime) SELECT {id_row}, {trad$session}, {trad$session_starts}, '', {user_id}, {now()}", .con = db_local_main)
+      # query <- DBI::dbSendStatement(db_local_main, sql)
+      # DBI::dbClearResult(query)
     # })
     # When r$user_id loaded, load user_accesses
     
     observeEvent(r$user_id, {
       if (debug) cat(paste0("\n", now(), " - server - observer r$user_id"))
       
-      req(r$user_id)
+      # req(r$user_id)
       
-      onStop(function() {
-        if (debug) cat(paste0("\n", now(), " - server - observer onStop"))
-        add_log_entry(r = isolate(r), category = trad$session, name = trad$session_ends, value = "")
-        
-        # Close duckdb connections
-        DBI::dbDisconnect(isolate(r$db))
-        if (length(isolate(r$duckdb_drv)) > 0) sapply(isolate(r$duckdb_drv), duckdb::duckdb_shutdown)
-        
-        # Close spark connections
-        sparklyr::spark_disconnect_all()
-      })
+      # onStop(function() {
+      #   if (debug) cat(paste0("\n", now(), " - server - observer onStop"))
+      #   add_log_entry(r = isolate(r), category = trad$session, name = trad$session_ends, value = "")
+      #   
+      #   # Close duckdb connections
+      #   DBI::dbDisconnect(isolate(r$db))
+      #   if (length(isolate(r$duckdb_drv)) > 0) sapply(isolate(r$duckdb_drv), duckdb::duckdb_shutdown)
+      #   
+      #   # Close spark connections
+      #   sparklyr::spark_disconnect_all()
+      # })
       
-      user_access_id <- r$users %>% dplyr::filter(id == r$user_id) %>% dplyr::pull(user_access_id)
+      # user_access_id <- r$users %>% dplyr::filter(id == r$user_id) %>% dplyr::pull(user_access_id)
       
       # Get user accesses
-      r$user_accesses <- r$options %>% dplyr::filter(category == "users_accesses" & link_id == user_access_id & value_num == 1) %>% dplyr::pull(name)
-      m$user_accesses <- r$user_accesses
+      # r$user_accesses <- r$options %>% dplyr::filter(category == "users_accesses" & link_id == user_access_id & value_num == 1) %>% dplyr::pull(name)
+      # m$user_accesses <- r$user_accesses
       
       # Show username on top of the page
-      sql <- glue::glue_sql("SELECT CONCAT(firstname, ' ', lastname) AS name, CONCAT(SUBSTRING(firstname, 1, 1), SUBSTRING(lastname, 1, 1)) AS initials FROM users WHERE id = {r$user_id}", .con = r$db)
-      r$user <- DBI::dbGetQuery(r$db, sql)
+      # sql <- glue::glue_sql("SELECT CONCAT(firstname, ' ', lastname) AS name, CONCAT(SUBSTRING(firstname, 1, 1), SUBSTRING(lastname, 1, 1)) AS initials FROM users WHERE id = {r$user_id}", .con = r$db)
+      # r$user <- DBI::dbGetQuery(r$db, sql)
       
       # Clear temp dir
       if (debug) cat(paste0("\n", now(), " - server - clear temp_files"))
@@ -244,7 +239,7 @@ app_server <- function(pages, language, languages, i18n, app_folder, debug, loca
     shiny.router::router_server()
     
     # Keep trace of loaded observers (not to have multiple identical observers)
-    r$loaded_observers <- ""
+    # r$loaded_observers <- ""
     
     # Load pages
     

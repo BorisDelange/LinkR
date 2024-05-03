@@ -415,21 +415,39 @@ mod_plugins_server <- function(id, r, d, m, language, i18n, debug){
     observeEvent(input$confirm_plugin_deletion, {
       if (debug) cat(paste0("\n", now(), " - mod_plugins - observer input$confirm_plugin_deletion"))
       
+      plugin_id <- r$selected_plugin
+      
       # Delete plugin in db
       
+      sql <- glue::glue_sql("DELETE FROM plugins WHERE id = {plugin_id}", .con = r$db)
+      query <- DBI::dbSendStatement(r$db, sql)
+      DBI::dbClearResult(query)
+      
       # Delete code in db
+      sql <- glue::glue_sql("SELECT id FROM options WHERE category = 'plugin_code' AND link_id = {plugin_id}", .con = r$db)
+      code_ids <- DBI::dbGetQuery(r$db, sql) %>% dplyr::pull()
+      sql <- glue::glue_sql("DELETE FROM code WHERE id IN ({code_ids*})", .con = r$db)
+      query <- DBI::dbSendStatement(r$db, sql)
+      DBI::dbClearResult(query)
       
       # Delete options in db
+      sql <- glue::glue_sql("DELETE FROM options WHERE category IN ('plugin', 'plugin_code') AND link_id = {plugin_id}", .con = r$db)
+      query <- DBI::dbSendStatement(r$db, sql)
+      DBI::dbClearResult(query)
       
       # Delete files
+      # plugin_folder <- paste0(r$app_folder, "/plugins/", r$selected_plugin_type, "/", r$selected_plugin_unique_id)
+      unlink(r$selected_plugin_folder, recursive = TRUE)
       
       # Reload plugins list
-      
       r$reload_plugins <- now()
       shinyjs::runjs(paste0("Shiny.setInputValue('", id, "-show_plugins_home', Math.random());"))
       
-      shinyjs::hide("delete_plugin_modal")
+      # Notify user
       show_message_bar(output,  "plugin_deleted", "warning", i18n = i18n, ns = ns)
+      
+      # Close modal
+      shinyjs::hide("delete_plugin_modal")
     })
     
     # |-------------------------------- -----
@@ -1104,14 +1122,33 @@ mod_plugins_server <- function(id, r, d, m, language, i18n, debug){
       if (length(m$selected_study) > 0) study_id <- m$selected_study
       if (r$selected_plugin_type == 1 & length(m$selected_person) > 0) selected_person <- m$selected_person
       
+      # Replace %import_script% tags
+      import_scripts <- regmatches(ui_code, gregexpr("%import_script\\(['\"](.*?)['\"]\\)%", ui_code, perl = TRUE))[[1]]
+      
+      for (i in seq_along(import_scripts)){
+        tag <- import_scripts[i]
+        file_name <- gsub("%import_script\\(['\"](.*?)['\"]\\)%", "\\1", tag)
+        file_path <- paste0(r$selected_plugin_folder, "/", file_name)
+        
+        if (file.exists(file_path)){
+          file_code <- readLines(file_path, warn = FALSE) %>% paste(collapse = "\n")
+          file_name <- file_name %>% gsub("\\.", "\\\\.", ., fixed = FALSE)
+          r$file_path <- file_path
+          ui_code <-
+            ui_code %>%
+            gsub(paste0("%import_script\\('", file_name, "'\\)%"), file_code, ., fixed = FALSE) %>%
+            gsub(paste0('%import_script\\("', file_name, '"\\)%'), file_code, ., fixed = FALSE)
+        }
+      }
+      
       ui_code <- ui_code %>%
         stringr::str_replace_all("%tab_id%", "1") %>%
         stringr::str_replace_all("%widget_id%", as.character(widget_id)) %>%
         stringr::str_replace_all("%study_id%", as.character(study_id)) %>%
         stringr::str_replace_all("\r", "\n")
-
+      
       if (r$selected_plugin_type == 1) ui_code <- ui_code %>% stringr::str_replace_all("%patient_id%", as.character(selected_person))
-
+      
       server_code <- server_code %>%
         stringr::str_replace_all("%tab_id%", "1") %>%
         stringr::str_replace_all("%widget_id%", as.character(widget_id)) %>%
@@ -1878,7 +1915,7 @@ mod_plugins_server <- function(id, r, d, m, language, i18n, debug){
       DBI::dbAppendTable(r$db, "code", new_code)
       
       # Reset fields
-      shiny.fluent::updateTextField.shinyInput(session, "plugin_creation_name", errorMessage = NULL)
+      shiny.fluent::updateTextField.shinyInput(session, "plugin_creation_name", value = "", errorMessage = NULL)
       
       # Update plugins cards
       r$reload_plugins <- now()

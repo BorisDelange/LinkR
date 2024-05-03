@@ -276,11 +276,11 @@ mod_app_db_server <- function(id, r, d, m, i18n, language, db_col_types, app_fol
     # Show or hide cards ----
     # --- --- --- --- --- ---
 
-    cards <- c("db_connection_infos_card", "db_datatable_card", "db_request_card", "db_save_card", "db_restore_card")
-    show_or_hide_cards(r = r, input = input, session = session, id = id, cards = cards)
-
-    # Show first card
-    shinyjs::show("db_connection_infos_card")
+    # cards <- c("db_connection_infos_card", "db_datatable_card", "db_request_card", "db_save_card", "db_restore_card")
+    # show_or_hide_cards(r = r, input = input, session = session, id = id, cards = cards)
+    # 
+    # # Show first card
+    # shinyjs::show("db_connection_infos_card")
     # if ("db_connection_infos_card" %in% r$user_accesses) shinyjs::show("db_connection_infos_card")
     # else shinyjs::show("db_connection_infos_card_forbidden")
 
@@ -389,55 +389,55 @@ mod_app_db_server <- function(id, r, d, m, i18n, language, db_col_types, app_fol
 
     # When test connection button is clicked
 
-    observeEvent(input$test_connection, {
-
-      if (debug) cat(paste0("\n", now(), " - mod_app_db - observer input$test_connection"))
-
-      # Before testing connection, make sure fields are filled
-      db_checks <- c("main_db_name" = FALSE, "public_db_name" = FALSE, "host" = FALSE, "port" = FALSE, "user" = FALSE, "password" = FALSE)
-      sapply(names(db_checks), function(name){
-        shiny.fluent::updateTextField.shinyInput(session, name, errorMessage = NULL)
-        if (!is.null(input[[name]])){
-          if (name != "port" & input[[name]] != "") db_checks[[name]] <<- TRUE
-          if (name == "port" & input[[name]] != "" & grepl("^[0-9]+$", input[[name]])) db_checks[[name]] <<- TRUE
-        }
-      })
-
-      # Reset output textfields
-      output$test_connection_main_db_success <- renderText("")
-      output$test_connection_main_db_failure <- renderText("")
-      output$test_connection_public_db_success <- renderText("")
-      output$test_connection_public_db_failure <- renderText("")
-
-      sapply(names(db_checks), function(name) if (!db_checks[[name]]) shiny.fluent::updateTextField.shinyInput(session, name, errorMessage = i18n$t(paste0("provide_valid_", name))))
-
-      req(db_checks[["main_db_name"]], db_checks[["public_db_name"]], db_checks[["host"]], db_checks[["port"]], db_checks[["user"]], db_checks[["password"]])
-
-      # If checks are OK, test connection
-      sapply(c("main_db", "public_db"), function(db_type){
-
-        code <- paste0("DBI::dbConnect(RPostgres::Postgres(),
-          dbname = '", input[[paste0(db_type, "_name")]], "', host = '", input$host, "', port = ", input$port,
-          ", user = '", input$user, "', password = '", input$password, "')")
-        result_success <- ""
-        result_failure <- ""
-        result <- capture.output(
-          tryCatch(eval(parse(text = isolate(code))), error = function(e) print(e), warning = function(w) print(w))
-        )
-
-        if (length(result) > 1){
-          if (!grepl("exception|error|warning|fatal", tolower(result[1]))) result_success <- i18n$t("successfully_connected")
-          if (grepl("exception|error|warning|fatal", tolower(result[1]))) result_failure <- result[1]
-        }
-        if (length(result) == 1){
-          if (!grepl("exception|error|warning|fatal", tolower(result))) result_success <- i18n$t("successfully_connected")
-          if (grepl("exception|error|warning|fatal", tolower(result))) result_failure <- result
-        }
-
-        output[[paste0("test_connection_", db_type, "_success")]] <- renderText(result_success)
-        output[[paste0("test_connection_", db_type, "_failure")]] <- renderText(result_failure)
-      })
-    })
+    # observeEvent(input$test_connection, {
+    # 
+    #   if (debug) cat(paste0("\n", now(), " - mod_app_db - observer input$test_connection"))
+    # 
+    #   # Before testing connection, make sure fields are filled
+    #   db_checks <- c("main_db_name" = FALSE, "public_db_name" = FALSE, "host" = FALSE, "port" = FALSE, "user" = FALSE, "password" = FALSE)
+    #   sapply(names(db_checks), function(name){
+    #     shiny.fluent::updateTextField.shinyInput(session, name, errorMessage = NULL)
+    #     if (!is.null(input[[name]])){
+    #       if (name != "port" & input[[name]] != "") db_checks[[name]] <<- TRUE
+    #       if (name == "port" & input[[name]] != "" & grepl("^[0-9]+$", input[[name]])) db_checks[[name]] <<- TRUE
+    #     }
+    #   })
+    # 
+    #   # Reset output textfields
+    #   output$test_connection_main_db_success <- renderText("")
+    #   output$test_connection_main_db_failure <- renderText("")
+    #   output$test_connection_public_db_success <- renderText("")
+    #   output$test_connection_public_db_failure <- renderText("")
+    # 
+    #   sapply(names(db_checks), function(name) if (!db_checks[[name]]) shiny.fluent::updateTextField.shinyInput(session, name, errorMessage = i18n$t(paste0("provide_valid_", name))))
+    # 
+    #   req(db_checks[["main_db_name"]], db_checks[["public_db_name"]], db_checks[["host"]], db_checks[["port"]], db_checks[["user"]], db_checks[["password"]])
+    # 
+    #   # If checks are OK, test connection
+    #   sapply(c("main_db", "public_db"), function(db_type){
+    # 
+    #     code <- paste0("DBI::dbConnect(RPostgres::Postgres(),
+    #       dbname = '", input[[paste0(db_type, "_name")]], "', host = '", input$host, "', port = ", input$port,
+    #       ", user = '", input$user, "', password = '", input$password, "')")
+    #     result_success <- ""
+    #     result_failure <- ""
+    #     result <- capture.output(
+    #       tryCatch(eval(parse(text = isolate(code))), error = function(e) print(e), warning = function(w) print(w))
+    #     )
+    # 
+    #     if (length(result) > 1){
+    #       if (!grepl("exception|error|warning|fatal", tolower(result[1]))) result_success <- i18n$t("successfully_connected")
+    #       if (grepl("exception|error|warning|fatal", tolower(result[1]))) result_failure <- result[1]
+    #     }
+    #     if (length(result) == 1){
+    #       if (!grepl("exception|error|warning|fatal", tolower(result))) result_success <- i18n$t("successfully_connected")
+    #       if (grepl("exception|error|warning|fatal", tolower(result))) result_failure <- result
+    #     }
+    # 
+    #     output[[paste0("test_connection_", db_type, "_success")]] <- renderText(result_success)
+    #     output[[paste0("test_connection_", db_type, "_failure")]] <- renderText(result_failure)
+    #   })
+    # })
 
     # # --- --- --- --
     # # DB tables ----

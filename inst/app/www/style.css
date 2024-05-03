@@ -331,9 +331,13 @@ body, html {
   calc(100% - 16px)
 }
 
+/* ------------------- */
+/* DATATABLES          */
+/* ------------------- */
 
-
-
+.form-control {
+  font-size: 12px;
+}
 
 
 
