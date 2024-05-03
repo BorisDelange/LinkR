@@ -105,7 +105,8 @@ mod_plugins_ui <- function(id, language, languages, i18n){
           div(
             id = ns("run_code_div"),
             div(textOutput(ns("run_code_datetime_code_execution")), style = "color:#878787; font-size:12px; margin-left:8px;"),
-            uiOutput(ns("run_code_cards")),
+            # uiOutput(ns("run_code_cards")),
+            div(id = ns("run_code_gridstack"), class = "grid-stack"),
             div(verbatimTextOutput(ns("run_code_result_server")), style = "font-size:12px; margin-left:8px; padding-top:10px;")
           )
         ),
@@ -1052,12 +1053,33 @@ mod_plugins_server <- function(id, r, d, m, language, i18n, debug){
     
     # Initiate widgets var
     r$run_plugin_last_widget_id <- get_last_row(r$db, "widgets") + 10^6 %>% as.integer()
+    r$run_plugin_tab_id <- get_last_row(r$db, "tabs") + 10^6 %>% as.integer()
+    
+    # Initiate gridstack var
+    r$initiate_plugin_gridstack <- FALSE
     
     observeEvent(r$run_plugin_code, {
       if (debug) cat(paste0("\n", now(), " - mod_plugins - observer r$run_plugin_code"))
 
       # Switch to 'Test' tab
       shinyjs::runjs(glue::glue("$('#{id}-plugin_pivot button[name=\"{i18n$t('test_code')}\"]').click();"))
+      
+      # Initiate gridstack if not already initiated
+      if (!r$initiate_plugin_gridstack){
+        shinyjs::runjs(paste0("
+          if (!window.gridStackInstances['", r$run_plugin_tab_id, "']) {
+            import('https://esm.sh/gridstack').then((module) => {
+              const GridStack = module.GridStack;
+              window.gridStackInstances['", r$run_plugin_tab_id, "'] = GridStack.init({
+                cellHeight: 100,
+                staticGrid: false,
+                float: true,
+                margin: 10
+              }, '#", ns("run_code_gridstack"), "');
+            });
+          }
+        "))
+      }
       
       # Create translations file
 
@@ -1103,7 +1125,8 @@ mod_plugins_server <- function(id, r, d, m, language, i18n, debug){
       # Get ui & server code
       ui_code <- input[[paste0("edit_code_editor_", r$edit_plugin_code_files_list %>% dplyr::filter(plugin_id == r$selected_plugin, filename == "ui.R") %>% dplyr::pull(id))]]
       server_code <- input[[paste0("edit_code_editor_", r$edit_plugin_code_files_list %>% dplyr::filter(plugin_id == r$selected_plugin, filename == "server.R") %>% dplyr::pull(id))]]
-
+      
+      previous_widget_id <- r$run_plugin_last_widget_id
       widget_id <- r$run_plugin_last_widget_id + 1
       r$run_plugin_last_widget_id <- widget_id
 
@@ -1158,21 +1181,73 @@ mod_plugins_server <- function(id, r, d, m, language, i18n, debug){
 
       if (r$selected_plugin_type == 1) server_code <- server_code %>% stringr::str_replace_all("%patient_id%", as.character(selected_person))
       
-      ui_output <- div(
-        id = ns(paste0("plugin_widget_", widget_id)),
-        class = "plugin_code_widget", style = "width: 50%; max-width: calc(100% - 40px); height: 250px;",
-        div(tryCatch(eval(parse(text = ui_code)), error = function(e) p(toString(e)), warning = function(w) p(toString(w)))),
+      edit_buttons <- div(
+        id = ns(paste0("plugin_widget_remove_buttons_", widget_id)),
         div(
-          id = ns(paste0("plugins_widget_settings_remove_buttons_", widget_id)),
-          uiOutput(ns(paste0("additional_buttons_", widget_id))),
-          style = "position:absolute; top:8px; right: 10px;"
-        )
+          div(
+            shiny.fluent::IconButton.shinyInput(ns(paste0("plugin_widget_", widget_id)), iconProps = list(iconName = "Settings")),
+            class = "small_icon_button"
+          ),
+          div(
+            shiny.fluent::IconButton.shinyInput(ns(paste0("plugin_widget_", widget_id)), iconProps = list(iconName = "Delete")),
+            class = "small_icon_button"
+          ),
+          style = "display: flex; gap: 2px;"
+        ),
+        class = "widget_buttons"
       )
-      output$run_code_cards <- renderUI(ui_output)
       
-      shinyjs::delay(400, {
-        shinyjs::runjs(sprintf("$('#%s').resizable();", ns(paste0("plugin_widget_", widget_id))))
-      })
+      ui_output <-
+        div(
+          id = ns(paste0("plugin_gridstack_item_", widget_id)),
+          class = "grid-stack-item",
+          div(
+            class = "grid-stack-item-content",
+            div(
+              tryCatch(
+                eval(parse(text = ui_code)), 
+                error = function(e) cat(paste0("\n", now(), " - mod_plugins - error loading UI code - widget_id = ", widget_id, " - ", toString(e))),
+                warning = function(w) cat(paste0("\n", now(), " - mod_plugins - error loading UI code - widget_id = ", widget_id, " - ", toString(w)))
+              ),
+              edit_buttons,
+              class = "widget"
+            )
+          )
+        )
+      # output$run_code_cards <- renderUI(ui_output)
+      
+      # shinyjs::delay(400, {
+      #   shinyjs::runjs(sprintf("$('#%s').resizable();", ns(paste0("plugin_widget_", widget_id))))
+      # })
+      
+      shinyjs::delay(200, shinyjs::runjs(paste0("
+        var grid = window.gridStackInstances['", r$run_plugin_tab_id, "'];
+        
+        if (grid) {
+          // Remove previous widget
+          var previous_widget = grid.el.querySelector('#", ns(paste0("plugin_gridstack_item_", previous_widget_id)), "');
+          if (previous_widget) grid.removeWidget(previous_widget);
+          
+          // Add new widget
+          grid.addWidget(`", ui_output, "`, {w: 6, h: 4});
+          
+          // Load react components
+          $(document).on('shiny:idle', function(event) {
+            document.querySelectorAll('.react-container').forEach(container => {
+              const reactDataScript = container.querySelector('.react-data');
+              if (reactDataScript) {
+                jsmodule['@/shiny.react'].findAndRenderReactData();
+              }
+            });
+          });
+          
+          // Rebind Shiny components
+          setTimeout(function() {
+            Shiny.unbindAll();
+            Shiny.bindAll();
+          }, 100);
+        }
+      ")))
 
       # New environment, to authorize access to selected variables from shinyAce editor
       # We choose which vars to keep access to

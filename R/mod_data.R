@@ -162,6 +162,7 @@ mod_data_ui <- function(id = character(), language = "en", languages = tibble::t
     delete_wigdet_modal,
     load_status_modal,
     study_divs,
+    shinyjs::hidden(shiny.fluent::PrimaryButton.shinyInput(ns("react_activation"))),
     div(id = ns("study_widgets"))
   )
 }
@@ -218,12 +219,12 @@ mod_data_server <- function(id = character(), r = shiny::reactiveValues(), d = s
       shinyjs::show(paste0("gridster_", r[[paste0(displayed_category, "_selected_tab")]]))
       
       # Reload responsive
-      gridster_id <- paste0("gridster_", r[[paste0(displayed_category, "_selected_tab")]])
+      gridstack_id <- paste0("gridster_", r[[paste0(displayed_category, "_selected_tab")]])
       shinyjs::runjs(paste0("
-        $('#", ns(gridster_id), "').css('visibility', 'hidden');
+        $('#", ns(gridstack_id), "').css('visibility', 'hidden');
         window.dispatchEvent(new Event('resize'));
-        setTimeout(function() {$('#", ns(gridster_id), "').css('visibility', 'visible')}, 300);
-        ", gridster_id, ".disable().disable_resize();
+        setTimeout(function() {$('#", ns(gridstack_id), "').css('visibility', 'visible')}, 300);
+        ", gridstack_id, ".disable().disable_resize();
       "))
       
       # Reload plugin dropdown
@@ -1025,18 +1026,18 @@ mod_data_server <- function(id = character(), r = shiny::reactiveValues(), d = s
         shinyjs::show(paste0("gridster_", r[[paste0(category, "_selected_tab")]]))
         
         # Reload responsive
-        gridster_id <- paste0("gridster_", r[[paste0(category, "_selected_tab")]])
+        gridstack_id <- paste0("gridster_", r[[paste0(category, "_selected_tab")]])
         shinyjs::runjs(paste0("
-          $('#", ns(gridster_id), "').css('visibility', 'hidden');
+          $('#", ns(gridstack_id), "').css('visibility', 'hidden');
           window.dispatchEvent(new Event('resize'));
-          setTimeout(function() {$('#", ns(gridster_id), "').css('visibility', 'visible')}, 300);
-          ", gridster_id, ".disable().disable_resize();
+          setTimeout(function() {$('#", ns(gridstack_id), "').css('visibility', 'visible')}, 300);
+          ", gridstack_id, ".disable().disable_resize();
         "))
         
         # Active or disable gridstack widgets edition
-        for (gridster_id in r$data_grids){
-          if (r$data_edit_page_activated) shinyjs::runjs(paste0(gridster_id, ".resize();"))
-          else shinyjs::runjs(paste0(gridster_id, ".disable().disable_resize();"))
+        for (gridstack_id in r$data_grids){
+          if (r$data_edit_page_activated) shinyjs::runjs(paste0(gridstack_id, ".resize();"))
+          else shinyjs::runjs(paste0(gridstack_id, ".disable().disable_resize();"))
         }
       })
     
@@ -1772,14 +1773,14 @@ mod_data_server <- function(id = character(), r = shiny::reactiveValues(), d = s
       
       ## Load front-end & back-end ----
       
-      # gridster_id <- paste0("gridster_", r[[paste0(category, "_selected_tab")]])
+      # gridstack_id <- paste0("gridster_", r[[paste0(category, "_selected_tab")]])
       
       # shinyjs::runjs(paste0(
-      #   gridster_id, ".add_widget('<li><div style=\"background-color: #ccc; height: 100%; width:100%; border: solid 1px;\">Widget 5</div></li>', 10, 2);
+      #   gridstack_id, ".add_widget('<li><div style=\"background-color: #ccc; height: 100%; width:100%; border: solid 1px;\">Widget 5</div></li>', 10, 2);
       # "))
       
-      load_tab_ui(category, tab_id, widget_id, "add")
-      load_tab_server(tab_id)
+      # load_tab_ui(category, tab_id, widget_id, "add")
+      # load_tab_server(tab_id)
       
       # Close modal
       shinyjs::hide("add_widget_modal")
@@ -2042,8 +2043,8 @@ mod_data_server <- function(id = character(), r = shiny::reactiveValues(), d = s
       r$data_widgets <- r$data_widgets %>% dplyr::filter(id != widget_id)
       
       # Remove widget from gridstacks
-      gridster_id <- paste0("gridster_", tab_id)
-      shinyjs::runjs(paste0(gridster_id, ".remove_widget($('#", ns(paste0("widget_", widget_id)), "'))"))
+      gridstack_id <- paste0("gridster_", tab_id)
+      shinyjs::runjs(paste0(gridstack_id, ".remove_widget($('#", ns(paste0("widget_", widget_id)), "'))"))
       
       # Close modal
       shinyjs::hide("delete_widget_modal")
@@ -2062,7 +2063,7 @@ mod_data_server <- function(id = character(), r = shiny::reactiveValues(), d = s
       if (debug) cat(paste0("\n", now(), " - mod_data - observer input$edit_page_on"))
       
       # Enable gridster edition
-      sapply(r$data_grids, function(gridster_id) shinyjs::runjs(paste0(gridster_id, ".enable().enable_resize();")))
+      sapply(r$data_grids, function(gridstack_id) shinyjs::runjs(paste0(gridstack_id, ".enable().enable_resize();")))
       shinyjs::addClass(selector = ".gridster", class = "editable_gridster")
       
       # Show edit and delete widget buttons
@@ -2080,7 +2081,7 @@ mod_data_server <- function(id = character(), r = shiny::reactiveValues(), d = s
       if (debug) cat(paste0("\n", now(), " - mod_data - observer input$edit_page_off"))
       
       # Disable gridster edition
-      sapply(r$data_grids, function(gridster_id) shinyjs::runjs(paste0(gridster_id, ".disable().disable_resize();")))
+      sapply(r$data_grids, function(gridstack_id) shinyjs::runjs(paste0(gridstack_id, ".disable().disable_resize();")))
       shinyjs::removeClass(selector = ".gridster", class = "editable_gridster")
       
       # Hide edit and delete widget buttons
@@ -2100,30 +2101,30 @@ mod_data_server <- function(id = character(), r = shiny::reactiveValues(), d = s
     # Module functions ####
     # --- --- --- --- --- -
     
-    create_widget <- function(widget_id, ui_code, show_edit_buttons = FALSE){
-      edit_buttons <- div(
-        id = ns(paste0("widget_settings_remove_buttons_", widget_id)),
-        div(
-          div(
-            shiny.fluent::IconButton.shinyInput(ns(paste0("widget_settings_", widget_id)), iconProps = list(iconName = "Settings")),
-            class = "small_icon_button"
-          ),
-          div(
-            shiny.fluent::IconButton.shinyInput(ns(paste0("remove_widget_", widget_id)), iconProps = list(iconName = "Delete")),
-            class = "small_icon_button"
-          ),
-          style = "display: flex; gap: 2px;"
-        ),
-        class = "widget_buttons"
-      )
-    if (!show_edit_buttons) edit_buttons <- shinyjs::hidden(edit_buttons)
-      
-     div(
-        ui_code,
-        edit_buttons,
-        class = "widget"
-      )
-    }
+    # create_widget <- function(widget_id, ui_code, show_edit_buttons = FALSE){
+    #   edit_buttons <- div(
+    #     id = ns(paste0("widget_settings_remove_buttons_", widget_id)),
+    #     div(
+    #       div(
+    #         shiny.fluent::IconButton.shinyInput(ns(paste0("widget_settings_", widget_id)), iconProps = list(iconName = "Settings")),
+    #         class = "small_icon_button"
+    #       ),
+    #       div(
+    #         shiny.fluent::IconButton.shinyInput(ns(paste0("remove_widget_", widget_id)), iconProps = list(iconName = "Delete")),
+    #         class = "small_icon_button"
+    #       ),
+    #       style = "display: flex; gap: 2px;"
+    #     ),
+    #     class = "widget_buttons"
+    #   )
+    # if (!show_edit_buttons) edit_buttons <- shinyjs::hidden(edit_buttons)
+    #   
+    #  div(
+    #     ui_code,
+    #     edit_buttons,
+    #     class = "widget"
+    #   )
+    # }
     
     convert_ui_code <- function(ui_code, study_id, tab_id, widget_id, session_code){
       ui_code %>%
@@ -2182,6 +2183,37 @@ mod_data_server <- function(id = character(), r = shiny::reactiveValues(), d = s
       else if (action == "add") widgets <- r$data_widgets %>% dplyr::filter(id == !!widget_id)
       widgets <- widgets %>% dplyr::rename(widget_id = id)
       
+      gridstack_id <- paste0("gridster_", tab_id)
+      
+      if (action == "reload"){
+        
+        # Add gridstack div
+        gridstack_div <- div(id = ns(gridstack_id), class = "grid-stack")
+        
+        hide_div <- TRUE
+        if (!is.na(selected_tab)) if (tab_id == selected_tab) hide_div <- FALSE
+        if (hide_div) gridstack_div <- shinyjs::hidden(gridstack_div)
+        
+        insertUI(selector = paste0("#", ns("study_widgets")), where = "beforeEnd", ui = gridstack_div)
+        # r[[paste0(category, "_cards")]] <- c(r[[paste0(category, "_cards")]], gridstack_id)
+        
+        shinyjs::delay(200, shinyjs::runjs(paste0("
+          if (!window.gridStackInstances['", tab_id, "']) {
+            import('https://esm.sh/gridstack').then((module) => {
+              const GridStack = module.GridStack;
+              window.gridStackInstances['", tab_id, "'] = GridStack.init({
+                cellHeight: 70,
+                acceptWidgets: true,
+                staticGrid: false
+              }, '#", ns(gridstack_id), "');
+            });
+          }
+        ")))
+        r$data_grids <- c(r$data_grids, gridstack_id)
+        
+        r$data_ui_loaded <- TRUE
+      }
+      
       if (nrow(widgets) > 0){
         
         # Load widgets concepts
@@ -2190,19 +2222,19 @@ mod_data_server <- function(id = character(), r = shiny::reactiveValues(), d = s
         # Get widgets ids
         widgets_ids <- unique(widgets$widget_id)
         
-        # Use sapply instead of for loop, cause with for loop, widget_id doesn't change
-        i <- 1
-        j <- 1
-        k <- FALSE
+        # # Use sapply instead of for loop, cause with for loop, widget_id doesn't change
+        # i <- 1
+        # j <- 1
+        # k <- FALSE
         
-        for(widget_id in widgets_ids){
+        sapply(widgets_ids, function(widget_id){
           
-          # Loop for widget position in gridster
-          if (k) {
-            if (j == 1) j <- 11 else j <- 1
-            if (j == 1) i <- i + 1
-          }
-          k <- TRUE
+          # # Loop for widget position in gridster
+          # if (k) {
+          #   if (j == 1) j <- 11 else j <- 1
+          #   if (j == 1) i <- i + 1
+          # }
+          # k <- TRUE
           
           # Load over selected concepts
           selected_concepts <- 
@@ -2257,85 +2289,64 @@ mod_data_server <- function(id = character(), r = shiny::reactiveValues(), d = s
             )
           }
           
-          ui_output <- create_widget(widget_id, ui_code)
+          ui_output <- create_widget(ns, widget_id, ui_code)
           
-          # Insert into a gridster widget
-          ui_output <- tags$li(
-            id = ns(paste0("widget_", widget_id)),
-            `data-row` = i, `data-col` = j, `data-sizex` = 10, `data-sizey` = 2,
-            ui_output,
-            class = "gridster_widget"
-          )
+          shinyjs::delay(200, shinyjs::runjs(paste0("
+            var grid = window.gridStackInstances['", tab_id, "'];
+        
+            if (grid) {
+              // Unbind Shiny components
+              Shiny.unbindAll();
+              
+              // Add gridstack widget
+              grid.addWidget({w: 12, h: 4, content: `", ui_output, "`});
+              
+              // Load react components
+              $(document).on('shiny:idle', function(event) {
+                document.querySelectorAll('.react-container').forEach(container => {
+                  const reactDataScript = container.querySelector('.react-data');
+                  if (reactDataScript) {
+                    jsmodule['@/shiny.react'].findAndRenderReactData();
+                  }
+                });
+              });
+              
+              // Rebind Shiny components
+              Shiny.bindAll();
+            }
+          ")))
           
-          widgets_ui <- tagList(widgets_ui, ui_output)
-        }
+          # # Insert into a gridster widget
+          # ui_output <- tags$li(
+          #   id = ns(paste0("widget_", widget_id)),
+          #   `data-row` = i, `data-col` = j, `data-sizex` = 10, `data-sizey` = 2,
+          #   ui_output,
+          #   class = "gridster_widget"
+          # )
+          # 
+          # widgets_ui <- tagList(widgets_ui, ui_output)
+        })
       }
-      
-      gridster_id <- paste0("gridster_", tab_id)
-      
-      if (action == "reload"){
-        
-        # Add gridster div
-        gridster_div <- div(id = ns(gridster_id), class = "gridster", tags$ul(widgets_ui))
-        
-        hide_div_code <- paste0("$('#", ns(gridster_id), "').css('display', 'none');")
-        if (category == "patient_lvl" & !is.na(selected_tab)) if (tab_id == selected_tab) hide_div_code <- ""
-        
-        ui_output_id <- paste0("ui_output_", tab_id)
-        ui_output <- uiOutput(ns(ui_output_id))
-        
-        # ui_selector <- paste0("#", ns(paste0(category, "_study_widgets")))
-        ui_selector <- paste0("#", ns("study_widgets"))
-        if (gridster_id %not_in% r$data_grids) insertUI(selector = ui_selector, where = "beforeEnd", ui = ui_output)
-        output[[ui_output_id]] <- renderUI(gridster_div)
-        
-        # Run gridster code
-        shinyjs::delay(100, shinyjs::delay(100, {
-          shinyjs::runjs(paste0("
-            $(document).ready(function() {
-              window.", gridster_id, " = $('#", ns(gridster_id), " ul').gridster({
-                namespace: '#", ns(gridster_id), "',
-                widget_margins: [15, 15],
-                widget_base_dimensions: ['auto', 100],
-                autogenerate_stylesheet: true,
-                min_cols: 1,
-                max_cols: 20,
-                helper: 'clone',
-                resize: {
-                  enabled: true
-                }
-              }).data('gridster');
-              
-              ", gridster_id, ".disable().disable_resize();
-              
-              ", hide_div_code, "
-            });"))
-        }))
-        
-        r$data_grids <- c(r$data_grids, gridster_id)
-        
-        r$data_ui_loaded <- TRUE
-      }
-      else if (action == "add"){
-        ui_output <- create_widget(widget_id, ui_code, show_edit_buttons = r$data_edit_page_activated)
-        
-        ui_output <- tags$li(
-          id = ns(paste0("widget_", widget_id)),
-          ui_output,
-          class = "gridster_widget"
-        )
-        
-        ui_output <- 
-          ui_output %>%
-          as.character() %>%
-          gsub("\n", "", ., fixed = TRUE) %>%
-          gsub("'", "\\'", ., fixed = TRUE)
-        
-        if (r$data_edit_page_activated) edit_page_code <- ".enable().enable_resize()"
-        else edit_page_code <- ""
-        
-        shinyjs::runjs(paste0(gridster_id, ".add_widget('", ui_output, "', 10, 2)", edit_page_code, ";"))
-      }
+      # else if (action == "add"){
+      #   ui_output <- create_widget(widget_id, ui_code, show_edit_buttons = r$data_edit_page_activated)
+      #   
+      #   ui_output <- tags$li(
+      #     id = ns(paste0("widget_", widget_id)),
+      #     ui_output,
+      #     class = "gridster_widget"
+      #   )
+      #   
+      #   ui_output <- 
+      #     ui_output %>%
+      #     as.character() %>%
+      #     gsub("\n", "", ., fixed = TRUE) %>%
+      #     gsub("'", "\\'", ., fixed = TRUE)
+      #   
+      #   if (r$data_edit_page_activated) edit_page_code <- ".enable().enable_resize()"
+      #   else edit_page_code <- ""
+      #   
+      #   shinyjs::runjs(paste0(gridstack_id, ".add_widget('", ui_output, "', 10, 2)", edit_page_code, ";"))
+      # }
       
       if (r$project_load_status_displayed) r$project_load_status$widgets_ui_endtime <- now("%Y-%m-%d %H:%M:%OS3")
     }
