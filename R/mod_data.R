@@ -60,6 +60,32 @@ mod_data_ui <- function(id = character(), language = "en", languages = tibble::t
     )
   )
   
+  # Edit a tab modal ----
+  
+  edit_tab_modal <- shinyjs::hidden(
+    div(
+      id = ns("edit_tab_modal"),
+      div(
+        div(
+          tags$h1(i18n$t("edit_a_tab")),
+          shiny.fluent::IconButton.shinyInput(ns("close_edit_tab_modal"), iconProps = list(iconName = "ChromeClose")),
+          class = "create_element_modal_head small_close_button"
+        ),
+        div(
+          make_textfield(i18n, ns, id = "edit_tab_name", label = "name", width = "200px"),
+          class = "create_element_modal_body"
+        ),
+        div(
+          div(shiny.fluent::PrimaryButton.shinyInput(ns("delete_tab_button"), i18n$t("delete")), class = "delete_button"),
+          shiny.fluent::PrimaryButton.shinyInput(ns("save_tab_button"), i18n$t("save")),
+          class = "create_element_modal_buttons"
+        ),
+        class = "create_tab_modal_content"
+      ),
+      class = "create_element_modal"
+    )
+  )
+  
   # Add a widget modal ----
   
   add_widget_modal <- shinyjs::hidden(
@@ -131,21 +157,6 @@ mod_data_ui <- function(id = character(), language = "en", languages = tibble::t
     )
   )
   
-  # Tab edition card ----
-  
-  # tab_edition_card <- make_card(
-  #   title = i18n$t("edit_tab"),
-  #   content = div(
-  #     actionButton(ns(paste0(category, "_close_edit_tab")), "", icon = icon("xmark"), style = "position:absolute; top:10px; right:10px;"),
-  #     make_textfield(ns = ns, label = "name", id = "edit_tab_name", width = "300px", i18n = i18n), br(),
-  #     shiny.fluent::Stack(horizontal = TRUE, tokens = list(childrenGap = 10),
-  #       shiny.fluent::PrimaryButton.shinyInput(ns("edit_tab_save"), i18n$t("save")),
-  #       shiny.fluent::DefaultButton.shinyInput(ns("remove_tab"), i18n$t("delete_tab"))
-  #     ), 
-  #     br()
-  #   )
-  # )
-  
   # Study divs ----
   
   study_divs <- tagList()
@@ -158,6 +169,7 @@ mod_data_ui <- function(id = character(), language = "en", languages = tibble::t
   div(
     class = "main", style = "margin-left: 10px;",
     add_tab_modal,
+    edit_tab_modal,
     add_widget_modal,
     delete_wigdet_modal,
     load_status_modal,
@@ -197,6 +209,21 @@ mod_data_server <- function(id = character(), r = shiny::reactiveValues(), d = s
     # Project loading status
     r$project_load_status_displayed <- FALSE
     
+    # Script to display study tabs correctly
+    tabs_display_js <- "
+      var ids = ['data-patient_lvl_study_menu', 'data-aggregated_study_menu'];
+
+      ids.forEach(function(id) {
+        var studyMenu = document.getElementById(id);
+        if (studyMenu) {
+          var buttons = studyMenu.querySelectorAll('div button');
+          for (var i = 0; i < buttons.length; i++) {
+            buttons[i].setAttribute('data-content', '');
+          }
+        }
+      });
+    "
+    
     # --- --- --- --- --- -
     # Change data page ----
     # --- --- --- --- --- -
@@ -215,17 +242,11 @@ mod_data_server <- function(id = character(), r = shiny::reactiveValues(), d = s
       sapply(r$data_grids, shinyjs::hide)
       shinyjs::show(paste0("gridstack_", r[[paste0(displayed_category, "_selected_tab")]]))
       
-      # Reload responsive
-      gridstack_id <- paste0("gridstack_", r[[paste0(displayed_category, "_selected_tab")]])
-      shinyjs::runjs(paste0("
-        $('#", ns(gridstack_id), "').css('visibility', 'hidden');
-        window.dispatchEvent(new Event('resize'));
-        setTimeout(function() {$('#", ns(gridstack_id), "').css('visibility', 'visible')}, 300);
-        ", gridstack_id, ".disable().disable_resize();
-      "))
-      
       # Reload plugin dropdown
       r$data_reload_plugins_dropdown <- now()
+      
+      # Display study tabs correctly
+      r$correct_pivot_items_display <- now()
     })
     
     # --- --- --- --- --- --- --
@@ -842,7 +863,24 @@ mod_data_server <- function(id = character(), r = shiny::reactiveValues(), d = s
               
               for (j in 1:nrow(tabs)){
                 tab <- tabs[j, ]
-                tabs_ui <- tagList(tabs_ui, shiny.fluent::PivotItem(id = tab$id, itemKey = tab$id, headerText = tab$name))
+                
+                pivot_header <- div(
+                  tab$name,
+                  div(
+                    id = ns(paste0("edit_tab_", tab$id, "_container")),
+                    shiny.fluent::IconButton.shinyInput(ns(paste0("edit_tab_", tab$id)), iconProps = list(iconName = "Edit"), onClick = htmlwidgets::JS(paste0(
+                      "item => { ",
+                        "Shiny.setInputValue('", id, "-edit_tab_id', ", tab$id, ", {priority: 'event'});",
+                        "Shiny.setInputValue('", id, "-edit_tab_trigger', Math.random(), {priority: 'event'});",
+                      "}"
+                    ))),
+                    class = "small_icon_button edit_tab_button",
+                    style = "display: none;"
+                  ),
+                  style = "display: flex;"
+                )
+                
+                tabs_ui <- tagList(tabs_ui, shiny.fluent::PivotItem(id = tab$id, itemKey = tab$id, headerText = pivot_header))
                 
                 if (i == 1 & j == 1) if (is.na(r[[paste0(category, "_selected_tab")]])) r[[paste0(category, "_selected_tab")]] <- tab$id
               }
@@ -956,10 +994,13 @@ mod_data_server <- function(id = character(), r = shiny::reactiveValues(), d = s
             shinyjs::show(paste0(category, "_no_tabs_to_display"))
           }
           
-          output[[paste0(category, "_study_menu")]] <- renderUI(div(
-            study_menu_ui,
-            style = "display:flex; justify-content:space-between; margin:5px 13px 0px 0px;"
-          ))
+          output[[paste0(category, "_study_menu")]] <- renderUI({
+            r$temp <- now()
+            div(
+              study_menu_ui,
+              style = "display:flex; justify-content:space-between; margin:5px 13px 0px 0px;"
+            )
+          })
           
           displayed_category <- r$data_page
           hidden_category <- categories[categories != displayed_category]
@@ -968,7 +1009,16 @@ mod_data_server <- function(id = character(), r = shiny::reactiveValues(), d = s
           shinyjs::hide(paste0(hidden_category, "_study_menu"))
         })
         
+        # Correct display issue on pivotItems
+        r$correct_pivot_items_display <- now()
+        
         if (r$project_load_status_displayed) r$project_load_status$menu_endtime <- now("%Y-%m-%d %H:%M:%OS3")
+      })
+      
+      observeEvent(r$correct_pivot_items_display, {
+        if (debug) cat(paste0("\n", now(), " - mod_data - observer r$correct_pivot_items_display"))
+        
+        shinyjs::delay(500, shinyjs::runjs(tabs_display_js))
       })
       
       # --- --- --- --- --
@@ -1174,182 +1224,87 @@ mod_data_server <- function(id = character(), r = shiny::reactiveValues(), d = s
     # Edit a tab ----
     # --- --- --- - -
     
-    # observeEvent(input$edit_tab, {
-    #   
-    #   if (debug) cat(paste0("\n", now(), " - mod_data - observer input$edit_tab"))
-    #   
-    #   sapply(r$data_grids, shinyjs::hide)
-    #   shinyjs::hide(paste0(category, "_add_widget"))
-    #   shinyjs::hide(paste0(category, "_widget_settings"))
-    #   shinyjs::show(paste0(category, "_edit_tab"))
-    #   
-    #   # Update textfield with current tab name
-    #   selected_tab <- r[[paste0(category, "_selected_tab")]]
-    #   shiny.fluent::updateTextField.shinyInput(session, "edit_tab_name", 
-    #                                            value = r$data_tabs %>% dplyr::filter(id == selected_tab) %>% dplyr::pull(name))
-    # })
-    # 
-    # # Save updates
-    # observeEvent(input$edit_tab_save, {
-    #   
-    #   if (debug) cat(paste0("\n", now(), " - mod_data - observer input$edit_tab_save"))
-    #   
-    #   # Check if the name is not empty
-    #   if (input$edit_tab_name == "") shiny.fluent::updateTextField.shinyInput(session, "edit_tab_name", errorMessage = i18n$t("provide_valid_name"))
-    #   
-    #   req(input$edit_tab_name != "")
-    #   
-    #   # Check if the name is already used
-    #   selected_tab <- r[[paste0(category, "_selected_tab")]]
-    #   tab <- r$data_tabs %>% dplyr::filter(id == selected_tab)
-    #   
-    #   if (!is.na(tab$parent_tab_id)) same_level_tabs <- r$data_tabs %>% dplyr::filter(id != tab$id, parent_tab_id == tab$parent_tab_id)
-    #   if (is.na(tab$parent_tab_id)) same_level_tabs <- r$data_tabs %>% dplyr::filter(id != tab$id, is.na(parent_tab_id))
-    #   
-    #   if (input$edit_tab_name %in% same_level_tabs$name) show_message_bar(output, "name_already_used", "severeWarning", i18n = i18n, ns = ns)
-    #   
-    #   req(input$edit_tab_name %not_in% same_level_tabs$name)
-    #   
-    #   # Update database
-    #   
-    #   sql <- glue::glue_sql("UPDATE tabs SET name = {input$edit_tab_name} WHERE id = {r[[paste0(category, '_selected_tab')]]}", .con = r$db)
-    #   query <- DBI::dbSendStatement(r$db, sql)
-    #   DBI::dbClearResult(query)
-    #   
-    #   # Update r vars
-    #   r$data_tabs <- r$data_tabs %>% dplyr::mutate(name = dplyr::case_when(
-    #     id == selected_tab ~ input$edit_tab_name, TRUE ~ name))
-    #   
-    #   r$data_menu_tabs <- r$data_menu_tabs %>% dplyr::mutate(name = dplyr::case_when(
-    #     id == selected_tab ~ input$edit_tab_name, TRUE ~ name))
-    #   
-    #   # Notify user
-    #   show_message_bar(output, message = "modif_saved", type = "success", i18n = i18n, ns = ns)
-    #   
-    #   # Show opened cards before opening Add widget div
-    #   sapply(r$data_grids, shinyjs::show)
-    #   
-    #   # Hide Edit widget div
-    #   shinyjs::hide(paste0(category, "_edit_tab"))
-    #   
-    #   # Reload output
-    #   r$data_reload_menu <- now()
-    # })
-    # 
-    # # Close edition div
-    # observeEvent(input[[paste0(category, "_close_edit_tab")]], {
-    #   
-    #   if (debug) cat(paste0("\n", now(), " - mod_data - observer input$..close_edit_tab"))
-    #   
-    #   # Show opened cards before opening Add widget div
-    #   sapply(r$data_grids, shinyjs::show)
-    #   
-    #   # Hide Edit widget div
-    #   shinyjs::hide(paste0(category, "_edit_tab"))
-    # })
+    # Open modal
+    observeEvent(input$edit_tab_trigger, {
+      if (debug) cat(paste0("\n", now(), " - mod_data - observer input$edit_tab_trigger"))
+      shinyjs::show("edit_tab_modal")
+      
+      # Get tab ID
+      tab_id <- input$edit_tab_id
+      
+      # Get tab name and update textfield
+      tab <- r$data_tabs %>% dplyr::filter(id == tab_id)
+      shiny.fluent::updateTextField.shinyInput(session, "edit_tab_name", value = tab$name)
+    })
     
-    # --- --- --- -- --
-    # Delete a tab ----
-    # --- --- --- -- --
+    # Close modal
+    observeEvent(input$close_edit_tab_modal, {
+      if (debug) cat(paste0("\n", now(), " - mod_data - observer input$close_edit_tab_modal"))
+      shinyjs::hide("edit_tab_modal")
+    })
     
-    # # Code to make Remove tab button work
-    # observeEvent(input$remove_tab, {
-    #   if (debug) cat(paste0("\n", now(), " - mod_data - observer input$remove_tab"))
-    #   r[[tab_delete_variable]] <- TRUE
-    # })
-    # 
-    # tab_delete_prefix <- paste0(category, "_tab")
-    # tab_dialog_title <- paste0(category, "_tabs_delete")
-    # tab_dialog_subtext <- paste0(category, "_tabs_delete_subtext")
-    # tab_react_variable <- "tab_delete_confirm"
-    # tab_table <- paste0(category, "_tabs")
-    # tab_id_var_sql <- "id"
-    # tab_id_var_r <- paste0(category, "_selected_tab")
-    # tab_delete_message <- paste0(category, "_tab_deleted")
-    # tab_reload_variable <- paste0(category, "_load_ui")
-    # tab_information_variable <- paste0(category, "_tab_deleted")
-    # tab_delete_variable <- paste0(tab_delete_prefix, "_open_dialog")
-    # 
-    # delete_element(r = r, input = input, output = output, session = session, ns = ns, i18n = i18n,
-    #                delete_prefix = tab_delete_prefix, dialog_title = tab_dialog_title, dialog_subtext = tab_dialog_subtext,
-    #                react_variable = tab_react_variable, table = tab_table, id_var_sql = tab_id_var_sql, id_var_r = tab_id_var_r,
-    #                delete_message = tab_delete_message, translation = TRUE, reload_variable = tab_reload_variable,
-    #                information_variable = tab_information_variable)
-    # 
-    # # When a tab is deleted, change current tab variable
-    # # Reload toggles if necessary
-    # # Delete sub-tabs either
-    # 
-    # observeEvent(r[[tab_information_variable]], {
-    #   
-    #   if (debug) cat(paste0("\n", now(), " - mod_data - observer r$..tab_deleted"))
-    #   
-    #   table <- paste0(category, "_tabs")
-    #   deleted_tab_id <- r[[paste0(category, "_tab_deleted")]]
-    #   sql <- glue::glue_sql("SELECT * FROM tabs WHERE id = {deleted_tab_id}", .con = r$db)
-    #   tab_deleted <- DBI::dbGetQuery(r$db, sql)
-    #   
-    #   # If we are at level one, take first tab of level one
-    #   if (is.na(tab_deleted$parent_tab_id)){
-    #     show_tab_id <- r[[table]] %>%
-    #       dplyr::filter(tab_group_id == tab_deleted$tab_group_id & is.na(parent_tab_id) & id != tab_deleted$id) %>%
-    #       dplyr::arrange(display_order) %>%
-    #       dplyr::slice(1) %>%
-    #       dplyr::pull(id)
-    #   }
-    #   
-    #   # Else, take first tab of the same level
-    #   if (!is.na(tab_deleted$parent_tab_id)){
-    #     show_tab <- r[[table]] %>%
-    #       dplyr::filter(parent_tab_id == tab_deleted$parent_tab_id & id != tab_deleted$id)
-    #     
-    #     # If not any tab in this level, take lower level
-    #     if (nrow(show_tab) == 0) show_tab <- r[[table]] %>%
-    #         dplyr::filter(id == tab_deleted$parent_tab_id)
-    #     
-    #     show_tab_id <- show_tab %>%
-    #       dplyr::arrange(display_order) %>%
-    #       dplyr::slice(1) %>%
-    #       dplyr::pull(id)
-    #   }
-    #   
-    #   r[[paste0(category, "_selected_tab")]] <- show_tab_id
-    #   sapply(r$data_grids, shinyjs::hide)
-    #   shinyjs::show(paste0(category, "_toggles_", show_tab_id))
-    #   
-    #   # Reload UI menu
-    #   r$data_reload_tabs <- now()
-    #   
-    #   # Check if parent tab still have children and reload toggles div if not
-    #   sql <- glue::glue_sql("SELECT parent_tab_id FROM tabs WHERE id = {deleted_tab_id}", .con = r$db)
-    #   parent_tab_id <- DBI::dbGetQuery(r$db, sql) %>% dplyr::pull(parent_tab_id)
-    #   if (!is.na(parent_tab_id)){
-    #     
-    #     has_children <- r$data_tabs %>% dplyr::filter(parent_tab_id == !!parent_tab_id) %>% nrow()
-    #     if(has_children == 0){
-    #       
-    #       shinyjs::hide(paste0(category, "_toggles_", parent_tab_id))
-    #       
-    #       # parent_toggles_div <- div(
-    #       #   make_card("",
-    #       #     shiny.fluent::Stack(horizontal = TRUE, tokens = list(childrenGap = 10),
-    #       #       shiny.fluent::ActionButton.shinyInput(ns(paste0(category, "_add_widget_", parent_tab_id)), i18n$t("new_widget"), iconProps = list(iconName = "Add"),
-    #       #         onClick = htmlwidgets::JS(paste0("item => Shiny.setInputValue('", id, "-", category, "_add_widget_trigger', Math.random())"))),
-    #       #       shiny.fluent::ActionButton.shinyInput(ns(paste0(category, "_edit_tab_", parent_tab_id)), i18n$t("edit_tab"), iconProps = list(iconName = "Edit"),
-    #       #         onClick = htmlwidgets::JS(paste0("item => Shiny.setInputValue('", id, "-edit_tab_trigger', Math.random())"))),
-    #       #       div(style = "width:20px;")
-    #       #     )
-    #       #   )
-    #       # )
-    #       
-    #       # insertUI(selector = paste0("#", ns("study_widgets")), where = "beforeEnd", ui = uiOutput(ns(paste0(category, "_toggles_", parent_tab_id))))
-    #       # output[[paste0(category, "_toggles_", parent_tab_id)]] <- renderUI(parent_toggles_div)
-    #     }
-    #   }
-    #   
-    #   # Hide edit_tab div
-    #   shinyjs::hide(paste0(category, "_edit_tab"))
-    # })
+    # Save updates
+    observeEvent(input$save_tab_button, {
+      if (debug) cat(paste0("\n", now(), " - mod_data - observer input$save_tab_button"))
+      
+      # Get tab ID
+      tab_id <- input$edit_tab_id
+      
+      # Check if name is not empty
+      
+      # Check if name is not already used
+      
+      # Save updates in db
+      
+      # Reload study menu
+      r$data_reload_tabs <- now()
+    })
+    
+    # Delete a tab
+    observeEvent(input$delete_tab_button, {
+      if (debug) cat(paste0("\n", now(), " - mod_data - observer input$delete_tab_button"))
+      
+      # Get tab ID
+      tab_id <- input$edit_tab_id
+      tab <- r$data_menu_tabs %>% dplyr::filter(id == tab_id)
+      
+      # Delete tab from db
+      sql <- glue::glue_sql("DELETE FROM tabs WHERE id = {tab_id}", .con = r$db)
+      query <- DBI::dbSendStatement(r$db, sql)
+      DBI::dbClearResult(query)
+      
+      # Delete widgets from db
+      sql <- glue::glue_sql("DELETE FROM widgets WHERE tab_id = {tab_id}", .con = r$db)
+      query <- DBI::dbSendStatement(r$db, sql)
+      DBI::dbClearResult(query)
+      
+      # Update r vars
+      r$data_tabs <- r$data_tabs %>% dplyr::filter(id != tab_id)
+      r$data_widgets <- r$data_widgets %>% dplyr::filter(tab_id != !!tab_id)
+      
+      # Change selected tab to first tab
+      # Choose a tab from the same level, or level up if there's not any tab at the same level
+      
+      first_tab <- r$data_menu_tabs %>% dplyr::filter(category == r$data_page, level == tab$level)
+      print(first_tab)
+      if (nrow(first_tab) == 0){
+        first_tab <- r$data_menu_tabs %>% dplyr::filter(category == r$data_page, level == tab$level - 1)
+        if (nrow(first_tab) == 0){
+          first_tab <- 0
+        }
+      }
+      
+      r[[paste0(category, "_selected_tab")]] <- first_tab %>% dplyr::slice(1) %>% dplyr::pull(id)
+      
+      # Reload study menu
+      r$data_reload_tabs <- now()
+      
+      # Notify user
+      show_message_bar(output, message = "tab_deleted", type = "warning", i18n = i18n, ns = ns)
+      
+      # Close modal
+      shinyjs::hide("edit_tab_modal")
+    })
     
     # --- --- --- --- -
     # Add a widget ----
@@ -1764,17 +1719,14 @@ mod_data_server <- function(id = character(), r = shiny::reactiveValues(), d = s
       
       ## Load front-end & back-end ----
       
-      # gridstack_id <- paste0("gridstack_", r[[paste0(category, "_selected_tab")]])
-      
-      # shinyjs::runjs(paste0(
-      #   gridstack_id, ".add_widget('<li><div style=\"background-color: #ccc; height: 100%; width:100%; border: solid 1px;\">Widget 5</div></li>', 10, 2);
-      # "))
-      
-      # load_tab_ui(category, tab_id, widget_id, "add")
-      # load_tab_server(tab_id)
+      load_tab_ui(category, tab_id, widget_id, "add")
+      load_tab_server(tab_id)
       
       # Close modal
       shinyjs::hide("add_widget_modal")
+      
+      # Reload menu (issue : it changed selected tab)
+      r$data_reload_menu <- now()
     })
     
     # --- --- --- --- -- -
@@ -2064,6 +2016,10 @@ mod_data_server <- function(id = character(), r = shiny::reactiveValues(), d = s
         grid.setStatic(false);
       ")))
       
+      # Show edit tab buttons
+      distinct_tabs <- r$data_menu_tabs %>% dplyr::pull(id)
+      sapply(distinct_tabs, function(tab_id) shinyjs::show(paste0("edit_tab_", tab_id, "_container")))
+      
       # Show edit and delete widget buttons
       sapply(r$data_widgets$id, function(widget_id) shinyjs::show(paste0("data_widget_settings_buttons_", widget_id)))
       
@@ -2083,6 +2039,10 @@ mod_data_server <- function(id = character(), r = shiny::reactiveValues(), d = s
         const grid = window.gridStackInstances['", tab_id, "'];
         grid.setStatic(true);
       ")))
+      
+      # Show edit tab buttons
+      distinct_tabs <- r$data_menu_tabs %>% dplyr::pull(id)
+      sapply(distinct_tabs, function(tab_id) shinyjs::hide(paste0("edit_tab_", tab_id, "_container")))
       
       # Hide edit and delete widget buttons
       sapply(r$data_widgets$id, function(widget_id) shinyjs::hide(paste0("data_widget_settings_buttons_", widget_id)))
@@ -2241,26 +2201,6 @@ mod_data_server <- function(id = character(), r = shiny::reactiveValues(), d = s
           add_widget_to_gridstack(id, tab_id, ui_output)
         })
       }
-      # else if (action == "add"){
-      #   ui_output <- create_widget(widget_id, ui_code, show_edit_buttons = r$data_edit_page_activated)
-      #   
-      #   ui_output <- tags$li(
-      #     id = ns(paste0("widget_", widget_id)),
-      #     ui_output,
-      #     class = "gridstack_widget"
-      #   )
-      #   
-      #   ui_output <- 
-      #     ui_output %>%
-      #     as.character() %>%
-      #     gsub("\n", "", ., fixed = TRUE) %>%
-      #     gsub("'", "\\'", ., fixed = TRUE)
-      #   
-      #   if (r$data_edit_page_activated) edit_page_code <- ".enable().enable_resize()"
-      #   else edit_page_code <- ""
-      #   
-      #   shinyjs::runjs(paste0(gridstack_id, ".add_widget('", ui_output, "', 10, 2)", edit_page_code, ";"))
-      # }
       
       if (r$project_load_status_displayed) r$project_load_status$widgets_ui_endtime <- now("%Y-%m-%d %H:%M:%OS3")
     }

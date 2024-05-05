@@ -266,30 +266,19 @@ body, html {
   font-size: 12px !important;
 }
 
+/* ------------- */
+/* TABS          */
+/* ------------- */
+
+.edit_tab_button {
+  width: 20px;
+}
+
 /* ---------------- */
 /* WIDGETS          */
 /* ---------------- */
 
-.editable_gridster {
-  cursor: pointer;
-}
-
-.gridster > ul, ol {
-  list-style: none;
-}
-
-.gridster ul {
-  max-width: calc(100% - 40px);
-  box-sizing: border-box;
-  margin-top: 0;
-}
-
-.gridster .preview-holder {
-    background-color: #ccc;
-    opacity: 0.5;
-}
-
-.gridster_widget, .plugin_code_widget, .grid-stack-item-content {
+.plugin_code_widget, .grid-stack-item-content {
   box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 3px 6px 0 rgba(0, 0, 0, 0.19);
   overflow: hidden;
   font-size: 12px;

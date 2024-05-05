@@ -67,7 +67,7 @@ add_widget_to_gridstack <- function(id, tab_id, ui_output, previous_widget_id = 
   )
   else delete_previous_widget <- ""
   
-  shinyjs::delay(200, shinyjs::runjs(paste0("
+  shinyjs::delay(500, shinyjs::runjs(paste0("
     var grid = window.gridStackInstances['", tab_id, "'];
     
     if (grid) {
