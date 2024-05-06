@@ -1115,8 +1115,9 @@ mod_plugins_server <- function(id, r, d, m, language, i18n, debug){
         mapped_to_concept_id = integer(), merge_mapped_concepts = logical())
 
       # Get ui & server code
-      ui_code <- input[[paste0("edit_code_editor_", r$edit_plugin_code_files_list %>% dplyr::filter(plugin_id == r$selected_plugin, filename == "ui.R") %>% dplyr::pull(id))]]
-      server_code <- input[[paste0("edit_code_editor_", r$edit_plugin_code_files_list %>% dplyr::filter(plugin_id == r$selected_plugin, filename == "server.R") %>% dplyr::pull(id))]]
+      code <- list()
+      code$ui <- input[[paste0("edit_code_editor_", r$edit_plugin_code_files_list %>% dplyr::filter(plugin_id == r$selected_plugin, filename == "ui.R") %>% dplyr::pull(id))]]
+      code$server <- input[[paste0("edit_code_editor_", r$edit_plugin_code_files_list %>% dplyr::filter(plugin_id == r$selected_plugin, filename == "server.R") %>% dplyr::pull(id))]]
       
       previous_widget_id <- r$run_plugin_last_widget_id
       widget_id <- r$run_plugin_last_widget_id + 1
@@ -1137,35 +1138,16 @@ mod_plugins_server <- function(id, r, d, m, language, i18n, debug){
       if (length(m$selected_study) > 0) study_id <- m$selected_study
       if (length(m$selected_person) > 0) patient_id <- m$selected_person
       
-      # Replace %import_script% tags
-      import_scripts <- regmatches(ui_code, gregexpr("%import_script\\(['\"](.*?)['\"]\\)%", ui_code, perl = TRUE))[[1]]
+      code$ui <- process_widget_code(code$ui, 1, widget_id, study_id, patient_id, r$selected_plugin_folder)
+      code$server <- process_widget_code(code$server, 1, widget_id, study_id, patient_id, r$selected_plugin_folder)
       
-      for (i in seq_along(import_scripts)){
-        tag <- import_scripts[i]
-        file_name <- gsub("%import_script\\(['\"](.*?)['\"]\\)%", "\\1", tag)
-        file_path <- paste0(r$selected_plugin_folder, "/", file_name)
-        
-        if (file.exists(file_path)){
-          file_code <- readLines(file_path, warn = FALSE) %>% paste(collapse = "\n")
-          file_name <- file_name %>% gsub("\\.", "\\\\.", ., fixed = FALSE)
-          r$file_path <- file_path
-          ui_code <-
-            ui_code %>%
-            gsub(paste0("%import_script\\('", file_name, "'\\)%"), file_code, ., fixed = FALSE) %>%
-            gsub(paste0('%import_script\\("', file_name, '"\\)%'), file_code, ., fixed = FALSE)
-        }
-      }
-      
-      ui_code <- process_widget_code(ui_code, 1, widget_id, study_id, patient_id)
-      server_code <- process_widget_code(server_code, 1, widget_id, study_id, patient_id)
-      
-      ui_code <- tryCatch(
-        eval(parse(text = ui_code)),
+      code$ui <- tryCatch(
+        eval(parse(text = code$ui)),
         error = function(e) cat(paste0("\n", now(), " - mod_plugins - error loading UI code - widget_id = ", widget_id, " - ", toString(e))),
         warning = function(w) cat(paste0("\n", now(), " - mod_plugins - error loading UI code - widget_id = ", widget_id, " - ", toString(w)))
       )
       
-      ui_output <- create_widget(id, widget_id, ui_code)
+      ui_output <- create_widget(id, widget_id, code$ui)
       add_widget_to_gridstack(id, "plugin_run_code", ui_output, previous_widget_id)
 
       # New environment, to authorize access to selected variables from shinyAce editor
@@ -1185,7 +1167,7 @@ mod_plugins_server <- function(id, r, d, m, language, i18n, debug){
 
       # Capture console output of our code
       captured_output <- capture.output(
-        tryCatch(eval(parse(text = server_code), envir = new_env), error = function(e) print(e), warning = function(w) print(w)))
+        tryCatch(eval(parse(text = code$server), envir = new_env), error = function(e) print(e), warning = function(w) print(w)))
 
       # Restore normal value
       options('cli.num_colors' = NULL)

@@ -272,6 +272,27 @@ body, html {
 
 .edit_tab_button {
   width: 20px;
+  margin: auto;
+}
+
+.edit_tab_button .ms-Button-icon {
+  font-size: 12px;
+  color: black;;
+}
+
+.edit_tab_button .ms-Button-icon:hover {
+  color: #61AEF9;
+}
+
+.edit_tab_button .ms-Icon {
+  font-size: 12px;
+  color: black;;
+}
+
+.edit_tab_button .ms-Button {
+  margin: 0 0 0 2px;
+  width: 24px;
+  height: 20px;
 }
 
 /* ---------------- */
@@ -301,6 +322,30 @@ body, html {
 .delete_button .ms-Button {
   background-color: #f44336;
   border: #f44336;
+}
+
+.pivot {
+  display: flex;
+}
+
+.pivot_item {
+  font-size: 12px;
+  height: 30px;
+  padding: 10px;
+  background-color: white;
+  border: none;
+  display: flex;
+  align-items: center;
+}
+
+.pivot_item:hover {
+  background-color: #F3F2F1;
+  cursor: pointer;
+}
+
+.selected_pivot_item {
+  font-weight: 600;
+  box-shadow: 0 2px 0 0 rgb(0, 120, 212);
 }
 
 /* --------------------- */

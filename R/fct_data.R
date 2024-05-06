@@ -67,42 +67,91 @@ add_widget_to_gridstack <- function(id, tab_id, ui_output, previous_widget_id = 
   )
   else delete_previous_widget <- ""
   
-  shinyjs::delay(500, shinyjs::runjs(paste0("
-    var grid = window.gridStackInstances['", tab_id, "'];
-    
-    if (grid) {
-      // Remove previous widget
-      ", delete_previous_widget, "
+  shinyjs::runjs(paste0("
+    function addWidget(tab_id) {
       
-      // Add new widget
-      grid.addWidget(`", ui_output, "`, {w: 6, h: 4});
+      var grid = window.gridStackInstances[tab_id];
       
-      // Load react components
-      $(document).on('shiny:idle', function(event) {
-        document.querySelectorAll('.react-container').forEach(container => {
-          const reactDataScript = container.querySelector('.react-data');
-          if (reactDataScript) {
-            jsmodule['@/shiny.react'].findAndRenderReactData();
-          }
+      if (grid) {
+        // Remove previous widget
+        ", delete_previous_widget, "
+        
+        // Add new widget
+        grid.addWidget(`", ui_output, "`, {w: 6, h: 4});
+        
+        // Load react components
+        $(document).on('shiny:idle', function(event) {
+          document.querySelectorAll('.react-container').forEach(container => {
+            const reactDataScript = container.querySelector('.react-data');
+            if (reactDataScript) {
+              jsmodule['@/shiny.react'].findAndRenderReactData();
+            }
+          });
         });
-      });
-      
-      // Rebind Shiny components
-      setTimeout(function() {
-        Shiny.unbindAll();
-        Shiny.bindAll();
-      }, 100);
+        
+        // Rebind Shiny components
+        setTimeout(function() {
+          Shiny.unbindAll();
+          Shiny.bindAll();
+        }, 100);
+      } else {
+        // Retry after 500 ms
+        setTimeout(function() {
+          addWidget(tab_id);
+        }, 500);
+      }
     }
-  ")))
+    
+    addWidget('", tab_id, "');
+  "))
 }
 
 #' @noRd
-process_widget_code <- function(code, tab_id, widget_id, study_id, patient_id) {
+process_widget_code <- function(code, tab_id, widget_id, study_id, patient_id, plugin_folder) {
+  
+  # Replace %import_script% tags
+  import_scripts <- regmatches(code, gregexpr("%import_script\\(['\"](.*?)['\"]\\)%", code, perl = TRUE))[[1]]
+  
+  for (i in seq_along(import_scripts)){
+    tag <- import_scripts[i]
+    file_name <- gsub("%import_script\\(['\"](.*?)['\"]\\)%", "\\1", tag)
+    file_path <- paste0(plugin_folder, "/", file_name)
+    file_ext <- sub(".*\\.", "", tolower(file_name))
+    
+    if (file.exists(file_path)){
+      file_name <- file_name %>% gsub("\\.", "\\\\.", ., fixed = FALSE)
+      
+      if (file_ext == "r"){
+        file_code <- readLines(file_path, warn = FALSE) %>% paste(collapse = "\n")
+        
+        code <-
+          code %>%
+          gsub(paste0("%import_script\\('", file_name, "'\\)%"), file_code, ., fixed = FALSE) %>%
+          gsub(paste0('%import_script\\("', file_name, '"\\)%'), file_code, ., fixed = FALSE)
+      }
+      else if (file_ext == "py"){
+        file_code <- paste0("reticulate::source_python('", file_path, "')")
+        
+        code <-
+          code %>%
+          gsub(paste0("%import_script\\('", file_name, "'\\)%"), file_code, ., fixed = FALSE) %>%
+          gsub(paste0('%import_script\\("', file_name, '"\\)%'), file_code, ., fixed = FALSE)
+      }
+    }
+  }
+  
+  # Replace tab & widget IDs
   code <- gsub("%tab_id%", as.character(tab_id), code, fixed = TRUE)
   code <- gsub("%widget_id%", as.character(widget_id), code, fixed = TRUE)
+  
+  # Replace req (so that an observer in inactivated when server code is launched more than one time)
   code <- gsub("%req%", "req(m[[session_code]] == session_num)\nreq(m$selected_study == %study_id%)", code, fixed = TRUE)
+  
+  # Replace study and patients IDS
   code <- gsub("%study_id%", as.character(study_id), code, fixed = TRUE)
   code <- gsub("%patient_id%", as.character(patient_id), code, fixed = TRUE)
+  
   gsub("\r", "\n", code, fixed = TRUE)
+  
   code
 }

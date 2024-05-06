@@ -39,17 +39,14 @@ app_ui <- function(pages, language, languages, i18n, users_accesses_toggles_opti
 #' @noRd
 golem_add_external_resources <- function(){
   
-  golem::add_resource_path('www', app_sys('app/www'))
+  golem::add_resource_path("www", app_sys("app/www"))
   
   # Marker is used to highlight some text
   # if (require("marker")) marker_div <- marker::useMarker() else marker_div <- ""
  
   tags$head(
     golem::favicon(ext = "png"),
-    golem::bundle_resources(
-      path = app_sys('app/www'),
-      app_title = 'LinkR'
-    ),
+    golem::bundle_resources(path = app_sys("app/www"), app_title = "LinkR"),
     tags$link(href = "style.css", rel = "stylesheet", type = "text/css"),
     tags$link(href = "fluent_style.css", rel = "stylesheet", type = "text/css"),
     
@@ -59,6 +56,7 @@ golem_add_external_resources <- function(){
     
     # Add gridstacks.js
     tags$link(rel = "stylesheet", href = "https://cdnjs.cloudflare.com/ajax/libs/gridstack.js/10.1.0/gridstack.min.css"),
+      
     tags$script(HTML("
       document.addEventListener('DOMContentLoaded', function() {
         window.gridStackInstances = {};
@@ -66,25 +64,25 @@ golem_add_external_resources <- function(){
     ")),
     
     # Add highlight.js
-    tags$link(rel = "stylesheet", href = "https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.3.1/styles/tomorrow-night-blue.min.css"),
-    tags$script(src = "https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.3.1/highlight.min.js"),
-    tags$script(HTML("
-      document.addEventListener('DOMContentLoaded', function() {
-        var observer = new MutationObserver(function(mutations) {
-          mutations.forEach(function(mutation) {
-            if (mutation.addedNodes.length > 0) {
-              document.querySelectorAll('.code_highlight:not(.hljs)').forEach((block) => {
-                hljs.highlightElement(block);
-                block.classList.add('hljs'); // Ajoute une classe pour marquer que le highlight a été appliqué
-              });
-            }
-          });
-        });
-
-        var target = document.querySelector('body'); // Observez tout le body pour les changements
-        observer.observe(target, { childList: true, subtree: true });
-      });
-    ")),
+    # tags$link(rel = "stylesheet", href = "https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.3.1/styles/tomorrow-night-blue.min.css"),
+    # tags$script(src = "https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.3.1/highlight.min.js"),
+    # tags$script(HTML("
+    #   document.addEventListener('DOMContentLoaded', function() {
+    #     var observer = new MutationObserver(function(mutations) {
+    #       mutations.forEach(function(mutation) {
+    #         if (mutation.addedNodes.length > 0) {
+    #           document.querySelectorAll('.code_highlight:not(.hljs)').forEach((block) => {
+    #             hljs.highlightElement(block);
+    #             block.classList.add('hljs'); // Ajoute une classe pour marquer que le highlight a été appliqué
+    #           });
+    #         }
+    #       });
+    #     });
+    # 
+    #     var target = document.querySelector('body'); // Observez tout le body pour les changements
+    #     observer.observe(target, { childList: true, subtree: true });
+    #   });
+    # ")),
     
     # Script to make an input when a text is entered in the person ComboBox.shinyInput
     tags$script("
@@ -94,11 +92,7 @@ golem_add_external_resources <- function(){
     "),
     
     # Add fontawesome icons
-    tags$link(
-      rel = "stylesheet",
-      href = "https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css",
-      integrity = "sha384-cmES2APjF1Ar8dUWeaROssI2FTx2MFqjMq9u2p89A/QD5/dZqk3bxDi1y5w2AWiS",
-      crossorigin = "anonymous"),
+    tags$link(rel = "stylesheet", href = "https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css"),
     
     # Shinyjs is used to show and hide message bars
     shinyjs::useShinyjs(),
