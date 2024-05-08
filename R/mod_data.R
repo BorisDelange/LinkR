@@ -1652,7 +1652,7 @@ mod_data_server <- function(id = character(), r = shiny::reactiveValues(), d = s
       widget_id <- get_last_row(r$db, "widgets") + 1
       
       new_data <- tibble::tibble(
-        id = widget_id, name = widget_name, category = category, tab_id = tab_id, plugin_id = plugin_id, display_order = NA_integer_,
+        id = widget_id, name = widget_name, category = category, tab_id = as.integer(tab_id), plugin_id = plugin_id, display_order = NA_integer_,
         creator_id = r$user_id, datetime = now(), deleted = FALSE)
         
       DBI::dbAppendTable(r$db, "widgets", new_data)
@@ -1950,7 +1950,7 @@ mod_data_server <- function(id = character(), r = shiny::reactiveValues(), d = s
           
           ui_output <- create_widget(id, widget_id, ui_code)
           
-          add_widget_to_gridstack(id, tab_id, ui_output)
+          add_widget_to_gridstack(id, tab_id, ui_output, widget_id)
         })
       }
       

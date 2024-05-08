@@ -1049,3 +1049,4 @@ delete_widget,Supprimer le widget
 choose_a_plugin,Choisir un plugin
 data_type,Type de données
 informations,Informations
+plugin_no_selected_study,Chargez une étude afin que le code du plugin fonctionne

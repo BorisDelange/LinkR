@@ -2,6 +2,11 @@
 mod_plugins_ui <- function(id, language, languages, i18n){
   ns <- NS(id)
   
+  pivot_item_js <- paste0("
+    Shiny.setInputValue('", id, "-current_tab', this.id);
+    Shiny.setInputValue('", id, "-current_tab_trigger', Math.random());"
+  )
+  
   div(
     class = "main",
     
@@ -53,7 +58,13 @@ mod_plugins_ui <- function(id, language, languages, i18n){
         id = ns("one_plugin"),
         div(
           uiOutput(ns("plugin_breadcrumb")),
-          uiOutput(ns("plugin_pivot")),
+          div(
+            id = ns("plugin_pivot"),
+            tags$button(id = ns("summary"), i18n$t("summary"), class = "pivot_item selected_pivot_item", onclick = pivot_item_js),
+            tags$button(id = ns("edit_code"), i18n$t("code"), class = "pivot_item", onclick = pivot_item_js),
+            tags$button(id = ns("run_code"), i18n$t("test_code"), class = "pivot_item", onclick = pivot_item_js),
+            class = "pivot"
+          ),
           style = "display:flex; justify-content:space-between;"
         ),
         div(
@@ -83,16 +94,6 @@ mod_plugins_ui <- function(id, language, languages, i18n){
           ),
           class = "plugins_summary_container"
         ),
-        # shinyjs::hidden(
-        #   div(
-        #     id = ns("edit_options_div")
-        #   )
-        # ),
-        # shinyjs::hidden(
-        #   div(
-        #     id = ns("edit_description_div")
-        #   )
-        # ),
         shinyjs::hidden(
           div(
             id = ns("edit_code_div"),
@@ -161,6 +162,10 @@ mod_plugins_server <- function(id, r, d, m, language, i18n, debug){
     
     if (debug) cat(paste0("\n", now(), " - mod_plugins - start"))
     
+    # Selected plugin divs
+    all_divs <- c("summary", "edit_code", "run_code")
+    
+    # Hotkeys for ace editor
     code_hotkeys <- list(
       run_selection = list(win = "CTRL-ENTER", mac = "CTRL-ENTER|CMD-ENTER"),
       run_all = list(win = "CTRL-SHIFT-ENTER", mac = "CTRL-SHIFT-ENTER|CMD-SHIFT-ENTER"),
@@ -168,9 +173,7 @@ mod_plugins_server <- function(id, r, d, m, language, i18n, debug){
       comment = list(win = "CTRL-SHIFT-C", mac = "CTRL-SHIFT-C|CMD-SHIFT-C")
     )
     
-    # --- --- --- --- --
-    # Plugins cards ----
-    # --- --- --- --- --
+    # Reload plugins widgets ----
     
     r$reload_plugins <- now()
       
@@ -287,26 +290,27 @@ mod_plugins_server <- function(id, r, d, m, language, i18n, debug){
       shinyjs::show("plugins")
     })
     
-    # --- --- --- --- --- ---
-    # Show or hide cards ----
-    # --- --- --- --- --- ---
+    # Plugin current tab ----
     
     observeEvent(input$current_tab_trigger, {
       if (debug) cat(paste0("\n", now(), " - mod_plugins - observer input$current_tab_trigger"))
       
-      r$plugin_current_tab <- input$current_tab
+      r$plugin_current_tab <- gsub(paste0(id, "-"), "", input$current_tab, fixed = FALSE)
     })
     
     observeEvent(r$plugin_current_tab, {
       if (debug) cat(paste0("\n", now(), " - mod_plugins - observer r$plugin_current_tab"))
       
-      # divs <- c("summary", "edit_options", "edit_code", "edit_description", "run_code")
-      divs <- c("summary", "edit_code", "run_code")
-      divs <- setdiff(divs, r$plugin_current_tab)
+      # Show or hide pages depending on selected tab
+      divs <- setdiff(all_divs, r$plugin_current_tab)
       divs <- c(paste0(divs, "_reduced_sidenav"), paste0(divs, "_large_sidenav"), paste0(divs, "_div"))
       
       sapply(c(divs), shinyjs::hide)
       sapply(c(paste0(r$plugin_current_tab, "_div"), paste0(r$plugin_current_tab, "_reduced_sidenav"), paste0(r$plugin_current_tab, "_large_sidenav")), shinyjs::show)
+      
+      # Change selected tab
+      sapply(all_divs, function(button_id) shinyjs::removeClass(class = "selected_pivot_item", selector = paste0("#", id, "-", button_id)))
+      shinyjs::addClass(class = "selected_pivot_item", selector = paste0("#", id, "-", r$plugin_current_tab))
       
       if (r$plugin_current_tab == "edit_code"){
         r$plugins_show_hide_sidenav <- "show"
@@ -318,10 +322,14 @@ mod_plugins_server <- function(id, r, d, m, language, i18n, debug){
       else r$plugins_show_hide_sidenav <- "hide"
     })
     
+    # Return to plugins home page ----
+    
     observeEvent(input$show_plugins_home, {
       if (debug) cat(paste0("\n", now(), " - mod_plugins - observer input$show_plugins_home"))
       
-      sapply(c("one_plugin", "edit_code_large_sidenav"), shinyjs::hide)
+      divs <- c(paste0(all_divs, "_reduced_sidenav"), paste0(all_divs, "_large_sidenav"))
+      
+      sapply(c("one_plugin", divs), shinyjs::hide)
       sapply(c("all_plugins", "all_plugins_reduced_sidenav"), shinyjs::show)
       r$plugins_show_hide_sidenav <- "hide"
       
@@ -369,7 +377,7 @@ mod_plugins_server <- function(id, r, d, m, language, i18n, debug){
         )
       )
       
-      r$reload_plugin_pivot <- now()
+      # r$reload_plugin_pivot <- now()
       r$plugin_current_tab <- "summary"
       
       # Hide all editors
@@ -377,28 +385,10 @@ mod_plugins_server <- function(id, r, d, m, language, i18n, debug){
       
       # Load plugin code files
       r$reload_plugin_code_files <- now()
-    })
-    
-    ## Reload plugin pivot ----
-    
-    observeEvent(r$reload_plugin_pivot, {
-      if (debug) cat(paste0("\n", now(), " - mod_plugins - observer r$reload_plugin_pivot"))
       
-      output$plugin_pivot <- renderUI(
-        shiny.fluent::Pivot(
-          id = ns("plugin_pivot"),
-          onLinkClick = htmlwidgets::JS(paste0(
-            "item => {",
-            "Shiny.setInputValue('", id, "-current_tab', item.props.id);",
-            "Shiny.setInputValue('", id, "-current_tab_trigger', Math.random());",
-            "}")),
-          shiny.fluent::PivotItem(id = "summary", itemKey = "summary", headerText = i18n$t("summary")),
-          # shiny.fluent::PivotItem(id = "edit_options", itemKey = "edit_options", headerText = i18n$t("options")),
-          # shiny.fluent::PivotItem(id = "edit_description", itemKey = "edit_description", headerText = i18n$t("description")),
-          shiny.fluent::PivotItem(id = "edit_code", itemKey = "edit_code", headerText = i18n$t("code")),
-          shiny.fluent::PivotItem(id = "run_code", itemKey = "run_code", headerText = i18n$t("test_code"))
-        )
-      )
+      # Change selected tab
+      sapply(c("edit_code", "run_code"), function(button_id) shinyjs::removeClass(class = "selected_pivot_item", selector = paste0("#", id, "-", button_id)))
+      shinyjs::addClass(class = "selected_pivot_item", selector = paste0("#", id, "-summary"))
     })
     
     # |-------------------------------- -----
@@ -704,7 +694,7 @@ mod_plugins_server <- function(id, r, d, m, language, i18n, debug){
       ))
     })
     
-    ## Reload tabs ----
+    ## Reload edit code tabs ----
     
     observeEvent(r$edit_plugin_code_reload_files_tab, {
       if (debug) cat(paste0("\n", now(), " - mod_plugins - observer r$edit_plugin_code_reload_files_tab"))
@@ -1061,18 +1051,20 @@ mod_plugins_server <- function(id, r, d, m, language, i18n, debug){
     r$run_plugin_last_widget_id <- get_last_row(r$db, "widgets") + 10^6 %>% as.integer()
     r$run_plugin_tab_id <- get_last_row(r$db, "tabs") + 10^6 %>% as.integer()
     
-    # Initiate gridstack var
-    r$initiate_plugin_gridstack <- FALSE
+    # Initiate gridstack instance
+    create_gridstack_instance(id, "plugin_run_code")
     
     observeEvent(r$run_plugin_code, {
       if (debug) cat(paste0("\n", now(), " - mod_plugins - observer r$run_plugin_code"))
 
       # Switch to 'Test' tab
-      shinyjs::runjs(glue::glue("$('#{id}-plugin_pivot button[name=\"{i18n$t('test_code')}\"]').click();"))
+      r$plugin_current_tab <- "run_code"
       
-      # Initiate gridstack if not already initiated
-      if (!r$initiate_plugin_gridstack) create_gridstack_instance(id, "plugin_run_code")
-      
+      # Notify user that if there's not a study loaded, server code might not work
+      no_study_loaded <- TRUE
+      if (length(m$selected_study) > 0) if (!is.na(m$selected_study)) no_study_loaded <- FALSE
+      if (no_study_loaded) show_message_bar(output, "plugin_no_selected_study", "warning", i18n = i18n, ns = ns)
+
       # Create translations file
 
         tryCatch({
@@ -1082,7 +1074,7 @@ mod_plugins_server <- function(id, r, d, m, language, i18n, debug){
 
           # Get translations file
           translations <- readLines(paste0(r$selected_plugin_folder, "/translations.csv"), warn = FALSE)
-          
+
           # Create a csv with all languages
           data <- read.csv(text = translations, header = TRUE, stringsAsFactors = FALSE)
 
@@ -1102,7 +1094,7 @@ mod_plugins_server <- function(id, r, d, m, language, i18n, debug){
           i18np$set_translation_language(language)},
           error = function(e) report_bug(r = r, output = output, error_message = "error_creating_new_translator",
             error_name = paste0(id, " - create i18np translator"), category = "Error", error_report = toString(e), i18n = i18n, ns = ns))
-      
+
       # Get vocabulary concepts
 
       # if (length(r[[paste0(prefix, "_plugin_vocabulary_selected_concepts")]]) > 0) selected_concepts <- r[[paste0(prefix, "_plugin_vocabulary_selected_concepts")]]
@@ -1118,7 +1110,7 @@ mod_plugins_server <- function(id, r, d, m, language, i18n, debug){
       code <- list()
       code$ui <- input[[paste0("edit_code_editor_", r$edit_plugin_code_files_list %>% dplyr::filter(plugin_id == r$selected_plugin, filename == "ui.R") %>% dplyr::pull(id))]]
       code$server <- input[[paste0("edit_code_editor_", r$edit_plugin_code_files_list %>% dplyr::filter(plugin_id == r$selected_plugin, filename == "server.R") %>% dplyr::pull(id))]]
-      
+
       previous_widget_id <- r$run_plugin_last_widget_id
       widget_id <- r$run_plugin_last_widget_id + 1
       r$run_plugin_last_widget_id <- widget_id
@@ -1137,18 +1129,18 @@ mod_plugins_server <- function(id, r, d, m, language, i18n, debug){
       patient_id <- NA_integer_
       if (length(m$selected_study) > 0) study_id <- m$selected_study
       if (length(m$selected_person) > 0) patient_id <- m$selected_person
-      
+
       code$ui <- process_widget_code(code$ui, 1, widget_id, study_id, patient_id, r$selected_plugin_folder)
       code$server <- process_widget_code(code$server, 1, widget_id, study_id, patient_id, r$selected_plugin_folder)
-      
+
       code$ui <- tryCatch(
         eval(parse(text = code$ui)),
         error = function(e) cat(paste0("\n", now(), " - mod_plugins - error loading UI code - widget_id = ", widget_id, " - ", toString(e))),
         warning = function(w) cat(paste0("\n", now(), " - mod_plugins - error loading UI code - widget_id = ", widget_id, " - ", toString(w)))
       )
-      
+
       ui_output <- create_widget(id, widget_id, code$ui)
-      add_widget_to_gridstack(id, "plugin_run_code", ui_output, previous_widget_id)
+      add_widget_to_gridstack(id, "plugin_run_code", ui_output, widget_id, previous_widget_id)
 
       # New environment, to authorize access to selected variables from shinyAce editor
       # We choose which vars to keep access to

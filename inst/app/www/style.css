@@ -659,7 +659,7 @@ a.no-hover-effect:hover {
 }
 
 .close-tab {
-  padding-left: 10px;
+  margin-left: 10px;
 }
 
 .close-tab .ms-Icon {

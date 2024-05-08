@@ -58,7 +58,7 @@ create_widget <- function(id, widget_id, ui_code, show_edit_buttons = FALSE){
 }
 
 #' @noRd
-add_widget_to_gridstack <- function(id, tab_id, ui_output, previous_widget_id = NA_integer_){
+add_widget_to_gridstack <- function(id, tab_id, ui_output, widget_id, previous_widget_id = NA_integer_){
   ns <- NS(id)
   
   if (id == "plugins") delete_previous_widget <- paste0(
@@ -91,8 +91,10 @@ add_widget_to_gridstack <- function(id, tab_id, ui_output, previous_widget_id = 
         
         // Rebind Shiny components
         setTimeout(function() {
-          Shiny.unbindAll();
-          Shiny.bindAll();
+          $('#", id, "-", id, "_gridstack_item_", widget_id, " *').each(function() {
+            Shiny.unbindAll(this);
+            Shiny.bindAll(this);
+          });
         }, 100);
       } else {
         // Retry after 500 ms
