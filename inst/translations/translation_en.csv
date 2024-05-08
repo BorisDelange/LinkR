@@ -1041,6 +1041,7 @@ develop,Développer
 discover,Découvrir
 app_settings,Application settings
 catalog,Catalog
+explore,Explore
 explore_data,Explore data
 configure_project,Configure project
 tasks,Tasks
@@ -1057,3 +1058,8 @@ show_all_projects,Show all projects
 delete_project_title,Delete a project
 delete_project_text,Confirm deletion of this project?
 project_deleted,Project deleted
+share,Share
+project_console,Console
+delete_dataset_title,Delete a dataset
+delete_dataset_text,Confirm deletion of this dataset?
+dataset_deleted,Dataset deleted

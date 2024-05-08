@@ -12,7 +12,7 @@ mod_page_header_ui <- function(id = character(), i18n = character()){
   
   ns <- NS(id)
   
-  if (id %in% c("app_db", "home", "catalog", "console", "datasets", "data_cleaning", "git_repos", "log", "plugins", "projects", "users", "vocabularies")){
+  if (id %in% c("app_db", "home", "console", "datasets", "data_cleaning", "explore", "git_repos", "log", "plugins", "projects", "users", "vocabularies")){
     command_bar <- div(
       shiny.fluent::CommandBar(
         items = list(
@@ -35,7 +35,7 @@ mod_page_header_ui <- function(id = character(), i18n = character()){
             title = i18n$t("develop")
           ),
           # Discover
-          shiny.fluent::CommandBarItem("", "World", title = i18n$t("discover"), href = shiny.router::route_link("catalog"))
+          shiny.fluent::CommandBarItem("", "World", title = i18n$t("explore"), href = shiny.router::route_link("explore"))
         )
       ),
       id = ns("header_command_bar"),

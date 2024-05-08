@@ -122,8 +122,9 @@ app_server <- function(pages, language, languages, i18n, app_folder, debug, loca
       # Add default values in database, if it is empty
       insert_default_data(output = output, r = r, m = m, i18n = i18n, language = language, db_col_types = db_col_types, users_accesses_toggles_options = users_accesses_toggles_options)
       
-      # Load database
-      # load_database(r = r, m = m, i18n = i18n)
+      # Load datasets
+      sql <- glue::glue_sql("SELECT * FROM datasets", .con = r$db)
+      r$datasets <- DBI::dbGetQuery(r$db, sql)
       
       # Load plugins
       sql <- glue::glue_sql("SELECT * FROM plugins", .con = r$db)

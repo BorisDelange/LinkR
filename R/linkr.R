@@ -173,12 +173,12 @@ linkr <- function(
   pages <- c(
     "/",
     "app_db",
-    "catalog",
     "concepts",
     "console",
     "data",
     "datasets",
     "data_cleaning",
+    "explore",
     "git_repos",
     "log",
     "messages",

@@ -265,14 +265,14 @@ mod_app_db_server <- function(id, r, d, m, i18n, language, db_col_types, app_fol
   moduleServer(id, function(input, output, session){
     ns <- session$ns
     
-    # Unlock reactivity
-    
-    r$reload_app_db_page <- now()
-    
-    observeEvent(r$reload_app_db_page, {
-      if (debug) cat(paste0("\n", now(), " - mod_app_db - r$reload_app_db_page"))
-      shinyjs::show("main")
-    })
+    # # Unlock reactivity
+    # 
+    # r$reload_app_db_page <- now()
+    # 
+    # observeEvent(r$reload_app_db_page, {
+    #   if (debug) cat(paste0("\n", now(), " - mod_app_db - r$reload_app_db_page"))
+    #   shinyjs::show("main")
+    # })
     
     # --- --- --- --- --- ---
     # Show or hide cards ----

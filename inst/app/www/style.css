@@ -214,7 +214,7 @@ a.no-hover-effect:hover {
   z-index: 500;
 }
 
-.delete_modal_content, .create_tab_modal_content, .create_widget_modal_content, .load_status_modal_content, .create_plugin_modal_content, .create_project_modal_content {
+.delete_modal_content, .create_tab_modal_content, .create_widget_modal_content, .load_status_modal_content, .create_plugin_modal_content, .create_project_modal_content, .create_dataset_modal_content {
   background: #fff;
   padding: 5px 10px 10px 15px;
   position: relative;
@@ -273,6 +273,11 @@ a.no-hover-effect:hover {
 }
 
 .create_project_modal_content {
+  width: 400px;
+  padding-bottom: 30px;
+}
+
+.create_dataset_modal_content {
   width: 400px;
   padding-bottom: 30px;
 }
@@ -337,13 +342,13 @@ a.no-hover-effect:hover {
   padding: 0px 10px 5px 10px;
 }
 
-.project_widget h1, .plugin_widget h1 {
+.project_widget h1, .plugin_widget h1, .dataset_widget h1 {
   font-weight: bold;
   font-size: 14px;
   margin-bottom: 0px;
 }
 
-.project_widget, .plugin_widget {
+.project_widget, .plugin_widget, .dataset_widget {
   width: 300px;
   height: 150px;
   box-shadow: 0 2px 4px 0 rgba(0, 0, 0, 0.2), 0 3px 10px 0 rgba(0, 0, 0, 0.19);
@@ -534,6 +539,26 @@ a.no-hover-effect:hover {
   calc(100% - 16px)
 }
 
+/* ---------------------- */
+/* DATASETS PAGE          */
+/* ---------------------- */
+
+.datasets_summary_container {
+  display: flex;
+  justify-content: space-between;
+  height: calc(100% - 50px);
+}
+
+.datasets_summary_left {
+  display: flex;
+  flex-direction: column;
+  width: 50%;
+}
+
+.datasets_summary_right {
+  width: 50%;
+  calc(100% - 16px)
+}
 
 /* ------------------- */
 /* DATATABLES          */
@@ -757,7 +782,7 @@ td[data-type="factor"] input {
   line-height: 16px;
 }
 
-.projects_container, .plugins_container {
+.projects_container, .plugins_container, .datasets_container {
   display: flex;
   flex-wrap: wrap;
   justify-content: flex-start;

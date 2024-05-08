@@ -13,6 +13,7 @@ mod_projects_ui <- function(id, language, languages, i18n){
     
     div(
       id = ns("all_projects"),
+      shiny.fluent::Breadcrumb(items = list(list(key = "main", text = i18n$t("projects"))), maxDisplayedItems = 3),
       div(shiny.fluent::SearchBox.shinyInput(ns("search_project")), style = "width:320px; margin:10px 0 0 10px;"),
       uiOutput(ns("projects"))
     ),
@@ -53,10 +54,13 @@ mod_projects_ui <- function(id, language, languages, i18n){
             tags$button(id = ns("summary"), i18n$t("summary"), class = "pivot_item selected_pivot_item", onclick = pivot_item_js),
             tags$button(id = ns("datasets"), i18n$t("datasets"), class = "pivot_item", onclick = pivot_item_js),
             tags$button(id = ns("data_cleaning_scripts"), i18n$t("data_cleaning"), class = "pivot_item", onclick = pivot_item_js),
+            tags$button(id = ns("share"), i18n$t("share"), class = "pivot_item", onclick = pivot_item_js),
             class = "pivot"
           ),
           style = "display:flex; justify-content:space-between;"
         ),
+        
+        ## Summary ----
         div(
           id = ns("summary_div"),
           div(
@@ -84,18 +88,39 @@ mod_projects_ui <- function(id, language, languages, i18n){
           ),
           class = "projects_summary_container"
         ),
+        
+        ## Datasets ----
         shinyjs::hidden(
           div(
             id = ns("datasets_div"),
-            style = "height: 100%;"
+            div(
+              make_dropdown(i18n, ns, id = "project_dataset", label = "dataset", width = "300px"),
+              div(
+                div(shiny.fluent::PrimaryButton.shinyInput(ns("save_datasets"), i18n$t("save"))),
+                class = "create_element_modal_buttons"
+              ),
+              class = "widget", style = "height: 50%; width: 50%; padding-top: 10px;"
+            ),
+            class = "projects_summary_container"
           )
         ),
+        
+        ## Data cleaning scripts ----
         shinyjs::hidden(
           div(
             id = ns("data_cleaning_scripts_div"),
             style = "height: 100%;"
           )
         ),
+        
+        ## Share ----
+        shinyjs::hidden(
+          div(
+            id = ns("share_div"),
+            style = "height: 100%;"
+          )
+        ),
+        
         style = "height: 100%; display: flex; flex-direction: column;"
       )
     ),
@@ -131,7 +156,7 @@ mod_projects_server <- function(id, r, d, m, language, i18n, debug){
     if (debug) cat(paste0("\n", now(), " - mod_projects - ", id, " - start"))
     
     # Pivot project divs
-    all_divs <- c("summary", "datasets", "data_cleaning_scripts")
+    all_divs <- c("summary", "datasets", "data_cleaning_scripts", "share")
     
     # Project current tab ----
     
@@ -174,7 +199,7 @@ mod_projects_server <- function(id, r, d, m, language, i18n, debug){
       r$reload_projects_list <- now()
     })
     
-    # Reload projects list -----
+    # Reload projects widgets -----
     
     observeEvent(r$reload_projects_list, {
       if (debug) cat(paste0("\n", now(), " - mod_projects - ", id, " - observer r$reload_projects_list"))
@@ -211,6 +236,49 @@ mod_projects_server <- function(id, r, d, m, language, i18n, debug){
       
       # shiny.router::change_page("patient_level_data")
       shinyjs::delay(500, m$selected_study <- input$selected_project)
+    })
+    
+    observeEvent(input$selected_project_settings_trigger, {
+      if (debug) cat(paste0("\n", now(), " - mod_projects - observer input$selected_project_settings_trigger"))
+      
+      r$selected_project_settings <- input$selected_project_settings
+      r$selected_project_settings_trigger <- now()
+    })
+    
+    observeEvent(r$selected_project_settings_trigger, {
+      if (debug) cat(paste0("\n", now(), " - mod_projects - observer r$selected_project_settings_trigger"))
+      
+      sapply(c("all_projects", "all_projects_reduced_sidenav"), shinyjs::hide)
+      shinyjs::show("one_project")
+      
+      project_wide <- r$projects_wide %>% dplyr::filter(id == r$selected_project_settings)
+      project_long <- r$projects_long %>% dplyr::filter(id == r$selected_project_settings)
+      
+      r$selected_project_name <- project_wide$name
+      r$selected_project_unique_id <- project_long %>% dplyr::filter(name == "unique_id") %>% dplyr::pull(value)
+      
+      output$project_breadcrumb <- renderUI(
+        shiny.fluent::Breadcrumb(items = list(
+          list(
+            key = "main", text = i18n$t("projects"), href = shiny.router::route_link("projects"), 
+            onClick = htmlwidgets::JS(paste0("item => { Shiny.setInputValue('", id, "-show_projects_home', Math.random()); }"))
+          ),
+          list(key = "main", text = r$selected_project_name))
+        )
+      )
+      
+      # Update datasets dropdown
+      shiny.fluent::updateDropdown.shinyInput(
+        session, "project_dataset",
+        options = convert_tibble_to_list(r$datasets, key_col = "id", text_col = "name"),
+        value = project_wide$dataset_id
+      )
+      
+      r$project_current_tab <- "summary"
+      
+      # Change selected tab
+      sapply(all_divs, function(button_id) shinyjs::removeClass(class = "selected_pivot_item", selector = paste0("#", id, "-", button_id)))
+      shinyjs::addClass(class = "selected_pivot_item", selector = paste0("#", id, "-summary"))
     })
     
     # Return to projects home page ----
@@ -323,44 +391,28 @@ mod_projects_server <- function(id, r, d, m, language, i18n, debug){
     
     # |-------------------------------- -----
     
-    # --- --- --- --- --- --- --
-    # A project is selected ----
-    # --- --- --- --- --- --- --
+    # --- --- --- --- --- -
+    # Project datasets ----
+    # --- --- --- --- --- -
     
-    observeEvent(input$selected_project_settings_trigger, {
-      if (debug) cat(paste0("\n", now(), " - mod_projects - observer input$selected_project_settings_trigger"))
-      
-      r$selected_project_settings <- input$selected_project_settings
-      r$selected_project_settings_trigger <- now()
-    })
+    ## Save updates ----
     
-    observeEvent(r$selected_project_settings_trigger, {
-      if (debug) cat(paste0("\n", now(), " - mod_projects - observer r$selected_project_settings_trigger"))
+    observeEvent(input$save_datasets, {
+      if (debug) cat(paste0("\n", now(), " - mod_projects - observer input$save_datasets"))
       
-      sapply(c("all_projects", "all_projects_reduced_sidenav"), shinyjs::hide)
-      shinyjs::show("one_project")
+      sql <- glue::glue_sql("UPDATE studies SET dataset_id = {input$project_dataset} WHERE id = {r$selected_project_settings}", .con = r$db)
+      query <- DBI::dbSendStatement(r$db, sql)
+      DBI::dbClearResult(query)
       
-      project_wide <- r$projects_wide %>% dplyr::filter(id == r$selected_project_settings)
-      project_long <- r$projects_long %>% dplyr::filter(id == r$selected_project_settings)
+      r$projects_wide <- 
+        r$projects_wide %>% 
+        dplyr::mutate(dataset_id = dplyr::case_when(
+          id == r$selected_project_settings ~ input$project_dataset,
+          TRUE ~ dataset_id
+        ))
       
-      r$selected_project_name <- project_wide$name
-      r$selected_project_unique_id <- project_long %>% dplyr::filter(name == "unique_id") %>% dplyr::pull(value)
-      
-      output$project_breadcrumb <- renderUI(
-        shiny.fluent::Breadcrumb(items = list(
-          list(
-            key = "main", text = i18n$t("projects"), href = shiny.router::route_link("projects"), 
-            onClick = htmlwidgets::JS(paste0("item => { Shiny.setInputValue('", id, "-show_projects_home', Math.random()); }"))
-          ),
-          list(key = "main", text = r$selected_project_name))
-        )
-      )
-      
-      r$project_current_tab <- "summary"
-      
-      # Change selected tab
-      # sapply(c("edit_code", "run_code"), function(button_id) shinyjs::removeClass(class = "selected_pivot_item", selector = paste0("#", id, "-", button_id)))
-      shinyjs::addClass(class = "selected_pivot_item", selector = paste0("#", id, "-summary"))
+      # Notify user
+      show_message_bar(output,  "modif_saved", "success", i18n = i18n, ns = ns)
     })
     
     # |-------------------------------- -----

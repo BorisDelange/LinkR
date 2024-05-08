@@ -63,10 +63,13 @@ mod_plugins_ui <- function(id, language, languages, i18n){
             tags$button(id = ns("summary"), i18n$t("summary"), class = "pivot_item selected_pivot_item", onclick = pivot_item_js),
             tags$button(id = ns("edit_code"), i18n$t("code"), class = "pivot_item", onclick = pivot_item_js),
             tags$button(id = ns("run_code"), i18n$t("test_code"), class = "pivot_item", onclick = pivot_item_js),
+            tags$button(id = ns("share"), i18n$t("share"), class = "pivot_item", onclick = pivot_item_js),
             class = "pivot"
           ),
           style = "display:flex; justify-content:space-between;"
         ),
+        
+        ## Summary ----
         div(
           id = ns("summary_div"),
           div(
@@ -94,6 +97,8 @@ mod_plugins_ui <- function(id, language, languages, i18n){
           ),
           class = "plugins_summary_container"
         ),
+        
+        ## Edit code ----
         shinyjs::hidden(
           div(
             id = ns("edit_code_div"),
@@ -102,6 +107,8 @@ mod_plugins_ui <- function(id, language, languages, i18n){
             style = "height: 100%;"
           )
         ),
+        
+        ## Test code ----
         shinyjs::hidden(
           div(
             id = ns("run_code_div"),
@@ -110,6 +117,17 @@ mod_plugins_ui <- function(id, language, languages, i18n){
             div(verbatimTextOutput(ns("run_code_result_server")), style = "font-size:12px; margin-left:8px; padding-top:10px;")
           )
         ),
+        
+        ## TShare ----
+        shinyjs::hidden(
+          div(
+            id = ns("share_div"),
+            div(
+              
+            )
+          )
+        ),
+        
         style = "height: 100%; display: flex; flex-direction: column;"
       )
     ),
@@ -163,7 +181,7 @@ mod_plugins_server <- function(id, r, d, m, language, i18n, debug){
     if (debug) cat(paste0("\n", now(), " - mod_plugins - start"))
     
     # Pivot plugin divs
-    all_divs <- c("summary", "edit_code", "run_code")
+    all_divs <- c("summary", "edit_code", "run_code", "share")
     
     # Hotkeys for ace editor
     code_hotkeys <- list(
@@ -173,10 +191,24 @@ mod_plugins_server <- function(id, r, d, m, language, i18n, debug){
       comment = list(win = "CTRL-SHIFT-C", mac = "CTRL-SHIFT-C|CMD-SHIFT-C")
     )
     
+    # Search a plugin ----
+    
+    observeEvent(input$search_plugin, {
+      if (debug) cat(paste0("\n", now(), " - mod_plugins - observer input$search_plugin"))
+      
+      if (input$search_plugin == "") r$filtered_plugins_long <- r$plugins_long
+      else {
+        filtered_ids <- r$plugins_long %>% dplyr::filter(name == paste0("name_", language) & grepl(tolower(input$search_plugin), tolower(value)))
+        r$filtered_plugins_long <- r$plugins_long %>% dplyr::filter(id %in% filtered_ids)
+      }
+      
+      r$reload_plugins_list <- now()
+    })
+    
     # Reload plugins widgets ----
     
     r$reload_plugins <- now()
-      
+    
     observeEvent(r$reload_plugins, {
       if (debug) cat(paste0("\n", now(), " - mod_plugins - observer r$reload_plugins"))
 
@@ -200,18 +232,6 @@ mod_plugins_server <- function(id, r, d, m, language, i18n, debug){
       
       sql <- glue::glue_sql("SELECT * FROM plugins WHERE id IN ({unique(r$plugins_long$id)*})", .con = r$db)
       r$plugins_wide <- DBI::dbGetQuery(r$db, sql)
-      
-      r$reload_plugins_list <- now()
-    })
-    
-    observeEvent(input$search_plugin, {
-      if (debug) cat(paste0("\n", now(), " - mod_plugins - observer input$search_plugin"))
-      
-      if (input$search_plugin == "") r$filtered_plugins_long <- r$plugins_long
-      else {
-        filtered_ids <- r$plugins_long %>% dplyr::filter(name == paste0("name_", language) & grepl(tolower(input$search_plugin), tolower(value)))
-        r$filtered_plugins_long <- r$plugins_long %>% dplyr::filter(id %in% filtered_ids)
-      }
       
       r$reload_plugins_list <- now()
     })
@@ -359,7 +379,7 @@ mod_plugins_server <- function(id, r, d, m, language, i18n, debug){
       shinyjs::hide("create_plugin_modal")
     })
     
-    # Add a tab
+    # Add a plugin
     observeEvent(input$add_plugin, {
       
       if (debug) cat(paste0("\n", now(), " - mod_data - observer input$add_plugin"))
@@ -499,7 +519,7 @@ mod_plugins_server <- function(id, r, d, m, language, i18n, debug){
       r$reload_plugin_code_files <- now()
       
       # Change selected tab
-      sapply(c("edit_code", "run_code"), function(button_id) shinyjs::removeClass(class = "selected_pivot_item", selector = paste0("#", id, "-", button_id)))
+      sapply(all_divs, function(button_id) shinyjs::removeClass(class = "selected_pivot_item", selector = paste0("#", id, "-", button_id)))
       shinyjs::addClass(class = "selected_pivot_item", selector = paste0("#", id, "-summary"))
     })
     

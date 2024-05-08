@@ -53,7 +53,7 @@ mod_home_server <- function(id, r, d, m, language, i18n, debug){
       r$reload_projects_list <- now()
     })
 
-    ## Reload projects list -----
+    ## Reload projects widgets -----
     observeEvent(r$reload_projects_list, {
       if (debug) cat(paste0("\n", now(), " - mod_home - ", id, " - observer r$reload_projects_list"))
       
