@@ -2,260 +2,262 @@
 mod_app_db_ui <- function(id = character(), language = "en", languages = tibble::tibble(), i18n = character()){
   ns <- NS(id)
   
-  cards <- c("db_connection_infos_card", "db_datatable_card", "db_request_card", "db_save_card", "db_restore_card")
+  # cards <- c("db_connection_infos_card", "db_datatable_card", "db_request_card", "db_save_card", "db_restore_card")
+  # 
+  # forbidden_cards <- tagList()
+  # sapply(cards, function(card){
+  #   forbidden_cards <<- tagList(forbidden_cards, forbidden_card(ns = ns, name = card, i18n = i18n))
+  # })
+  # 
+  # main_db_values <- c("users", "users_accesses", "users_statuses", "data_sources", "datasets", "studies", "plugins", "scripts",
+  #   "tabs_groups", "tabs", "widgets", "code", "options", "messages", "conversations", "user_deleted_conversations", "inbox_messages", "git_repos")
+  # main_db_tables <- tibble::tibble(text = main_db_values) %>% convert_tibble_to_list(key_col = "text", text_col = "text")
+  # 
+  # public_db_values <- c("persons_options", "widgets_options", "subsets", "subset_persons", "concept", "concept_dataset",
+  #   "concept_user", "vocabulary", "domain", "concept_class", "concept_relationship", "concept_relationship_user", "concept_relationship_evals",
+  #   "relationship", "concept_synonym", "concept_ancestor", "drug_strength", "widgets_concepts")
+  # public_db_tables <- tibble::tibble(text = public_db_values) %>% convert_tibble_to_list(key_col = "text", text_col = "text")
+  # 
+  # div(
+  #   id = ns("main"), class = "main",
+  #   
+  #   # --- --- -- -- --
+  #   # Pivot items ----
+  #   # --- --- -- -- --
+  #   
+  #   div(
+  #     div(),
+  #     div(
+  #       shiny.fluent::Pivot(
+  #         onLinkClick = htmlwidgets::JS(paste0("item => Shiny.setInputValue('", id, "-current_tab', item.props.id)")),
+  #         shiny.fluent::PivotItem(id = "db_connection_infos_card", itemKey = "db_connection_infos_card", headerText = i18n$t("db_connection_infos_card")),
+  #         shiny.fluent::PivotItem(id = "db_datatable_card", itemKey = "db_datatable_card", headerText = i18n$t("db_datatable_card")),
+  #         shiny.fluent::PivotItem(id = "db_request_card", itemKey = "db_request_card", headerText = i18n$t("db_request_card")),
+  #         shiny.fluent::PivotItem(id = "db_save_restore_card", itemKey = "db_save_card", headerText = i18n$t("db_save_and_restore_card"))
+  #       )
+  #     ),
+  #     style = "display:flex; justify-content:space-between;"
+  #   ),
+  #   
+  #   forbidden_cards,
+  #   
+  #   # --- --- --- --- --- --- --- -
+  #   # DB connection infos card ----
+  #   # --- --- --- --- --- --- --- -
+  #   
+  #   shinyjs::hidden(
+  #     div(
+  #       id = ns("db_connection_infos_card"),
+  #       div(
+  #         div(
+  #           div(
+  #             shiny.fluent::ChoiceGroup.shinyInput(ns("connection_type"), options = list(
+  #                 list(key = "local", text = i18n$t("local_db_connection")),
+  #                 list(key = "remote", text = i18n$t("remote_db_connection"))
+  #               ), className = "inline_choicegroup")
+  #           ), br(),
+  #           div(
+  #             id = ns("connection_infos_div"),
+  #             make_dropdown(i18n = i18n, ns = ns, label = "sql_lib", options = list(
+  #                 list(key = "postgres", text = "PostgreSQL"),
+  #                 list(key = "sqlite", text = "SQLite")
+  #               ), value = "postgres", width = "200px"),
+  #             div(
+  #               make_textfield(i18n, ns, "host", width = "200px"),
+  #               make_textfield(i18n, ns, "port", width = "200px"),
+  #               make_textfield(i18n, ns, "user", width = "200px"),
+  #               make_textfield(i18n, ns, "password", type = "password", canRevealPassword = TRUE, width = "200px"),
+  #               style = "display: flex; gap: 10px;"
+  #             ),
+  #             div(
+  #               make_textfield(i18n, ns, "main_db_name", width = "200px"),
+  #               uiOutput(ns("main_db_connection_result")),
+  #               # shinyjs::hidden(
+  #               #   div(
+  #               #     id = ns("test_connection_main_db_success_div"),
+  #               #     shiny::textOutput(ns("test_connection_main_db_success")),
+  #               #     style = "margin-top:44px; font-weight:bold; color:#0078D4;"
+  #               #   )
+  #               # ),
+  #               # shinyjs::hidden(
+  #               #   div(
+  #               #     id = ns("test_connection_main_db_failure_div"),
+  #               #     shiny::textOutput(ns("test_connection_main_db_failure")), 
+  #               #     style = "margin-top:44px; padding-left:30px; margin-left:-30px; color:red;"
+  #               #   )
+  #               # ),
+  #               style = "display: flex; gap: 10px;"
+  #             ),
+  #             div(
+  #               make_textfield(i18n, ns, "public_db_name", width = "200px"),
+  #               uiOutput(ns("public_db_connection_result")),
+  #               # shinyjs::hidden(
+  #               # div(
+  #               #     id = ns("test_connection_public_db_success_div"),
+  #               #     shiny::textOutput(ns("test_connection_public_db_success")), 
+  #               #     style = "margin-top:44px; padding-left:30px; font-weight:bold; color:#0078D4;"
+  #               #   )
+  #               # ),
+  #               # shinyjs::hidden(
+  #               #   div(
+  #               #     id = ns("test_connection_public_db_failure_div"),
+  #               #     shiny::textOutput(ns("test_connection_public_db_failure")), 
+  #               #     style = "margin-top:44px; margin-left:-30px; color:red;"
+  #               #   )
+  #               # )
+  #               style = "display: flex; gap: 10px;"
+  #             )
+  #           ),
+  #           div(
+  #             shiny.fluent::PrimaryButton.shinyInput(ns("db_connection_save"), i18n$t("save")),
+  #             shiny.fluent::DefaultButton.shinyInput(ns("test_connection"), i18n$t("test_connection")),
+  #             style = "display: flex; gap: 10px;"
+  #           )
+  #         ),
+  #         class = "card",
+  #         style = "padding: 15px 20px 10px 20px; max-width: 950px; overflow-x: auto;"
+  #       )
+  #     )
+  #   ),
+  #   
+  #   # --- --- --- --- ---
+  #   # DB tables card ----
+  #   # --- --- --- --- ---
+  #   
+  #   shinyjs::hidden(
+  #     div(
+  #       id = ns("db_datatable_card"),
+  #       make_card(
+  #         i18n$t("app_db_tables_long"),
+  #         div(
+  #           shiny.fluent::Stack(horizontal = TRUE, tokens = list(childrenGap = 20),
+  #             div(
+  #               div(class = "input_title", i18n$t("connection_type")),
+  #               shiny.fluent::ChoiceGroup.shinyInput(ns("app_db_tables_connection_type"), options = list(
+  #                 list(key = "local", text = i18n$t("local")),
+  #                 list(key = "remote", text = i18n$t("remote"))
+  #               ), className = "inline_choicegroup")
+  #             ),
+  #             div(
+  #               div(class = "input_title", i18n$t("database")),
+  #               shiny.fluent::ChoiceGroup.shinyInput(ns("app_db_tables_database"), options = list(
+  #                 list(key = "main_db", text = i18n$t("main_db")),
+  #                 list(key = "public_db", text = i18n$t("public_db"))
+  #               ), className = "inline_choicegroup", value = "main_db")
+  #             )
+  #           ),
+  #           DT::DTOutput(ns("app_db_tables"))
+  #         )
+  #       )
+  #     )
+  #   ),
+  #   
+  #   # --- --- --- --- -- -
+  #   # Request DB card ----
+  #   # --- --- --- --- -- -
+  #   
+  #   shinyjs::hidden(
+  #     div(
+  #       id = ns("db_request_card"),
+  #       make_shiny_ace_card(
+  #         i18n$t("app_db_request_long"),
+  #         div(
+  #           shiny.fluent::Stack(
+  #             tokens = list(childrenGap = 5),
+  #             shiny.fluent::Stack(horizontal = TRUE, tokens = list(childrenGap = 20),
+  #               div(
+  #                 div(class = "input_title", i18n$t("connection_type")),
+  #                 shiny.fluent::ChoiceGroup.shinyInput(ns("app_db_request_connection_type"), options = list(
+  #                   list(key = "local", text = i18n$t("local")),
+  #                   list(key = "remote", text = i18n$t("remote"))
+  #                 ), className = "inline_choicegroup")
+  #               ),
+  #               div(
+  #                 div(class = "input_title", i18n$t("database")),
+  #                 shiny.fluent::ChoiceGroup.shinyInput(ns("app_db_request_database"), options = list(
+  #                   list(key = "main_db", text = i18n$t("main_db")),
+  #                   list(key = "public_db", text = i18n$t("public_db"))
+  #                 ), className = "inline_choicegroup", value = "main_db"),
+  #               )
+  #             )
+  #           ),
+  #           div(shinyAce::aceEditor(
+  #             ns("app_db_request_code"), "", mode = "sql", 
+  #             code_hotkeys = list(
+  #               "r", list(
+  #                 run_selection = list(win = "CTRL-ENTER", mac = "CTRL-ENTER|CMD-ENTER"),
+  #                 run_all = list(win = "CTRL-SHIFT-ENTER", mac = "CTRL-SHIFT-ENTER|CMD-SHIFT-ENTER")
+  #               )
+  #             ),
+  #             autoScrollEditorIntoView = TRUE, minLines = 30, maxLines = 1000
+  #           ), style = "width: 100%;"),
+  #           shiny.fluent::Stack(
+  #             tokens = list(childrenGap = 5),
+  #             div(shiny.fluent::PrimaryButton.shinyInput(ns("request"), i18n$t("request")), style = "width:300px;"), br(), br(),
+  #             div(textOutput(ns("datetime_request_execution")), style = "color:#878787;"), br(),
+  #             div(shiny::uiOutput(ns("request_result")), 
+  #               style = "width: 99%; border-style: dashed; border-width: 1px; padding: 0px 8px 0px 8px; margin-right: 5px;")
+  #           )
+  #         )
+  #       )
+  #     )
+  #   ),
+  #   
+  #   # --- --- --- --- -
+  #   # Save DB card ----
+  #   # --- --- --- --- -
+  #   
+  #   shinyjs::hidden(
+  #     div(
+  #       id = ns("db_save_card"),
+  #       make_shiny_ace_card(
+  #         i18n$t("db_save_long"),
+  #         div(
+  #           br(), uiOutput(ns("current_db_save")),
+  #           br(), uiOutput(ns("last_db_save")), br(),
+  #           shiny.fluent::Stack(horizontal = TRUE, tokens = list(childrenGap = 50),
+  #             make_dropdown(i18n = i18n, ns = ns, label = "main_tables_to_export", id = "main_db_tables_to_export", width = "300px", multiSelect = TRUE,
+  #               options = main_db_tables, value = main_db_values),
+  #             make_dropdown(i18n = i18n, ns = ns, label = "public_tables_to_export", id = "public_db_tables_to_export", width = "300px", multiSelect = TRUE,
+  #               options = public_db_tables, value = public_db_values)
+  #           ), br(),
+  #           shiny.fluent::PrimaryButton.shinyInput(ns("db_save_button"), i18n$t("export_db"), iconProps = list(iconName = "Download"), style = "width:300px;"),
+  #           div(style = "visibility:hidden;", downloadButton(ns("db_save"), label = ""))
+  #         )
+  #       )
+  #     )
+  #   ),
+  #   
+  #   # --- --- --- --- -- -
+  #   # Restore DB card ----
+  #   # --- --- --- --- -- -
+  #   
+  #   shinyjs::hidden(
+  #     div(
+  #       id = ns("db_restore_card"),
+  #       make_card(
+  #         i18n$t("db_restore_long"),
+  #         div(
+  #           br(), uiOutput(ns("current_db_restore")),
+  #           br(), uiOutput(ns("last_db_restore")), br(),
+  #           shiny.fluent::Stack(horizontal = TRUE, tokens = list(childrenGap = 50),
+  #             make_dropdown(i18n = i18n, ns = ns, label = "main_tables_to_import", id = "main_tables_to_import", width = "300px", multiSelect = TRUE,
+  #               options = main_db_tables, value = main_db_values),
+  #             make_dropdown(i18n = i18n, ns = ns, label = "public_tables_to_import", id = "public_tables_to_import", width = "300px", multiSelect = TRUE,
+  #               options = public_db_tables, value = public_db_values)
+  #           ), br(),
+  #           shiny.fluent::Stack(horizontal = TRUE, tokens = list(childrenGap = 10),
+  #             shiny.fluent::DefaultButton.shinyInput(ns("db_restore_browse"), i18n$t("choose_zip_file"), style = "width:300px;"),
+  #             uiOutput(ns("db_restore_status"))), br(),
+  #           shiny.fluent::PrimaryButton.shinyInput(ns("db_restore_button"), i18n$t("restore_db"), iconProps = list(iconName = "Upload"), style = "width:300px;"),
+  #           div(style = "display:none;", fileInput(ns("db_restore"), label = "", multiple = FALSE, accept = ".zip"))
+  #         )
+  #       )
+  #     )
+  #   ), br()
+  # )
   
-  forbidden_cards <- tagList()
-  sapply(cards, function(card){
-    forbidden_cards <<- tagList(forbidden_cards, forbidden_card(ns = ns, name = card, i18n = i18n))
-  })
-  
-  main_db_values <- c("users", "users_accesses", "users_statuses", "data_sources", "datasets", "studies", "plugins", "scripts",
-    "tabs_groups", "tabs", "widgets", "code", "options", "messages", "conversations", "user_deleted_conversations", "inbox_messages", "git_repos")
-  main_db_tables <- tibble::tibble(text = main_db_values) %>% convert_tibble_to_list(key_col = "text", text_col = "text")
-  
-  public_db_values <- c("persons_options", "widgets_options", "subsets", "subset_persons", "concept", "concept_dataset",
-    "concept_user", "vocabulary", "domain", "concept_class", "concept_relationship", "concept_relationship_user", "concept_relationship_evals",
-    "relationship", "concept_synonym", "concept_ancestor", "drug_strength", "widgets_concepts")
-  public_db_tables <- tibble::tibble(text = public_db_values) %>% convert_tibble_to_list(key_col = "text", text_col = "text")
-  
-  div(
-    id = ns("main"), class = "main",
-    
-    # --- --- -- -- --
-    # Pivot items ----
-    # --- --- -- -- --
-    
-    div(
-      div(),
-      div(
-        shiny.fluent::Pivot(
-          onLinkClick = htmlwidgets::JS(paste0("item => Shiny.setInputValue('", id, "-current_tab', item.props.id)")),
-          shiny.fluent::PivotItem(id = "db_connection_infos_card", itemKey = "db_connection_infos_card", headerText = i18n$t("db_connection_infos_card")),
-          shiny.fluent::PivotItem(id = "db_datatable_card", itemKey = "db_datatable_card", headerText = i18n$t("db_datatable_card")),
-          shiny.fluent::PivotItem(id = "db_request_card", itemKey = "db_request_card", headerText = i18n$t("db_request_card")),
-          shiny.fluent::PivotItem(id = "db_save_restore_card", itemKey = "db_save_card", headerText = i18n$t("db_save_and_restore_card"))
-        )
-      ),
-      style = "display:flex; justify-content:space-between;"
-    ),
-    
-    forbidden_cards,
-    
-    # --- --- --- --- --- --- --- -
-    # DB connection infos card ----
-    # --- --- --- --- --- --- --- -
-    
-    shinyjs::hidden(
-      div(
-        id = ns("db_connection_infos_card"),
-        div(
-          div(
-            div(
-              shiny.fluent::ChoiceGroup.shinyInput(ns("connection_type"), options = list(
-                  list(key = "local", text = i18n$t("local_db_connection")),
-                  list(key = "remote", text = i18n$t("remote_db_connection"))
-                ), className = "inline_choicegroup")
-            ), br(),
-            div(
-              id = ns("connection_infos_div"),
-              make_dropdown(i18n = i18n, ns = ns, label = "sql_lib", options = list(
-                  list(key = "postgres", text = "PostgreSQL"),
-                  list(key = "sqlite", text = "SQLite")
-                ), value = "postgres", width = "200px"),
-              div(
-                make_textfield(i18n, ns, "host", width = "200px"),
-                make_textfield(i18n, ns, "port", width = "200px"),
-                make_textfield(i18n, ns, "user", width = "200px"),
-                make_textfield(i18n, ns, "password", type = "password", canRevealPassword = TRUE, width = "200px"),
-                style = "display: flex; gap: 10px;"
-              ),
-              div(
-                make_textfield(i18n, ns, "main_db_name", width = "200px"),
-                uiOutput(ns("main_db_connection_result")),
-                # shinyjs::hidden(
-                #   div(
-                #     id = ns("test_connection_main_db_success_div"),
-                #     shiny::textOutput(ns("test_connection_main_db_success")),
-                #     style = "margin-top:44px; font-weight:bold; color:#0078D4;"
-                #   )
-                # ),
-                # shinyjs::hidden(
-                #   div(
-                #     id = ns("test_connection_main_db_failure_div"),
-                #     shiny::textOutput(ns("test_connection_main_db_failure")), 
-                #     style = "margin-top:44px; padding-left:30px; margin-left:-30px; color:red;"
-                #   )
-                # ),
-                style = "display: flex; gap: 10px;"
-              ),
-              div(
-                make_textfield(i18n, ns, "public_db_name", width = "200px"),
-                uiOutput(ns("public_db_connection_result")),
-                # shinyjs::hidden(
-                # div(
-                #     id = ns("test_connection_public_db_success_div"),
-                #     shiny::textOutput(ns("test_connection_public_db_success")), 
-                #     style = "margin-top:44px; padding-left:30px; font-weight:bold; color:#0078D4;"
-                #   )
-                # ),
-                # shinyjs::hidden(
-                #   div(
-                #     id = ns("test_connection_public_db_failure_div"),
-                #     shiny::textOutput(ns("test_connection_public_db_failure")), 
-                #     style = "margin-top:44px; margin-left:-30px; color:red;"
-                #   )
-                # )
-                style = "display: flex; gap: 10px;"
-              )
-            ),
-            div(
-              shiny.fluent::PrimaryButton.shinyInput(ns("db_connection_save"), i18n$t("save")),
-              shiny.fluent::DefaultButton.shinyInput(ns("test_connection"), i18n$t("test_connection")),
-              style = "display: flex; gap: 10px;"
-            )
-          ),
-          class = "card",
-          style = "padding: 15px 20px 10px 20px; max-width: 950px; overflow-x: auto;"
-        )
-      )
-    ),
-    
-    # --- --- --- --- ---
-    # DB tables card ----
-    # --- --- --- --- ---
-    
-    shinyjs::hidden(
-      div(
-        id = ns("db_datatable_card"),
-        make_card(
-          i18n$t("app_db_tables_long"),
-          div(
-            shiny.fluent::Stack(horizontal = TRUE, tokens = list(childrenGap = 20),
-              div(
-                div(class = "input_title", i18n$t("connection_type")),
-                shiny.fluent::ChoiceGroup.shinyInput(ns("app_db_tables_connection_type"), options = list(
-                  list(key = "local", text = i18n$t("local")),
-                  list(key = "remote", text = i18n$t("remote"))
-                ), className = "inline_choicegroup")
-              ),
-              div(
-                div(class = "input_title", i18n$t("database")),
-                shiny.fluent::ChoiceGroup.shinyInput(ns("app_db_tables_database"), options = list(
-                  list(key = "main_db", text = i18n$t("main_db")),
-                  list(key = "public_db", text = i18n$t("public_db"))
-                ), className = "inline_choicegroup", value = "main_db")
-              )
-            ),
-            DT::DTOutput(ns("app_db_tables"))
-          )
-        )
-      )
-    ),
-    
-    # --- --- --- --- -- -
-    # Request DB card ----
-    # --- --- --- --- -- -
-    
-    shinyjs::hidden(
-      div(
-        id = ns("db_request_card"),
-        make_shiny_ace_card(
-          i18n$t("app_db_request_long"),
-          div(
-            shiny.fluent::Stack(
-              tokens = list(childrenGap = 5),
-              shiny.fluent::Stack(horizontal = TRUE, tokens = list(childrenGap = 20),
-                div(
-                  div(class = "input_title", i18n$t("connection_type")),
-                  shiny.fluent::ChoiceGroup.shinyInput(ns("app_db_request_connection_type"), options = list(
-                    list(key = "local", text = i18n$t("local")),
-                    list(key = "remote", text = i18n$t("remote"))
-                  ), className = "inline_choicegroup")
-                ),
-                div(
-                  div(class = "input_title", i18n$t("database")),
-                  shiny.fluent::ChoiceGroup.shinyInput(ns("app_db_request_database"), options = list(
-                    list(key = "main_db", text = i18n$t("main_db")),
-                    list(key = "public_db", text = i18n$t("public_db"))
-                  ), className = "inline_choicegroup", value = "main_db"),
-                )
-              )
-            ),
-            div(shinyAce::aceEditor(
-              ns("app_db_request_code"), "", mode = "sql", 
-              code_hotkeys = list(
-                "r", list(
-                  run_selection = list(win = "CTRL-ENTER", mac = "CTRL-ENTER|CMD-ENTER"),
-                  run_all = list(win = "CTRL-SHIFT-ENTER", mac = "CTRL-SHIFT-ENTER|CMD-SHIFT-ENTER")
-                )
-              ),
-              autoScrollEditorIntoView = TRUE, minLines = 30, maxLines = 1000
-            ), style = "width: 100%;"),
-            shiny.fluent::Stack(
-              tokens = list(childrenGap = 5),
-              div(shiny.fluent::PrimaryButton.shinyInput(ns("request"), i18n$t("request")), style = "width:300px;"), br(), br(),
-              div(textOutput(ns("datetime_request_execution")), style = "color:#878787;"), br(),
-              div(shiny::uiOutput(ns("request_result")), 
-                style = "width: 99%; border-style: dashed; border-width: 1px; padding: 0px 8px 0px 8px; margin-right: 5px;")
-            )
-          )
-        )
-      )
-    ),
-    
-    # --- --- --- --- -
-    # Save DB card ----
-    # --- --- --- --- -
-    
-    shinyjs::hidden(
-      div(
-        id = ns("db_save_card"),
-        make_shiny_ace_card(
-          i18n$t("db_save_long"),
-          div(
-            br(), uiOutput(ns("current_db_save")),
-            br(), uiOutput(ns("last_db_save")), br(),
-            shiny.fluent::Stack(horizontal = TRUE, tokens = list(childrenGap = 50),
-              make_dropdown(i18n = i18n, ns = ns, label = "main_tables_to_export", id = "main_db_tables_to_export", width = "300px", multiSelect = TRUE,
-                options = main_db_tables, value = main_db_values),
-              make_dropdown(i18n = i18n, ns = ns, label = "public_tables_to_export", id = "public_db_tables_to_export", width = "300px", multiSelect = TRUE,
-                options = public_db_tables, value = public_db_values)
-            ), br(),
-            shiny.fluent::PrimaryButton.shinyInput(ns("db_save_button"), i18n$t("export_db"), iconProps = list(iconName = "Download"), style = "width:300px;"),
-            div(style = "visibility:hidden;", downloadButton(ns("db_save"), label = ""))
-          )
-        )
-      )
-    ),
-    
-    # --- --- --- --- -- -
-    # Restore DB card ----
-    # --- --- --- --- -- -
-    
-    shinyjs::hidden(
-      div(
-        id = ns("db_restore_card"),
-        make_card(
-          i18n$t("db_restore_long"),
-          div(
-            br(), uiOutput(ns("current_db_restore")),
-            br(), uiOutput(ns("last_db_restore")), br(),
-            shiny.fluent::Stack(horizontal = TRUE, tokens = list(childrenGap = 50),
-              make_dropdown(i18n = i18n, ns = ns, label = "main_tables_to_import", id = "main_tables_to_import", width = "300px", multiSelect = TRUE,
-                options = main_db_tables, value = main_db_values),
-              make_dropdown(i18n = i18n, ns = ns, label = "public_tables_to_import", id = "public_tables_to_import", width = "300px", multiSelect = TRUE,
-                options = public_db_tables, value = public_db_values)
-            ), br(),
-            shiny.fluent::Stack(horizontal = TRUE, tokens = list(childrenGap = 10),
-              shiny.fluent::DefaultButton.shinyInput(ns("db_restore_browse"), i18n$t("choose_zip_file"), style = "width:300px;"),
-              uiOutput(ns("db_restore_status"))), br(),
-            shiny.fluent::PrimaryButton.shinyInput(ns("db_restore_button"), i18n$t("restore_db"), iconProps = list(iconName = "Upload"), style = "width:300px;"),
-            div(style = "display:none;", fileInput(ns("db_restore"), label = "", multiple = FALSE, accept = ".zip"))
-          )
-        )
-      )
-    ), br()
-  )
+  div()
 }
 
 #' @noRd

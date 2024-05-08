@@ -77,18 +77,18 @@ mod_plugins_ui <- function(id, language, languages, i18n){
                 div(shiny.fluent::PrimaryButton.shinyInput(ns("delete_plugin"), i18n$t("delete")), class = "delete_button"),
                 class = "create_element_modal_buttons"
               ),
-              class = "card", style = "height: 50%;"
+              class = "widget", style = "height: 50%;"
             ),
             div(
               h1(i18n$t("code")),
-              class = "card", style = "height: 50%;"
+              class = "widget", style = "height: 50%;"
             ),
             class = "plugins_summary_left"
           ),
           div(
             div(
               h1(i18n$t("description")),
-              class = "card", style = "height: calc(100% - 25px); padding-top: 1px;"
+              class = "widget", style = "height: calc(100% - 25px); padding-top: 1px;"
             ),
             class = "plugins_summary_right"
           ),
@@ -106,7 +106,6 @@ mod_plugins_ui <- function(id, language, languages, i18n){
           div(
             id = ns("run_code_div"),
             div(textOutput(ns("run_code_datetime_code_execution")), style = "color:#878787; font-size:12px; margin-left:8px;"),
-            # uiOutput(ns("run_code_cards")),
             div(id = ns("gridstack_plugin_run_code"), class = "grid-stack"),
             div(verbatimTextOutput(ns("run_code_result_server")), style = "font-size:12px; margin-left:8px; padding-top:10px;")
           )
@@ -156,13 +155,14 @@ mod_plugins_ui <- function(id, language, languages, i18n){
 #' @noRd 
 mod_plugins_server <- function(id, r, d, m, language, i18n, debug){
   moduleServer(id, function(input, output, session){
+    
     ns <- session$ns
     
     # |-------------------------------- -----
     
     if (debug) cat(paste0("\n", now(), " - mod_plugins - start"))
     
-    # Selected plugin divs
+    # Pivot plugin divs
     all_divs <- c("summary", "edit_code", "run_code")
     
     # Hotkeys for ace editor
@@ -260,7 +260,7 @@ mod_plugins_server <- function(id, r, d, m, language, i18n, debug){
             href = shiny.router::route_link("plugins"),
             onClick = paste0("Shiny.setInputValue('", id, "-selected_plugin', ", i, ", {priority: 'event'});"),
             div(
-              class = "plugin_card",
+              class = "plugin_widget",
               div(
                 tags$h1(plugin_name),
                 users_ui,
@@ -270,10 +270,10 @@ mod_plugins_server <- function(id, r, d, m, language, i18n, debug){
                 div(
                   div("R", class = "prog_label r_label"),
                   div("Python", class = "prog_label python_label"),
-                  class = "card_labels"
+                  class = "plugin_widget_labels"
                 ),
                 plugin_type_icon,
-                class = "card_bottom"
+                class = "plugin_widget_bottom"
               )
             ),
             class = "no-hover-effect"
@@ -338,6 +338,118 @@ mod_plugins_server <- function(id, r, d, m, language, i18n, debug){
         var grid = window.gridStackInstances['plugin_run_code'];
         var current_widget = grid.el.querySelector('#", ns(paste0("plugins_gridstack_item_", r$run_plugin_last_widget_id)), "');
         if (current_widget) grid.removeWidget(current_widget);"))
+    })
+    
+    # |-------------------------------- -----
+    
+    # --- --- --- --- -- -
+    # Create a plugin ----
+    # --- --- --- --- -- -
+    
+    # Open modal
+    observeEvent(input$create_plugin, {
+      if (debug) cat(paste0("\n", now(), " - mod_plugins - observer input$create_plugin"))
+      
+      shinyjs::show("create_plugin_modal")
+    })
+    
+    # Close modal
+    observeEvent(input$close_create_plugin_modal, {
+      if (debug) cat(paste0("\n", now(), " - mod_data - observer input$close_create_plugin_modal"))
+      shinyjs::hide("create_plugin_modal")
+    })
+    
+    # Add a tab
+    observeEvent(input$add_plugin, {
+      
+      if (debug) cat(paste0("\n", now(), " - mod_data - observer input$add_plugin"))
+      
+      # req(length(input$plugin_creation_name) > 0)
+      plugin_name <- input$plugin_creation_name
+      
+      # Check if name is not empty
+      empty_name <- TRUE
+      if (length(plugin_name) > 0) if (!is.na(plugin_name) & plugin_name != "") empty_name <- FALSE
+      if (empty_name) shiny.fluent::updateTextField.shinyInput(session, "plugin_creation_name", errorMessage = i18n$t("provide_valid_name"))
+      req(!empty_name)
+      
+      tab_type_id <- input$plugin_creation_type
+      
+      # Check if name is not already used
+      sql <- glue::glue_sql("SELECT name FROM plugins WHERE tab_type_id = {tab_type_id} AND LOWER(name) = {tolower(plugin_name)}", .con = r$db)
+      name_already_used <- nrow(DBI::dbGetQuery(r$db, sql) > 0)
+      
+      if (name_already_used) shiny.fluent::updateTextField.shinyInput(session, "plugin_creation_name", errorMessage = i18n$t("name_already_used"))
+      req(!name_already_used)
+      
+      # Add plugin in db
+      
+      ## Plugin table
+      plugin_id <- get_last_row(r$db, "plugins") + 1
+      
+      new_data <- tibble::tibble(id = plugin_id, name = plugin_name, tab_type_id = tab_type_id, creation_datetime = now(), update_datetime = now(), deleted = FALSE)
+      
+      DBI::dbAppendTable(r$db, "plugins", new_data)
+      r$plugins <- r$plugins %>% dplyr::bind_rows(new_data)
+      
+      ## Options table
+      sql <- glue::glue_sql("SELECT CONCAT(firstname, ' ', lastname) AS username FROM users WHERE id = {r$user_id}", .con = r$db)
+      username <- DBI::dbGetQuery(r$db, sql) %>% dplyr::pull()
+      
+      new_options <- tibble::tribble(
+        ~name, ~value, ~value_num,
+        "users_allowed_read_group", "everybody", 1,
+        "user_allowed_read", "", r$user_id,
+        "version", "0.0.1.9000", NA_integer_,
+        "unique_id", paste0(sample(c(0:9, letters[1:6]), 64, TRUE), collapse = ''), NA_integer_,
+        "author", username, NA_integer_,
+        "downloaded_from", "", NA_integer_,
+        "downloaded_from_url", "", NA_integer_
+      ) %>%
+        dplyr::bind_rows(
+          r$languages %>%
+            tidyr::crossing(name = c("description", "category", "name")) %>%
+            dplyr::mutate(
+              name = paste0(name, "_", code),
+              value = ifelse(grepl("name_", name), plugin_name, ""),
+              value_num = NA_integer_
+            ) %>%
+            dplyr::select(-code, -language)
+        ) %>%
+        dplyr::mutate(id = get_last_row(r$db, "options") + dplyr::row_number(), category = "plugin", link_id = plugin_id, .before = "name") %>%
+        dplyr::mutate(creator_id = r$user_id, datetime = now(), deleted = FALSE)
+      
+      new_options_ids <- max(new_options$id) + 1:3
+      
+      new_options <- new_options %>%
+        dplyr::bind_rows(
+          tibble::tibble(
+            id = new_options_ids, category = "plugin_code", link_id = plugin_id, name = "filename",
+            value = c("ui.R", "server.R", "translations.csv"), value_num = NA_real_, creator_id = r$user_id, datetime = now(), deleted = FALSE
+          )
+        )
+      
+      DBI::dbAppendTable(r$db, "options", new_options)
+      
+      ## Code table
+      new_code <- tibble::tibble(
+        id = get_last_row(r$db, "code") + 1:3, category = "plugin", link_id = new_options_ids, code = "",
+        creator_id = r$user_id, datetime = now(), deleted = FALSE
+      )
+      
+      DBI::dbAppendTable(r$db, "code", new_code)
+      
+      # Reset fields
+      shiny.fluent::updateTextField.shinyInput(session, "plugin_creation_name", value = "", errorMessage = NULL)
+      
+      # Update plugins widgets
+      r$reload_plugins <- now()
+      
+      # Notify user
+      show_message_bar(output, message = "plugin_added", type = "success", i18n = i18n, ns = ns)
+      
+      # Close modal
+      shinyjs::hide("create_plugin_modal")
     })
     
     # |-------------------------------- -----
@@ -441,7 +553,7 @@ mod_plugins_server <- function(id, r, d, m, language, i18n, debug){
       shinyjs::runjs(paste0("Shiny.setInputValue('", id, "-show_plugins_home', Math.random());"))
       
       # Notify user
-      show_message_bar(output,  "plugin_deleted", "warning", i18n = i18n, ns = ns)
+      show_message_bar(output, "plugin_deleted", "warning", i18n = i18n, ns = ns)
       
       # Close modal
       shinyjs::hide("delete_plugin_modal")
@@ -1825,138 +1937,6 @@ mod_plugins_server <- function(id, r, d, m, language, i18n, debug){
     #     error_name = paste0("install_remote_git_plugin - id = ", plugin$unique_id), category = "Error", error_report = toString(e), i18n = i18n, ns = ns))
     #   
     #   if (perf_monitoring) monitor_perf(r = r, action = "stop", task = paste0("mod_plugins - observer r$.._install_update_plugin_trigger"))
-    # })
-    
-    # |-------------------------------- -----
-    
-    # --- --- --- --- -- -
-    # Create a plugin ----
-    # --- --- --- --- -- -
-    
-    # Open modal
-    observeEvent(input$create_plugin, {
-      if (debug) cat(paste0("\n", now(), " - mod_plugins - observer input$create_plugin"))
-      
-      shinyjs::show("create_plugin_modal")
-    })
-    
-    # Close modal
-    observeEvent(input$close_create_plugin_modal, {
-      if (debug) cat(paste0("\n", now(), " - mod_data - observer input$close_create_plugin_modal"))
-      shinyjs::hide("create_plugin_modal")
-    })
-    
-    # Add a tab
-    observeEvent(input$add_plugin, {
-      
-      if (debug) cat(paste0("\n", now(), " - mod_data - observer input$add_plugin"))
-      
-      # req(length(input$plugin_creation_name) > 0)
-      plugin_name <- input$plugin_creation_name
-      
-      # Check if name is not empty
-      empty_name <- TRUE
-      if (length(plugin_name) > 0) if (!is.na(plugin_name) & plugin_name != "") empty_name <- FALSE
-      if (empty_name) shiny.fluent::updateTextField.shinyInput(session, "plugin_creation_name", errorMessage = i18n$t("provide_valid_name"))
-      req(!empty_name)
-      
-      tab_type_id <- input$plugin_creation_type
-      
-      # Check if name is not already used
-      sql <- glue::glue_sql("SELECT name FROM plugins WHERE tab_type_id = {tab_type_id} AND LOWER(name) = {tolower(plugin_name)}", .con = r$db)
-      name_already_used <- nrow(DBI::dbGetQuery(r$db, sql) > 0)
-      
-      if (name_already_used) shiny.fluent::updateTextField.shinyInput(session, "plugin_creation_name", errorMessage = i18n$t("name_already_used"))
-      req(!name_already_used)
-      
-      # Add plugin in db
-      
-      ## Plugin table
-      plugin_id <- get_last_row(r$db, "plugins") + 1
-      
-      new_data <- tibble::tibble(id = plugin_id, name = plugin_name, tab_type_id = tab_type_id, creation_datetime = now(), update_datetime = now(), deleted = FALSE)
-      
-      DBI::dbAppendTable(r$db, "plugins", new_data)
-      r$plugins <- r$plugins %>% dplyr::bind_rows(new_data)
-      
-      ## Options table
-      sql <- glue::glue_sql("SELECT CONCAT(firstname, ' ', lastname) AS username FROM users WHERE id = {r$user_id}", .con = r$db)
-      username <- DBI::dbGetQuery(r$db, sql) %>% dplyr::pull()
-      
-      new_options <- tibble::tribble(
-        ~name, ~value, ~value_num,
-        "users_allowed_read_group", "everybody", 1,
-        "user_allowed_read", "", r$user_id,
-        "version", "0.0.1.9000", NA_integer_,
-        "unique_id", paste0(sample(c(0:9, letters[1:6]), 64, TRUE), collapse = ''), NA_integer_,
-        "author", username, NA_integer_,
-        "downloaded_from", "", NA_integer_,
-        "downloaded_from_url", "", NA_integer_
-      ) %>%
-        dplyr::bind_rows(
-          r$languages %>%
-            tidyr::crossing(name = c("description", "category", "name")) %>%
-            dplyr::mutate(
-              name = paste0(name, "_", code),
-              value = ifelse(grepl("name_", name), plugin_name, ""),
-              value_num = NA_integer_
-            ) %>%
-            dplyr::select(-code, -language)
-        ) %>%
-        dplyr::mutate(id = get_last_row(r$db, "options") + dplyr::row_number(), category = "plugin", link_id = plugin_id, .before = "name") %>%
-        dplyr::mutate(creator_id = r$user_id, datetime = now(), deleted = FALSE)
-      
-      new_options_ids <- max(new_options$id) + 1:3
-      
-      new_options <- new_options %>%
-        dplyr::bind_rows(
-          tibble::tibble(
-            id = new_options_ids, category = "plugin_code", link_id = plugin_id, name = "filename",
-            value = c("ui.R", "server.R", "translations.csv"), value_num = NA_real_, creator_id = r$user_id, datetime = now(), deleted = FALSE
-          )
-        )
-      
-      DBI::dbAppendTable(r$db, "options", new_options)
-      
-      ## Code table
-      new_code <- tibble::tibble(
-        id = get_last_row(r$db, "code") + 1:3, category = "plugin", link_id = new_options_ids, code = "",
-        creator_id = r$user_id, datetime = now(), deleted = FALSE
-      )
-      
-      DBI::dbAppendTable(r$db, "code", new_code)
-      
-      # Reset fields
-      shiny.fluent::updateTextField.shinyInput(session, "plugin_creation_name", value = "", errorMessage = NULL)
-      
-      # Update plugins cards
-      r$reload_plugins <- now()
-      
-      # Notify user
-      show_message_bar(output, message = "plugin_added", type = "success", i18n = i18n, ns = ns)
-      
-      # Close modal
-      shinyjs::hide("create_plugin_modal")
-    })
-    # observeEvent(input$add_plugin, {
-    #   
-    #   if (perf_monitoring) monitor_perf(r = r, action = "start")
-    #   if (debug) cat(paste0("\n", now(), " - mod_plugins - observer input$add_plugin"))
-    #   
-    #   new_data <- list()
-    #   new_data$name <- coalesce2(type = "char", x = input$plugin_name)
-    #   new_data$plugin_name <- new_data$name
-    #   new_data$tab_type <- tab_type_id
-    #   
-    #   add_settings_new_data(session = session, output = output, r = r, m = m, i18n = i18n, id = id, 
-    #     data = new_data, table = "plugins", required_textfields = "plugin_name", req_unique_values = "name")
-    #   
-    #   # Reload datatable
-    #   r[[paste0(prefix, "_plugins_temp")]] <- r$plugins %>% dplyr::filter(tab_type_id == !!tab_type_id) %>% 
-    #     # dplyr::mutate_at(c("creation_datetime", "update_datetime"), format_datetime, language = language, sec = FALSE) %>%
-    #     dplyr::mutate(modified = FALSE) %>% dplyr::arrange(name)
-    #   
-    #   if (perf_monitoring) monitor_perf(r = r, action = "stop", task = paste0("mod_plugins - observer input$add_plugin"))
     # })
     
     # |-------------------------------- -----

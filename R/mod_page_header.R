@@ -12,14 +12,14 @@ mod_page_header_ui <- function(id = character(), i18n = character()){
   
   ns <- NS(id)
   
-  if (id %in% c("home", "datasets", "vocabularies", "console", "plugins", "data_cleaning", "catalog", "users", "app_db", "git_repos", "log")){
+  if (id %in% c("app_db", "home", "catalog", "console", "datasets", "data_cleaning", "git_repos", "log", "plugins", "projects", "users", "vocabularies")){
     command_bar <- div(
       shiny.fluent::CommandBar(
         items = list(
           # Configure
           shiny.fluent::CommandBarItem("", "Settings",
             subMenuProps = list(items = list(
-              list(text = i18n$t("projects"), iconProps = list(iconName = "CustomList"), href = shiny.router::route_link("/")),
+              list(text = i18n$t("projects"), iconProps = list(iconName = "CustomList"), href = shiny.router::route_link("projects")),
               list(text = i18n$t("datasets"), iconProps = list(iconName = "OfflineStorage"), href = shiny.router::route_link("datasets")),
               list(text = i18n$t("vocabularies"), iconProps = list(iconName = "AllApps"), href = shiny.router::route_link("vocabularies"))
             )),

@@ -171,27 +171,24 @@ linkr <- function(
   )
   
   pages <- c(
-    # Main pages
     "/",
-    "datasets",
-    "vocabularies",
-    "console",
-    "plugins",
-    "data_cleaning",
-    "catalog",
-    "users",
     "app_db",
+    "catalog",
+    "concepts",
+    "console",
+    "data",
+    "datasets",
+    "data_cleaning",
     "git_repos",
     "log",
-    # Project pages
-    "concepts",
-    # "patient_level_data",
-    # "aggregated_data",
-    "data",
-    "subsets",
     "messages",
+    "plugins",
+    "projects",
     "project_console",
-    "tasks"
+    "subsets",
+    "tasks",
+    "users",
+    "vocabularies"
   )
   
   # Load UI & server

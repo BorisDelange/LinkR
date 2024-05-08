@@ -1050,3 +1050,10 @@ choose_a_plugin,Choose a plugin
 data_type,Data type
 informations,Informations
 plugin_no_selected_study,Load a study to get the plugin code working
+set_up_project,Set up the project
+load_project,Load project
+project_added,New project created
+show_all_projects,Show all projects
+delete_project_title,Delete a project
+delete_project_text,Confirm deletion of this project?
+project_deleted,Project deleted

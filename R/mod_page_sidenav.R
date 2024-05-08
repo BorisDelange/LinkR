@@ -9,11 +9,9 @@ mod_page_sidenav_ui <- function(id = character(), i18n = character()){
     onclick = paste0("Shiny.setInputValue('", id, "-show_hide_sidenav', Math.random());"),
   )
   
-  # --- --- -
-  # Home ----
-  # --- --- -
+  # App database ----
   
-  if (id == "home"){
+  if (id == "app_db") {
     div(
       id = ns("sidenav"),
       class = "sidenav",
@@ -27,11 +25,9 @@ mod_page_sidenav_ui <- function(id = character(), i18n = character()){
     ) -> result
   }
   
-  # --- --- --- -
-  # Datasets ----
-  # --- --- --- -
+  # Catalog ----
   
-  if (id == "datasets"){
+  else if (id == "catalog"){
     div(
       id = ns("sidenav"),
       class = "sidenav",
@@ -45,11 +41,9 @@ mod_page_sidenav_ui <- function(id = character(), i18n = character()){
     ) -> result
   }
   
-  # --- --- --- --- -
-  # Vocabularies ----
-  # --- --- --- --- -
+  # Concepts ----
   
-  if (id == "vocabularies"){
+  else if (id == "concepts") {
     div(
       id = ns("sidenav"),
       class = "sidenav",
@@ -63,11 +57,9 @@ mod_page_sidenav_ui <- function(id = character(), i18n = character()){
     ) -> result
   }
   
-  # --- --- -- -
   # Console ----
-  # --- --- -- -
   
-  if (id == "console"){
+  else if (id == "console"){
     div(
       id = ns("sidenav"),
       class = "sidenav",
@@ -85,11 +77,148 @@ mod_page_sidenav_ui <- function(id = character(), i18n = character()){
     ) -> result
   }
   
-  # --- --- -- -
-  # Plugins ----
-  # --- --- -- -
+  # Data ----
   
-  if (id %in% c("plugins")){
+  else if (id == "data"){
+    div(
+      id = ns("sidenav"),
+      class = "sidenav",
+      div(
+        id = ns("large_sidenav"),
+        div(
+          class = "sidenav_top",
+          div(
+            create_hover_card(ui = shiny.fluent::IconButton.shinyInput(ns("add_tab"), iconProps = list(iconName = "Boards")), text = i18n$t("add_a_tab")),
+            class = "small_icon_button"
+          ),
+          div(
+            create_hover_card(ui = shiny.fluent::IconButton.shinyInput(ns("add_widget"), iconProps = list(iconName = "RectangularClipping")), text = i18n$t("add_a_widget")),
+            class = "small_icon_button"
+          ),
+          div(
+            id = ns("edit_page_on_div"),
+            create_hover_card(ui = shiny.fluent::IconButton.shinyInput(ns("edit_page_on"), iconProps = list(iconName = "Edit")), text = i18n$t("edit_page")),
+            class = "small_icon_button",
+          ),
+          shinyjs::hidden(
+            div(
+              id = ns("edit_page_off_div"),
+              shiny.fluent::IconButton.shinyInput(ns("edit_page_off"), iconProps = list(iconName = "Accept")),
+              class = "small_icon_button",
+            )
+          )
+        ), br(),
+        make_combobox(i18n, ns, id = "subset", label = "subset", width = "200px"),
+        make_combobox(i18n, ns, id = "person", label = "person", allowFreeform = TRUE, autoComplete = TRUE, width = "200px"),
+        make_combobox(i18n, ns, id = "visit_detail", label = "visit_detail", width = "200px"),
+        div(id = ns("person_info_div"), uiOutput(ns("person_info")), class = "person_info")
+      ),
+      div(
+        id = ns("reduced_sidenav")
+      ),
+      show_hide_sidenav,
+    ) -> result
+  }
+  
+  # Datasets ----
+  
+  else if (id == "datasets"){
+    div(
+      id = ns("sidenav"),
+      class = "sidenav",
+      div(
+        id = ns("large_sidenav")
+      ),
+      div(
+        id = ns("reduced_sidenav")
+      ),
+      show_hide_sidenav
+    ) -> result
+  }
+  
+  # Data cleaning scripts ----
+  
+  else if (id == "data_cleaning"){
+    div(
+      id = ns("sidenav"),
+      class = "sidenav",
+      div(
+        id = ns("large_sidenav")
+      ),
+      div(
+        id = ns("reduced_sidenav")
+      ),
+      show_hide_sidenav
+    ) -> result
+  }
+  
+  # Git repos ----
+  
+  else if (id == "git_repos") {
+    div(
+      id = ns("sidenav"),
+      class = "sidenav",
+      div(
+        id = ns("large_sidenav")
+      ),
+      div(
+        id = ns("reduced_sidenav")
+      ),
+      show_hide_sidenav
+    ) -> result
+  }
+  
+  # Home ----
+  
+  else if (id == "home"){
+    div(
+      id = ns("sidenav"),
+      class = "sidenav",
+      div(
+        id = ns("large_sidenav")
+      ),
+      div(
+        id = ns("reduced_sidenav")
+      ),
+      show_hide_sidenav
+    ) -> result
+  }
+  
+  # Log ----
+  
+  else if (id == "log") {
+    div(
+      id = ns("sidenav"),
+      class = "sidenav",
+      div(
+        id = ns("large_sidenav")
+      ),
+      div(
+        id = ns("reduced_sidenav")
+      ),
+      show_hide_sidenav
+    ) -> result
+  }
+  
+  # Messages ----
+  
+  else if (id == "messages") {
+    div(
+      id = ns("sidenav"),
+      class = "sidenav",
+      div(
+        id = ns("large_sidenav")
+      ),
+      div(
+        id = ns("reduced_sidenav")
+      ),
+      show_hide_sidenav
+    ) -> result
+  }
+  
+  # Plugins ----
+  
+  else if (id %in% c("plugins")){
     
     div(
       id = ns("sidenav"),
@@ -154,11 +283,9 @@ mod_page_sidenav_ui <- function(id = character(), i18n = character()){
     ) -> result
   }
   
-  # --- --- --- --- --- --- --
-  # Data cleaning scripts ----
-  # --- --- --- --- --- --- --
+  # Projects ----
   
-  if (id == "data_cleaning"){
+  else if (id == "projects") {
     div(
       id = ns("sidenav"),
       class = "sidenav",
@@ -166,206 +293,17 @@ mod_page_sidenav_ui <- function(id = character(), i18n = character()){
         id = ns("large_sidenav")
       ),
       div(
-        id = ns("reduced_sidenav")
+        id = ns("reduced_sidenav"),
+        create_hover_card(ui = shiny.fluent::IconButton.shinyInput(ns("create_project"), iconProps = list(iconName = "Add")), text = i18n$t("create_project")),
+        class = "reduced_sidenav_buttons"
       ),
       show_hide_sidenav
     ) -> result
   }
   
-  # --- --- -- -
-  # Catalog ----
-  # --- --- -- -
-  
-  if (id == "catalog"){
-    div(
-      id = ns("sidenav"),
-      class = "sidenav",
-      div(
-        id = ns("large_sidenav")
-      ),
-      div(
-        id = ns("reduced_sidenav")
-      ),
-      show_hide_sidenav
-    ) -> result
-  }
-  
-  # --- --- --
-  # Users ----
-  # --- --- --
-  
-  if (id == "users") {
-    div(
-      id = ns("sidenav"),
-      class = "sidenav",
-      div(
-        id = ns("large_sidenav")
-      ),
-      div(
-        id = ns("reduced_sidenav")
-      ),
-      show_hide_sidenav
-    ) -> result
-  }
-  
-  # --- --- --- --- -
-  # App database ----
-  # --- --- --- --- -
-  
-  if (id == "app_db") {
-    div(
-      id = ns("sidenav"),
-      class = "sidenav",
-      div(
-        id = ns("large_sidenav")
-      ),
-      div(
-        id = ns("reduced_sidenav")
-      ),
-      show_hide_sidenav
-    ) -> result
-  }
-  
-  # --- --- --- --
-  # Git repos ----
-  # --- --- --- --
-  
-  if (id == "git_repos") {
-    div(
-      id = ns("sidenav"),
-      class = "sidenav",
-      div(
-        id = ns("large_sidenav")
-      ),
-      div(
-        id = ns("reduced_sidenav")
-      ),
-      show_hide_sidenav
-    ) -> result
-  }
-  
-  # --- -- -
-  # Log ----
-  # --- -- -
-  
-  if (id == "log") {
-    div(
-      id = ns("sidenav"),
-      class = "sidenav",
-      div(
-        id = ns("large_sidenav")
-      ),
-      div(
-        id = ns("reduced_sidenav")
-      ),
-      show_hide_sidenav
-    ) -> result
-  }
-  
-  # --- --- --- -
-  # Concepts ----
-  # --- --- --- -
-  
-  if (id == "concepts") {
-    div(
-      id = ns("sidenav"),
-      class = "sidenav",
-      div(
-        id = ns("large_sidenav")
-      ),
-      div(
-        id = ns("reduced_sidenav")
-      ),
-      show_hide_sidenav
-    ) -> result
-  }
-  
-  # --- --- -
-  # Data ----
-  # --- --- -
-  
-  if (id == "data"){
-    div(
-      id = ns("sidenav"),
-      class = "sidenav",
-      div(
-        id = ns("large_sidenav"),
-        div(
-          class = "sidenav_top",
-          div(
-            create_hover_card(ui = shiny.fluent::IconButton.shinyInput(ns("add_tab"), iconProps = list(iconName = "Boards")), text = i18n$t("add_a_tab")),
-            class = "small_icon_button"
-          ),
-          div(
-            create_hover_card(ui = shiny.fluent::IconButton.shinyInput(ns("add_widget"), iconProps = list(iconName = "RectangularClipping")), text = i18n$t("add_a_widget")),
-            class = "small_icon_button"
-          ),
-          div(
-            id = ns("edit_page_on_div"),
-            create_hover_card(ui = shiny.fluent::IconButton.shinyInput(ns("edit_page_on"), iconProps = list(iconName = "Edit")), text = i18n$t("edit_page")),
-            class = "small_icon_button",
-          ),
-          shinyjs::hidden(
-            div(
-              id = ns("edit_page_off_div"),
-              shiny.fluent::IconButton.shinyInput(ns("edit_page_off"), iconProps = list(iconName = "Accept")),
-              class = "small_icon_button",
-            )
-          )
-        ), br(),
-        make_combobox(i18n, ns, id = "subset", label = "subset", width = "200px"),
-        make_combobox(i18n, ns, id = "person", label = "person", allowFreeform = TRUE, autoComplete = TRUE, width = "200px"),
-        make_combobox(i18n, ns, id = "visit_detail", label = "visit_detail", width = "200px"),
-        div(id = ns("person_info_div"), uiOutput(ns("person_info")), class = "person_info")
-      ),
-      div(
-        id = ns("reduced_sidenav")
-      ),
-      show_hide_sidenav,
-    ) -> result
-  }
-  
-  # --- --- -- -
-  # Subsets ----
-  # --- --- -- -
-  
-  if (id == "subsets") {
-    div(
-      id = ns("sidenav"),
-      class = "sidenav",
-      div(
-        id = ns("large_sidenav")
-      ),
-      div(
-        id = ns("reduced_sidenav")
-      ),
-      show_hide_sidenav
-    ) -> result
-  }
-  
-  # --- --- --- -
-  # Messages ----
-  # --- --- --- -
-  
-  if (id == "messages") {
-    div(
-      id = ns("sidenav"),
-      class = "sidenav",
-      div(
-        id = ns("large_sidenav")
-      ),
-      div(
-        id = ns("reduced_sidenav")
-      ),
-      show_hide_sidenav
-    ) -> result
-  }
-  
-  # --- --- --- --- -- -
   # Project console ----
-  # --- --- --- --- -- -
   
-  if (id == "project_console") {
+  else if (id == "project_console") {
     div(
       id = ns("sidenav"),
       class = "sidenav",
@@ -379,11 +317,57 @@ mod_page_sidenav_ui <- function(id = character(), i18n = character()){
     ) -> result
   }
   
-  # --- --- --
-  # Tasks ----
-  # --- --- --
+  # Subsets ----
   
-  if (id == "tasks") {
+  else if (id == "subsets") {
+    div(
+      id = ns("sidenav"),
+      class = "sidenav",
+      div(
+        id = ns("large_sidenav")
+      ),
+      div(
+        id = ns("reduced_sidenav")
+      ),
+      show_hide_sidenav
+    ) -> result
+  }
+  
+  # Tasks ----
+  
+  else if (id == "tasks") {
+    div(
+      id = ns("sidenav"),
+      class = "sidenav",
+      div(
+        id = ns("large_sidenav")
+      ),
+      div(
+        id = ns("reduced_sidenav")
+      ),
+      show_hide_sidenav
+    ) -> result
+  }
+  
+  # Users ----
+  
+  else if (id == "users") {
+    div(
+      id = ns("sidenav"),
+      class = "sidenav",
+      div(
+        id = ns("large_sidenav")
+      ),
+      div(
+        id = ns("reduced_sidenav")
+      ),
+      show_hide_sidenav
+    ) -> result
+  }
+  
+  # Vocabularies ----
+  
+  else if (id == "vocabularies"){
     div(
       id = ns("sidenav"),
       class = "sidenav",
@@ -438,7 +422,7 @@ mod_page_sidenav_server <- function(id = character(), r = shiny::reactiveValues(
       header_command_bar.style.marginLeft = '10px';
     ")
     
-    if (id %in% c("home", "datasets", "vocabularies", "console", "plugins", "data_cleaning", "catalog", "users", "app_db")) r[[paste0(id, "_show_hide_sidenav")]] <- "hide"
+    if (id %in% c("app_db", "catalog", "console", "data_cleaning", "datasets", "home", "plugins", "projects", "users", "vocabularies")) r[[paste0(id, "_show_hide_sidenav")]] <- "hide"
     
     observeEvent(r[[paste0(id, "_show_hide_sidenav")]], {
       if (debug) cat(paste0("\n", now(), " - mod_page_sidenav - observer r$.._show_hide_sidenav"))

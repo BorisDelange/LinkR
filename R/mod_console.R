@@ -40,6 +40,9 @@ mod_console_server <- function(id = character(), r = shiny::reactiveValues(), d 
       if (debug) cat(paste0("\n", now(), " - mod_console - observer shiny.router::get_page()"))
       
       shinyjs::show("console")
+      
+      # Prevent a bug with scroll into ace editor
+      shinyjs::runjs("var event = new Event('resize'); window.dispatchEvent(event);")
     })
     
     # Comment code ----

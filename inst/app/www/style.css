@@ -20,6 +20,23 @@ body, html {
   height: calc(100% - 80px);
 }
 
+a, a:visited {
+  color:#000000;
+}
+
+a:hover {
+  color: #129AFD;
+}
+
+a.no-hover-effect {
+  color: black;
+  text-decoration: none;
+}
+
+a.no-hover-effect:hover {
+  color: black;
+}
+
 /* --------------- */
 /* HEADER          */
 /* --------------- */
@@ -197,7 +214,7 @@ body, html {
   z-index: 500;
 }
 
-.delete_modal_content, .create_tab_modal_content, .create_widget_modal_content, .load_status_modal_content, .create_plugin_modal_content {
+.delete_modal_content, .create_tab_modal_content, .create_widget_modal_content, .load_status_modal_content, .create_plugin_modal_content, .create_project_modal_content {
   background: #fff;
   padding: 5px 10px 10px 15px;
   position: relative;
@@ -252,6 +269,11 @@ body, html {
 
 .create_plugin_modal_content {
   width: 500px;
+  padding-bottom: 30px;
+}
+
+.create_project_modal_content {
+  width: 400px;
   padding-bottom: 30px;
 }
 
@@ -311,8 +333,54 @@ body, html {
   margin: 10px 0 0 5px;
 }
 
-.widget {
+.data_widget {
   padding: 0px 10px 5px 10px;
+}
+
+.project_widget h1, .plugin_widget h1 {
+  font-weight: bold;
+  font-size: 14px;
+  margin-bottom: 0px;
+}
+
+.project_widget, .plugin_widget {
+  width: 300px;
+  height: 150px;
+  box-shadow: 0 2px 4px 0 rgba(0, 0, 0, 0.2), 0 3px 10px 0 rgba(0, 0, 0, 0.19);
+  margin: 10px;
+  padding: 2px 10px 2px 10px;
+  font-size: 12px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  position: relative;
+}
+
+.data_widget_buttons {
+  position: absolute;
+  top: 0px;
+  right: 7px;
+}
+
+.plugin_widget_labels {
+  display: flex;
+}
+
+.plugin_widget_bottom {
+  display: flex;
+  justify-content: space-between;
+}
+
+.widget {
+  font-size: 12px;
+  position: relative;
+  margin: 10px;
+  padding: 0px 10px 5px 10px;
+  box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 3px 6px 0 rgba(0, 0, 0, 0.19);
+}
+
+.widget h1 {
+  font-size: 14px;
 }
 
 /* ---------------- */
@@ -348,68 +416,54 @@ body, html {
   box-shadow: 0 2px 0 0 rgb(0, 120, 212);
 }
 
-/* --------------------- */
-/* PLUGINS PAGE          */
-/* --------------------- */
-
-.plugins_summary_container {
-  display: flex;
-  justify-content: space-between;
-  height: calc(100% - 50px);
+.small_icon_button .ms-Button-icon {
+  font-size: 12px;
+  color: black;;
 }
 
-.plugins_summary_left {
-  display: flex;
-  flex-direction: column;
-  width: 50%;
+.small_icon_button .ms-Button {
+  width: 24px;
+  height: 24px
 }
 
-.plugins_summary_right {
-  width: 50%;
-  calc(100% - 16px)
+.small_icon_button .ms-Button:hover .ms-Button-icon {
+  color: #61AEF9;
+}
+
+.small_close_button .ms-Button-icon {
+  font-size: 10px;
+  color: black;;
+}
+
+.small_close_button .ms-Button {
+  width: 20px;
+  height: 20px
 }
 
 /* ------------------- */
-/* DATATABLES          */
+/* TEXTFIELDS          */
 /* ------------------- */
 
-.form-control {
+.small_textfield {
+  width: 120px;
+}
+
+.small_textfield .ms-TextField-fieldGroup {
+  height: 20px;
+}
+
+.small_textfield .ms-TextField-field {
   font-size: 12px;
 }
 
-
-
-
-
-
-
-
-
-
-
-.person_info {
-  border-top: solid 1px #ccc;
-  margin-top: 10px;
-  padding-top: 10px;
+.small_textfield .ms-TextField-errorMessage {
   font-size: 12px;
+  padding-top: 0px;
 }
 
-.card {
-  font-size: 12px;
-  position: relative;
-  margin: 10px;
-  padding: 0px 10px 5px 10px;
-  box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 3px 6px 0 rgba(0, 0, 0, 0.19);
-}
-
-.card h1 {
-  font-size: 14px;
-}
-
-/* Search column in datatable, with type is factor */
-td[data-type="factor"] input {
-  width: 200px !important;
-}
+/* ------------------- */
+/* OTHER INPUTS        */
+/* ------------------- */
 
 .input_title_first {
   margin: 0px 0px 10px 0px;
@@ -437,63 +491,62 @@ td[data-type="factor"] input {
   font-weight: bold;
 }
 
-.router-hidden {
-  display: none;
+
+/* --------------------- */
+/* PLUGINS PAGE          */
+/* --------------------- */
+
+.plugins_summary_container {
+  display: flex;
+  justify-content: space-between;
+  height: calc(100% - 50px);
 }
 
-.datatable_length {
-  float: right;
-  margin-left: 10px;
+.plugins_summary_left {
+  display: flex;
+  flex-direction: column;
+  width: 50%;
 }
 
-a, a:visited {
-  color:#000000;
+.plugins_summary_right {
+  width: 50%;
+  calc(100% - 16px)
 }
 
-a:hover {
-  color: #129AFD;
+/* ---------------------- */
+/* PROJECTS PAGE          */
+/* ---------------------- */
+
+.projects_summary_container {
+  display: flex;
+  justify-content: space-between;
+  height: calc(100% - 50px);
 }
 
-.vocabulary_table table tbody td {
-  height:15px;
-  white-space: nowrap;
+.projects_summary_left {
+  display: flex;
+  flex-direction: column;
+  width: 50%;
 }
 
-.vocabulary_table table tbody td div{
-  height:18px;
-  word-wrap:break-word;
-  position:relative;
-  top:-4px;
+.projects_summary_right {
+  width: 50%;
+  calc(100% - 16px)
 }
 
 
-pre code {
-  border-radius: 5px;
+/* ------------------- */
+/* DATATABLES          */
+/* ------------------- */
+
+.form-control {
+  font-size: 12px;
 }
 
-.help_code {
-  position: relative;
-  display: block;
+/* Search column in datatable, with type is factor */
+td[data-type="factor"] input {
+  width: 200px !important;
 }
-.help_copy_button:hover {
-  color: black;
-}
-.help_copy_button {
-  position: absolute;
-  top: 10px;
-  right: 10px;
-  color: white;
-}
-
-a.no-hover-effect {
-  color: black;
-  text-decoration: none;
-}
-
-a.no-hover-effect:hover {
-  color: black;
-}
-
 
 .datatable_link {
   font-weight: bold;
@@ -510,49 +563,26 @@ a.no-hover-effect:hover {
   color: #0078D4;
 }
 
-.selected_project_container, .selected_plugin_container {
-  width: 195px;
-  display: flex;
-  justify-content: center;
-  margin-left: 16px;
+.vocabulary_table table tbody td {
+  height:15px;
+  white-space: nowrap;
 }
 
-.selected_project, .selected_plugin {
-  background-color: #0084D8;
-  color: white;
-  font-weight: bold;
-  font-size: 12px;
-  border-radius: 5px;
-  padding: 5px 10px;
-  margin: 8px 0px;
-  text-align: center;
-  line-height: 16px;
+.vocabulary_table table tbody td div{
+  height:18px;
+  word-wrap:break-word;
+  position:relative;
+  top:-4px;
 }
 
-.projects_container, .plugins_container {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: flex-start;
-  gap: 10px;
+.datatable_length {
+  float: right;
+  margin-left: 10px;
 }
 
-.project_card, .plugin_card {
-  width: 300px;
-  height: 150px;
-  box-shadow: 0 2px 4px 0 rgba(0, 0, 0, 0.2), 0 3px 10px 0 rgba(0, 0, 0, 0.19);
-  margin: 10px;
-  padding: 2px 10px 2px 10px;
-  font-size: 12px;
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
-}
-
-.project_card h1, .plugin_card h1 {
-  font-weight: bold;
-  font-size: 14px;
-  margin-bottom: 0px;
-}
+/* ------------------- */
+/* FILES BROWSER       */
+/* ------------------- */
 
 .current_page {
   font-size: 12px;
@@ -676,48 +706,67 @@ a.no-hover-effect:hover {
   background-color: white;
 }
 
-.small_icon_button .ms-Button-icon {
+/* ------------------- */
+/* HOME PAGE           */
+/* ------------------- */
+
+.home_link {
+  font-size: 14px;
+  font-weight: 600;
+  text-decoration: none;
+  color: #000000;
+  padding: 5px 10px;
+}
+
+.home_link:hover {
+  color: #000000;
+  background-color: #F3F2F1;
+}
+
+.home_link:visited {
+  color: #000000
+}
+
+/* ------------------- */
+/* PROJECTS PAGE       */
+/* ------------------- */
+
+.project_widget_buttons {
+  position: absolute;
+  bottom: 0px;
+  right: 5px;
+  display: flex;
+}
+
+.selected_project_container, .selected_plugin_container {
+  width: 195px;
+  display: flex;
+  justify-content: center;
+  margin-left: 16px;
+}
+
+.selected_project, .selected_plugin {
+  background-color: #0084D8;
+  color: white;
+  font-weight: bold;
   font-size: 12px;
-  color: black;;
+  border-radius: 5px;
+  padding: 5px 10px;
+  margin: 8px 0px;
+  text-align: center;
+  line-height: 16px;
 }
 
-.small_icon_button .ms-Button {
-  width: 24px;
-  height: 24px
+.projects_container, .plugins_container {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-start;
+  gap: 10px;
 }
 
-.small_close_button .ms-Button-icon {
-  font-size: 10px;
-  color: black;;
-}
-
-.small_close_button .ms-Button {
-  width: 20px;
-  height: 20px
-}
-
-.small_textfield {
-  width: 120px;
-}
-
-.small_textfield .ms-TextField-fieldGroup {
-  height: 20px;
-}
-
-.small_textfield .ms-TextField-field {
-  font-size: 12px;
-}
-
-.small_textfield .ms-TextField-errorMessage {
-  font-size: 12px;
-  padding-top: 0px;
-}
-
-.fa-folder, .fa-file {
-  margin-right: 5px;
-  width: 15px;
-  color:#505050;
-}
+/* ------------------ */
+/* PLUGINS PAGE       */
+/* ------------------ */
 
 .prog_label {
   padding: 2px 7px;
@@ -737,18 +786,19 @@ a.no-hover-effect:hover {
   background-color: #198CE7;
 }
 
-.card_labels {
-  display: flex;
+.fa-folder, .fa-file {
+  margin-right: 5px;
+  width: 15px;
+  color:#505050;
 }
 
-.card_bottom {
-  display: flex;
-  justify-content: space-between;
-}
+/* --------------- */
+/* DATA PAGE       */
+/* --------------- */
 
-.widget_buttons {
-  position: absolute;
-  top: 0px;
-  right: 7px;
+.person_info {
+  border-top: solid 1px #ccc;
+  margin-top: 10px;
+  padding-top: 10px;
+  font-size: 12px;
 }
-

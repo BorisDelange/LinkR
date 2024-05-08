@@ -39,7 +39,7 @@ create_widget <- function(id, widget_id, ui_code, show_edit_buttons = FALSE){
       ),
       style = "display: flex; gap: 2px;"
     ),
-    class = "widget_buttons"
+    class = "data_widget_buttons"
   )
   if (!show_edit_buttons) edit_buttons <- shinyjs::hidden(edit_buttons)
   
@@ -51,7 +51,7 @@ create_widget <- function(id, widget_id, ui_code, show_edit_buttons = FALSE){
       div(
         ui_code,
         edit_buttons,
-        class = "widget"
+        class = "data_widget"
       )
     )
   )

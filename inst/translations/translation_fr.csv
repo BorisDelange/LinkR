@@ -277,7 +277,7 @@ data_sources_edit_data,Editer les sources de données
 data_sources_delete_data,Supprimer une source de données
 data_sources_creation_card,Créer une source de données
 data_sources_datatable_card,Gérer les sources de données
-datasets,Set de données
+datasets,Sets de données
 datasets_see_all_data,Accès à toutes les données
 datasets_edit_data,Editer un set de données
 datasets_delete_data,Supprimer un set de données
@@ -1050,3 +1050,10 @@ choose_a_plugin,Choisir un plugin
 data_type,Type de données
 informations,Informations
 plugin_no_selected_study,Chargez une étude afin que le code du plugin fonctionne
+set_up_project,Paramétrer le projet
+load_project,Charger le projet
+project_added,Nouveau projet créé
+show_all_projects,Afficher tous les projects
+delete_project_title,Supprimer un projet
+delete_project_text,Confirmer la suppression de ce projet ?
+project_deleted,Projet supprimé

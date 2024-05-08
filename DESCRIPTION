@@ -21,7 +21,6 @@ Imports:
     httr (>= 1.4.2),
     knitr (>= 1.36),
     leaflet (>= 2.2.0),
-    magick (>= 2.7.4),
     magrittr (>= 2.0.1),
     pkgload (>= 1.2.3),
     plotly (>= 4.10.0),
