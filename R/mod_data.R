@@ -1962,16 +1962,24 @@ mod_data_server <- function(id = character(), r = shiny::reactiveValues(), d = s
               widget_name <- widgets %>% dplyr::filter(widget_id == !!widget_id) %>% dplyr::pull(name)
               print("ui_37")
               # Get UI code from db. Try to run plugin UI code
-  
+              
+              
               sql <- glue::glue_sql("SELECT id FROM options WHERE link_id = {plugin_id} AND name = 'filename' AND value = 'ui.R'", .con = r$db)
               code_id <- DBI::dbGetQuery(r$db, sql) %>% dplyr::pull()
-  
+              print("ui_38")
+              
               patient_id <- NA_integer_
               if (length(m$selected_person) > 0) patient_id <- m$selected_person
   
+              print("patient_id")
+              print(patient_id)
+              print("m$selected_study")
+              print(m$selected_study)
+              print("ui_39")
               sql <- glue::glue_sql("SELECT code FROM code WHERE category = 'plugin' AND link_id = {code_id}", .con = r$db)
               ui_code <- DBI::dbGetQuery(r$db, sql) %>% dplyr::pull() %>% process_widget_code(tab_id, widget_id, m$selected_study, patient_id, plugin_folder)
-  
+              print("ui_40")
+              
               # Widget card
               print("ui_38")
               ui_code <- tryCatch(

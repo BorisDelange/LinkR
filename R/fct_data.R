@@ -112,20 +112,22 @@ add_widget_to_gridstack <- function(id, tab_id, ui_output, widget_id, previous_w
 process_widget_code <- function(code, tab_id, widget_id, study_id, patient_id, plugin_folder) {
   
   # Replace %import_script% tags
+  print("a")
   import_scripts <- regmatches(code, gregexpr("%import_script\\(['\"](.*?)['\"]\\)%", code, perl = TRUE))[[1]]
-  
+  print("b")
   for (i in seq_along(import_scripts)){
+    print("c")
     tag <- import_scripts[i]
     file_name <- gsub("%import_script\\(['\"](.*?)['\"]\\)%", "\\1", tag)
     file_path <- paste0(plugin_folder, "/", file_name)
     file_ext <- sub(".*\\.", "", tolower(file_name))
-    
+    print("d")
     if (file.exists(file_path)){
       file_name <- file_name %>% gsub("\\.", "\\\\.", ., fixed = FALSE)
-      
+      print("e")
       if (file_ext == "r"){
         file_code <- readLines(file_path, warn = FALSE) %>% paste(collapse = "\n")
-        
+        print("f")
         code <-
           code %>%
           gsub(paste0("%import_script\\('", file_name, "'\\)%"), file_code, ., fixed = FALSE) %>%
@@ -133,7 +135,7 @@ process_widget_code <- function(code, tab_id, widget_id, study_id, patient_id, p
       }
       else if (file_ext == "py"){
         file_code <- paste0("reticulate::source_python('", file_path, "')")
-        
+        print("g")
         code <-
           code %>%
           gsub(paste0("%import_script\\('", file_name, "'\\)%"), file_code, ., fixed = FALSE) %>%
@@ -141,7 +143,7 @@ process_widget_code <- function(code, tab_id, widget_id, study_id, patient_id, p
       }
     }
   }
-  
+  print("h")
   # Replace tab & widget IDs
   code <- gsub("%tab_id%", as.character(tab_id), code, fixed = TRUE)
   code <- gsub("%widget_id%", as.character(widget_id), code, fixed = TRUE)
@@ -154,7 +156,7 @@ process_widget_code <- function(code, tab_id, widget_id, study_id, patient_id, p
   code <- gsub("%patient_id%", as.character(patient_id), code, fixed = TRUE)
   
   gsub("\r", "\n", code, fixed = TRUE)
-  
+  print("i")
   code
 }
 
