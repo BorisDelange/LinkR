@@ -1009,7 +1009,7 @@ mod_data_server <- function(id = character(), r = shiny::reactiveValues(), d = s
       # --- --- --- --- --
       
       observeEvent(r$data_load_ui_widgets, {
-        if (debug) cat(paste0("\n", now(), " - mod_data - observer r$..load_ui_widgets"))
+        if (debug) cat(paste0("\n", now(), " - mod_data - observer r$data_load_ui_widgets"))
         
         # Don't reload study UI if already loaded
         req(m$selected_study %not_in% r$data_loaded_studies)
@@ -1024,10 +1024,12 @@ mod_data_server <- function(id = character(), r = shiny::reactiveValues(), d = s
           
           # Loop over distinct tabs, for this study
           # Load front-end & back-end
-          sapply(distinct_tabs, function(tab_id){
-            load_tab_ui(category, tab_id)
-            load_tab_server(tab_id)
-          })
+          if (length(distinct_tabs > 0)){
+            sapply(distinct_tabs, function(tab_id){
+              load_tab_ui(category, tab_id)
+              load_tab_server(tab_id)
+            })
+          }
           
           displayed_category <- r$data_page
           hidden_category <- categories[categories != displayed_category]

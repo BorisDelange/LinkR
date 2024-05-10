@@ -10,54 +10,17 @@ mod_plugins_ui <- function(id, language, languages, i18n){
   div(
     class = "main",
     
-    # All plugins ----
+    # Load widget UI ----
     
-    div(
-      id = ns("all_plugins"),
-      shiny.fluent::Breadcrumb(items = list(list(key = "main", text = i18n$t("plugins"))), maxDisplayedItems = 3),
-      div(shiny.fluent::SearchBox.shinyInput(ns("search_plugin")), style = "width:320px; margin:10px 0 0 10px;"),
-      uiOutput(ns("plugins"))
-    ),
-    
-    # Create a plugin modal ----
-    
-    shinyjs::hidden(
-      div(
-        id = ns("create_plugin_modal"),
-        div(
-          div(
-            tags$h1(i18n$t("create_plugin")),
-            shiny.fluent::IconButton.shinyInput(ns("close_create_plugin_modal"), iconProps = list(iconName = "ChromeClose")),
-            class = "create_element_modal_head small_close_button"
-          ),
-          div(
-            make_textfield(i18n, ns, id = "plugin_creation_name", label = "name", width = "200px"),
-            make_dropdown(i18n, ns, id = "plugin_creation_type", label = "data_type",
-              options = list(
-                list(key = 1, text = i18n$t("patient_lvl_data")),
-                list(key = 2, text = i18n$t("aggregated_data"))
-              ),
-              value = 1,
-              width = "200px"
-            ),
-            div(
-              shiny.fluent::PrimaryButton.shinyInput(ns("add_plugin"), i18n$t("add")),
-              class = "create_element_modal_buttons"
-            ),
-          ),
-          class = "create_plugin_modal_content"
-        ),
-        class = "create_element_modal"
-      )
-    ),
+    mod_widgets_ui(id, language, languages, i18n),
     
     # Plugin details ----
     
     shinyjs::hidden(
       div(
-        id = ns("one_plugin"),
+        id = ns("one_element"),
         div(
-          uiOutput(ns("plugin_breadcrumb")),
+          uiOutput(ns("breadcrumb")),
           div(
             id = ns("plugin_pivot"),
             tags$button(id = ns("summary"), i18n$t("summary"), class = "pivot_item selected_pivot_item", onclick = pivot_item_js),
@@ -66,7 +29,7 @@ mod_plugins_ui <- function(id, language, languages, i18n){
             tags$button(id = ns("share"), i18n$t("share"), class = "pivot_item", onclick = pivot_item_js),
             class = "pivot"
           ),
-          style = "display:flex; justify-content:space-between;"
+          style = "display: flex; justify-content: space-between; z-index: 100;"
         ),
         
         ## Summary ----
@@ -77,7 +40,7 @@ mod_plugins_ui <- function(id, language, languages, i18n){
               h1(i18n$t("informations")),
               uiOutput(ns("plugin_summary")),
               div(
-                div(shiny.fluent::PrimaryButton.shinyInput(ns("delete_plugin"), i18n$t("delete")), class = "delete_button"),
+                div(shiny.fluent::PrimaryButton.shinyInput(ns("delete_element"), i18n$t("delete")), class = "delete_button"),
                 class = "create_element_modal_buttons"
               ),
               class = "widget", style = "height: 50%;"
@@ -148,436 +111,35 @@ mod_plugins_ui <- function(id, language, languages, i18n){
         ),
         class = "delete_modal"
       )
-    ),
-    
-    # Delete a file modal ----
-    
-    shinyjs::hidden(
-      div(
-        id = ns("delete_file_modal"),
-        div(
-          tags$h1(i18n$t("delete_file_title")), tags$p(i18n$t("delete_file_text")),
-          div(
-            shiny.fluent::DefaultButton.shinyInput(ns("close_file_deletion_modal"), i18n$t("dont_delete")),
-            div(shiny.fluent::PrimaryButton.shinyInput(ns("confirm_file_deletion"), i18n$t("delete")), class = "delete_button"),
-            class = "delete_modal_buttons"
-          ),
-          class = "delete_modal_content"
-        ),
-        class = "delete_modal"
-      )
     )
   )
 }
 
 #' @noRd 
 mod_plugins_server <- function(id, r, d, m, language, i18n, debug){
+  
+  # |-------------------------------- -----
+  
+  if (debug) cat(paste0("\n", now(), " - mod_plugins - start"))
+  
+  # Load widgets ----
+  
+  all_divs <- c("summary", "edit_code", "run_code", "share")
+  mod_widgets_server(id, r, d, m, language, i18n, all_divs, debug)
+  
+  # |-------------------------------- -----
+  
+  # Plugins module ----
+  
   moduleServer(id, function(input, output, session){
     
     ns <- session$ns
-    
-    # |-------------------------------- -----
-    
-    if (debug) cat(paste0("\n", now(), " - mod_plugins - start"))
-    
-    # Pivot plugin divs
-    all_divs <- c("summary", "edit_code", "run_code", "share")
-    
-    # Hotkeys for ace editor
-    code_hotkeys <- list(
-      run_selection = list(win = "CTRL-ENTER", mac = "CTRL-ENTER|CMD-ENTER"),
-      run_all = list(win = "CTRL-SHIFT-ENTER", mac = "CTRL-SHIFT-ENTER|CMD-SHIFT-ENTER"),
-      save = list(win = "CTRL-S", mac = "CTRL-S|CMD-S"),
-      comment = list(win = "CTRL-SHIFT-C", mac = "CTRL-SHIFT-C|CMD-SHIFT-C")
-    )
-    
-    # Search a plugin ----
-    
-    observeEvent(input$search_plugin, {
-      if (debug) cat(paste0("\n", now(), " - mod_plugins - observer input$search_plugin"))
-      
-      if (input$search_plugin == "") r$filtered_plugins_long <- r$plugins_long
-      else {
-        filtered_ids <- r$plugins_long %>% dplyr::filter(name == paste0("name_", language) & grepl(tolower(input$search_plugin), tolower(value)))
-        r$filtered_plugins_long <- r$plugins_long %>% dplyr::filter(id %in% filtered_ids)
-      }
-      
-      r$reload_plugins_list <- now()
-    })
-    
-    # Reload plugins widgets ----
-    
-    r$reload_plugins <- now()
-    
-    observeEvent(r$reload_plugins, {
-      if (debug) cat(paste0("\n", now(), " - mod_plugins - observer r$reload_plugins"))
 
-      sql <- glue::glue_sql("WITH selected_plugins AS (
-        SELECT DISTINCT p.id
-        FROM plugins p
-        LEFT JOIN options AS r ON p.id = r.link_id AND r.category = 'plugin' AND r.name = 'users_allowed_read_group'
-        LEFT JOIN options AS u ON p.id = u.link_id AND u.category = 'plugin' AND u.name = 'user_allowed_read'
-        WHERE (r.value = 'everybody' OR (r.value = 'people_picker' AND u.value_num = {r$user_id}))
-      )
-      SELECT p.id, p.update_datetime, p.tab_type_id, o.name, o.value, o.value_num
-        FROM plugins p
-        INNER JOIN selected_plugins ON p.id = selected_plugins.id
-        LEFT JOIN options o ON o.category = 'plugin' AND p.id = o.link_id", .con = r$db)
-      
-      r$plugins_long <- DBI::dbGetQuery(r$db, sql)
-      r$filtered_plugins_long <- r$plugins_long
-      
-      sql <- glue::glue_sql("SELECT id, CONCAT(firstname, ' ', lastname) AS name, CONCAT(SUBSTRING(firstname, 1, 1), SUBSTRING(lastname, 1, 1)) AS initials FROM users", .con = r$db)
-      r$plugins_users <- DBI::dbGetQuery(r$db, sql)
-      
-      sql <- glue::glue_sql("SELECT * FROM plugins WHERE id IN ({unique(r$plugins_long$id)*})", .con = r$db)
-      r$plugins_wide <- DBI::dbGetQuery(r$db, sql)
-      
-      r$reload_plugins_list <- now()
-    })
-    
-    observeEvent(r$reload_plugins_list, {
-      if (debug) cat(paste0("\n", now(), " - mod_plugins - observer r$reload_plugins_list"))
-
-      # Filter plugins with search box
-
-      plugins <- r$filtered_plugins_long
-
-      plugins_ui <- tagList()
-
-      for (i in unique(plugins$id)){
-        row <- plugins %>% dplyr::filter(id == i)
-
-        personas <- list()
-        plugin_users <- row %>% dplyr::filter(name == "user_allowed_read") %>% dplyr::distinct(value_num) %>% dplyr::pull(value_num)
-        for (j in plugin_users){
-          user <- r$plugins_users %>% dplyr::filter(id == j)
-          personas <- rlist::list.append(personas, list(personaName = user$name))
-        }
-
-        users_ui <- shiny.fluent::Facepile(personas = personas)
-
-        plugin_name <- row %>% dplyr::filter(name == paste0("name_", language)) %>% dplyr::pull(value)
-        plugin_type <- row %>% dplyr::slice(1) %>% dplyr::pull(tab_type_id)
-        r$selected_plugin_type <- plugin_type
-        
-        if (plugin_type == 1) {
-          plugin_type_icon <- div(shiny.fluent::FontIcon(iconName = "Contact"), class = "small_icon_button")
-          plugin_type_text <- i18n$t("patient_lvl_plugin")
-        }
-        else {
-          plugin_type_icon <- div(shiny.fluent::FontIcon(iconName = "Group"), class = "small_icon_button")
-          plugin_type_text <- i18n$t("aggregated_plugin")
-        }
-        
-        plugin_type_icon <- create_hover_card(ui = plugin_type_icon, text = plugin_type_text)
-
-        max_length <- 45
-        if (nchar(plugin_name) > max_length) plugin_name <- paste0(substr(plugin_name, 1, max_length - 3), "...")
-
-        plugins_ui <- tagList(
-          tags$a(
-            href = shiny.router::route_link("plugins"),
-            onClick = paste0("Shiny.setInputValue('", id, "-selected_plugin', ", i, ", {priority: 'event'});"),
-            div(
-              class = "plugin_widget",
-              div(
-                tags$h1(plugin_name),
-                users_ui,
-                div("Short description of my plugin")
-              ),
-              div(
-                div(
-                  div("R", class = "prog_label r_label"),
-                  div("Python", class = "prog_label python_label"),
-                  class = "plugin_widget_labels"
-                ),
-                plugin_type_icon,
-                class = "plugin_widget_bottom"
-              )
-            ),
-            class = "no-hover-effect"
-          ),
-          plugins_ui
-        )
-      }
-
-      plugins_ui <- div(plugins_ui, class = "plugins_container")
-
-      output$plugins <- renderUI(plugins_ui)
-      
-      # Unlock reactivity
-      shinyjs::show("plugins")
-    })
-    
-    # Plugin current tab ----
-    
-    observeEvent(input$current_tab_trigger, {
-      if (debug) cat(paste0("\n", now(), " - mod_plugins - observer input$current_tab_trigger"))
-      
-      r$plugin_current_tab <- gsub(paste0(id, "-"), "", input$current_tab, fixed = FALSE)
-    })
-    
-    observeEvent(r$plugin_current_tab, {
-      if (debug) cat(paste0("\n", now(), " - mod_plugins - observer r$plugin_current_tab"))
-      
-      # Show or hide pages depending on selected tab
-      divs <- setdiff(all_divs, r$plugin_current_tab)
-      divs <- c(paste0(divs, "_reduced_sidenav"), paste0(divs, "_large_sidenav"), paste0(divs, "_div"))
-      
-      sapply(c(divs), shinyjs::hide)
-      sapply(c(paste0(r$plugin_current_tab, "_div"), paste0(r$plugin_current_tab, "_reduced_sidenav"), paste0(r$plugin_current_tab, "_large_sidenav")), shinyjs::show)
-      
-      # Change selected tab
-      sapply(all_divs, function(button_id) shinyjs::removeClass(class = "selected_pivot_item", selector = paste0("#", id, "-", button_id)))
-      shinyjs::addClass(class = "selected_pivot_item", selector = paste0("#", id, "-", r$plugin_current_tab))
-      
-      if (r$plugin_current_tab == "edit_code"){
-        r$plugins_show_hide_sidenav <- "show"
-        
-        # Debug files browser UI
-        shinyjs::hide("edit_code_files_browser")
-        shinyjs::delay(50, shinyjs::show("edit_code_files_browser")) 
-      }
-      else r$plugins_show_hide_sidenav <- "hide"
-    })
-    
-    # Return to plugins home page ----
-    
-    observeEvent(input$show_plugins_home, {
-      if (debug) cat(paste0("\n", now(), " - mod_plugins - observer input$show_plugins_home"))
-      
-      divs <- c(paste0(all_divs, "_reduced_sidenav"), paste0(all_divs, "_large_sidenav"))
-      
-      sapply(c("one_plugin", divs), shinyjs::hide)
-      sapply(c("all_plugins", "all_plugins_reduced_sidenav"), shinyjs::show)
-      r$plugins_show_hide_sidenav <- "hide"
-      
-      # Delete current widget
-      shinyjs::runjs(paste0("
-        var grid = window.gridStackInstances['plugin_run_code'];
-        var current_widget = grid.el.querySelector('#", ns(paste0("plugins_gridstack_item_", r$run_plugin_last_widget_id)), "');
-        if (current_widget) grid.removeWidget(current_widget);"))
-    })
-    
-    # |-------------------------------- -----
-    
-    # --- --- --- --- -- -
-    # Create a plugin ----
-    # --- --- --- --- -- -
-    
-    # Open modal
-    observeEvent(input$create_plugin, {
-      if (debug) cat(paste0("\n", now(), " - mod_plugins - observer input$create_plugin"))
-      
-      shinyjs::show("create_plugin_modal")
-    })
-    
-    # Close modal
-    observeEvent(input$close_create_plugin_modal, {
-      if (debug) cat(paste0("\n", now(), " - mod_data - observer input$close_create_plugin_modal"))
-      shinyjs::hide("create_plugin_modal")
-    })
-    
-    # Add a plugin
-    observeEvent(input$add_plugin, {
-      
-      if (debug) cat(paste0("\n", now(), " - mod_data - observer input$add_plugin"))
-      
-      # req(length(input$plugin_creation_name) > 0)
-      plugin_name <- input$plugin_creation_name
-      
-      # Check if name is not empty
-      empty_name <- TRUE
-      if (length(plugin_name) > 0) if (!is.na(plugin_name) & plugin_name != "") empty_name <- FALSE
-      if (empty_name) shiny.fluent::updateTextField.shinyInput(session, "plugin_creation_name", errorMessage = i18n$t("provide_valid_name"))
-      req(!empty_name)
-      
-      tab_type_id <- input$plugin_creation_type
-      
-      # Check if name is not already used
-      sql <- glue::glue_sql("SELECT name FROM plugins WHERE tab_type_id = {tab_type_id} AND LOWER(name) = {tolower(plugin_name)}", .con = r$db)
-      name_already_used <- nrow(DBI::dbGetQuery(r$db, sql) > 0)
-      
-      if (name_already_used) shiny.fluent::updateTextField.shinyInput(session, "plugin_creation_name", errorMessage = i18n$t("name_already_used"))
-      req(!name_already_used)
-      
-      # Add plugin in db
-      
-      ## Plugin table
-      plugin_id <- get_last_row(r$db, "plugins") + 1
-      
-      new_data <- tibble::tibble(id = plugin_id, name = plugin_name, tab_type_id = tab_type_id, creation_datetime = now(), update_datetime = now(), deleted = FALSE)
-      
-      DBI::dbAppendTable(r$db, "plugins", new_data)
-      r$plugins <- r$plugins %>% dplyr::bind_rows(new_data)
-      
-      ## Options table
-      sql <- glue::glue_sql("SELECT CONCAT(firstname, ' ', lastname) AS username FROM users WHERE id = {r$user_id}", .con = r$db)
-      username <- DBI::dbGetQuery(r$db, sql) %>% dplyr::pull()
-      
-      new_options <- tibble::tribble(
-        ~name, ~value, ~value_num,
-        "users_allowed_read_group", "everybody", 1,
-        "user_allowed_read", "", r$user_id,
-        "version", "0.0.1.9000", NA_integer_,
-        "unique_id", paste0(sample(c(0:9, letters[1:6]), 64, TRUE), collapse = ''), NA_integer_,
-        "author", username, NA_integer_,
-        "downloaded_from", "", NA_integer_,
-        "downloaded_from_url", "", NA_integer_
-      ) %>%
-        dplyr::bind_rows(
-          r$languages %>%
-            tidyr::crossing(name = c("description", "category", "name")) %>%
-            dplyr::mutate(
-              name = paste0(name, "_", code),
-              value = ifelse(grepl("name_", name), plugin_name, ""),
-              value_num = NA_integer_
-            ) %>%
-            dplyr::select(-code, -language)
-        ) %>%
-        dplyr::mutate(id = get_last_row(r$db, "options") + dplyr::row_number(), category = "plugin", link_id = plugin_id, .before = "name") %>%
-        dplyr::mutate(creator_id = r$user_id, datetime = now(), deleted = FALSE)
-      
-      new_options_ids <- max(new_options$id) + 1:3
-      
-      new_options <- new_options %>%
-        dplyr::bind_rows(
-          tibble::tibble(
-            id = new_options_ids, category = "plugin_code", link_id = plugin_id, name = "filename",
-            value = c("ui.R", "server.R", "translations.csv"), value_num = NA_real_, creator_id = r$user_id, datetime = now(), deleted = FALSE
-          )
-        )
-      
-      DBI::dbAppendTable(r$db, "options", new_options)
-      
-      ## Code table
-      new_code <- tibble::tibble(
-        id = get_last_row(r$db, "code") + 1:3, category = "plugin", link_id = new_options_ids, code = "",
-        creator_id = r$user_id, datetime = now(), deleted = FALSE
-      )
-      
-      DBI::dbAppendTable(r$db, "code", new_code)
-      
-      # Reset fields
-      shiny.fluent::updateTextField.shinyInput(session, "plugin_creation_name", value = "", errorMessage = NULL)
-      
-      # Update plugins widgets
-      r$reload_plugins <- now()
-      
-      # Notify user
-      show_message_bar(output, message = "plugin_added", type = "success", i18n = i18n, ns = ns)
-      
-      # Close modal
-      shinyjs::hide("create_plugin_modal")
-    })
-    
-    # |-------------------------------- -----
-    
-    # --- --- --- --- --- --- -
-    # A plugin is selected ----
-    # --- --- --- --- --- --- -
-    
-    ## Initiate vars ----
-    
-    r$edit_plugin_code_files_list <- tibble::tibble(id = integer(), plugin_id = integer(), filename = character())
-    r$edit_plugin_code_editors <- tibble::tibble(id = integer(), plugin_id = integer(), filename = character())
-    
-    ## Selected plugin ----
-    
-    observeEvent(input$selected_plugin, {
-      if (debug) cat(paste0("\n", now(), " - mod_plugins - observer input$selected_plugin"))
-      
-      r$selected_plugin <- input$selected_plugin
-      
-      sapply(c("all_plugins", "all_plugins_reduced_sidenav"), shinyjs::hide)
-      shinyjs::show("one_plugin")
-      
-      plugin_wide <- r$plugins_wide %>% dplyr::filter(id == input$selected_plugin)
-      plugin_long <- r$plugins_long %>% dplyr::filter(id == input$selected_plugin)
-      
-      if (plugin_wide$tab_type_id == 1) r$selected_plugin_type <- "patient_lvl"
-      else r$selected_plugin_type <- "aggregated"
-      r$selected_plugin_name <- plugin_wide$name
-      r$selected_plugin_unique_id <- plugin_long %>% dplyr::filter(name == "unique_id") %>% dplyr::pull(value)
-      
-      output$plugin_breadcrumb <- renderUI(
-        shiny.fluent::Breadcrumb(items = list(
-          list(key = "main", text = i18n$t("plugins"), href = shiny.router::route_link("plugins"), 
-               onClick = htmlwidgets::JS(paste0("item => { Shiny.setInputValue('", id, "-show_plugins_home', Math.random()); }"))),
-          list(key = "main", text = r$selected_plugin_name))
-        )
-      )
-      
-      # r$reload_plugin_pivot <- now()
-      r$plugin_current_tab <- "summary"
-      
-      # Hide all editors
-      sapply(paste0("edit_code_editor_div_", r$edit_plugin_code_editors$id), shinyjs::hide)
-      
-      # Load plugin code files
-      r$reload_plugin_code_files <- now()
-      
-      # Change selected tab
-      sapply(all_divs, function(button_id) shinyjs::removeClass(class = "selected_pivot_item", selector = paste0("#", id, "-", button_id)))
-      shinyjs::addClass(class = "selected_pivot_item", selector = paste0("#", id, "-summary"))
-    })
-    
     # |-------------------------------- -----
     
     # --- --- --- --- - -
     # Plugin summary ----
     # --- --- --- --- - -
-    
-    ## Delete a plugin ----
-    
-    observeEvent(input$delete_plugin, {
-      if (debug) cat(paste0("\n", now(), " - mod_plugins - observer input$delete_plugin"))
-      shinyjs::show("delete_plugin_modal")
-    })
-    
-    observeEvent(input$close_plugin_deletion_modal, {
-      if (debug) cat(paste0("\n", now(), " - mod_plugins - observer input$close_plugin_deletion_modal"))
-      shinyjs::hide("delete_plugin_modal")
-    })
-    
-    observeEvent(input$confirm_plugin_deletion, {
-      if (debug) cat(paste0("\n", now(), " - mod_plugins - observer input$confirm_plugin_deletion"))
-      
-      plugin_id <- r$selected_plugin
-      
-      # Delete plugin in db
-      
-      sql <- glue::glue_sql("DELETE FROM plugins WHERE id = {plugin_id}", .con = r$db)
-      query <- DBI::dbSendStatement(r$db, sql)
-      DBI::dbClearResult(query)
-      
-      # Delete code in db
-      sql <- glue::glue_sql("SELECT id FROM options WHERE category = 'plugin_code' AND link_id = {plugin_id}", .con = r$db)
-      code_ids <- DBI::dbGetQuery(r$db, sql) %>% dplyr::pull()
-      sql <- glue::glue_sql("DELETE FROM code WHERE id IN ({code_ids*})", .con = r$db)
-      query <- DBI::dbSendStatement(r$db, sql)
-      DBI::dbClearResult(query)
-      
-      # Delete options in db
-      sql <- glue::glue_sql("DELETE FROM options WHERE category IN ('plugin', 'plugin_code') AND link_id = {plugin_id}", .con = r$db)
-      query <- DBI::dbSendStatement(r$db, sql)
-      DBI::dbClearResult(query)
-      
-      # Delete files
-      # plugin_folder <- paste0(r$app_folder, "/plugins/", r$selected_plugin_type, "/", r$selected_plugin_unique_id)
-      unlink(r$selected_plugin_folder, recursive = TRUE)
-      
-      # Reload plugins list
-      r$reload_plugins <- now()
-      shinyjs::runjs(paste0("Shiny.setInputValue('", id, "-show_plugins_home', Math.random());"))
-      
-      # Notify user
-      show_message_bar(output, "plugin_deleted", "warning", i18n = i18n, ns = ns)
-      
-      # Close modal
-      shinyjs::hide("delete_plugin_modal")
-    })
     
     # |-------------------------------- -----
     
@@ -585,57 +147,61 @@ mod_plugins_server <- function(id, r, d, m, language, i18n, debug){
     # Edit plugin code ----
     # --- --- --- --- --- -
     
+    code_hotkeys <- list(
+      save = list(win = "CTRL-S", mac = "CTRL-S|CMD-S"),
+      run_selection = list(win = "CTRL-ENTER", mac = "CTRL-ENTER|CMD-ENTER"),
+      run_all = list(win = "CTRL-SHIFT-ENTER", mac = "CTRL-SHIFT-ENTER|CMD-SHIFT-ENTER"),
+      comment = list(win = "CTRL-SHIFT-C", mac = "CTRL-SHIFT-C|CMD-SHIFT-C")
+    )
+    
     ## Load plugin files  ----
     
-    observeEvent(r$reload_plugin_code_files, {
-      if (debug) cat(paste0("\n", now(), " - mod_plugins - observer r$load_plugin_code_files"))
+    observeEvent(input$reload_code_files, {
+      if (debug) cat(paste0("\n", now(), " - mod_plugins - observer input$reload_code_files"))
       
-      plugin_folder <- paste0(r$app_folder, "/plugins/", r$selected_plugin_type, "/", r$selected_plugin_unique_id)
-      r$selected_plugin_folder <- plugin_folder
+      plugin_folder <- paste0(r$app_folder, "/plugins/", input$selected_plugin_type, "/", input$selected_plugin_unique_id)
+      shinyjs::runjs(paste0("Shiny.setInputValue('", id, "-selected_plugin_folder', '", plugin_folder, "');"))
       
       # Create folder if doesn't exist
       if (!dir.exists(plugin_folder)) dir.create(plugin_folder)
       
       # Retro-compatibility : convert UI / server / translations entries from database to files
-      sql <- glue::glue_sql("SELECT * FROM code WHERE category IN ('plugin_ui', 'plugin_server', 'plugin_translations') AND link_id = {r$selected_plugin}", .con = r$db)
+      sql <- glue::glue_sql("SELECT * FROM code WHERE category IN ('plugin_ui', 'plugin_server', 'plugin_translations') AND link_id = {input$selected_element}", .con = r$db)
       old_plugin_files <- DBI::dbGetQuery(r$db, sql)
       if (nrow(old_plugin_files) > 0){
         for (filename in c("server.R", "ui.R", "translations.csv")){
-          file_path <- paste0(r$selected_plugin_folder, "/", filename)
+          file_path <- paste0(plugin_folder, "/", filename)
           if (!file.exists(file_path)){
             file_code <- old_plugin_files %>% dplyr::filter(category == paste0("plugin_", sub("\\.[^.]*$", "", filename))) %>% dplyr::pull(code)
             writeLines(file_code, file_path)
           }
         }
       }
-      
       # List files in the plugin folder
+      files_list <- list.files(path = plugin_folder, pattern = "(?i)*.\\.(r|py|csv|css|js)$")
       
-      files_list <- list.files(path = r$selected_plugin_folder, pattern = "(?i)*.\\.(r|py|csv|css|js)$")
-      
-      sql <- glue::glue_sql("SELECT * FROM options WHERE category = 'plugin_code' AND link_id = {r$selected_plugin}", .con = r$db)
+      sql <- glue::glue_sql("SELECT * FROM options WHERE category = 'plugin_code' AND link_id = {input$selected_element}", .con = r$db)
       plugin_files_db <- DBI::dbGetQuery(r$db, sql)
       
       if (length(files_list) > 0){
         for (i in 1:length(files_list)){
           file_name <- files_list[i]
           
-          file_names <- r$edit_plugin_code_files_list %>% dplyr::filter(plugin_id == r$selected_plugin) %>% dplyr::pull(filename)
+          file_names <- r$edit_plugin_code_files_list %>% dplyr::filter(plugin_id == input$selected_element) %>% dplyr::pull(filename)
           if (length(file_names) == 0) file_names <- c()
           
           if (file_name %not_in% file_names){
             # Get option id from db
-            options_id <- plugin_files_db %>% dplyr::filter(link_id == r$selected_plugin, value == file_name) %>% dplyr::pull(id)
+            options_id <- plugin_files_db %>% dplyr::filter(link_id == input$selected_element, value == file_name) %>% dplyr::pull(id)
             if (length(options_id) == 0) options_id <- NA_integer_
             
-            r$edit_plugin_code_files_list <- r$edit_plugin_code_files_list %>% dplyr::bind_rows(tibble::tibble(id = options_id, plugin_id = r$selected_plugin, filename = file_name))
+            r$edit_plugin_code_files_list <- r$edit_plugin_code_files_list %>% dplyr::bind_rows(tibble::tibble(id = options_id, plugin_id = input$selected_element, filename = file_name))
           }
         }
       }
-      
       # Synchronize with database. Add files in database if don't exist.
       
-      edit_plugin_code_files_list <- r$edit_plugin_code_files_list %>% dplyr::filter(plugin_id == r$selected_plugin)
+      edit_plugin_code_files_list <- r$edit_plugin_code_files_list %>% dplyr::filter(plugin_id == input$selected_element)
       
       if (nrow(edit_plugin_code_files_list) > 0){
         for (i in 1:nrow(edit_plugin_code_files_list)){
@@ -643,16 +209,16 @@ mod_plugins_server <- function(id, r, d, m, language, i18n, debug){
           if (file$filename %not_in% plugin_files_db$value){
             options_new_row_id <- as.integer(get_last_row(r$db, "options") + 1)
             new_options <- tibble::tibble(
-              id = options_new_row_id, category = "plugin_code", link_id = {r$selected_plugin}, name = "filename",
+              id = options_new_row_id, category = "plugin_code", link_id = {input$selected_element}, name = "filename",
               value = {file$filename}, value_num = NA_real_, creator_id = r$user_id, datetime = now(), deleted = FALSE
             )
             DBI::dbAppendTable(r$db, "options", new_options)
             
             r$edit_plugin_code_files_list <- 
               r$edit_plugin_code_files_list %>% 
-              dplyr::mutate(id = dplyr::case_when(plugin_id == r$selected_plugin & filename == file$filename ~ options_new_row_id, TRUE ~ id))
+              dplyr::mutate(id = dplyr::case_when(plugin_id == input$selected_element & filename == file$filename ~ options_new_row_id, TRUE ~ id))
             
-            file_code <- readLines(paste0(r$selected_plugin_folder, "/", file$filename), warn = FALSE) %>% toString()
+            file_code <- readLines(paste0(plugin_folder, "/", file$filename), warn = FALSE) %>% toString()
             new_code <- tibble::tibble(
               id = as.integer(get_last_row(r$db, "code") + 1), category = "plugin", link_id = {options_new_row_id}, code = file_code,
               creator_id = r$user_id, datetime = now(), deleted = FALSE
@@ -661,22 +227,21 @@ mod_plugins_server <- function(id, r, d, m, language, i18n, debug){
           }
         }
       }
-      
       # Synchronize database with files. Create files if don't exist.
       
       if (nrow(plugin_files_db) > 0){
         for (i in 1:nrow(plugin_files_db)){
           file <- plugin_files_db[i, ]
-          if (!file.exists(paste0(r$selected_plugin_folder, "/", file$value))){
+          if (!file.exists(paste0(plugin_folder, "/", file$value))){
             # Get code
             sql <- glue::glue_sql("SELECT * FROM code WHERE category = 'plugin' AND link_id = {file$id}", .con = r$db)
             row <- DBI::dbGetQuery(r$db, sql)
             
             # Create file
-            writeLines(row$code, paste0(r$selected_plugin_folder, "/", file$value))
+            writeLines(row$code, paste0(plugin_folder, "/", file$value))
             
             # Add file to r$edit_plugin_code_files_list
-            r$edit_plugin_code_files_list <- r$edit_plugin_code_files_list %>% dplyr::bind_rows(tibble::tibble(id = file$id, plugin_id = r$selected_plugin, filename = file$value))
+            r$edit_plugin_code_files_list <- r$edit_plugin_code_files_list %>% dplyr::bind_rows(tibble::tibble(id = file$id, plugin_id = input$selected_element, filename = file$value))
           }
         }
       }
@@ -687,7 +252,7 @@ mod_plugins_server <- function(id, r, d, m, language, i18n, debug){
       # Initiate plugin tabs
       r$edit_plugin_code_tabs <- 
         r$edit_plugin_code_files_list %>%
-        dplyr::filter(plugin_id == r$selected_plugin, filename %in% c("server.R", "ui.R", "translations.csv")) %>%
+        dplyr::filter(plugin_id == input$selected_element, filename %in% c("server.R", "ui.R", "translations.csv")) %>%
         dplyr::mutate(temp_id = dplyr::case_when(filename == "ui.R" ~ 1, filename == "server.R" ~ 2, filename == "translations.csv" ~ 3)) %>%
         dplyr::arrange(temp_id) %>%
         dplyr::select(-temp_id) %>%
@@ -699,8 +264,8 @@ mod_plugins_server <- function(id, r, d, m, language, i18n, debug){
       
       # Create ace editors for server.R, ui.R and translations.csv
       for (filename in c("ui.R", "server.R", "translations.csv")){
-        file_code <- readLines(paste0(r$selected_plugin_folder, "/", filename), warn = FALSE)
-        file_id <- r$edit_plugin_code_files_list %>% dplyr::filter(plugin_id == r$selected_plugin, filename == !!filename) %>% dplyr::pull(id)
+        file_code <- readLines(paste0(plugin_folder, "/", filename), warn = FALSE)
+        file_id <- r$edit_plugin_code_files_list %>% dplyr::filter(plugin_id == input$selected_element, filename == !!filename) %>% dplyr::pull(id)
         file_ext <- sub(".*\\.", "", tolower(filename))
         ace_mode <- switch(file_ext, "r" = "r", "py" = "python", "")
         
@@ -751,7 +316,7 @@ mod_plugins_server <- function(id, r, d, m, language, i18n, debug){
       filenames_order <- c("ui.R", "server.R", "translations.csv")
       edit_plugin_code_files_list <- 
         r$edit_plugin_code_files_list %>%
-        dplyr::filter(plugin_id == r$selected_plugin) %>%
+        dplyr::filter(plugin_id == input$selected_element) %>%
         dplyr::mutate(filename = factor(filename, levels = c(filenames_order, setdiff(unique(filename), filenames_order)))) %>%
         dplyr::arrange(filename) %>%
         dplyr::mutate_at("filename", as.character) %>%
@@ -928,7 +493,7 @@ mod_plugins_server <- function(id, r, d, m, language, i18n, debug){
       
       # Add editor UI or show it if already exists
       if (r$edit_plugin_code_open_new_editor){
-        file_code <- readLines(paste0(r$selected_plugin_folder, "/", file_row$filename), warn = FALSE)
+        file_code <- readLines(paste0(input$selected_plugin_folder, "/", file_row$filename), warn = FALSE)
         
         # Create editor
         insertUI(selector = paste0("#", ns("edit_code_editors_div")), where = "beforeEnd", ui = div(
@@ -971,7 +536,7 @@ mod_plugins_server <- function(id, r, d, m, language, i18n, debug){
       if (debug) cat(paste0("\n", now(), " - mod_plugins - observer input$edit_code_add_file"))
       
       # List files to create new filename
-      files_list <- list.files(path = r$selected_plugin_folder, pattern = "(?i)*.\\.(r|py|csv|css|js)$")
+      files_list <- list.files(path = input$selected_plugin_folder, pattern = "(?i)*.\\.(r|py|csv|css|js)$")
       base_name <- "untitled"
       extension <- ".R"
       i <- 1
@@ -982,7 +547,7 @@ mod_plugins_server <- function(id, r, d, m, language, i18n, debug){
       }
 
       # Create file
-      writeLines("", paste0(r$selected_plugin_folder, "/", new_filename))
+      writeLines("", paste0(input$selected_plugin_folder, "/", new_filename))
 
       # Add file in database
       # If a file is added and then deleted, change ID to create a new editor
@@ -991,7 +556,7 @@ mod_plugins_server <- function(id, r, d, m, language, i18n, debug){
       r$options_new_row_id <- options_new_row_id
 
       new_options <- tibble::tibble(
-        id = options_new_row_id, category = "plugin_code", link_id = {r$selected_plugin}, name = "filename",
+        id = options_new_row_id, category = "plugin_code", link_id = {input$selected_element}, name = "filename",
         value = {new_filename}, value_num = NA_real_, creator_id = r$user_id, datetime = now(), deleted = FALSE
       )
       DBI::dbAppendTable(r$db, "options", new_options)
@@ -1003,7 +568,7 @@ mod_plugins_server <- function(id, r, d, m, language, i18n, debug){
       DBI::dbAppendTable(r$db, "code", new_code)
 
       # Update files browser
-      r$edit_plugin_code_files_list <- r$edit_plugin_code_files_list %>% dplyr::bind_rows(tibble::tibble(id = options_new_row_id, plugin_id = r$selected_plugin, filename = new_filename))
+      r$edit_plugin_code_files_list <- r$edit_plugin_code_files_list %>% dplyr::bind_rows(tibble::tibble(id = options_new_row_id, plugin_id = input$selected_element, filename = new_filename))
       
       r$edit_plugin_code_reload_files_browser <- now()
       
@@ -1042,7 +607,7 @@ mod_plugins_server <- function(id, r, d, m, language, i18n, debug){
       new_code <- input[[paste0("edit_code_editor_", file$id)]]
       
       # Update file
-      writeLines(new_code, paste0(r$selected_plugin_folder, "/", file$filename))
+      writeLines(new_code, paste0(input$selected_plugin_folder, "/", file$filename))
       
       # Update database
       sql <- glue::glue_sql("UPDATE code SET code = {new_code} WHERE category = 'plugin' AND link_id = {file$id}", .con = r$db)
@@ -1088,7 +653,7 @@ mod_plugins_server <- function(id, r, d, m, language, i18n, debug){
       # Check if name is already used
       if (new_name == old_name) check_used_name <- TRUE
       else {
-        check_used_name <- !file.exists(paste0(r$selected_plugin_folder, "/", new_name))
+        check_used_name <- !file.exists(paste0(input$selected_plugin_folder, "/", new_name))
         if (!check_used_name) {
           sql <- glue::glue_sql("SELECT * FROM options WHERE category = 'plugin_code' AND name = 'filename' AND value = {new_name}", .con = r$db)
           used_name <- DBI::dbGetQuery(r$db, sql)
@@ -1099,7 +664,7 @@ mod_plugins_server <- function(id, r, d, m, language, i18n, debug){
       req(check_used_name)
       
       # Update file
-      file.rename(paste0(r$selected_plugin_folder, "/", old_name), paste0(r$selected_plugin_folder, "/", new_name))
+      file.rename(paste0(input$selected_plugin_folder, "/", old_name), paste0(input$selected_plugin_folder, "/", new_name))
       
       # Update database
       sql <- glue::glue_sql("UPDATE options SET value = {new_name} WHERE id = {file_id}", .con = r$db)
@@ -1139,7 +704,7 @@ mod_plugins_server <- function(id, r, d, m, language, i18n, debug){
       filename <- r$edit_plugin_code_files_list %>% dplyr::filter(id == file_id) %>% dplyr::pull(filename)
       
       # Delete file
-      file.remove(paste0(r$selected_plugin_folder, "/", filename))
+      file.remove(paste0(input$selected_plugin_folder, "/", filename))
       
       # Remove from database
       sql <- glue::glue_sql("DELETE FROM options WHERE id = {file_id}", .con = r$db)
@@ -1190,7 +755,9 @@ mod_plugins_server <- function(id, r, d, m, language, i18n, debug){
       if (debug) cat(paste0("\n", now(), " - mod_plugins - observer r$run_plugin_code"))
 
       # Switch to 'Test' tab
-      r$plugin_current_tab <- "run_code"
+      shinyjs::runjs(paste0("
+        Shiny.setInputValue('", id, "-current_tab_trigger', Math.random());
+        Shiny.setInputValue('", id, "-current_tab', 'run_code');"))
       
       # Notify user that if there's not a study loaded, server code might not work
       no_study_loaded <- TRUE
@@ -1201,11 +768,11 @@ mod_plugins_server <- function(id, r, d, m, language, i18n, debug){
 
         tryCatch({
           # Create plugin folder in translations folder if doesn't exist
-          new_dir <- paste0(r$app_folder, "/translations/", r$selected_plugin_unique_id)
+          new_dir <- paste0(r$app_folder, "/translations/", input$selected_plugin_unique_id)
           if (!dir.exists(new_dir)) dir.create(new_dir)
 
           # Get translations file
-          translations <- readLines(paste0(r$selected_plugin_folder, "/translations.csv"), warn = FALSE)
+          translations <- readLines(paste0(input$selected_plugin_folder, "/translations.csv"), warn = FALSE)
 
           # Create a csv with all languages
           data <- read.csv(text = translations, header = TRUE, stringsAsFactors = FALSE)
@@ -1240,8 +807,8 @@ mod_plugins_server <- function(id, r, d, m, language, i18n, debug){
 
       # Get ui & server code
       code <- list()
-      code$ui <- input[[paste0("edit_code_editor_", r$edit_plugin_code_files_list %>% dplyr::filter(plugin_id == r$selected_plugin, filename == "ui.R") %>% dplyr::pull(id))]]
-      code$server <- input[[paste0("edit_code_editor_", r$edit_plugin_code_files_list %>% dplyr::filter(plugin_id == r$selected_plugin, filename == "server.R") %>% dplyr::pull(id))]]
+      code$ui <- input[[paste0("edit_code_editor_", r$edit_plugin_code_files_list %>% dplyr::filter(plugin_id == input$selected_element, filename == "ui.R") %>% dplyr::pull(id))]]
+      code$server <- input[[paste0("edit_code_editor_", r$edit_plugin_code_files_list %>% dplyr::filter(plugin_id == input$selected_element, filename == "server.R") %>% dplyr::pull(id))]]
 
       previous_widget_id <- r$run_plugin_last_widget_id
       widget_id <- r$run_plugin_last_widget_id + 1
@@ -1262,8 +829,8 @@ mod_plugins_server <- function(id, r, d, m, language, i18n, debug){
       if (length(m$selected_study) > 0) study_id <- m$selected_study
       if (length(m$selected_person) > 0) patient_id <- m$selected_person
 
-      code$ui <- process_widget_code(code$ui, 1, widget_id, study_id, patient_id, r$selected_plugin_folder)
-      code$server <- process_widget_code(code$server, 1, widget_id, study_id, patient_id, r$selected_plugin_folder)
+      code$ui <- process_widget_code(code$ui, 1, widget_id, study_id, patient_id, input$selected_plugin_folder)
+      code$server <- process_widget_code(code$server, 1, widget_id, study_id, patient_id, input$selected_plugin_folder)
 
       code$ui <- tryCatch(
         eval(parse(text = code$ui)),

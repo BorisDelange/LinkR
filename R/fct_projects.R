@@ -21,7 +21,6 @@ load_projects_ui <- function(id, projects, projects_users, language, i18n){
     project_name <- row %>% dplyr::filter(name == paste0("name_", language)) %>% dplyr::pull(value)
     
     max_length <- 45
-    print(project_name)
     if (nchar(project_name) > max_length) project_name <- paste0(substr(project_name, 1, max_length - 3), "...")
     
     study_description <- "Short description of my study"

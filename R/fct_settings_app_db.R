@@ -469,3 +469,8 @@ load_database <- function(r = shiny::reactiveValues(), m = shiny::reactiveValues
   # Add a tab_types variable, for settings/plugins dropdown
   r$tab_types <- tibble::tribble(~id, ~name, 1, i18n$t("patient_level_data"), 2, i18n$t("aggregated_data"))
 }
+
+sql_send_statement <- function(con, sql){
+  query <- DBI::dbSendStatement(con, sql)
+  DBI::dbClearResult(query)
+}

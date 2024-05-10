@@ -205,7 +205,7 @@ mod_page_header_server <- function(id = character(), r = shiny::reactiveValues()
       observeEvent(m$selected_study, {
         if (debug) cat(paste0("\n", now(), " - mod_page_header - ", id, " - observer m$selected_study"))
         
-        project_name <- r$projects_long %>% dplyr::filter(study_id == m$selected_study, name == paste0("name_", language)) %>% dplyr::pull(value)
+        project_name <- r$projects_long %>% dplyr::filter(id == m$selected_study, name == paste0("name_", language)) %>% dplyr::pull(value)
         project_name_short <- project_name
         max_length <- 27
         if (nchar(project_name_short) > max_length) project_name_short <- paste0(substr(project_name_short, 1, max_length - 3), "...")

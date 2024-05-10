@@ -131,8 +131,11 @@ mod_page_sidenav_ui <- function(id = character(), i18n = character()){
       ),
       div(
         id = ns("reduced_sidenav"),
-        create_hover_card(ui = shiny.fluent::IconButton.shinyInput(ns("create_dataset"), iconProps = list(iconName = "Add")), text = i18n$t("create_dataset")),
-        class = "reduced_sidenav_buttons"
+        div(
+          id = ns("all_elements_reduced_sidenav"),
+          create_hover_card(ui = shiny.fluent::IconButton.shinyInput(ns("create_element"), iconProps = list(iconName = "Add")), text = i18n$t("create_dataset")),
+          class = "reduced_sidenav_buttons"
+        )
       ),
       show_hide_sidenav
     ) -> result
@@ -257,8 +260,8 @@ mod_page_sidenav_ui <- function(id = character(), i18n = character()){
       div(
         id = ns("reduced_sidenav"),
         div(
-          id = ns("all_plugins_reduced_sidenav"),
-          create_hover_card(ui = shiny.fluent::IconButton.shinyInput(ns("create_plugin"), iconProps = list(iconName = "Add")), text = i18n$t("create_plugin")),
+          id = ns("all_elements_reduced_sidenav"),
+          create_hover_card(ui = shiny.fluent::IconButton.shinyInput(ns("create_element"), iconProps = list(iconName = "Add")), text = i18n$t("create_plugin")),
           class = "reduced_sidenav_buttons"
         ),
         shinyjs::hidden(
@@ -296,7 +299,7 @@ mod_page_sidenav_ui <- function(id = character(), i18n = character()){
       ),
       div(
         id = ns("reduced_sidenav"),
-        create_hover_card(ui = shiny.fluent::IconButton.shinyInput(ns("create_project"), iconProps = list(iconName = "Add")), text = i18n$t("create_project")),
+        create_hover_card(ui = shiny.fluent::IconButton.shinyInput(ns("create_element"), iconProps = list(iconName = "Add")), text = i18n$t("create_project")),
         class = "reduced_sidenav_buttons"
       ),
       show_hide_sidenav
@@ -436,7 +439,9 @@ mod_page_sidenav_server <- function(id = character(), r = shiny::reactiveValues(
     observeEvent(input$show_hide_sidenav, {
       if (debug) cat(paste0("\n", now(), " - mod_page_sidenav - ", id, " - observer input$show_hide_sidenav"))
       
-      shinyjs::runjs(paste0(js_vars, " if (currentWidth === '200px') {", js_hide_sidenav, "} else { ", js_show_sidenav, "}"))
+      if (input$show_hide_sidenav == "hide") shinyjs::runjs(paste0(js_vars, js_hide_sidenav))
+      else if (input$show_hide_sidenav == "show") shinyjs::runjs(paste0(js_vars, js_show_sidenav))
+      else shinyjs::runjs(paste0(js_vars, " if (currentWidth === '200px') {", js_hide_sidenav, "} else { ", js_show_sidenav, "}"))
     })
   })
 }

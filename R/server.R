@@ -134,6 +134,10 @@ app_server <- function(pages, language, languages, i18n, app_folder, debug, loca
       sql <- glue::glue_sql("SELECT * FROM vocabulary", .con = m$db)
       r$vocabulary <- DBI::dbGetQuery(m$db, sql)
       
+      # Load users names
+      sql <- glue::glue_sql("SELECT id, CONCAT(firstname, ' ', lastname) AS name, CONCAT(SUBSTRING(firstname, 1, 1), SUBSTRING(lastname, 1, 1)) AS initials FROM users", .con = r$db)
+      r$users <- DBI::dbGetQuery(r$db, sql)
+      
       # Retro-compatibility : delete all insertions with DELETED IS TRUE
       sql <- glue::glue_sql("SELECT * FROM options WHERE name = 'unused_rows_deleted' AND value = 'true'", .con = r$db)
       if (nrow(DBI::dbGetQuery(r$db, sql)) == 0){
