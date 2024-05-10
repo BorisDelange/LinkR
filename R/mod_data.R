@@ -1972,9 +1972,15 @@ mod_data_server <- function(id = character(), r = shiny::reactiveValues(), d = s
               )
             }
             print("ui_38")
-            ui_output <- create_widget(id, widget_id, ui_code)
+            print("widget_id")
+            print(widget_id)
+            print("ui_code")
+            print(length(ui_code))
+            # ui_output <- create_widget(id, widget_id, ui_code)
             print("ui_39")
-            add_widget_to_gridstack(id, tab_id, ui_output, widget_id)
+            print("ui_output")
+            print(length(ui_output))
+            # add_widget_to_gridstack(id, tab_id, ui_output, widget_id)
             print("ui_40")
           })
         }
