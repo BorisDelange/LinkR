@@ -110,7 +110,8 @@ mod_widgets_server <- function(id, r, d, m, language, i18n, all_divs, debug){
       
       if (input$search_element == "") r[[long_var_filtered]] <- r[[long_var]]
       else {
-        filtered_ids <- r[[long_var]] %>% dplyr::filter(name == paste0("name_", language) & grepl(tolower(input$search_element), tolower(value)))
+        filtered_ids <- r[[long_var]] %>% dplyr::filter(name == paste0("name_", language) & grepl(tolower(input$search_element), tolower(value))) %>% dplyr::pull(id)
+        
         r[[long_var_filtered]] <- r[[long_var]] %>% dplyr::filter(id %in% filtered_ids)
       }
       
@@ -231,6 +232,7 @@ mod_widgets_server <- function(id, r, d, m, language, i18n, all_divs, debug){
                 class = "small_icon_button",
                 onclick = paste0("
                   Shiny.setInputValue('", id, "-selected_element', ", i, ");
+                  Shiny.setInputValue('", id, "-selected_element_type', 'project_options');
                   Shiny.setInputValue('", id, "-selected_element_trigger', Math.random());
                   event.stopPropagation();
                 ")
@@ -248,6 +250,7 @@ mod_widgets_server <- function(id, r, d, m, language, i18n, all_divs, debug){
             href = href,
             onclick = paste0("
               Shiny.setInputValue('", id, "-selected_element', ", i, ");
+               Shiny.setInputValue('", id, "-selected_element_type', '');
               Shiny.setInputValue('", id, "-selected_element_trigger', Math.random());"),
             div(
               class = paste0(single_id, "_widget"),
@@ -315,6 +318,13 @@ mod_widgets_server <- function(id, r, d, m, language, i18n, all_divs, debug){
       sapply(c("all_elements", "all_elements_reduced_sidenav"), shinyjs::show)
       
       shinyjs::runjs(paste0("Shiny.setInputValue('", id, "-show_hide_sidenav', 'hide');"))
+      
+      if (id == "projects"){
+        
+        # Change header
+        shinyjs::show("command_bar_1_div")
+        sapply(c("command_bar_2_a", "command_bar_2_div"), shinyjs::hide)
+      }
     })
     
     # |-------------------------------- -----
@@ -492,18 +502,43 @@ mod_widgets_server <- function(id, r, d, m, language, i18n, all_divs, debug){
       }
       
       # Load project
-      if (id == "projects"){
+      else if (id == "projects"){
+        
+        # Change header
+        shinyjs::hide("command_bar_1_div")
+        sapply(c("command_bar_2_a", "command_bar_2_div"), shinyjs::show)
+        
+        # Change current project name
+        r$selected_project_id <- input$selected_element
+        r$selected_project_trigger <- now()
+        
+        # Update selected dataset dropdown
+        shiny.fluent::updateDropdown.shinyInput(
+          session, "project_dataset",
+          options = convert_tibble_to_list(r$datasets_wide, key_col = "id", text_col = "name"),
+          value = element_wide$dataset_id
+        )
         
         # Load data & concept pages if not already loaded
         # If not already loaded, project is loaded after data pages server side is loaded
         # Else, project is loaded directly
         # Delay to change page before executing server
         
-        if (length(r$loaded_pages$data) == 0){
-          r$load_page <- "data"
-          r$data_page <- "patient_lvl"
+        if (input$selected_element_type != "project_options"){
+          if (length(r$loaded_pages$data) == 0){
+            r$load_page <- "data"
+            r$data_page <- "patient_lvl"
+          }
+          else r$load_project_trigger <- now()
         }
-        else r$load_project_trigger <- now()
+      }
+      
+      # Load dataset
+      else if (id == "datasets"){
+        
+        shinyjs::runjs(paste0("
+          Shiny.setInputValue('", id, "-load_dataset_code', Math.random());
+        "))
       }
     })
     

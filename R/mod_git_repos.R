@@ -2,230 +2,231 @@
 mod_git_repos_ui <- function(id, language, languages, i18n){
   ns <- NS(id)
   
-  cards <- c("git_add_repo_card", "git_repos_management_card", "git_repo_options_card", "git_edit_repo_card")
-  
-  forbidden_cards <- tagList()
-  for (card in cards) forbidden_cards <- tagList(forbidden_cards, forbidden_card(ns = ns, name = card, i18n = i18n))
-  
-  # --- --- --- -- -
-  # Pivot items ----
-  # --- --- --- -- -
-  
-  div(class = "main",
-    render_settings_default_elements(ns = ns),
-    shiny.fluent::reactOutput(ns("help_panel")),
-    shiny.fluent::reactOutput(ns("help_modal")),
-    shiny.fluent::reactOutput(ns("git_repos_delete_confirm")),
-    shiny.fluent::reactOutput(ns("edit_repo_delete_confirm")),
-    shiny.fluent::Breadcrumb(items = list(
-      list(key = "remote_git_repos", text = i18n$t("remote_git_repos"))
-    ), maxDisplayedItems = 3),
-    shiny.fluent::Pivot(
-      id = ns("git_repos_pivot"),
-      onLinkClick = htmlwidgets::JS(paste0("item => Shiny.setInputValue('", id, "-current_tab', item.props.id)")),
-      shiny.fluent::PivotItem(id = "git_add_repo_card", itemKey = "git_add_repo_card", headerText = i18n$t("add_git_repo")),
-      shiny.fluent::PivotItem(id = "git_repos_management_card", itemKey = "git_repos_management_card", headerText = i18n$t("git_repos_management")),
-      shiny.fluent::PivotItem(id = "git_repo_options_card", itemKey = "git_repo_options_card", headerText = i18n$t("git_repo_options")),
-      shiny.fluent::PivotItem(id = "git_edit_repo_card", itemKey = "git_edit_repo_card", headerText = i18n$t("edit_git_repo"))
-    ),
-    forbidden_cards,
-    
-    # --- --- --- --- --
-    # Add repo card ----
-    # --- --- --- --- --
-    
-    shinyjs::hidden(
-      div(id = ns("git_add_repo_card"),
-        make_card(i18n$t("add_git_repo"), div(
-          shiny.fluent::Pivot(
-            id = ns("git_add_repo_pivot"),
-            onLinkClick = htmlwidgets::JS(paste0("item => Shiny.setInputValue('", id, "-add_repo_tab', item.props.id)")),
-            shiny.fluent::PivotItem(id = "git_add_repo_map", itemKey = "git_add_repo_map", headerText = i18n$t("with_map")),
-            shiny.fluent::PivotItem(id = "git_add_repo_url", itemKey = "git_add_repo_url", headerText = i18n$t("with_url")),
-          ),
-          div(
-            id = ns("git_add_repo_map_div"),
-            leaflet::leafletOutput(ns("git_repos_map"), height = 500),
-            shinyjs::hidden(
-              div(
-                id = ns("git_add_repo_map_details_div"),
-                shiny.fluent::Stack(horizontal = TRUE, tokens = list(childrenGap = 10), br(),
-                  div(
-                    id = ns("api_key_git_repo_with_map_div"),
-                    shiny.fluent::Stack(horizontal = TRUE, tokens = list(childrenGap = 10),
-                      div(strong(i18n$t("api_key")), style = "margin-top:5px;"),
-                      div(shiny.fluent::TextField.shinyInput(ns("api_key_git_repo_with_map")), style = "width:600px;")
-                    ),
-                    style = "margin-top:15px; margin-left:0px;"
-                  ),
-                  div(shiny.fluent::PrimaryButton.shinyInput(ns("add_git_repo_with_map"), i18n$t("add")), style = "margin-top:15px;")
-                ), br(),
-                div(
-                  uiOutput(ns("render_git_repo_description_with_map")),
-                  style = "width: 99%; border-style: dashed; border-width: 1px; padding: 0px 8px 0px 8px; margin-right: 5px; padding-top: 10px;"
-                )
-              )
-            )
-          ),
-          shinyjs::hidden(
-            div(
-              id = ns("git_add_repo_url_div"),
-              make_textfield(i18n = i18n, ns = ns, label = "name", id = "name", width = "300px"),
-              make_textfield(i18n = i18n, ns = ns, label = "repo_url_address", id = "repo_url_address", width = "600px"),
-              make_textfield(i18n = i18n, ns = ns, label = "raw_files_url_address", id = "raw_files_url_address", width = "600px"),
-              make_textfield(i18n = i18n, ns = ns, label = "api_key", id = "api_key_git_repo_with_url", width = "600px"), br(),
-              shiny.fluent::Stack(horizontal = TRUE, tokens = list(childrenGap = 10),
-                shiny.fluent::PrimaryButton.shinyInput(ns("add_git_repo_with_url"), i18n$t("add")),
-                shiny.fluent::DefaultButton.shinyInput(ns("show_git_repo_description"), i18n$t("show_description"))
-              ), br(),
-              div(
-                uiOutput(ns("render_git_repo_description_with_url")),
-                style = "width: 99%; border-style: dashed; border-width: 1px; padding: 0px 8px 0px 8px; margin-right: 5px; padding-top: 10px;"
-              )
-            )
-          )
-        ))
-      )
-    ),
-    
-    # --- --- --- --- --- --- --
-    # Repos management card ----
-    # --- --- --- --- --- --- --
-    
-    shinyjs::hidden(
-      div(id = ns("git_repos_management_card"),
-        make_card(i18n$t("git_repos_management"),
-          div(
-            div(DT::DTOutput(ns("git_repos_datatable")), style = "margin-top:-30px; z-index:2"),
-            div(
-              shiny.fluent::Stack(horizontal = TRUE, tokens = list(childrenGap = 10),
-                shiny.fluent::PrimaryButton.shinyInput(ns("save_git_repos_management"), i18n$t("save")),
-                shiny.fluent::DefaultButton.shinyInput(ns("delete_selection"), i18n$t("delete_selection"))
-              ),
-              style = "position:relative; z-index:2; margin-top:-30px;"
-            )
-          )
-        ), br()
-      )
-    ),
-    
-    # --- --- --- --- --- --
-    # Repo options card ----
-    # --- --- --- --- --- --
-    
-    shinyjs::hidden(
-      div(id = ns("git_repo_options_card"),
-        make_card(i18n$t("git_repo_options"),
-          div(
-            make_combobox(i18n = i18n, ns = ns, label = "git_repo", id = "options_selected_repo", width = "300px", allowFreeform = FALSE, multiSelect = FALSE),
-            make_textfield(i18n = i18n, ns = ns, label = "repo_url_address", id = "options_repo_url_address", width = "600px"),
-            make_textfield(i18n = i18n, ns = ns, label = "raw_files_url_address", id = "options_raw_files_url_address", width = "600px"),
-            make_textfield(i18n = i18n, ns = ns, label = "api_key", id = "options_api_key", width = "600px"), 
-            div(
-              div(class = "input_title", paste0(i18n$t("grant_access_to"), " :")),
-              shiny.fluent::ChoiceGroup.shinyInput(ns("users_allowed_read_group"), options = list(
-                list(key = "everybody", text = i18n$t("everybody_who_has_access_to_dataset")),
-                list(key = "people_picker", text = i18n$t("choose_users"))
-              ), className = "inline_choicegroup"),
-              shinyjs::hidden(uiOutput(ns("users_allowed_read_div")))
-            ), br(),
-            shiny.fluent::PrimaryButton.shinyInput(ns("save_git_repo_options"), i18n$t("save")),
-          )
-        ), br()
-      )
-    ),
-    
-    # --- --- --- --- ---
-    # Edit repo card ----
-    # --- --- --- --- ---
-    
-    shinyjs::hidden(
-      div(id = ns("git_edit_repo_card"),
-        make_shiny_ace_card(i18n$t("edit_git_repo"),
-          div(
-            shiny.fluent::Pivot(
-              id = ns("git_edit_repo_pivot"),
-              onLinkClick = htmlwidgets::JS(paste0("item => Shiny.setInputValue('", id, "-git_edit_repo_current_tab', item.props.id)")),
-              shiny.fluent::PivotItem(id = "git_edit_repo_files", itemKey = "git_edit_repo_files", headerText = i18n$t("files")),
-              shiny.fluent::PivotItem(id = "git_edit_repo_readme", itemKey = "git_edit_repo_readme", headerText = i18n$t("readme"))
-            ),
-            shiny.fluent::Stack(horizontal = TRUE, tokens = list(childrenGap = 20),
-              make_combobox(i18n = i18n, ns = ns, label = "git_repo", id = "edit_repo_selected_repo", width = "300px", allowFreeform = FALSE, multiSelect = FALSE),
-              make_textfield(i18n = i18n, ns = ns, label = "api_key", id = "edit_repo_api_key", width = "300px"),
-              div(shiny.fluent::PrimaryButton.shinyInput(ns("edit_repo_load_repo"), i18n$t("load")), style = "margin-top:39px")
-            ),
-            div(
-              id = ns("git_edit_repo_files_div"), br(),
-              shiny.fluent::Stack(horizontal = TRUE, tokens = list(childrenGap = 20),
-                make_dropdown(i18n = i18n, ns = ns, label = "category", id = "repo_category",
-                  options = list(
-                    list(key = "studies", text = i18n$t("studies")),
-                    list(key = "patient_lvl_plugins", text = i18n$t("patient_lvl_plugins")),
-                    list(key = "aggregated_plugins", text = i18n$t("aggregated_plugins")),
-                    list(key = "scripts", text = i18n$t("scripts")),
-                    list(key = "datasets", text = i18n$t("datasets")),
-                    list(key = "vocabularies", text = i18n$t("vocabularies"))
-                  ), value = "studies", width = "300px"),
-                shinyjs::hidden(
-                  div(
-                    id = ns("edit_repo_studies_dataset_div"),
-                    make_dropdown(i18n = i18n, ns = ns, label = "studies_dataset", id = "edit_repo_studies_dataset", width = "300px")
-                  )
-                ),
-                make_dropdown(i18n = i18n, ns = ns, label = "add_files", id = "edit_repo_add_selected_files", width = "300px", multiSelect = TRUE),
-                div(shiny.fluent::DefaultButton.shinyInput(ns("edit_repo_add_files"), i18n$t("add")), style = "margin-top:39px")
-              ), br(),
-              uiOutput(ns("edit_repo_error_message")),
-              DT::DTOutput(ns("edit_repo_files")),
-              shinyjs::hidden(div(
-                id = ns("edit_repo_repo_files_div"),
-                div(
-                  shiny.fluent::DefaultButton.shinyInput(ns("edit_repo_delete_selection"), i18n$t("delete_selection")),
-                  style = "margin-top:-30px;"
-                )
-              ))
-            ),
-            shinyjs::hidden(
-              div(
-                id = ns("git_edit_repo_readme_div"),
-                br(),
-                div(
-                  div("README", style = "font-weight:bold; margin-top:7px; margin-right:5px;"),
-                  shiny.fluent::Stack(horizontal = TRUE, tokens = list(childrenGap = 10),
-                    div(shiny.fluent::Toggle.shinyInput(ns("hide_readme_editor"), value = FALSE), style = "margin-top:9px;"),
-                    div(i18n$t("hide_editor"), style = "font-weight:bold; margin-top:9px; margin-right:30px;")
-                  ),
-                  shinyAce::aceEditor(ns("git_repo_readme"), "", mode = "markdown", 
-                    code_hotkeys = list(
-                      "markdown", 
-                      list(
-                        save = list(win = "CTRL-S", mac = "CTRL-S|CMD-S"),
-                        run_all = list(win = "CTRL-SHIFT-ENTER|CTRL-ENTER", mac = "CTRL-SHIFT-ENTER|CMD-SHIFT-ENTER|CTRL-ENTER|CMD-ENTER"),
-                        comment = list(win = "CTRL-SHIFT-C", mac = "CTRL-SHIFT-C|CMD-SHIFT-C")
-                      )
-                    ),
-                    autoScrollEditorIntoView = TRUE, minLines = 30, maxLines = 1000),
-                  style = "width: 100%;"),
-                shinyjs::hidden(div(id = ns("br_div"), br())),
-                shiny.fluent::Stack(horizontal = TRUE, tokens = list(childrenGap = 10),
-                  shiny.fluent::PrimaryButton.shinyInput(ns("git_repo_readme_save"), i18n$t("save")), " ",
-                  shiny.fluent::DefaultButton.shinyInput(ns("git_repo_readme_preview"), i18n$t("preview")), " ",
-                  shiny.fluent::DefaultButton.shinyInput(ns("git_repo_readme_generate"), i18n$t("generate_content"))
-                ), br(),
-                div(id = ns("description_markdown_output"),
-                  uiOutput(ns("description_markdown_result")), 
-                  style = "width: 99%; border-style: dashed; border-width: 1px; padding:0px 8px 0px 8px; margin-right: 5px;")
-              )
-            ), br(),
-            shiny.fluent::Stack(horizontal = TRUE, tokens = list(childrenGap = 20),
-              make_textfield(i18n = i18n, ns = ns, label = "commit_message", id = "commit_message", width = "620px"),
-              div(shiny.fluent::PrimaryButton.shinyInput(ns("commit_and_push"), i18n$t("commit_and_push")), style = "margin-top:39px")
-            )
-          )
-        ), br()
-      )
-    ), br()
-  )
+  # cards <- c("git_add_repo_card", "git_repos_management_card", "git_repo_options_card", "git_edit_repo_card")
+  # 
+  # forbidden_cards <- tagList()
+  # for (card in cards) forbidden_cards <- tagList(forbidden_cards, forbidden_card(ns = ns, name = card, i18n = i18n))
+  # 
+  # # --- --- --- -- -
+  # # Pivot items ----
+  # # --- --- --- -- -
+  # 
+  # div(class = "main",
+  #   render_settings_default_elements(ns = ns),
+  #   shiny.fluent::reactOutput(ns("help_panel")),
+  #   shiny.fluent::reactOutput(ns("help_modal")),
+  #   shiny.fluent::reactOutput(ns("git_repos_delete_confirm")),
+  #   shiny.fluent::reactOutput(ns("edit_repo_delete_confirm")),
+  #   shiny.fluent::Breadcrumb(items = list(
+  #     list(key = "remote_git_repos", text = i18n$t("remote_git_repos"))
+  #   ), maxDisplayedItems = 3),
+  #   shiny.fluent::Pivot(
+  #     id = ns("git_repos_pivot"),
+  #     onLinkClick = htmlwidgets::JS(paste0("item => Shiny.setInputValue('", id, "-current_tab', item.props.id)")),
+  #     shiny.fluent::PivotItem(id = "git_add_repo_card", itemKey = "git_add_repo_card", headerText = i18n$t("add_git_repo")),
+  #     shiny.fluent::PivotItem(id = "git_repos_management_card", itemKey = "git_repos_management_card", headerText = i18n$t("git_repos_management")),
+  #     shiny.fluent::PivotItem(id = "git_repo_options_card", itemKey = "git_repo_options_card", headerText = i18n$t("git_repo_options")),
+  #     shiny.fluent::PivotItem(id = "git_edit_repo_card", itemKey = "git_edit_repo_card", headerText = i18n$t("edit_git_repo"))
+  #   ),
+  #   forbidden_cards,
+  #   
+  #   # --- --- --- --- --
+  #   # Add repo card ----
+  #   # --- --- --- --- --
+  #   
+  #   shinyjs::hidden(
+  #     div(id = ns("git_add_repo_card"),
+  #       make_card(i18n$t("add_git_repo"), div(
+  #         shiny.fluent::Pivot(
+  #           id = ns("git_add_repo_pivot"),
+  #           onLinkClick = htmlwidgets::JS(paste0("item => Shiny.setInputValue('", id, "-add_repo_tab', item.props.id)")),
+  #           shiny.fluent::PivotItem(id = "git_add_repo_map", itemKey = "git_add_repo_map", headerText = i18n$t("with_map")),
+  #           shiny.fluent::PivotItem(id = "git_add_repo_url", itemKey = "git_add_repo_url", headerText = i18n$t("with_url")),
+  #         ),
+  #         div(
+  #           id = ns("git_add_repo_map_div"),
+  #           leaflet::leafletOutput(ns("git_repos_map"), height = 500),
+  #           shinyjs::hidden(
+  #             div(
+  #               id = ns("git_add_repo_map_details_div"),
+  #               shiny.fluent::Stack(horizontal = TRUE, tokens = list(childrenGap = 10), br(),
+  #                 div(
+  #                   id = ns("api_key_git_repo_with_map_div"),
+  #                   shiny.fluent::Stack(horizontal = TRUE, tokens = list(childrenGap = 10),
+  #                     div(strong(i18n$t("api_key")), style = "margin-top:5px;"),
+  #                     div(shiny.fluent::TextField.shinyInput(ns("api_key_git_repo_with_map")), style = "width:600px;")
+  #                   ),
+  #                   style = "margin-top:15px; margin-left:0px;"
+  #                 ),
+  #                 div(shiny.fluent::PrimaryButton.shinyInput(ns("add_git_repo_with_map"), i18n$t("add")), style = "margin-top:15px;")
+  #               ), br(),
+  #               div(
+  #                 uiOutput(ns("render_git_repo_description_with_map")),
+  #                 style = "width: 99%; border-style: dashed; border-width: 1px; padding: 0px 8px 0px 8px; margin-right: 5px; padding-top: 10px;"
+  #               )
+  #             )
+  #           )
+  #         ),
+  #         shinyjs::hidden(
+  #           div(
+  #             id = ns("git_add_repo_url_div"),
+  #             make_textfield(i18n = i18n, ns = ns, label = "name", id = "name", width = "300px"),
+  #             make_textfield(i18n = i18n, ns = ns, label = "repo_url_address", id = "repo_url_address", width = "600px"),
+  #             make_textfield(i18n = i18n, ns = ns, label = "raw_files_url_address", id = "raw_files_url_address", width = "600px"),
+  #             make_textfield(i18n = i18n, ns = ns, label = "api_key", id = "api_key_git_repo_with_url", width = "600px"), br(),
+  #             shiny.fluent::Stack(horizontal = TRUE, tokens = list(childrenGap = 10),
+  #               shiny.fluent::PrimaryButton.shinyInput(ns("add_git_repo_with_url"), i18n$t("add")),
+  #               shiny.fluent::DefaultButton.shinyInput(ns("show_git_repo_description"), i18n$t("show_description"))
+  #             ), br(),
+  #             div(
+  #               uiOutput(ns("render_git_repo_description_with_url")),
+  #               style = "width: 99%; border-style: dashed; border-width: 1px; padding: 0px 8px 0px 8px; margin-right: 5px; padding-top: 10px;"
+  #             )
+  #           )
+  #         )
+  #       ))
+  #     )
+  #   ),
+  #   
+  #   # --- --- --- --- --- --- --
+  #   # Repos management card ----
+  #   # --- --- --- --- --- --- --
+  #   
+  #   shinyjs::hidden(
+  #     div(id = ns("git_repos_management_card"),
+  #       make_card(i18n$t("git_repos_management"),
+  #         div(
+  #           div(DT::DTOutput(ns("git_repos_datatable")), style = "margin-top:-30px; z-index:2"),
+  #           div(
+  #             shiny.fluent::Stack(horizontal = TRUE, tokens = list(childrenGap = 10),
+  #               shiny.fluent::PrimaryButton.shinyInput(ns("save_git_repos_management"), i18n$t("save")),
+  #               shiny.fluent::DefaultButton.shinyInput(ns("delete_selection"), i18n$t("delete_selection"))
+  #             ),
+  #             style = "position:relative; z-index:2; margin-top:-30px;"
+  #           )
+  #         )
+  #       ), br()
+  #     )
+  #   ),
+  #   
+  #   # --- --- --- --- --- --
+  #   # Repo options card ----
+  #   # --- --- --- --- --- --
+  #   
+  #   shinyjs::hidden(
+  #     div(id = ns("git_repo_options_card"),
+  #       make_card(i18n$t("git_repo_options"),
+  #         div(
+  #           make_combobox(i18n = i18n, ns = ns, label = "git_repo", id = "options_selected_repo", width = "300px", allowFreeform = FALSE, multiSelect = FALSE),
+  #           make_textfield(i18n = i18n, ns = ns, label = "repo_url_address", id = "options_repo_url_address", width = "600px"),
+  #           make_textfield(i18n = i18n, ns = ns, label = "raw_files_url_address", id = "options_raw_files_url_address", width = "600px"),
+  #           make_textfield(i18n = i18n, ns = ns, label = "api_key", id = "options_api_key", width = "600px"), 
+  #           div(
+  #             div(class = "input_title", paste0(i18n$t("grant_access_to"), " :")),
+  #             shiny.fluent::ChoiceGroup.shinyInput(ns("users_allowed_read_group"), options = list(
+  #               list(key = "everybody", text = i18n$t("everybody_who_has_access_to_dataset")),
+  #               list(key = "people_picker", text = i18n$t("choose_users"))
+  #             ), className = "inline_choicegroup"),
+  #             shinyjs::hidden(uiOutput(ns("users_allowed_read_div")))
+  #           ), br(),
+  #           shiny.fluent::PrimaryButton.shinyInput(ns("save_git_repo_options"), i18n$t("save")),
+  #         )
+  #       ), br()
+  #     )
+  #   ),
+  #   
+  #   # --- --- --- --- ---
+  #   # Edit repo card ----
+  #   # --- --- --- --- ---
+  #   
+  #   shinyjs::hidden(
+  #     div(id = ns("git_edit_repo_card"),
+  #       make_shiny_ace_card(i18n$t("edit_git_repo"),
+  #         div(
+  #           shiny.fluent::Pivot(
+  #             id = ns("git_edit_repo_pivot"),
+  #             onLinkClick = htmlwidgets::JS(paste0("item => Shiny.setInputValue('", id, "-git_edit_repo_current_tab', item.props.id)")),
+  #             shiny.fluent::PivotItem(id = "git_edit_repo_files", itemKey = "git_edit_repo_files", headerText = i18n$t("files")),
+  #             shiny.fluent::PivotItem(id = "git_edit_repo_readme", itemKey = "git_edit_repo_readme", headerText = i18n$t("readme"))
+  #           ),
+  #           shiny.fluent::Stack(horizontal = TRUE, tokens = list(childrenGap = 20),
+  #             make_combobox(i18n = i18n, ns = ns, label = "git_repo", id = "edit_repo_selected_repo", width = "300px", allowFreeform = FALSE, multiSelect = FALSE),
+  #             make_textfield(i18n = i18n, ns = ns, label = "api_key", id = "edit_repo_api_key", width = "300px"),
+  #             div(shiny.fluent::PrimaryButton.shinyInput(ns("edit_repo_load_repo"), i18n$t("load")), style = "margin-top:39px")
+  #           ),
+  #           div(
+  #             id = ns("git_edit_repo_files_div"), br(),
+  #             shiny.fluent::Stack(horizontal = TRUE, tokens = list(childrenGap = 20),
+  #               make_dropdown(i18n = i18n, ns = ns, label = "category", id = "repo_category",
+  #                 options = list(
+  #                   list(key = "studies", text = i18n$t("studies")),
+  #                   list(key = "patient_lvl_plugins", text = i18n$t("patient_lvl_plugins")),
+  #                   list(key = "aggregated_plugins", text = i18n$t("aggregated_plugins")),
+  #                   list(key = "scripts", text = i18n$t("scripts")),
+  #                   list(key = "datasets", text = i18n$t("datasets")),
+  #                   list(key = "vocabularies", text = i18n$t("vocabularies"))
+  #                 ), value = "studies", width = "300px"),
+  #               shinyjs::hidden(
+  #                 div(
+  #                   id = ns("edit_repo_studies_dataset_div"),
+  #                   make_dropdown(i18n = i18n, ns = ns, label = "studies_dataset", id = "edit_repo_studies_dataset", width = "300px")
+  #                 )
+  #               ),
+  #               make_dropdown(i18n = i18n, ns = ns, label = "add_files", id = "edit_repo_add_selected_files", width = "300px", multiSelect = TRUE),
+  #               div(shiny.fluent::DefaultButton.shinyInput(ns("edit_repo_add_files"), i18n$t("add")), style = "margin-top:39px")
+  #             ), br(),
+  #             uiOutput(ns("edit_repo_error_message")),
+  #             DT::DTOutput(ns("edit_repo_files")),
+  #             shinyjs::hidden(div(
+  #               id = ns("edit_repo_repo_files_div"),
+  #               div(
+  #                 shiny.fluent::DefaultButton.shinyInput(ns("edit_repo_delete_selection"), i18n$t("delete_selection")),
+  #                 style = "margin-top:-30px;"
+  #               )
+  #             ))
+  #           ),
+  #           shinyjs::hidden(
+  #             div(
+  #               id = ns("git_edit_repo_readme_div"),
+  #               br(),
+  #               div(
+  #                 div("README", style = "font-weight:bold; margin-top:7px; margin-right:5px;"),
+  #                 shiny.fluent::Stack(horizontal = TRUE, tokens = list(childrenGap = 10),
+  #                   div(shiny.fluent::Toggle.shinyInput(ns("hide_readme_editor"), value = FALSE), style = "margin-top:9px;"),
+  #                   div(i18n$t("hide_editor"), style = "font-weight:bold; margin-top:9px; margin-right:30px;")
+  #                 ),
+  #                 shinyAce::aceEditor(ns("git_repo_readme"), "", mode = "markdown", 
+  #                   code_hotkeys = list(
+  #                     "markdown", 
+  #                     list(
+  #                       save = list(win = "CTRL-S", mac = "CTRL-S|CMD-S"),
+  #                       run_all = list(win = "CTRL-SHIFT-ENTER|CTRL-ENTER", mac = "CTRL-SHIFT-ENTER|CMD-SHIFT-ENTER|CTRL-ENTER|CMD-ENTER"),
+  #                       comment = list(win = "CTRL-SHIFT-C", mac = "CTRL-SHIFT-C|CMD-SHIFT-C")
+  #                     )
+  #                   ),
+  #                   autoScrollEditorIntoView = TRUE, minLines = 30, maxLines = 1000),
+  #                 style = "width: 100%;"),
+  #               shinyjs::hidden(div(id = ns("br_div"), br())),
+  #               shiny.fluent::Stack(horizontal = TRUE, tokens = list(childrenGap = 10),
+  #                 shiny.fluent::PrimaryButton.shinyInput(ns("git_repo_readme_save"), i18n$t("save")), " ",
+  #                 shiny.fluent::DefaultButton.shinyInput(ns("git_repo_readme_preview"), i18n$t("preview")), " ",
+  #                 shiny.fluent::DefaultButton.shinyInput(ns("git_repo_readme_generate"), i18n$t("generate_content"))
+  #               ), br(),
+  #               div(id = ns("description_markdown_output"),
+  #                 uiOutput(ns("description_markdown_result")), 
+  #                 style = "width: 99%; border-style: dashed; border-width: 1px; padding:0px 8px 0px 8px; margin-right: 5px;")
+  #             )
+  #           ), br(),
+  #           shiny.fluent::Stack(horizontal = TRUE, tokens = list(childrenGap = 20),
+  #             make_textfield(i18n = i18n, ns = ns, label = "commit_message", id = "commit_message", width = "620px"),
+  #             div(shiny.fluent::PrimaryButton.shinyInput(ns("commit_and_push"), i18n$t("commit_and_push")), style = "margin-top:39px")
+  #           )
+  #         )
+  #       ), br()
+  #     )
+  #   ), br()
+  # )
+  div()
 }
 
 #' settings_r_console Server Functions

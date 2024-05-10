@@ -116,11 +116,36 @@ mod_projects_server <- function(id, r, d, m, language, i18n, debug){
     
     ns <- session$ns
     
+    # --- --- --- --- ---
     # Load a project ----
+    # --- --- --- --- ---
+    
     observeEvent(r$load_project_trigger, {
       if (debug) cat(paste0("\n", now(), " - mod_projects - observer r$load_project_trigger"))
       
       shinyjs::delay(500, m$selected_study <- input$selected_element)
     })
+    
+    # --- --- --- --- --- -
+    # Project datasets ----
+    # --- --- --- --- --- -
+    
+    ## Save updates ----
+    
+    observeEvent(input$save_datasets, {
+      if (debug) cat(paste0("\n", now(), " - mod_projects - observer input$save_datasets"))
+      
+      sql <- glue::glue_sql("UPDATE studies SET dataset_id = {input$project_dataset} WHERE id = {input$selected_element}", .con = r$db)
+      query <- DBI::dbSendStatement(r$db, sql)
+      DBI::dbClearResult(query)
+      
+      r$projects_wide <- 
+        r$projects_wide %>% 
+        dplyr::mutate(dataset_id = dplyr::case_when(id == input$selected_element ~ input$project_dataset, TRUE ~ dataset_id))
+      
+      # Notify user
+      show_message_bar(output,  "modif_saved", "success", i18n = i18n, ns = ns)
+    })
+    
   })
 }

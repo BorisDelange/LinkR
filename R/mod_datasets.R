@@ -7,6 +7,12 @@ mod_datasets_ui <- function(id, language, languages, i18n){
     Shiny.setInputValue('", id, "-current_tab_trigger', Math.random());"
   )
   
+  code_hotkeys <- list(
+    run_selection = list(win = "CTRL-ENTER", mac = "CTRL-ENTER|CMD-ENTER"),
+    run_all = list(win = "CTRL-SHIFT-ENTER", mac = "CTRL-SHIFT-ENTER|CMD-SHIFT-ENTER"),
+    comment = list(win = "CTRL-SHIFT-C", mac = "CTRL-SHIFT-C|CMD-SHIFT-C")
+  )
+  
   div(class = "main",
       
       # Load widget UI ----
@@ -63,7 +69,19 @@ mod_datasets_ui <- function(id, language, languages, i18n){
           shinyjs::hidden(
             div(
               id = ns("edit_code_div"),
-              style = "height: 100%;"
+              div(
+                shinyAce::aceEditor(
+                  ns("code_editor"), value = "", mode = "r",
+                  code_hotkeys = list("r", code_hotkeys),
+                  autoScrollEditorIntoView = TRUE, height = "100%", debounce = 100, fontSize = 10, showPrintMargin = FALSE
+                ),
+                style = "width: 50%; max-height: calc(100% - 20px);"
+              ),
+              div(
+                verbatimTextOutput(ns("code_result")),
+                style = "width: 50%; border: dashed grey 1px; margin: 10px 0px 10px 10px; padding: 0px 10px; font-size: 12px; overflow-y: auto;"
+              ),
+              style = "height: 100%; display: flex;"
             )
           ),
 
@@ -93,9 +111,52 @@ mod_datasets_server <- function(id, r, d, m, language, i18n, debug){
   all_divs <- c("summary", "edit_code", "share")
   mod_widgets_server(id, r, d, m, language, i18n, all_divs, debug)
   
+  # Datasets module ----
+  
   moduleServer(id, function(input, output, session){
     ns <- session$ns
     
+    # |-------------------------------- -----
     
+    # --- --- --- --- -- -
+    # Dataset summary ----
+    # --- --- --- --- -- -
+    
+    # |-------------------------------- -----
+    
+    # --- --- --- --- --- --
+    # Edit dataset code ----
+    # --- --- --- --- --- --
+    
+    # Load code ----
+    
+    observeEvent(input$load_dataset_code, {
+      if (debug) cat(paste0("\n", now(), " - mod_datasets - observer input$load_dataset_code"))
+      
+      dataset_id <- input$selected_element
+      
+      sql <- glue::glue_sql("SELECT code FROM code WHERE category = 'dataset' AND link_id = {dataset_id}", .con = r$db)
+      code <- DBI::dbGetQuery(r$db, sql) %>% dplyr::pull()
+      
+      shinyAce::updateAceEditor(session, "code_editor", value = code)
+    })
+    
+    # Run code ----
+    
+    observeEvent(input$run_code, {
+      if (debug) cat(paste0("\n", now(), " - mod_datasets - observer input$run_code"))
+      
+      code <- 
+        input$code_editor %>%
+        gsub("\r", "\n", .) %>%
+        gsub("%dataset_id%", as.character(input$selected_element), .) %>%
+        gsub("%omop_version%", "5.3", .)
+      
+      result <- capture.output(tryCatch(eval(parse(text = code)), error = function(e) print(e), warning = function(w) print(w)))
+      
+      output$code_result <- renderText(paste(result, collapse = "\n"))
+    })
+    
+    # Save code ----
   })
 }

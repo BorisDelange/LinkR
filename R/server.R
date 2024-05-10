@@ -124,15 +124,15 @@ app_server <- function(pages, language, languages, i18n, app_folder, debug, loca
       
       # Load datasets
       sql <- glue::glue_sql("SELECT * FROM datasets", .con = r$db)
-      r$datasets <- DBI::dbGetQuery(r$db, sql)
+      r$datasets_wide <- DBI::dbGetQuery(r$db, sql)
       
       # Load plugins
       sql <- glue::glue_sql("SELECT * FROM plugins", .con = r$db)
-      r$plugins <- DBI::dbGetQuery(r$db, sql)
+      r$plugins_wide <- DBI::dbGetQuery(r$db, sql)
       
       # Load vocabularies
       sql <- glue::glue_sql("SELECT * FROM vocabulary", .con = m$db)
-      r$vocabulary <- DBI::dbGetQuery(m$db, sql)
+      r$vocabulary_wide <- DBI::dbGetQuery(m$db, sql)
       
       # Load users names
       sql <- glue::glue_sql("SELECT id, CONCAT(firstname, ' ', lastname) AS name, CONCAT(SUBSTRING(firstname, 1, 1), SUBSTRING(lastname, 1, 1)) AS initials FROM users", .con = r$db)

@@ -329,6 +329,8 @@ mod_concepts_server <- function(id, r, d, m, language, i18n, debug){
     observeEvent(r$load_dataset_all_concepts, {
       if (debug) cat(paste0("\n", now(), " - mod_concepts - observer r$load_dataset_all_concepts"))
 
+      req(!is.na(r$selected_dataset))
+      
       shinyjs::delay(100, {
         # Display project loading status
         if (r$project_load_status_displayed) r$project_load_status$concepts_starttime <- now("%Y-%m-%d %H:%M:%OS3")

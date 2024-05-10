@@ -135,6 +135,23 @@ mod_page_sidenav_ui <- function(id = character(), i18n = character()){
           id = ns("all_elements_reduced_sidenav"),
           create_hover_card(ui = shiny.fluent::IconButton.shinyInput(ns("create_element"), iconProps = list(iconName = "Add")), text = i18n$t("create_dataset")),
           class = "reduced_sidenav_buttons"
+        ),
+        shinyjs::hidden(
+          div(
+            id = ns("edit_code_reduced_sidenav"),
+            div(
+              div(
+                id = ns("run_code_div"),
+                create_hover_card(ui = shiny.fluent::IconButton.shinyInput(ns("run_code"), iconProps = list(iconName = "Play")), text = i18n$t("run_code")),
+                class = "reduced_sidenav_buttons",
+              ),
+              div(
+                id = ns("save_code_div"),
+                create_hover_card(ui = shiny.fluent::IconButton.shinyInput(ns("save_code"), iconProps = list(iconName = "Save")), text = i18n$t("save")),
+                class = "reduced_sidenav_buttons",
+              )
+            )
+          )
         )
       ),
       show_hide_sidenav
@@ -404,7 +421,7 @@ mod_page_sidenav_server <- function(id = character(), r = shiny::reactiveValues(
       var button = document.getElementById('", id, "-show_hide_sidenav');
       var large_sidenav = document.getElementById('", id, "-large_sidenav');
       var reduced_sidenav = document.getElementById('", id, "-reduced_sidenav');
-      var header_command_bar = document.getElementById('", id, "-header_command_bar');
+      var header_command_bar = document.getElementById('", id, "-command_bar_1_div');
     ")
     js_show_sidenav <- paste0("
       sidenav.style.width = '200px';

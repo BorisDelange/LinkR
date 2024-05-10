@@ -163,7 +163,10 @@ mod_data_ui <- function(id = character(), language = "en", languages = tibble::t
   for (category in c("patient_lvl", "aggregated")) study_divs <- tagList(
     study_divs, 
     shinyjs::hidden(uiOutput(ns(paste0(category, "_study_menu")))),
-    shinyjs::hidden(div(id = ns(paste0(category, "_no_tabs_to_display")), shiny.fluent::MessageBar(i18n$t("no_tabs_to_display_click_add_tab"), messageBarType = 5))),
+    shinyjs::hidden(div(
+      id = ns(paste0(category, "_no_tabs_to_display")), shiny.fluent::MessageBar(i18n$t("no_tabs_to_display_click_add_tab"), messageBarType = 5),
+      style = "display: inline-block;"
+    )),
   )
   
   div(
@@ -195,7 +198,6 @@ mod_data_server <- function(id = character(), r = shiny::reactiveValues(), d = s
     if (debug) cat(paste0("\n", now(), " - mod_data - initiate vars"))
     
     categories <- c("patient_lvl", "aggregated")
-    category <- r$data_page
     
     # Initiate var for already loaded studies, so that a UI element is not loaded twice
     r$data_loaded_studies <- integer()
@@ -208,6 +210,9 @@ mod_data_server <- function(id = character(), r = shiny::reactiveValues(), d = s
     
     # Project loading status
     r$project_load_status_displayed <- FALSE
+    
+    r$patient_lvl_no_tabs_to_display <- TRUE
+    r$aggregated_no_tabs_to_display <- TRUE
     
     # --- --- --- --- --- -
     # Change data page ----
@@ -229,6 +234,10 @@ mod_data_server <- function(id = character(), r = shiny::reactiveValues(), d = s
       
       # Reload plugin dropdown
       r$data_reload_plugins_dropdown <- now()
+      
+      # Show / hide no tabs to display message
+      sapply(categories, function(category) shinyjs::hide(paste0(category, "_no_tabs_to_display")))
+      if (r[[paste0(r$data_page, "_no_tabs_to_display")]]) shinyjs::show(paste0(r$data_page, "_no_tabs_to_display"))
     })
     
     # --- --- --- --- --- --- --
@@ -290,8 +299,11 @@ mod_data_server <- function(id = character(), r = shiny::reactiveValues(), d = s
           r$projects_wide %>% dplyr::filter(id == m$selected_study) %>% dplyr::pull(patient_lvl_tab_group_id),
           r$projects_wide %>% dplyr::filter(id == m$selected_study) %>% dplyr::pull(aggregated_tab_group_id)
         )
-        sql <- glue::glue_sql("SELECT * FROM tabs_groups WHERE id IN ({tab_group_ids*})", .con = r$db)
-        r$data_tabs_groups <- DBI::dbGetQuery(r$db, sql)
+        
+        r$data_tabs_groups <- tibble::tibble(category = c("patient_lvl", "aggregated"), id = tab_group_ids)
+        
+        # sql <- glue::glue_sql("SELECT * FROM tabs_groups WHERE id IN ({tab_group_ids*})", .con = r$db)
+        # r$data_tabs_groups <- DBI::dbGetQuery(r$db, sql)
         
         sql <- glue::glue_sql("SELECT * FROM tabs WHERE tab_group_id IN ({tab_group_ids*})", .con = r$db)
         r$data_tabs <- DBI::dbGetQuery(r$db, sql)
@@ -323,6 +335,8 @@ mod_data_server <- function(id = character(), r = shiny::reactiveValues(), d = s
     # Show loading status ----
     observeEvent(r$project_load_status, {
       if (debug) cat(paste0("\n", now(), " - mod_data - observer r$project_load_status"))
+      
+      category <- r$data_page
       
       statuses_ui <- tagList()
 
@@ -455,14 +469,12 @@ mod_data_server <- function(id = character(), r = shiny::reactiveValues(), d = s
         if (nrow(m$subsets) > 0) shiny.fluent::updateComboBox.shinyInput(session, "subset", options = convert_tibble_to_list(m$subsets, key_col = "id", text_col = "name"), value = NULL)
         
         # Reset other dropdowns & uiOutput
-        if (category == "patient_lvl"){
-          sapply(c("person", "visit_detail"), function(name) {
-            shiny.fluent::updateComboBox.shinyInput(session, name, options = list(), value = NULL)
-            shinyjs::hide(paste0(name, "_div"))
-          })
-          output$person_info <- renderUI("")
-          shinyjs::hide("person_info_div")
-        }
+        sapply(c("person", "visit_detail"), function(name) {
+          shiny.fluent::updateComboBox.shinyInput(session, name, options = list(), value = NULL)
+          shinyjs::hide(paste0(name, "_div"))
+        })
+        output$person_info <- renderUI("")
+        shinyjs::hide("person_info_div")
       })
     
       observeEvent(input$subset, {
@@ -726,8 +738,8 @@ mod_data_server <- function(id = character(), r = shiny::reactiveValues(), d = s
       
       # Reload plugins dropdown
       
-      observeEvent(r$plugins, {
-        if (debug) cat(paste0("\n", now(), " - mod_data - observer r$plugins"))
+      observeEvent(r$plugins_wide, {
+        if (debug) cat(paste0("\n", now(), " - mod_data - observer r$plugins_wide"))
         r$data_reload_plugins_dropdown <- now()
       })
       
@@ -736,7 +748,7 @@ mod_data_server <- function(id = character(), r = shiny::reactiveValues(), d = s
         
         if (r$data_page == "patient_lvl") tab_type_id <- 1 else tab_type_id <- 2
         
-        plugins <- r$plugins %>% dplyr::filter(tab_type_id == !!tab_type_id)
+        plugins <- r$plugins_wide %>% dplyr::filter(tab_type_id == !!tab_type_id)
         
         options <- convert_tibble_to_list(data = plugins %>% dplyr::arrange(name), key_col = "id", text_col = "name", i18n = i18n)
         shiny.fluent::updateComboBox.shinyInput(session, "widget_creation_plugin", options = options, value = NULL)
@@ -755,6 +767,8 @@ mod_data_server <- function(id = character(), r = shiny::reactiveValues(), d = s
       observeEvent(r$data_reload_tabs, {
         
         if (debug) cat(paste0("\n", now(), " - mod_data - observer r$..reload_tabs"))
+        
+        category <- r$data_page
         
         # Tabs without parent are set to level 1
         tabs <- r$data_tabs %>% dplyr::mutate(level = dplyr::case_when(is.na(parent_tab_id) ~ 1L, TRUE ~ NA_integer_))
@@ -817,7 +831,7 @@ mod_data_server <- function(id = character(), r = shiny::reactiveValues(), d = s
         if (debug) cat(paste0("\n", now(), " - mod_data - r$data_reload_menu"))
         
         if (r$project_load_status_displayed) r$project_load_status$menu_starttime <- now("%Y-%m-%d %H:%M:%OS3")
-          
+        
         sapply(categories, function(category){
           
           tab_group_id <- r$data_tabs_groups %>% dplyr::filter(category == !!category) %>% dplyr::pull(id)
@@ -827,6 +841,7 @@ mod_data_server <- function(id = character(), r = shiny::reactiveValues(), d = s
           
           if (nrow(all_tabs) > 0){
             
+            r[[paste0(category, "_no_tabs_to_display")]] <- FALSE
             shinyjs::hide(paste0(category, "_no_tabs_to_display"))
             
             study_first_tab_id <- all_tabs %>% dplyr::filter(level == 1) %>% dplyr::slice(1) %>% dplyr::pull(id)
@@ -983,7 +998,8 @@ mod_data_server <- function(id = character(), r = shiny::reactiveValues(), d = s
                 )))), maxDisplayedItems = 3)
             )
             
-            shinyjs::show(paste0(category, "_no_tabs_to_display"))
+            r[[paste0(category, "_no_tabs_to_display")]] <- TRUE
+            if (r$data_page == category) shinyjs::show(paste0(category, "_no_tabs_to_display"))
           }
           
           output[[paste0(category, "_study_menu")]] <- renderUI({
@@ -1024,12 +1040,10 @@ mod_data_server <- function(id = character(), r = shiny::reactiveValues(), d = s
           
           # Loop over distinct tabs, for this study
           # Load front-end & back-end
-          if (length(distinct_tabs > 0)){
-            sapply(distinct_tabs, function(tab_id){
-              load_tab_ui(category, tab_id)
-              load_tab_server(tab_id)
-            })
-          }
+          sapply(distinct_tabs, function(tab_id){
+            load_tab_ui(category, tab_id)
+            load_tab_server(tab_id)
+          })
           
           displayed_category <- r$data_page
           hidden_category <- categories[categories != displayed_category]
@@ -1050,8 +1064,6 @@ mod_data_server <- function(id = character(), r = shiny::reactiveValues(), d = s
       # A tab is selected
       observeEvent(r[[paste0(category, "_selected_tab")]], {
         if (debug) cat(paste0("\n", now(), " - mod_data - observer r$..selected_tab"))
-        
-        # req(!grepl("show_tab", r[[paste0(category, "_selected_tab")]]))
         
         # Hide all grids
         sapply(r$data_grids, shinyjs::hide)
@@ -1122,6 +1134,8 @@ mod_data_server <- function(id = character(), r = shiny::reactiveValues(), d = s
       
       req(length(input$tab_name) > 0)
       tab_name <- input$tab_name
+      
+      category <- r$data_page
       
       # Check if name is not empty
       if (is.na(tab_name) | tab_name == "") shiny.fluent::updateTextField.shinyInput(session, "tab_name", errorMessage = i18n$t("provide_valid_name"))
@@ -1200,6 +1214,9 @@ mod_data_server <- function(id = character(), r = shiny::reactiveValues(), d = s
       
       # Hide currently opened grids
       sapply(r$data_grids, shinyjs::hide)
+      
+      # Hide "no tabs" message
+      shinyjs::hide(paste0(category, "_no_tabs_to_display"))
       
       # Hide add tab model
       shinyjs::hide("add_tab_modal")
@@ -1855,54 +1872,54 @@ mod_data_server <- function(id = character(), r = shiny::reactiveValues(), d = s
       if (r$project_load_status_displayed) r$project_load_status$widgets_ui_starttime <- now("%Y-%m-%d %H:%M:%OS3")
       
       selected_tab <- r[[paste0(category, "_selected_tab")]]
-      
+
       widgets_ui <- tagList()
-      
+
       if (action == "reload") widgets <- r$data_widgets %>% dplyr::filter(tab_id == !!tab_id)
       else if (action == "add") widgets <- r$data_widgets %>% dplyr::filter(id == !!widget_id)
       widgets <- widgets %>% dplyr::rename(widget_id = id)
-      
+
       gridstack_id <- paste0("gridstack_", tab_id)
-      
+
       if (action == "reload"){
-        
+
         # Add gridstack div
         gridstack_div <- div(id = ns(gridstack_id), class = "grid-stack")
-        
+
         hide_div <- TRUE
         if (!is.na(selected_tab)) if (tab_id == selected_tab) hide_div <- FALSE
         if (hide_div) gridstack_div <- shinyjs::hidden(gridstack_div)
-        
+
         insertUI(selector = paste0("#", ns("study_widgets")), where = "beforeEnd", ui = gridstack_div)
         # r[[paste0(category, "_cards")]] <- c(r[[paste0(category, "_cards")]], gridstack_id)
-        
+
         create_gridstack_instance(id, tab_id)
-        
+
         r$data_grids <- c(r$data_grids, gridstack_id)
-        
+
         r$data_ui_loaded <- TRUE
       }
-      
+
       if (nrow(widgets) > 0){
-        
+
         # Load widgets concepts
         widgets_concepts <- r$data_widgets_concepts %>% dplyr::inner_join(widgets %>% dplyr::select(widget_id), by = "widget_id")
-        
+
         # Get widgets ids
         widgets_ids <- unique(widgets$widget_id)
-        
+
         # Use sapply instead of for loop, cause with for loop, widget_id doesn't change
         sapply(widgets_ids, function(widget_id){
-          
+
           # Load over selected concepts
-          selected_concepts <- 
-            widgets_concepts %>% 
+          selected_concepts <-
+            widgets_concepts %>%
             dplyr::filter(widget_id == !!widget_id) %>%
             dplyr::select(concept_id, concept_name, concept_display_name, domain_id, mapped_to_concept_id, merge_mapped_concepts)
-          
+
           # Load UI code for this widget
           plugin_id <- widgets %>% dplyr::filter(widget_id == !!widget_id) %>% dplyr::slice(1) %>% dplyr::pull(plugin_id)
-          
+
           # Check if plugin has been deleted
           check_deleted_plugin <- nrow(DBI::dbGetQuery(r$db, paste0("SELECT * FROM plugins WHERE id = ", plugin_id))) == 0
           if (check_deleted_plugin){
@@ -1910,48 +1927,48 @@ mod_data_server <- function(id = character(), r = shiny::reactiveValues(), d = s
             settings_widget_button <- ""
           }
           else {
-            
+
             # Get plugin unique_id
             sql <- glue::glue_sql("SELECT value FROM options WHERE category = 'plugin' AND name = 'unique_id' AND link_id = {plugin_id}", .con = r$db)
             plugin_unique_id <- DBI::dbGetQuery(r$db, sql) %>% dplyr::pull()
-            
+
             # Get plugin folder
             plugin_folder <- paste0(r$app_folder, "/plugins/", category, "/", plugin_unique_id)
-            
+
             # Create translations files and var
             plugin_translations_dir <- paste0(r$app_folder, "/translations/", plugin_unique_id)
             create_translations_files(plugin_id, plugin_translations_dir, plugin_folder)
-            
+
             tryCatch({
               i18np <- suppressWarnings(shiny.i18n::Translator$new(translation_csvs_path = plugin_translations_dir))
               i18np$set_translation_language(language)},
               error = function(e) cat(paste0("\n", now(), " - mod_data - error creating translator - plugin_id = ", plugin_id)))
-            
+
             # Get name of widget
             widget_name <- widgets %>% dplyr::filter(widget_id == !!widget_id) %>% dplyr::pull(name)
-            
+
             # Get UI code from db. Try to run plugin UI code
-            
+
             sql <- glue::glue_sql("SELECT id FROM options WHERE link_id = {plugin_id} AND name = 'filename' AND value = 'ui.R'", .con = r$db)
             code_id <- DBI::dbGetQuery(r$db, sql) %>% dplyr::pull()
-            
+
             patient_id <- NA_integer_
             if (length(m$selected_person) > 0) patient_id <- m$selected_person
-            
+
             sql <- glue::glue_sql("SELECT code FROM code WHERE category = 'plugin' AND link_id = {code_id}", .con = r$db)
             ui_code <- DBI::dbGetQuery(r$db, sql) %>% dplyr::pull() %>% process_widget_code(tab_id, widget_id, m$selected_study, patient_id, plugin_folder)
-            
+
             # Widget card
-            
+
             ui_code <- tryCatch(
-              eval(parse(text = ui_code)), 
+              eval(parse(text = ui_code)),
               error = function(e) cat(paste0("\n", now(), " - mod_data - error loading UI code - widget_id = ", widget_id, " - ", toString(e))),
               warning = function(w) cat(paste0("\n", now(), " - mod_data - error loading UI code - widget_id = ", widget_id, " - ", toString(w)))
             )
           }
-          
+
           ui_output <- create_widget(id, widget_id, ui_code)
-          
+
           add_widget_to_gridstack(id, tab_id, ui_output, widget_id)
         })
       }
@@ -2011,6 +2028,10 @@ mod_data_server <- function(id = character(), r = shiny::reactiveValues(), d = s
               
               sql <- glue::glue_sql("SELECT value FROM options WHERE category = 'plugin' AND name = 'unique_id' AND link_id = {plugin_id}", .con = r$db)
               plugin_unique_id <- DBI::dbGetQuery(r$db, sql) %>% dplyr::pull()
+              
+              tab_type_id <- r$plugins_wide %>% dplyr::filter(id == plugin_id) %>% dplyr::pull(tab_type_id)
+              if (tab_type_id == 1) category <- "patient_lvl" else category <- "aggregated"
+              
               plugin_folder <- paste0(r$app_folder, "/plugins/", category, "/", plugin_unique_id)
               
               server_code <- process_widget_code(server_code, tab_id, widget_id, m$selected_study, patient_id, plugin_folder)

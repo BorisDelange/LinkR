@@ -81,7 +81,7 @@ mod_plugins_ui <- function(id, language, languages, i18n){
           )
         ),
         
-        ## TShare ----
+        ## Share ----
         shinyjs::hidden(
           div(
             id = ns("share_div"),

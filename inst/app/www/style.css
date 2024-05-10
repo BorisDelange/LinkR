@@ -20,13 +20,13 @@ body, html {
   height: calc(100% - 80px);
 }
 
-a, a:visited {
+/*a, a:visited {
   color:#000000;
 }
 
 a:hover {
   color: #129AFD;
-}
+}*/
 
 a.no-hover-effect {
   color: black;
@@ -163,6 +163,8 @@ a.no-hover-effect:hover {
 
 .reduced_sidenav_buttons .ms-Button, .reduced_sidenav_buttons_11 .ms-Button {
   width: 40px;
+  height: 30px;
+  margin: 0;
 }
 
 .reduced_sidenav_buttons_11 .ms-Icon {
@@ -496,6 +498,40 @@ a.no-hover-effect:hover {
   font-weight: bold;
 }
 
+/* --------------------- */
+/* HOME PAGE             */
+/* --------------------- */
+
+.home_container {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  width: 100%;
+}
+
+.home_row {
+  display: flex;
+  flex: 1;
+}
+
+.home_widget {
+  position: relative;
+  display: flex;
+  flex: 1;
+  margin: 10px;
+  padding: 0px 10px 5px 10px;
+  box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 3px 6px 0 rgba(0, 0, 0, 0.19);
+}
+
+.home_widget h1 {
+  font-size: 14px;
+}
+
+.home_widget_button {
+  position: absolute;
+  bottom: 0px;
+  right: 5px;
+}
 
 /* --------------------- */
 /* PLUGINS PAGE          */
@@ -773,9 +809,9 @@ td[data-type="factor"] input {
 .selected_project, .selected_plugin {
   background-color: #0084D8;
   color: white;
-  font-weight: bold;
+  font-weight: 600;
   font-size: 12px;
-  border-radius: 5px;
+  border-radius: 3px;
   padding: 5px 10px;
   margin: 8px 0px;
   text-align: center;
