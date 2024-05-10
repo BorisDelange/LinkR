@@ -393,10 +393,23 @@ mod_widgets_server <- function(id, r, d, m, language, i18n, all_divs, debug){
         id = element_id, name = element_name, data_source_id = NA_integer_, creator_id = r$user_id, 
         creation_datetime = now(), update_datetime = now(), deleted = FALSE)
       
-      else if (sql_table == "studies") new_data <- tibble::tibble(
-        id = element_id, name = element_name, dataset_id = NA_integer_, 
-        patient_lvl_tab_group_id = get_last_row(con, "tabs_groups") + 1, aggregated_tab_group_id = get_last_row(con, "tabs_groups") + 2,
-        creator_id = r$user_id, creation_datetime = now(), update_datetime = now(), deleted = FALSE)
+      else if (sql_table == "studies"){ 
+        patient_lvl_tab_group_id <- get_last_row(con, "tabs_groups") + 1
+        aggregated_tab_group_id <- get_last_row(con, "tabs_groups") + 2
+        
+        new_data <- tibble::tibble(
+          id = element_id, name = element_name, dataset_id = NA_integer_, 
+          patient_lvl_tab_group_id = patient_lvl_tab_group_id, aggregated_tab_group_id = aggregated_tab_group_id,
+          creator_id = r$user_id, creation_datetime = now(), update_datetime = now(), deleted = FALSE)
+        
+        ## Tabs groups tables
+        new_tabs_groups <- 
+          tibble::tibble(
+            id = c(patient_lvl_tab_group_id, aggregated_tab_group_id), category = c("patient_lvl", "aggregated"),
+            name = element_name, description = "", creator_id = r$user_id, datetime = now(), deleted = FALSE)
+        
+        DBI::dbAppendTable(con, "tabs_groups", new_tabs_groups)
+      }
 
       else if (sql_table == "plugins") new_data <- tibble::tibble(
         id = element_id, name = element_name, tab_type_id = input$plugin_creation_type,
