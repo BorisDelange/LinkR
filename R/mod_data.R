@@ -1934,15 +1934,23 @@ mod_data_server <- function(id = character(), r = shiny::reactiveValues(), d = s
             else {
               print("ui_36")
               # Get plugin unique_id
+              print("plugin_id")
+              print(plugin_id)
               sql <- glue::glue_sql("SELECT value FROM options WHERE category = 'plugin' AND name = 'unique_id' AND link_id = {plugin_id}", .con = r$db)
               plugin_unique_id <- DBI::dbGetQuery(r$db, sql) %>% dplyr::pull()
   
               # Get plugin folder
+              print("plugin_folder")
               plugin_folder <- paste0(r$app_folder, "/plugins/", category, "/", plugin_unique_id)
+              print(plugin_folder)
   
               # Create translations files and var
+              print("plugin_translations_dir")
               plugin_translations_dir <- paste0(r$app_folder, "/translations/", plugin_unique_id)
+              print(plugin_translations_dir)
+              print("create_translations_files")
               create_translations_files(plugin_id, plugin_translations_dir, plugin_folder)
+              print("create_translations_files_after")
   
               tryCatch({
                 i18np <- suppressWarnings(shiny.i18n::Translator$new(translation_csvs_path = plugin_translations_dir))
@@ -1950,8 +1958,9 @@ mod_data_server <- function(id = character(), r = shiny::reactiveValues(), d = s
                 error = function(e) cat(paste0("\n", now(), " - mod_data - error creating translator - plugin_id = ", plugin_id)))
   
               # Get name of widget
+              print("widget_name")
               widget_name <- widgets %>% dplyr::filter(widget_id == !!widget_id) %>% dplyr::pull(name)
-              print("ui_36")
+              print("ui_37")
               # Get UI code from db. Try to run plugin UI code
   
               sql <- glue::glue_sql("SELECT id FROM options WHERE link_id = {plugin_id} AND name = 'filename' AND value = 'ui.R'", .con = r$db)
@@ -1964,14 +1973,14 @@ mod_data_server <- function(id = character(), r = shiny::reactiveValues(), d = s
               ui_code <- DBI::dbGetQuery(r$db, sql) %>% dplyr::pull() %>% process_widget_code(tab_id, widget_id, m$selected_study, patient_id, plugin_folder)
   
               # Widget card
-              print("ui_37")
+              print("ui_38")
               ui_code <- tryCatch(
                 eval(parse(text = ui_code)),
                 error = function(e) cat(paste0("\n", now(), " - mod_data - error loading UI code - widget_id = ", widget_id, " - ", toString(e))),
                 warning = function(w) cat(paste0("\n", now(), " - mod_data - error loading UI code - widget_id = ", widget_id, " - ", toString(w)))
               )
             }
-            print("ui_38")
+            print("ui_39")
             print("widget_id")
             print(widget_id)
             print("ui_code")
@@ -1993,7 +2002,7 @@ mod_data_server <- function(id = character(), r = shiny::reactiveValues(), d = s
       
       print(tab_id)
       tryCatch({
-        print("ui_1")
+        print("server_1")
         if (r$project_load_status_displayed) r$project_load_status$widgets_server_starttime <- now("%Y-%m-%d %H:%M:%OS3")
         
         shinyjs::delay(100, {
