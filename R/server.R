@@ -1,5 +1,5 @@
 #' @noRd
-app_server <- function(pages, language, languages, i18n, app_folder, debug, local, users_accesses_toggles_options){
+app_server <- function(pages, language, languages, i18n, app_folder, debug, log_file, local, users_accesses_toggles_options){
   function(input, output, session ) {
     
     if (debug) cat(paste0("\n", now(), " - server - init"))
@@ -203,12 +203,14 @@ app_server <- function(pages, language, languages, i18n, app_folder, debug, loca
     observeEvent(r$user_id, {
       if (debug) cat(paste0("\n", now(), " - server - observer r$user_id"))
       
-      # Create a log folder for this user if doesn't exist
-      log_file <- paste0(r$app_folder, "/log/", r$user_id, ".txt")
-      if (!file.exists(log_file)) file.create(log_file)
-      
-      sink(log_file, append = TRUE)
-      # sink(log_file, append = TRUE, type = "message")
+      if (log_file){
+        print("log_file")
+        # Create a log folder for this user if doesn't exist
+        local_log_file <- paste0(r$app_folder, "/log/", r$user_id, ".txt")
+        if (!file.exists(local_log_file)) file.create(local_log_file)
+        
+        sink(local_log_file, append = TRUE)
+      }
       
       # req(r$user_id)
       

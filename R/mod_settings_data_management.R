@@ -2041,11 +2041,8 @@ mod_settings_data_management_server <- function(id = character(), r = shiny::rea
         
         if (debug) cat(paste0("\n", now(), " - mod_settings_data_management - observer input$code_selected_dataset_or_vocabulary"))
         
-        print("1")
-        print(input$code_selected_dataset_or_vocabulary)
         if (length(input$code_selected_dataset_or_vocabulary) > 1) link_id <- input$code_selected_dataset_or_vocabulary$key
         else link_id <- input$code_selected_dataset_or_vocabulary
-        print("2")
         
         if (table == "datasets"){
           

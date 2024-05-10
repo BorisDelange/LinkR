@@ -23,6 +23,7 @@ linkr <- function(
   app_folder = character(),
   local = FALSE,
   debug = FALSE,
+  log_file = FALSE,
   port = 3838
 ) {
   
@@ -195,7 +196,7 @@ linkr <- function(
   if (debug) cat(paste0("\n", now(), " - linkr - load UI & server"))
   shinyApp(
     ui = app_ui(pages, language, languages, i18n, users_accesses_toggles_options, debug),
-    server = app_server(pages, language, languages, i18n, app_folder, debug, local, users_accesses_toggles_options),
+    server = app_server(pages, language, languages, i18n, app_folder, debug, log_file, local, users_accesses_toggles_options),
     options = options
   )
 }
