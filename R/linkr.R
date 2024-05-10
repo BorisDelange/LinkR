@@ -33,8 +33,6 @@ linkr <- function(
   if (debug) cat(paste0(now(), " - linkr - init - v0.2.0.9086"))
   options(shiny.maxRequestSize = 4096*1024^2, shiny.launch.browser = TRUE, shiny.port = port)
   
-  # suppressMessages(require(shinyTree))
-  
   if (!is.logical(debug) | !is.logical(local)) stop("debug or local are not logical")
   
   # Create app folder if it doesn't exist
@@ -181,7 +179,7 @@ linkr <- function(
     "explore",
     "git_repos",
     "log",
-    "messages",
+    "project_messages",
     "plugins",
     "projects",
     "project_console",

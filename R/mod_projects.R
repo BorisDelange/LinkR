@@ -120,10 +120,23 @@ mod_projects_server <- function(id, r, d, m, language, i18n, debug){
     # Load a project ----
     # --- --- --- --- ---
     
+    # We can load a project without loading data, and load data after
+    observeEvent(shiny.router::get_page(), {
+      if (debug) cat(paste0("\n", now(), " - mod_projects - observer shiny.router::get_page()"))
+      
+      # If data is not already loaded, load data
+      req(length(r$project_data_loaded) > 0)
+      req(!r$project_data_loaded)
+      req(shiny.router::get_page() %in% c("subsets", "project_messages", "project_console", "tasks"))
+      r$load_project_trigger <- now()
+    })
+    
     observeEvent(r$load_project_trigger, {
       if (debug) cat(paste0("\n", now(), " - mod_projects - observer r$load_project_trigger"))
       
-      shinyjs::delay(500, m$selected_study <- input$selected_element)
+      shiny.router::change_page("data")
+      r$project_data_loaded <- TRUE
+      shinyjs::delay(500, r$load_project_data_trigger <- now())
     })
     
     # --- --- --- --- --- -

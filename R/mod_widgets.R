@@ -4,7 +4,7 @@ mod_widgets_ui <- function(id, language, languages, i18n){
   
   # Initiate vars ----
   
-  single_id <- switch(id, "datasets" = "dataset", "projects" = "project", "plugins" = "plugin")
+  single_id <- switch(id, "datasets" = "dataset", "projects" = "project", "plugins" = "plugin", "subsets" = "subset")
   
   add_element_inputs <- tagList()
   
@@ -85,18 +85,21 @@ mod_widgets_server <- function(id, r, d, m, language, i18n, all_divs, debug){
     
     # Initiate vars ----
     
-    single_id <- switch(id, "datasets" = "dataset", "projects" = "project", "plugins" = "plugin")
+    single_id <- switch(id, "datasets" = "dataset", "projects" = "project", "plugins" = "plugin", "subsets" = "subset")
     
-    sql_table <- switch(id, "datasets" = "datasets", "projects" = "studies", "plugins" = "plugins")
+    sql_table <- switch(id, "datasets" = "datasets", "projects" = "studies", "plugins" = "plugins", "subsets" = "subsets")
     
     # For retro-compatibility : studies -> projects
-    sql_category <- switch(id, "datasets" = "dataset", "projects" = "study", "plugins" = "plugin")
+    sql_category <- switch(id, "datasets" = "dataset", "projects" = "study", "plugins" = "plugin", "subsets" = "subset")
     
     long_var <- paste0(id, "_long")
     long_var_filtered <- paste0("filtered_", id, "_long")
     wide_var <- paste0(id, "_wide")
     element_added <- paste0(single_id, "_added")
     element_deleted <- paste0(single_id, "_deleted")
+    
+    # Sql connection
+    if (id == "subsets") con <- m$db else con <- r$db
     
     if (id == "plugins"){
       r$edit_plugin_code_files_list <- tibble::tibble(id = integer(), plugin_id = integer(), filename = character())
@@ -136,7 +139,21 @@ mod_widgets_server <- function(id, r, d, m, language, i18n, all_divs, debug){
         SELECT d.id, d.update_datetime, d.tab_type_id, o.name, o.value, o.value_num
           FROM {sql_table} d
           INNER JOIN {paste0('selected_', id)} ON d.id = {paste0('selected_', id)}.id
-          LEFT JOIN options o ON o.category = {sql_category} AND d.id = o.link_id", .con = r$db)
+          LEFT JOIN options o ON o.category = {sql_category} AND d.id = o.link_id", .con = con)
+      }
+      
+      else if (sql_table == "subsets"){
+        sql <- glue::glue_sql("WITH {paste0('selected_', id)} AS (
+          SELECT DISTINCT d.id
+          FROM {sql_table} d
+          LEFT JOIN options AS r ON d.id = r.link_id AND r.category = {sql_category} AND r.name = 'users_allowed_read_group'
+          LEFT JOIN options AS u ON d.id = u.link_id AND u.category = {sql_category} AND u.name = 'user_allowed_read'
+          WHERE r.value = 'everybody' OR (r.value = 'people_picker' AND u.value_num = {r$user_id})
+        )
+        SELECT d.id, o.name, o.value, o.value_num
+          FROM {sql_table} d
+          INNER JOIN {paste0('selected_', id)} ON d.id = {paste0('selected_', id)}.id
+          LEFT JOIN options o ON o.category = {sql_category} AND d.id = o.link_id", .con = con)
       }
       
       else {
@@ -150,14 +167,14 @@ mod_widgets_server <- function(id, r, d, m, language, i18n, all_divs, debug){
         SELECT d.id, d.update_datetime, o.name, o.value, o.value_num
           FROM {sql_table} d
           INNER JOIN {paste0('selected_', id)} ON d.id = {paste0('selected_', id)}.id
-          LEFT JOIN options o ON o.category = {sql_category} AND d.id = o.link_id", .con = r$db)
+          LEFT JOIN options o ON o.category = {sql_category} AND d.id = o.link_id", .con = con)
       }
       
-      r[[long_var]] <- DBI::dbGetQuery(r$db, sql)
+      r[[long_var]] <- DBI::dbGetQuery(con, sql)
       r[[long_var_filtered]] <- r[[long_var]]
       
-      sql <- glue::glue_sql("SELECT * FROM {sql_table} WHERE id IN ({unique(r[[long_var]]$id)*})", .con = r$db)
-      r[[wide_var]] <- DBI::dbGetQuery(r$db, sql)
+      sql <- glue::glue_sql("SELECT * FROM {sql_table} WHERE id IN ({unique(r[[long_var]]$id)*})", .con = con)
+      r[[wide_var]] <- DBI::dbGetQuery(con, sql)
       
       shinyjs::runjs(paste0("Shiny.setInputValue('", id, "-reload_elements_list', Math.random());"))
     })
@@ -221,7 +238,13 @@ mod_widgets_server <- function(id, r, d, m, language, i18n, all_divs, debug){
         }
         
         else if (id == "projects"){
+          
           href <- shiny.router::route_link("data")
+          onclick <- paste0("
+            Shiny.setInputValue('", id, "-selected_element', ", i, ");
+            Shiny.setInputValue('", id, "-selected_element_type', 'project_options');
+            Shiny.setInputValue('", id, "-selected_element_trigger', Math.random());
+          ")
          
           widget_buttons <-
             div(
@@ -230,12 +253,7 @@ mod_widgets_server <- function(id, r, d, m, language, i18n, all_divs, debug){
                   ui = shiny.fluent::IconButton.shinyInput(ns("project_settings"), iconProps = list(iconName = "Settings"), href = shiny.router::route_link("projects")),
                   text = i18n$t("set_up_project")),
                 class = "small_icon_button",
-                onclick = paste0("
-                  Shiny.setInputValue('", id, "-selected_element', ", i, ");
-                  Shiny.setInputValue('", id, "-selected_element_type', 'project_options');
-                  Shiny.setInputValue('", id, "-selected_element_trigger', Math.random());
-                  event.stopPropagation();
-                ")
+                onclick = paste0(onclick, "event.stopPropagation();")
               ),
               div(
                 create_hover_card(ui = shiny.fluent::IconButton.shinyInput(ns("load_project"), iconProps = list(iconName = "Play")), text = i18n$t("load_project")),
@@ -248,10 +266,7 @@ mod_widgets_server <- function(id, r, d, m, language, i18n, all_divs, debug){
         elements_ui <- tagList(
           tags$a(
             href = href,
-            onclick = paste0("
-              Shiny.setInputValue('", id, "-selected_element', ", i, ");
-               Shiny.setInputValue('", id, "-selected_element_type', '');
-              Shiny.setInputValue('", id, "-selected_element_trigger', Math.random());"),
+            onclick = onclick,
             div(
               class = paste0(single_id, "_widget"),
               div(
@@ -359,8 +374,8 @@ mod_widgets_server <- function(id, r, d, m, language, i18n, all_divs, debug){
       req(!empty_name)
 
       # Check if name is not already used
-      sql <- glue::glue_sql("SELECT name FROM {sql_table} WHERE LOWER(name) = {tolower(element_name)}", .con = r$db)
-      name_already_used <- nrow(DBI::dbGetQuery(r$db, sql) > 0)
+      sql <- glue::glue_sql("SELECT name FROM {sql_table} WHERE LOWER(name) = {tolower(element_name)}", .con = con)
+      name_already_used <- nrow(DBI::dbGetQuery(con, sql) > 0)
 
       if (name_already_used) shiny.fluent::updateTextField.shinyInput(session, "element_creation_name", errorMessage = i18n$t("name_already_used"))
       req(!name_already_used)
@@ -368,7 +383,7 @@ mod_widgets_server <- function(id, r, d, m, language, i18n, all_divs, debug){
       # Add element in db
 
       ## Element table
-      element_id <- get_last_row(r$db, sql_table) + 1
+      element_id <- get_last_row(con, sql_table) + 1
       
       if (sql_table == "datasets") new_data <- tibble::tibble(
         id = element_id, name = element_name, data_source_id = NA_integer_, creator_id = r$user_id, 
@@ -383,7 +398,11 @@ mod_widgets_server <- function(id, r, d, m, language, i18n, all_divs, debug){
         id = element_id, name = element_name, tab_type_id = input$plugin_creation_type,
         creation_datetime = now(), update_datetime = now(), deleted = FALSE)
       
-      DBI::dbAppendTable(r$db, sql_table, new_data)
+      else if (sql_table == "subsets") new_data <- tibble::tibble(
+        id = element_id, name = element_name, description = NA_character_, study_id = m$selected_study,
+        creator_id = r$user_id, datetime = now(), deleted = FALSE)
+      
+      DBI::dbAppendTable(con, sql_table, new_data)
       r[[id]] <- r[[id]] %>% dplyr::bind_rows(new_data)
 
       ## Options table
@@ -421,6 +440,17 @@ mod_widgets_server <- function(id, r, d, m, language, i18n, all_divs, debug){
             tibble::tibble(
               id = new_options_ids, category = "plugin_code", link_id = element_id, name = "filename",
               value = c("ui.R", "server.R", "translations.csv"), value_num = NA_real_, creator_id = r$user_id, datetime = now(), deleted = FALSE
+            )
+          )
+      }
+      
+      ### For datasets table, add a row for omop version
+      if (id == "datasets"){
+        new_options <- new_options %>%
+          dplyr::bind_rows(
+            tibble::tibble(
+              id = max(new_options$id) + 1, category = "dataset", link_id = element_id, name = "omop_version",
+              value = "5.3", value_num = NA_real_, creator_id = r$user_id, datetime = now(), deleted = FALSE
             )
           )
       }
@@ -509,8 +539,7 @@ mod_widgets_server <- function(id, r, d, m, language, i18n, all_divs, debug){
         sapply(c("command_bar_2_a", "command_bar_2_div"), shinyjs::show)
         
         # Change current project name
-        r$selected_project_id <- input$selected_element
-        r$selected_project_trigger <- now()
+        m$selected_study <- input$selected_element
         
         # Update selected dataset dropdown
         shiny.fluent::updateDropdown.shinyInput(
@@ -519,8 +548,11 @@ mod_widgets_server <- function(id, r, d, m, language, i18n, all_divs, debug){
           value = element_wide$dataset_id
         )
         
-        # Load data & concept pages if not already loaded
-        # If not already loaded, project is loaded after data pages server side is loaded
+        # We can choose to load only project settings, and loda data after
+        r$project_data_loaded <- FALSE
+        
+        # Load data page if not already loaded
+        # If not already loaded, project is loaded after data page server side is loaded
         # Else, project is loaded directly
         # Delay to change page before executing server
         
@@ -566,7 +598,7 @@ mod_widgets_server <- function(id, r, d, m, language, i18n, all_divs, debug){
       element_id <- input$selected_element
       
       # Delete element in db
-      sql_send_statement(r$db, glue::glue_sql("DELETE FROM {sql_table} WHERE id = {element_id}", .con = r$db))
+      sql_send_statement(con, glue::glue_sql("DELETE FROM {sql_table} WHERE id = {element_id}", .con = con))
       
       # Delete code in db
       sql_send_statement(r$db, glue::glue_sql("DELETE FROM code WHERE category = {sql_category} AND link_id = {element_id}", .con = r$db))

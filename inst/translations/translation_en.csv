@@ -1063,3 +1063,6 @@ project_console,Console
 delete_dataset_title,Delete a dataset
 delete_dataset_text,Confirm deletion of this dataset?
 dataset_deleted,Dataset deleted
+delete_subset_title,Delete a subset
+delete_subset_text,Confirm deletion of this subset?
+subset_deleted,Subset deleted

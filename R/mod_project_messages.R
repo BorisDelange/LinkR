@@ -1,5 +1,5 @@
 #' @noRd
-mod_messages_ui <- function(id, language, languages, i18n){
+mod_project_messages_ui <- function(id, language, languages, i18n){
   ns <- NS(id)
   
   # cards <- c("study_messages_card")
@@ -138,7 +138,7 @@ mod_messages_ui <- function(id, language, languages, i18n){
 }
 
 #' @noRd 
-mod_messages_server <- function(id, r, d, m, language, i18n, debug){
+mod_project_messages_server <- function(id, r, d, m, language, i18n, debug){
   moduleServer(id, function(input, output, session){
     ns <- session$ns
     

@@ -54,6 +54,7 @@ app_server <- function(pages, language, languages, i18n, app_folder, debug, loca
       "persons_options", "iiiiiiciccnicl", "public",
       "widgets_options", "iiiicccnicl", "public",
       "subsets", "icciicl", "public",
+      "options", "iciccnicl", "public",
       "subset_persons", "iiiicl", "public",
       "concept", "iiccccccccc", "public",
       "concept_dataset", "iiciiii", "public",

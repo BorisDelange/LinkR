@@ -216,7 +216,7 @@ a.no-hover-effect:hover {
   z-index: 500;
 }
 
-.delete_modal_content, .create_tab_modal_content, .create_widget_modal_content, .load_status_modal_content, .create_plugin_modal_content, .create_project_modal_content, .create_dataset_modal_content {
+.delete_modal_content, .create_tab_modal_content, .create_widget_modal_content, .load_status_modal_content, .create_plugin_modal_content, .create_project_modal_content, .create_dataset_modal_content, .create_subset_modal_content {
   background: #fff;
   padding: 5px 10px 10px 15px;
   position: relative;
@@ -274,12 +274,7 @@ a.no-hover-effect:hover {
   padding-bottom: 30px;
 }
 
-.create_project_modal_content {
-  width: 400px;
-  padding-bottom: 30px;
-}
-
-.create_dataset_modal_content {
+.create_project_modal_content, .create_dataset_modal_content, .create_subset_modal_content {
   width: 400px;
   padding-bottom: 30px;
 }
@@ -397,6 +392,11 @@ a.no-hover-effect:hover {
 .delete_button .ms-Button {
   background-color: #f44336;
   border: #f44336;
+}
+
+.delete_button .ms-Button:hover {
+  background-color: #cd2d22;
+  border: #cd2d22;
 }
 
 .pivot {

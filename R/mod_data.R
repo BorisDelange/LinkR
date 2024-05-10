@@ -249,9 +249,9 @@ mod_data_server <- function(id = character(), r = shiny::reactiveValues(), d = s
     subset_tables <- c(person_tables, "person", "observation_period", "visit_occurrence", "visit_detail")
     main_tables <- c(subset_tables, "location", "care_site", "provider")
     
-    observeEvent(m$selected_study, {
+    observeEvent(r$load_project_data_trigger, {
       
-      if (debug) cat(paste0("\n", now(), " - mod_data - observer m$selected_study"))
+      if (debug) cat(paste0("\n", now(), " - mod_data - observer r$load_project_data_trigger"))
       
       # Show loading status
       r$project_load_status_displayed <- TRUE
@@ -325,7 +325,7 @@ mod_data_server <- function(id = character(), r = shiny::reactiveValues(), d = s
         r$selected_dataset <- DBI::dbGetQuery(r$db, sql) %>% dplyr::pull(dataset_id)
 
         # Load concepts
-        r$load_dataset_all_concepts <- now()
+        load_dataset_concepts(r, d, m)
       })
 
       # Display project loading status
@@ -769,13 +769,13 @@ mod_data_server <- function(id = character(), r = shiny::reactiveValues(), d = s
         if (debug) cat(paste0("\n", now(), " - mod_data - observer r$..reload_tabs"))
         
         category <- r$data_page
-        
+
         # Tabs without parent are set to level 1
         tabs <- r$data_tabs %>% dplyr::mutate(level = dplyr::case_when(is.na(parent_tab_id) ~ 1L, TRUE ~ NA_integer_))
-        
+
         # Prevent infinite loop, max loops = 7
         i <- 1
-        
+
         # Creating levels for all tabs
         while(nrow(tabs %>% dplyr::filter(is.na(level))) > 0 & i <= 7){
           tabs <-
@@ -785,16 +785,16 @@ mod_data_server <- function(id = character(), r = shiny::reactiveValues(), d = s
             dplyr::select(-parent_level)
           i <- i + 1
         }
-        
+
         # Exclude tabs without level
         tabs <- tabs %>% dplyr::filter(!is.na(level))
-        
+
         # Order by display order
         tabs <- tabs %>% dplyr::arrange(level, display_order)
-        
+
         # Calculate first tab displayed in the menu
         if(nrow(tabs) > 0 & "level" %in% names(tabs) & !is.na(m$selected_study)){
-          
+
           # First tab displayed
           first_tab_displayed <- tabs %>% dplyr::filter(level == 1) %>% dplyr::slice(1)
           if (max(tabs$level) >= 2){
@@ -803,11 +803,11 @@ mod_data_server <- function(id = character(), r = shiny::reactiveValues(), d = s
               if (nrow(children) > 0) first_tab_displayed <- children
             }
           }
-          
+
           r$data_first_tab_displayed <- first_tab_displayed
         }
-        
-        r$data_menu_tabs <- 
+
+        r$data_menu_tabs <-
           tabs %>%
           dplyr::group_by(level, parent_tab_id) %>%
           dplyr::summarize(
@@ -815,7 +815,7 @@ mod_data_server <- function(id = character(), r = shiny::reactiveValues(), d = s
             name = name, display_order = display_order, level = level
           ) %>%
           dplyr::ungroup()
-        
+
         # Reload menu
         r$data_reload_menu <- now()
         
@@ -1107,7 +1107,7 @@ mod_data_server <- function(id = character(), r = shiny::reactiveValues(), d = s
     observeEvent(input$study_go_to_tab_trigger, {
       if (debug) cat(paste0("\n", now(), " - mod_data - observer input$study_go_to_tab"))
       
-      r[[paste0(category, "_selected_tab")]] <- input$study_go_to_tab
+      r[[paste0(r$data_page, "_selected_tab")]] <- input$study_go_to_tab
       r$data_reload_menu <- now()
     })
     
@@ -1265,6 +1265,8 @@ mod_data_server <- function(id = character(), r = shiny::reactiveValues(), d = s
     # Delete a tab
     observeEvent(input$delete_tab_button, {
       if (debug) cat(paste0("\n", now(), " - mod_data - observer input$delete_tab_button"))
+      
+      category <- r$data_page
       
       # Get tab ID
       tab_id <- input$edit_tab_id

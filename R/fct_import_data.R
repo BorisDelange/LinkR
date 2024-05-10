@@ -98,21 +98,21 @@ import_dataset <- function(output, ns = character(), i18n = character(), r = shi
   # Check read_with
   if (read_with %not_in% c("none", "vroom", "duckdb", "spark", "arrow")){
     add_log_entry(r = r, category = "Error", name = paste0("import_dataset - invalid_read_with"), value = i18n$t("dataset_invalid_read_with"))
-    cat(paste0(tags$span(paste0("**", i18n$t("error"), "** ", i18n$t("dataset_invalid_read_with")), style = "font-weight:bold; color:red;"), "\n"))
+    cat(paste0(paste0("**", i18n$t("error"), "** ", i18n$t("dataset_invalid_read_with")), "\n"))
     return(NULL)
   }
   
   # Check save_as
   if (save_as %not_in% c("none", "csv", "parquet")){
     add_log_entry(r = r, category = "Error", name = paste0("import_dataset - invalid_save_as"), value = i18n$t("dataset_invalid_save_as"))
-    cat(paste0(tags$span(paste0("**", i18n$t("error"), "** ", i18n$t("dataset_invalid_save_as")), style = "font-weight:bold; color:red;"), "\n"))
+    cat(paste0(paste0("**", i18n$t("error"), "** ", i18n$t("dataset_invalid_save_as")), "\n"))
     return(NULL)
   }
   
   # Check dataset_id
   if (length(dataset_id) == 0){
     add_log_entry(r = r, category = "Error", name = paste0("import_dataset - invalid_dataset_id_value"), value = i18n$t("invalid_dataset_id_value"))
-    cat(paste0(tags$span(paste0("**", i18n$t("error"), "** ", i18n$t("invalid_dataset_id_value")), style = "font-weight:bold; color:red;"), "\n"))
+    cat(paste0(paste0("**", i18n$t("error"), "** ", i18n$t("invalid_dataset_id_value")), "\n"))
     return(NULL)
   }
   
@@ -218,7 +218,7 @@ import_dataset <- function(output, ns = character(), i18n = character(), r = shi
           if (omop_table == "condition_era" & omop_version %in% c("5.3", "5.4")) col_types <- "iiiDDi"
             
           d[[omop_table]] <- vroom::vroom(path, col_types = col_types, progress = FALSE)
-          cat(paste0(tags$span(paste0(i18n$t(paste0("import_dataset_success_", omop_table))), style = "font-weight:bold; color:#0078D4;"), "\n"))
+          cat(paste0(paste0(i18n$t(paste0("import_dataset_success_", omop_table))), "\n"))
         })
       },
         
@@ -249,7 +249,7 @@ import_dataset <- function(output, ns = character(), i18n = character(), r = shi
         tryCatch({
           return({
             d[[omop_table]] <- arrow::read_parquet(path)
-            cat(paste0(tags$span(paste0(i18n$t(paste0("import_dataset_success_", omop_table))), style = "font-weight:bold; color:#0078D4;"), "\n"))
+            cat(paste0(paste0(i18n$t(paste0("import_dataset_success_", omop_table))), "\n"))
           })
         },
           error = function(e){
@@ -292,7 +292,7 @@ import_dataset <- function(output, ns = character(), i18n = character(), r = shi
               DBI::dbExecute(con, request)
               d[[omop_table]] <- dplyr::tbl(con, omop_table)
             }
-            cat(paste0(tags$span(paste0(i18n$t(paste0("import_dataset_success_", omop_table))), style = "font-weight:bold; color:#0078D4;"), "\n"))
+            cat(paste0(paste0(i18n$t(paste0("import_dataset_success_", omop_table))), "\n"))
             return(NULL)
         },
           error = function(e){
@@ -332,7 +332,7 @@ import_dataset <- function(output, ns = character(), i18n = character(), r = shi
           }
           
           d[[omop_table]] <- dplyr::tbl(con, omop_table)
-          cat(paste0(tags$span(paste0(i18n$t(paste0("import_dataset_success_", omop_table))), style = "font-weight:bold; color:#0078D4;"), "\n"))
+          cat(paste0(paste0(i18n$t(paste0("import_dataset_success_", omop_table))), "\n"))
           return(NULL)
         },
           error = function(e){
@@ -378,7 +378,7 @@ import_dataset <- function(output, ns = character(), i18n = character(), r = shi
             
             d[[omop_table]] <- dplyr::tbl(con, omop_table)
             
-            cat(paste0(tags$span(paste0(i18n$t(paste0("import_dataset_success_", omop_table))), style = "font-weight:bold; color:#0078D4;"), "\n"))
+            cat(paste0(paste0(i18n$t(paste0("import_dataset_success_", omop_table))), "\n"))
             return(NULL)
         },
           error = function(e){
@@ -413,7 +413,7 @@ import_dataset <- function(output, ns = character(), i18n = character(), r = shi
           
           d[[omop_table]] <- dplyr::tbl(con, omop_table)
           
-          cat(paste0(tags$span(paste0(i18n$t(paste0("import_dataset_success_", omop_table))), style = "font-weight:bold; color:#0078D4;"), "\n"))
+          cat(paste0(paste0(i18n$t(paste0("import_dataset_success_", omop_table))), "\n"))
           return(NULL)
         },
           error = function(e){
@@ -1221,7 +1221,7 @@ import_dataset <- function(output, ns = character(), i18n = character(), r = shi
               }
               
               d[[omop_table]] <- dplyr::tbl(con, omop_table)
-              cat(paste0(tags$span(paste0(i18n$t(paste0("import_dataset_success_", omop_table))), style = "font-weight:bold; color:#0078D4;"), "\n"))
+              cat(paste0(paste0(i18n$t(paste0("import_dataset_success_", omop_table))), "\n"))
               return(NULL)
           },
             error = function(e){
@@ -1257,7 +1257,7 @@ import_dataset <- function(output, ns = character(), i18n = character(), r = shi
             }
             
             d[[omop_table]] <- dplyr::tbl(con, omop_table)
-            cat(paste0(tags$span(paste0(i18n$t(paste0("import_dataset_success_", omop_table))), style = "font-weight:bold; color:#0078D4;"), "\n"))
+            cat(paste0(i18n$t("import_dataset_success_", omop_table), "\n"))
             return(NULL)
           },
             error = function(e){
@@ -1284,7 +1284,7 @@ import_dataset <- function(output, ns = character(), i18n = character(), r = shi
   
   d[[omop_table]] <- data
   
-  cat(paste0(tags$span(paste0(i18n$t(paste0("import_dataset_success_", omop_table))), style = "font-weight:bold; color:#0078D4;"), "\n"))
+  cat(paste0(paste0(i18n$t(paste0("import_dataset_success_", omop_table))), "\n"))
 }
 
 #' Import a vocabulary table

@@ -89,7 +89,7 @@ mod_page_header_ui <- function(id = character(), i18n = character()){
             title = i18n$t("configure_project")
           ),
           # Messages
-          shiny.fluent::CommandBarItem("", "Chat", href = shiny.router::route_link("messages"), title = i18n$t("messages")),
+          shiny.fluent::CommandBarItem("", "Chat", href = shiny.router::route_link("project_messages"), title = i18n$t("messages")),
           # Console
           shiny.fluent::CommandBarItem("", "Code", href = shiny.router::route_link("project_console"), title = i18n$t("console")),
           # Tasks
@@ -202,15 +202,16 @@ mod_page_header_server <- function(id = character(), r = shiny::reactiveValues()
         output$current_page <- renderUI(i18n$t(paste0(r$data_page, "_data")))
       })
     }
+    else if (id == "project_messages") output$current_page <- renderUI(i18n$t("messages"))
     else output$current_page <- renderUI(i18n$t(id))
     
     # Selected project
     
-    if (id %in% c("concepts", "data", "projects", "messages", "project_console", "subsets", "tasks")){
-      observeEvent(r$selected_project_trigger, {
-        if (debug) cat(paste0("\n", now(), " - mod_page_header - ", id, " - observer m$selected_project_trigger"))
+    if (id %in% c("concepts", "data", "projects", "project_messages", "project_console", "subsets", "tasks")){
+      observeEvent(m$selected_study, {
+        if (debug) cat(paste0("\n", now(), " - mod_page_header - ", id, " - observer m$selected_study"))
         
-        project_name <- r$projects_long %>% dplyr::filter(id == r$selected_project_id, name == paste0("name_", language)) %>% dplyr::pull(value)
+        project_name <- r$projects_long %>% dplyr::filter(id == m$selected_study, name == paste0("name_", language)) %>% dplyr::pull(value)
         project_name_short <- project_name
         max_length <- 27
         if (nchar(project_name_short) > max_length) project_name_short <- paste0(substr(project_name_short, 1, max_length - 3), "...")
