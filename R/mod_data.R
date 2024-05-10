@@ -1907,14 +1907,15 @@ mod_data_server <- function(id = character(), r = shiny::reactiveValues(), d = s
         if (nrow(widgets) > 0){
   
           # Load widgets concepts
+          print("ui_31")
           widgets_concepts <- r$data_widgets_concepts %>% dplyr::inner_join(widgets %>% dplyr::select(widget_id), by = "widget_id")
-  
+          print("ui_32")
           # Get widgets ids
           widgets_ids <- unique(widgets$widget_id)
-  
+          print("ui_33")
           # Use sapply instead of for loop, cause with for loop, widget_id doesn't change
           sapply(widgets_ids, function(widget_id){
-  
+            print("ui_34")
             # Load over selected concepts
             selected_concepts <-
               widgets_concepts %>%
@@ -1923,7 +1924,7 @@ mod_data_server <- function(id = character(), r = shiny::reactiveValues(), d = s
   
             # Load UI code for this widget
             plugin_id <- widgets %>% dplyr::filter(widget_id == !!widget_id) %>% dplyr::slice(1) %>% dplyr::pull(plugin_id)
-  
+            print("ui_35")
             # Check if plugin has been deleted
             check_deleted_plugin <- nrow(DBI::dbGetQuery(r$db, paste0("SELECT * FROM plugins WHERE id = ", plugin_id))) == 0
             if (check_deleted_plugin){
@@ -1931,7 +1932,7 @@ mod_data_server <- function(id = character(), r = shiny::reactiveValues(), d = s
               settings_widget_button <- ""
             }
             else {
-  
+              print("ui_36")
               # Get plugin unique_id
               sql <- glue::glue_sql("SELECT value FROM options WHERE category = 'plugin' AND name = 'unique_id' AND link_id = {plugin_id}", .con = r$db)
               plugin_unique_id <- DBI::dbGetQuery(r$db, sql) %>% dplyr::pull()
@@ -1950,7 +1951,7 @@ mod_data_server <- function(id = character(), r = shiny::reactiveValues(), d = s
   
               # Get name of widget
               widget_name <- widgets %>% dplyr::filter(widget_id == !!widget_id) %>% dplyr::pull(name)
-  
+              print("ui_36")
               # Get UI code from db. Try to run plugin UI code
   
               sql <- glue::glue_sql("SELECT id FROM options WHERE link_id = {plugin_id} AND name = 'filename' AND value = 'ui.R'", .con = r$db)
@@ -1963,22 +1964,23 @@ mod_data_server <- function(id = character(), r = shiny::reactiveValues(), d = s
               ui_code <- DBI::dbGetQuery(r$db, sql) %>% dplyr::pull() %>% process_widget_code(tab_id, widget_id, m$selected_study, patient_id, plugin_folder)
   
               # Widget card
-  
+              print("ui_37")
               ui_code <- tryCatch(
                 eval(parse(text = ui_code)),
                 error = function(e) cat(paste0("\n", now(), " - mod_data - error loading UI code - widget_id = ", widget_id, " - ", toString(e))),
                 warning = function(w) cat(paste0("\n", now(), " - mod_data - error loading UI code - widget_id = ", widget_id, " - ", toString(w)))
               )
             }
-  
+            print("ui_38")
             ui_output <- create_widget(id, widget_id, ui_code)
-  
+            print("ui_39")
             add_widget_to_gridstack(id, tab_id, ui_output, widget_id)
+            print("ui_40")
           })
         }
         print("ui_4")
         if (r$project_load_status_displayed) r$project_load_status$widgets_ui_endtime <- now("%Y-%m-%d %H:%M:%OS3")
-      }, error = function(e) cat(e))
+      }, error = function(e) cat(toString(e)))
     }
     
     load_tab_server <- function(tab_id){
@@ -2108,7 +2110,7 @@ mod_data_server <- function(id = character(), r = shiny::reactiveValues(), d = s
         })
         
         if (r$project_load_status_displayed) r$project_load_status$widgets_server_endtime <- now("%Y-%m-%d %H:%M:%OS3")
-      }, error = function(e) cat(e))
+      }, error = function(e) cat(toString(e)))
     }
   })
 }
