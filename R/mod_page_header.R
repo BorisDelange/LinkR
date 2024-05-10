@@ -198,7 +198,7 @@ mod_page_header_server <- function(id = character(), r = shiny::reactiveValues()
     
     if (id == "data"){
       observeEvent(shiny.router::get_page(), {
-        if (debug) cat(paste0("\n", now(), " - mod_page_header - ", id, " - observer shiny.router::change_page()"))
+        if (debug) cat(paste0("\n", now(), " - mod_page_header (", id, ") - observer shiny.router::change_page()"))
         output$current_page <- renderUI(i18n$t(paste0(r$data_page, "_data")))
       })
     }
@@ -209,7 +209,7 @@ mod_page_header_server <- function(id = character(), r = shiny::reactiveValues()
     
     if (id %in% c("concepts", "data", "projects", "project_messages", "project_console", "subsets", "tasks")){
       observeEvent(m$selected_study, {
-        if (debug) cat(paste0("\n", now(), " - mod_page_header - ", id, " - observer m$selected_study"))
+        if (debug) cat(paste0("\n", now(), " - mod_page_header (", id, ") - observer m$selected_study"))
         
         project_name <- r$projects_long %>% dplyr::filter(id == m$selected_study, name == paste0("name_", language)) %>% dplyr::pull(value)
         project_name_short <- project_name

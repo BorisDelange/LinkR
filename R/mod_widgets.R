@@ -81,7 +81,7 @@ mod_widgets_server <- function(id, r, d, m, language, i18n, all_divs, debug){
     
     # |-------------------------------- -----
     
-    if (debug) cat(paste0("\n", now(), " - mod_widgets (", id, ") - start"))
+    if (debug) cat(paste0("\n", now(), " - mod_widgets - (", id, ") - start"))
     
     # Initiate vars ----
     
@@ -109,7 +109,7 @@ mod_widgets_server <- function(id, r, d, m, language, i18n, all_divs, debug){
     # Search an element ----
     
     observeEvent(input$search_element, {
-      if (debug) cat(paste0("\n", now(), " - mod_widgets (", id, ") - observer input$search_element"))
+      if (debug) cat(paste0("\n", now(), " - mod_widgets - (", id, ") - observer input$search_element"))
       
       if (input$search_element == "") r[[long_var_filtered]] <- r[[long_var]]
       else {
@@ -126,7 +126,7 @@ mod_widgets_server <- function(id, r, d, m, language, i18n, all_divs, debug){
     shinyjs::runjs(paste0("Shiny.setInputValue('", id, "-reload_elements_var', Math.random());"))
     
     observeEvent(input$reload_elements_var, {
-      if (debug) cat(paste0("\n", now(), " - mod_widgets (", id, ") - observer input$reload_elements_var"))
+      if (debug) cat(paste0("\n", now(), " - mod_widgets - (", id, ") - observer input$reload_elements_var"))
       
       if (sql_table == "plugins"){
         sql <- glue::glue_sql("WITH {paste0('selected_', id)} AS (
@@ -148,7 +148,9 @@ mod_widgets_server <- function(id, r, d, m, language, i18n, all_divs, debug){
           FROM {sql_table} d
           LEFT JOIN options AS r ON d.id = r.link_id AND r.category = {sql_category} AND r.name = 'users_allowed_read_group'
           LEFT JOIN options AS u ON d.id = u.link_id AND u.category = {sql_category} AND u.name = 'user_allowed_read'
-          WHERE r.value = 'everybody' OR (r.value = 'people_picker' AND u.value_num = {r$user_id})
+          WHERE 
+            d.study_id = {m$selected_study} AND
+            (r.value = 'everybody' OR (r.value = 'people_picker' AND u.value_num = {r$user_id}))
         )
         SELECT d.id, o.name, o.value, o.value_num
           FROM {sql_table} d
@@ -180,7 +182,7 @@ mod_widgets_server <- function(id, r, d, m, language, i18n, all_divs, debug){
     })
     
     observeEvent(input$reload_elements_list, {
-      if (debug) cat(paste0("\n", now(), " - mod_widgets (", id, ") - observer input$reload_elements_list"))
+      if (debug) cat(paste0("\n", now(), " - mod_widgets - (", id, ") - observer input$reload_elements_list"))
       
       # Filter elements with search box
       
@@ -209,6 +211,10 @@ mod_widgets_server <- function(id, r, d, m, language, i18n, all_divs, debug){
         
         widget_buttons <- tagList()
         href <- shiny.router::route_link(id)
+        onclick <- paste0("
+          Shiny.setInputValue('", id, "-selected_element', ", i, ");
+          Shiny.setInputValue('", id, "-selected_element_trigger', Math.random());
+        ")
         
         if (id == "plugins"){
           
@@ -240,11 +246,6 @@ mod_widgets_server <- function(id, r, d, m, language, i18n, all_divs, debug){
         else if (id == "projects"){
           
           href <- shiny.router::route_link("data")
-          onclick <- paste0("
-            Shiny.setInputValue('", id, "-selected_element', ", i, ");
-            Shiny.setInputValue('", id, "-selected_element_type', 'project_options');
-            Shiny.setInputValue('", id, "-selected_element_trigger', Math.random());
-          ")
          
           widget_buttons <-
             div(
@@ -253,7 +254,10 @@ mod_widgets_server <- function(id, r, d, m, language, i18n, all_divs, debug){
                   ui = shiny.fluent::IconButton.shinyInput(ns("project_settings"), iconProps = list(iconName = "Settings"), href = shiny.router::route_link("projects")),
                   text = i18n$t("set_up_project")),
                 class = "small_icon_button",
-                onclick = paste0(onclick, "event.stopPropagation();")
+                onclick = paste0(onclick, "
+                  Shiny.setInputValue('", id, "-selected_element_type', 'project_options');
+                  event.stopPropagation();
+                ")
               ),
               div(
                 create_hover_card(ui = shiny.fluent::IconButton.shinyInput(ns("load_project"), iconProps = list(iconName = "Play")), text = i18n$t("load_project")),
@@ -266,7 +270,7 @@ mod_widgets_server <- function(id, r, d, m, language, i18n, all_divs, debug){
         elements_ui <- tagList(
           tags$a(
             href = href,
-            onclick = onclick,
+            onclick = paste0(onclick, "Shiny.setInputValue('", id, "-selected_element_type', '');"),
             div(
               class = paste0(single_id, "_widget"),
               div(
@@ -293,7 +297,7 @@ mod_widgets_server <- function(id, r, d, m, language, i18n, all_divs, debug){
     # Element current tab ----
     
     observeEvent(input$current_tab_trigger, {
-      if (debug) cat(paste0("\n", now(), " - mod_widgets (", id, ") - observer input$current_tab_trigger"))
+      if (debug) cat(paste0("\n", now(), " - mod_widgets - (", id, ") - observer input$current_tab_trigger"))
       
       current_tab <- gsub(paste0(id, "-"), "", input$current_tab, fixed = FALSE)
       
@@ -325,7 +329,7 @@ mod_widgets_server <- function(id, r, d, m, language, i18n, all_divs, debug){
     # Go to home page ----
     
     observeEvent(input$show_home, {
-      if (debug) cat(paste0("\n", now(), " - mod_widgets (", id, ") - observer input$show_home"))
+      if (debug) cat(paste0("\n", now(), " - mod_widgets - (", id, ") - observer input$show_home"))
       
       divs <- c(paste0(all_divs, "_reduced_sidenav"), paste0(all_divs, "_large_sidenav"))
       
@@ -350,20 +354,20 @@ mod_widgets_server <- function(id, r, d, m, language, i18n, all_divs, debug){
     
     # Open modal
     observeEvent(input$create_element, {
-      if (debug) cat(paste0("\n", now(), " - mod_widgets (", id, ") - observer input$create_element"))
+      if (debug) cat(paste0("\n", now(), " - mod_widgets - (", id, ") - observer input$create_element"))
       shinyjs::show("create_element_modal")
     })
     
     # Close modal
     observeEvent(input$close_create_element_modal, {
-      if (debug) cat(paste0("\n", now(), " - mod_widgets (", id, ") - observer input$close_create_element_modal"))
+      if (debug) cat(paste0("\n", now(), " - mod_widgets - (", id, ") - observer input$close_create_element_modal"))
       shinyjs::hide("create_element_modal")
     })
     
     # Add an element
     observeEvent(input$add_element, {
       
-      if (debug) cat(paste0("\n", now(), " - mod_widgets (", id, ") - observer input$add_element"))
+      if (debug) cat(paste0("\n", now(), " - mod_widgets - (", id, ") - observer input$add_element"))
       
       element_name <- input$element_creation_name
 
@@ -391,7 +395,7 @@ mod_widgets_server <- function(id, r, d, m, language, i18n, all_divs, debug){
       
       else if (sql_table == "studies") new_data <- tibble::tibble(
         id = element_id, name = element_name, dataset_id = NA_integer_, 
-        patient_lvl_tab_group_id = get_last_row(r$db, "tabs_groups") + 1, aggregated_tab_group_id = get_last_row(r$db, "tabs_groups") + 2,
+        patient_lvl_tab_group_id = get_last_row(con, "tabs_groups") + 1, aggregated_tab_group_id = get_last_row(con, "tabs_groups") + 2,
         creator_id = r$user_id, creation_datetime = now(), update_datetime = now(), deleted = FALSE)
 
       else if (sql_table == "plugins") new_data <- tibble::tibble(
@@ -428,7 +432,7 @@ mod_widgets_server <- function(id, r, d, m, language, i18n, all_divs, debug){
             ) %>%
             dplyr::select(-code, -language)
         ) %>%
-        dplyr::mutate(id = get_last_row(r$db, "options") + dplyr::row_number(), category = sql_category, link_id = element_id, .before = "name") %>%
+        dplyr::mutate(id = get_last_row(con, "options") + dplyr::row_number(), category = sql_category, link_id = element_id, .before = "name") %>%
         dplyr::mutate(creator_id = r$user_id, datetime = now(), deleted = FALSE)
       
       ### For plugins table, add a row for each file
@@ -455,20 +459,20 @@ mod_widgets_server <- function(id, r, d, m, language, i18n, all_divs, debug){
           )
       }
       
-      DBI::dbAppendTable(r$db, "options", new_options)
+      DBI::dbAppendTable(con, "options", new_options)
 
       ## Code table
       
       ### For plugins table, add 3 files (ui.R, server.R, translations.csv)
       if (id == "plugins") new_code <- tibble::tibble(
-        id = get_last_row(r$db, "code") + 1:3, category = "plugin", link_id = new_options_ids, code = "",
+        id = get_last_row(con, "code") + 1:3, category = "plugin", link_id = new_options_ids, code = "",
         creator_id = r$user_id, datetime = now(), deleted = FALSE)
       
       else new_code <- tibble::tibble(
-        id = get_last_row(r$db, "code") + 1, category = sql_category, link_id = element_id, code = "",
+        id = get_last_row(con, "code") + 1, category = sql_category, link_id = element_id, code = "",
         creator_id = r$user_id, datetime = now(), deleted = FALSE)
 
-      DBI::dbAppendTable(r$db, "code", new_code)
+      DBI::dbAppendTable(con, "code", new_code)
 
       # Reset fields
       shiny.fluent::updateTextField.shinyInput(session, "element_creation_name", value = "", errorMessage = NULL)
@@ -488,7 +492,7 @@ mod_widgets_server <- function(id, r, d, m, language, i18n, all_divs, debug){
     # An element is selected ----
     
     observeEvent(input$selected_element_trigger, {
-      if (debug) cat(paste0("\n", now(), " - mod_widgets (", id, ") - observer input$selected_element_trigger"))
+      if (debug) cat(paste0("\n", now(), " - mod_widgets - (", id, ") - observer input$selected_element_trigger"))
       
       sapply(c("all_elements", "all_elements_reduced_sidenav"), shinyjs::hide)
       shinyjs::show("one_element")
@@ -556,8 +560,12 @@ mod_widgets_server <- function(id, r, d, m, language, i18n, all_divs, debug){
         # Else, project is loaded directly
         # Delay to change page before executing server
         
+        print("0")
+        print(input$selected_element_type)
         if (input$selected_element_type != "project_options"){
+          print("1")
           if (length(r$loaded_pages$data) == 0){
+            print("2")
             r$load_page <- "data"
             r$data_page <- "patient_lvl"
           }
@@ -583,17 +591,17 @@ mod_widgets_server <- function(id, r, d, m, language, i18n, all_divs, debug){
     ## Delete an element ----
     
     observeEvent(input$delete_element, {
-      if (debug) cat(paste0("\n", now(), " - mod_widgets (", id, ") - observer input$delete_element"))
+      if (debug) cat(paste0("\n", now(), " - mod_widgets - (", id, ") - observer input$delete_element"))
       shinyjs::show("delete_element_modal")
     })
     
     observeEvent(input$close_element_deletion_modal, {
-      if (debug) cat(paste0("\n", now(), " - mod_widgets (", id, ") - observer input$close_element_deletion"))
+      if (debug) cat(paste0("\n", now(), " - mod_widgets - (", id, ") - observer input$close_element_deletion"))
       shinyjs::hide("delete_element_modal")
     })
     
     observeEvent(input$confirm_element_deletion, {
-      if (debug) cat(paste0("\n", now(), " - mod_widgets (", id, ") - observer input$confirm_element_deletion"))
+      if (debug) cat(paste0("\n", now(), " - mod_widgets - (", id, ") - observer input$confirm_element_deletion"))
       
       element_id <- input$selected_element
       
@@ -601,10 +609,10 @@ mod_widgets_server <- function(id, r, d, m, language, i18n, all_divs, debug){
       sql_send_statement(con, glue::glue_sql("DELETE FROM {sql_table} WHERE id = {element_id}", .con = con))
       
       # Delete code in db
-      sql_send_statement(r$db, glue::glue_sql("DELETE FROM code WHERE category = {sql_category} AND link_id = {element_id}", .con = r$db))
+      sql_send_statement(con, glue::glue_sql("DELETE FROM code WHERE category = {sql_category} AND link_id = {element_id}", .con = con))
       
       # Delete options in db
-      sql_send_statement(r$db, glue::glue_sql("DELETE FROM options WHERE category = {sql_category} AND link_id = {element_id}", .con = r$db))
+      sql_send_statement(con, glue::glue_sql("DELETE FROM options WHERE category = {sql_category} AND link_id = {element_id}", .con = con))
       
       # Delete files
       if (id == "plugins") unlink(input$selected_plugin_folder, recursive = TRUE)

@@ -27,7 +27,7 @@ app_server <- function(pages, language, languages, i18n, app_folder, debug, loca
     o <- reactiveValues()
     
     # App version
-    r$app_version <- "0.2.0.9085"
+    r$app_version <- "0.3.0.9000"
     
     # Col types of database tables, to import and restore database
     db_col_types <- tibble::tribble(
@@ -55,6 +55,7 @@ app_server <- function(pages, language, languages, i18n, app_folder, debug, loca
       "widgets_options", "iiiicccnicl", "public",
       "subsets", "icciicl", "public",
       "options", "iciccnicl", "public",
+      "code", "icicicl", "public",
       "subset_persons", "iiiicl", "public",
       "concept", "iiccccccccc", "public",
       "concept_dataset", "iiciiii", "public",

@@ -172,6 +172,10 @@ db_create_tables <- function(db, type = character(), dbms = character()){
       tibble::tibble(id = integer(), category = character(), link_id = integer(), name = character(), value = character(),
       value_num = numeric(), creator_id = integer(), datetime = character(), deleted = logical()))
     
+    db_create_table(db, "code", primary_key_col = "id", dbms = dbms, text_cols = "code",
+      tibble::tibble(id = integer(), category = character(), link_id = integer(), code = character(), creator_id = integer(),
+      datetime = character(), deleted = logical()))
+    
     db_create_table(db, "subsets", primary_key_col = "id", dbms = dbms, text_cols = "description",
       tibble::tibble(id = integer(), name = character(), description = character(), study_id = integer(), creator_id = integer(),
         datetime = character(), deleted = logical()))

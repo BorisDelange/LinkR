@@ -124,7 +124,7 @@ mod_datasets_server <- function(id, r, d, m, language, i18n, debug){
       req(shiny.router::get_page() == "datasets")
       if (debug) cat(paste0("\n", now(), " - mod_datasets - observer shiny.router::get_page()"))
       
-      shinyjs::show("datasets")
+      shinyjs::show("all_elements")
       
       # Prevent a bug with scroll into ace editor
       shinyjs::runjs("var event = new Event('resize'); window.dispatchEvent(event);")

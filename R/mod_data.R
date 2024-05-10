@@ -488,13 +488,13 @@ mod_data_server <- function(id = character(), r = shiny::reactiveValues(), d = s
         if (!is.na(m$selected_subset) & m$selected_subset != input$subset$key) m$selected_subset <- input$subset$key
         
         # Reset data var
-        if (category == "patient_lvl"){
+        if (r$data_page == "patient_lvl"){
           sapply(person_tables, function(table) d$data_person[[table]] <- tibble::tibble())
           sapply(visit_detail_tables, function(table) d$data_visit_detail[[table]] <- tibble::tibble())
         }
 
         # Select patients who belong to this subset
-        update_r(r = r, m = m, table = "subset_persons")
+        m$subset_persons <- DBI::dbGetQuery(m$db, glue::glue_sql("SELECT * FROM subset_persons WHERE subset_id = {m$selected_subset}", .con = m$db))
 
         # If this subset contains no patient, maybe the code has not been run yet
         if (nrow(m$subset_persons) == 0){
@@ -510,11 +510,9 @@ mod_data_server <- function(id = character(), r = shiny::reactiveValues(), d = s
             stringr::str_replace_all("''", "'")
 
           tryCatch(eval(parse(text = subset_code)),
-            error = function(e) if (nchar(e[1]) > 0) report_bug(r = r, output = output, error_message = "fail_execute_subset_code",
-              error_name = paste0("sidenav - execute_subset_code  - id = ", m$selected_subset), category = "Error", error_report = toString(e), i18n = i18n, ns = ns)
-          )
+            error = function(e) if (nchar(e[1]) > 0) cat(paste0("\n", now(), " - mod_data - error executing subset code - subset_id = ", m$selected_subset)))
 
-          update_r(r = r, m = m, table = "subset_persons")
+          m$subset_persons <- DBI::dbGetQuery(m$db, glue::glue_sql("SELECT * FROM subset_persons WHERE subset_id = {m$selected_subset}", .con = m$db))
         }
 
         # Reset selected_person & selected_visit_detail
