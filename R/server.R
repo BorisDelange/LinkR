@@ -203,10 +203,20 @@ app_server <- function(pages, language, languages, i18n, app_folder, debug, loca
     observeEvent(r$user_id, {
       if (debug) cat(paste0("\n", now(), " - server - observer r$user_id"))
       
+      # Create a log folder for this user if doesn't exist
+      log_file <- paste0(r$app_folder, "/log/", r$user_id, ".txt")
+      if (!file.exists(log_file)) file.create(log_file)
+      
+      sink(log_file, append = TRUE)
+      # sink(log_file, append = TRUE, type = "message")
+      
       # req(r$user_id)
       
-      # onStop(function() {
-      #   if (debug) cat(paste0("\n", now(), " - server - observer onStop"))
+      onStop(function() {
+        if (debug) cat(paste0("\n", now(), " - server - observer onStop"))
+        
+        while(sink.number() > 0) sink(NULL)
+        
       #   add_log_entry(r = isolate(r), category = trad$session, name = trad$session_ends, value = "")
       #   
       #   # Close duckdb connections
@@ -215,7 +225,7 @@ app_server <- function(pages, language, languages, i18n, app_folder, debug, loca
       #   
       #   # Close spark connections
       #   sparklyr::spark_disconnect_all()
-      # })
+      })
       
       # user_access_id <- r$users %>% dplyr::filter(id == r$user_id) %>% dplyr::pull(user_access_id)
       

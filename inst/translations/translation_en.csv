@@ -1066,3 +1066,5 @@ dataset_deleted,Dataset deleted
 delete_subset_title,Delete a subset
 delete_subset_text,Confirm deletion of this subset?
 subset_deleted,Subset deleted
+refresh_log,Refresh log
+reset_log,Reset log

@@ -216,7 +216,15 @@ mod_page_sidenav_ui <- function(id = character(), i18n = character()){
         id = ns("large_sidenav")
       ),
       div(
-        id = ns("reduced_sidenav")
+        id = ns("reduced_sidenav"),
+        div(
+          create_hover_card(ui = shiny.fluent::IconButton.shinyInput(ns("refresh_log"), iconProps = list(iconName = "Refresh")), text = i18n$t("refresh_log")),
+          class = "reduced_sidenav_buttons"
+        ),
+        div(
+          create_hover_card(ui = shiny.fluent::IconButton.shinyInput(ns("reset_log"), iconProps = list(iconName = "Delete")), text = i18n$t("reset_log")),
+          class = "reduced_sidenav_buttons"
+        ),
       ),
       show_hide_sidenav
     ) -> result
@@ -466,7 +474,7 @@ mod_page_sidenav_server <- function(id = character(), r = shiny::reactiveValues(
       header_command_bar.style.marginLeft = '10px';
     ")
     
-    if (id %in% c("app_db", "console", "data_cleaning", "datasets", "explore", "home", "plugins", "projects", "subsets", "users", "vocabularies")) r[[paste0(id, "_show_hide_sidenav")]] <- "hide"
+    if (id %in% c("app_db", "console", "data_cleaning", "datasets", "explore", "home", "log", "plugins", "projects", "subsets", "users", "vocabularies")) r[[paste0(id, "_show_hide_sidenav")]] <- "hide"
     
     observeEvent(r[[paste0(id, "_show_hide_sidenav")]], {
       if (debug) cat(paste0("\n", now(), " - mod_page_sidenav - observer r$.._show_hide_sidenav"))

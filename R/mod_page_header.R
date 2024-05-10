@@ -50,7 +50,8 @@ mod_page_header_ui <- function(id = character(), i18n = character()){
           subMenuProps = list(items = list(
             list(text = i18n$t("users"), iconProps = list(iconName = "Contact"), href = shiny.router::route_link("users")),
             list(text = i18n$t("app_db"), iconProps = list(iconName = "OfflineStorage"), href = shiny.router::route_link("app_db")),
-            list(text = i18n$t("git_repos"), iconProps = list(iconName = "GitGraph"), href = shiny.router::route_link("git_repos"))
+            list(text = i18n$t("git_repos"), iconProps = list(iconName = "GitGraph"), href = shiny.router::route_link("git_repos")),
+            list(text = i18n$t("log"), iconProps = list(iconName = "KnowledgeArticle"), href = shiny.router::route_link("log"))
           )),
           title = i18n$t("app_settings")
         )

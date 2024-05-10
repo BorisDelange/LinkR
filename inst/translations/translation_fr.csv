@@ -1066,3 +1066,5 @@ dataset_deleted,Set de données supprimé
 delete_subset_title,Supprimer un subset
 delete_subset_text,Confirmer la suppression de ce subset ?
 subset_deleted,Subset supprimé
+refresh_log,Rafraîchir le log
+reset_log,Remettre le log à zéro
