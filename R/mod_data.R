@@ -830,190 +830,192 @@ mod_data_server <- function(id = character(), r = shiny::reactiveValues(), d = s
         
         if (r$project_load_status_displayed) r$project_load_status$menu_starttime <- now("%Y-%m-%d %H:%M:%OS3")
         
-        sapply(categories, function(category){
-          
-          tab_group_id <- r$data_tabs_groups %>% dplyr::filter(category == !!category) %>% dplyr::pull(id)
-          
-          # Create an ID per level / sub_group
-          all_tabs <- r$data_menu_tabs %>% dplyr::filter(tab_group_id == !!tab_group_id)
-          
-          if (nrow(all_tabs) > 0){
+        tryCatch({
+          sapply(categories, function(category){
             
-            r[[paste0(category, "_no_tabs_to_display")]] <- FALSE
-            shinyjs::hide(paste0(category, "_no_tabs_to_display"))
+            tab_group_id <- r$data_tabs_groups %>% dplyr::filter(category == !!category) %>% dplyr::pull(id)
             
-            study_first_tab_id <- all_tabs %>% dplyr::filter(level == 1) %>% dplyr::slice(1) %>% dplyr::pull(id)
+            # Create an ID per level / sub_group
+            all_tabs <- r$data_menu_tabs %>% dplyr::filter(tab_group_id == !!tab_group_id)
             
-            # Load breadcrumb & pivots, one per level / subgroup
-            
-            breadcrumbs <- tagList()
-            pivots <- tagList()
-            
-            i <- 1L
-            
-            if (r$data_edit_page_activated) style <- "display: block;" else style <- "display: none;"
-            
-            for (tab_sub_group in unique(all_tabs$tab_sub_group)){
+            if (nrow(all_tabs) > 0){
               
-              tabs <- all_tabs %>% dplyr::filter(tab_sub_group == !!tab_sub_group)
-              tabs_ui <- tagList()
+              r[[paste0(category, "_no_tabs_to_display")]] <- FALSE
+              shinyjs::hide(paste0(category, "_no_tabs_to_display"))
               
-              for (j in 1:nrow(tabs)){
-                tab <- tabs[j, ]
+              study_first_tab_id <- all_tabs %>% dplyr::filter(level == 1) %>% dplyr::slice(1) %>% dplyr::pull(id)
+              
+              # Load breadcrumb & pivots, one per level / subgroup
+              
+              breadcrumbs <- tagList()
+              pivots <- tagList()
+              
+              i <- 1L
+              
+              if (r$data_edit_page_activated) style <- "display: block;" else style <- "display: none;"
+              
+              for (tab_sub_group in unique(all_tabs$tab_sub_group)){
                 
-                pivot_header <- div(
-                  tab$name,
-                  div(
-                    id = ns(paste0("edit_tab_", tab$id, "_container")),
-                    shiny.fluent::IconButton.shinyInput(ns(paste0("edit_tab_", tab$id)), iconProps = list(iconName = "Edit"), onClick = htmlwidgets::JS(paste0(
-                      "item => { ",
-                        "event.stopPropagation();",
-                        "Shiny.setInputValue('", id, "-edit_tab_id', ", tab$id, ", {priority: 'event'});",
-                        "Shiny.setInputValue('", id, "-edit_tab_trigger', Math.random(), {priority: 'event'});",
-                      "}"
-                    ))),
-                    class = "edit_tab_button",
-                    style = style
-                  ),
-                  style = "display: flex;"
-                )
+                tabs <- all_tabs %>% dplyr::filter(tab_sub_group == !!tab_sub_group)
+                tabs_ui <- tagList()
                 
-                if (i == 1 & j == 1) if (is.na(r[[paste0(category, "_selected_tab")]])) r[[paste0(category, "_selected_tab")]] <- tab$id
-                
-                if (tab$id == r[[paste0(category, "_selected_tab")]]) class <- "pivot_item selected_pivot_item"
-                else class <- "pivot_item"
-                
-                tabs_ui <- tagList(
-                  tabs_ui, 
-                  tags$button(
-                    id = ns(paste0("tab_", tab$id)), pivot_header, class = class,
-                    onclick = paste0("
-                      Shiny.setInputValue('", id, "-", category, "_study_current_tab', this.id);
-                      Shiny.setInputValue('", id, "-", category, "_study_current_tab_trigger', Math.random());"
+                for (j in 1:nrow(tabs)){
+                  tab <- tabs[j, ]
+                  
+                  pivot_header <- div(
+                    tab$name,
+                    div(
+                      id = ns(paste0("edit_tab_", tab$id, "_container")),
+                      shiny.fluent::IconButton.shinyInput(ns(paste0("edit_tab_", tab$id)), iconProps = list(iconName = "Edit"), onClick = htmlwidgets::JS(paste0(
+                        "item => { ",
+                          "event.stopPropagation();",
+                          "Shiny.setInputValue('", id, "-edit_tab_id', ", tab$id, ", {priority: 'event'});",
+                          "Shiny.setInputValue('", id, "-edit_tab_trigger', Math.random(), {priority: 'event'});",
+                        "}"
+                      ))),
+                      class = "edit_tab_button",
+                      style = style
+                    ),
+                    style = "display: flex;"
+                  )
+                  
+                  if (i == 1 & j == 1) if (is.na(r[[paste0(category, "_selected_tab")]])) r[[paste0(category, "_selected_tab")]] <- tab$id
+                  
+                  if (tab$id == r[[paste0(category, "_selected_tab")]]) class <- "pivot_item selected_pivot_item"
+                  else class <- "pivot_item"
+                  
+                  tabs_ui <- tagList(
+                    tabs_ui, 
+                    tags$button(
+                      id = ns(paste0("tab_", tab$id)), pivot_header, class = class,
+                      onclick = paste0("
+                        Shiny.setInputValue('", id, "-", category, "_study_current_tab', this.id);
+                        Shiny.setInputValue('", id, "-", category, "_study_current_tab_trigger', Math.random());"
+                      )
                     )
                   )
-                )
-              }
-              
-              pivot_id <- paste0("study_pivot_", tab_group_id, "_", tab_sub_group)
-              pivot_sub_div_id <- paste0("study_pivot_sub_div_", tab_group_id, "_", tab_sub_group)
-              
-              pivot <- 
-                div(
-                  id = ns(pivot_id),
-                  div(
-                    id = ns(pivot_sub_div_id),
-                    tabs_ui,
-                    class = "pivot"
-                  ),
-                )
-              
-              if (is.na(r[[paste0(category, "_selected_tab")]]) & i > 1) pivot <- shinyjs::hidden(pivot)
-              if (!is.na(r[[paste0(category, "_selected_tab")]]) & r[[paste0(category, "_selected_tab")]] %not_in% tabs$id) pivot <- shinyjs::hidden(pivot)
-              pivot_tabs <- paste0(category, "_pivot_tabs_", tab_group_id, "_", tab_sub_group)
-              
-              pivots <- tagList(pivots, pivot)
-              
-              tab_sub_group_first_tab <- all_tabs %>% dplyr::filter(tab_sub_group == !!tab_sub_group) %>% dplyr::arrange(display_order) %>% dplyr::slice(1)
-              nb_levels <- tab_sub_group_first_tab %>% dplyr::slice(1) %>% dplyr::pull(level)
-              
-              tabs_tree <- tibble::tibble()
-              
-              if (nb_levels >= 2){
-                
-                is_current_item <- FALSE
-                
-                for (level in nb_levels:2){
-                  
-                  if (level == nb_levels) parent_tab <- all_tabs %>% dplyr::filter(level == !!level - 1, id == tab_sub_group_first_tab$parent_tab_id)
-                  else parent_tab <- all_tabs %>% dplyr::filter(level == !!level - 1, id == parent_tab$parent_tab_id)
-                  
-                  if (level == nb_levels) tabs_tree <- parent_tab
-                  else tabs_tree <- tabs_tree %>% dplyr::bind_rows(parent_tab)
                 }
-              }
-              
-              if (nrow(tabs_tree) > 0) tabs_tree <- tabs_tree %>% dplyr::arrange(level)
-              
-              if (nb_levels == 1) is_current_item <- TRUE else is_current_item <- FALSE
-              
-              first_list_element <- list(key = "main", text = shiny.fluent::FontIcon(iconName = "Home"), href = paste0("#!/data?type=", category), isCurrentItem = FALSE,
-                onClick = htmlwidgets::JS(paste0("item => {",
-                  "Shiny.setInputValue('", id, "-study_go_to_tab', ", study_first_tab_id, ");",
-                  "Shiny.setInputValue('", id, "-study_go_to_tab_trigger', Math.random());",
-                  "}"
-                )))
-              
-              breadcrumb_list <- list(first_list_element)
-              
-              if (nb_levels >= 2){
                 
-                for (j in 1:nrow(tabs_tree)){
+                pivot_id <- paste0("study_pivot_", tab_group_id, "_", tab_sub_group)
+                pivot_sub_div_id <- paste0("study_pivot_sub_div_", tab_group_id, "_", tab_sub_group)
+                
+                pivot <- 
+                  div(
+                    id = ns(pivot_id),
+                    div(
+                      id = ns(pivot_sub_div_id),
+                      tabs_ui,
+                      class = "pivot"
+                    ),
+                  )
+                
+                if (is.na(r[[paste0(category, "_selected_tab")]]) & i > 1) pivot <- shinyjs::hidden(pivot)
+                if (!is.na(r[[paste0(category, "_selected_tab")]]) & r[[paste0(category, "_selected_tab")]] %not_in% tabs$id) pivot <- shinyjs::hidden(pivot)
+                pivot_tabs <- paste0(category, "_pivot_tabs_", tab_group_id, "_", tab_sub_group)
+                
+                pivots <- tagList(pivots, pivot)
+                
+                tab_sub_group_first_tab <- all_tabs %>% dplyr::filter(tab_sub_group == !!tab_sub_group) %>% dplyr::arrange(display_order) %>% dplyr::slice(1)
+                nb_levels <- tab_sub_group_first_tab %>% dplyr::slice(1) %>% dplyr::pull(level)
+                
+                tabs_tree <- tibble::tibble()
+                
+                if (nb_levels >= 2){
                   
-                  row <- tabs_tree[j, ]
+                  is_current_item <- FALSE
                   
-                  if (row$level == nb_levels - 1) breadcrumb_list <- rlist::list.append(breadcrumb_list, list(key = "main", text = row$name, isCurrentItem = TRUE))
-                  else {
-                    breadcrumb_list <- rlist::list.append(breadcrumb_list, list(
-                      key = "main", text = row$name,
-                      onClick = htmlwidgets::JS(paste0(
-                        "item => {",
-                        "Shiny.setInputValue('", id, "-study_go_to_tab', ", row$id, ");",
-                        "Shiny.setInputValue('", id, "-study_go_to_tab_trigger', Math.random());",
-                        "}"
-                      ))
-                    ))
+                  for (level in nb_levels:2){
+                    
+                    if (level == nb_levels) parent_tab <- all_tabs %>% dplyr::filter(level == !!level - 1, id == tab_sub_group_first_tab$parent_tab_id)
+                    else parent_tab <- all_tabs %>% dplyr::filter(level == !!level - 1, id == parent_tab$parent_tab_id)
+                    
+                    if (level == nb_levels) tabs_tree <- parent_tab
+                    else tabs_tree <- tabs_tree %>% dplyr::bind_rows(parent_tab)
                   }
                 }
+                
+                if (nrow(tabs_tree) > 0) tabs_tree <- tabs_tree %>% dplyr::arrange(level)
+                
+                if (nb_levels == 1) is_current_item <- TRUE else is_current_item <- FALSE
+                
+                first_list_element <- list(key = "main", text = shiny.fluent::FontIcon(iconName = "Home"), href = paste0("#!/data?type=", category), isCurrentItem = FALSE,
+                  onClick = htmlwidgets::JS(paste0("item => {",
+                    "Shiny.setInputValue('", id, "-study_go_to_tab', ", study_first_tab_id, ");",
+                    "Shiny.setInputValue('", id, "-study_go_to_tab_trigger', Math.random());",
+                    "}"
+                  )))
+                
+                breadcrumb_list <- list(first_list_element)
+                
+                if (nb_levels >= 2){
+                  
+                  for (j in 1:nrow(tabs_tree)){
+                    
+                    row <- tabs_tree[j, ]
+                    
+                    if (row$level == nb_levels - 1) breadcrumb_list <- rlist::list.append(breadcrumb_list, list(key = "main", text = row$name, isCurrentItem = TRUE))
+                    else {
+                      breadcrumb_list <- rlist::list.append(breadcrumb_list, list(
+                        key = "main", text = row$name,
+                        onClick = htmlwidgets::JS(paste0(
+                          "item => {",
+                          "Shiny.setInputValue('", id, "-study_go_to_tab', ", row$id, ");",
+                          "Shiny.setInputValue('", id, "-study_go_to_tab_trigger', Math.random());",
+                          "}"
+                        ))
+                      ))
+                    }
+                  }
+                }
+                
+                breadcrumb <- div(
+                  id = ns(paste0(category, "_study_breadcrumb_", tab_group_id, "_", tab_sub_group)),
+                  shiny.fluent::Breadcrumb(items = breadcrumb_list, maxDisplayedItems = 5),
+                  style = "margin-left: 10px;"
+                )
+                
+                if (is.na(r[[paste0(category, "_selected_tab")]]) & i > 1) breadcrumb <- shinyjs::hidden(breadcrumb)
+                if (!is.na(r[[paste0(category, "_selected_tab")]]) & r[[paste0(category, "_selected_tab")]] %not_in% tabs$id) breadcrumb <- shinyjs::hidden(breadcrumb)
+                
+                breadcrumbs <- tagList(breadcrumbs, breadcrumb)
+                
+                i <- 2L
               }
               
-              breadcrumb <- div(
-                id = ns(paste0(category, "_study_breadcrumb_", tab_group_id, "_", tab_sub_group)),
-                shiny.fluent::Breadcrumb(items = breadcrumb_list, maxDisplayedItems = 5),
-                style = "margin-left: 10px;"
-              )
-              
-              if (is.na(r[[paste0(category, "_selected_tab")]]) & i > 1) breadcrumb <- shinyjs::hidden(breadcrumb)
-              if (!is.na(r[[paste0(category, "_selected_tab")]]) & r[[paste0(category, "_selected_tab")]] %not_in% tabs$id) breadcrumb <- shinyjs::hidden(breadcrumb)
-              
-              breadcrumbs <- tagList(breadcrumbs, breadcrumb)
-              
-              i <- 2L
+              study_menu_ui <- tagList(div(breadcrumbs), div(pivots))
             }
             
-            study_menu_ui <- tagList(div(breadcrumbs), div(pivots))
-          }
-          
-          if (nrow(all_tabs) == 0){
+            if (nrow(all_tabs) == 0){
+              
+              study_menu_ui <- div(
+                id = ns(paste0(category, "_study_breadcrumb_", tab_group_id, "_0")),
+                shiny.fluent::Breadcrumb(items = list(list(key = "main", text = shiny.fluent::FontIcon(iconName = "Home"), href = paste0("#!/data?type=", category), isCurrentItem = FALSE,
+                  onClick = htmlwidgets::JS(paste0("item => {",
+                    "Shiny.setInputValue('", id, "-study_go_to_tab', 0);",
+                    "Shiny.setInputValue('", id, "-study_go_to_tab_trigger', Math.random());",
+                    "}"
+                  )))), maxDisplayedItems = 3)
+              )
+              
+              r[[paste0(category, "_no_tabs_to_display")]] <- TRUE
+              if (r$data_page == category) shinyjs::show(paste0(category, "_no_tabs_to_display"))
+            }
             
-            study_menu_ui <- div(
-              id = ns(paste0(category, "_study_breadcrumb_", tab_group_id, "_0")),
-              shiny.fluent::Breadcrumb(items = list(list(key = "main", text = shiny.fluent::FontIcon(iconName = "Home"), href = paste0("#!/data?type=", category), isCurrentItem = FALSE,
-                onClick = htmlwidgets::JS(paste0("item => {",
-                  "Shiny.setInputValue('", id, "-study_go_to_tab', 0);",
-                  "Shiny.setInputValue('", id, "-study_go_to_tab_trigger', Math.random());",
-                  "}"
-                )))), maxDisplayedItems = 3)
-            )
+            output[[paste0(category, "_study_menu")]] <- renderUI({
+              r$temp <- now()
+              div(
+                study_menu_ui,
+                style = "display:flex; justify-content:space-between; margin:5px 13px 0px 0px;"
+              )
+            })
             
-            r[[paste0(category, "_no_tabs_to_display")]] <- TRUE
-            if (r$data_page == category) shinyjs::show(paste0(category, "_no_tabs_to_display"))
-          }
-          
-          output[[paste0(category, "_study_menu")]] <- renderUI({
-            r$temp <- now()
-            div(
-              study_menu_ui,
-              style = "display:flex; justify-content:space-between; margin:5px 13px 0px 0px;"
-            )
+            displayed_category <- r$data_page
+            hidden_category <- categories[categories != displayed_category]
+            
+            shinyjs::show(paste0(displayed_category, "_study_menu"))
+            shinyjs::hide(paste0(hidden_category, "_study_menu"))
           })
-          
-          displayed_category <- r$data_page
-          hidden_category <- categories[categories != displayed_category]
-          
-          shinyjs::show(paste0(displayed_category, "_study_menu"))
-          shinyjs::hide(paste0(hidden_category, "_study_menu"))
-        })
+        }, error = function(e) cat(e))
         
         if (r$project_load_status_displayed) r$project_load_status$menu_endtime <- now("%Y-%m-%d %H:%M:%OS3")
       })
