@@ -278,7 +278,7 @@ mod_plugins_server <- function(id, r, d, m, language, i18n, debug){
             shinyAce::aceEditor(
               ns(paste0("edit_code_editor_", file_id)), value = file_code, mode = ace_mode,
               code_hotkeys = list(file_ext, code_hotkeys),
-              autoScrollEditorIntoView = TRUE, height = "100%", debounce = 100, fontSize = 10, showPrintMargin = FALSE
+              autoScrollEditorIntoView = TRUE, height = "100%", debounce = 100, fontSize = 11, showPrintMargin = FALSE
             ),
             style = "width: 100%; height: 100%; display: flex; flex-direction: column;"
           )
@@ -501,7 +501,7 @@ mod_plugins_server <- function(id, r, d, m, language, i18n, debug){
           shinyAce::aceEditor(
             ns(paste0("edit_code_editor_", file_id)), value = file_code, mode = ace_mode,
             code_hotkeys = list(file_ext, code_hotkeys),
-            autoScrollEditorIntoView = TRUE, height = "100%", debounce = 100, fontSize = 10, showPrintMargin = FALSE
+            autoScrollEditorIntoView = TRUE, height = "100%", debounce = 100, fontSize = 11, showPrintMargin = FALSE
           ),
           style = "width: 100%; height: 100%; display: flex; flex-direction: column;"
         ))
@@ -581,7 +581,7 @@ mod_plugins_server <- function(id, r, d, m, language, i18n, debug){
         shinyAce::aceEditor(
           ns(paste0("edit_code_editor_", options_new_row_id)), value = "", mode = "r",
           code_hotkeys = list("r", code_hotkeys),
-          autoScrollEditorIntoView = TRUE, height = "100%", debounce = 100, fontSize = 10, showPrintMargin = FALSE
+          autoScrollEditorIntoView = TRUE, height = "100%", debounce = 100, fontSize = 11, showPrintMargin = FALSE
         ),
         style = "width: 100%; height: 100%; display: flex; flex-direction: column;"
       ))

@@ -1434,7 +1434,13 @@ update_settings_datatable <- function(input, tab_id = character(), r = shiny::re
 #'
 #' @description A function to get Python console result
 #' @param code Python code that you want to run (character)
-capture_python_output <- function(code) {
+capture_python_output <- function(code){
+  
+  reinit_std <- paste0(
+    "sys.stdout = original_stdout\n",
+    "sys.stderr = original_stderr\n"
+  )
+  
   tryCatch({
     reticulate::py_run_string(paste0(
       "import sys\n",
@@ -1444,20 +1450,21 @@ capture_python_output <- function(code) {
       "sys.stdout = StringIO()\n",
       "sys.stderr = sys.stdout\n"
     ))
+    
     reticulate::py_run_string(code)
+    
     reticulate::py_run_string(paste0(
       "sys.stdout.seek(0)\n",
       "output = sys.stdout.getvalue()\n",
-      "sys.stdout = original_stdout\n",
-      "sys.stderr = original_stderr\n"
+      reinit_std
     ))
     reticulate::py$output
   },
     error = function(e) {
-      reticulate::py_run_string(paste0(
-        "sys.stdout = original_stdout\n",
-        "sys.stderr = original_stderr\n"
-      ))
+      # Ensure that sys.stdout and sys.stderr are reset in the event of an error
+      reticulate::py_run_string(reinit_std)
       return(e$message)
-    })
+      
+    # Ensure that sys.stdout and sys.stderr are reset in all cases
+    }, finally = reticulate::py_run_string(reinit_std))
 }

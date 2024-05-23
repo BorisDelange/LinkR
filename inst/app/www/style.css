@@ -125,9 +125,9 @@ a.no-hover-effect:hover {
 
 .sidenav {
   position: relative;
-  width: 200px;
-  min-width: 200px;
-  padding: 10px 20px 0px 20px;
+  width: 220px;
+  min-width: 220px;
+  padding: 10px 10px 0px 10px;
   overflow-y: auto;
   border-right: solid 1px #ccc;
   transition: width 0.3s ease-in-out, min-width 0.3s ease-in-out, padding 0.3s ease-in-out;
@@ -787,6 +787,26 @@ td[data-type="factor"] input {
 
 .close-tab .ms-Icon:hover {
   background-color: white;
+}
+
+/* --------------- */
+/* MARKDOWN        */
+/* --------------- */
+
+.markdown pre {
+  border: solid 1px #CBD5E0;
+  border-radius: 5px;
+  background-color: #F7F7F7;
+  font-size: 11px;
+  padding: 5px;
+}
+
+.markdown p code {
+  color: #D63384;
+  border-radius: 5px;
+  background-color: #F7F7F7;
+  font-size: 11px;
+  padding: 5px;
 }
 
 /* ------------------- */

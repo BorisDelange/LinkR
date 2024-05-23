@@ -1068,3 +1068,11 @@ delete_subset_text,Confirmer la suppression de ce subset ?
 subset_deleted,Subset supprimé
 refresh_log,Rafraîchir le log
 reset_log,Remettre le log à zéro
+figure,Figure
+shell,Shell
+r,R
+python,Python
+terminal,Terminal
+table_output,Table
+datatable_output,DataTable
+matplotlib,Matplotlib

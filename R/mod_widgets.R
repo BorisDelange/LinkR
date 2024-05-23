@@ -378,7 +378,8 @@ mod_widgets_server <- function(id, r, d, m, language, i18n, all_divs, debug){
       req(!empty_name)
 
       # Check if name is not already used
-      sql <- glue::glue_sql("SELECT name FROM {sql_table} WHERE LOWER(name) = {tolower(element_name)}", .con = con)
+      if (sql_table == "subsets") sql <- glue::glue_sql("SELECT name FROM subsets WHERE LOWER(name) = {tolower(element_name)} AND study_id = {m$selected_study}", .con = con)
+      else sql <- glue::glue_sql("SELECT name FROM {sql_table} WHERE LOWER(name) = {tolower(element_name)}", .con = con)
       name_already_used <- nrow(DBI::dbGetQuery(con, sql) > 0)
 
       if (name_already_used) shiny.fluent::updateTextField.shinyInput(session, "element_creation_name", errorMessage = i18n$t("name_already_used"))
@@ -393,7 +394,7 @@ mod_widgets_server <- function(id, r, d, m, language, i18n, all_divs, debug){
         id = element_id, name = element_name, data_source_id = NA_integer_, creator_id = r$user_id, 
         creation_datetime = now(), update_datetime = now(), deleted = FALSE)
       
-      else if (sql_table == "studies"){ 
+      else if (sql_table == "studies"){
         patient_lvl_tab_group_id <- get_last_row(con, "tabs_groups") + 1
         aggregated_tab_group_id <- get_last_row(con, "tabs_groups") + 2
         

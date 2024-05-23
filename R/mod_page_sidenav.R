@@ -64,14 +64,46 @@ mod_page_sidenav_ui <- function(id = character(), i18n = character()){
       id = ns("sidenav"),
       class = "sidenav",
       div(
-        id = ns("large_sidenav")
+        id = ns("large_sidenav"),
+        div(
+          shiny.fluent::PrimaryButton.shinyInput(ns("r_code"), i18n$t("run_code"), iconProps = list(iconName = "Play"), style = "width: calc(50% - 5px);"),
+          onclick = paste0("Shiny.setInputValue('", id, "-execute_code', Math.random());")
+        ),
+        div(
+          div(
+            shiny.fluent::Dropdown.shinyInput(ns("programming_language"), label = i18n$t("programming_language"),
+              options = list(
+                list(key = "r", text = i18n$t("r")),
+                list(key = "python", text = i18n$t("python")),
+                list(key = "shell", text = i18n$t("shell"))
+              ),
+              value = "r"
+            ),
+            style = "width: 50%;"
+          ),
+          div(
+            shiny.fluent::Dropdown.shinyInput(ns("output"), label = i18n$t("output"),
+              options = list(
+                list(key = "console", text = i18n$t("console")),
+                list(key = "figure", text = i18n$t("figure")),
+                list(key = "table", text = i18n$t("table_output")),
+                list(key = "datatable", text = i18n$t("datatable_output")),
+                list(key = "rmarkdown", text = i18n$t("rmarkdown"))
+              ),
+              value = "console"
+            ),
+            style = "width: 50%;"
+          ),
+          style = "display: flex; gap: 10px;"
+        )
       ),
       div(
+        id = ns("reduced_sidenav"),
         div(
           create_hover_card(ui = shiny.fluent::IconButton.shinyInput(ns("execute_code"), iconProps = list(iconName = "Play")), text = i18n$t("run_code")),
           class = "reduced_sidenav_buttons"
         ),
-        id = ns("reduced_sidenav")
+        style = "display: none;"
       ),
       show_hide_sidenav
     ) -> result
@@ -454,13 +486,13 @@ mod_page_sidenav_server <- function(id = character(), r = shiny::reactiveValues(
       var header_command_bar = document.getElementById('", id, "-command_bar_1_div');
     ")
     js_show_sidenav <- paste0("
-      sidenav.style.width = '200px';
-      sidenav.style.minWidth = '200px';
-      sidenav.style.padding = '10px 20px 0px 20px';
+      sidenav.style.width = '220px';
+      sidenav.style.minWidth = '220px';
+      sidenav.style.padding = '10px 10px 0px 10px';
       button.classList.add('button_hide_sidenav');
       button.classList.remove('button_show_sidenav');
-      large_sidenav.style.display = 'block';
       reduced_sidenav.style.display = 'none';
+      setTimeout(() => large_sidenav.style.display = 'block', 300);
       header_command_bar.style.marginLeft = '193px';
     ")
     js_hide_sidenav <- paste0("
@@ -470,11 +502,11 @@ mod_page_sidenav_server <- function(id = character(), r = shiny::reactiveValues(
       button.classList.remove('button_hide_sidenav');
       button.classList.add('button_show_sidenav');
       large_sidenav.style.display = 'none';
-      reduced_sidenav.style.display = 'block';
+      setTimeout(() => reduced_sidenav.style.display = 'block', 300);
       header_command_bar.style.marginLeft = '10px';
     ")
     
-    if (id %in% c("app_db", "console", "data_cleaning", "datasets", "explore", "home", "log", "plugins", "projects", "subsets", "users", "vocabularies")) r[[paste0(id, "_show_hide_sidenav")]] <- "hide"
+    if (id %in% c("app_db", "data_cleaning", "datasets", "explore", "home", "log", "plugins", "projects", "subsets", "users", "vocabularies")) r[[paste0(id, "_show_hide_sidenav")]] <- "hide"
     
     observeEvent(r[[paste0(id, "_show_hide_sidenav")]], {
       if (debug) cat(paste0("\n", now(), " - mod_page_sidenav - observer r$.._show_hide_sidenav"))
@@ -488,7 +520,7 @@ mod_page_sidenav_server <- function(id = character(), r = shiny::reactiveValues(
       
       if (input$show_hide_sidenav == "hide") shinyjs::runjs(paste0(js_vars, js_hide_sidenav))
       else if (input$show_hide_sidenav == "show") shinyjs::runjs(paste0(js_vars, js_show_sidenav))
-      else shinyjs::runjs(paste0(js_vars, " if (currentWidth === '200px') {", js_hide_sidenav, "} else { ", js_show_sidenav, "}"))
+      else shinyjs::runjs(paste0(js_vars, " if (currentWidth === '220px') {", js_hide_sidenav, "} else { ", js_show_sidenav, "}"))
     })
   })
 }

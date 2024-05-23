@@ -1068,3 +1068,11 @@ delete_subset_text,Confirm deletion of this subset?
 subset_deleted,Subset deleted
 refresh_log,Refresh log
 reset_log,Reset log
+figure,Figure
+shell,Shell
+r,R
+python,Python
+terminal,Terminal
+table_output,Table
+datatable_output,DataTable
+matplotlib,Matplotlib

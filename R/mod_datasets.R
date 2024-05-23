@@ -74,7 +74,7 @@ mod_datasets_ui <- function(id, language, languages, i18n){
               shinyAce::aceEditor(
                 ns("dataset_code"), value = "", mode = "r",
                 code_hotkeys = list("r", code_hotkeys),
-                autoScrollEditorIntoView = TRUE, height = "100%", debounce = 100, fontSize = 10, showPrintMargin = FALSE
+                autoScrollEditorIntoView = TRUE, height = "100%", debounce = 100, fontSize = 11, showPrintMargin = FALSE
               ),
               style = "width: 50%; max-height: calc(100% - 20px);"
             ),

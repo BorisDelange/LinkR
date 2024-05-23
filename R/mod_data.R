@@ -1194,16 +1194,17 @@ mod_data_server <- function(id = character(), r = shiny::reactiveValues(), d = s
       # Update r var
       r$data_tabs <- r$data_tabs %>% dplyr::bind_rows(new_data)
       
+      # Add gridstack instance
+      load_tab_ui(category, selected_tab, "add")
+      
       # Notify user
       show_message_bar(output, "tab_added", "success", i18n = i18n, ns = ns)
       
       # Reset fields
-      
       shiny.fluent::updateTextField.shinyInput(session, "tab_name", value = "")
       shiny.fluent::updateChoiceGroup.shinyInput(session, "add_tab_type", value = "same_level")
       
       # Reload UI, with new tab opened
-      
       r[[paste0(category, "_selected_tab")]] <- new_id
       r$data_reload_tabs <- now()
       
@@ -1891,7 +1892,6 @@ mod_data_server <- function(id = character(), r = shiny::reactiveValues(), d = s
         if (hide_div) gridstack_div <- shinyjs::hidden(gridstack_div)
 
         insertUI(selector = paste0("#", ns("study_widgets")), where = "beforeEnd", ui = gridstack_div)
-        # r[[paste0(category, "_cards")]] <- c(r[[paste0(category, "_cards")]], gridstack_id)
 
         create_gridstack_instance(id, tab_id)
 
