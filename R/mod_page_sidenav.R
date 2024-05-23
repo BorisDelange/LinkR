@@ -3,11 +3,19 @@ mod_page_sidenav_ui <- function(id = character(), i18n = character()){
   ns <- NS(id)
   result <- ""
   
-  show_hide_sidenav <- div(
+  hide_sidenav <- div(
     id = ns("show_hide_sidenav"),
     class = "button_sidenav button_hide_sidenav",
     onclick = paste0("Shiny.setInputValue('", id, "-show_hide_sidenav', Math.random());"),
   )
+  
+  show_sidenav <- div(
+    id = ns("show_hide_sidenav"),
+    class = "button_sidenav button_show_sidenav",
+    onclick = paste0("Shiny.setInputValue('", id, "-show_hide_sidenav', Math.random());"),
+  )
+  
+  reduced_sidenav_style = "width: 40px; min-width: 40px; padding: 0;"
   
   # App database ----
   
@@ -21,7 +29,7 @@ mod_page_sidenav_ui <- function(id = character(), i18n = character()){
       div(
         id = ns("reduced_sidenav")
       ),
-      show_hide_sidenav
+      hide_sidenav
     ) -> result
   }
   
@@ -37,7 +45,7 @@ mod_page_sidenav_ui <- function(id = character(), i18n = character()){
       div(
         id = ns("reduced_sidenav")
       ),
-      show_hide_sidenav
+      hide_sidenav
     ) -> result
   }
   
@@ -53,7 +61,7 @@ mod_page_sidenav_ui <- function(id = character(), i18n = character()){
       div(
         id = ns("reduced_sidenav")
       ),
-      show_hide_sidenav
+      hide_sidenav
     ) -> result
   }
   
@@ -95,6 +103,29 @@ mod_page_sidenav_ui <- function(id = character(), i18n = character()){
             style = "width: 50%;"
           ),
           style = "display: flex; gap: 10px;"
+        ),
+        shinyjs::hidden(
+          div(
+            id = ns("plot_size_div"),
+            div(
+              div(
+                shiny.fluent::SpinButton.shinyInput(ns("plot_width"), min = 0, value = 400, step = 50, label = i18n$t("width")),
+                style = "width: calc(50% - 5px);"
+              ),
+              div(
+                shiny.fluent::SpinButton.shinyInput(ns("plot_height"), min = 0, value = 300, step = 50, label = i18n$t("height")),
+                style = "width: calc(50% - 5px);"
+              ),
+              style = "display: flex; gap: 10px;"
+            ),
+            div(
+              div(
+                shiny.fluent::SpinButton.shinyInput(ns("plot_dpi"), min = 1, value = 100, step = 50, label = i18n$t("dpi")),
+                style = "width: calc(50% - 5px);"
+              ),
+              style = "display: flex; gap: 10px;"
+            ),
+          )
         )
       ),
       div(
@@ -105,7 +136,7 @@ mod_page_sidenav_ui <- function(id = character(), i18n = character()){
         ),
         style = "display: none;"
       ),
-      show_hide_sidenav
+      hide_sidenav
     ) -> result
   }
   
@@ -148,7 +179,7 @@ mod_page_sidenav_ui <- function(id = character(), i18n = character()){
       div(
         id = ns("reduced_sidenav")
       ),
-      show_hide_sidenav,
+      hide_sidenav
     ) -> result
   }
   
@@ -186,7 +217,7 @@ mod_page_sidenav_ui <- function(id = character(), i18n = character()){
           )
         )
       ),
-      show_hide_sidenav
+      hide_sidenav
     ) -> result
   }
   
@@ -202,7 +233,7 @@ mod_page_sidenav_ui <- function(id = character(), i18n = character()){
       div(
         id = ns("reduced_sidenav")
       ),
-      show_hide_sidenav
+      hide_sidenav
     ) -> result
   }
   
@@ -218,7 +249,7 @@ mod_page_sidenav_ui <- function(id = character(), i18n = character()){
       div(
         id = ns("reduced_sidenav")
       ),
-      show_hide_sidenav
+      hide_sidenav
     ) -> result
   }
   
@@ -228,13 +259,13 @@ mod_page_sidenav_ui <- function(id = character(), i18n = character()){
     div(
       id = ns("sidenav"),
       class = "sidenav",
+      style = reduced_sidenav_style,
       div(
         id = ns("large_sidenav")
       ),
       div(
         id = ns("reduced_sidenav")
-      ),
-      show_hide_sidenav
+      )
     ) -> result
   }
   
@@ -258,7 +289,7 @@ mod_page_sidenav_ui <- function(id = character(), i18n = character()){
           class = "reduced_sidenav_buttons"
         ),
       ),
-      show_hide_sidenav
+      hide_sidenav
     ) -> result
   }
   
@@ -274,7 +305,7 @@ mod_page_sidenav_ui <- function(id = character(), i18n = character()){
       div(
         id = ns("reduced_sidenav")
       ),
-      show_hide_sidenav
+      hide_sidenav
     ) -> result
   }
   
@@ -341,7 +372,7 @@ mod_page_sidenav_ui <- function(id = character(), i18n = character()){
           )
         )
       ),
-      show_hide_sidenav
+      hide_sidenav
     ) -> result
   }
   
@@ -350,16 +381,19 @@ mod_page_sidenav_ui <- function(id = character(), i18n = character()){
   else if (id == "projects") {
     div(
       id = ns("sidenav"),
-      class = "sidenav",
+      class = "sidenav", style = reduced_sidenav_style,
       div(
         id = ns("large_sidenav")
       ),
       div(
         id = ns("reduced_sidenav"),
-        create_hover_card(ui = shiny.fluent::IconButton.shinyInput(ns("create_element"), iconProps = list(iconName = "Add")), text = i18n$t("create_project")),
+        div(
+          id = ns("all_elements_reduced_sidenav"),
+          create_hover_card(ui = shiny.fluent::IconButton.shinyInput(ns("create_element"), iconProps = list(iconName = "Add")), text = i18n$t("create_project"))
+        ),
         class = "reduced_sidenav_buttons"
-      ),
-      show_hide_sidenav
+      )#,
+      # show_sidenav
     ) -> result
   }
   
@@ -375,7 +409,7 @@ mod_page_sidenav_ui <- function(id = character(), i18n = character()){
       div(
         id = ns("reduced_sidenav")
       ),
-      show_hide_sidenav
+      hide_sidenav
     ) -> result
   }
   
@@ -413,7 +447,7 @@ mod_page_sidenav_ui <- function(id = character(), i18n = character()){
           )
         )
       ),
-      show_hide_sidenav
+      hide_sidenav
     ) -> result
   }
   
@@ -429,7 +463,7 @@ mod_page_sidenav_ui <- function(id = character(), i18n = character()){
       div(
         id = ns("reduced_sidenav")
       ),
-      show_hide_sidenav
+      hide_sidenav
     ) -> result
   }
   
@@ -445,7 +479,7 @@ mod_page_sidenav_ui <- function(id = character(), i18n = character()){
       div(
         id = ns("reduced_sidenav")
       ),
-      show_hide_sidenav
+      hide_sidenav
     ) -> result
   }
   
@@ -461,7 +495,7 @@ mod_page_sidenav_ui <- function(id = character(), i18n = character()){
       div(
         id = ns("reduced_sidenav")
       ),
-      show_hide_sidenav
+      hide_sidenav
     ) -> result
   }
   

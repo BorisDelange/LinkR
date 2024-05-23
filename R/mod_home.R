@@ -13,11 +13,10 @@ mod_home_ui <- function(id, language, languages, i18n){
         div(
           div(
             h1("Projets"),
-            p("Les projets permettent de travailler de façon collaborative sur des données de santé au format OMOP,
-              à l'aide d'une interface graphique modulable."),
+            p(i18n$t("projects_widget_text")),
             div(
               shiny.fluent::PrimaryButton.shinyInput(
-                ns("go_project_page"), "Afficher les projets", 
+                ns("go_project_page"), i18n$t("show_projects"), 
                 href = shiny.router::route_link("projects"), iconProps = list(iconName = "Play")),
               class = "home_widget_button"
             )
@@ -30,7 +29,7 @@ mod_home_ui <- function(id, language, languages, i18n){
             p("..."),
             div(
               shiny.fluent::DefaultButton.shinyInput(
-                ns("go_datasets_page"), "Afficher les datasets", 
+                ns("go_datasets_page"), i18n$t("manage_datasets"), 
                 href = shiny.router::route_link("datasets"), iconProps = list(iconName = "Play")),
               class = "home_widget_button"
             )
@@ -43,7 +42,7 @@ mod_home_ui <- function(id, language, languages, i18n){
             p("..."),
             div(
               shiny.fluent::DefaultButton.shinyInput(
-                ns("go_vocabularies_page"), "Afficher les terminologies", 
+                ns("go_vocabularies_page"), i18n$t("manage_vocabularies"), 
                 href = shiny.router::route_link("vocabularies"), iconProps = list(iconName = "Play")),
               class = "home_widget_button"
             )
@@ -56,10 +55,10 @@ mod_home_ui <- function(id, language, languages, i18n){
         div(
           div(
             h1("Console"),
-            p("..."),
+            p(i18n$t("console_widget_text")),
             div(
               shiny.fluent::DefaultButton.shinyInput(
-                ns("go_console_page"), "Ouvrir la console", 
+                ns("go_console_page"), i18n$t("open_console"), 
                 href = shiny.router::route_link("console"), iconProps = list(iconName = "Play")),
               class = "home_widget_button"
             )
@@ -72,7 +71,7 @@ mod_home_ui <- function(id, language, languages, i18n){
             p("..."),
             div(
               shiny.fluent::DefaultButton.shinyInput(
-                ns("go_dplugins_page"), "Afficher les plugins", 
+                ns("go_dplugins_page"), i18n$t("show_plugins"), 
                 href = shiny.router::route_link("plugins"), iconProps = list(iconName = "Play")),
               class = "home_widget_button"
             )
@@ -85,7 +84,7 @@ mod_home_ui <- function(id, language, languages, i18n){
             p("..."),
             div(
               shiny.fluent::DefaultButton.shinyInput(
-                ns("go_data_cleaning_page"), "Afficher les scripts de data cleaning", 
+                ns("go_data_cleaning_page"), i18n$t("manage_data_cleaning_scripts"), 
                 href = shiny.router::route_link("data_cleaning"), iconProps = list(iconName = "Play")),
               class = "home_widget_button"
             )
@@ -101,7 +100,7 @@ mod_home_ui <- function(id, language, languages, i18n){
             p("..."),
             div(
               shiny.fluent::DefaultButton.shinyInput(
-                ns("go_explore_page"), "Afficher le catalogue", 
+                ns("go_explore_page"), i18n$t("show_catalog"), 
                 href = shiny.router::route_link("explore"), iconProps = list(iconName = "Play")),
               class = "home_widget_button"
             )
@@ -114,7 +113,7 @@ mod_home_ui <- function(id, language, languages, i18n){
             p("..."),
             div(
               shiny.fluent::DefaultButton.shinyInput(
-                ns("go_help_page"), "Ouvrir l'aide", 
+                ns("go_help_page"), i18n$t("open_help"), 
                 href = shiny.router::route_link(""), iconProps = list(iconName = "Play")),
               class = "home_widget_button"
             )
@@ -127,7 +126,7 @@ mod_home_ui <- function(id, language, languages, i18n){
             p("..."),
             div(
               shiny.fluent::DefaultButton.shinyInput(
-                ns("go_data_settings_page"), "Ouvrir les paramètres", 
+                ns("go_data_settings_page"), i18n$t("open_settings"),
                 href = shiny.router::route_link(""), iconProps = list(iconName = "Play")),
               class = "home_widget_button"
             )

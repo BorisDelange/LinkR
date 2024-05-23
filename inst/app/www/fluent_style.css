@@ -26,11 +26,7 @@
   height: 25px;
 }
 
-.ms-SearchBox-icon {
-  font-size: 12px;
-}
-
-.ms-SearchBox-clearButton .ms-Icon {
+.ms-SearchBox-icon, .ms-SearchBox-clearButton .ms-Icon, .ms-spinButton-input {
   font-size: 12px;
 }
 
@@ -92,9 +88,18 @@
   line-height: 1;
 }
 
-.ms-Dropdown-container .ms-Dropdown, .ms-ComboBox-container .ms-ComboBox {
+.ms-Dropdown-container .ms-Dropdown, .ms-ComboBox-container .ms-ComboBox, .spinButtonWrapper-100, .spinButtonWrapper-189 {
   height: 25px;
   line-height: 25px;
+}
+
+.arrowButtonsContainer-102 .ms-Button {
+  height: 12px;
+  margin: 0;
+}
+
+.arrowButtonsContainer-102 .ms-Icon {
+  font-size: 10px;
 }
 
 .ms-Dropdown-optionText {
@@ -142,7 +147,7 @@
 .ms-Dropdown-title {
   height: 25px;
   min-height: 25px;
-  line-height: 25px;
+  line-height: 21px;
 }
 
 .ms-Dropdown-item .ms-Button-flexContainer {

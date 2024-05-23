@@ -26,7 +26,7 @@ mod_console_ui <- function(id = character(), language = "en", languages = tibble
       shinyjs::hidden(uiOutput(ns("ui_output"))),
       shinyjs::hidden(div(id = ns("table_output_div"), tableOutput(ns("table_output")), style = "padding-top: 10px;")),
       shinyjs::hidden(div(id = ns("datatable_output_div"), DT::DTOutput(ns("datatable_output")), style = "padding-top: 10px;")),
-      shinyjs::hidden(div(id = ns("image_output_div"), imageOutput(ns("image_output")), style = "padding-top: 10px;")),
+      shinyjs::hidden(imageOutput(ns("image_output"))),
       style = "width: 50%; border: dashed grey 1px; margin: 10px 0px 0px 10px; padding: 10px; font-size: 12px; overflow-y: auto;"
     ),
     style = "display: flex; max-height:calc(100vh - 100px);",
@@ -56,6 +56,8 @@ mod_console_server <- function(id = character(), r = shiny::reactiveValues(), d 
     observeEvent(input$programming_language, {
       if (debug) cat(paste0("\n", now(), " - mod_console - observer input$programming_language"))
       
+      req(input$output)
+      
       if (input$programming_language == "r"){
         output_options <- list(
           list(key = "console", text = i18n$t("console")),
@@ -65,6 +67,9 @@ mod_console_server <- function(id = character(), r = shiny::reactiveValues(), d 
           list(key = "rmarkdown", text = i18n$t("rmarkdown"))
         )
         output_value <- "console"
+        
+        if (input$output == "markdown") ace_mode <- "markdown"
+        else ace_mode <- "r"
       }
       else if (input$programming_language == "python"){
         output_options <- list(
@@ -72,15 +77,33 @@ mod_console_server <- function(id = character(), r = shiny::reactiveValues(), d 
           list(key = "matplotlib", text = i18n$t("matplotlib"))
         )
         output_value <- "console"
+        
+        ace_mode <- "python"
       }
       else if (input$programming_language == "shell"){
         output_options <- list(
           list(key = "terminal", text = i18n$t("terminal"))
         )
         output_value <- "terminal"
+        
+        ace_mode <- "sh"
       }
       
+      # Update output dropdown options
       shiny.fluent::updateDropdown.shinyInput(session, "output", options = output_options, value = output_value)
+      
+      # Update ace editor mode
+      shinyAce::updateAceEditor(session, "code", mode = ace_mode)
+    })
+    
+    # Show / hide plot size buttons ----
+    observeEvent(input$output, {
+      if (debug) cat(paste0("\n", now(), " - mod_console - observer input$output"))
+      
+      if (input$output %in% c("figure", "matplotlib")){
+        shinyjs::show("plot_size_div")
+      }
+      else shinyjs::hide("plot_size_div")
     })
     
     # Comment code ----
@@ -132,16 +155,16 @@ mod_console_server <- function(id = character(), r = shiny::reactiveValues(), d 
       
       code <- r$console_code %>% stringr::str_replace_all("\r", "\n")
       
-      # Run R code
+      ## Run R code ----
       
-      sapply(c("code_output", "ui_output", "plot_output_div", "table_output_div", "datatable_output_div", "image_output_div"), shinyjs::hide)
+      sapply(c("code_output", "ui_output", "plot_output_div", "table_output_div", "datatable_output_div", "image_output"), shinyjs::hide)
       if (input$output == "console") shinyjs::show("code_output")
       else if (input$output == "figure") shinyjs::show("plot_output_div")
       else if (input$output == "rmarkdown") shinyjs::show("ui_output")
       else if (input$output == "table") shinyjs::show("table_output_div")
       else if (input$output == "datatable") shinyjs::show("datatable_output_div")
       else if (input$output == "terminal") shinyjs::show("code_output")
-      else if (input$output == "matplotlib") shinyjs::show("image_output_div")
+      else if (input$output == "matplotlib") shinyjs::show("image_output")
       
       if (input$programming_language == "r"){
         
@@ -162,7 +185,12 @@ mod_console_server <- function(id = character(), r = shiny::reactiveValues(), d 
         }
         
         # Plot output
-        else if (input$output == "figure") output$plot_output <- renderPlot(tryCatch(eval(parse(text = code)), error = function(e) print(e), warning = function(w) print(w)))
+        else if (input$output == "figure") shinyjs::delay(100, 
+          output$plot_output <- renderPlot(
+            tryCatch(eval(parse(text = code)), error = function(e) cat(paste0("\n", toString(e))), warning = function(w) cat(paste0("\n", toString(w)))),
+            width = isolate(input$plot_width), height = isolate(input$plot_height), res = isolate(input$plot_dpi)
+          )
+        )
         
         # RMarkdown
         else if (input$output == "rmarkdown"){
@@ -185,9 +213,11 @@ mod_console_server <- function(id = character(), r = shiny::reactiveValues(), d 
         else if (input$output == "datatable") output$datatable_output <- DT::renderDT(tryCatch(eval(parse(text = code)), error = function(e) print(e), warning = function(w) print(w)))
       }
       
-      # Run Python code
+      # Run Python code ----
       
       else if (input$programming_language == "python"){
+        
+        reticulate::py_run_string("sys.stdout = original_stdout\nsys.stderr = original_stderr\n")
         
         # Console output
         if (input$output == "console") output$code_output <- renderText(capture_python_output(code))
@@ -202,18 +232,22 @@ mod_console_server <- function(id = character(), r = shiny::reactiveValues(), d 
           
           code <- paste0(
             "import matplotlib.pyplot as plt\n",
+            "plt.close('all')\n",
             code, "\n",
-            "plt.savefig('", output_file, "')"
+            "plt.savefig('", output_file, "', dpi = ", input$plot_dpi, ")"
           )
           
           capture_python_output(code)
           
-          output$image_output <- renderImage({
-            # list(src = output_file, contentType = 'image/png', width = 400, height = 300)
-            list(src = output_file, contentType = 'image/png')
-          }, deleteFile = FALSE)
+          shinyjs::delay(100, 
+            output$image_output <- renderImage({
+              list(src = output_file, contentType = 'image/png', width = isolate(input$plot_width), height = isolate(input$plot_height))
+            }, deleteFile = FALSE)
+          )
         }
       }
+      
+      # Run shell code ----
       
       else if (input$programming_language == "shell"){
         

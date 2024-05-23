@@ -1076,3 +1076,17 @@ terminal,Terminal
 table_output,Table
 datatable_output,DataTable
 matplotlib,Matplotlib
+width,Largeur
+height,Hauteur
+dpi,DPI
+show_projects,Afficher les projets
+manage_datasets,Gérer les sets de données
+manage_vocabularies,Gérer les terminologies
+open_console,Ouvrir la console
+show_plugins,Afficher les plugins
+manage_data_cleaning_scripts,Gérer les scripts
+show_catalog,Afficher le catalogue
+open_help,Ouvrir l'aide
+open_settings,Ouvrir les paramètres
+projects_widget_text,"Les projets permettent de travailler de façon collaborative sur des données de santé au format OMOP, à l'aide d'une interface graphique modulable."
+console_widget_text,"Utilisez la console pour exécuter rapidement du code en R, Python ou avec des scripts shell."

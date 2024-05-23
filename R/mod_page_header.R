@@ -12,6 +12,10 @@ mod_page_header_ui <- function(id = character(), i18n = character()){
   
   ns <- NS(id)
   
+  header_command_bar_style <- ""
+  
+  if (id %in% c("home", "projects")) header_command_bar_style <- "margin-left: 10px;"
+  
   command_bar_1 <- div(
     id = ns("command_bar_1_div"),
     shiny.fluent::CommandBar(
@@ -39,7 +43,8 @@ mod_page_header_ui <- function(id = character(), i18n = character()){
       )
     ),
     # id = ns("header_command_bar"),
-    class = "header_command_bar"
+    class = "header_command_bar",
+    style = header_command_bar_style
   )
   
   settings_div <- div(

@@ -4,7 +4,7 @@ mod_page_footer_ui <- function(i18n = character()){
     class = "footer",
     div(
       tags$a(icon("gitlab"), "", href = "https://framagit.org/interhop/linkr/linkr", target = "_blank"),
-      "v0.3.0.9001",
+      "v0.3.0.9002",
       class = "footer_content"
     )
   )
