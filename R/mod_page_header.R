@@ -14,7 +14,7 @@ mod_page_header_ui <- function(id = character(), i18n = character()){
   
   header_command_bar_style <- ""
   
-  if (id %in% c("home", "projects")) header_command_bar_style <- "margin-left: 10px;"
+  if (id %in% c("home", "log", "projects")) header_command_bar_style <- "margin-left: 10px;"
   
   command_bar_1 <- div(
     id = ns("command_bar_1_div"),

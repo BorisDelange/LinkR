@@ -1436,42 +1436,29 @@ update_settings_datatable <- function(input, tab_id = character(), r = shiny::re
 #' @param code Python code that you want to run (character)
 capture_python_output <- function(code){
   
-  reinit_std <- paste0(
+  # Clear the global environment in Python
+  reticulate::py_run_string("globals().clear()")
+  
+  # Parameters to get console output
+  reticulate::py_run_string(paste0(
+    "import sys\n",
+    "from io import StringIO\n",
+    "original_stdout = sys.stdout\n",
+    "original_stderr = sys.stderr\n",
+    "sys.stdout = StringIO()\n",
+    "sys.stderr = sys.stdout\n"
+  ))
+  
+  # Run python code
+  reticulate::py_run_string(code)
+  
+  # Get console output
+  reticulate::py_run_string(paste0(
+    "sys.stdout.seek(0)\n",
+    "output = sys.stdout.getvalue()\n",
     "sys.stdout = original_stdout\n",
     "sys.stderr = original_stderr\n"
-  )
+  ))
   
-  tryCatch({
-    
-    # Clear the global environment in Python
-    reticulate::py_run_string("globals().clear()")
-    
-    # Parameters to get console output
-    reticulate::py_run_string(paste0(
-      "import sys\n",
-      "from io import StringIO\n",
-      "original_stdout = sys.stdout\n",
-      "original_stderr = sys.stderr\n",
-      "sys.stdout = StringIO()\n",
-      "sys.stderr = sys.stdout\n"
-    ))
-    
-    # Run python code
-    reticulate::py_run_string(code)
-    
-    # Get console output
-    reticulate::py_run_string(paste0(
-      "sys.stdout.seek(0)\n",
-      "output = sys.stdout.getvalue()\n",
-      reinit_std
-    ))
-    reticulate::py$output
-  },
-    error = function(e) {
-      # Ensure that sys.stdout and sys.stderr are reset in the event of an error
-      reticulate::py_run_string(reinit_std)
-      return(e$message)
-      
-    # Ensure that sys.stdout and sys.stderr are reset in all cases
-    }, finally = reticulate::py_run_string(reinit_std))
+  reticulate::py$output
 }

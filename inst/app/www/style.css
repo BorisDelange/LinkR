@@ -537,19 +537,19 @@ a.no-hover-effect:hover {
 /* PLUGINS PAGE          */
 /* --------------------- */
 
-.plugins_summary_container {
+.plugins_summary_container, .plugins_share_container {
   display: flex;
   justify-content: space-between;
   height: calc(100% - 50px);
 }
 
-.plugins_summary_left {
+.plugins_summary_left, .plugins_share_left {
   display: flex;
   flex-direction: column;
   width: 50%;
 }
 
-.plugins_summary_right {
+.plugins_summary_right, .plugins_share_right {
   width: 50%;
   calc(100% - 16px)
 }

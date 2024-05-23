@@ -204,7 +204,7 @@ app_server <- function(pages, language, languages, i18n, app_folder, debug, log_
       if (debug) cat(paste0("\n", now(), " - server - observer r$user_id"))
       
       if (log_file){
-        print("log_file")
+        
         # Create a log folder for this user if doesn't exist
         local_log_file <- paste0(r$app_folder, "/log/", r$user_id, ".txt")
         if (!file.exists(local_log_file)) file.create(local_log_file)

@@ -1090,3 +1090,4 @@ open_help,Ouvrir l'aide
 open_settings,Ouvrir les paramètres
 projects_widget_text,"Les projets permettent de travailler de façon collaborative sur des données de santé au format OMOP, à l'aide d'une interface graphique modulable."
 console_widget_text,"Utilisez la console pour exécuter rapidement du code en R, Python ou avec des scripts shell."
+synchronize_with_git_repo,Synchronisation git

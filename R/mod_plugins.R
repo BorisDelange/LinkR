@@ -86,8 +86,32 @@ mod_plugins_ui <- function(id, language, languages, i18n){
           div(
             id = ns("share_div"),
             div(
-              
-            )
+              div(
+                h1(i18n$t("export")),
+                div(
+                  shiny.fluent::PrimaryButton.shinyInput(ns("export_element"), i18n$t("export"), iconProps = list(iconName = "Download")),
+                  class = "create_element_modal_buttons"
+                ),
+                class = "widget", style = "height: 50%;"
+              ),
+              div(
+                h1(i18n$t("import")),
+                div(
+                  shiny.fluent::PrimaryButton.shinyInput(ns("import_element"), i18n$t("import"), iconProps = list(iconName = "Upload")),
+                  class = "create_element_modal_buttons"
+                ),
+                class = "widget", style = "height: 50%;"
+              ),
+              class = "plugins_share_left"
+            ),
+            div(
+              div(
+                h1(i18n$t("synchronize_with_git_repo")),
+                class = "widget", style = "height: calc(100% - 25px); padding-top: 1px;"
+              ),
+              class = "plugins_share_right"
+            ),
+            class = "plugins_share_container"
           )
         ),
         
@@ -247,6 +271,7 @@ mod_plugins_server <- function(id, r, d, m, language, i18n, debug){
       }
       
       # Reload files browser
+      output$edit_code_directory_browser <- renderUI("test")
       r$edit_plugin_code_reload_files_browser <- now()
       
       # Initiate plugin tabs

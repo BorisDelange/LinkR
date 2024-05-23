@@ -70,7 +70,11 @@ mod_widgets_ui <- function(id, language, languages, i18n){
           ),
           class = "delete_modal"
         )
-      )
+      ),
+      
+      # Export an element button ----
+      
+      shinyjs::hidden(downloadButton(ns("export_element_download")))
   )
 }
 
@@ -642,5 +646,127 @@ mod_widgets_server <- function(id, r, d, m, language, i18n, all_divs, debug){
       # Close modal
       shinyjs::hide("delete_element_modal")
     })
+    
+    # |-------------------------------- -----
+    
+    # --- --- --- --- --
+    # Share element ----
+    # --- --- --- --- --
+    
+    ## Export element ----
+    
+    observeEvent(input$export_element, {
+      if (debug) cat(paste0("\n", now(), " - mod_widgets - (", id, ") - observer input$export_element"))
+
+      shinyjs::click("export_element_download")
+    })
+    
+    output$export_element_download <- downloadHandler(
+
+      filename = function() paste0("linkr_export_", single_id, "_",
+        now() %>% stringr::str_replace_all(" ", "_") %>% stringr::str_replace_all(":", "_") %>% as.character(), ".zip"),
+
+      content = function(file){
+        if (debug) cat(paste0("\n", now(), " - mod_widgets - (", id, ") - output$export_plugins_download"))
+
+        owd <- setwd(tempdir())
+        on.exit(setwd(owd))
+
+        temp_dir <- paste0(r$app_folder, "/temp_files/", r$user_id, "/", id, "/", now() %>% stringr::str_replace_all(":| |-", ""), paste0(sample(c(0:9, letters[1:6]), 24, TRUE), collapse = ''))
+        dir.create(temp_dir, recursive = TRUE)
+        
+        # plugin <- r$plugins %>% dplyr::filter(id == plugin_id)
+        # options <- r$options %>% dplyr::filter(category == "plugin", link_id == plugin_id)
+        # code <- r$code %>% dplyr::filter(link_id == plugin_id, category %in% c("plugin_ui", "plugin_server", "plugin_translations"))
+        # 
+        # # Create folder if doesn't exist
+        # plugin_dir <- paste0(r$app_folder, "/plugins/", prefix, "/", options %>% dplyr::filter(name == "unique_id") %>% dplyr::pull(value))
+        # if (!dir.exists(plugin_dir)) dir.create(plugin_dir, recursive = TRUE)
+        # 
+        # # Create ui.R & server.R
+        # sapply(c("ui", "server"), function(name) writeLines(code %>% dplyr::filter(category == paste0("plugin_", name)) %>%
+        #     dplyr::pull(code) %>% stringr::str_replace_all("''", "'"), paste0(plugin_dir, "/", name, ".R")))
+        # writeLines(code %>% dplyr::filter(category == "plugin_translations") %>% dplyr::pull(code) %>% stringr::str_replace_all("''", "'"), paste0(plugin_dir, "/translations.csv"))
+        # 
+        # # Create XML file
+        # xml <- XML::newXMLDoc()
+        # plugins_node <- XML::newXMLNode("plugins", doc = xml)
+        # plugin_node <- XML::newXMLNode("plugin", parent = plugins_node)
+        # XML::newXMLNode("app_version", r$app_version, parent = plugin_node)
+        # XML::newXMLNode("type", tab_type_id, parent = plugin_node)
+        # for(name in c("unique_id", "version", "author", "image", paste0("name_", r$languages$code), paste0("category_", r$languages$code))){
+        #   XML::newXMLNode(name, options %>% dplyr::filter(name == !!name) %>% dplyr::pull(value), parent = plugin_node)
+        # }
+        # for(name in c(paste0("description_", r$languages$code))) XML::newXMLNode(name, options %>% dplyr::filter(name == !!name) %>%
+        #     dplyr::pull(value) %>% stringr::str_replace_all("''", "'"), parent = plugin_node)
+        # for (name in c("creation_datetime", "update_datetime")) XML::newXMLNode(name, plugin %>% dplyr::pull(get(!!name)), parent = plugin_node)
+        # 
+        # list_of_files <- list.files(plugin_dir)
+        # 
+        # # Add images filenames in the XML
+        # images <- list_of_files[grepl("\\.(png|jpg|jpeg|svg)$", tolower(list_of_files))]
+        # images_node <- XML::newXMLNode("images", paste(images, collapse = ";;;"), parent = plugin_node)
+        # 
+        # # Create XML file
+        # XML::saveXML(xml, file = paste0(plugin_dir, "/plugin.xml"))
+        # 
+        # # Copy files to temp dir
+        # temp_dir_copy <- paste0(temp_dir, "/", prefix, "/", options %>% dplyr::filter(name == "unique_id") %>% dplyr::pull(value))
+        # if (!dir.exists(temp_dir_copy)) dir.create(temp_dir_copy, recursive = TRUE)
+        # XML::saveXML(xml, file = paste0(temp_dir_copy, "/plugin.xml"))
+        # file.copy(paste0(plugin_dir, "/", list_of_files), paste0(temp_dir_copy, "/", list_of_files), overwrite = TRUE)
+        # 
+        # # Create XML file with all exported plugins
+        # 
+        # plugins_tibble <- tibble::tibble(app_version = character(), type = character(), unique_id = character(), version = character(), author = character(), image = character())
+        # prefixes <- c("description", "name", "category")
+        # new_cols <- outer(prefixes, r$languages$code, paste, sep = "_") %>% as.vector()
+        # for(col in new_cols) if(!col %in% colnames(plugins_tibble)) plugins_tibble <- plugins_tibble %>% dplyr::mutate(!!col := "")
+        # plugins_tibble <- plugins_tibble %>% dplyr::mutate(creation_datetime = character(), update_datetime = character())
+        # 
+        # for (category in c("patient_lvl", "aggregated")){
+        # 
+        #   dirs <- list.dirs(paste0(temp_dir, "/", category), full.names = TRUE)
+        # 
+        #   for (dir in dirs){
+        #     if (dir != paste0(temp_dir, "/", category)){
+        # 
+        #       xml_file <- xml2::read_xml(paste0(dir, "/plugin.xml"))
+        #       image_nodes <- xml2::xml_find_all(xml_file, "//images/image")
+        #       images <- character(0)
+        #       if (length(image_nodes) > 0) images <- xml2::xml_text(image_nodes)
+        # 
+        #       df <- xml_file %>%
+        #         XML::xmlParse() %>%
+        #         XML::xmlToDataFrame(nodes = XML::getNodeSet(., "//plugin"), stringsAsFactors = FALSE) %>%
+        #         tibble::as_tibble()
+        #       df$images <- paste(images, collapse = ";;;")
+        # 
+        #       plugins_tibble <- plugins_tibble %>% dplyr::bind_rows(df)
+        #     }
+        #   }
+        # }
+        # 
+        # plugins_xml <- XML::newXMLDoc()
+        # plugins_node <- XML::newXMLNode("plugins", doc = plugins_xml)
+        # 
+        # plugins_nodes <- apply(plugins_tibble, 1, function(x) {
+        #   plugin_node <- XML::newXMLNode("plugin")
+        #   XML::addChildren(plugin_node, lapply(names(x), function(y) XML::newXMLNode(y, x[y])))
+        # })
+        # 
+        # XML::xmlParent(plugins_nodes) <- plugins_node
+        # 
+        # XML::saveXML(plugins_xml, file = paste0(temp_dir, "/plugins.xml"))
+        # 
+        # # Create a ZIP
+        # 
+        # zip::zipr(file, list.files(temp_dir, full.names = TRUE))
+      }
+    )
+    
+    ## Import element ----
+    
+    ## Git synchronization ----
   })
 }

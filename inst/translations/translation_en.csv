@@ -1090,3 +1090,4 @@ open_help,Open help
 open_settings,Open settings
 projects_widget_text,"Projects enable collaborative work on healthcare data in OMOP format using a customizable graphical interface."
 console_widget_text,"Use the console to quickly execute code in R, Python, or shell scripts."
+synchronize_with_git_repo,Git synchronization

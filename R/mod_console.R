@@ -217,7 +217,7 @@ mod_console_server <- function(id = character(), r = shiny::reactiveValues(), d 
       
       else if (input$programming_language == "python"){
         
-        reticulate::py_run_string("sys.stdout = original_stdout\nsys.stderr = original_stderr\n")
+        # reticulate::py_run_string("sys.stdout = original_stdout\nsys.stderr = original_stderr\n")
         
         # Console output
         if (input$output == "console") output$code_output <- renderText(capture_python_output(code))
