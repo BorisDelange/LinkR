@@ -1039,6 +1039,7 @@ mod_data_server <- function(id = character(), r = shiny::reactiveValues(), d = s
           # Loop over distinct tabs, for this study
           # Load front-end & back-end
           sapply(distinct_tabs, function(tab_id){
+            load_tab_plugins(tab_id)
             load_tab_ui(category, tab_id)
             load_tab_server(tab_id)
           })
@@ -1722,8 +1723,10 @@ mod_data_server <- function(id = character(), r = shiny::reactiveValues(), d = s
       
       ## Load front-end & back-end ----
       
+      # load_tab_plugins(tab_id)
+      load_tab_plugins(tab_id, widget_id, "add")
       load_tab_ui(category, tab_id, widget_id, "add")
-      load_tab_server(tab_id)
+      load_tab_server(tab_id, widget_id, "add")
       
       # Close modal
       shinyjs::hide("add_widget_modal")
@@ -1868,6 +1871,22 @@ mod_data_server <- function(id = character(), r = shiny::reactiveValues(), d = s
       # }, error = function(e) cat(paste0("\n", now(), " - mod_data - error creating translations file - plugin_id = ", plugin_id)))
     }
     
+    load_tab_plugins <- function(tab_id, widget_id = NA_integer_, action = "reload"){
+      
+      if (action == "reload") widgets <- r$data_widgets %>% dplyr::filter(tab_id == !!tab_id)
+      else if (action == "add") widgets <- r$data_widgets %>% dplyr::filter(id == !!widget_id)
+      
+      if (nrow(widgets) > 0){
+        
+        # Load all plugins
+        sql <- glue::glue_sql("SELECT DISTINCT(plugin_id) FROM widgets WHERE id IN ({widgets$id*})", .con = r$db)
+        plugin_ids <- DBI::dbGetQuery(r$db, sql) %>% dplyr::pull()
+        
+        # For each plugin, create plugins files if don't exist
+        if (length(plugin_ids) > 0) for (plugin_id in plugin_ids) create_plugin_files(id = id, r = r, plugin_id = plugin_id)
+      }
+    }
+    
     load_tab_ui <- function(category, tab_id, widget_id = NA_integer_, action = "reload"){
       
       if (r$project_load_status_displayed) r$project_load_status$widgets_ui_starttime <- now("%Y-%m-%d %H:%M:%OS3")
@@ -1933,7 +1952,7 @@ mod_data_server <- function(id = character(), r = shiny::reactiveValues(), d = s
             plugin_unique_id <- DBI::dbGetQuery(r$db, sql) %>% dplyr::pull()
 
             # Get plugin folder
-            plugin_folder <- paste0(r$app_folder, "/plugins/", category, "/", plugin_unique_id)
+            plugin_folder <- paste0(r$app_folder, "/plugins/", plugin_unique_id)
 
             # Create translations files and var
             plugin_translations_dir <- paste0(r$app_folder, "/translations/", plugin_unique_id)
@@ -1976,17 +1995,20 @@ mod_data_server <- function(id = character(), r = shiny::reactiveValues(), d = s
       if (r$project_load_status_displayed) r$project_load_status$widgets_ui_endtime <- now("%Y-%m-%d %H:%M:%OS3")
     }
     
-    load_tab_server <- function(tab_id){
+    load_tab_server <- function(tab_id, widget_id = NA_integer_, action = "reload"){
       
       if (r$project_load_status_displayed) r$project_load_status$widgets_server_starttime <- now("%Y-%m-%d %H:%M:%OS3")
       
       shinyjs::delay(100, {
         # Get tabs and widgets
         
-        widgets <- r$data_widgets %>% dplyr::filter(tab_id == !!tab_id) %>% dplyr::rename(widget_id = id)
-        widgets_concepts <- r$data_widgets_concepts %>% dplyr::inner_join(widgets %>% dplyr::select(widget_id), by = "widget_id")
+        if (action == "reload") widgets <- r$data_widgets %>% dplyr::filter(tab_id == !!tab_id)
+        else if (action == "add") widgets <- r$data_widgets %>% dplyr::filter(id == !!widget_id)
+        widgets <- widgets %>% dplyr::rename(widget_id = id)
         
         req(nrow(widgets) > 0)
+        
+        widgets_concepts <- r$data_widgets_concepts %>% dplyr::inner_join(widgets %>% dplyr::select(widget_id), by = "widget_id")
           
         widgets_ids <- unique(widgets$widget_id)
         

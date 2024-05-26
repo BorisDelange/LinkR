@@ -12,7 +12,7 @@ mod_home_ui <- function(id, language, languages, i18n){
         class = "home_row",
         div(
           div(
-            h1("Projets"),
+            h1(i18n$t("projects")),
             p(i18n$t("projects_widget_text")),
             div(
               shiny.fluent::PrimaryButton.shinyInput(
@@ -25,7 +25,7 @@ mod_home_ui <- function(id, language, languages, i18n){
         ),
         div(
           div(
-            h1("Datasets"),
+            h1(i18n$t("datasets")),
             p("..."),
             div(
               shiny.fluent::DefaultButton.shinyInput(
@@ -38,7 +38,7 @@ mod_home_ui <- function(id, language, languages, i18n){
         ),
         div(
           div(
-            h1("Terminologies"),
+            h1(i18n$t("vocabularies")),
             p("..."),
             div(
               shiny.fluent::DefaultButton.shinyInput(
@@ -54,7 +54,7 @@ mod_home_ui <- function(id, language, languages, i18n){
         class = "home_row",
         div(
           div(
-            h1("Console"),
+            h1(i18n$t("console")),
             p(i18n$t("console_widget_text")),
             div(
               shiny.fluent::DefaultButton.shinyInput(
@@ -67,7 +67,7 @@ mod_home_ui <- function(id, language, languages, i18n){
         ),
         div(
           div(
-            h1("Plugins"),
+            h1(i18n$t("plugins")),
             p("..."),
             div(
               shiny.fluent::DefaultButton.shinyInput(
@@ -80,7 +80,7 @@ mod_home_ui <- function(id, language, languages, i18n){
         ),
         div(
           div(
-            h1("Data cleaning"),
+            h1(i18n$t("data_cleaning")),
             p("..."),
             div(
               shiny.fluent::DefaultButton.shinyInput(
@@ -96,7 +96,7 @@ mod_home_ui <- function(id, language, languages, i18n){
         class = "home_row",
         div(
           div(
-            h1("Explorer"),
+            h1(i18n$t("explore")),
             p("..."),
             div(
               shiny.fluent::DefaultButton.shinyInput(
@@ -109,7 +109,7 @@ mod_home_ui <- function(id, language, languages, i18n){
         ),
         div(
           div(
-            h1("Aide"),
+            h1(i18n$t("help")),
             p("..."),
             div(
               shiny.fluent::DefaultButton.shinyInput(
@@ -122,7 +122,7 @@ mod_home_ui <- function(id, language, languages, i18n){
         ),
         div(
           div(
-            h1("Paramètres"),
+            h1(i18n$t("settings")),
             p("..."),
             div(
               shiny.fluent::DefaultButton.shinyInput(

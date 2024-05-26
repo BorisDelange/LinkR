@@ -675,14 +675,16 @@ mod_widgets_server <- function(id, r, d, m, language, i18n, all_divs, debug){
         temp_dir <- paste0(r$app_folder, "/temp_files/", r$user_id, "/", id, "/", now() %>% stringr::str_replace_all(":| |-", ""), paste0(sample(c(0:9, letters[1:6]), 24, TRUE), collapse = ''))
         dir.create(temp_dir, recursive = TRUE)
         
+        # element <- ""
+        
         # plugin <- r$plugins %>% dplyr::filter(id == plugin_id)
         # options <- r$options %>% dplyr::filter(category == "plugin", link_id == plugin_id)
         # code <- r$code %>% dplyr::filter(link_id == plugin_id, category %in% c("plugin_ui", "plugin_server", "plugin_translations"))
-        # 
-        # # Create folder if doesn't exist
-        # plugin_dir <- paste0(r$app_folder, "/plugins/", prefix, "/", options %>% dplyr::filter(name == "unique_id") %>% dplyr::pull(value))
+        
+        # Create folder if doesn't exist
+        # plugin_dir <- paste0(r$app_folder, "/", id, "/", prefix, "/", options %>% dplyr::filter(name == "unique_id") %>% dplyr::pull(value))
         # if (!dir.exists(plugin_dir)) dir.create(plugin_dir, recursive = TRUE)
-        # 
+
         # # Create ui.R & server.R
         # sapply(c("ui", "server"), function(name) writeLines(code %>% dplyr::filter(category == paste0("plugin_", name)) %>%
         #     dplyr::pull(code) %>% stringr::str_replace_all("''", "'"), paste0(plugin_dir, "/", name, ".R")))

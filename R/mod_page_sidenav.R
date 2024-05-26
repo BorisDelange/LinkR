@@ -258,8 +258,7 @@ mod_page_sidenav_ui <- function(id = character(), i18n = character()){
   else if (id == "home"){
     div(
       id = ns("sidenav"),
-      class = "sidenav",
-      style = reduced_sidenav_style,
+      class = "sidenav", style = reduced_sidenav_style,
       div(
         id = ns("large_sidenav")
       ),
@@ -314,7 +313,7 @@ mod_page_sidenav_ui <- function(id = character(), i18n = character()){
     
     div(
       id = ns("sidenav"),
-      class = "sidenav",
+      class = "sidenav", style = reduced_sidenav_style,
       div(
         id = ns("large_sidenav"),
         shinyjs::hidden(
@@ -371,7 +370,7 @@ mod_page_sidenav_ui <- function(id = character(), i18n = character()){
           )
         )
       ),
-      hide_sidenav
+      show_sidenav
     ) -> result
   }
   
@@ -541,7 +540,6 @@ mod_page_sidenav_server <- function(id = character(), r = shiny::reactiveValues(
     
     # Prevent display bug
     if (id == "plugins") js_show_sidenav <- js_show_sidenav %>% gsub("setTimeout\\(\\(\\) => large_sidenav.style.display = 'block', 300\\);", "large_sidenav.style.display = 'block';", .)
-    print(js_show_sidenav)
     
     if (id %in% c("app_db", "data_cleaning", "datasets", "explore", "home", "log", "plugins", "projects", "subsets", "users", "vocabularies")) r[[paste0(id, "_show_hide_sidenav")]] <- "hide"
     

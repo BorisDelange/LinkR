@@ -87,6 +87,13 @@ mod_plugins_ui <- function(id, language, languages, i18n){
             id = ns("share_div"),
             div(
               div(
+                h1(i18n$t("synchronize_with_git_repo")),
+                class = "widget", style = "height: calc(100% - 25px); padding-top: 1px;"
+              ),
+              class = "plugins_share_right"
+            ),
+            div(
+              div(
                 h1(i18n$t("export")),
                 div(
                   shiny.fluent::PrimaryButton.shinyInput(ns("export_element"), i18n$t("export"), iconProps = list(iconName = "Download")),
@@ -94,22 +101,10 @@ mod_plugins_ui <- function(id, language, languages, i18n){
                 ),
                 class = "widget", style = "height: 50%;"
               ),
-              div(
-                h1(i18n$t("import")),
-                div(
-                  shiny.fluent::PrimaryButton.shinyInput(ns("import_element"), i18n$t("import"), iconProps = list(iconName = "Upload")),
-                  class = "create_element_modal_buttons"
-                ),
-                class = "widget", style = "height: 50%;"
-              ),
+              # div(
+              #   class = "widget", style = "height: 50%;"
+              # ),
               class = "plugins_share_left"
-            ),
-            div(
-              div(
-                h1(i18n$t("synchronize_with_git_repo")),
-                class = "widget", style = "height: calc(100% - 25px); padding-top: 1px;"
-              ),
-              class = "plugins_share_right"
             ),
             class = "plugins_share_container"
           )
@@ -183,92 +178,10 @@ mod_plugins_server <- function(id, r, d, m, language, i18n, debug){
     observeEvent(input$reload_code_files, {
       if (debug) cat(paste0("\n", now(), " - mod_plugins - observer input$reload_code_files"))
       
-      plugin_folder <- paste0(r$app_folder, "/plugins/", input$selected_plugin_type, "/", input$selected_plugin_unique_id)
+      plugin_folder <- paste0(r$app_folder, "/plugins/", input$selected_plugin_unique_id)
       shinyjs::runjs(paste0("Shiny.setInputValue('", id, "-selected_plugin_folder', '", plugin_folder, "');"))
       
-      # Create folder if doesn't exist
-      if (!dir.exists(plugin_folder)) dir.create(plugin_folder)
-      
-      # Retro-compatibility : convert UI / server / translations entries from database to files
-      sql <- glue::glue_sql("SELECT * FROM code WHERE category IN ('plugin_ui', 'plugin_server', 'plugin_translations') AND link_id = {input$selected_element}", .con = r$db)
-      old_plugin_files <- DBI::dbGetQuery(r$db, sql)
-      if (nrow(old_plugin_files) > 0){
-        for (filename in c("server.R", "ui.R", "translations.csv")){
-          file_path <- paste0(plugin_folder, "/", filename)
-          if (!file.exists(file_path)){
-            file_code <- old_plugin_files %>% dplyr::filter(category == paste0("plugin_", sub("\\.[^.]*$", "", filename))) %>% dplyr::pull(code)
-            writeLines(file_code, file_path)
-          }
-        }
-      }
-      # List files in the plugin folder
-      files_list <- list.files(path = plugin_folder, pattern = "(?i)*.\\.(r|py|csv|css|js)$")
-      
-      sql <- glue::glue_sql("SELECT * FROM options WHERE category = 'plugin_code' AND link_id = {input$selected_element}", .con = r$db)
-      plugin_files_db <- DBI::dbGetQuery(r$db, sql)
-      
-      if (length(files_list) > 0){
-        for (i in 1:length(files_list)){
-          file_name <- files_list[i]
-          
-          file_names <- r$edit_plugin_code_files_list %>% dplyr::filter(plugin_id == input$selected_element) %>% dplyr::pull(filename)
-          if (length(file_names) == 0) file_names <- c()
-          
-          if (file_name %not_in% file_names){
-            # Get option id from db
-            options_id <- plugin_files_db %>% dplyr::filter(link_id == input$selected_element, value == file_name) %>% dplyr::pull(id)
-            if (length(options_id) == 0) options_id <- NA_integer_
-            
-            r$edit_plugin_code_files_list <- r$edit_plugin_code_files_list %>% dplyr::bind_rows(tibble::tibble(id = options_id, plugin_id = input$selected_element, filename = file_name))
-          }
-        }
-      }
-      # Synchronize with database. Add files in database if don't exist.
-      
-      edit_plugin_code_files_list <- r$edit_plugin_code_files_list %>% dplyr::filter(plugin_id == input$selected_element)
-      
-      if (nrow(edit_plugin_code_files_list) > 0){
-        for (i in 1:nrow(edit_plugin_code_files_list)){
-          file <- edit_plugin_code_files_list[i, ]
-          if (file$filename %not_in% plugin_files_db$value){
-            options_new_row_id <- as.integer(get_last_row(r$db, "options") + 1)
-            new_options <- tibble::tibble(
-              id = options_new_row_id, category = "plugin_code", link_id = {input$selected_element}, name = "filename",
-              value = {file$filename}, value_num = NA_real_, creator_id = r$user_id, datetime = now(), deleted = FALSE
-            )
-            DBI::dbAppendTable(r$db, "options", new_options)
-            
-            r$edit_plugin_code_files_list <- 
-              r$edit_plugin_code_files_list %>% 
-              dplyr::mutate(id = dplyr::case_when(plugin_id == input$selected_element & filename == file$filename ~ options_new_row_id, TRUE ~ id))
-            
-            file_code <- readLines(paste0(plugin_folder, "/", file$filename), warn = FALSE) %>% toString()
-            new_code <- tibble::tibble(
-              id = as.integer(get_last_row(r$db, "code") + 1), category = "plugin", link_id = {options_new_row_id}, code = file_code,
-              creator_id = r$user_id, datetime = now(), deleted = FALSE
-            )
-            DBI::dbAppendTable(r$db, "code", new_code)
-          }
-        }
-      }
-      # Synchronize database with files. Create files if don't exist.
-      
-      if (nrow(plugin_files_db) > 0){
-        for (i in 1:nrow(plugin_files_db)){
-          file <- plugin_files_db[i, ]
-          if (!file.exists(paste0(plugin_folder, "/", file$value))){
-            # Get code
-            sql <- glue::glue_sql("SELECT * FROM code WHERE category = 'plugin' AND link_id = {file$id}", .con = r$db)
-            row <- DBI::dbGetQuery(r$db, sql)
-            
-            # Create file
-            writeLines(row$code, paste0(plugin_folder, "/", file$value))
-            
-            # Add file to r$edit_plugin_code_files_list
-            r$edit_plugin_code_files_list <- r$edit_plugin_code_files_list %>% dplyr::bind_rows(tibble::tibble(id = file$id, plugin_id = input$selected_element, filename = file$value))
-          }
-        }
-      }
+      create_plugin_files(id = id, r = r, plugin_id = input$selected_element)
       
       # Reload files browser
       output$edit_code_directory_browser <- renderUI("test")
@@ -636,8 +549,7 @@ mod_plugins_server <- function(id, r, d, m, language, i18n, debug){
       
       # Update database
       sql <- glue::glue_sql("UPDATE code SET code = {new_code} WHERE category = 'plugin' AND link_id = {file$id}", .con = r$db)
-      query <- DBI::dbSendStatement(r$db, sql)
-      DBI::dbClearResult(query)
+      sql_send_statement(r$db, sql)
       
       show_message_bar(output,  "modif_saved", "success", i18n = i18n, ns = ns)
     })
@@ -693,8 +605,7 @@ mod_plugins_server <- function(id, r, d, m, language, i18n, debug){
       
       # Update database
       sql <- glue::glue_sql("UPDATE options SET value = {new_name} WHERE id = {file_id}", .con = r$db)
-      query <- DBI::dbSendStatement(r$db, sql)
-      DBI::dbClearResult(query)
+      sql_send_statement(r$db, sql)
       
       # Update tabs
       r$edit_plugin_code_tabs <- r$edit_plugin_code_tabs %>% dplyr::mutate(filename = dplyr::case_when(id == file_id ~ new_name, TRUE ~ filename))
@@ -733,11 +644,10 @@ mod_plugins_server <- function(id, r, d, m, language, i18n, debug){
       
       # Remove from database
       sql <- glue::glue_sql("DELETE FROM options WHERE id = {file_id}", .con = r$db)
-      query <- DBI::dbSendStatement(r$db, sql)
-      DBI::dbClearResult(query)
+      sql_send_statement(r$db, sql)
+      
       sql <- glue::glue_sql("DELETE FROM code WHERE category = 'plugin' AND link_id = {file_id}", .con = r$db)
-      query <- DBI::dbSendStatement(r$db, sql)
-      DBI::dbClearResult(query)
+      sql_send_statement(r$db, sql)
       
       # Reload files browser
       r$edit_plugin_code_files_list <- r$edit_plugin_code_files_list %>% dplyr::filter(id != file_id)
