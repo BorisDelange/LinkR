@@ -76,7 +76,7 @@ mod_datasets_ui <- function(id, language, languages, i18n){
                 code_hotkeys = list("r", code_hotkeys),
                 autoScrollEditorIntoView = TRUE, height = "100%", debounce = 100, fontSize = 11, showPrintMargin = FALSE
               ),
-              style = "width: 50%; max-height: calc(100% - 20px);"
+              style = "width: 50%; max-height: calc(100% - 30px);"
             ),
             div(
               verbatimTextOutput(ns("code_result")),

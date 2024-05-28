@@ -26,7 +26,8 @@ mod_widgets_ui <- function(id, language, languages, i18n){
         id = ns("all_elements"),
         shiny.fluent::Breadcrumb(items = list(list(key = "main", text = i18n$t(id))), maxDisplayedItems = 3),
         div(shiny.fluent::SearchBox.shinyInput(ns("search_element")), style = "width:320px; margin:10px 0 0 10px;"),
-        uiOutput(ns("elements"))
+        uiOutput(ns("elements")),
+        div(style = "display:none;", fileInput(ns("import_element_upload"), label = "", multiple = FALSE, accept = ".zip"))
       ),
 
       # Create an element modal ----
@@ -72,9 +73,23 @@ mod_widgets_ui <- function(id, language, languages, i18n){
         )
       ),
       
-      # Export an element button ----
+      # Confirm import element modal ----
       
-      shinyjs::hidden(downloadButton(ns("export_element_download")))
+      shinyjs::hidden(
+        div(
+          id = ns("import_element_modal"),
+          div(
+            tags$h1(i18n$t(paste0("import_", single_id, "_title"))), tags$p(i18n$t(paste0("import_", single_id, "_text"))),
+            div(
+              shiny.fluent::DefaultButton.shinyInput(ns("close_element_import_modal"), i18n$t("dont_import")),
+              div(shiny.fluent::PrimaryButton.shinyInput(ns("confirm_element_import"), i18n$t("import")), class = "delete_button"),
+              class = "import_modal_buttons"
+            ),
+            class = "import_modal_content"
+          ),
+          class = "import_modal"
+        )
+      ),
   )
 }
 
@@ -176,11 +191,11 @@ mod_widgets_server <- function(id, r, d, m, language, i18n, all_divs, debug){
           LEFT JOIN options o ON o.category = {sql_category} AND d.id = o.link_id", .con = con)
       }
       
-      r[[long_var]] <- DBI::dbGetQuery(con, sql)
+      r[[long_var]] <- DBI::dbGetQuery(con, sql) %>% tibble::as_tibble()
       r[[long_var_filtered]] <- r[[long_var]]
       
       sql <- glue::glue_sql("SELECT * FROM {sql_table} WHERE id IN ({unique(r[[long_var]]$id)*})", .con = con)
-      r[[wide_var]] <- DBI::dbGetQuery(con, sql)
+      r[[wide_var]] <- DBI::dbGetQuery(con, sql) %>% tibble::as_tibble()
       
       shinyjs::runjs(paste0("Shiny.setInputValue('", id, "-reload_elements_list', Math.random());"))
     })
@@ -320,13 +335,22 @@ mod_widgets_server <- function(id, r, d, m, language, i18n, all_divs, debug){
       
       if (id == "plugins"){
         if (current_tab == "edit_code"){
+          # Show "show/hide sidenav button"
+          shinyjs::show("show_hide_sidenav")
+          
+          # Expand sidenav
           shinyjs::runjs(paste0("Shiny.setInputValue('", id, "-show_hide_sidenav', 'show');"))
           
           # Debug files browser UI
           shinyjs::hide("edit_code_files_browser")
           shinyjs::delay(50, shinyjs::show("edit_code_files_browser"))
         }
-        else shinyjs::runjs(paste0("Shiny.setInputValue('", id, "-show_hide_sidenav', 'hide');"))
+        else {
+          # Hide "show/hide sidenav button"
+          shinyjs::hide("show_hide_sidenav")
+          
+          shinyjs::runjs(paste0("Shiny.setInputValue('", id, "-show_hide_sidenav', 'hide');"))
+        }
       }
     })
     
@@ -507,7 +531,157 @@ mod_widgets_server <- function(id, r, d, m, language, i18n, all_divs, debug){
     
     # |-------------------------------- -----
     
+    # --- --- --- --- --- --
+    # Upload an element ----
+    # --- --- --- --- --- --
+    
+    ## Upload file ----
+    
+    observeEvent(input$import_element, {
+      if (debug) cat(paste0("\n", now(), " - mod_widgets - (", id, ") - observer input$import_element_browse"))
+      shinyjs::click("import_element_upload")
+    })
+    
+    observeEvent(input$import_element_upload, {
+      if (debug) cat(paste0("\n", now(), " - mod_widgets - (", id, ") - observer input$import_plugins_button"))
+    
+      tryCatch({
+      
+        # Extract ZIP file
+
+        r$imported_element_temp_dir <- paste0(r$app_folder, "/temp_files/", r$user_id, "/", id, "/", now() %>% stringr::str_replace_all(":| |-", ""), paste0(sample(c(0:9, letters[1:6]), 24, TRUE), collapse = ''))
+        zip::unzip(input$import_element_upload$datapath, exdir = r$imported_element_temp_dir)
+
+        # Read XML file
+
+        r$imported_element <-
+          xml2::read_xml(paste0(r$imported_element_temp_dir, "/", single_id, ".xml")) %>%
+          XML::xmlParse() %>%
+          XML::xmlToDataFrame(nodes = XML::getNodeSet(., paste0("//", single_id)), stringsAsFactors = FALSE) %>%
+          tibble::as_tibble()
+        
+        # Check if this element already exists in our database
+        # If this element already exists, confirm its deletion
+        
+        if (r[[long_var]] %>% dplyr::filter(name == "unique_id" & value == r$imported_element$unique_id) %>% nrow() > 0) shinyjs::show("import_element_modal")
+        else shinyjs::runjs(paste0("Shiny.setInputValue('", id, "-confirm_element_import', Math.random());"))
+        
+      }, error = function(e) cat(paste0("\n", now(), " - mod_widgets - (", id, ") - import element error - ", toString(e))))
+    })
+    
+    observeEvent(input$close_element_import_modal, {
+      if (debug) cat(paste0("\n", now(), " - mod_widgets - (", id, ") - observer input$close_element_import"))
+      shinyjs::hide("import_element_modal")
+    })
+    
+    ## Import files ----
+    
+    observeEvent(input$confirm_element_import, {
+      if (debug) cat(paste0("\n", now(), " - mod_widgets - (", id, ") - observer input$confirm_element_import"))
+      
+      shinyjs::hide("import_element_modal")
+      
+      tryCatch({
+        
+        # Delete old files and copy new files
+        
+        element_folder <- paste0(r$app_folder, "/", id, "/", r$imported_element$unique_id)
+        unlink(element_folder, recursive = TRUE)
+        dir.create(element_folder)
+        
+        files_list <- list.files(r$imported_element_temp_dir)
+        
+        file.copy(paste0(r$imported_element_temp_dir, "/", files_list), paste0(element_folder, "/", files_list))
+        
+        # Delete old entries in database
+        
+        element_id <- DBI::dbGetQuery(r$db, glue::glue_sql("SELECT link_id FROM options WHERE category = {single_id} AND name = 'unique_id' AND value = {r$imported_element$unique_id}", .con = con)) %>% dplyr::pull()
+        
+        if (length(element_id) > 0){
+          
+          # Delete element in db
+          sql_send_statement(con, glue::glue_sql("DELETE FROM {sql_table} WHERE id = {element_id}", .con = con))
+          
+          # For plugins, get options id to delete corresponding code rows
+          if (id == "plugins"){
+            options_ids <- DBI::dbGetQuery(r$db, glue::glue_sql("SELECT id FROM options WHERE category = 'plugin_code' AND link_id = {element_id}", .con = con)) %>% dplyr::pull()
+            
+            # Delete code in db
+            sql_send_statement(con, glue::glue_sql("DELETE FROM code WHERE link_id IN ({options_ids*})", .con = con))
+            sql_send_statement(con, glue::glue_sql("DELETE FROM options WHERE category = 'plugin_code' AND link_id = {element_id}", .con = con))
+          }
+          
+          # Delete code in db
+          sql_send_statement(con, glue::glue_sql("DELETE FROM code WHERE category = {sql_category} AND link_id = {element_id}", .con = con))
+          
+          # Delete options in db
+          sql_send_statement(con, glue::glue_sql("DELETE FROM options WHERE category = {sql_category} AND link_id = {element_id}", .con = con))
+        }
+        
+        # Import data in database
+        
+        # Create columns if don't exist (one column for option and for language)
+        prefixes <- c("description", "name", "category")
+        new_cols <- outer(prefixes, r$languages$code, paste, sep = "_") %>% as.vector()
+        for(col in new_cols) if(!col %in% colnames(r$imported_element)) r$imported_element <- r$imported_element %>% dplyr::mutate(!!col := "")
+        
+        r$imported_element <- r$imported_element %>% dplyr::mutate(name = get(paste0("name_", language)))
+        
+        # Element table
+        
+        if (id == "plugins") new_data <-
+            r$imported_element %>%
+            dplyr::transmute(id = get_last_row(con, "plugins") + 1, name, tab_type_id = type, creation_datetime, update_datetime, deleted = FALSE)
+        
+        DBI::dbAppendTable(con, sql_table, new_data)
+        
+        # Options table
+        new_options <- tibble::tribble(
+          ~name, ~value, ~value_num,
+          "users_allowed_read_group", "everybody", 1,
+          "user_allowed_read", "", r$user_id,
+          "version", r$imported_element$version, NA_real_,
+          "unique_id", r$imported_element$unique_id, NA_real_,
+          "author", r$imported_element$author, NA_real_,
+          "downloaded_from", "", NA_real_,
+          "downloaded_from_url", "", NA_real_
+        ) %>%
+          dplyr::bind_rows(
+            r$imported_element %>%
+              dplyr::select(dplyr::starts_with(c("category", "name", "description")), -name) %>%
+              tidyr::pivot_longer(dplyr::starts_with(c("category", "name", "description")), names_to = "name", values_to = "value") %>%
+              dplyr::mutate(value_num = NA_real_)
+          ) %>%
+          dplyr::mutate(id = get_last_row(con, "options") + dplyr::row_number(), category = sql_category, link_id = new_data$id, .before = "name") %>%
+          dplyr::mutate(creator_id = r$user_id, datetime = now(), deleted = FALSE)
+        
+        DBI::dbAppendTable(con, "options", new_options)
+        
+        # Code table
+        
+        # For plugins, add code in database with create_plugin_files
+        if (id == "plugins") create_plugin_files(id = id, r = r, plugin_id = new_data$id)
+        else {
+          new_code <- tibble::tibble(
+            id = get_last_row(r$db, "code") + 1, category = "dataset", link_id = new_data$id,
+            code = "", creator_id = r$user_id, datetime = now(), deleted = FALSE
+          )
+          DBI::dbAppendTable(con, "code", new_code)
+        }
+        
+        # Reload elements var and widgets
+        shinyjs::runjs(paste0("Shiny.setInputValue('", id, "-reload_elements_var', Math.random());"))
+       
+        show_message_bar(output, paste0("success_importing_", single_id), "success", i18n = i18n, ns = ns)
+        
+      }, error = function(e) cat(paste0("\n", now(), " - mod_widgets - (", id, ") - import element error - ", toString(e))))
+    })
+    
+    # |-------------------------------- -----
+    
+    # --- --- --- --- --- --- ---
     # An element is selected ----
+    # --- --- --- --- --- --- ---
     
     observeEvent(input$selected_element_trigger, {
       if (debug) cat(paste0("\n", now(), " - mod_widgets - (", id, ") - observer input$selected_element_trigger"))
@@ -626,12 +800,21 @@ mod_widgets_server <- function(id, r, d, m, language, i18n, all_divs, debug){
       # Delete element in db
       sql_send_statement(con, glue::glue_sql("DELETE FROM {sql_table} WHERE id = {element_id}", .con = con))
       
+      # For plugins, get options id to delete corresponding code rows
+      if (id == "plugins"){
+        options_ids <- DBI::dbGetQuery(r$db, glue::glue_sql("SELECT id FROM options WHERE category = 'plugin_code' AND link_id = {element_id}", .con = con)) %>% dplyr::pull()
+        
+        # Delete code in db
+        sql_send_statement(con, glue::glue_sql("DELETE FROM code WHERE link_id IN ({options_ids*})", .con = con))
+        sql_send_statement(con, glue::glue_sql("DELETE FROM options WHERE category = 'plugin_code' AND link_id = {element_id}", .con = con))
+      }
+      
       # Delete code in db
       sql_send_statement(con, glue::glue_sql("DELETE FROM code WHERE category = {sql_category} AND link_id = {element_id}", .con = con))
       
       # Delete options in db
       sql_send_statement(con, glue::glue_sql("DELETE FROM options WHERE category = {sql_category} AND link_id = {element_id}", .con = con))
-      
+        
       # Delete files
       if (id == "plugins") unlink(input$selected_plugin_folder, recursive = TRUE)
       
@@ -653,6 +836,8 @@ mod_widgets_server <- function(id, r, d, m, language, i18n, all_divs, debug){
     # Share element ----
     # --- --- --- --- --
     
+    ## Git synchronization ----
+    
     ## Export element ----
     
     observeEvent(input$export_element, {
@@ -663,112 +848,70 @@ mod_widgets_server <- function(id, r, d, m, language, i18n, all_divs, debug){
     
     output$export_element_download <- downloadHandler(
 
-      filename = function() paste0("linkr_export_", single_id, "_",
-        now() %>% stringr::str_replace_all(" ", "_") %>% stringr::str_replace_all(":", "_") %>% as.character(), ".zip"),
+      filename = function(){
+        element_name <-
+          r[[wide_var]] %>% 
+          dplyr::filter(id == input$selected_element) %>%
+          dplyr::pull(name) %>%
+          tolower() %>%
+          gsub(" ", "_", .) %>%
+          gsub("[àáâãäå]", "a", .) %>%
+          gsub("[èéêë]", "e", .) %>%
+          gsub("[ìíîï]", "i", .) %>%
+          gsub("[òóôõö]", "o", .) %>%
+          gsub("[ùúûü]", "u", .) %>%
+          gsub("ç", "c", .) %>%
+          gsub("ñ", "n", .) %>%
+          gsub("ÿ", "y", .) %>%
+          gsub("ß", "ss", .) %>%
+          gsub("[^a-z0-9_]", "", .)
+        
+        paste0("linkr_", single_id, "_", element_name, "_", now() %>% stringr::str_replace_all(" ", "_") %>% stringr::str_replace_all(":", "_") %>% as.character(), ".zip")
+      },
 
       content = function(file){
-        if (debug) cat(paste0("\n", now(), " - mod_widgets - (", id, ") - output$export_plugins_download"))
+        if (debug) cat(paste0("\n", now(), " - mod_widgets - (", id, ") - output$export_elements_download"))
 
-        owd <- setwd(tempdir())
-        on.exit(setwd(owd))
-
-        temp_dir <- paste0(r$app_folder, "/temp_files/", r$user_id, "/", id, "/", now() %>% stringr::str_replace_all(":| |-", ""), paste0(sample(c(0:9, letters[1:6]), 24, TRUE), collapse = ''))
-        dir.create(temp_dir, recursive = TRUE)
+        # Element dir
+        sql <- glue::glue_sql("SELECT value FROM options WHERE category = {single_id} AND name = 'unique_id' AND link_id = {input$selected_element}", .con = con)
+        element_unique_id <- DBI::dbGetQuery(r$db, sql) %>% dplyr::pull()
+        element_dir <- paste0(r$app_folder, "/", id, "/", element_unique_id)
         
-        # element <- ""
+        # Create files if don't exist
+        if (id == "plugins") create_plugin_files(id = id, r = r, plugin_id = input$selected_element)
         
-        # plugin <- r$plugins %>% dplyr::filter(id == plugin_id)
-        # options <- r$options %>% dplyr::filter(category == "plugin", link_id == plugin_id)
-        # code <- r$code %>% dplyr::filter(link_id == plugin_id, category %in% c("plugin_ui", "plugin_server", "plugin_translations"))
+        # Get element options
+        sql <- glue::glue_sql("SELECT * FROM options WHERE category = {single_id} AND link_id = {input$selected_element}", .con = con)
+        element_options <- DBI::dbGetQuery(r$db, sql)
         
-        # Create folder if doesn't exist
-        # plugin_dir <- paste0(r$app_folder, "/", id, "/", prefix, "/", options %>% dplyr::filter(name == "unique_id") %>% dplyr::pull(value))
-        # if (!dir.exists(plugin_dir)) dir.create(plugin_dir, recursive = TRUE)
-
-        # # Create ui.R & server.R
-        # sapply(c("ui", "server"), function(name) writeLines(code %>% dplyr::filter(category == paste0("plugin_", name)) %>%
-        #     dplyr::pull(code) %>% stringr::str_replace_all("''", "'"), paste0(plugin_dir, "/", name, ".R")))
-        # writeLines(code %>% dplyr::filter(category == "plugin_translations") %>% dplyr::pull(code) %>% stringr::str_replace_all("''", "'"), paste0(plugin_dir, "/translations.csv"))
-        # 
-        # # Create XML file
-        # xml <- XML::newXMLDoc()
-        # plugins_node <- XML::newXMLNode("plugins", doc = xml)
-        # plugin_node <- XML::newXMLNode("plugin", parent = plugins_node)
-        # XML::newXMLNode("app_version", r$app_version, parent = plugin_node)
-        # XML::newXMLNode("type", tab_type_id, parent = plugin_node)
-        # for(name in c("unique_id", "version", "author", "image", paste0("name_", r$languages$code), paste0("category_", r$languages$code))){
-        #   XML::newXMLNode(name, options %>% dplyr::filter(name == !!name) %>% dplyr::pull(value), parent = plugin_node)
-        # }
-        # for(name in c(paste0("description_", r$languages$code))) XML::newXMLNode(name, options %>% dplyr::filter(name == !!name) %>%
-        #     dplyr::pull(value) %>% stringr::str_replace_all("''", "'"), parent = plugin_node)
-        # for (name in c("creation_datetime", "update_datetime")) XML::newXMLNode(name, plugin %>% dplyr::pull(get(!!name)), parent = plugin_node)
-        # 
-        # list_of_files <- list.files(plugin_dir)
-        # 
-        # # Add images filenames in the XML
-        # images <- list_of_files[grepl("\\.(png|jpg|jpeg|svg)$", tolower(list_of_files))]
-        # images_node <- XML::newXMLNode("images", paste(images, collapse = ";;;"), parent = plugin_node)
-        # 
-        # # Create XML file
-        # XML::saveXML(xml, file = paste0(plugin_dir, "/plugin.xml"))
-        # 
-        # # Copy files to temp dir
-        # temp_dir_copy <- paste0(temp_dir, "/", prefix, "/", options %>% dplyr::filter(name == "unique_id") %>% dplyr::pull(value))
-        # if (!dir.exists(temp_dir_copy)) dir.create(temp_dir_copy, recursive = TRUE)
-        # XML::saveXML(xml, file = paste0(temp_dir_copy, "/plugin.xml"))
-        # file.copy(paste0(plugin_dir, "/", list_of_files), paste0(temp_dir_copy, "/", list_of_files), overwrite = TRUE)
-        # 
-        # # Create XML file with all exported plugins
-        # 
-        # plugins_tibble <- tibble::tibble(app_version = character(), type = character(), unique_id = character(), version = character(), author = character(), image = character())
-        # prefixes <- c("description", "name", "category")
-        # new_cols <- outer(prefixes, r$languages$code, paste, sep = "_") %>% as.vector()
-        # for(col in new_cols) if(!col %in% colnames(plugins_tibble)) plugins_tibble <- plugins_tibble %>% dplyr::mutate(!!col := "")
-        # plugins_tibble <- plugins_tibble %>% dplyr::mutate(creation_datetime = character(), update_datetime = character())
-        # 
-        # for (category in c("patient_lvl", "aggregated")){
-        # 
-        #   dirs <- list.dirs(paste0(temp_dir, "/", category), full.names = TRUE)
-        # 
-        #   for (dir in dirs){
-        #     if (dir != paste0(temp_dir, "/", category)){
-        # 
-        #       xml_file <- xml2::read_xml(paste0(dir, "/plugin.xml"))
-        #       image_nodes <- xml2::xml_find_all(xml_file, "//images/image")
-        #       images <- character(0)
-        #       if (length(image_nodes) > 0) images <- xml2::xml_text(image_nodes)
-        # 
-        #       df <- xml_file %>%
-        #         XML::xmlParse() %>%
-        #         XML::xmlToDataFrame(nodes = XML::getNodeSet(., "//plugin"), stringsAsFactors = FALSE) %>%
-        #         tibble::as_tibble()
-        #       df$images <- paste(images, collapse = ";;;")
-        # 
-        #       plugins_tibble <- plugins_tibble %>% dplyr::bind_rows(df)
-        #     }
-        #   }
-        # }
-        # 
-        # plugins_xml <- XML::newXMLDoc()
-        # plugins_node <- XML::newXMLNode("plugins", doc = plugins_xml)
-        # 
-        # plugins_nodes <- apply(plugins_tibble, 1, function(x) {
-        #   plugin_node <- XML::newXMLNode("plugin")
-        #   XML::addChildren(plugin_node, lapply(names(x), function(y) XML::newXMLNode(y, x[y])))
-        # })
-        # 
-        # XML::xmlParent(plugins_nodes) <- plugins_node
-        # 
-        # XML::saveXML(plugins_xml, file = paste0(temp_dir, "/plugins.xml"))
-        # 
-        # # Create a ZIP
-        # 
-        # zip::zipr(file, list.files(temp_dir, full.names = TRUE))
+        # Create XML file
+        xml <- XML::newXMLDoc()
+        
+        elements_node <- XML::newXMLNode(id, doc = xml)
+        element_node <- XML::newXMLNode(single_id, parent = elements_node)
+        
+        XML::newXMLNode("app_version", r$app_version, parent = element_node)
+        
+        for(name in c("unique_id", "version", "author", paste0("name_", r$languages$code), paste0("category_", r$languages$code))){
+          XML::newXMLNode(name, element_options %>% dplyr::filter(name == !!name) %>% dplyr::pull(value), parent = element_node)
+        }
+        for(name in c(paste0("description_", r$languages$code))) XML::newXMLNode(name, element_options %>% dplyr::filter(name == !!name) %>%
+          dplyr::pull(value) %>% stringr::str_replace_all("''", "'"), parent = element_node)
+        
+        # Specific nodes depending on current page
+        if (id == "plugins"){
+          plugin <- r$plugins_wide %>% dplyr::filter(id == input$selected_element)
+          
+          XML::newXMLNode("type", plugin$tab_type_id, parent = element_node)
+          for (name in c("creation_datetime", "update_datetime")) XML::newXMLNode(name, plugin %>% dplyr::pull(get(!!name)), parent = element_node)
+        }
+        
+        # Create XML file
+        XML::saveXML(xml, file = paste0(element_dir, paste0("/", single_id, ".xml")))
+        
+        # Create a ZIP
+        zip::zipr(file, list.files(element_dir, full.names = TRUE))
       }
     )
-    
-    ## Import element ----
-    
-    ## Git synchronization ----
   })
 }

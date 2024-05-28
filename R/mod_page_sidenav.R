@@ -15,7 +15,7 @@ mod_page_sidenav_ui <- function(id = character(), i18n = character()){
     onclick = paste0("Shiny.setInputValue('", id, "-show_hide_sidenav', Math.random());"),
   )
   
-  reduced_sidenav_style = "width: 40px; min-width: 40px; padding: 0;"
+  reduced_sidenav_style <- "width: 40px; min-width: 40px; padding: 0;"
   
   # App database ----
   
@@ -348,6 +348,7 @@ mod_page_sidenav_ui <- function(id = character(), i18n = character()){
         div(
           id = ns("all_elements_reduced_sidenav"),
           create_hover_card(ui = shiny.fluent::IconButton.shinyInput(ns("create_element"), iconProps = list(iconName = "Add")), text = i18n$t("create_plugin")),
+          create_hover_card(ui = shiny.fluent::IconButton.shinyInput(ns("import_element"), iconProps = list(iconName = "Upload")), text = i18n$t("import_plugin")),
           class = "reduced_sidenav_buttons"
         ),
         shinyjs::hidden(
@@ -370,7 +371,7 @@ mod_page_sidenav_ui <- function(id = character(), i18n = character()){
           )
         )
       ),
-      show_sidenav
+      shinyjs::hidden(show_sidenav)
     ) -> result
   }
   
@@ -390,8 +391,7 @@ mod_page_sidenav_ui <- function(id = character(), i18n = character()){
           create_hover_card(ui = shiny.fluent::IconButton.shinyInput(ns("create_element"), iconProps = list(iconName = "Add")), text = i18n$t("create_project"))
         ),
         class = "reduced_sidenav_buttons"
-      )#,
-      # show_sidenav
+      )
     ) -> result
   }
   

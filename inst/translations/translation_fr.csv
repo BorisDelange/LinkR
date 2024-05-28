@@ -1091,3 +1091,12 @@ open_settings,Ouvrir les paramètres
 projects_widget_text,"Les projets permettent de travailler de façon collaborative sur des données de santé au format OMOP, à l'aide d'une interface graphique modulable."
 console_widget_text,"Utilisez la console pour exécuter rapidement du code en R, Python ou avec des scripts shell."
 synchronize_with_git_repo,Synchronisation git
+dont_import,Annuler
+import_plugin_title,Importer un plugin
+import_plugin_text,Ce plugin existe déjà. Confirmez-vous la suppression du plugin existant ?
+import_dataset_title,Importer un set de données
+import_dataset_text,Ce set de données existe déjà. Confirmez-vous la suppression du set de données existant ?
+import_project_title,Importer un projet
+import_project_text,Ce projet existe déjà. Confirmez-vous la suppression du projet existant ?
+import_subset_title,Importer un subset
+import_subset_text,Ce subset existe déjà. Confirmez-vous la suppression du subset existant ?

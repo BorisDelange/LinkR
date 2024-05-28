@@ -1091,3 +1091,12 @@ open_settings,Open settings
 projects_widget_text,"Projects enable collaborative work on healthcare data in OMOP format using a customizable graphical interface."
 console_widget_text,"Use the console to quickly execute code in R, Python, or shell scripts."
 synchronize_with_git_repo,Git synchronization
+dont_import,Cancel
+import_plugin_title,Import a plugin
+import_plugin_text,This plugin already exists. Are you sure you want to delete the existing plugin?
+import_dataset_title,Import a dataset
+import_dataset_text,This dataset already exists. Are you sure you want to delete the existing dataset?
+import_project_title,Import a project
+import_project_text,This project already exists. Are you sure you want to delete the existing project?
+import_subset_title,Import a subset
+import_subset_text,This subset already exists. Are you sure you want to delete the existing subset?

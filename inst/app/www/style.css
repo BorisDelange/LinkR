@@ -202,7 +202,7 @@ a.no-hover-effect:hover {
 /* MODALS          */
 /* --------------- */
 
-.delete_modal, .create_element_modal, .load_status_modal {
+.delete_modal, .create_element_modal, .import_modal, .load_status_modal {
   display: flex;
   align-items: center;
   justify-content: center;
@@ -216,18 +216,18 @@ a.no-hover-effect:hover {
   z-index: 500;
 }
 
-.delete_modal_content, .create_tab_modal_content, .create_widget_modal_content, .load_status_modal_content, .create_plugin_modal_content, .create_project_modal_content, .create_dataset_modal_content, .create_subset_modal_content {
+.delete_modal_content, .create_tab_modal_content, .import_modal_content, .create_widget_modal_content, .load_status_modal_content, .create_plugin_modal_content, .create_project_modal_content, .create_dataset_modal_content, .create_subset_modal_content {
   background: #fff;
   padding: 5px 10px 10px 15px;
   position: relative;
 }
 
-.delete_modal_content {
+.delete_modal_content, .import_modal_content {
   width: 400px;
   height: 100px;
 }
 
-.delete_modal_content h1, .create_element_modal h1, .load_status_modal h1 {
+.delete_modal_content h1, .create_element_modal h1, .import_modal_content h1, .load_status_modal h1 {
   font-size: 14px;
 }
 
@@ -235,7 +235,7 @@ a.no-hover-effect:hover {
   font-size: 12px;
 }
 
-.delete_modal_buttons, .create_element_modal_buttons {
+.delete_modal_buttons, .import_modal_buttons, .create_element_modal_buttons {
   position: absolute;
   right: 10px;
   bottom: 3px;
