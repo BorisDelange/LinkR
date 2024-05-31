@@ -35,8 +35,9 @@ app_ui <- function(pages, language, languages, i18n, users_accesses_toggles_opti
   tagList(
     # golem_add_external_resources(),
     tags$head(
-      golem::favicon(ext = "png"),
-      # golem::bundle_resources(path = system.file("app/www", package = "linkr"), app_title = "LinkR"),
+      # golem::favicon(ext = "png"),
+      tags$link(rel = "icon", type = "image/png", href = "www/favicon.png"),
+      golem::bundle_resources(path = system.file("app/www", package = "linkr"), app_title = "LinkR"),
       tags$link(href = "www/style.css", rel = "stylesheet", type = "text/css"),
       tags$link(href = "www/fluent_style.css", rel = "stylesheet", type = "text/css"),
       

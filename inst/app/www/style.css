@@ -56,7 +56,6 @@ a.no-hover-effect:hover {
   display: flex;
   justify-content: center;
   z-index: 250;
-  border: solid 1px blue;
 }
 
 .header_left_bar {
