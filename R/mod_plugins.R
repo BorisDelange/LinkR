@@ -797,7 +797,8 @@ mod_plugins_server <- function(id, r, d, m, language, i18n, debug){
       ui_output <- create_widget(id, widget_id, code$ui)
       add_widget_to_gridstack(id, "plugin_run_code", ui_output, widget_id, previous_widget_id)
       output[[paste0("ui_", widget_id)]] <- renderUI(code$ui)
-
+      output[[paste0("edit_buttons_", widget_id)]] <- renderUI(get_widget_edit_buttons(id, widget_id))
+      
       # New environment, to authorize access to selected variables from shinyAce editor
       # We choose which vars to keep access to
 

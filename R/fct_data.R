@@ -20,21 +20,35 @@ create_gridstack_instance <- function(id, tab_id){
 }
 
 #' @noRd
-create_widget <- function(id, widget_id, ui_code, show_edit_buttons = FALSE){
+create_widget <- function(id, widget_id, ui_code){
   ns <- NS(id)
   
-  if (id == "data") prefix <- "data"
-  else if (id == "plugins") prefix <- "plugins"
+  div(
+    id = ns(paste0(id, "_gridstack_item_", widget_id)),
+    class = "grid-stack-item",
+    div(
+      class = "grid-stack-item-content",
+      div(
+        uiOutput(ns(paste0("ui_", widget_id)), style = "width: 100%; height: 100%;"),
+        uiOutput(ns(paste0("edit_buttons_", widget_id))),
+        class = "data_widget"
+      )
+    )
+  )
+}
+
+get_widget_edit_buttons <- function(id, widget_id, show_edit_buttons = FALSE){
+  ns <- NS(id)
   
   edit_buttons <- div(
-    id = ns(paste0(prefix, "_widget_settings_buttons_", widget_id)),
+    id = ns(paste0(id, "_widget_settings_buttons_", widget_id)),
     div(
       div(
-        shiny.fluent::IconButton.shinyInput(ns(paste0(prefix, "_widget_settings_", widget_id)), iconProps = list(iconName = "Settings")),
+        shiny.fluent::IconButton.shinyInput(ns(paste0(id, "_widget_settings_", widget_id)), iconProps = list(iconName = "Settings")),
         class = "small_icon_button"
       ),
       div(
-        shiny.fluent::IconButton.shinyInput(ns(paste0(prefix, "_widget_remove_", widget_id)), iconProps = list(iconName = "Delete")),
+        shiny.fluent::IconButton.shinyInput(ns(paste0(id, "_widget_remove_", widget_id)), iconProps = list(iconName = "Delete")),
         class = "small_icon_button"
       ),
       style = "display: flex; gap: 2px;"
@@ -43,18 +57,7 @@ create_widget <- function(id, widget_id, ui_code, show_edit_buttons = FALSE){
   )
   if (!show_edit_buttons) edit_buttons <- shinyjs::hidden(edit_buttons)
   
-  div(
-    id = ns(paste0(prefix, "_gridstack_item_", widget_id)),
-    class = "grid-stack-item",
-    div(
-      class = "grid-stack-item-content",
-      div(
-        uiOutput(ns(paste0("ui_", widget_id)), style = "width: 100%; height: 100%;"),
-        edit_buttons,
-        class = "data_widget"
-      )
-    )
-  )
+  edit_buttons
 }
 
 #' @noRd

@@ -1989,6 +1989,7 @@ mod_data_server <- function(id = character(), r = shiny::reactiveValues(), d = s
           ui_output <- create_widget(id, widget_id, ui_code)
           add_widget_to_gridstack(id, tab_id, ui_output, widget_id)
           output[[paste0("ui_", widget_id)]] <- renderUI(ui_code)
+          output[[paste0("edit_buttons_", widget_id)]] <- renderUI(get_widget_edit_buttons(id, widget_id))
         })
       }
       
