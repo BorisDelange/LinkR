@@ -21,7 +21,7 @@ mod_page_header_ui <- function(id = character(), i18n = character()){
     shiny.fluent::CommandBar(
       items = list(
         # Configure
-        shiny.fluent::CommandBarItem("", "Settings",
+        shiny.fluent::CommandBarItem(key = "", text = "", icon = "Settings",
           subMenuProps = list(items = list(
             list(text = i18n$t("projects"), iconProps = list(iconName = "CustomList"), href = shiny.router::route_link("projects")),
             list(text = i18n$t("datasets"), iconProps = list(iconName = "OfflineStorage"), href = shiny.router::route_link("datasets")),
@@ -30,7 +30,7 @@ mod_page_header_ui <- function(id = character(), i18n = character()){
           title = i18n$t("configure")
         ),
         # Develop
-        shiny.fluent::CommandBarItem("", "CodeEdit",
+        shiny.fluent::CommandBarItem(key = "", text = "", icon = "CodeEdit",
           subMenuProps = list(items = list(
             list(text = i18n$t("console"), iconProps = list(iconName = "Embed"), href = shiny.router::route_link("console")),
             list(text = i18n$t("plugins"), iconProps = list(iconName = "Code"), href = shiny.router::route_link("plugins")),
@@ -39,7 +39,7 @@ mod_page_header_ui <- function(id = character(), i18n = character()){
           title = i18n$t("develop")
         ),
         # Discover
-        shiny.fluent::CommandBarItem("", "World", title = i18n$t("explore"), href = shiny.router::route_link("explore"))
+        shiny.fluent::CommandBarItem(key = "", text = "", icon = "World", title = i18n$t("explore"), href = shiny.router::route_link("explore"))
       )
     ),
     # id = ns("header_command_bar"),
@@ -51,7 +51,7 @@ mod_page_header_ui <- function(id = character(), i18n = character()){
     shiny.fluent::CommandBar(
       items = list(
         shiny.fluent::CommandBarItem(
-          "", "Settings",
+          key = "", text = "", icon = "Settings",
           subMenuProps = list(items = list(
             list(text = i18n$t("users"), iconProps = list(iconName = "Contact"), href = shiny.router::route_link("users")),
             list(text = i18n$t("app_db"), iconProps = list(iconName = "OfflineStorage"), href = shiny.router::route_link("app_db")),
@@ -78,7 +78,7 @@ mod_page_header_ui <- function(id = character(), i18n = character()){
         items = list(
           # Explore
           shiny.fluent::CommandBarItem(
-            "", "BIDashboard",
+            key = "", text = "", icon = "BIDashboard",
             subMenuProps = list(items = list(
               list(text = i18n$t("concepts"), iconProps = list(iconName = "AllApps"), href = shiny.router::route_link("concepts")),
               list(text = i18n$t("patient_lvl_data"), iconProps = list(iconName = "Contact"), href = shiny.router::route_link("data?type=patient_lvl")),
@@ -88,18 +88,18 @@ mod_page_header_ui <- function(id = character(), i18n = character()){
           ),
           # Configure
           shiny.fluent::CommandBarItem(
-            "", "Settings",
+            key = "", text = "", icon = "Settings",
             subMenuProps = list(items = list(
               list(text = i18n$t("subsets"), iconProps = list(iconName = "People"), href = shiny.router::route_link("subsets"))
             )),
             title = i18n$t("configure_project")
           ),
           # Messages
-          shiny.fluent::CommandBarItem("", "Chat", href = shiny.router::route_link("project_messages"), title = i18n$t("messages")),
+          shiny.fluent::CommandBarItem(key = "", text = "", icon = "Chat", href = shiny.router::route_link("project_messages"), title = i18n$t("messages")),
           # Console
-          shiny.fluent::CommandBarItem("", "Code", href = shiny.router::route_link("project_console"), title = i18n$t("console")),
+          shiny.fluent::CommandBarItem(key = "", text = "", icon = "Code", href = shiny.router::route_link("project_console"), title = i18n$t("console")),
           # Tasks
-          shiny.fluent::CommandBarItem("", "CheckList", href = shiny.router::route_link("tasks"), title = i18n$t("tasks"))
+          shiny.fluent::CommandBarItem(key = "", text = "", icon = "CheckList", href = shiny.router::route_link("tasks"), title = i18n$t("tasks"))
         )
       ),
       class = "header_command_bar",
