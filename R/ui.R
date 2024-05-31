@@ -3,27 +3,27 @@
 app_ui <- function(pages, language, languages, i18n, users_accesses_toggles_options, debug) {
   
   do.call(shiny.router::router_ui,
-    lapply(pages, function(page_url){
-      if (debug) cat(paste0("\n", now(), " - ui - make_router - ", page_url))
-      
-      if (page_url == "/") page <- "home" else page <- page_url
-      
-      args <- list(page, language, languages, i18n)
-      if (page == "users") args <- list(page, language, languages, i18n, users_accesses_toggles_options)
-      
-      shiny.router::route(page_url,
-        div(
-          class = "page_container",
-          mod_page_header_ui(id = page, i18n = i18n),
-          div(
-            mod_page_sidenav_ui(id = page, i18n = i18n),
-            do.call(paste0("mod_", page, "_ui"), args),
-            class = "main_container"
-          ),
-          mod_page_footer_ui(i18n = i18n)
-        )
-      )
-    })
+          lapply(pages, function(page_url){
+            if (debug) cat(paste0("\n", now(), " - ui - make_router - ", page_url))
+            
+            if (page_url == "/") page <- "home" else page <- page_url
+            
+            args <- list(page, language, languages, i18n)
+            if (page == "users") args <- list(page, language, languages, i18n, users_accesses_toggles_options)
+            
+            shiny.router::route(page_url,
+                                div(
+                                  class = "page_container",
+                                  mod_page_header_ui(id = page, i18n = i18n),
+                                  div(
+                                    mod_page_sidenav_ui(id = page, i18n = i18n),
+                                    do.call(paste0("mod_", page, "_ui"), args),
+                                    class = "main_container"
+                                  ),
+                                  mod_page_footer_ui(i18n = i18n)
+                                )
+            )
+          })
   ) -> page
   
   golem::add_resource_path("www", system.file("app/www", package = "linkr"))
@@ -90,7 +90,7 @@ app_ui <- function(pages, language, languages, i18n, users_accesses_toggles_opti
     ),
     shiny.fluent::fluentPage(page)
   )#,
-    # enable_admin = FALSE, language = tolower(language), fab_position = "none"
+  # enable_admin = FALSE, language = tolower(language), fab_position = "none"
   # )
 }
 
@@ -101,7 +101,7 @@ golem_add_external_resources <- function(){
   
   # Marker is used to highlight some text
   # if (require("marker")) marker_div <- marker::useMarker() else marker_div <- ""
- 
+  
   # tags$head(
   #   golem::favicon(ext = "png"),
   #   golem::bundle_resources(path = app_sys("app/www"), app_title = "LinkR"),

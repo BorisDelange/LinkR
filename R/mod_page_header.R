@@ -21,7 +21,7 @@ mod_page_header_ui <- function(id = character(), i18n = character()){
     shiny.fluent::CommandBar(
       items = list(
         # Configure
-        shiny.fluent::CommandBarItem("", "Settings",
+        shiny.fluent::CommandBarItem(text = "", icon = "Settings",
           subMenuProps = list(items = list(
             list(text = i18n$t("projects"), iconProps = list(iconName = "CustomList"), href = shiny.router::route_link("projects")),
             list(text = i18n$t("datasets"), iconProps = list(iconName = "OfflineStorage"), href = shiny.router::route_link("datasets")),
@@ -30,7 +30,7 @@ mod_page_header_ui <- function(id = character(), i18n = character()){
           title = i18n$t("configure")
         ),
         # Develop
-        shiny.fluent::CommandBarItem("", "CodeEdit",
+        shiny.fluent::CommandBarItem(text = "test", icon = "CodeEdit",
           subMenuProps = list(items = list(
             list(text = i18n$t("console"), iconProps = list(iconName = "Embed"), href = shiny.router::route_link("console")),
             list(text = i18n$t("plugins"), iconProps = list(iconName = "Code"), href = shiny.router::route_link("plugins")),
@@ -136,51 +136,7 @@ mod_page_header_ui <- function(id = character(), i18n = character()){
         # )
         settings_div
       )
-    )#,
-    # div(
-    #   id = ns("console"),
-    #   style = "display: none; position: fixed; z-index:10; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.5);",
-    #   div(
-    #     style = "position: relative; background: #fff; padding: 20px; margin: 3% auto; width: 90%; max-height: 85%; overflow-y: auto;",
-    #     div(
-    #       style = "position: absolute; top: 10px; right: 10px;",
-    #       shiny.fluent::IconButton.shinyInput(ns("hide_console"), iconProps = list(iconName = "Cancel"))
-    #     ),
-    #     div(
-    #       shiny.fluent::Dropdown.shinyInput(ns("console_language"),
-    #         options = list(
-    #           list(key = "r", text = "R"),
-    #           list(key = "python", text = "Python"),
-    #           list(key = "terminal", text = "Terminal")
-    #         ),
-    #         value = "r"
-    #       ),
-    #       style = "width:300px;"
-    #     ),
-    #     div(
-    #       shinyAce::aceEditor(
-    #         outputId = ns("code"), value = "", mode = "r",
-    #         code_hotkeys = list("console", list(
-    #           run_selection = list(win = "CTRL-ENTER", mac = "CTRL-ENTER|CMD-ENTER"),
-    #           run_all = list(win = "CTRL-SHIFT-ENTER", mac = "CTRL-SHIFT-ENTER|CMD-SHIFT-ENTER"),
-    #           comment = list(win = "CTRL-SHIFT-C", mac = "CTRL-SHIFT-C|CMD-SHIFT-C")
-    #         )),
-    #         wordWrap = TRUE,
-    #         autoScrollEditorIntoView = TRUE, minLines = 30, maxLines = 30
-    #       ),
-    #       style = "width: 100%;"
-    #     ),
-    #     shiny.fluent::PrimaryButton.shinyInput(ns("execute_code"), i18n$t("run_code")), br(),
-    #     div(textOutput(ns("datetime_code_execution")), style = "color:#878787;"), br(),
-    #     shinyjs::hidden(
-    #       div(
-    #         id = ns("console_code_result_div"),
-    #         uiOutput(ns("console_code_result")),
-    #         style = "width: 99%; border-style: dashed; border-width: 1px; padding: 0px 8px 0px 8px; margin-right: 5px;"
-    #       )
-    #     )
-    #   )
-    # )
+    )
   )
 }
 
