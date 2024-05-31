@@ -102,7 +102,7 @@ mod_page_header_ui <- function(id = character(), i18n = character()){
           shiny.fluent::CommandBarItem("", "CheckList", href = shiny.router::route_link("tasks"), title = i18n$t("tasks"))
         )
       ),
-      class = "header_command_bar",
+      # class = "header_command_bar",
       style = "display:inline-block; margin-left:8px;"
     )
   )
