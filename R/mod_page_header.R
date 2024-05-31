@@ -21,7 +21,7 @@ mod_page_header_ui <- function(id = character(), i18n = character()){
     shiny.fluent::CommandBar(
       items = list(
         # Configure
-        shiny.fluent::CommandBarItem(text = "", icon = "Settings",
+        shiny.fluent::CommandBarItem("", "Settings",
           subMenuProps = list(items = list(
             list(text = i18n$t("projects"), iconProps = list(iconName = "CustomList"), href = shiny.router::route_link("projects")),
             list(text = i18n$t("datasets"), iconProps = list(iconName = "OfflineStorage"), href = shiny.router::route_link("datasets")),
@@ -30,7 +30,7 @@ mod_page_header_ui <- function(id = character(), i18n = character()){
           title = i18n$t("configure")
         ),
         # Develop
-        shiny.fluent::CommandBarItem(text = "test", icon = "CodeEdit",
+        shiny.fluent::CommandBarItem("", "CodeEdit",
           subMenuProps = list(items = list(
             list(text = i18n$t("console"), iconProps = list(iconName = "Embed"), href = shiny.router::route_link("console")),
             list(text = i18n$t("plugins"), iconProps = list(iconName = "Code"), href = shiny.router::route_link("plugins")),
