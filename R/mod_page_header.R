@@ -102,7 +102,7 @@ mod_page_header_ui <- function(id = character(), i18n = character()){
           shiny.fluent::CommandBarItem("", "CheckList", href = shiny.router::route_link("tasks"), title = i18n$t("tasks"))
         )
       ),
-      # class = "header_command_bar",
+      class = "header_command_bar",
       style = "display:inline-block; margin-left:8px;"
     )
   )
@@ -111,33 +111,53 @@ mod_page_header_ui <- function(id = character(), i18n = character()){
     "log", "plugins", "projects", "users", "vocabularies")) command_bar_2 <- shinyjs::hidden(command_bar_2)
   else command_bar_1 <- shinyjs::hidden(command_bar_1)
   
-  tagList(
-    div(
-      class = "header",
-      div(
-        class = "header_left_bar",
-        div(
-          tags$img(src = "www/logo.png"),
-          class = "logo",
-          onclick = paste0("window.location.href='", shiny.router::route_link("/"), "';")
-        ),
-        div(
-          command_bar_1,
-          command_bar_2,
-          uiOutput(ns("current_page"), class = "current_page"),
-          div(class = "message_bars", uiOutput(ns("message_bar"))),
-          # div(class = "message_bars", shiny.fluent::MessageBar("test")),
-          style = "display:flex;"
-        )
-      ),
-      div(class = "header_right_bar",
-        #   uiOutput(ns("user")),
-        #   div(uiOutput(ns("username")), style = "font-weight:bold; padding: 12px 10px 0px 0px;"),
-        # )
-        settings_div
-      )
+  # tagList(
+  #   div(
+  #     class = "header",
+  #     div(
+  #       class = "header_left_bar",
+  #       div(
+  #         tags$img(src = "www/logo.png"),
+  #         class = "logo",
+  #         onclick = paste0("window.location.href='", shiny.router::route_link("/"), "';")
+  #       ),
+  #       div(
+  #         command_bar_1,
+  #         command_bar_2,
+  #         uiOutput(ns("current_page"), class = "current_page"),
+  #         div(class = "message_bars", uiOutput(ns("message_bar"))),
+  #         # div(class = "message_bars", shiny.fluent::MessageBar("test")),
+  #         style = "display:flex;"
+  #       )
+  #     ),
+  #     div(class = "header_right_bar",
+  #       #   uiOutput(ns("user")),
+  #       #   div(uiOutput(ns("username")), style = "font-weight:bold; padding: 12px 10px 0px 0px;"),
+  #       # )
+  #       settings_div
+  #     )
+  #   )
+  # )
+  
+  shiny.fluent::CommandBar(
+    items = list(
+      shiny.fluent::CommandBarItem(i18n$t("home"), "Home", href = shiny.router::route_link("/")),
+      shiny.fluent::CommandBarItem(i18n$t("data"), "OfflineStorage",
+                                   subMenuProps = list(items = list(
+                                     list(text = i18n$t("access_to_data"), iconProps = list(iconName = "BIDashboard"), href = shiny.router::route_link("data")),
+                                     list(text = i18n$t("data_cleaning"), iconProps = list(iconName = "CodeEdit"), href = shiny.router::route_link("scripts")),
+                                     list(text = i18n$t("my_studies"), iconProps = list(iconName = "CustomList"), href = shiny.router::route_link("my_studies")),
+                                     list(text = i18n$t("my_subsets"), iconProps = list(iconName = "People"), href = shiny.router::route_link("my_subsets"))
+                                   ))),
+      shiny.fluent::CommandBarItem(i18n$t("messages"), "Chat", href = shiny.router::route_link("messages")),
+      shiny.fluent::CommandBarItem(i18n$t("vocabularies"), "AllApps", href = shiny.router::route_link("vocabularies")),
+      shiny.fluent::CommandBarItem(i18n$t("plugins"), "Code", subMenuProps = list(items = list(
+        list(text = i18n$t("patient_lvl_data"), iconProps = list(iconName = "Contact"), href = shiny.router::route_link("plugins_patient_lvl")),
+        list(text = i18n$t("aggregated_data"), iconProps = list(iconName = "Group"), href = shiny.router::route_link("plugins_aggregated"))
+      )))
     )
   )
+  
 }
 
 #' @noRd 
