@@ -49,7 +49,7 @@ create_widget <- function(id, widget_id, ui_code, show_edit_buttons = FALSE){
     div(
       class = "grid-stack-item-content",
       div(
-        ui_code,
+        uiOutput(ns(paste0("ui_", widget_id)), style = "width: 100%; height: 100%;"),
         edit_buttons,
         class = "data_widget"
       )

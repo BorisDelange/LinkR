@@ -27,7 +27,7 @@ app_server <- function(pages, language, languages, i18n, app_folder, debug, log_
     o <- reactiveValues()
     
     # App version
-    r$app_version <- "0.3.0.9005"
+    r$app_version <- "0.3.0.9006"
     
     # Col types of database tables, to import and restore database
     db_col_types <- tibble::tribble(

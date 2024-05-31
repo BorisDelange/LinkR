@@ -1987,8 +1987,8 @@ mod_data_server <- function(id = character(), r = shiny::reactiveValues(), d = s
           }
 
           ui_output <- create_widget(id, widget_id, ui_code)
-
           add_widget_to_gridstack(id, tab_id, ui_output, widget_id)
+          output[[paste0("ui_", widget_id)]] <- renderUI(ui_code)
         })
       }
       
@@ -2054,7 +2054,7 @@ mod_data_server <- function(id = character(), r = shiny::reactiveValues(), d = s
               tab_type_id <- r$plugins_wide %>% dplyr::filter(id == plugin_id) %>% dplyr::pull(tab_type_id)
               if (tab_type_id == 1) category <- "patient_lvl" else category <- "aggregated"
               
-              plugin_folder <- paste0(r$app_folder, "/plugins/", category, "/", plugin_unique_id)
+              plugin_folder <- paste0(r$app_folder, "/plugins/", plugin_unique_id)
               
               server_code <- process_widget_code(server_code, tab_id, widget_id, m$selected_study, patient_id, plugin_folder)
               
