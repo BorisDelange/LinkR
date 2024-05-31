@@ -47,8 +47,8 @@ golem_add_external_resources <- function(){
   tags$head(
     golem::favicon(ext = "png"),
     golem::bundle_resources(path = app_sys("app/www"), app_title = "LinkR"),
-    tags$link(href = "style.css", rel = "stylesheet", type = "text/css"),
-    tags$link(href = "fluent_style.css", rel = "stylesheet", type = "text/css"),
+    tags$link(href = app_sys("app/www/style.css"), rel = "stylesheet", type = "text/css"),
+    tags$link(href = app_sys("app/www/fluent_style.css"), rel = "stylesheet", type = "text/css"),
     
     # Add jquery
     tags$link(rel = "stylesheet", href = "https://code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css"),
