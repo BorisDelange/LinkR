@@ -510,9 +510,21 @@ mod_widgets_server <- function(id, r, d, m, language, i18n, all_divs, debug){
         id = get_last_row(con, "code") + 1:3, category = "plugin", link_id = new_options_ids, code = "",
         creator_id = r$user_id, datetime = now(), deleted = FALSE)
       
-      else new_code <- tibble::tibble(
-        id = get_last_row(con, "code") + 1, category = sql_category, link_id = element_id, code = "",
-        creator_id = r$user_id, datetime = now(), deleted = FALSE)
+      else {
+        
+        code <- ""
+        if (id == "subsets") code <- paste0(
+          "add_patients_to_subset(\n",
+          "    patients = d$person %>% dplyr::pull(person_id),\n",
+          "    subset_id = %subset_id%,\n",
+          "    output = output, r = r, m = m, i18n = i18n, ns = ns\n",
+          ")"
+        )
+        
+        new_code <- tibble::tibble(
+          id = get_last_row(con, "code") + 1, category = sql_category, link_id = element_id, code = code,
+          creator_id = r$user_id, datetime = now(), deleted = FALSE)
+      }
 
       DBI::dbAppendTable(con, "code", new_code)
 
@@ -695,7 +707,7 @@ mod_widgets_server <- function(id, r, d, m, language, i18n, all_divs, debug){
       output$breadcrumb <- renderUI(
         shiny.fluent::Breadcrumb(items = list(
           list(key = "main", text = i18n$t(id), href = shiny.router::route_link(id), 
-               onClick = htmlwidgets::JS(paste0("item => { Shiny.setInputValue('", id, "-show_home', Math.random()); }"))),
+             onClick = htmlwidgets::JS(paste0("item => { Shiny.setInputValue('", id, "-show_home', Math.random()); }"))),
           list(key = "main", text = element_wide$name))
         )
       )
@@ -752,12 +764,9 @@ mod_widgets_server <- function(id, r, d, m, language, i18n, all_divs, debug){
         # Else, project is loaded directly
         # Delay to change page before executing server
         
-        print("0")
         print(input$selected_element_type)
         if (input$selected_element_type != "project_options"){
-          print("1")
           if (length(r$loaded_pages$data) == 0){
-            print("2")
             r$load_page <- "data"
             r$data_page <- "patient_lvl"
           }
@@ -768,9 +777,14 @@ mod_widgets_server <- function(id, r, d, m, language, i18n, all_divs, debug){
       # Load dataset
       else if (id == "datasets"){
         
-        shinyjs::runjs(paste0("
-          Shiny.setInputValue('", id, "-load_dataset_code', Math.random());
-        "))
+        shinyjs::runjs(paste0("Shiny.setInputValue('", id, "-load_dataset_code', Math.random());"))
+      }
+      
+      # Load subset
+      # Load dataset
+      else if (id == "subsets"){
+        
+        shinyjs::runjs(paste0("Shiny.setInputValue('", id, "-load_subset_code', Math.random());"))
       }
     })
     

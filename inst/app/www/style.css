@@ -337,6 +337,8 @@ a.no-hover-effect:hover {
 
 .data_widget {
   padding: 0px 10px 5px 10px;
+  height: 100%;
+  box-sizing: border-box;
 }
 
 .project_widget h1, .plugin_widget h1, .dataset_widget h1, .subset_widget h1 {
@@ -428,12 +430,17 @@ a.no-hover-effect:hover {
   color: black;;
 }
 
-.small_icon_button .ms-Button {
+.widget_icon .ms-Button-icon {
+  font-size: 12px;
+  color: #808080;
+}
+
+.small_icon_button .ms-Button, .widget_icon .ms-Button {
   width: 24px;
   height: 24px
 }
 
-.small_icon_button .ms-Button:hover .ms-Button-icon {
+.small_icon_button .ms-Button:hover .ms-Button-icon, .widget_icon .ms-Button:hover .ms-Button-icon {
   color: #61AEF9;
 }
 
@@ -468,154 +475,27 @@ a.no-hover-effect:hover {
   padding-top: 0px;
 }
 
-/* ------------------- */
-/* OTHER INPUTS        */
-/* ------------------- */
+/* ----------------- */
+/* ACE EDITOR        */
+/* ----------------- */
 
-.input_title_first {
-  margin: 0px 0px 10px 0px;
-  font-weight: bold;
+.ace_editor {
+  margin: 0;
 }
 
-.input_title {
-  font-weight: 600;
+.element_ace_editor {
+  width: 50%;
+  height: calc(100% - 25px);
+  margin-top: 10px;
+}
+
+.element_code_result {
+  width: 50%;
+  border: dashed grey 1px;
+  margin: 10px 0 10px 10px;
+  padding: 0px 10px;
   font-size: 12px;
-}
-
-.toggle_title {
-  font-size: 12px;
-  font-weight: bold; 
-  margin-right: 30px;
-}
-
-.inline_choicegroup .ms-ChoiceField {
-  display: inline-block;
-  padding: 0px 20px 0px 0px;
-  font-weight: bold;
-}
-
-.block_choicegroup .ms-ChoiceField {
-  font-weight: bold;
-}
-
-/* --------------------- */
-/* HOME PAGE             */
-/* --------------------- */
-
-.home_container {
-  display: flex;
-  flex-direction: column;
-  height: 100%;
-  width: 100%;
-}
-
-.home_row {
-  display: flex;
-  flex: 1;
-}
-
-.home_widget {
-  position: relative;
-  display: flex;
-  flex: 1;
-  margin: 10px;
-  padding: 0px 10px 5px 10px;
-  box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 3px 6px 0 rgba(0, 0, 0, 0.19);
-}
-
-.home_widget h1 {
-  font-size: 14px;
-}
-
-.home_widget_button {
-  position: absolute;
-  bottom: 0px;
-  right: 5px;
-}
-
-/* --------------------- */
-/* PLUGINS PAGE          */
-/* --------------------- */
-
-.plugins_summary_container, .plugins_share_container {
-  display: flex;
-  justify-content: space-between;
-  height: calc(100% - 50px);
-}
-
-.plugins_summary_left, .plugins_share_left {
-  display: flex;
-  flex-direction: column;
-  width: 50%;
-}
-
-.plugins_summary_right, .plugins_share_right {
-  width: 50%;
-  calc(100% - 16px)
-}
-
-/* ---------------------- */
-/* PROJECTS PAGE          */
-/* ---------------------- */
-
-.projects_summary_container {
-  display: flex;
-  justify-content: space-between;
-  height: calc(100% - 50px);
-}
-
-.projects_summary_left {
-  display: flex;
-  flex-direction: column;
-  width: 50%;
-}
-
-.projects_summary_right {
-  width: 50%;
-  calc(100% - 16px)
-}
-
-/* --------------------- */
-/* SUBSETS PAGE          */
-/* --------------------- */
-
-.subsets_summary_container {
-  display: flex;
-  justify-content: space-between;
-  height: calc(100% - 50px);
-}
-
-.subsets_summary_left {
-  display: flex;
-  flex-direction: column;
-  width: 50%;
-}
-
-.subsets_summary_right {
-  width: 50%;
-  calc(100% - 16px)
-}
-
-
-/* ---------------------- */
-/* DATASETS PAGE          */
-/* ---------------------- */
-
-.datasets_summary_container {
-  display: flex;
-  justify-content: space-between;
-  height: calc(100% - 50px);
-}
-
-.datasets_summary_left {
-  display: flex;
-  flex-direction: column;
-  width: 50%;
-}
-
-.datasets_summary_right {
-  width: 50%;
-  calc(100% - 16px)
+  overflow-y: auto;
 }
 
 /* ------------------- */
@@ -749,7 +629,7 @@ td[data-type="factor"] input {
 
 .tabs {
   display: flex;
-  padding: 10px 0;
+  padding: 10px 0 5px 0;
   font-size: 12px;
   overflow-x: auto;
 }
@@ -809,9 +689,71 @@ td[data-type="factor"] input {
   padding: 5px;
 }
 
+
 /* ------------------- */
-/* HOME PAGE           */
+/* OTHER INPUTS        */
 /* ------------------- */
+
+.input_title_first {
+  margin: 0px 0px 10px 0px;
+  font-weight: bold;
+}
+
+.input_title {
+  font-weight: 600;
+  font-size: 12px;
+}
+
+.toggle_title {
+  font-size: 12px;
+  font-weight: bold; 
+  margin-right: 30px;
+}
+
+.inline_choicegroup .ms-ChoiceField {
+  display: inline-block;
+  padding: 0px 20px 0px 0px;
+  font-weight: bold;
+}
+
+.block_choicegroup .ms-ChoiceField {
+  font-weight: bold;
+}
+
+/* --------------------- */
+/* HOME PAGE             */
+/* --------------------- */
+
+.home_container {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  width: 100%;
+}
+
+.home_row {
+  display: flex;
+  flex: 1;
+}
+
+.home_widget {
+  position: relative;
+  display: flex;
+  flex: 1;
+  margin: 10px;
+  padding: 0px 10px 5px 10px;
+  box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 3px 6px 0 rgba(0, 0, 0, 0.19);
+}
+
+.home_widget h1 {
+  font-size: 14px;
+}
+
+.home_widget_button {
+  position: absolute;
+  bottom: 0px;
+  right: 5px;
+}
 
 .home_link {
   font-size: 14px;
@@ -828,6 +770,91 @@ td[data-type="factor"] input {
 
 .home_link:visited {
   color: #000000
+}
+
+/* --------------------- */
+/* PLUGINS PAGE          */
+/* --------------------- */
+
+.plugins_summary_container, .plugins_share_container {
+  display: flex;
+  justify-content: space-between;
+  height: calc(100% - 50px);
+}
+
+.plugins_summary_left, .plugins_share_left {
+  display: flex;
+  flex-direction: column;
+  width: 50%;
+}
+
+.plugins_summary_right, .plugins_share_right {
+  width: 50%;
+  calc(100% - 16px)
+}
+
+/* ---------------------- */
+/* PROJECTS PAGE          */
+/* ---------------------- */
+
+.projects_summary_container {
+  display: flex;
+  justify-content: space-between;
+  height: calc(100% - 50px);
+}
+
+.projects_summary_left {
+  display: flex;
+  flex-direction: column;
+  width: 50%;
+}
+
+.projects_summary_right {
+  width: 50%;
+  calc(100% - 16px)
+}
+
+/* --------------------- */
+/* SUBSETS PAGE          */
+/* --------------------- */
+
+.subsets_summary_container {
+  display: flex;
+  justify-content: space-between;
+  height: calc(100% - 50px);
+}
+
+.subsets_summary_left {
+  display: flex;
+  flex-direction: column;
+  width: 50%;
+}
+
+.subsets_summary_right {
+  width: 50%;
+  calc(100% - 16px)
+}
+
+
+/* ---------------------- */
+/* DATASETS PAGE          */
+/* ---------------------- */
+
+.datasets_summary_container {
+  display: flex;
+  justify-content: space-between;
+  height: calc(100% - 50px);
+}
+
+.datasets_summary_left {
+  display: flex;
+  flex-direction: column;
+  width: 50%;
+}
+
+.datasets_summary_right {
+  width: 50%;
+  calc(100% - 16px)
 }
 
 /* ------------------- */

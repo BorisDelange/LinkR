@@ -75,11 +75,11 @@ mod_subsets_ui <- function(id, language, languages, i18n){
                 code_hotkeys = list("r", code_hotkeys),
                 autoScrollEditorIntoView = TRUE, height = "100%", debounce = 100, fontSize = 11, showPrintMargin = FALSE
               ),
-              style = "width: 50%; max-height: calc(100% - 20px);"
+              class = "element_ace_editor"
             ),
             div(
               verbatimTextOutput(ns("code_result")),
-              style = "width: 50%; border: dashed grey 1px; margin: 10px 0px 10px 10px; padding: 0px 10px; font-size: 12px; overflow-y: auto;"
+              class = "element_code_result"
             ),
             style = "height: 100%; display: flex;"
           )
@@ -115,6 +115,9 @@ mod_subsets_server <- function(id, r, d, m, language, i18n, debug){
       req(shiny.router::get_page() == "subsets")
       if (debug) cat(paste0("\n", now(), " - mod_subsets - observer shiny.router::get_page()"))
       
+      divs <- c(paste0(all_divs, "_reduced_sidenav"), paste0(all_divs, "_large_sidenav"))
+      sapply(c("one_element", divs), shinyjs::hide)
+      
       shinyjs::show("all_elements")
       
       # Prevent a bug with scroll into ace editor
@@ -145,6 +148,7 @@ mod_subsets_server <- function(id, r, d, m, language, i18n, debug){
     })
     
     # Comment code ----
+    
     observeEvent(input$subset_code_comment, {
       if (debug) cat(paste0("\n", now(), " - mod_subsets - observer input$subset_code_comment"))
       

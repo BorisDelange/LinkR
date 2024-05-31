@@ -495,20 +495,20 @@ mod_data_server <- function(id = character(), r = shiny::reactiveValues(), d = s
 
         # Select patients who belong to this subset
         m$subset_persons <- DBI::dbGetQuery(m$db, glue::glue_sql("SELECT * FROM subset_persons WHERE subset_id = {m$selected_subset}", .con = m$db))
-
+        
         # If this subset contains no patient, maybe the code has not been run yet
         if (nrow(m$subset_persons) == 0){
-          sql <- glue::glue_sql("SELECT code FROM code WHERE category = 'subset' AND link_id = {m$selected_subset}", .con = r$db)
+          sql <- glue::glue_sql("SELECT code FROM code WHERE category = 'subset' AND link_id = {m$selected_subset}", .con = m$db)
           
           subset_code <- 
-            DBI::dbGetQuery(r$db, sql) %>% 
+            DBI::dbGetQuery(m$db, sql) %>% 
             dplyr::pull() %>% 
-            dplyr::filter(category == "subset" & link_id == m$selected_subset) %>% dplyr::pull(code) %>%
             stringr::str_replace_all("%dataset_id%", as.character(r$selected_dataset)) %>%
             stringr::str_replace_all("%subset_id%", as.character(m$selected_subset)) %>%
             stringr::str_replace_all("\r", "\n") %>%
             stringr::str_replace_all("''", "'")
-
+          
+          print(subset_code)
           tryCatch(eval(parse(text = subset_code)),
             error = function(e) if (nchar(e[1]) > 0) cat(paste0("\n", now(), " - mod_data - error executing subset code - subset_id = ", m$selected_subset)))
 

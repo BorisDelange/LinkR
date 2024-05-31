@@ -555,6 +555,7 @@ fail_execute_dataset_code,Failed executing dataset code
 patient_lvl_tab_group,Patient-level data tab group
 aggregated_tab_group,Aggregated data tab group
 invalid_subset_id_value,Invalid subset_id value
+invalid_patients_value,Invalid patients value
 error_inserting_data,Error inserting data in database
 add_persons_to_subset,Add patients to subset
 add_persons_subset_success,Success adding patients to subset
@@ -1050,7 +1051,7 @@ delete_widget,Delete widget
 choose_a_plugin,Choose a plugin
 data_type,Data type
 informations,Informations
-plugin_no_selected_study,Load a study to get the plugin code working
+plugin_no_selected_project,Load a project to get the plugin code working
 set_up_project,Set up the project
 load_project,Load project
 project_added,New project created

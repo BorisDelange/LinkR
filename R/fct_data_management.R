@@ -4,85 +4,55 @@
 #' @param output Shiny output variable
 #' @param r A shiny::reactiveValues object, used to communicate between modules
 #' @param m A shiny::reactiveValues object, used to communicate between modules
-#' @param persons data variable containing patients / persons (data.frame / tibble)
+#' @param patients numeric vector containing patients / persons (numeric)
 #' @param subset_id ID of the subset (integer)
 #' @param i18n Translator object from shiny.i18n library
 #' @param ns Shiny namespace
 #' @examples 
 #' \dontrun{
-#' persons <- tibble::tribble(~person_id, 123L, 456L, 789L)
-#' subset_add_patients(output = output, r = r, m = m, persons = persons, subset_id = 3, i18n = i18n, ns = ns)
+#' patients <- c(123, 456, 789)
+#' add_patients_to_subset(output = output, r = r, m = m, patients = patients, subset_id = 3, i18n = i18n, ns = ns)
 #' }
-add_persons_to_subset <- function(output, r = shiny::reactiveValues(), m = shiny::reactiveValues(), persons = tibble::tibble(),
+add_patients_to_subset <- function(output, r = shiny::reactiveValues(), m = shiny::reactiveValues(), patients = tibble::tibble(),
   subset_id = integer(), i18n = character(), ns = character()){
   
   # Check subset_id
   
-  if (length(subset_id) == 0){
+  invalid_subset_id <- TRUE
+  if (length(subset_id) > 0) if (is.numeric(subset_id)) if (!is.na(subset_id) & subset_id > 0) invalid_subset_id <- FALSE
+  if (invalid_subset_id){
     show_message_bar(output, "invalid_subset_id_value", "severeWarning", i18n = i18n, ns = ns)
     stop(i18n$t("invalid_subset_id_value"))
   }
   
-  tryCatch(subset_id <- as.integer(subset_id), 
-    error = function(e){
-      if (nchar(e[1]) > 0) report_bug(r = r, output = output, error_message = "invalid_subset_id_value", 
-        error_name = paste0("add_persons_to_subset - invalid_subset_id - id = ", subset_id), category = "Error", error_report = toString(e), i18n = i18n, ns = ns)
-      stop(i18n$t("invalid_subset_id_value"))}
-  )
+  # Check patients
   
-  if (is.na(subset_id)){
-    show_message_bar(output, "invalid_subset_id_value", "severeWarning", i18n = i18n, ns = ns)
-    stop(i18n$t("invalid_subset_id_value"))
+  invalid_patients <- TRUE
+  if (length(patients) > 0) if (is.numeric(subset_id)) invalid_patients <- FALSE
+  if (invalid_patients){
+    show_message_bar(output, "invalid_patients_value", "severeWarning", i18n = i18n, ns = ns)
+    stop(i18n$t("invalid_patients_value"))
   }
-  
-  var_cols <- tibble::tribble(
-    ~name, ~type,
-    "person_id", "integer")
-  
-  # Check col names
-  if (!identical(names(persons), "person_id")){
-    show_message_bar(output, "invalid_col_names", "severeWarning", i18n = i18n, ns = ns)
-    stop(i18n$t("valid_col_names_are"), toString(var_cols %>% dplyr::pull(name)))
-  }
-  
-  # Check col types
-  sapply(1:nrow(var_cols), function(i){
-    var_name <- var_cols[[i, "name"]]
-    if (var_cols[[i, "type"]] == "integer" & !is.integer(persons[[var_name]])){
-      show_message_bar(output, "invalid_col_types", "severeWarning", i18n = i18n, ns = ns)
-      stop(paste0(i18n$t("column"), " ", var_name, " ", i18n$t("type_must_be_integer")))
-    }
-  })
   
   # Transform as tibble
-  tryCatch(persons <- tibble::as_tibble(persons), 
-    error = function(e){
-      if (nchar(e[1]) > 0) report_bug(r = r, output = output, error_message = "error_transforming_tibble", 
-        error_name = paste0("add_persons_to_subset - error_transforming_tibble - id = ", subset_id), category = "Error", error_report = toString(e), i18n = i18n, ns = ns)
-      stop(i18n$t("error_transforming_tibble"))}
-  )
+  patients <- tibble::tibble(person_id = patients)
   
   # Keep only persons not already in the subset
-  sql <- glue::glue_sql("SELECT person_id FROM subset_persons WHERE subset_id = {subset_id} AND deleted IS FALSE", .con = m$db)
-  actual_persons <- DBI::dbGetQuery(m$db, sql)
+  actual_patients <- DBI::dbGetQuery(m$db, glue::glue_sql("SELECT person_id FROM subset_persons WHERE subset_id = {subset_id}", .con = m$db))
+  patients <- patients %>% dplyr::anti_join(actual_patients, by = "person_id")
   
-  persons <- persons %>% dplyr::anti_join(actual_persons, by = "person_id")
-  
-  # If there are persons to add
-  if (nrow(persons) > 0){
+  # If there are patients to add
+  if (nrow(patients) > 0){
     
-    # Add new patient(s) in the subset
+    # Add new patients in the subset
     tryCatch({
       last_id <- DBI::dbGetQuery(m$db, "SELECT COALESCE(MAX(id), 0) FROM subset_persons") %>% dplyr::pull()
-      other_cols <- tibble::tibble(
-        id = 1:nrow(persons) + last_id, subset_id = subset_id, creator_id = m$user_id, datetime = now(), deleted = FALSE
-      )
-      persons <- persons %>% dplyr::bind_cols(other_cols) %>% dplyr::relocate(person_id, .after = "subset_id")
-      DBI::dbAppendTable(m$db, "subset_persons", persons)
+      other_cols <- tibble::tibble(id = 1:nrow(patients) + last_id, subset_id = subset_id, creator_id = m$user_id, datetime = now(), deleted = FALSE)
+      patients <- patients %>% dplyr::bind_cols(other_cols) %>% dplyr::relocate(person_id, .after = "subset_id")
+      DBI::dbAppendTable(m$db, "subset_persons", patients)
     },
       error = function(e){
-        if (nchar(e[1]) > 0) report_bug(r = r, output = output, error_message = "error_inserting_data", 
-          error_name = paste0("add_persons_to_subset - error_inserting_data - id = ", subset_id), category = "Error", error_report = toString(e), i18n = i18n, ns = ns)
+        cat(paste0("add_patients_to_subset - error_inserting_data - ", toString(e)))
         stop(i18n$t("error_inserting_data"))}
     )
   }

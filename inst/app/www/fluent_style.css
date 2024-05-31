@@ -1,5 +1,8 @@
-.ms-TextField, .ms-Dropdown, .ms-ComboBox, .ms-Toggle, .ms-Button, .ms-SearchBox, .ms-MessageBar {
-  margin: 6px 0px;
+.ms-TextField, .ms-Dropdown, .ms-ComboBox, .ms-Button, .ms-SearchBox, .ms-MessageBar {
+  margin: 6px 0;
+}
+.ms-Toggle {
+  margin: 1.5px 0;
 }
 
 .ms-Label, .ms-Fabric, .ms-SearchBox-field {
@@ -63,8 +66,12 @@
 }
 
 .ms-Toggle-background {
-  width: 35px;
-  height: 18px;
+  width: 28px;
+  height: 15px;
+}
+
+button.ms-Toggle-background {
+  padding: 0px 1px;
 }
 
 .ms-Toggle-background:after {

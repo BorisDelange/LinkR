@@ -76,11 +76,11 @@ mod_datasets_ui <- function(id, language, languages, i18n){
                 code_hotkeys = list("r", code_hotkeys),
                 autoScrollEditorIntoView = TRUE, height = "100%", debounce = 100, fontSize = 11, showPrintMargin = FALSE
               ),
-              style = "width: 50%; max-height: calc(100% - 30px);"
+              class = "element_ace_editor"
             ),
             div(
               verbatimTextOutput(ns("code_result")),
-              style = "width: 50%; border: dashed grey 1px; margin: 10px 0px 10px 10px; padding: 0px 10px; font-size: 12px; overflow-y: auto;"
+              class = "element_code_result"
             ),
             style = "height: 100%; display: flex;"
           )

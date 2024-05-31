@@ -555,6 +555,7 @@ fail_execute_dataset_code,Erreur lors de l'éxécution du code du set de donnée
 patient_lvl_tab_group,Données individuelles - groupe d'onglets
 aggregated_tab_group,Données agrégées - groupe d'onglets
 invalid_subset_id_value,Valeur de subset_id non valide
+invalid_patients_value,Valeur de patients non valide
 error_inserting_data,Erreur lors de l'insertion de données dans la BDD
 add_persons_to_subset,Ajouter des patients au subset
 add_persons_subset_success,Insertion de patients dans le subset avec succès
@@ -1050,7 +1051,7 @@ delete_widget,Supprimer le widget
 choose_a_plugin,Choisir un plugin
 data_type,Type de données
 informations,Informations
-plugin_no_selected_study,Chargez une étude afin que le code du plugin fonctionne
+plugin_no_selected_project,Chargez un projet afin que le code du plugin fonctionne
 set_up_project,Paramétrer le projet
 load_project,Charger le projet
 project_added,Nouveau projet créé

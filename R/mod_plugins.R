@@ -65,8 +65,8 @@ mod_plugins_ui <- function(id, language, languages, i18n){
         shinyjs::hidden(
           div(
             id = ns("edit_code_div"),
-            div(uiOutput(ns("edit_code_tabs")), style = "margin-bottom: -15px"),
-            div(id = ns("edit_code_editors_div"), style = "height: calc(100% - 30px);"),
+            div(uiOutput(ns("edit_code_tabs"))),
+            div(id = ns("edit_code_editors_div"), style = "height: calc(100% - 45px);"),
             style = "height: 100%;"
           )
         ),
@@ -716,7 +716,7 @@ mod_plugins_server <- function(id, r, d, m, language, i18n, debug){
       # Notify user that if there's not a study loaded, server code might not work
       no_study_loaded <- TRUE
       if (length(m$selected_study) > 0) if (!is.na(m$selected_study)) no_study_loaded <- FALSE
-      if (no_study_loaded) show_message_bar(output, "plugin_no_selected_study", "warning", i18n = i18n, ns = ns)
+      if (no_study_loaded) show_message_bar(output, "plugin_no_selected_project", "warning", i18n = i18n, ns = ns)
 
       # Create translations file
 
@@ -788,8 +788,10 @@ mod_plugins_server <- function(id, r, d, m, language, i18n, debug){
 
       code$ui <- tryCatch(
         eval(parse(text = code$ui)),
-        error = function(e) cat(paste0("\n", now(), " - mod_plugins - error loading UI code - widget_id = ", widget_id, " - ", toString(e))),
-        warning = function(w) cat(paste0("\n", now(), " - mod_plugins - error loading UI code - widget_id = ", widget_id, " - ", toString(w)))
+        error = function(e){
+          show_message_bar(output,  "error_run_plugin_ui_code", "severeWarning", i18n = i18n, ns = ns)
+          cat(paste0("\n", now(), " - mod_plugins - error loading UI code - plugin_id = ", input$selected_element, " - ", toString(e)))
+        }
       )
 
       ui_output <- create_widget(id, widget_id, code$ui)
