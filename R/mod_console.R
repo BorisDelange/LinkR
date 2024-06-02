@@ -17,7 +17,7 @@ mod_console_ui <- function(id = character(), language = "en", languages = tibble
         code_hotkeys = list("r", code_hotkeys),
         autoScrollEditorIntoView = TRUE, height = "100%", debounce = 100, fontSize = 11, showPrintMargin = FALSE
       ),
-      style = "width: 50%; max-height: calc(100% - 22px);"
+      style = "width: 50%; margin-top: 10px;"
     ),
     div(
       textOutput(ns("datetime_code_execution")),
@@ -29,7 +29,7 @@ mod_console_ui <- function(id = character(), language = "en", languages = tibble
       shinyjs::hidden(imageOutput(ns("image_output"))),
       style = "width: 50%; border: dashed grey 1px; margin: 10px 0px 0px 10px; padding: 10px; font-size: 12px; overflow-y: auto;"
     ),
-    style = "display: flex; max-height:calc(100vh - 100px);",
+    style = "display: flex; max-height:calc(100vh - 90px);",
     class = "main"
   )
 }

@@ -480,7 +480,7 @@ mod_data_server <- function(id = character(), r = shiny::reactiveValues(), d = s
       observeEvent(input$subset, {
         if (debug) cat(paste0("\n", now(), " - mod_data - observer input$subset"))
         
-        req(input$subset != "", input$subset$key)
+        req(input$subset$key)
         
         # Prevent multiple changes of m$selected_subset
         # We have to keep multiple observers, cause we use input variable

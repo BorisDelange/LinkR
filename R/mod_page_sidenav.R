@@ -171,7 +171,7 @@ mod_page_sidenav_ui <- function(id = character(), i18n = character()){
             )
           )
         ), br(),
-        make_combobox(i18n, ns, id = "subset", label = "subset", value = "", width = "200px"),
+        make_combobox(i18n, ns, id = "subset", label = "subset", width = "200px"),
         make_combobox(i18n, ns, id = "person", label = "person", allowFreeform = TRUE, autoComplete = TRUE, width = "200px"),
         make_combobox(i18n, ns, id = "visit_detail", label = "visit_detail", width = "200px"),
         div(id = ns("person_info_div"), uiOutput(ns("person_info")), class = "person_info")

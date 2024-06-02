@@ -31,7 +31,7 @@ linkr <- function(
   # Used to restore database and import vocabularies
   # shiny.launch.browser to automatically open browser
   
-  if (debug) cat(paste0(now(), " - linkr - init - v0.3.0.9008"))
+  if (debug) cat(paste0(now(), " - linkr - init - v0.3.0.9009"))
   options(shiny.maxRequestSize = 4096*1024^2, shiny.launch.browser = TRUE, shiny.port = port)
   
   if (!is.logical(debug) | !is.logical(local)) stop("debug or local are not logical")
