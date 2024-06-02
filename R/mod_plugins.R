@@ -789,6 +789,7 @@ mod_plugins_server <- function(id, r, d, m, language, i18n, debug){
       code$ui <- tryCatch(
         eval(parse(text = code$ui)),
         error = function(e){
+          r$widget_ui_last_error <- e
           show_message_bar(output,  "error_run_plugin_ui_code", "severeWarning", i18n = i18n, ns = ns)
           cat(paste0("\n", now(), " - mod_plugins - error loading UI code - plugin_id = ", input$selected_element, " - ", toString(e)))
         }
@@ -816,7 +817,11 @@ mod_plugins_server <- function(id, r, d, m, language, i18n, debug){
 
       # Capture console output of our code
       captured_output <- capture.output(
-        tryCatch(eval(parse(text = code$server), envir = new_env), error = function(e) print(e), warning = function(w) print(w)))
+        tryCatch(eval(parse(text = code$server), envir = new_env), error = function(e){
+          r$widget_server_last_error <- e
+          show_message_bar(output,  "error_run_plugin_server_code", "severeWarning", i18n = i18n, ns = ns)
+          cat(paste0("\n", now(), " - mod_plugins - error loading server code - plugin_id = ", input$selected_element, " - ", toString(e)))
+        }))
 
       # Restore normal value
       options('cli.num_colors' = NULL)

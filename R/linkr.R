@@ -9,6 +9,7 @@
 #' @param app_folder Location of the application folder (character).
 #' @param local Run the app in local mode, do not load files on the internet (logical)
 #' @param debug Debug mode : steps and errors will by displayed in the console (logical)
+#' @param log_file Create a log file to see app log directly in the app (logical)
 #' @param port Port used by shiny app (integer)
 #' @examples 
 #' \dontrun{

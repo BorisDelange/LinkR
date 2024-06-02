@@ -1981,8 +1981,11 @@ mod_data_server <- function(id = character(), r = shiny::reactiveValues(), d = s
                 ui_code <- DBI::dbGetQuery(r$db, sql) %>% dplyr::pull() %>% process_widget_code(tab_id, widget_id, m$selected_study, patient_id, plugin_folder)
                 eval(parse(text = ui_code))
               },
-              error = function(e) cat(paste0("\n", now(), " - mod_data - error loading UI code - widget_id = ", widget_id, " - ", toString(e))),
-              warning = function(w) cat(paste0("\n", now(), " - mod_data - error loading UI code - widget_id = ", widget_id, " - ", toString(w)))
+              error = function(e){
+                r$widget_ui_last_error <- e
+                show_message_bar(output,  "error_run_plugin_ui_code", "severeWarning", i18n = i18n, ns = ns)
+                cat(paste0("\n", now(), " - mod_data - error loading UI code - widget_id = ", widget_id, " - ", toString(e)))
+              }
             )
           }
 
@@ -2101,7 +2104,11 @@ mod_data_server <- function(id = character(), r = shiny::reactiveValues(), d = s
                 eval(parse(text = server_code), envir = new_env)
                 r$project_load_status$widgets_server_endtime <- now("%Y-%m-%d %H:%M:%OS3")
               },
-              error = function(e) cat(paste0("\n", now(), " - mod_data - error running server code - plugin_id = ", plugin_id, " - error = ", toString(e))))
+              error = function(e){
+                r$widget_server_last_error <- e
+                show_message_bar(output,  "error_run_plugin_server_code", "severeWarning", i18n = i18n, ns = ns)
+                cat(paste0("\n", now(), " - mod_data - error loading server code - widget_id = ", widget_id, " - ", toString(e)))
+              })
             
             # Observer for widget deletion
             observeEvent(input[[paste0("data_widget_remove_", widget_id)]], {
