@@ -642,8 +642,8 @@ mod_widgets_server <- function(id, r, d, m, language, i18n, all_divs, debug){
         # Element table
         
         if (id == "plugins") new_data <-
-            r$imported_element %>%
-            dplyr::transmute(id = get_last_row(con, "plugins") + 1, name, tab_type_id = type, creation_datetime, update_datetime, deleted = FALSE)
+          r$imported_element %>%
+          dplyr::transmute(id = get_last_row(con, "plugins") + 1, name, tab_type_id = type, creation_datetime, update_datetime, deleted = FALSE)
         
         DBI::dbAppendTable(con, sql_table, new_data)
         

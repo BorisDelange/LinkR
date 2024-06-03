@@ -76,7 +76,7 @@ create_plugin_files <- function(id, r, plugin_id){
         
         # Code table 
         
-        file_code <- readLines(paste0(plugin_folder, "/", file_name), warn = FALSE) %>% toString()
+        file_code <- readLines(paste0(plugin_folder, "/", file_name), warn = FALSE) %>% paste(collapse = "\n")
         new_code <- tibble::tibble(
           id = as.integer(get_last_row(r$db, "code") + 1), category = "plugin", link_id = {options_new_row_id}, code = file_code,
           creator_id = r$user_id, datetime = now(), deleted = FALSE
