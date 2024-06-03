@@ -35,7 +35,6 @@ app_server <- function(pages, language, languages, i18n, app_folder, debug, log_
       "users", "icccciicl", "main",
       "users_accesses", "icccl", "main",
       "users_statuses", "icccl", "main",
-      "data_sources", "iccicl", "main",
       "datasets", "iciiccl", "main",
       "studies", "iciiiiccl", "main",
       "plugins", "iciccl", "main",
@@ -137,7 +136,7 @@ app_server <- function(pages, language, languages, i18n, app_folder, debug, log_
       r$vocabulary_wide <- DBI::dbGetQuery(m$db, sql)
       
       # Load users names
-      sql <- glue::glue_sql("SELECT id, CONCAT(firstname, ' ', lastname) AS name, CONCAT(SUBSTRING(firstname, 1, 1), SUBSTRING(lastname, 1, 1)) AS initials FROM users", .con = r$db)
+      sql <- glue::glue_sql("SELECT id, (firstname || ' ' || lastname) AS name, (SUBSTR(firstname, 1, 1) || SUBSTR(lastname, 1, 1)) AS initials FROM users", .con = r$db)
       r$users <- DBI::dbGetQuery(r$db, sql)
       
       # Retro-compatibility : delete all insertions with DELETED IS TRUE

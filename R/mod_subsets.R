@@ -110,20 +110,6 @@ mod_subsets_server <- function(id, r, d, m, language, i18n, debug){
     
     # |-------------------------------- -----
     
-    # Unlock reactivity
-    observeEvent(shiny.router::get_page(), {
-      req(shiny.router::get_page() == "subsets")
-      if (debug) cat(paste0("\n", now(), " - mod_subsets - observer shiny.router::get_page()"))
-      
-      divs <- c(paste0(all_divs, "_reduced_sidenav"), paste0(all_divs, "_large_sidenav"))
-      sapply(c("one_element", divs), shinyjs::hide)
-      
-      shinyjs::show("all_elements")
-      
-      # Prevent a bug with scroll into ace editor
-      shinyjs::runjs("var event = new Event('resize'); window.dispatchEvent(event);")
-    })
-    
     # --- --- --- --- - -
     # Subset summary ----
     # --- --- --- --- - -

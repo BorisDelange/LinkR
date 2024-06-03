@@ -1091,6 +1091,13 @@ open_help,Open help
 open_settings,Open settings
 projects_widget_text,"Projects enable collaborative work on healthcare data in OMOP format using a customizable graphical interface."
 console_widget_text,"Use the console to quickly execute code in R, Python, or shell scripts."
+plugins_widget_text,"Plugins are R or Python scripts that add features to LinkR. They are the building blocks of projects, enabling the visualization and analysis of data."
+data_cleaning_widget_text,"Organize your data cleaning scripts, which improve the quality of the data you will use in your projects."
+explore_widget_text,"Explore the work done by the community, use their work, and share yours!"
+help_widget_text,"Access the LinkR online help."
+settings_widget_text,"Access LinkR settings (users, database, etc.)."
+datasets_widget_text,"Manage your datasets here, which will be imported into projects."
+vocabularies_widget_text,"Organize and explore medical concept terminologies here."
 synchronize_with_git_repo,Git synchronization
 dont_import,Cancel
 import_plugin_title,Import a plugin

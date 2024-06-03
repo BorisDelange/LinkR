@@ -26,7 +26,7 @@ mod_home_ui <- function(id, language, languages, i18n){
         div(
           div(
             h1(i18n$t("datasets")),
-            p("..."),
+            p(i18n$t("datasets_widget_text")),
             div(
               shiny.fluent::DefaultButton.shinyInput(
                 ns("go_datasets_page"), i18n$t("manage_datasets"), 
@@ -39,7 +39,7 @@ mod_home_ui <- function(id, language, languages, i18n){
         div(
           div(
             h1(i18n$t("vocabularies")),
-            p("..."),
+            p(i18n$t("vocabularies_widget_text")),
             div(
               shiny.fluent::DefaultButton.shinyInput(
                 ns("go_vocabularies_page"), i18n$t("manage_vocabularies"), 
@@ -68,7 +68,7 @@ mod_home_ui <- function(id, language, languages, i18n){
         div(
           div(
             h1(i18n$t("plugins")),
-            p("..."),
+            p(i18n$t("plugins_widget_text")),
             div(
               shiny.fluent::DefaultButton.shinyInput(
                 ns("go_dplugins_page"), i18n$t("show_plugins"), 
@@ -81,7 +81,7 @@ mod_home_ui <- function(id, language, languages, i18n){
         div(
           div(
             h1(i18n$t("data_cleaning")),
-            p("..."),
+            p(i18n$t("data_cleaning_widget_text")),
             div(
               shiny.fluent::DefaultButton.shinyInput(
                 ns("go_data_cleaning_page"), i18n$t("manage_data_cleaning_scripts"), 
@@ -97,7 +97,7 @@ mod_home_ui <- function(id, language, languages, i18n){
         div(
           div(
             h1(i18n$t("explore")),
-            p("..."),
+            p(i18n$t("explore_widget_text")),
             div(
               shiny.fluent::DefaultButton.shinyInput(
                 ns("go_explore_page"), i18n$t("show_catalog"), 
@@ -110,7 +110,7 @@ mod_home_ui <- function(id, language, languages, i18n){
         div(
           div(
             h1(i18n$t("help")),
-            p("..."),
+            p(i18n$t("help_widget_text")),
             div(
               shiny.fluent::DefaultButton.shinyInput(
                 ns("go_help_page"), i18n$t("open_help"), 
@@ -123,7 +123,7 @@ mod_home_ui <- function(id, language, languages, i18n){
         div(
           div(
             h1(i18n$t("settings")),
-            p("..."),
+            p(i18n$t("settings_widget_text")),
             div(
               shiny.fluent::DefaultButton.shinyInput(
                 ns("go_data_settings_page"), i18n$t("open_settings"),

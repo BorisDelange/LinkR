@@ -102,6 +102,20 @@ mod_widgets_server <- function(id, r, d, m, language, i18n, all_divs, debug){
     
     if (debug) cat(paste0("\n", now(), " - mod_widgets - (", id, ") - start"))
     
+    # Unlock reactivity / show or hide divs ----
+    observeEvent(shiny.router::get_page(), {
+      req(shiny.router::get_page() == id)
+      if (debug) cat(paste0("\n", now(), " - mod_widgets - (", id, ") - observer shiny.router::get_page()"))
+      
+      divs <- c(paste0(all_divs, "_reduced_sidenav"), paste0(all_divs, "_large_sidenav"))
+      sapply(c("one_element", divs), shinyjs::hide)
+      
+      shinyjs::show("all_elements")
+      
+      # Prevent a bug with scroll into ace editor
+      shinyjs::runjs("var event = new Event('resize'); window.dispatchEvent(event);")
+    })
+    
     # Initiate vars ----
     
     single_id <- switch(id, "datasets" = "dataset", "projects" = "project", "plugins" = "plugin", "subsets" = "subset")
