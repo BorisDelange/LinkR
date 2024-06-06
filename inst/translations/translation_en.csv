@@ -166,6 +166,7 @@ mapping,Mapping
 vocabularies_management,Vocabularies management
 show_only_used_concepts,Show only used concepts
 create_dataset,Create a dataset
+create_vocabulary,Create a vocabulary
 datasets_management,Datasets management
 messages,Messages
 study_options,Study options
@@ -1037,6 +1038,8 @@ delete_file_title,Delete a file
 delete_file_text,Confirm deletion of this file?
 delete_plugin_title,Delete a plugin
 delete_plugin_text,Confirm deletion of this plugin?
+delete_vocabulary_title,Delete a vocabulary
+delete_vocabulary_text,Confirm deletion of this vocabulary?
 configure,Configurer
 develop,Développer
 discover,Découvrir
@@ -1102,6 +1105,8 @@ synchronize_with_git_repo,Git synchronization
 dont_import,Cancel
 import_plugin_title,Import a plugin
 import_plugin_text,This plugin already exists. Are you sure you want to delete the existing plugin?
+import_vocabulary_title,Import a vocabulary
+import_vocabulary_text,This vocabulary already exists. Are you sure you want to delete the existing vocabulary?
 import_dataset_title,Import a dataset
 import_dataset_text,This dataset already exists. Are you sure you want to delete the existing dataset?
 import_project_title,Import a project

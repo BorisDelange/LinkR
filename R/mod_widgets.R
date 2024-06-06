@@ -4,7 +4,7 @@ mod_widgets_ui <- function(id, language, languages, i18n){
   
   # Initiate vars ----
   
-  single_id <- switch(id, "datasets" = "dataset", "projects" = "project", "plugins" = "plugin", "subsets" = "subset")
+  single_id <- switch(id, "datasets" = "dataset", "projects" = "project", "plugins" = "plugin", "subsets" = "subset", "vocabularies" = "vocabulary")
   
   add_element_inputs <- tagList()
   
@@ -110,7 +110,7 @@ mod_widgets_server <- function(id, r, d, m, language, i18n, all_divs, debug){
       divs <- c(paste0(all_divs, "_reduced_sidenav"), paste0(all_divs, "_large_sidenav"))
       sapply(c("one_element", divs), shinyjs::hide)
       
-      shinyjs::show("all_elements")
+      sapply(c("all_elements", "all_elements_reduced_sidenav"), shinyjs::show)
       
       # Prevent a bug with scroll into ace editor
       shinyjs::runjs("var event = new Event('resize'); window.dispatchEvent(event);")
@@ -118,12 +118,12 @@ mod_widgets_server <- function(id, r, d, m, language, i18n, all_divs, debug){
     
     # Initiate vars ----
     
-    single_id <- switch(id, "datasets" = "dataset", "projects" = "project", "plugins" = "plugin", "subsets" = "subset")
+    single_id <- switch(id, "datasets" = "dataset", "projects" = "project", "plugins" = "plugin", "subsets" = "subset", "vocabularies" = "vocabulary")
     
-    sql_table <- switch(id, "datasets" = "datasets", "projects" = "studies", "plugins" = "plugins", "subsets" = "subsets")
+    sql_table <- switch(id, "datasets" = "datasets", "projects" = "studies", "plugins" = "plugins", "subsets" = "subsets", "vocabularies" = "vocabulary")
     
     # For retro-compatibility : studies -> projects
-    sql_category <- switch(id, "datasets" = "dataset", "projects" = "study", "plugins" = "plugin", "subsets" = "subset")
+    sql_category <- switch(id, "datasets" = "dataset", "projects" = "study", "plugins" = "plugin", "subsets" = "subset", "vocabularies" = "vocabulary")
     
     long_var <- paste0(id, "_long")
     long_var_filtered <- paste0("filtered_", id, "_long")
@@ -132,7 +132,7 @@ mod_widgets_server <- function(id, r, d, m, language, i18n, all_divs, debug){
     element_deleted <- paste0(single_id, "_deleted")
     
     # Sql connection
-    if (id == "subsets") con <- m$db else con <- r$db
+    if (id %in% c("subsets", "vocabularies")) con <- m$db else con <- r$db
     
     if (id == "plugins"){
       r$edit_plugin_code_files_list <- tibble::tibble(id = integer(), plugin_id = integer(), filename = character())
@@ -146,7 +146,15 @@ mod_widgets_server <- function(id, r, d, m, language, i18n, all_divs, debug){
       
       if (input$search_element == "") r[[long_var_filtered]] <- r[[long_var]]
       else {
-        filtered_ids <- r[[long_var]] %>% dplyr::filter(name == paste0("name_", language) & grepl(tolower(input$search_element), tolower(value))) %>% dplyr::pull(id)
+        
+        # Filter on name or description
+        
+        filtered_ids <- r[[long_var]] %>% 
+          dplyr::filter(
+            (name == paste0("name_", language) & grepl(tolower(input$search_element), tolower(value))) |
+            (name == paste0("short_description_", language) & grepl(tolower(input$search_element), tolower(value)))
+          ) %>%
+          dplyr::pull(id)
         
         r[[long_var_filtered]] <- r[[long_var]] %>% dplyr::filter(id %in% filtered_ids)
       }
@@ -421,6 +429,7 @@ mod_widgets_server <- function(id, r, d, m, language, i18n, all_divs, debug){
 
       # Check if name is not already used
       if (sql_table == "subsets") sql <- glue::glue_sql("SELECT name FROM subsets WHERE LOWER(name) = {tolower(element_name)} AND study_id = {m$selected_study}", .con = con)
+      else if (sql_table == "vocabulary") sql <- glue::glue_sql("SELECT vocabulary_id FROM vocabulary WHERE LOWER(vocabulary_id) = {tolower(element_name)}", .con = con)
       else sql <- glue::glue_sql("SELECT name FROM {sql_table} WHERE LOWER(name) = {tolower(element_name)}", .con = con)
       name_already_used <- nrow(DBI::dbGetQuery(con, sql) > 0)
 
@@ -461,6 +470,32 @@ mod_widgets_server <- function(id, r, d, m, language, i18n, all_divs, debug){
       else if (sql_table == "subsets") new_data <- tibble::tibble(
         id = element_id, name = element_name, description = NA_character_, study_id = m$selected_study,
         creator_id = r$user_id, datetime = now(), deleted = FALSE)
+      
+      else if (sql_table == "vocabulary"){
+        # Add a concept for this vocabulary in concept table
+        vocabulary_concept_id <-
+          DBI::dbGetQuery(con, glue::glue_sql("SELECT concept_id FROM concept WHERE concept_name = {element_name} AND domain_id = 'Metadata' AND concept_class_id = 'Vocabulary'", .con = con)) %>%
+          dplyr::pull()
+          
+        if (length(vocabulary_concept_id) == 0){
+          vocabulary_concept_id <- 
+            DBI::dbGetQuery(con, glue::glue_sql("SELECT MAX(concept_id) FROM concept", .con = con)) %>% 
+            dplyr::pull() %>%
+            as.integer() + 1
+          
+          new_concept <- tibble::tibble(
+            id = get_last_row(con, "concept") + 1, concept_id = vocabulary_concept_id, concept_name = element_name, domain_id = "Metadata",
+            vocabulary_id = "Vocabulary", concept_class_id = "Vocabulary", standard_concept = NA_character_, concept_code = NA_character_,
+            valid_start_date = now(), valid_end_date = lubridate::ymd("2099-12-31"), invalid_reason = NA_character_
+          )
+          DBI::dbAppendTable(con, "concept", new_concept)
+        }
+        
+        new_data <- tibble::tibble(
+          id = element_id, vocabulary_id = element_name, vocabulary_name = element_name, vocabulary_reference = NA_character_,
+          vocabulary_version = NA_character_, vocabulary_concept_id = vocabulary_concept_id, data_source_id = NA_character_,
+          display_order = NA_integer_, creator_id = r$user_id, creation_datetime = now(), update_datetime = now(), deleted = FALSE)
+      }
       
       DBI::dbAppendTable(con, sql_table, new_data)
       r[[id]] <- r[[id]] %>% dplyr::bind_rows(new_data)
@@ -718,13 +753,17 @@ mod_widgets_server <- function(id, r, d, m, language, i18n, all_divs, debug){
       element_wide <- r[[wide_var]] %>% dplyr::filter(id == input$selected_element)
       element_long <- r[[long_var]] %>% dplyr::filter(id == input$selected_element)
       
-      output$breadcrumb <- renderUI(
+      output$breadcrumb <- renderUI({
+        
+        if (id == "vocabularies") element_name <- element_wide$vocabulary_id
+        else element_name <- element_wide$name
+        
         shiny.fluent::Breadcrumb(items = list(
           list(key = "main", text = i18n$t(id), href = shiny.router::route_link(id), 
              onClick = htmlwidgets::JS(paste0("item => { Shiny.setInputValue('", id, "-show_home', Math.random()); }"))),
-          list(key = "main", text = element_wide$name))
+          list(key = "main", text = element_name))
         )
-      )
+      })
       
       shinyjs::runjs(paste0("
         Shiny.setInputValue('", id, "-current_tab_trigger', Math.random());
@@ -845,6 +884,16 @@ mod_widgets_server <- function(id, r, d, m, language, i18n, all_divs, debug){
         
       # Delete files
       if (id == "plugins") unlink(input$selected_plugin_folder, recursive = TRUE)
+      
+      # If it is a vocabulary, delete entry in concept table
+      if (id == "vocabularies"){
+        
+        # Get vocabulary_id
+        vocabulary_id <- r$vocabulary_wide %>% dplyr::filter(id == element_id) %>% dplyr::pull(vocabulary_id)
+        
+        # Delete entry in concept table
+        sql_send_statement(con, glue::glue_sql("DELETE FROM concept WHERE concept_name = {vocabulary_id} AND domain_id = 'Metadata' AND concept_class_id = 'Vocabulary'", .con = con))
+      }
       
       # Reload widgets
       shinyjs::runjs(paste0("

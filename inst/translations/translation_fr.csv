@@ -169,6 +169,7 @@ mapping,Alignement de concepts
 vocabularies_management,Gestion des terminologies
 show_only_used_concepts,N'afficher que les concepts utilisés
 create_dataset,Créer un set de données
+create_vocabulary,Créer une terminologie
 datasets_management,Gestion des sets
 messages,Messages
 study_options,Options de l'étude
@@ -1037,6 +1038,8 @@ delete_file_title,Supprimer un fichier
 delete_file_text,Confirmer la suppression de ce fichier ?
 delete_plugin_title,Supprimer un plugin
 delete_plugin_text,Confirmer la suppression de ce plugin ?
+delete_vocabulary_title,Supprimer une terminologie
+delete_vocabulary_text,Confirmer la suppression de cette terminologie ?
 configure,Configurer
 develop,Développer
 discover,Découvrir
@@ -1102,6 +1105,8 @@ synchronize_with_git_repo,Synchronisation git
 dont_import,Annuler
 import_plugin_title,Importer un plugin
 import_plugin_text,Ce plugin existe déjà. Confirmez-vous la suppression du plugin existant ?
+import_vocabulary_title,Importer une terminologie
+import_vocabulary_text,Cette terminologie existe déjà. Confirmez-vous la suppression de la terminologie existante ?
 import_dataset_title,Importer un set de données
 import_dataset_text,Ce set de données existe déjà. Confirmez-vous la suppression du set de données existant ?
 import_project_title,Importer un projet

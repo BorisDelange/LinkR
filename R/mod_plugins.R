@@ -234,7 +234,7 @@ mod_plugins_server <- function(id, r, d, m, language, i18n, debug){
             id = ns(paste0("edit_code_editor_div_", file_id)),
             shinyAce::aceEditor(
               ns(paste0("edit_code_editor_", file_id)), value = file_code, mode = ace_mode,
-              code_hotkeys = list(file_ext, code_hotkeys),
+              hotkeys = code_hotkeys,
               autoScrollEditorIntoView = TRUE, height = "100%", debounce = 100, fontSize = 11, showPrintMargin = FALSE
             ),
             style = "width: 100%; height: 100%; display: flex; flex-direction: column;"
@@ -247,14 +247,7 @@ mod_plugins_server <- function(id, r, d, m, language, i18n, debug){
           r$edit_plugin_code_editors <- r$edit_plugin_code_editors %>% dplyr::bind_rows(r$edit_plugin_code_files_list %>% dplyr::filter(id == file_id))
           
           # Add observers for editor hotkeys
-          observeEvent(input[[paste0("edit_code_editor_", file_id, "_run_all")]], {
-            if (debug) cat(paste0("\n", now(), " - mod_plugins - observer input$edit_code_editor..run_all"))
-            r$run_plugin_code <- now()
-          })
-          observeEvent(input[[paste0("edit_code_editor_", file_id, "_run_selection")]], {
-            if (debug) cat(paste0("\n", now(), " - mod_plugins - observer input$edit_code_editor..run_selection"))
-            r$run_plugin_code <- now()
-          })
+          shinyjs::runjs(paste0("Shiny.setInputValue('", id, "-add_code_editor_hotkeys', ", file_id, ");"))
         }
       }
     })
@@ -457,11 +450,14 @@ mod_plugins_server <- function(id, r, d, m, language, i18n, debug){
           id = ns(paste0("edit_code_editor_div_", file_id)),
           shinyAce::aceEditor(
             ns(paste0("edit_code_editor_", file_id)), value = file_code, mode = ace_mode,
-            code_hotkeys = list(file_ext, code_hotkeys),
+            hotkeys = code_hotkeys,
             autoScrollEditorIntoView = TRUE, height = "100%", debounce = 100, fontSize = 11, showPrintMargin = FALSE
           ),
           style = "width: 100%; height: 100%; display: flex; flex-direction: column;"
         ))
+        
+        # Add observers for editor hotkeys
+        shinyjs::runjs(paste0("Shiny.setInputValue('", id, "-add_code_editor_hotkeys', ", file_id, ");"))
       }
       else shinyjs::delay(50, shinyjs::show(paste0("edit_code_editor_div_", file_id)))
     })
@@ -537,11 +533,14 @@ mod_plugins_server <- function(id, r, d, m, language, i18n, debug){
         id = ns(paste0("edit_code_editor_div_", options_new_row_id)),
         shinyAce::aceEditor(
           ns(paste0("edit_code_editor_", options_new_row_id)), value = "", mode = "r",
-          code_hotkeys = list("r", code_hotkeys),
+          hotkeys = code_hotkeys,
           autoScrollEditorIntoView = TRUE, height = "100%", debounce = 100, fontSize = 11, showPrintMargin = FALSE
         ),
         style = "width: 100%; height: 100%; display: flex; flex-direction: column;"
       ))
+      
+      # Add observers for editor hotkeys
+      shinyjs::runjs(paste0("Shiny.setInputValue('", id, "-add_code_editor_hotkeys', ", options_new_row_id, ");"))
 
       r$edit_plugin_code_editors <- r$edit_plugin_code_editors %>% dplyr::bind_rows(r$edit_plugin_code_files_list %>% dplyr::filter(id == options_new_row_id))
 
@@ -551,6 +550,48 @@ mod_plugins_server <- function(id, r, d, m, language, i18n, debug){
       r$edit_plugin_code_tabs <- r$edit_plugin_code_tabs %>% dplyr::bind_rows(file_row)
       r$edit_plugin_code_reload_files_tab <- now()
       r$edit_plugin_code_open_new_tab <- "new_tab"
+    })
+    
+    ## Editor hotkeys ----
+    observeEvent(input$add_code_editor_hotkeys, {
+      if (debug) cat(paste0("\n", now(), " - mod_plugins - observer input$add_code_editor_hotkeys"))
+      
+      file_id <- input$add_code_editor_hotkeys
+      editor_id <- paste0("edit_code_editor_", file_id)
+      
+      observeEvent(input[[paste0(editor_id, "_run_all")]], {
+        if (debug) cat(paste0("\n", now(), " - mod_plugins - observer input$edit_code_editor..run_all"))
+        r$run_plugin_code <- now()
+      })
+      
+      observeEvent(input[[paste0(editor_id, "_run_selection")]], {
+        if (debug) cat(paste0("\n", now(), " - mod_plugins - observer input$edit_code_editor..run_selection"))
+        r$run_plugin_code <- now()
+      })
+      
+      observeEvent(input[[paste0(editor_id, "_comment")]], {
+        if (debug) cat(paste0("\n", now(), " - mod_plugins - observer input$edit_code_editor..comment"))
+        
+        lines <- strsplit(input[[editor_id]], "\n")[[1]]
+        req(length(lines) > 0)
+        
+        start_row <- input[[paste0(editor_id, "_comment")]]$range$start$row + 1
+        end_row <- input[[paste0(editor_id, "_comment")]]$range$end$row + 1
+        
+        for (i in start_row:end_row) if (startsWith(lines[i], "# ")) lines[i] <- substr(lines[i], 3, nchar(lines[i])) else lines[i] <- paste0("# ", lines[i])
+        
+        shinyAce::updateAceEditor(session, editor_id, value = paste0(lines, collapse = "\n"))
+        
+        shinyjs::runjs(paste0("
+      var editor = ace.edit('", id, "-", editor_id, "');
+      editor.moveCursorTo(", input[[paste0(editor_id, "_comment")]]$range$end$row, ", ", input[[paste0(editor_id, "_comment")]]$range$end$column, ");
+      editor.focus();"))
+      })
+      
+      observeEvent(input[[paste0(editor_id, "_save")]], {
+        if (debug) cat(paste0("\n", now(), " - mod_plugins - observer input$edit_code_editor..save"))
+        shinyjs::runjs(paste0("Shiny.setInputValue('", id, "-save_file_code', Math.random());"))
+      })
     })
     
     ## Save updates ----

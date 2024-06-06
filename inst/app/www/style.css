@@ -63,6 +63,10 @@ a.no-hover-effect:hover {
   z-index: 200;
 }
 
+.header_right_bar {
+  z-index: 200;
+}
+
 .header_command_bar {
   margin-left: 193px;
   transition: margin-left 0.3s ease-in-out;
@@ -216,7 +220,8 @@ a.no-hover-effect:hover {
   z-index: 500;
 }
 
-.delete_modal_content, .create_tab_modal_content, .import_modal_content, .create_widget_modal_content, .load_status_modal_content, .create_plugin_modal_content, .create_project_modal_content, .create_dataset_modal_content, .create_subset_modal_content {
+.delete_modal_content, .create_tab_modal_content, .import_modal_content, .create_widget_modal_content, .load_status_modal_content, .create_plugin_modal_content, .create_project_modal_content, .create_dataset_modal_content, .create_subset_modal_content,
+.create_vocabulary_modal_content {
   background: #fff;
   padding: 5px 10px 10px 15px;
   position: relative;
@@ -274,7 +279,7 @@ a.no-hover-effect:hover {
   padding-bottom: 30px;
 }
 
-.create_project_modal_content, .create_dataset_modal_content, .create_subset_modal_content {
+.create_project_modal_content, .create_dataset_modal_content, .create_subset_modal_content, .create_vocabulary_modal_content {
   width: 400px;
   padding-bottom: 30px;
 }
@@ -341,13 +346,13 @@ a.no-hover-effect:hover {
   box-sizing: border-box;
 }
 
-.project_widget h1, .plugin_widget h1, .dataset_widget h1, .subset_widget h1 {
+.project_widget h1, .plugin_widget h1, .dataset_widget h1, .subset_widget h1, .vocabulary_widget h1 {
   font-weight: bold;
   font-size: 14px;
   margin-bottom: 0px;
 }
 
-.project_widget, .plugin_widget, .dataset_widget, .subset_widget {
+.project_widget, .plugin_widget, .dataset_widget, .subset_widget, .vocabulary_widget {
   width: 300px;
   height: 150px;
   box-shadow: 0 2px 4px 0 rgba(0, 0, 0, 0.2), 0 3px 10px 0 rgba(0, 0, 0, 0.19);
@@ -857,6 +862,27 @@ td[data-type="factor"] input {
   calc(100% - 16px)
 }
 
+/* -------------------------- */
+/* VOCABULARIES PAGE          */
+/* -------------------------- */
+
+.vocabularies_summary_container {
+  display: flex;
+  justify-content: space-between;
+  height: calc(100% - 50px);
+}
+
+.vocabularies_summary_left {
+  display: flex;
+  flex-direction: column;
+  width: 50%;
+}
+
+.vocabularies_summary_right {
+  width: 50%;
+  calc(100% - 16px)
+}
+
 /* ------------------- */
 /* PROJECTS PAGE       */
 /* ------------------- */
@@ -887,7 +913,7 @@ td[data-type="factor"] input {
   line-height: 16px;
 }
 
-.projects_container, .plugins_container, .datasets_container, .subsets_container {
+.projects_container, .plugins_container, .datasets_container, .subsets_container, .vocabularies_container {
   display: flex;
   flex-wrap: wrap;
   justify-content: flex-start;
