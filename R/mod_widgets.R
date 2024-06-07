@@ -4,7 +4,10 @@ mod_widgets_ui <- function(id, language, languages, i18n){
   
   # Initiate vars ----
   
-  single_id <- switch(id, "datasets" = "dataset", "projects" = "project", "plugins" = "plugin", "subsets" = "subset", "vocabularies" = "vocabulary")
+  single_id <- switch(
+    id, 
+    "data_cleaning" = "data_cleaning", "datasets" = "dataset", "projects" = "project", "plugins" = "plugin", 
+    "subsets" = "subset", "vocabularies" = "vocabulary")
   
   add_element_inputs <- tagList()
   
@@ -118,12 +121,21 @@ mod_widgets_server <- function(id, r, d, m, language, i18n, all_divs, debug){
     
     # Initiate vars ----
     
-    single_id <- switch(id, "datasets" = "dataset", "projects" = "project", "plugins" = "plugin", "subsets" = "subset", "vocabularies" = "vocabulary")
+    single_id <- switch(
+      id, 
+      "data_cleaning" = "data_cleaning", "datasets" = "dataset", "projects" = "project", "plugins" = "plugin", 
+      "subsets" = "subset", "vocabularies" = "vocabulary")
     
-    sql_table <- switch(id, "datasets" = "datasets", "projects" = "studies", "plugins" = "plugins", "subsets" = "subsets", "vocabularies" = "vocabulary")
+    sql_table <- switch(
+      id, 
+      "data_cleaning" = "scripts", "datasets" = "datasets", "projects" = "studies", "plugins" = "plugins", 
+      "subsets" = "subsets", "vocabularies" = "vocabulary")
     
     # For retro-compatibility : studies -> projects
-    sql_category <- switch(id, "datasets" = "dataset", "projects" = "study", "plugins" = "plugin", "subsets" = "subset", "vocabularies" = "vocabulary")
+    sql_category <- switch(
+      id, 
+      "data_cleaning" = "script", "datasets" = "dataset", "projects" = "study", "plugins" = "plugin", 
+      "subsets" = "subset", "vocabularies" = "vocabulary")
     
     long_var <- paste0(id, "_long")
     long_var_filtered <- paste0("filtered_", id, "_long")
@@ -496,6 +508,8 @@ mod_widgets_server <- function(id, r, d, m, language, i18n, all_divs, debug){
           vocabulary_version = NA_character_, vocabulary_concept_id = vocabulary_concept_id, data_source_id = NA_character_,
           display_order = NA_integer_, creator_id = r$user_id, creation_datetime = now(), update_datetime = now(), deleted = FALSE)
       }
+      
+      else if (sql_table == "scripts") new_data <- tibble::tibble(id = element_id, name = element_name, creation_datetime = now(), update_datetime = now(), deleted = FALSE)
       
       DBI::dbAppendTable(con, sql_table, new_data)
       r[[id]] <- r[[id]] %>% dplyr::bind_rows(new_data)

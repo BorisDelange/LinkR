@@ -149,6 +149,58 @@ mod_plugins_ui <- function(id, language, languages, i18n){
         ),
         class = "delete_modal"
       )
+    ),
+    
+    # Select concepts modal ----
+    
+    shinyjs::hidden(
+      div(
+        id = ns("select_concepts_modal"),
+        div(
+          div(
+            tags$h1(i18n$t("select_concepts")),
+            shiny.fluent::IconButton.shinyInput(ns("close_select_concepts_modal"), iconProps = list(iconName = "ChromeClose")),
+            class = "select_concepts_modal_head small_close_button"
+          ),
+          div(
+            div(
+              make_combobox(i18n, ns, id = "plugin_vocabulary", label = "vocabulary", allowFreeform = FALSE, multiSelect = FALSE, width = "200px"),
+              make_dropdown(i18n, ns, id = "plugin_vocabulary_concepts_table_cols", label = "columns", multiSelect = TRUE,
+                options = list(
+                  list(key = 0, text = i18n$t("concept_id")),
+                  list(key = 1, text = i18n$t("concept_name")),
+                  list(key = 2, text = i18n$t("concept_display_name")),
+                  list(key = 3, text = i18n$t("domain_id")),
+                  list(key = 4, text = i18n$t("concept_class_id")),
+                  list(key = 5, text = i18n$t("standard_concept")),
+                  list(key = 6, text = i18n$t("concept_code")),
+                  list(key = 7, text = i18n$t("num_patients")),
+                  list(key = 8, text = i18n$t("num_rows")),
+                  list(key = 9, text = i18n$t("action"))
+                ),
+                value = c(0, 1, 2, 7, 8, 9),
+                width = "200px"
+              ),
+              style = "display: flex; gap: 10px;"
+            ),
+            div(
+              shiny.fluent::Dropdown.shinyInput(
+                ns("widget_creation_vocabulary_selected_concepts"), value = NULL, options = list(), multiSelect = TRUE, label = i18n$t("vocabulary_selected_concepts"),
+                onChanged = htmlwidgets::JS(paste0("item => Shiny.setInputValue('", id, "-widget_creation_vocabulary_selected_concepts_trigger', Math.random())"))
+              ),
+              style = "width:410px;"
+            ),
+            div(DT::DTOutput(ns("plugin_vocabulary_concepts")), class = "vocabulary_table"),
+            class = "select_concepts_modal_body"
+          ),
+          div(
+            shiny.fluent::PrimaryButton.shinyInput(ns("widget_creation_save"), i18n$t("confirm")),
+            class = "select_concepts_modal_buttons"
+          ),
+          class = "select_concepts_modal_content"
+        ),
+        class = "select_concepts_modal"
+      )
     )
   )
 }
@@ -732,10 +784,29 @@ mod_plugins_server <- function(id, r, d, m, language, i18n, debug){
       show_message_bar(output,  "file_deleted", "warning", i18n = i18n, ns = ns)
     })
     
+    ## Select concepts ----
+    
+    # Open modal
+    observeEvent(input$select_concepts, {
+      if (debug) cat(paste0("\n", now(), " - mod_plugins - observer input$select_concepts"))
+      shinyjs::show("select_concepts_modal")
+    })
+    
+    # Close modal
+    observeEvent(input$close_select_concepts_modal, {
+      if (debug) cat(paste0("\n", now(), " - mod_plugins - observer input$close_select_concepts_modal"))
+      shinyjs::hide("select_concepts_modal")
+    })
+    
     ## Run plugin code ----
     
     observeEvent(input$run_plugin_code, {
       if (debug) cat(paste0("\n", now(), " - mod_plugins - observer input$run_plugin_code"))
+      r$run_plugin_code <- now()
+    })
+    
+    observeEvent(input$reload_plugin_code, {
+      if (debug) cat(paste0("\n", now(), " - mod_plugins - observer input$reload_plugin_code"))
       r$run_plugin_code <- now()
     })
     

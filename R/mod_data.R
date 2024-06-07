@@ -120,10 +120,11 @@ mod_data_ui <- function(id = character(), language = "en", languages = tibble::t
             ),
             style = "display: flex; gap: 10px;"
           ),
-          div(id = ns("widget_creation_vocabulary_selected_concepts_title"), class = "input_title", i18n$t("vocabulary_selected_concepts")),
           div(
-            shiny.fluent::Dropdown.shinyInput(ns("widget_creation_vocabulary_selected_concepts"), value = NULL, options = list(), multiSelect = TRUE,
-            onChanged = htmlwidgets::JS(paste0("item => Shiny.setInputValue('", id, "-widget_creation_vocabulary_selected_concepts_trigger', Math.random())"))),
+            shiny.fluent::Dropdown.shinyInput(
+              ns("widget_creation_vocabulary_selected_concepts"), value = NULL, options = list(), multiSelect = TRUE, label = i18n$t("vocabulary_selected_concepts"),
+              onChanged = htmlwidgets::JS(paste0("item => Shiny.setInputValue('", id, "-widget_creation_vocabulary_selected_concepts_trigger', Math.random())"))
+            ),
             style = "width:410px;"
           ),
           div(DT::DTOutput(ns("widget_creation_vocabulary_concepts")), class = "vocabulary_table"),

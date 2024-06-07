@@ -206,7 +206,7 @@ a.no-hover-effect:hover {
 /* MODALS          */
 /* --------------- */
 
-.delete_modal, .create_element_modal, .import_modal, .load_status_modal {
+.delete_modal, .create_element_modal, .import_modal, .load_status_modal, .select_concepts_modal {
   display: flex;
   align-items: center;
   justify-content: center;
@@ -221,7 +221,7 @@ a.no-hover-effect:hover {
 }
 
 .delete_modal_content, .create_tab_modal_content, .import_modal_content, .create_widget_modal_content, .load_status_modal_content, .create_plugin_modal_content, .create_project_modal_content, .create_dataset_modal_content, .create_subset_modal_content,
-.create_vocabulary_modal_content {
+.create_vocabulary_modal_content, .create_data_cleaning_modal_content, .select_concepts_modal_content {
   background: #fff;
   padding: 5px 10px 10px 15px;
   position: relative;
@@ -232,7 +232,7 @@ a.no-hover-effect:hover {
   height: 100px;
 }
 
-.delete_modal_content h1, .create_element_modal h1, .import_modal_content h1, .load_status_modal h1 {
+.delete_modal_content h1, .create_element_modal h1, .import_modal_content h1, .load_status_modal h1, .select_concepts_modal h1 {
   font-size: 14px;
 }
 
@@ -240,7 +240,7 @@ a.no-hover-effect:hover {
   font-size: 12px;
 }
 
-.delete_modal_buttons, .import_modal_buttons, .create_element_modal_buttons {
+.delete_modal_buttons, .import_modal_buttons, .create_element_modal_buttons, .select_concepts_modal_buttons {
   position: absolute;
   right: 10px;
   bottom: 3px;
@@ -253,17 +253,17 @@ a.no-hover-effect:hover {
   padding-bottom: 30px;
 }
 
-.create_widget_modal_content {
+.create_widget_modal_content, .select_concepts_modal_content {
   width: 1200px;
   padding-bottom: 50px;
 }
 
-.create_element_modal_head {
+.create_element_modal_head, .select_concepts_modal_head {
   display: flex;
   justify-content: space-between;
 }
 
-.create_element_modal_body {
+.create_element_modal_body, .select_concepts_modal_body {
   font-size: 12px;
   height: calc(100% - 70px);
   overflow-y: auto;
@@ -279,7 +279,8 @@ a.no-hover-effect:hover {
   padding-bottom: 30px;
 }
 
-.create_project_modal_content, .create_dataset_modal_content, .create_subset_modal_content, .create_vocabulary_modal_content {
+.create_project_modal_content, .create_dataset_modal_content, .create_subset_modal_content, .create_vocabulary_modal_content,
+.create_data_cleaning_modal_content {
   width: 400px;
   padding-bottom: 30px;
 }
@@ -346,13 +347,14 @@ a.no-hover-effect:hover {
   box-sizing: border-box;
 }
 
-.project_widget h1, .plugin_widget h1, .dataset_widget h1, .subset_widget h1, .vocabulary_widget h1 {
+.project_widget h1, .plugin_widget h1, .dataset_widget h1, .subset_widget h1, .vocabulary_widget h1,
+.data_cleaning_widget h1{
   font-weight: bold;
   font-size: 14px;
   margin-bottom: 0px;
 }
 
-.project_widget, .plugin_widget, .dataset_widget, .subset_widget, .vocabulary_widget {
+.project_widget, .plugin_widget, .dataset_widget, .subset_widget, .vocabulary_widget, .data_cleaning_widget {
   width: 300px;
   height: 150px;
   box-shadow: 0 2px 4px 0 rgba(0, 0, 0, 0.2), 0 3px 10px 0 rgba(0, 0, 0, 0.19);
@@ -863,6 +865,27 @@ td[data-type="factor"] input {
 }
 
 /* -------------------------- */
+/* DATA CLEANING SCRIPTS PAGE */
+/* -------------------------- */
+
+.data_cleaning_summary_container {
+  display: flex;
+  justify-content: space-between;
+  height: calc(100% - 50px);
+}
+
+.data_cleaning_summary_left {
+  display: flex;
+  flex-direction: column;
+  width: 50%;
+}
+
+.data_cleaning_summary_right {
+  width: 50%;
+  calc(100% - 16px)
+}
+
+/* -------------------------- */
 /* VOCABULARIES PAGE          */
 /* -------------------------- */
 
@@ -913,7 +936,7 @@ td[data-type="factor"] input {
   line-height: 16px;
 }
 
-.projects_container, .plugins_container, .datasets_container, .subsets_container, .vocabularies_container {
+.projects_container, .plugins_container, .datasets_container, .subsets_container, .vocabularies_container, .data_cleaning_container {
   display: flex;
   flex-wrap: wrap;
   justify-content: flex-start;

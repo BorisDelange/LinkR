@@ -10,6 +10,17 @@ app_ui <- function(pages, language, languages, i18n, users_accesses_toggles_opti
       
       args <- list(page, language, languages, i18n)
       if (page == "users") args <- list(page, language, languages, i18n, users_accesses_toggles_options)
+      if (page %in% c("data_cleaning", "datasets", "vocabularies")){
+        
+        code_hotkeys <- list(
+          save = list(win = "CTRL-S", mac = "CTRL-S|CMD-S"),
+          run_selection = list(win = "CTRL-ENTER", mac = "CTRL-ENTER|CMD-ENTER"),
+          run_all = list(win = "CTRL-SHIFT-ENTER", mac = "CTRL-SHIFT-ENTER|CMD-SHIFT-ENTER"),
+          comment = list(win = "CTRL-SHIFT-C", mac = "CTRL-SHIFT-C|CMD-SHIFT-C")
+        )
+        
+        args <- list(page, language, languages, i18n, code_hotkeys)
+      }
       
       shiny.router::route(page_url,
         div(

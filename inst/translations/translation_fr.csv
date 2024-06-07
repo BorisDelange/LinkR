@@ -169,6 +169,7 @@ mapping,Alignement de concepts
 vocabularies_management,Gestion des terminologies
 show_only_used_concepts,N'afficher que les concepts utilisés
 create_dataset,Créer un set de données
+create_data_cleaning_script,Créer un script de data cleaning
 create_vocabulary,Créer une terminologie
 datasets_management,Gestion des sets
 messages,Messages
@@ -373,6 +374,7 @@ username_already_used,Ce pseudo est déjà utilisé
 dropdown_empty,Il manque au moins une valeur dans les menus déroulants
 data_source_added,Nouvelle source de données ajoutée
 dataset_added,Nouveau set de données ajouté
+data_cleaning_added,Nouveau script de data cleaning ajouté
 study_added,Nouvelle étude ajoutée
 subset_added,Nouveau subset ajouté
 script_added,Nouveau script ajouté
@@ -1066,7 +1068,10 @@ share,Partager
 project_console,Console
 delete_dataset_title,Supprimer un set de données
 delete_dataset_text,Confirmer la suppression de ce set de données ?
+delete_data_cleaning_title,Supprimer un script de data cleaning
+delete_data_cleaning_text,Confirmer la suppression de ce script ?
 dataset_deleted,Set de données supprimé
+data_cleaning_script_deleted,Script de data cleaning supprimé
 delete_subset_title,Supprimer un subset
 delete_subset_text,Confirmer la suppression de ce subset ?
 subset_deleted,Subset supprimé
@@ -1109,7 +1114,12 @@ import_vocabulary_title,Importer une terminologie
 import_vocabulary_text,Cette terminologie existe déjà. Confirmez-vous la suppression de la terminologie existante ?
 import_dataset_title,Importer un set de données
 import_dataset_text,Ce set de données existe déjà. Confirmez-vous la suppression du set de données existant ?
+import_data_cleaning_title,Importer un script de data cleaning
+import_data_cleaning_text,Ce set de données existe déjà. Confirmez-vous la suppression du script existant ?
 import_project_title,Importer un projet
 import_project_text,Ce projet existe déjà. Confirmez-vous la suppression du projet existant ?
 import_subset_title,Importer un subset
 import_subset_text,Ce subset existe déjà. Confirmez-vous la suppression du subset existant ?
+reload_plugin_code,Recharger le code du plugin
+select_concepts,Sélectionner des concepts
+confirm,Valider

@@ -166,6 +166,7 @@ mapping,Mapping
 vocabularies_management,Vocabularies management
 show_only_used_concepts,Show only used concepts
 create_dataset,Create a dataset
+create_data_cleaning_script,Create a script for data cleaning
 create_vocabulary,Create a vocabulary
 datasets_management,Datasets management
 messages,Messages
@@ -370,6 +371,7 @@ username_already_used,This username is already used
 dropdown_empty,At least one dropdown is empty
 data_source_added,New data source added
 dataset_added,New dataset added
+data_cleaning_added,New data cleaning script added
 study_added,New study added
 subset_added,New subset added
 script_added,New script added
@@ -1066,7 +1068,10 @@ share,Share
 project_console,Console
 delete_dataset_title,Delete a dataset
 delete_dataset_text,Confirm deletion of this dataset?
+delete_data_cleaning_title,Delete a data cleaning script
+delete_data_cleaning_text,Confirm deletion of this script?
 dataset_deleted,Dataset deleted
+data_cleaning_deleted,Data cleaning script deleted
 delete_subset_title,Delete a subset
 delete_subset_text,Confirm deletion of this subset?
 subset_deleted,Subset deleted
@@ -1109,7 +1114,12 @@ import_vocabulary_title,Import a vocabulary
 import_vocabulary_text,This vocabulary already exists. Are you sure you want to delete the existing vocabulary?
 import_dataset_title,Import a dataset
 import_dataset_text,This dataset already exists. Are you sure you want to delete the existing dataset?
+import_data_cleaning_title,Import a data cleaning script
+import_data_cleaning_text,This script already exists. Are you sure you want to delete the existing script?
 import_project_title,Import a project
 import_project_text,This project already exists. Are you sure you want to delete the existing project?
 import_subset_title,Import a subset
 import_subset_text,This subset already exists. Are you sure you want to delete the existing subset?
+reload_plugin_code,Reload plugin code
+select_concepts,Select concepts
+confirm,Confirm
