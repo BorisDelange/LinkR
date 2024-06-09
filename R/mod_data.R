@@ -101,7 +101,6 @@ mod_data_ui <- function(id = character(), language = "en", languages = tibble::t
           div(
             div(make_textfield(i18n, ns, id = "widget_creation_name", label = "name", width = "200px"), style = "height: 70px; margin-left: 10px;"),
             div(
-              class = "plugin_widget",
               uiOutput(ns("selected_plugin"), style = "height: 100%;"),
               onclick = paste0("Shiny.setInputValue('", id, "-open_select_a_plugin_modal', Math.random());")
             )
@@ -182,6 +181,7 @@ mod_data_ui <- function(id = character(), language = "en", languages = tibble::t
           shiny.fluent::IconButton.shinyInput(ns("close_select_a_plugin_modal"), iconProps = list(iconName = "ChromeClose")),
           class = "select_a_plugin_modal_head small_close_button"
         ),
+        div(shiny.fluent::SearchBox.shinyInput(ns("search_plugin")), style = "width:320px; margin:10px 0 0 10px;"),
         uiOutput(ns("plugins_widgets")),
         class = "select_a_plugin_modal_content"
       ),
@@ -279,6 +279,12 @@ mod_data_server <- function(id = character(), r = shiny::reactiveValues(), d = s
     r$patient_lvl_no_tabs_to_display <- TRUE
     r$aggregated_no_tabs_to_display <- TRUE
     
+    default_selected_plugin_ui <- div(
+      div(i18n$t("select_a_plugin"), class = "default_content_widget"),
+      class = "plugin_widget"
+    )
+    default_selected_concepts_ui <- div(i18n$t("select_concepts"), class = "default_content_widget")
+    
     # --- --- --- --- --- -
     # Change data page ----
     # --- --- --- --- --- -
@@ -350,8 +356,8 @@ mod_data_server <- function(id = character(), r = shiny::reactiveValues(), d = s
         shinyjs::show("study_menu")
         
         # Reset selected plugin and selected concepts
-        output$selected_plugin <- renderUI(div(i18n$t("select_a_plugin"), class = "default_content_widget"))
-        output$selected_concepts <- renderUI(div(i18n$t("select_concepts"), class = "default_content_widget"))
+        output$selected_plugin <- renderUI(default_selected_plugin_ui)
+        output$selected_concepts <- renderUI(default_selected_concepts_ui)
 
         # Reset selected key
         r$patient_lvl_selected_tab <- NA_integer_
@@ -574,7 +580,6 @@ mod_data_server <- function(id = character(), r = shiny::reactiveValues(), d = s
             stringr::str_replace_all("\r", "\n") %>%
             stringr::str_replace_all("''", "'")
           
-          print(subset_code)
           tryCatch(eval(parse(text = subset_code)),
             error = function(e) if (nchar(e[1]) > 0) cat(paste0("\n", now(), " - mod_data - error executing subset code - subset_id = ", m$selected_subset)))
 
@@ -1356,7 +1361,7 @@ mod_data_server <- function(id = character(), r = shiny::reactiveValues(), d = s
       # Choose a tab from the same level, or level up if there's not any tab at the same level
       
       first_tab <- r$data_menu_tabs %>% dplyr::filter(category == r$data_page, level == tab$level)
-      print(first_tab)
+      
       if (nrow(first_tab) == 0){
         first_tab <- r$data_menu_tabs %>% dplyr::filter(category == r$data_page, level == tab$level - 1)
         if (nrow(first_tab) == 0){
@@ -1384,6 +1389,9 @@ mod_data_server <- function(id = character(), r = shiny::reactiveValues(), d = s
     observeEvent(input$add_widget, {
       if (debug) cat(paste0("\n", now(), " - mod_data - observer input$add_widget"))
       shinyjs::show("add_widget_modal")
+      
+      # Reload plugins var
+      shinyjs::runjs(paste0("Shiny.setInputValue('", id, "-reload_plugins_var', Math.random());"))
     })
     
     # Close modal
@@ -1404,14 +1412,60 @@ mod_data_server <- function(id = character(), r = shiny::reactiveValues(), d = s
       shinyjs::hide("select_a_plugin_modal")
     })
     
-    shinyjs::runjs(paste0("Shiny.setInputValue('", id, "-reload_plugins_list', Math.random());"))
+    observeEvent(input$reload_plugins_var, {
+      if (debug) cat(paste0("\n", now(), " - mod_data - observer input$reload_plugins_var"))
+      
+      reload_elements_var(page_id = id, con = r$db, r = r, long_var_filtered = "filtered_data_plugins_long")
+      
+      shinyjs::runjs(paste0("Shiny.setInputValue('", id, "-reload_plugins_list', Math.random());"))
+    })
     
     observeEvent(input$reload_plugins_list, {
       if (debug) cat(paste0("\n", now(), " - mod_data - observer input$reload_plugins_list"))
       
-      reload_elements_var(id = "plugins", con = r$db, r = r)
+      elements_ui <- create_elements_ui(page_id = id, elements = r$filtered_data_plugins_long, r = r, language = language, i18n = i18n)
       
-      output$plugins_widgets <- renderUI("test")
+      output$plugins_widgets <- renderUI(elements_ui)
+    })
+    
+    # Search a plugin
+    
+    observeEvent(input$search_plugin, {
+      if (debug) cat(paste0("\n", now(), " - mod_data - observer input$search_plugin"))
+      
+      if (input$search_plugin == "") r$filtered_data_plugins_long <- r$plugins_long
+      else {
+        # Filter on name or description
+        
+        filtered_ids <- r$plugins_long %>% 
+          dplyr::filter(
+            (name == paste0("name_", language) & grepl(tolower(input$search_plugin), tolower(value))) |
+            (name == paste0("short_description_", language) & grepl(tolower(input$search_plugin), tolower(value)))
+          ) %>%
+          dplyr::pull(id)
+        
+        r$filtered_data_plugins_long <- r$plugins_long %>% dplyr::filter(id %in% filtered_ids)
+      }
+      
+      shinyjs::runjs(paste0("Shiny.setInputValue('", id, "-reload_plugins_list', Math.random());"))
+    })
+    
+    # A plugin is selected
+    
+    observeEvent(input$selected_element_trigger, {
+      if (debug) cat(paste0("\n", now(), " - mod_data - observer input$selected_element_trigger"))
+      
+      row <- r$filtered_data_plugins_long %>% dplyr::filter(id == input$selected_element)
+      plugin_type <- row %>% dplyr::slice(1) %>% dplyr::pull(tab_type_id)
+      plugin_name <- row %>% dplyr::filter(name == paste0("name_", language)) %>% dplyr::pull(value)
+      
+      users_ui <- create_users_ui(row, r$users)
+      plugin_buttons <- get_plugin_buttons(plugin_type, i18n)
+      element_ui <- create_element_ui(id, "plugin", plugin_name, users_ui, plugin_buttons, "")
+      
+      output$selected_plugin <- renderUI(element_ui)
+      
+      shinyjs::delay(50, shinyjs::hide("select_a_plugin_modal"))
     })
     
     ## Selected concepts ----
@@ -1442,15 +1496,16 @@ mod_data_server <- function(id = character(), r = shiny::reactiveValues(), d = s
       if (is.na(widget_name) | widget_name == "") shiny.fluent::updateTextField.shinyInput(session, "widget_creation_name", errorMessage = i18n$t("provide_valid_name"))
       req(!is.na(widget_name) & widget_name != "")
       
-      # Check if plugin dropdown is not empty
-      if (r$data_page == "patient_lvl") tab_type_id <- 1 else tab_type_id <- 2
-      sql <- glue::glue_sql("SELECT * FROM plugins WHERE tab_type_id = {tab_type_id} ORDER BY name", .con = r$db)
-      plugin_options <- DBI::dbGetQuery(r$db, sql) %>% convert_tibble_to_list(key_col = "id", text_col = "name", i18n = i18n)
+      # Check if a plugin is selected
+      if (length(input$selected_element) == 0) output$selected_plugin <- renderUI(
+        div(
+          div(i18n$t("select_a_plugin"), class = "default_content_widget", style = "font-weight: 600; color: #B83137"),
+          class = "plugin_widget"
+        )
+      )
+      req(length(input$selected_element) > 0)
       
-      if (length(input$widget_creation_plugin$key) == 0) shiny.fluent::updateDropdown.shinyInput(session, "widget_creation_plugin", errorMessage = i18n$t("choose_a_plugin"), options = plugin_options)
-      req(length(input$widget_creation_plugin$key) > 0)
-      
-      plugin_id <- input$widget_creation_plugin$key
+      plugin_id <- input$selected_element
       selected_tab <- r[[paste0(category, "_selected_tab")]]
       tab_id <- r[[paste0(category, "_selected_tab")]]
       
@@ -1516,7 +1571,13 @@ mod_data_server <- function(id = character(), r = shiny::reactiveValues(), d = s
       
       # Reset fields
       shiny.fluent::updateTextField.shinyInput(session, "widget_creation_name", value = "")
-      shiny.fluent::updateDropdown.shinyInput(session, "widget_creation_plugin", options = plugin_options, value = NULL)
+      
+      shiny.fluent::updateSearchBox.shinyInput(session, "search_plugin", value = "")
+      
+      output$selected_plugin <- renderUI(default_selected_plugin_ui)
+      shinyjs::runjs(paste0("Shiny.setInputValue('", id, "-selected_element', null);"))
+      
+      output$selected_concepts <- renderUI(default_selected_concepts_ui)
       
       ## Load front-end & back-end ----
       

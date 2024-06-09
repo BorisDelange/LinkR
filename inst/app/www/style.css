@@ -286,8 +286,9 @@ a.no-hover-effect:hover {
 }
 
 .select_a_plugin_modal_content {
-  width: 1200px;
-  height: 600px;
+  width: 1400px;
+  height: 625px;
+  overflow-y: auto;
 }
 
 /* ---------------- */

@@ -181,7 +181,7 @@ mod_widgets_server <- function(id, r, d, m, language, i18n, all_divs, debug){
     observeEvent(input$reload_elements_var, {
       if (debug) cat(paste0("\n", now(), " - mod_widgets - (", id, ") - observer input$reload_elements_var"))
       
-      reload_elements_var(id, con, r)
+      reload_elements_var(page_id = id, con = con, r = r, long_var_filtered = paste0("filtered_", id, "_long"))
       
       shinyjs::runjs(paste0("Shiny.setInputValue('", id, "-reload_elements_list', Math.random());"))
     })
@@ -189,108 +189,7 @@ mod_widgets_server <- function(id, r, d, m, language, i18n, all_divs, debug){
     observeEvent(input$reload_elements_list, {
       if (debug) cat(paste0("\n", now(), " - mod_widgets - (", id, ") - observer input$reload_elements_list"))
       
-      # Filter elements with search box
-      
-      elements <- r[[long_var_filtered]]
-
-      elements_ui <- tagList()
-
-      for (i in unique(elements$id)){
-        row <- elements %>% dplyr::filter(id == i)
-
-        personas <- list()
-        element_users <- row %>% dplyr::filter(name == "user_allowed_read") %>% dplyr::distinct(value_num) %>% dplyr::pull(value_num)
-        for (j in element_users){
-          user <- r$users %>% dplyr::filter(id == j)
-          personas <- rlist::list.append(personas, list(personaName = user$name))
-        }
-
-        users_ui <- shiny.fluent::Facepile(personas = personas)
-
-        element_name <- row %>% dplyr::filter(name == paste0("name_", language)) %>% dplyr::pull(value)
-
-        max_length <- 45
-        if (nchar(element_name) > max_length) element_name <- paste0(substr(element_name, 1, max_length - 3), "...")
-
-        # For plugins widgets, we add some content on the bottom
-        
-        widget_buttons <- tagList()
-        href <- shiny.router::route_link(id)
-        onclick <- paste0("
-          Shiny.setInputValue('", id, "-selected_element', ", i, ");
-          Shiny.setInputValue('", id, "-selected_element_trigger', Math.random());
-        ")
-        
-        if (id == "plugins"){
-          
-          plugin_type <- row %>% dplyr::slice(1) %>% dplyr::pull(tab_type_id)
-
-          if (plugin_type == 1) {
-            plugin_type_icon <- div(shiny.fluent::FontIcon(iconName = "Contact"), class = "small_icon_button")
-            plugin_type_text <- i18n$t("patient_lvl_plugin")
-          }
-          else {
-            plugin_type_icon <- div(shiny.fluent::FontIcon(iconName = "Group"), class = "small_icon_button")
-            plugin_type_text <- i18n$t("aggregated_plugin")
-          }
-
-          plugin_type_icon <- create_hover_card(ui = plugin_type_icon, text = plugin_type_text)
-          
-          widget_buttons <-
-          div(
-            div(
-              div("R", class = "prog_label r_label"),
-              div("Python", class = "prog_label python_label"),
-              class = "plugin_widget_labels"
-            ),
-            plugin_type_icon,
-            class = "plugin_widget_bottom"
-          )
-        }
-        
-        else if (id == "projects"){
-          
-          href <- shiny.router::route_link("data")
-         
-          widget_buttons <-
-            div(
-              div(
-                create_hover_card(
-                  ui = shiny.fluent::IconButton.shinyInput(ns("project_settings"), iconProps = list(iconName = "Settings"), href = shiny.router::route_link("projects")),
-                  text = i18n$t("set_up_project")),
-                class = "small_icon_button",
-                onclick = paste0(onclick, "
-                  Shiny.setInputValue('", id, "-selected_element_type', 'project_options');
-                  event.stopPropagation();
-                ")
-              ),
-              div(
-                create_hover_card(ui = shiny.fluent::IconButton.shinyInput(ns("load_project"), iconProps = list(iconName = "Play")), text = i18n$t("load_project")),
-                class = "small_icon_button"
-              ),
-              class = "project_widget_buttons"
-            )
-        }
-        
-        elements_ui <- tagList(
-          div(
-            href = href,
-            onclick = paste0(onclick, "Shiny.setInputValue('", id, "-selected_element_type', '');"),
-            div(
-              class = paste0(single_id, "_widget"),
-              div(
-                tags$h1(element_name),
-                users_ui,
-                div(paste0("Short description of my ", single_id))
-              ),
-              widget_buttons
-            )
-          ),
-          elements_ui
-        )
-      }
-
-      elements_ui <- div(elements_ui, class = paste0(id, "_container"))
+      elements_ui <- create_elements_ui(page_id = id, elements = r[[long_var_filtered]], r = r, language = language, i18n = i18n)
 
       output$elements <- renderUI(elements_ui)
 
