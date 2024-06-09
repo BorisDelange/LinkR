@@ -181,55 +181,7 @@ mod_widgets_server <- function(id, r, d, m, language, i18n, all_divs, debug){
     observeEvent(input$reload_elements_var, {
       if (debug) cat(paste0("\n", now(), " - mod_widgets - (", id, ") - observer input$reload_elements_var"))
       
-      if (sql_table == "plugins"){
-        sql <- glue::glue_sql("WITH {paste0('selected_', id)} AS (
-          SELECT DISTINCT d.id
-          FROM {sql_table} d
-          LEFT JOIN options AS r ON d.id = r.link_id AND r.category = {sql_category} AND r.name = 'users_allowed_read_group'
-          LEFT JOIN options AS u ON d.id = u.link_id AND u.category = {sql_category} AND u.name = 'user_allowed_read'
-          WHERE r.value = 'everybody' OR (r.value = 'people_picker' AND u.value_num = {r$user_id})
-        )
-        SELECT d.id, d.update_datetime, d.tab_type_id, o.name, o.value, o.value_num
-          FROM {sql_table} d
-          INNER JOIN {paste0('selected_', id)} ON d.id = {paste0('selected_', id)}.id
-          LEFT JOIN options o ON o.category = {sql_category} AND d.id = o.link_id", .con = con)
-      }
-      
-      else if (sql_table == "subsets"){
-        sql <- glue::glue_sql("WITH {paste0('selected_', id)} AS (
-          SELECT DISTINCT d.id
-          FROM {sql_table} d
-          LEFT JOIN options AS r ON d.id = r.link_id AND r.category = {sql_category} AND r.name = 'users_allowed_read_group'
-          LEFT JOIN options AS u ON d.id = u.link_id AND u.category = {sql_category} AND u.name = 'user_allowed_read'
-          WHERE 
-            d.study_id = {m$selected_study} AND
-            (r.value = 'everybody' OR (r.value = 'people_picker' AND u.value_num = {r$user_id}))
-        )
-        SELECT d.id, o.name, o.value, o.value_num
-          FROM {sql_table} d
-          INNER JOIN {paste0('selected_', id)} ON d.id = {paste0('selected_', id)}.id
-          LEFT JOIN options o ON o.category = {sql_category} AND d.id = o.link_id", .con = con)
-      }
-      
-      else {
-        sql <- glue::glue_sql("WITH {paste0('selected_', id)} AS (
-          SELECT DISTINCT d.id
-          FROM {sql_table} d
-          LEFT JOIN options AS r ON d.id = r.link_id AND r.category = {sql_category} AND r.name = 'users_allowed_read_group'
-          LEFT JOIN options AS u ON d.id = u.link_id AND u.category = {sql_category} AND u.name = 'user_allowed_read'
-          WHERE r.value = 'everybody' OR (r.value = 'people_picker' AND u.value_num = {r$user_id})
-        )
-        SELECT d.id, d.update_datetime, o.name, o.value, o.value_num
-          FROM {sql_table} d
-          INNER JOIN {paste0('selected_', id)} ON d.id = {paste0('selected_', id)}.id
-          LEFT JOIN options o ON o.category = {sql_category} AND d.id = o.link_id", .con = con)
-      }
-      
-      r[[long_var]] <- DBI::dbGetQuery(con, sql) %>% tibble::as_tibble()
-      r[[long_var_filtered]] <- r[[long_var]]
-      
-      sql <- glue::glue_sql("SELECT * FROM {sql_table} WHERE id IN ({unique(r[[long_var]]$id)*})", .con = con)
-      r[[wide_var]] <- DBI::dbGetQuery(con, sql) %>% tibble::as_tibble()
+      reload_elements_var(id, con, r)
       
       shinyjs::runjs(paste0("Shiny.setInputValue('", id, "-reload_elements_list', Math.random());"))
     })
@@ -321,7 +273,7 @@ mod_widgets_server <- function(id, r, d, m, language, i18n, all_divs, debug){
         }
         
         elements_ui <- tagList(
-          tags$a(
+          div(
             href = href,
             onclick = paste0(onclick, "Shiny.setInputValue('", id, "-selected_element_type', '');"),
             div(
@@ -332,8 +284,7 @@ mod_widgets_server <- function(id, r, d, m, language, i18n, all_divs, debug){
                 div(paste0("Short description of my ", single_id))
               ),
               widget_buttons
-            ),
-            class = "no-hover-effect"
+            )
           ),
           elements_ui
         )

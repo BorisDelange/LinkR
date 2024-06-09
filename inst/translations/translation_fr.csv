@@ -1001,7 +1001,7 @@ import_vocabularies,Importer des terminologies
 export_vocabularies,Exporter des terminologies
 images,Images
 show_all_relationships,Afficher toutes les associations
-no_tabs_to_display_click_add_tab,Cette étude ne contient pas d'onglets. Cliquez sur 'ajouter un onglet'.
+no_tabs_to_display_click_add_tab,Ce projet ne contient pas d'onglets. Cliquez sur 'ajouter un onglet'.
 studies_dataset,Set de données
 files,Fichiers
 readme,README
@@ -1123,3 +1123,4 @@ import_subset_text,Ce subset existe déjà. Confirmez-vous la suppression du sub
 reload_plugin_code,Recharger le code du plugin
 select_concepts,Sélectionner des concepts
 confirm,Valider
+select_a_plugin,Sélectionner un plugin

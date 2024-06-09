@@ -1001,7 +1001,7 @@ import_vocabularies,Import vocabularies
 export_vocabularies,Export vocabularies
 images,Images
 show_all_relationships,Show all relationships
-no_tabs_to_display_click_add_tab,This study does not contain any tab. Click on 'Add a tab'.
+no_tabs_to_display_click_add_tab,This project does not contain any tab. Click on 'Add a tab'.
 studies_dataset,Dataset
 files,Files
 readme,README
@@ -1123,3 +1123,4 @@ import_subset_text,This subset already exists. Are you sure you want to delete t
 reload_plugin_code,Reload plugin code
 select_concepts,Select concepts
 confirm,Confirm
+select_a_plugin,Select a plugin

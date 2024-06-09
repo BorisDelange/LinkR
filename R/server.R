@@ -8,6 +8,8 @@ app_server <- function(pages, language, languages, i18n, app_folder, debug, log_
     
     if (debug) cat(paste0("\n", now(), " - server - reactive values"))
     
+    # Create observers ----
+    
     # Create r reactive value, for the application processings
     r <- reactiveValues()
     
@@ -26,8 +28,10 @@ app_server <- function(pages, language, languages, i18n, app_folder, debug, log_
     # Create o reactive values, for observers inactivation
     o <- reactiveValues()
     
-    # App version
+    # App version ----
     r$app_version <- "0.3.0.9009"
+    
+    # Databse col types ----
     
     # Col types of database tables, to import and restore database
     db_col_types <- tibble::tribble(
@@ -72,22 +76,22 @@ app_server <- function(pages, language, languages, i18n, app_folder, debug, log_
       "widgets_concepts", "iiicccilicl", "public"
     )
     
-    # Test internet connection
+    # Test internet connection ----
     # If local is TRUE, don't use internet connection
     if (debug) cat(paste0("\n", now(), " - server - has_internet"))
     if (local) has_internet <- FALSE
     else has_internet <- curl::has_internet()
     r$has_internet <- has_internet
     
-    # App folder
+    # App folder ----
     if (debug) cat(paste0("\n", now(), " - server - app_folder"))
     r$app_folder <- app_folder
     m$app_folder <- app_folder
     
-    # App db folder
+    # App db folder ----
     app_db_folder <- paste0(app_folder, "/app_database")
     
-    # Get translations
+    # Translations ----
     
     if (debug) cat(paste0("\n", now(), " - server - translations"))
     
@@ -96,7 +100,7 @@ app_server <- function(pages, language, languages, i18n, app_folder, debug, log_
     r$language <- language
     m$language <- language
     
-    # Connection to database
+    # Connection to database ----
     # If connection informations have been given in linkr() function, use these informations
     if (debug) cat(paste0("\n", now(), " - server - app_db"))
     r$local_db <- DBI::dbConnect(RSQLite::SQLite(), paste0(app_db_folder, "/linkr_main"))
@@ -125,19 +129,19 @@ app_server <- function(pages, language, languages, i18n, app_folder, debug, log_
       
       # Load datasets
       sql <- glue::glue_sql("SELECT * FROM datasets", .con = r$db)
-      r$datasets_wide <- DBI::dbGetQuery(r$db, sql)
+      r$datasets_wide <- DBI::dbGetQuery(r$db, sql) %>% tibble::as_tibble()
       
       # Load plugins
       sql <- glue::glue_sql("SELECT * FROM plugins", .con = r$db)
-      r$plugins_wide <- DBI::dbGetQuery(r$db, sql)
+      r$plugins_wide <- DBI::dbGetQuery(r$db, sql) %>% tibble::as_tibble()
       
       # Load vocabularies
       sql <- glue::glue_sql("SELECT * FROM vocabulary", .con = m$db)
-      r$vocabulary_wide <- DBI::dbGetQuery(m$db, sql)
+      r$vocabulary_wide <- DBI::dbGetQuery(m$db, sql) %>% tibble::as_tibble()
       
       # Load users names
       sql <- glue::glue_sql("SELECT id, (firstname || ' ' || lastname) AS name, (SUBSTR(firstname, 1, 1) || SUBSTR(lastname, 1, 1)) AS initials FROM users", .con = r$db)
-      r$users <- DBI::dbGetQuery(r$db, sql)
+      r$users <- DBI::dbGetQuery(r$db, sql) %>% tibble::as_tibble()
       
       # Retro-compatibility : delete all insertions with DELETED IS TRUE
       sql <- glue::glue_sql("SELECT * FROM options WHERE name = 'unused_rows_deleted' AND value = 'true'", .con = r$db)
@@ -252,14 +256,14 @@ app_server <- function(pages, language, languages, i18n, app_folder, debug, log_
       }
     })
     
-    # Route pages
+    # Route pages ----
     if (debug) cat(paste0("\n", now(), " - server - shiny.router"))
     shiny.router::router_server()
     
     # Keep trace of loaded observers (not to have multiple identical observers)
     # r$loaded_observers <- ""
     
-    # Load pages
+    # Load pages ----
     
     r$loaded_pages <- list()
     
