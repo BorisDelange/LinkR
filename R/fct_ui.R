@@ -36,10 +36,15 @@ format_datetime <- function(datetime = character(), language = "en", sec = TRUE,
 #' @param ui UI element (character)
 #' @param text Text to display in the card (character)
 create_hover_card <- function(ui = character(), text = character()){
-  shiny.fluent::HoverCard(type = "PlainCard", plainCardProps = htmlwidgets::JS(paste0("{
+  shiny.fluent::HoverCard(
+  type = "PlainCard",
+  plainCardProps = htmlwidgets::JS(paste0("{
     onRenderPlainCard: (a, b, c) => '", text, "',
     style: { padding: '5px', fontSize: '12px'}
-      }")), ui)
+    }")
+  ),
+  ui
+  )
 }
 
 #' Make a shiny.fluent card
@@ -450,14 +455,35 @@ render_datatable <- function(output, ns = character(), i18n = character(), data 
     # Default options
     rownames = FALSE, escape = FALSE,
     
+    # CSS
+    # drawCallback = htmltools::JS(
+    #   "function(settings) {",
+    #   "  $('.dataTable tbody tr td ').css({",
+    #   "    'height', '12px'",
+    #   "    'padding', '2px 5px'",
+    #   "  });",
+    #   "}"
+    # ),
+    
     # Javascript code allowing to have dropdowns & actionButtons on the DataTable
-    callback = htmlwidgets::JS("table.rows().every(function(i, tab, row) {
-        var $this = $(this.node());
-        $this.attr('id', this.data()[0]);
-        $this.addClass('shiny-input-container');
-        });
-        Shiny.unbindAll(table.table().node());
-        Shiny.bindAll(table.table().node());")
+    callback = htmlwidgets::JS(
+      "table.rows().every(function(i, tab, row) {",
+      "  var $this = $(this.node());",
+      "  $this.attr('id', this.data()[0]);",
+      "  $this.addClass('shiny-input-container');",
+      "});",
+      "Shiny.unbindAll(table.table().node());",
+      "Shiny.bindAll(table.table().node());",
+      
+      "table.on('draw.dt', function() {",
+      "  $('.dataTable tbody tr td').css({",
+      "    'height': '12px',",
+      "    'padding': '2px 5px'",
+      "  });",
+      "  $('.dataTable thead tr td div .form-control').css('font-size', '12px');",
+      "  $('.dataTable thead tr td').css('padding', '5px');",
+      "});"
+    )
   )
   
   # Bold rows with condition

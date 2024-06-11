@@ -1,14 +1,5 @@
-#' patient_and_aggregated_data UI Function
-#'
-#' @description A shiny Module.
-#'
-#' @param id,input,output,session Internal parameters for {shiny}.
-#'
-#' @noRd 
-#'
-#' @importFrom shiny NS tagList 
-
-mod_data_ui <- function(id = character(), language = "en", languages = tibble::tibble(), i18n = character()){
+#' @noRd
+mod_data_ui <- function(id, language, languages, i18n){
   ns <- NS(id)
   result <- ""
   language <- "EN"
@@ -99,7 +90,7 @@ mod_data_ui <- function(id = character(), language = "en", languages = tibble::t
         ),
         div(
           div(
-            div(make_textfield(i18n, ns, id = "widget_creation_name", label = "name", width = "200px"), style = "height: 70px; margin-left: 10px;"),
+            div(make_textfield(i18n, ns, id = "widget_creation_name", label = "name", width = "320px"), style = "height: 70px; margin-left: 10px;"),
             div(
               uiOutput(ns("selected_plugin"), style = "height: 100%;"),
               onclick = paste0("Shiny.setInputValue('", id, "-open_select_a_plugin_modal', Math.random());")
@@ -107,40 +98,12 @@ mod_data_ui <- function(id = character(), language = "en", languages = tibble::t
           ),
           div(
             class = "selected_concepts_widget",
-            uiOutput(ns("selected_concepts"), style = "height: 100%;"),
-            onclick = paste0("Shiny.setInputValue('", id, "-open_select_concepts_modal', Math.random());")
+            uiOutput(ns("selected_concepts"), class = "selected_concepts_ui"),
+            onclick = paste0("Shiny.setInputValue('", id, "-open_select_concepts_modal', Math.random());"),
+            style = "display: inherit; margin: 10px 0; overflow: auto;"
           ),
-          # make_combobox(i18n, ns, id = "widget_creation_plugin", label = "plugin", allowFreeform = FALSE, multiSelect = FALSE, width = "200px"),
-          # div(
-          #   make_combobox(i18n, ns, id = "widget_creation_vocabulary", label = "vocabulary", allowFreeform = FALSE, multiSelect = FALSE, width = "200px"),
-          #   make_dropdown(i18n, ns, id = "widget_creation_vocabulary_concepts_table_cols", label = "columns", multiSelect = TRUE,
-          #     options = list(
-          #       list(key = 0, text = i18n$t("concept_id")),
-          #       list(key = 1, text = i18n$t("concept_name")),
-          #       list(key = 2, text = i18n$t("concept_display_name")),
-          #       list(key = 3, text = i18n$t("domain_id")),
-          #       list(key = 4, text = i18n$t("concept_class_id")),
-          #       list(key = 5, text = i18n$t("standard_concept")),
-          #       list(key = 6, text = i18n$t("concept_code")),
-          #       list(key = 7, text = i18n$t("num_patients")),
-          #       list(key = 8, text = i18n$t("num_rows")),
-          #       list(key = 9, text = i18n$t("action"))
-          #     ),
-          #     value = c(0, 1, 2, 7, 8, 9),
-          #     width = "200px"
-          #   ),
-          #   style = "display: flex; gap: 10px;"
-          # ),
-          # div(
-          #   shiny.fluent::Dropdown.shinyInput(
-          #     ns("widget_creation_vocabulary_selected_concepts"), value = NULL, options = list(), multiSelect = TRUE, label = i18n$t("vocabulary_selected_concepts"),
-          #     onChanged = htmlwidgets::JS(paste0("item => Shiny.setInputValue('", id, "-widget_creation_vocabulary_selected_concepts_trigger', Math.random())"))
-          #   ),
-          #   style = "width:410px;"
-          # ),
-          # div(DT::DTOutput(ns("widget_creation_vocabulary_concepts")), class = "vocabulary_table"),
           class = "create_element_modal_body",
-          style = "display: flex;"
+          style = "display: flex; gap: 10px; padding-right: 10px;"
         ),
         div(
           shiny.fluent::PrimaryButton.shinyInput(ns("widget_creation_save"), i18n$t("add")),
@@ -191,23 +154,7 @@ mod_data_ui <- function(id = character(), language = "en", languages = tibble::t
   
   # Select concepts modal ----
   
-  select_concepts_modal <- shinyjs::hidden(
-    div(
-      id = ns("select_concepts_modal"),
-      div(
-        div(
-          tags$h1(i18n$t("select_concepts")),
-          shiny.fluent::IconButton.shinyInput(ns("close_select_concepts_modal"), iconProps = list(iconName = "ChromeClose")),
-          class = "select_concepts_modal_head small_close_button"
-        ),
-        div(
-          
-        ),
-        class = "select_concepts_modal_content"
-      ),
-      class = "select_concepts_modal"
-    )
-  )
+  select_concepts_modal <- mod_select_concepts_ui(id, language, languages, i18n)
   
   # Study divs ----
   
@@ -333,6 +280,7 @@ mod_data_server <- function(id = character(), r = shiny::reactiveValues(), d = s
       if (r$project_load_status_displayed) r$project_load_status$init_vars_starttime <- now("%Y-%m-%d %H:%M:%OS3")
 
       shinyjs::delay(100, {
+        
         # Reset data variables
         sapply(subset_tables, function(table) d$data_subset[[table]] <- tibble::tibble())
         sapply(person_tables, function(table) d$data_person[[table]] <- tibble::tibble())
@@ -356,6 +304,11 @@ mod_data_server <- function(id = character(), r = shiny::reactiveValues(), d = s
         shinyjs::show("study_menu")
         
         # Reset selected plugin and selected concepts
+        shinyjs::runjs(paste0(
+          "$('#", id, "-selected_concepts').css('height', '100%');",
+          "$('#", id, "-selected_concepts').css('justify-content', 'center');",
+          "$('#", id, "-selected_concepts').css('align-items', 'left;');"
+        ))
         output$selected_plugin <- renderUI(default_selected_plugin_ui)
         output$selected_concepts <- renderUI(default_selected_concepts_ui)
 
@@ -1581,7 +1534,6 @@ mod_data_server <- function(id = character(), r = shiny::reactiveValues(), d = s
       
       ## Load front-end & back-end ----
       
-      # load_tab_plugins(tab_id)
       load_tab_plugins(tab_id, widget_id, "add")
       load_tab_ui(category, tab_id, widget_id, "add")
       load_tab_server(tab_id, widget_id, "add")
@@ -1714,10 +1666,7 @@ mod_data_server <- function(id = character(), r = shiny::reactiveValues(), d = s
         }
         
         # Get translations file
-        translations <- readLines(translations_file, warn = FALSE)
-        
-        # Create a csv with all languages
-        data <- read.csv(text = translations, header = TRUE, stringsAsFactors = FALSE)
+        data <- vroom::vroom(translations_file)
         
         # Create one csv by language
         for(lang in names(data)[-1]){

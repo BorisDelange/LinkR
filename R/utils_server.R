@@ -205,8 +205,8 @@ get_col_names <- function(table_name = character(), i18n = character()){
   }
   
   else if (table_name == "plugins_vocabulary_concepts_with_counts"){
-    result <- c(i18n$t("concept_id"), i18n$t("concept_name"), i18n$t("concept_display_name"),
-      i18n$t("domain_id"), i18n$t("concept_class_id"), i18n$t("standard_concept"), i18n$t("concept_code"),
+    result <- c(i18n$t("concept_id"), i18n$t("concept_name"),
+      i18n$t("domain_id"), i18n$t("vocabulary_id"), i18n$t("concept_class_id"), i18n$t("standard_concept"), i18n$t("concept_code"),
       i18n$t("num_patients"), i18n$t("num_rows"), i18n$t("action"))
   }
   
