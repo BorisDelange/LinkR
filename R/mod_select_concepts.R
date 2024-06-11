@@ -8,7 +8,7 @@ mod_select_concepts_ui <- function(id, language, languages, i18n){
       div(
         div(
           tags$h1(i18n$t("select_concepts")),
-          shiny.fluent::IconButton.shinyInput(ns("close_select_concepts_modal"), iconProps = list(iconName = "ChromeClose")),
+          shiny.fluent::IconButton.shinyInput(ns("close_select_concepts_modal_1"), iconProps = list(iconName = "ChromeClose")),
           class = "select_concepts_modal_head small_close_button"
         ),
         div(
@@ -53,18 +53,14 @@ mod_select_concepts_ui <- function(id, language, languages, i18n){
           ),
           div(
             uiOutput(ns("selected_concepts_list")),
-            style = "width: 500px; height: 100%; overflow-y: auto; padding-top: 10px;",
+            style = "width: 500px; overflow-y: auto; padding-top: 10px;",
             class = "widget"
           ),
-          # div(
-          #   div(
-          #     uiOutput(ns("selected_concepts_list")),
-          #     style = "width: 500px; height: 100%; overflow-y: auto; padding-top: 10px;",
-          #     class = "widget"
-          #   ),
-          #   shiny.fluent::PrimaryButton.shinyInput(ns("close_select_concepts_modal_2"), i18n$t("confirm"))
-          # ),
-          style = "display: flex;"
+          style = "display: flex; height: calc(100% - 30px);"
+        ),
+        div(
+          shiny.fluent::PrimaryButton.shinyInput(ns("close_select_concepts_modal_2"), i18n$t("confirm")),
+          style = "display: flex; justify-content: flex-end; margin-right: 10px;"
         ),
         class = "select_concepts_modal_content"
       ),
@@ -77,6 +73,23 @@ mod_select_concepts_ui <- function(id, language, languages, i18n){
 mod_select_concepts_server <- function(id, r, d, m, language, i18n, debug){
   moduleServer(id, function(input, output, session){
     ns <- session$ns
+    
+    # Open / close modal ----
+    
+    observeEvent(input$open_select_concepts_modal, {
+      if (debug) cat(paste0("\n", now(), " - mod_data - observer input$open_select_concepts_modal"))
+      shinyjs::show("select_concepts_modal")
+    })
+    
+    observeEvent(input$close_select_concepts_modal_1, {
+      if (debug) cat(paste0("\n", now(), " - mod_data - observer input$close_select_concepts_modal_1"))
+      shinyjs::hide("select_concepts_modal")
+    })
+    
+    observeEvent(input$close_select_concepts_modal_2, {
+      if (debug) cat(paste0("\n", now(), " - mod_data - observer input$close_select_concepts_modal_2"))
+      shinyjs::hide("select_concepts_modal")
+    })
     
     # Reload vocabularies ----
     observeEvent(r$dataset_vocabularies, {
@@ -119,7 +132,8 @@ mod_select_concepts_server <- function(id, r, d, m, language, i18n, debug){
         dplyr::mutate_at("add_concept_input", stringr::str_replace_all, "%input_prefix%", "add_concept") %>%
         dplyr::mutate_at("add_concept_input", stringr::str_replace_all, "%input_prefix_2%", "") %>%
         dplyr::mutate_at("concept_id", as.character) %>%
-        dplyr::mutate(add_concept_input = stringr::str_replace_all(add_concept_input, "%concept_id_1%", concept_id))
+        dplyr::mutate(add_concept_input = stringr::str_replace_all(add_concept_input, "%concept_id_1%", concept_id)) %>%
+        dplyr::arrange(dplyr::desc(count_concepts_rows))
 
       r[[paste0(id, "_vocabulary_concepts")]] <- widget_vocabulary_concepts
 

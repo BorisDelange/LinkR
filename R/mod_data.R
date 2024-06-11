@@ -103,11 +103,11 @@ mod_data_ui <- function(id, language, languages, i18n){
             style = "display: inherit; margin: 10px 0; overflow: auto;"
           ),
           class = "create_element_modal_body",
-          style = "display: flex; gap: 10px; padding-right: 10px;"
+          style = "display: flex; gap: 10px; padding-right: 10px; height: calc(100% - 70px);"
         ),
         div(
           shiny.fluent::PrimaryButton.shinyInput(ns("widget_creation_save"), i18n$t("add")),
-          class = "create_element_modal_buttons"
+          style = "display: flex; justify-content: flex-end; margin-right: 10px;"
         ),
         class = "create_widget_modal_content"
       ),
@@ -230,6 +230,11 @@ mod_data_server <- function(id = character(), r = shiny::reactiveValues(), d = s
       div(i18n$t("select_a_plugin"), class = "default_content_widget"),
       class = "plugin_widget"
     )
+    update_selected_concepts_css <- paste0(
+      "$('#", id, "-selected_concepts').css('height', '100%');",
+      "$('#", id, "-selected_concepts').css('justify-content', 'center');",
+      "$('#", id, "-selected_concepts').css('align-items', 'left;');"
+    )
     default_selected_concepts_ui <- div(i18n$t("select_concepts"), class = "default_content_widget")
     
     # --- --- --- --- --- -
@@ -304,11 +309,7 @@ mod_data_server <- function(id = character(), r = shiny::reactiveValues(), d = s
         shinyjs::show("study_menu")
         
         # Reset selected plugin and selected concepts
-        shinyjs::runjs(paste0(
-          "$('#", id, "-selected_concepts').css('height', '100%');",
-          "$('#", id, "-selected_concepts').css('justify-content', 'center');",
-          "$('#", id, "-selected_concepts').css('align-items', 'left;');"
-        ))
+        shinyjs::runjs(update_selected_concepts_css)
         output$selected_plugin <- renderUI(default_selected_plugin_ui)
         output$selected_concepts <- renderUI(default_selected_concepts_ui)
 
@@ -1413,24 +1414,12 @@ mod_data_server <- function(id = character(), r = shiny::reactiveValues(), d = s
       plugin_name <- row %>% dplyr::filter(name == paste0("name_", language)) %>% dplyr::pull(value)
       
       users_ui <- create_users_ui(row, r$users)
-      plugin_buttons <- get_plugin_buttons(plugin_type, i18n)
+      plugin_buttons <- ""
       element_ui <- create_element_ui(id, "plugin", plugin_name, users_ui, plugin_buttons, "")
       
       output$selected_plugin <- renderUI(element_ui)
       
       shinyjs::delay(50, shinyjs::hide("select_a_plugin_modal"))
-    })
-    
-    ## Selected concepts ----
-    
-    observeEvent(input$open_select_concepts_modal, {
-      if (debug) cat(paste0("\n", now(), " - mod_data - observer input$open_select_concepts_modal"))
-      shinyjs::show("select_concepts_modal")
-    })
-    
-    observeEvent(input$close_select_concepts_modal, {
-      if (debug) cat(paste0("\n", now(), " - mod_data - observer input$close_select_concepts_modal"))
-      shinyjs::hide("select_concepts_modal")
     })
     
     ## Confirm creation of widget ----
@@ -1491,17 +1480,14 @@ mod_data_server <- function(id = character(), r = shiny::reactiveValues(), d = s
       selected_concepts <- tibble::tibble(
         concept_id = integer(), concept_name = character(), concept_display_name = character(), domain_id = character(),
         mapped_to_concept_id = integer(), merge_mapped_concepts = logical())
-
-      if (length(r$data_widget_creation_vocabulary_selected_concepts) == 0) has_vocabulary_concepts <- FALSE
-      else if (nrow(r$data_widget_creation_vocabulary_selected_concepts) == 0) has_vocabulary_concepts <- FALSE
-
-      if (has_vocabulary_concepts){
+      
+      if (nrow(r[[paste0(id, "_selected_concepts")]]) > 0){
 
         new_data <-
-          r$data_widget_creation_vocabulary_selected_concepts %>%
+          r[[paste0(id, "_selected_concepts")]] %>%
           dplyr::transmute(
             id = 1:dplyr::n() + last_row_widgets_concepts + 1, widget_id = !!widget_id,
-            concept_id, concept_name, concept_display_name, domain_id, mapped_to_concept_id, merge_mapped_concepts,
+            concept_id, concept_name, concept_display_name = "", domain_id, mapped_to_concept_id, merge_mapped_concepts,
             creator_id = r$user_id, datetime = now(), deleted = FALSE
           )
 
@@ -1509,14 +1495,13 @@ mod_data_server <- function(id = character(), r = shiny::reactiveValues(), d = s
         r$data_widgets_concepts <- r$data_widgets_concepts %>% dplyr::bind_rows(new_data)
 
         # Vocabulary concepts for server code
-        selected_concepts <- r$data_widget_creation_vocabulary_selected_concepts
-
-        # Reset r$..widget_vocabulary_selected_concepts & dropdown
-        r$data_widget_creation_vocabulary_selected_concepts <- tibble::tibble(
-          concept_id = integer(), concept_name = character(), concept_display_name = character(), domain_id = character(),
-          mapped_to_concept_id = integer(), merge_mapped_concepts = logical())
-
-        shiny.fluent::updateDropdown.shinyInput(session, "widget_creation_vocabulary_selected_concepts", options = list(), multiSelect = TRUE, multiSelectDelimiter = " || ")
+        selected_concepts <- r[[paste0(id, "_selected_concepts")]]
+        
+        # Reset selected concepts
+        r[[paste0(id, "_selected_concepts")]] <- tibble::tibble(
+          concept_id = integer(), concept_name = character(), domain_id = character(), vocabulary_id = character(),
+          mapped_to_concept_id = integer(), merge_mapped_concepts = logical()
+        )
       }
       
       # Notify user
@@ -1527,10 +1512,15 @@ mod_data_server <- function(id = character(), r = shiny::reactiveValues(), d = s
       
       shiny.fluent::updateSearchBox.shinyInput(session, "search_plugin", value = "")
       
+      # Reset selected plugin and selected concepts
+      shinyjs::runjs(update_selected_concepts_css)
+      output$selected_concepts <- renderUI(default_selected_concepts_ui)
+      
       output$selected_plugin <- renderUI(default_selected_plugin_ui)
       shinyjs::runjs(paste0("Shiny.setInputValue('", id, "-selected_element', null);"))
       
       output$selected_concepts <- renderUI(default_selected_concepts_ui)
+      output$selected_concepts_list <- renderUI("")
       
       ## Load front-end & back-end ----
       

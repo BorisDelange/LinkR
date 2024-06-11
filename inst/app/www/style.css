@@ -255,7 +255,7 @@ a.no-hover-effect:hover {
 
 .create_widget_modal_content {
   width: 60%;
-  padding-bottom: 50px;
+  height: 320px;
 }
 
 .select_concepts_modal_content {
@@ -267,6 +267,7 @@ a.no-hover-effect:hover {
 .create_element_modal_head, .select_concepts_modal_head, .select_a_plugin_modal_head {
   display: flex;
   justify-content: space-between;
+  margin: 0 10px;
 }
 
 .create_element_modal_body, .select_concepts_modal_body {
