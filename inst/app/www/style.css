@@ -379,7 +379,6 @@ a.no-hover-effect:hover {
   padding: 0px 10px 5px 10px;
   height: 100%;
   box-sizing: border-box;
-  cursor: pointer;
 }
 
 .project_widget h1, .plugin_widget h1, .dataset_widget h1, .subset_widget h1, .vocabulary_widget h1,

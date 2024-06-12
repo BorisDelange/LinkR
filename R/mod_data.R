@@ -1369,7 +1369,7 @@ mod_data_server <- function(id = character(), r = shiny::reactiveValues(), d = s
     observeEvent(input$reload_plugins_var, {
       if (debug) cat(paste0("\n", now(), " - mod_data - observer input$reload_plugins_var"))
       
-      reload_elements_var(page_id = id, con = r$db, r = r, long_var_filtered = "filtered_data_plugins_long")
+      reload_elements_var(page_id = id, con = r$db, r = r, m = m, long_var_filtered = "filtered_data_plugins_long")
       
       shinyjs::runjs(paste0("Shiny.setInputValue('", id, "-reload_plugins_list', Math.random());"))
     })
@@ -1476,10 +1476,8 @@ mod_data_server <- function(id = character(), r = shiny::reactiveValues(), d = s
       # Add widget concepts in db
       last_row_widgets_concepts <- get_last_row(m$db, "widgets_concepts")
 
-      has_vocabulary_concepts <- TRUE
-      selected_concepts <- tibble::tibble(
-        concept_id = integer(), concept_name = character(), concept_display_name = character(), domain_id = character(),
-        mapped_to_concept_id = integer(), merge_mapped_concepts = logical())
+      # Vocabulary concepts for server code
+      selected_concepts <- r[[paste0(id, "_selected_concepts")]]
       
       if (nrow(r[[paste0(id, "_selected_concepts")]]) > 0){
 
@@ -1493,9 +1491,6 @@ mod_data_server <- function(id = character(), r = shiny::reactiveValues(), d = s
 
         DBI::dbAppendTable(m$db, "widgets_concepts", new_data)
         r$data_widgets_concepts <- r$data_widgets_concepts %>% dplyr::bind_rows(new_data)
-
-        # Vocabulary concepts for server code
-        selected_concepts <- r[[paste0(id, "_selected_concepts")]]
         
         # Reset selected concepts
         r[[paste0(id, "_selected_concepts")]] <- tibble::tibble(
@@ -1503,6 +1498,8 @@ mod_data_server <- function(id = character(), r = shiny::reactiveValues(), d = s
           mapped_to_concept_id = integer(), merge_mapped_concepts = logical()
         )
       }
+      
+      print(selected_concepts)
       
       # Notify user
       show_message_bar(output, message = "widget_added", type = "success", i18n = i18n, ns = ns)

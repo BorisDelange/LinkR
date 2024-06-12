@@ -93,9 +93,16 @@ mod_select_concepts_server <- function(id, r, d, m, language, i18n, debug){
     
     # Reload vocabularies ----
     observeEvent(r$dataset_vocabularies, {
-
       if (debug) cat(paste0("\n", now(), " - mod_select_concepts - (", id, ") - observer r$dataset_vocabularies"))
+      shinyjs::runjs(paste0("Shiny.setInputValue('", id, "-reload_vocabularies', Math.random())"))
+    })
+    
+    shinyjs::runjs(paste0("Shiny.setInputValue('", id, "-reload_vocabularies', Math.random())"))
 
+    observeEvent(input$reload_vocabularies, {
+      if (debug) cat(paste0("\n", now(), " - mod_select_concepts - (", id, ") - observer r$reload_vocabularies"))
+      
+      req(r$dataset_vocabularies)
       if (nrow(r$dataset_vocabularies) == 0) vocabulary_options = list()
       if (nrow(r$dataset_vocabularies) > 0) vocabulary_options <- convert_tibble_to_list(data = r$dataset_vocabularies, key_col = "vocabulary_id", text_col = "vocabulary_id", i18n = i18n)
 
@@ -260,6 +267,7 @@ mod_select_concepts_server <- function(id, r, d, m, language, i18n, debug){
           else concept_style <- "default_domain_id"
           
           concept_style <- paste0("selected_concept ", concept_style)
+          concept_name <- paste0(row$vocabulary_id, " - ", row$concept_name)
           
           selected_concepts_list_ui <- tagList(
             selected_concepts_list_ui,
@@ -272,17 +280,14 @@ mod_select_concepts_server <- function(id, r, d, m, language, i18n, debug){
                 ),
                 class = "small_icon_button"
               ),
-              create_hover_card(ui = div(paste0(row$vocabulary_id, " - ", row$concept_name), class = concept_style), text = row$concept_name),
+              create_hover_card(ui = div(concept_name, class = concept_style), text = concept_name),
               style = "display: flex; margin: 2px 0;"
             ),
           )
           
           selected_concepts_ui <- tagList(
             selected_concepts_ui, 
-            create_hover_card(
-              ui = div(paste0(row$vocabulary_id, " - ", row$concept_name), class = concept_style, style = "display: inline-block;"),
-              text = row$concept_name
-            )
+            create_hover_card(ui = div(concept_name, class = concept_style, style = "display: inline-block;"), text = concept_name)
           )
         }
       }

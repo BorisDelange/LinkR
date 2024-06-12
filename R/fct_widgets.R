@@ -1,5 +1,5 @@
 #' @noRd
-reload_elements_var <- function(page_id, con, r, long_var_filtered){
+reload_elements_var <- function(page_id, con, r, m, long_var_filtered){
   
   if (page_id == "data") id <- "plugins"
   else id <- page_id

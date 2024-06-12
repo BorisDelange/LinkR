@@ -181,7 +181,7 @@ mod_widgets_server <- function(id, r, d, m, language, i18n, all_divs, debug){
     observeEvent(input$reload_elements_var, {
       if (debug) cat(paste0("\n", now(), " - mod_widgets - (", id, ") - observer input$reload_elements_var"))
       
-      reload_elements_var(page_id = id, con = con, r = r, long_var_filtered = paste0("filtered_", id, "_long"))
+      reload_elements_var(page_id = id, con = con, r = r, m = m, long_var_filtered = paste0("filtered_", id, "_long"))
       
       shinyjs::runjs(paste0("Shiny.setInputValue('", id, "-reload_elements_list', Math.random());"))
     })
