@@ -93,6 +93,8 @@ mod_git_repos_ui <- function(id = character(), language = "en", languages = tibb
         shinyjs::hidden(
           div(
             id = ns("widgets_div"),
+            div(shiny.fluent::SearchBox.shinyInput(ns("search_element")), style = "width:320px; margin:10px 0 0 10px;"),
+            uiOutput(ns("elements")),
             style = "height: 100%;"
           )
         ),
@@ -124,6 +126,8 @@ mod_git_repos_server <- function(id, r, d, m, language, i18n, debug){
     # Initiate vars ----
     
     all_divs <- c("summary", "projects", "plugins", "data_cleaning_scripts", "datasets", "vocabularies")
+    
+    r$loaded_git_repos <- tibble::tibble(unique_id = character(), datetime = character())
     
     # No internet access ----
     
@@ -222,13 +226,13 @@ mod_git_repos_server <- function(id, r, d, m, language, i18n, debug){
       # Get csv file from remote git
       tryCatch(download.file(filename, filename_local, quiet = TRUE),
         error = function(e){
-          show_message_bar(output, "error_loading_git_repos_csv", "severeWarning", i18n = i18n, ns = ns)
+          show_message_bar(output, "error_loading_git_repos_csv", "warning", i18n = i18n, ns = ns)
           cat(paste0("\n", now(), " - mod_git_repos - error loading remote git csv file - error = ", toString(e)))
       })
 
       tryCatch(git_repos <- vroom::vroom(filename_local, col_types = "cnnccccl", progress = FALSE),
         error = function(e){
-          show_message_bar(output, "error_loading_git_repos_csv", "severeWarning", i18n = i18n, ns = ns)
+          show_message_bar(output, "error_loading_git_repos_csv", "warning", i18n = i18n, ns = ns)
           cat(paste0("\n", now(), " - mod_git_repos - error loading remote git csv file - error = ", toString(e)))
         })
       
@@ -375,6 +379,53 @@ mod_git_repos_server <- function(id, r, d, m, language, i18n, debug){
             list(key = "main", text = r$git_repo$name))
           )
         )
+        
+        # Clone git repo if not already loaded
+        
+        if (r$git_repo$unique_id %not_in% r$loaded_git_repos$unique_id){
+          tryCatch({
+            repo_url <- r$git_repo %>% dplyr::pull(repo_url_address)
+            local_path <- paste0(r$app_folder, "/temp_files/", r$user_id, "/git_repos/", paste0(sample(c(0:9, letters[1:6]), 64, TRUE), collapse = ''))
+            shinyjs::runjs(paste0("Shiny.setInputValue('", id, "-git_repo_local_path', '", local_path, "');"))
+            
+            credentials <- git2r::cred_user_pass("linkr_user", "")
+            
+            repo <- git2r::clone(repo_url, local_path, credentials = credentials, progress = FALSE)
+            # git2r::config(repo, user.name = "username", user.email = "")
+            
+            # Create dirs & files that don't exist
+            for (dir in c("datasets", "plugins", "data_cleaning_scripts", "projects", "vocabularies")){
+              dir_path <- paste0(local_path, "/", dir)
+              file_path <- paste0(local_path, "/", dir, "/.gitkeep")
+              xml_file_path <- paste0(dir_path, "/", dir, ".xml")
+  
+              if (!dir.exists(dir_path)) dir.create(dir_path)
+              if (!file.exists(file_path)) file.create(file_path)
+              if (!file.exists(xml_file_path)){
+                xml <- XML::newXMLDoc()
+                XML::newXMLNode(dir, doc = xml)
+                XML::saveXML(xml, file = xml_file_path)
+              }
+            }
+  
+            readme_file_path <- paste0(local_path, "/README.md")
+            if (!file.exists(readme_file_path)) file.create(readme_file_path)
+  
+            # Create .gitignore with .DS_Store in it (it is a Mac file)
+            writeLines(".DS_Store", paste0(local_path, "/.gitignore"))
+            
+            # Add this repo to loaded repos
+            r$loaded_git_repos <- 
+              r$loaded_git_repos %>%
+              dplyr::bind_rows(
+                tibble::tibble(unique_id = r$git_repo$unique_id, datetime = now())
+              )
+          },
+          error = function(e){
+            show_message_bar(output, "error_downloading_git_repo", "warning", i18n = i18n, ns = ns)
+            cat(paste0("\n", now(), " - mod_git_repos - error downloading git repo - error = ", toString(e)))
+          })
+        }
       })
       
       # Repo current tab ----
@@ -401,6 +452,90 @@ mod_git_repos_server <- function(id, r, d, m, language, i18n, debug){
         # Change selected tab
         sapply(all_divs, function(button_id) shinyjs::removeClass(class = "selected_pivot_item", selector = paste0("#", id, "-", button_id)))
         shinyjs::addClass(class = "selected_pivot_item", selector = paste0("#", id, "-", current_tab))
+        
+        # Reload widgets UI
+        shinyjs::runjs(paste0("Shiny.setInputValue('", id, "-reload_elements_list', Math.random());"))
+      })
+      
+      # Reload widgets ----
+      
+      observeEvent(input$reload_elements_list, {
+        if (debug) cat(paste0("\n", now(), " - mod_git_repos - observer input$reload_elements_list"))
+        
+        current_tab <- gsub(paste0(id, "-"), "", input$current_tab, fixed = FALSE)
+        
+        single_id <- switch(current_tab, 
+          "data_cleaning" = "data_cleaning", 
+          "datasets" = "dataset",
+          "projects" = "project", 
+          "plugins" = "plugin", 
+          "subsets" = "subset", 
+          "vocabularies" = "vocabulary"
+        )
+        
+        elements <- tibble::tibble()
+        
+        # Get elements from XML file
+        
+        xml_file_path <- paste0(input$git_repo_local_path, "/", current_tab, "/", current_tab, ".xml")
+
+        error_loading_xml_file <- TRUE
+        
+        tryCatch({
+          elements <-
+            xml2::read_xml(xml_file_path) %>%
+            XML::xmlParse() %>%
+            XML::xmlToDataFrame(nodes = XML::getNodeSet(., paste0("//", single_id)), stringsAsFactors = FALSE) %>%
+            tibble::as_tibble()
+          
+          error_loading_xml_file <- FALSE
+        }, error = function(e) cat(paste0("\n", now(), " - mod_git_repos - error downloading ", current_tab, " readme - error = ", toString(e))))
+        
+        if (error_loading_xml_file) elements_ui <- div(
+          shiny.fluent::MessageBar(i18n$t("error_loading_category_xml_file"), messageBarType = 5), 
+          style = "display: inline-block; margin: 10px 0 0 10px;"
+        )
+        else if (nrow(elements) == 0) elements_ui <- div(
+          shiny.fluent::MessageBar(i18n$t("no_elements_to_display"), messageBarType = 5), 
+          style = "display: inline-block; margin: 10px 0 0 10px;"
+        )
+        
+        else {
+          elements_ui <- tagList()
+          
+          for (i in 1:nrow(elements)){
+            row <- elements[i, ]
+            
+            element_name <- row[[paste0("name_", language)]]
+            
+            users_ui <- ""
+  
+            max_length <- 45
+            if (nchar(element_name) > max_length) element_name <- paste0(substr(element_name, 1, max_length - 3), "...")
+              
+            widget_buttons <- tagList()
+            
+            # For plugins widgets, we add some content on the bottom
+            
+            if (current_tab == "plugins"){
+              plugin_type <- row %>% dplyr::slice(1) %>% dplyr::pull(type)
+              widget_buttons <- get_plugin_buttons(plugin_type, i18n)
+            }
+            
+            onclick <- paste0("
+              Shiny.setInputValue('", id, "-selected_element', '", row$unique_id, "');
+              Shiny.setInputValue('", id, "-selected_element_trigger', Math.random());
+            ")
+  
+            elements_ui <- tagList(
+              create_element_ui(page_id = id, single_id, element_name, users_ui, widget_buttons, onclick),
+              elements_ui
+            )
+          }
+        }
+
+        elements_ui <- div(elements_ui, class = paste0(current_tab, "_container"))
+        output$elements <- renderUI(elements_ui)
       })
       
       # Go to all repos page ----

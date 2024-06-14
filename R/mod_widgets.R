@@ -697,7 +697,6 @@ mod_widgets_server <- function(id, r, d, m, language, i18n, all_divs, debug){
         # Else, project is loaded directly
         # Delay to change page before executing server
         
-        print(input$selected_element_type)
         if (input$selected_element_type != "project_options"){
           if (length(r$loaded_pages$data) == 0){
             r$load_page <- "data"

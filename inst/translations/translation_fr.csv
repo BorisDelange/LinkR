@@ -1134,3 +1134,4 @@ show_content,Afficher le contenu
 no_internet_access,Pas d'accès à internet
 show_git_repos_list,Afficher la liste
 show_git_repos_map,Afficher la carte
+no_elements_to_display,Pas d'élément à afficher

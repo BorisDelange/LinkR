@@ -15,11 +15,31 @@ app_server <- function(pages, language, languages, i18n, app_folder, debug, log_
     
     # Create d reactive value, for projects data
     d <- reactiveValues()
-    main_tables <- c("condition_occurrence", "drug_exposure", "procedure_occurrence", "device_exposure", "measurement",
-      "observation", "death", "note", "note_nlp", "specimen", "fact_relationship", "payer_plan_period", "cost", 
-      "drug_era", "dose_era", "condition_era", 
-      "person", "observation_period", "visit_occurrence", "visit_detail",
-      "location", "care_site", "provider")
+    main_tables <- c(
+      "condition_occurrence",
+      "drug_exposure",
+      "procedure_occurrence",
+      "device_exposure",
+      "measurement",
+      "observation",
+      "death",
+      "note",
+      "note_nlp",
+      "specimen",
+      "fact_relationship",
+      "payer_plan_period",
+      "cost", 
+      "drug_era",
+      "dose_era",
+      "condition_era", 
+      "person",
+      "observation_period",
+      "visit_occurrence",
+      "visit_detail",
+      "location",
+      "care_site",
+      "provider"
+    )
     sapply(main_tables, function(table) d[[table]] <- tibble::tibble())
     
     # Create m reactive value, for plugins & widgets data

@@ -120,13 +120,11 @@ create_elements_ui <- function(page_id, elements, r, language, i18n){
     ")
     
     if (id == "plugins"){
-      
       plugin_type <- row %>% dplyr::slice(1) %>% dplyr::pull(tab_type_id)
-      get_plugin_buttons(plugin_type, i18n)
+      widget_buttons <- get_plugin_buttons(plugin_type, i18n)
     }
     
     else if (id == "projects"){
-      
       widget_buttons <-
         div(
           div(
@@ -170,16 +168,15 @@ get_plugin_buttons <- function(plugin_type, i18n){
   
   plugin_type_icon <- create_hover_card(ui = plugin_type_icon, text = plugin_type_text)
   
-  widget_buttons <-
+  div(
     div(
-      div(
-        div("R", class = "prog_label r_label"),
-        div("Python", class = "prog_label python_label"),
-        class = "plugin_widget_labels"
-      ),
-      plugin_type_icon,
-      class = "plugin_widget_bottom"
-    )
+      # div("R", class = "prog_label r_label"),
+      # div("Python", class = "prog_label python_label"),
+      # class = "plugin_widget_labels"
+    ),
+    plugin_type_icon,
+    class = "plugin_widget_bottom"
+  )
 }
 
 #' @noRd
@@ -192,7 +189,7 @@ create_users_ui <- function(row, users){
     personas <- rlist::list.append(personas, list(personaName = user$name))
   }
   
-  users_ui <- shiny.fluent::Facepile(personas = personas)
+  shiny.fluent::Facepile(personas = personas)
 }
 
 #' @noRd
