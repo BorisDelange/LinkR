@@ -184,7 +184,7 @@ mod_data_ui <- function(id, language, languages, i18n){
 }
 
 #' @noRd 
-mod_data_server <- function(id = character(), r = shiny::reactiveValues(), d = shiny::reactiveValues(), m = shiny::reactiveValues(), language = "en", i18n = character(), debug = FALSE){
+mod_data_server <- function(id, r, d, m, language, i18n, debug){
   
   # |-------------------------------- -----
   

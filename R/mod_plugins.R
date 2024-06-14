@@ -10,7 +10,7 @@ mod_plugins_ui <- function(id, language, languages, i18n){
   div(
     class = "main",
     
-    # Load widget UI ----
+    # Load widgets UI ----
     
     mod_widgets_ui(id, language, languages, i18n),
     

@@ -4,15 +4,24 @@ reload_elements_var <- function(page_id, con, r, m, long_var_filtered){
   if (page_id == "data") id <- "plugins"
   else id <- page_id
   
-  sql_category <- switch(
-    id, 
-    "data_cleaning" = "script", "datasets" = "dataset", "projects" = "study", "plugins" = "plugin", 
-    "subsets" = "subset", "vocabularies" = "vocabulary")
+  sql_category <- switch(id, 
+    "data_cleaning" = "script",
+    "datasets" = "dataset",
+    "projects" = "study",
+    "plugins" = "plugin", 
+    "subsets" = "subset",
+    "vocabularies" = "vocabulary"
+  )
   
   sql_table <- switch(
     id, 
-    "data_cleaning" = "scripts", "datasets" = "datasets", "projects" = "studies", "plugins" = "plugins", 
-    "subsets" = "subsets", "vocabularies" = "vocabulary")
+    "data_cleaning" = "scripts",
+    "datasets" = "datasets",
+    "projects" = "studies",
+    "plugins" = "plugins", 
+    "subsets" = "subsets",
+    "vocabularies" = "vocabulary"
+  )
   
   long_var <- paste0(id, "_long")
   wide_var <- paste0(id, "_wide")
@@ -79,10 +88,14 @@ create_elements_ui <- function(page_id, elements, r, language, i18n){
   if (page_id == "data") id <- "plugins"
   else id <- page_id
   
-  single_id <- switch(
-    id, 
-    "data_cleaning" = "data_cleaning", "datasets" = "dataset", "projects" = "project", "plugins" = "plugin", 
-    "subsets" = "subset", "vocabularies" = "vocabulary")
+  single_id <- switch(id, 
+    "data_cleaning" = "data_cleaning",
+    "datasets" = "dataset",
+    "projects" = "project",
+    "plugins" = "plugin", 
+    "subsets" = "subset",
+    "vocabularies" = "vocabulary"
+  )
   
   ns <- NS(id)
   

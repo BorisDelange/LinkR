@@ -4,10 +4,14 @@ mod_widgets_ui <- function(id, language, languages, i18n){
   
   # Initiate vars ----
   
-  single_id <- switch(
-    id, 
-    "data_cleaning" = "data_cleaning", "datasets" = "dataset", "projects" = "project", "plugins" = "plugin", 
-    "subsets" = "subset", "vocabularies" = "vocabulary")
+  single_id <- switch(id, 
+    "data_cleaning" = "data_cleaning", 
+    "datasets" = "dataset",
+    "projects" = "project", 
+    "plugins" = "plugin", 
+    "subsets" = "subset", 
+    "vocabularies" = "vocabulary"
+  )
   
   add_element_inputs <- tagList()
   
@@ -18,8 +22,8 @@ mod_widgets_ui <- function(id, language, languages, i18n){
       list(key = 2, text = i18n$t("aggregated_data"))
     ),
     value = 1,
-    width = "200px")
-  
+    width = "200px"
+  )
   
   tagList(
       
@@ -121,21 +125,33 @@ mod_widgets_server <- function(id, r, d, m, language, i18n, all_divs, debug){
     
     # Initiate vars ----
     
-    single_id <- switch(
-      id, 
-      "data_cleaning" = "data_cleaning", "datasets" = "dataset", "projects" = "project", "plugins" = "plugin", 
-      "subsets" = "subset", "vocabularies" = "vocabulary")
+    single_id <- switch(id, 
+      "data_cleaning" = "data_cleaning",
+      "datasets" = "dataset",
+      "projects" = "project",
+      "plugins" = "plugin",
+      "subsets" = "subset",
+      "vocabularies" = "vocabulary"
+    )
     
-    sql_table <- switch(
-      id, 
-      "data_cleaning" = "scripts", "datasets" = "datasets", "projects" = "studies", "plugins" = "plugins", 
-      "subsets" = "subsets", "vocabularies" = "vocabulary")
+    sql_table <- switch(id, 
+      "data_cleaning" = "scripts",
+      "datasets" = "datasets",
+      "projects" = "studies",
+      "plugins" = "plugins",
+      "subsets" = "subsets",
+      "vocabularies" = "vocabulary"
+    )
     
     # For retro-compatibility : studies -> projects
-    sql_category <- switch(
-      id, 
-      "data_cleaning" = "script", "datasets" = "dataset", "projects" = "study", "plugins" = "plugin", 
-      "subsets" = "subset", "vocabularies" = "vocabulary")
+    sql_category <- switch(id, 
+      "data_cleaning" = "script",
+      "datasets" = "dataset",
+      "projects" = "study",
+      "plugins" = "plugin",
+      "subsets" = "subset",
+      "vocabularies" = "vocabulary"
+    )
     
     long_var <- paste0(id, "_long")
     long_var_filtered <- paste0("filtered_", id, "_long")

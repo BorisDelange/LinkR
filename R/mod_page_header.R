@@ -39,7 +39,7 @@ mod_page_header_ui <- function(id = character(), i18n = character()){
           title = i18n$t("develop")
         ),
         # Discover
-        shiny.fluent::CommandBarItem("", "World", title = i18n$t("explore"), href = shiny.router::route_link("explore"))
+        shiny.fluent::CommandBarItem("", "World", title = i18n$t("explore"), href = shiny.router::route_link("git_repos"))
       )
     ),
     # id = ns("header_command_bar"),
@@ -55,7 +55,6 @@ mod_page_header_ui <- function(id = character(), i18n = character()){
           subMenuProps = list(items = list(
             list(text = i18n$t("users"), iconProps = list(iconName = "Contact"), href = shiny.router::route_link("users")),
             list(text = i18n$t("app_db"), iconProps = list(iconName = "OfflineStorage"), href = shiny.router::route_link("app_db")),
-            list(text = i18n$t("git_repos"), iconProps = list(iconName = "GitGraph"), href = shiny.router::route_link("git_repos")),
             list(text = i18n$t("log"), iconProps = list(iconName = "KnowledgeArticle"), href = shiny.router::route_link("log"))
           )),
           title = i18n$t("app_settings")
@@ -107,7 +106,7 @@ mod_page_header_ui <- function(id = character(), i18n = character()){
     )
   )
   
-  if (id %in% c("app_db", "home", "console", "datasets", "data_cleaning", "explore", "git_repos",
+  if (id %in% c("app_db", "home", "console", "datasets", "data_cleaning", "git_repos",
     "log", "plugins", "projects", "users", "vocabularies")) command_bar_2 <- shinyjs::hidden(command_bar_2)
   else command_bar_1 <- shinyjs::hidden(command_bar_1)
   

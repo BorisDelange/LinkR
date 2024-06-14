@@ -20,6 +20,13 @@ body, html {
   height: calc(100% - 80px);
 }
 
+h1 {
+  font-size: 18px;
+}
+h2, h3, h4, h5, h6 {
+  font-size: 16px;  
+}
+
 /*a, a:visited {
   color:#000000;
 }
@@ -438,6 +445,12 @@ a.no-hover-effect:hover {
   box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 3px 6px 0 rgba(0, 0, 0, 0.19);
 }
 
+.map_widget {
+  position: relative;
+  margin: 10px;
+  box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 3px 6px 0 rgba(0, 0, 0, 0.19);
+}
+
 .widget h1 {
   font-size: 14px;
 }
@@ -837,6 +850,18 @@ td[data-type="factor"] input {
 }
 
 /* --------------------- */
+/* ALL PAGES             */
+/* --------------------- */
+
+.projects_container, .plugins_container, .datasets_container, .subsets_container, .vocabularies_container,
+.data_cleaning_container {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-start;
+  gap: 10px;
+}
+
+/* --------------------- */
 /* HOME PAGE             */
 /* --------------------- */
 
@@ -905,6 +930,45 @@ td[data-type="factor"] input {
 }
 
 .plugins_summary_right, .plugins_share_right {
+  width: 50%;
+  calc(100% - 16px)
+}
+
+/* ----------------------- */
+/* GIT REPOS PAGE          */
+/* ----------------------- */
+
+.git_repos_container {
+  display: flex;
+  justify-content: space-between;
+  height: 100%;
+}
+
+.git_repos_left {
+  display: flex;
+  flex-direction: column;
+  width: 50%;
+  height: calc(100% - 5px);
+}
+
+.git_repos_right {
+  width: 50%;
+  calc(100% - 16px)
+}
+
+.git_repos_summary_container {
+  display: flex;
+  justify-content: space-between;
+  height: calc(100% - 50px);
+}
+
+.git_repos_summary_left {
+  display: flex;
+  flex-direction: column;
+  width: 50%;
+}
+
+.git_repos_summary_right {
   width: 50%;
   calc(100% - 16px)
 }
@@ -1043,13 +1107,6 @@ td[data-type="factor"] input {
   margin: 8px 0px;
   text-align: center;
   line-height: 16px;
-}
-
-.projects_container, .plugins_container, .datasets_container, .subsets_container, .vocabularies_container, .data_cleaning_container {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: flex-start;
-  gap: 10px;
 }
 
 /* ------------------ */

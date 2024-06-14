@@ -33,22 +33,6 @@ mod_page_sidenav_ui <- function(id = character(), i18n = character()){
     ) -> result
   }
   
-  # Explore ----
-  
-  else if (id == "explore"){
-    div(
-      id = ns("sidenav"),
-      class = "sidenav",
-      div(
-        id = ns("large_sidenav")
-      ),
-      div(
-        id = ns("reduced_sidenav")
-      ),
-      hide_sidenav
-    ) -> result
-  }
-  
   # Concepts ----
   
   else if (id == "concepts") {
@@ -269,9 +253,21 @@ mod_page_sidenav_ui <- function(id = character(), i18n = character()){
         id = ns("large_sidenav")
       ),
       div(
-        id = ns("reduced_sidenav")
+        id = ns("reduced_sidenav"),
+        div(
+          id = ns("show_list_div"),
+          create_hover_card(ui = shiny.fluent::IconButton.shinyInput(ns("show_list"), iconProps = list(iconName = "BulletedList2")), text = i18n$t("show_git_repos_list"))
+        ),
+        shinyjs::hidden(
+          div(
+            id = ns("show_map_div"),
+            create_hover_card(ui = shiny.fluent::IconButton.shinyInput(ns("show_map"), iconProps = list(iconName = "POI")), text = i18n$t("show_git_repos_map")),
+          )
+        ),
+        create_hover_card(ui = shiny.fluent::IconButton.shinyInput(ns("create_element"), iconProps = list(iconName = "Add")), text = i18n$t("add_git_repo")),
+        class = "reduced_sidenav_buttons"
       ),
-      hide_sidenav
+      shinyjs::hidden(show_sidenav)
     ) -> result
   }
   
@@ -593,7 +589,7 @@ mod_page_sidenav_server <- function(id = character(), r = shiny::reactiveValues(
     # Prevent display bug
     if (id == "plugins") js_show_sidenav <- js_show_sidenav %>% gsub("setTimeout\\(\\(\\) => large_sidenav.style.display = 'block', 300\\);", "large_sidenav.style.display = 'block';", .)
     
-    if (id %in% c("app_db", "data_cleaning", "datasets", "explore", "home", "log", "plugins", "projects", "subsets", "users", "vocabularies")) r[[paste0(id, "_show_hide_sidenav")]] <- "hide"
+    if (id %in% c("app_db", "data_cleaning", "datasets", "git_repos", "home", "log", "plugins", "projects", "subsets", "users", "vocabularies")) r[[paste0(id, "_show_hide_sidenav")]] <- "hide"
     
     observeEvent(r[[paste0(id, "_show_hide_sidenav")]], {
       if (debug) cat(paste0("\n", now(), " - mod_page_sidenav - observer r$.._show_hide_sidenav"))

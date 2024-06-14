@@ -174,7 +174,6 @@ linkr <- function(
     "data",
     "datasets",
     "data_cleaning",
-    "explore",
     "git_repos",
     "log",
     "project_messages",
