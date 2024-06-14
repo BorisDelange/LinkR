@@ -20,14 +20,17 @@ mod_git_repos_ui <- function(id = character(), language = "en", languages = tibb
           leaflet::leafletOutput(ns("explore_map"), height = "100%"),
           shinyjs::hidden(
             div(
-              id = ns("explore_ui")
+              id = ns("explore_ui"),
+              DT::DTOutput(ns("git_repos_dt")),
+              style = "padding: 0 10px;"
             )
           ),
           class = "map_widget", style = "height: 80%;"
         ),
         div(
           id = ns("git_infos_div"),
-          uiOutput(ns("git_infos")),
+          uiOutput(ns("map_git_infos")),
+          uiOutput(ns("list_git_infos")),
           class = "widget", style = "height: 20%;"
         ),
         class = "git_repos_left"
@@ -36,7 +39,7 @@ mod_git_repos_ui <- function(id = character(), language = "en", languages = tibb
         div(
           uiOutput(ns("map_git_readme")),
           shinyjs::hidden(uiOutput(ns("list_git_readme"))),
-          class = "widget", style = "height: calc(100% - 35px); padding: 1px 20px 10px 20px; overflow: auto;"
+          class = "widget markdown_widget"
         ),
         class = "git_repos_right"
       ),
@@ -55,7 +58,7 @@ mod_git_repos_ui <- function(id = character(), language = "en", languages = tibb
             tags$button(id = ns("summary"), i18n$t("summary"), class = "pivot_item selected_pivot_item", onclick = pivot_item_js),
             tags$button(id = ns("projects"), i18n$t("projects"), class = "pivot_item", onclick = pivot_item_js),
             tags$button(id = ns("plugins"), i18n$t("plugins"), class = "pivot_item", onclick = pivot_item_js),
-            tags$button(id = ns("data_cleaning_scripts"), i18n$t("data_cleaning_scripts"), class = "pivot_item", onclick = pivot_item_js),
+            tags$button(id = ns("data_cleaning_scripts"), i18n$t("data_cleaning"), class = "pivot_item", onclick = pivot_item_js),
             tags$button(id = ns("datasets"), i18n$t("datasets"), class = "pivot_item", onclick = pivot_item_js),
             tags$button(id = ns("vocabularies"), i18n$t("vocabularies"), class = "pivot_item", onclick = pivot_item_js),
             class = "pivot"
@@ -68,7 +71,6 @@ mod_git_repos_ui <- function(id = character(), language = "en", languages = tibb
           id = ns("summary_div"),
           div(
             div(
-              h1(i18n$t("informations")),
               class = "widget", style = "height: 50%;"
             ),
             div(
@@ -79,18 +81,18 @@ mod_git_repos_ui <- function(id = character(), language = "en", languages = tibb
           ),
           div(
             div(
-              h1(i18n$t("description")),
-              class = "widget", style = "height: calc(100% - 25px); padding-top: 1px;"
+              uiOutput(ns("summary_git_readme")),
+              class = "widget markdown_widget",
             ),
             class = "git_repos_summary_right"
           ),
           class = "git_repos_summary_container"
         ),
         
-        ## Projects ----
+        ## Widgets ----
         shinyjs::hidden(
           div(
-            id = ns("projects_div"),
+            id = ns("widgets_div"),
             style = "height: 100%;"
           )
         ),
@@ -110,6 +112,19 @@ mod_git_repos_server <- function(id, r, d, m, language, i18n, debug){
     
     if (debug) cat(paste0("\n", now(), " - mod_git_repos - start"))
     
+    # Prevent bug leaflet ----
+    observeEvent(shiny.router::get_page(), {
+      req(shiny.router::get_page() == id)
+      if (debug) cat(paste0("\n", now(), " - mod_git_repos - observer shiny.router::get_page()"))
+      
+      # Prevent a bug with leaflet map display
+      shinyjs::runjs("var event = new Event('resize'); window.dispatchEvent(event);")
+    })
+    
+    # Initiate vars ----
+    
+    all_divs <- c("summary", "projects", "plugins", "data_cleaning_scripts", "datasets", "vocabularies")
+    
     # No internet access ----
     
     if (!r$has_internet) {
@@ -128,7 +143,76 @@ mod_git_repos_server <- function(id, r, d, m, language, i18n, debug){
     
     if (r$has_internet){
       
-      ## Download git repos ----
+      # Display list or map ----
+      
+      observeEvent(input$show_list, {
+        if (debug) cat(paste0("\n", now(), " - mod_git_repos - observer input$show_list"))
+        
+        sapply(c("show_list_div", "explore_map", "map_git_infos", "map_git_readme"), shinyjs::hide)
+        sapply(c("explore_ui", "list_git_infos", "list_git_readme"), shinyjs::show)
+        shinyjs::delay(50, shinyjs::show("show_map_div"))
+      })
+      
+      observeEvent(input$show_map, {
+        if (debug) cat(paste0("\n", now(), " - mod_git_repos - observer input$show_map"))
+        
+        sapply(c("show_map_div", "explore_ui", "list_git_infos", "list_git_readme"), shinyjs::hide)
+        sapply(c("map_git_infos", "map_git_readme", "explore_map"), shinyjs::show)
+        shinyjs::delay(50, shinyjs::show("show_list_div"))
+        
+        # Prevent a bug with leaflet map display
+        shinyjs::runjs("var event = new Event('resize'); window.dispatchEvent(event);")
+      })
+      
+      # Reload list ----
+      
+      shinyjs::runjs(paste0("Shiny.setInputValue('", id, "-reload_git_repos', Math.random());"))
+      
+      observeEvent(input$reload_git_repos, {
+        if (debug) cat(paste0("\n", now(), " - mod_git_repos - observer input$reload_git_repos"))
+        
+        sql <- glue::glue_sql("WITH selected_git_repos AS (
+          SELECT DISTINCT g.id
+          FROM git_repos g
+          LEFT JOIN options AS r ON g.id = r.link_id AND r.category = 'git_repo' AND r.name = 'users_allowed_read_group'
+          LEFT JOIN options AS u ON g.id = u.link_id AND u.category = 'git_repo' AND u.name = 'user_allowed_read'
+          WHERE r.value = 'everybody' OR (r.value = 'people_picker' AND u.value_num = {r$user_id})
+        )
+        SELECT g.id, g.unique_id, g.repo_url_address, o.name, o.value, o.value_num
+          FROM git_repos g
+          INNER JOIN selected_git_repos s ON g.id = s.id
+          LEFT JOIN options o ON o.category = 'git_repo' AND g.id = o.link_id", .con = r$db)
+        
+        r$git_repos_long <- DBI::dbGetQuery(r$db, sql) %>% tibble::as_tibble()
+        
+        sql <- glue::glue_sql("SELECT * FROM git_repos WHERE id IN ({unique(r$git_repos_long$id)*})", .con = r$db)
+        r$git_repos_wide <- DBI::dbGetQuery(r$db, sql) %>% tibble::as_tibble()
+        
+        # Render datatable
+        render_datatable(
+          output = output, ns = ns, i18n = i18n, data = r$git_repos_wide %>% dplyr::select(name),
+          output_name = "git_repos_dt", col_names = i18n$t("name"), datatable_dom = "<'top't><'bottom'p>",
+          sortable_cols = "name", searchable_cols = "name", filter = TRUE
+        )
+      })
+      
+      # A row is selected ----
+      
+      observeEvent(input$git_repos_dt_rows_selected, {
+        if (debug) cat(paste0("\n", now(), " - mod_git_repos - observer input$git_repos_dt_rows_selected"))
+        
+        git_repo_id <- r$git_repos_wide[input$git_repos_dt_rows_selected, ] %>% dplyr::pull(id)
+        git_repo <- r$git_repos_wide %>% dplyr::filter(id == git_repo_id)
+        r$list_git_repo <- git_repo
+        
+        output$list_git_infos <- renderUI(get_git_infos(git_repo, "list"))
+        
+        readme <- renderUI(get_git_readme(r, git_repo))
+        output$list_git_readme <- renderUI(readme)
+        output$summary_git_readme <- renderUI(readme)
+      })
+      
+      # Download git repos ----
 
       git_repos <- tibble::tibble()
 
@@ -168,27 +252,6 @@ mod_git_repos_server <- function(id, r, d, m, language, i18n, debug){
           )
       })
       
-      # Display list or map ----
-      
-      observeEvent(input$show_list, {
-        if (debug) cat(paste0("\n", now(), " - mod_git_repos - observer input$show_list"))
-        
-        sapply(c("show_list_div", "explore_map", "map_git_readme"), shinyjs::hide)
-        sapply(c("explore_ui", "list_git_readme"), shinyjs::show)
-        shinyjs::delay(50, shinyjs::show("show_map_div"))
-      })
-      
-      observeEvent(input$show_map, {
-        if (debug) cat(paste0("\n", now(), " - mod_git_repos - observer input$show_map"))
-        
-        sapply(c("show_map_div", "explore_ui", "list_git_readme"), shinyjs::hide)
-        sapply(c("map_git_readme", "explore_map"), shinyjs::show)
-        shinyjs::delay(50, shinyjs::show("show_list_div"))
-        
-        # Prevent a bug with display with leaflet map
-        shinyjs::runjs("var event = new Event('resize'); window.dispatchEvent(event);")
-      })
-      
       # Click on the map ----
       observeEvent(input$explore_map_marker_click, {
         if (debug) cat(paste0("\n", now(), " - mod_git_repos - observer input$explore_map_marker_click"))
@@ -201,65 +264,18 @@ mod_git_repos_server <- function(id, r, d, m, language, i18n, debug){
           sprintf("%.6f", as.numeric(lng)) == sprintf("%.6f", as.numeric(input$explore_map_marker_click$lng))
         )
         
-        readme <- div(
-          shiny.fluent::MessageBar(i18n$t("error_loading_git_readme"), messageBarType = 5), 
-          style = "display: inline-block; margin-top: 10px;"
-        )
+        r$map_git_repo <- git_repo
         
-        # Get README on git repo
-        tryCatch({
-          dir <- paste0(r$app_folder, "/temp_files/", r$user_id, "/git_repos")
-          new_file <- paste0(dir, "/", paste0(sample(c(0:9, letters[1:6]), 8, TRUE), collapse = ''), "_README.md")
-          if (!dir.exists(dir)) dir.create(dir)
-          
-          readme_url <- git_repo$raw_files_url_address
-          nchar_readme_url <- nchar(readme_url)
-          if (substr(readme_url, nchar_readme_url, nchar_readme_url) != "/") readme_url <- paste0(readme_url, "/")
-          
-          filename_remote <- paste0(readme_url, "README.md")
-          
-          download.file(filename_remote, new_file, quiet = TRUE)
-          
-          con <- textConnection(new_file)
-          readme <- div(readLines(con, warn = FALSE) %>% includeMarkdown() %>% withMathJax())
-          close(con)
-        },
-        error = function(e) cat(paste0("\n", now(), " - mod_git_repos - error loading remote git readme - error = ", toString(e))))
-        
-        # Render UI
-        output$map_git_readme <- renderUI({
-          if (debug) cat(paste0("\n", now(), " - mod_settings_git - output$map_git_readme"))
-          readme
-        })
+        readme <- get_git_readme(r, git_repo)
+        output$map_git_readme <- renderUI(readme)
+        output$summary_git_readme <- renderUI(readme)
         
         # Get git repo informations
         
-        git_infos <- div(
-          shiny.fluent::MessageBar(i18n$t("error_loading_git_infos"), messageBarType = 5), 
-          style = "display: inline-block; margin-top: 10px;"
-        )
+        output$map_git_infos <- renderUI(get_git_infos(git_repo, "map"))
         
         r$git_repo <- git_repo
         
-        if (nrow(git_repo) > 0){
-          git_infos <- tagList(
-            tags$h1(git_repo[[paste0("name_", language)]]),
-            div(
-              strong(i18n$t("url_address")), tags$span(":", style = "margin: 0 5px;"),
-              shiny.fluent::Link(href = git_repo$repo_url_address, git_repo$repo_url_address, target = "_blank"),
-              style = "display: flex;"
-            ),
-            div(
-              shiny.fluent::PrimaryButton.shinyInput(ns("show_content"), i18n$t("show_content")),
-              class = "create_element_modal_buttons",
-              style = "margin-left: 10px;"
-            )
-          )
-        }
-        
-        output$git_infos <- renderUI(
-          git_infos
-        )
       #   
       #   # Disable add button is git repo already in db
       #   if (r$git_repos %>% dplyr::inner_join(git_repo %>% dplyr::select(unique_id), by = "unique_id") %>% nrow() > 0){
@@ -331,12 +347,129 @@ mod_git_repos_server <- function(id, r, d, m, language, i18n, debug){
       # })
       
       # A repo is selected ----
-      observeEvent(input$show_content, {
-        if (debug) cat(paste0("\n", now(), " - mog_git_repos - observer input$show_content"))
+      
+      observeEvent(input$show_content_list, {
+        if (debug) cat(paste0("\n", now(), " - mog_git_repos - observer input$show_content_list"))
         
-        shinyjs::hide("all_git_repos")
-        shinyjs::show("one_git_repo")
+        r$git_repo <- r$list_git_repo
+        shinyjs::runjs(paste0("Shiny.setInputValue('", id, "-show_content_trigger', Math.random());"))
       })
+      
+      observeEvent(input$show_content_map, {
+        if (debug) cat(paste0("\n", now(), " - mog_git_repos - observer input$show_content_map"))
+        
+        r$git_repo <- r$map_git_repo
+        shinyjs::runjs(paste0("Shiny.setInputValue('", id, "-show_content_trigger', Math.random());"))
+      })
+      
+      observeEvent(input$show_content_trigger, {
+        if (debug) cat(paste0("\n", now(), " - mog_git_repos - observer input$show_content_trigger"))
+        
+        sapply(c("one_repo_reduced_sidenav", "one_git_repo"), shinyjs::show)
+        sapply(c("all_repos_reduced_sidenav", "all_git_repos"), shinyjs::hide)
+        
+        output$breadcrumb <- renderUI(
+          shiny.fluent::Breadcrumb(items = list(
+            list(key = "main", text = i18n$t("git_repos"), href = shiny.router::route_link("git_repos"), 
+              onClick = htmlwidgets::JS(paste0("item => { Shiny.setInputValue('", id, "-show_home', Math.random()); }"))),
+            list(key = "main", text = r$git_repo$name))
+          )
+        )
+      })
+      
+      # Repo current tab ----
+      
+      observeEvent(input$current_tab_trigger, {
+        if (debug) cat(paste0("\n", now(), " - mod_git_repos - observer input$current_tab_trigger"))
+        
+        current_tab <- gsub(paste0(id, "-"), "", input$current_tab, fixed = FALSE)
+        
+        # Show or hide pages depending on selected tab
+        if (current_tab == "summary"){
+          shinyjs::show("summary_div")
+          shinyjs::hide("widgets_div")
+        }
+        else {
+          shinyjs::show("widgets_div")
+          shinyjs::hide("summary_div")
+        }
+        
+        shinyjs::show("one_repo_reduced_sidenav")
+        shinyjs::hide("all_repos_reduced_sidenav")
+        shinyjs::runjs(paste0("Shiny.setInputValue('", id, "-show_hide_sidenav', 'hide');"))
+        
+        # Change selected tab
+        sapply(all_divs, function(button_id) shinyjs::removeClass(class = "selected_pivot_item", selector = paste0("#", id, "-", button_id)))
+        shinyjs::addClass(class = "selected_pivot_item", selector = paste0("#", id, "-", current_tab))
+      })
+      
+      # Go to all repos page ----
+      
+      observeEvent(input$show_home, {
+        if (debug) cat(paste0("\n", now(), " - mod_git_repos - observer input$show_home"))
+        
+        sapply(c("all_repos_reduced_sidenav", "all_git_repos"), shinyjs::show)
+        sapply(c("one_repo_reduced_sidenav", "one_git_repo"), shinyjs::hide)
+        
+        # Prevent a bug with leaflet map display
+        shinyjs::runjs("var event = new Event('resize'); window.dispatchEvent(event);")
+      })
+    }
+    
+    # |-------------------------------- -----
+    
+    ## Module functions ----
+    
+    get_git_infos <- function(git_repo, git_source){
+      
+      if (nrow(git_repo) > 0) tagList(
+        tags$h1(git_repo$name),
+        div(
+          strong(i18n$t("url_address")), tags$span(":", style = "margin: 0 5px;"),
+          shiny.fluent::Link(href = git_repo$repo_url_address, git_repo$repo_url_address, target = "_blank"),
+          style = "display: flex;"
+        ),
+        div(
+          shiny.fluent::PrimaryButton.shinyInput(ns(paste0("show_content_", git_source)), i18n$t("show_content")),
+          class = "create_element_modal_buttons",
+          style = "margin-left: 10px;"
+        )) else div(
+        shiny.fluent::MessageBar(i18n$t("error_loading_git_infos"), messageBarType = 5), 
+        style = "display: inline-block; margin-top: 10px;"
+      )
+    }
+    
+    get_git_readme <- function(r, git_repo){
+      
+      readme <- div(
+        shiny.fluent::MessageBar(i18n$t("error_loading_git_readme"), messageBarType = 5), 
+        style = "display: inline-block; margin-top: 10px;"
+      )
+      
+      # Get README on git repo
+      
+      if (nrow(git_repo) > 0){
+        tryCatch({
+          dir <- paste0(r$app_folder, "/temp_files/", r$user_id, "/git_repos")
+          new_file <- paste0(dir, "/", paste0(sample(c(0:9, letters[1:6]), 8, TRUE), collapse = ''), "_README.md")
+          if (!dir.exists(dir)) dir.create(dir)
+          
+          readme_url <- git_repo$raw_files_url_address
+          nchar_readme_url <- nchar(readme_url)
+          if (substr(readme_url, nchar_readme_url, nchar_readme_url) != "/") readme_url <- paste0(readme_url, "/")
+          
+          filename_remote <- paste0(readme_url, "README.md")
+          
+          download.file(filename_remote, new_file, quiet = TRUE)
+          
+          con <- textConnection(new_file)
+          readme <- div(readLines(con, warn = FALSE) %>% includeMarkdown() %>% withMathJax())
+          close(con)
+        },
+        error = function(e) cat(paste0("\n", now(), " - mod_git_repos - error loading remote git readme - error = ", toString(e))))
+      } 
+      
+      readme
     }
     
   })

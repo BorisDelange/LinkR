@@ -255,17 +255,23 @@ mod_page_sidenav_ui <- function(id = character(), i18n = character()){
       div(
         id = ns("reduced_sidenav"),
         div(
-          id = ns("show_list_div"),
-          create_hover_card(ui = shiny.fluent::IconButton.shinyInput(ns("show_list"), iconProps = list(iconName = "BulletedList2")), text = i18n$t("show_git_repos_list"))
-        ),
-        shinyjs::hidden(
+          id = ns("all_repos_reduced_sidenav"),
           div(
-            id = ns("show_map_div"),
-            create_hover_card(ui = shiny.fluent::IconButton.shinyInput(ns("show_map"), iconProps = list(iconName = "POI")), text = i18n$t("show_git_repos_map")),
-          )
+            id = ns("show_list_div"),
+            create_hover_card(ui = shiny.fluent::IconButton.shinyInput(ns("show_list"), iconProps = list(iconName = "BulletedList2")), text = i18n$t("show_git_repos_list"))
+          ),
+          shinyjs::hidden(
+            div(
+              id = ns("show_map_div"),
+              create_hover_card(ui = shiny.fluent::IconButton.shinyInput(ns("show_map"), iconProps = list(iconName = "POI")), text = i18n$t("show_git_repos_map")),
+            )
+          ),
+          create_hover_card(ui = shiny.fluent::IconButton.shinyInput(ns("create_element"), iconProps = list(iconName = "Add")), text = i18n$t("add_git_repo")),
+          class = "reduced_sidenav_buttons"
         ),
-        create_hover_card(ui = shiny.fluent::IconButton.shinyInput(ns("create_element"), iconProps = list(iconName = "Add")), text = i18n$t("add_git_repo")),
-        class = "reduced_sidenav_buttons"
+        div(
+          id = ns("one_repo_reduced_sidenav")
+        )
       ),
       shinyjs::hidden(show_sidenav)
     ) -> result

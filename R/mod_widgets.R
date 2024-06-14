@@ -224,14 +224,14 @@ mod_widgets_server <- function(id, r, d, m, language, i18n, all_divs, debug){
       divs <- setdiff(all_divs, current_tab)
       divs <- c(paste0(divs, "_reduced_sidenav"), paste0(divs, "_large_sidenav"), paste0(divs, "_div"))
       
-      sapply(c(divs), shinyjs::hide)
+      sapply(divs, shinyjs::hide)
       sapply(c(paste0(current_tab, "_div"), paste0(current_tab, "_reduced_sidenav"), paste0(current_tab, "_large_sidenav")), shinyjs::show)
+      
+      shinyjs::runjs(paste0("Shiny.setInputValue('", id, "-show_hide_sidenav', 'hide');"))
       
       # Change selected tab
       sapply(all_divs, function(button_id) shinyjs::removeClass(class = "selected_pivot_item", selector = paste0("#", id, "-", button_id)))
       shinyjs::addClass(class = "selected_pivot_item", selector = paste0("#", id, "-", current_tab))
-      
-      shinyjs::runjs(paste0("Shiny.setInputValue('", id, "-show_hide_sidenav', 'hide');"))
       
       if (id == "plugins"){
         if (current_tab == "edit_code"){

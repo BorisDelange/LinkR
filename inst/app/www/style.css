@@ -451,6 +451,12 @@ a.no-hover-effect:hover {
   box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 3px 6px 0 rgba(0, 0, 0, 0.19);
 }
 
+.markdown_widget {
+  height: calc(100% - 35px);
+  padding: 1px 20px 10px 20px;
+  overflow: auto;
+}
+
 .widget h1 {
   font-size: 14px;
 }
@@ -959,13 +965,14 @@ td[data-type="factor"] input {
 .git_repos_summary_container {
   display: flex;
   justify-content: space-between;
-  height: calc(100% - 50px);
+  height: calc(100% - 40px);
 }
 
 .git_repos_summary_left {
   display: flex;
   flex-direction: column;
   width: 50%;
+  height: calc(100% - 5px);
 }
 
 .git_repos_summary_right {

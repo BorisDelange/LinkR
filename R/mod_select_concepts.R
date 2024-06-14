@@ -149,12 +149,14 @@ mod_select_concepts_server <- function(id, r, d, m, language, i18n, debug){
         editable_cols <- c("concept_name")
         searchable_cols <- c("concept_id", "concept_name", "domain_id", "concept_class_id", "standard_concept", "concept_code", "concept_display_name")
         factorize_cols <- c("domain_id", "concept_class_id", "standard_concept")
-        column_widths <- c("concept_name" = "300px", "domain_id" = "100px", "concept_class_id" = "100px", "concept_id" = "80px", "action" = "80px")
+        column_widths <- c(
+          "concept_name" = "300px", "domain_id" = "100px", "concept_class_id" = "100px", "concept_id" = "80px", "action" = "80px",
+          "concept_id" = "100px", "count_persons_rows" = "40px", "count_concepts_rows" = "40px"
+        )
         sortable_cols <- c("concept_id", "concept_name", "domain_id", "vocabulary_id", "count_persons_rows", "count_concepts_rows")
         centered_cols <- c("concept_id", "count_persons_rows", "count_concepts_rows", "add_concept_input")
         col_names <- get_col_names("plugins_vocabulary_concepts_with_counts", i18n)
         hidden_cols <- ""
-        column_widths <- c("concept_id" = "100px", "count_persons_rows" = "40px", "count_concepts_rows" = "40px", "add_concept_input" = "40px")
 
         # Render datatable
         render_datatable(
