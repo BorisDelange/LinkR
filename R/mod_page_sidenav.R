@@ -531,6 +531,13 @@ mod_page_sidenav_ui <- function(id = character(), i18n = character()){
         ),
         shinyjs::hidden(
           div(
+            id = ns("concepts_reduced_sidenav"),
+            create_hover_card(ui = shiny.fluent::IconButton.shinyInput(ns("import_concepts"), iconProps = list(iconName = "Upload")), text = i18n$t("import_concepts")),
+            class = "reduced_sidenav_buttons"
+          )
+        ),
+        shinyjs::hidden(
+          div(
             id = ns("edit_code_reduced_sidenav"),
             div(
               div(

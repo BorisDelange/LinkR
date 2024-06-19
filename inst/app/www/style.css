@@ -630,13 +630,7 @@ td[data-type="factor"] input {
   word-wrap:break-word;
   position:relative;
   top:-4px;
-}
-
-.datatable_length {
-  float: right;
-  margin-left: 10px;
-}
-*/
+}*/
 
 .dataTable tbody tr td {
     padding: 2px 5px;
@@ -653,7 +647,8 @@ td[data-type="factor"] input {
 }
 
 .datatable_length {
-  float: right;
+  float: left;
+  margin-left: 5px;
   font-size: 12px;
 }
 
@@ -1069,13 +1064,13 @@ td[data-type="factor"] input {
 /* VOCABULARIES PAGE          */
 /* -------------------------- */
 
-.vocabularies_summary_container {
+.vocabularies_summary_container, .vocabularies_concepts_container {
   display: flex;
   justify-content: space-between;
   height: calc(100% - 50px);
 }
 
-.vocabularies_summary_left {
+.vocabularies_summary_left, .vocabularies_concepts {
   display: flex;
   flex-direction: column;
   width: 50%;

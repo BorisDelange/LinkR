@@ -28,7 +28,7 @@ load_projects_ui <- function(id, projects, projects_users, language, i18n){
     projects_ui <- tagList(
       tags$a(
         href = shiny.router::route_link("data"),
-        onClick = paste0("Shiny.setInputValue('", id, "-selected_project', ", i, ");"),
+        onclick = paste0("Shiny.setInputValue('", id, "-selected_project', ", i, ");"),
         div(
           class = "project_widget",
           div(

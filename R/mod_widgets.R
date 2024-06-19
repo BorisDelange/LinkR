@@ -713,10 +713,15 @@ mod_widgets_server <- function(id, r, d, m, language, i18n, all_divs, debug){
       }
       
       # Load subset
-      # Load dataset
       else if (id == "subsets"){
         
         shinyjs::runjs(paste0("Shiny.setInputValue('", id, "-load_subset_code', Math.random());"))
+      }
+      
+      else if (id == "vocabularies"){
+        
+        shinyjs::runjs(paste0("Shiny.setInputValue('", id, "-load_vocabulary_code', Math.random());"))
+        shinyjs::runjs(paste0("Shiny.setInputValue('", id, "-load_vocabulary_tables', Math.random());"))
       }
     })
     

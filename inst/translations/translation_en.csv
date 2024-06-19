@@ -1135,3 +1135,17 @@ no_internet_access,No internet access
 show_git_repos_list,Show list
 show_git_repos_map,Show map
 no_elements_to_display,No elements to display
+concept_table,Concepts
+concept_relationship_table,Concepts mapping
+concept_synonym_table,Concepts synonyms
+concept_ancestor_table,Concepts hierarchy
+drug_strength_table,Drug tables
+language_concept_id,Language concept ID
+language_concept_name,Language
+concept_synonym_name,Synonym name
+ancestor_concept_id,Ancestor concept ID
+ancestor_concept_name,Ancestor concept name
+descendant_concept_id,Descendant concept ID
+descendant_concept_name,Descendant concept name
+min_levels_of_separation,Min levels of separation
+max_levels_of_separation,Max levels of separation

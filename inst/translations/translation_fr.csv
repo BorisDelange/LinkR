@@ -1135,3 +1135,17 @@ no_internet_access,Pas d'accès à internet
 show_git_repos_list,Afficher la liste
 show_git_repos_map,Afficher la carte
 no_elements_to_display,Pas d'élément à afficher
+concept_table,Concepts
+concept_relationship_table,Alignements de concepts
+concept_synonym_table,Synonymes de concepts
+concept_ancestor_table,Hiérarchie des concepts
+drug_strength_table,Médicaments
+language_concept_id,ID du langage
+language_concept_name,Langage
+concept_synonym_name,Synonyme
+ancestor_concept_id,ID du concept parent
+ancestor_concept_name,Nom du concept parent
+descendant_concept_id,ID du concept fils
+descendant_concept_name,Nol du concept fils
+min_levels_of_separation,Nombre min de niveaux de séparation
+max_levels_of_separationNombre max de niveaux de séparation
