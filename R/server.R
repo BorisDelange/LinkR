@@ -163,6 +163,10 @@ app_server <- function(pages, language, languages, i18n, app_folder, debug, log_
       sql <- glue::glue_sql("SELECT id, (firstname || ' ' || lastname) AS name, (SUBSTR(firstname, 1, 1) || SUBSTR(lastname, 1, 1)) AS initials FROM users", .con = r$db)
       r$users <- DBI::dbGetQuery(r$db, sql) %>% tibble::as_tibble()
       
+      # Load git repos
+      sql <- glue::glue_sql("SELECT * FROM git_repos", .con = r$db)
+      r$git_repos <- DBI::dbGetQuery(r$db, sql) %>% tibble::as_tibble()
+      
       # Retro-compatibility : delete all insertions with DELETED IS TRUE
       sql <- glue::glue_sql("SELECT * FROM options WHERE name = 'unused_rows_deleted' AND value = 'true'", .con = r$db)
       if (nrow(DBI::dbGetQuery(r$db, sql)) == 0){

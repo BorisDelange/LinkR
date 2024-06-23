@@ -1158,3 +1158,8 @@ import_concepts_title,Import concepts or vocabularies
 message,Message
 import_new_vocabularies,Import new vocabularies
 import_new_vocabularies_info,"If new vocabularies are present in the imported files, they will be added to app database."
+plugin_doesnt_exist_in_git_repo,This plugin does not exist in this git repository
+dataset_doesnt_exist_in_git_repo,This dataset does not exist in this git repository
+updated_x_ago,Ago
+days,Days
+hours,Hours

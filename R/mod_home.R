@@ -101,7 +101,7 @@ mod_home_ui <- function(id, language, languages, i18n){
             div(
               shiny.fluent::DefaultButton.shinyInput(
                 ns("go_explore_page"), i18n$t("show_catalog"), 
-                href = shiny.router::route_link("explore"), iconProps = list(iconName = "Play")),
+                href = shiny.router::route_link("git_repos"), iconProps = list(iconName = "Play")),
               class = "home_widget_button"
             )
           ),

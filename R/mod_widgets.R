@@ -653,6 +653,13 @@ mod_widgets_server <- function(id, r, d, m, language, i18n, all_divs, debug){
       sapply(all_divs, function(button_id) shinyjs::removeClass(class = "selected_pivot_item", selector = paste0("#", id, "-", button_id)))
       shinyjs::addClass(class = "selected_pivot_item", selector = paste0("#", id, "-summary"))
       
+      # Update git repos dropdown
+      shiny.fluent::updateDropdown.shinyInput(session, "git_repo", options = convert_tibble_to_list(r$git_repos, key_col = "id", text_col = "name"), value = NULL)
+      
+      # Update git repos UI
+      output$git_repo_element_ui <- renderUI(div())
+      output$synchronize_git_buttons <- renderUI(div())
+      
       # Load plugin code files and store selected plugin infos
       if (id == "plugins") {
         
@@ -798,6 +805,98 @@ mod_widgets_server <- function(id, r, d, m, language, i18n, all_divs, debug){
     # --- --- --- --- --
     
     ## Git synchronization ----
+    
+    # Load a git repo
+    observeEvent(input$git_repo, {
+      if (debug) cat(paste0("\n", now(), " - mod_widgets - (", id, ") - observer input$git_repo"))
+      
+      git_repo <- r$git_repos %>% dplyr::filter(id == input$git_repo)
+      
+      element_long <- r[[long_var]] %>% dplyr::filter(id == input$selected_element)
+      element_ui <- div(
+        shiny.fluent::MessageBar(i18n$t("error_downloading_git_repo"), messageBarType = 5), 
+        style = "display: inline-block;"
+      )
+      synchronize_git_buttons <- tagList()
+      
+      # Clone git repo if not already loaded
+      
+      local_path <- ""
+      tryCatch({
+        local_path <- load_git_repo(id, r, git_repo)
+        element_ui <- tagList()
+      }, error = function(e) cat(paste0("\n", now(), " - mod_widgets - (", id, ") - error downloading git repo - error = ", toString(e))))
+      
+      shinyjs::runjs(paste0("Shiny.setInputValue('", id, "-git_repo_local_path', '", local_path, "');"))
+      
+      if (local_path != ""){
+        
+        # Check if this element already exists
+        element_path <- paste0(local_path, "/", id, "/", element_long %>% dplyr::filter(name == "unique_id") %>% dplyr::pull(value))
+        element_exists <- dir.exists(element_path)
+        
+        # The element exists in the git repo
+        if (element_exists){
+          
+          # Get element infos from XML file
+          xml_file_path <- paste0(element_path, "/", single_id, ".xml")
+          
+          error_loading_xml_file <- TRUE
+          
+          tryCatch({
+          element <-
+            xml2::read_xml(xml_file_path) %>%
+            XML::xmlParse() %>%
+            XML::xmlToDataFrame(nodes = XML::getNodeSet(., paste0("//", single_id)), stringsAsFactors = FALSE) %>%
+            tibble::as_tibble()
+          
+          error_loading_xml_file <- FALSE
+          }, error = function(e) cat(paste0("\n", now(), " - mod_git_repos - error downloading ", current_tab, " readme - error = ", toString(e))))
+          
+          if (error_loading_xml_file) element_ui <- div(
+            shiny.fluent::MessageBar(i18n$t("error_loading_category_xml_file"), messageBarType = 5), 
+            style = "display: inline-block;"
+          )
+          
+          else {
+            
+            diff_time_unit <- "hours"
+            diff_time <- difftime(now() %>% lubridate::ymd_hms(), element$update_datetime, unit = diff_time_unit) %>% as.integer()
+            
+            if (diff_time > 24){
+              diff_time_unit <- "days"
+              diff_time <- difftime(now() %>% lubridate::ymd_hms(), element$update_datetime, unit = diff_time_unit) %>% as.integer()
+            }
+            
+            element_ui <- div(
+              tags$table(
+                tags$tr(tags$td(strong(i18n$t("name")), style = "min-width: 80px;"), tags$td(element[[paste0("name_", language)]])),
+                tags$tr(tags$td(strong(i18n$t("author_s"))), tags$td(element$author)),
+                tags$tr(tags$td(strong(i18n$t("created_on"))), tags$td(element$creation_datetime)),
+                tags$tr(
+                  tags$td(strong(i18n$t("updated_on"))),
+                  tags$td(element$update_datetime, " -", strong(diff_time, " ", tolower(i18n$t(diff_time_unit))), " ", tolower(i18n$t("updated_x_ago")))
+                )
+              )
+            )
+            
+            # Update synchronize buttons
+            synchronize_git_buttons <- shiny.fluent::PrimaryButton.shinyInput(ns("update_git_repo"), i18n$t("update"))
+          }
+        }
+        
+        # The element doesn't exist
+        else {
+          element_ui <- div(
+            shiny.fluent::MessageBar(i18n$t(paste0(single_id, "_doesnt_exist_in_git_repo")), messageBarType = 5), 
+            style = "display: inline-block;"
+          )
+        }
+      }
+      
+      output$git_repo_element_ui <- renderUI(element_ui)
+      output$synchronize_git_buttons <- renderUI(synchronize_git_buttons)
+    })
     
     ## Export element ----
     

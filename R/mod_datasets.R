@@ -83,7 +83,20 @@ mod_datasets_ui <- function(id, language, languages, i18n, code_hotkeys){
         shinyjs::hidden(
           div(
             id = ns("share_div"),
-            style = "height: 100%;"
+            div(
+              div(
+                h1(i18n$t("synchronize_with_git_repo")),
+                div(shiny.fluent::Dropdown.shinyInput(ns("git_repo"), label = i18n$t("git_repo")), style = "width: 200px;"),
+                div(uiOutput(ns("git_repo_element_ui")), style = "margin-top:10px;"),
+                div(
+                  uiOutput(ns("synchronize_git_buttons")),
+                  class = "datasets_share_buttons"
+                ),
+                class = "widget", style = "height: 50%; padding-top: 1px;"
+              ),
+              class = "datasets_share_left",
+            ),
+            class = "datasets_share_container"
           )
         ),
 

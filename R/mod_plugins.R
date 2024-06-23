@@ -88,7 +88,9 @@ mod_plugins_ui <- function(id, language, languages, i18n){
             div(
               div(
                 h1(i18n$t("synchronize_with_git_repo")),
-                class = "widget", style = "height: calc(100% - 25px); padding-top: 1px;"
+                div(shiny.fluent::Dropdown.shinyInput(ns("git_repo"), label = i18n$t("git_repo")), style = "width: 200px;"),
+                div(uiOutput(ns("git_repo_element_ui")), style = "margin-top:10px;"),
+                class = "widget", style = "height: 50%; padding-top: 1px;"
               ),
               class = "plugins_share_right"
             ),
@@ -100,11 +102,8 @@ mod_plugins_ui <- function(id, language, languages, i18n){
                   class = "create_element_modal_buttons"
                 ),
                 div(downloadButton(ns("export_element_download")), style = "visibility: hidden; position: absolute; right: 0; bottom: 0;"),
-                class = "widget", style = "height: 50%;"
+                class = "widget", style = "height: 25%;"
               ),
-              # div(
-              #   class = "widget", style = "height: 50%;"
-              # ),
               class = "plugins_share_left"
             ),
             class = "plugins_share_container"
@@ -932,6 +931,5 @@ mod_plugins_server <- function(id, r, d, m, language, i18n, debug){
       # Hide resize button when sidenav is displayed or not
       r$plugin_run_code_edit_page_activated <- FALSE
     })
-    
   })
 }

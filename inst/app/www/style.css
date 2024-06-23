@@ -250,7 +250,8 @@ a.no-hover-effect:hover {
   font-size: 12px;
 }
 
-.delete_modal_buttons, .import_modal_buttons, .create_element_modal_buttons, .select_concepts_modal_buttons, .import_concepts_modal_buttons {
+.delete_modal_buttons, .import_modal_buttons, .create_element_modal_buttons, .select_concepts_modal_buttons, .import_concepts_modal_buttons,
+.datasets_share_buttons {
   position: absolute;
   right: 10px;
   bottom: 3px;
@@ -945,6 +946,31 @@ td[data-type="factor"] input {
   calc(100% - 16px)
 }
 
+
+.prog_label {
+  padding: 2px 7px;
+  margin: 0px 2px 2px 0;
+  height: 16px;
+  border-radius: 15px;
+  color: white;
+  font-size: 11px;
+  display: inline-block;
+}
+
+.python_label {
+  background-color: #3572A5;
+}
+
+.r_label {
+  background-color: #198CE7;
+}
+
+.fa-folder, .fa-file {
+  margin-right: 5px;
+  width: 15px;
+  color:#505050;
+}
+
 /* ----------------------- */
 /* GIT REPOS PAGE          */
 /* ----------------------- */
@@ -1032,19 +1058,19 @@ td[data-type="factor"] input {
 /* DATASETS PAGE          */
 /* ---------------------- */
 
-.datasets_summary_container {
+.datasets_summary_container, .datasets_share_container {
   display: flex;
   justify-content: space-between;
   height: calc(100% - 50px);
 }
 
-.datasets_summary_left {
+.datasets_summary_left, .datasets_share_left {
   display: flex;
   flex-direction: column;
   width: 50%;
 }
 
-.datasets_summary_right {
+.datasets_summary_right, .datasets_share_right {
   width: 50%;
   calc(100% - 16px)
 }
@@ -1119,34 +1145,6 @@ td[data-type="factor"] input {
   margin: 8px 0px;
   text-align: center;
   line-height: 16px;
-}
-
-/* ------------------ */
-/* PLUGINS PAGE       */
-/* ------------------ */
-
-.prog_label {
-  padding: 2px 7px;
-  margin: 0px 2px 2px 0;
-  height: 16px;
-  border-radius: 15px;
-  color: white;
-  font-size: 11px;
-  display: inline-block;
-}
-
-.python_label {
-  background-color: #3572A5;
-}
-
-.r_label {
-  background-color: #198CE7;
-}
-
-.fa-folder, .fa-file {
-  margin-right: 5px;
-  width: 15px;
-  color:#505050;
 }
 
 /* --------------- */

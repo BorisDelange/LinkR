@@ -3,6 +3,7 @@ mod_log_ui <- function(id, language, languages, i18n){
   ns <- NS(id)
   
   div(
+    id = ns("main"),
     class = "main",
     style = "padding: 10px;",
     uiOutput(ns("log"))
@@ -32,10 +33,17 @@ mod_log_server <- function(id, r, d, m, language, i18n, debug){
         readLines(log_file, warn = FALSE) %>% 
         gsub("^(.*?\\- )(.*?)( \\- .*)$", "\\1<span style='color: #015bb5; font-weight: 600;'>\\2</span>\\3", .) %>%
         gsub("Error", "<span style='color: #f44336; font-weight: 600;'></span>", .) %>%
-        rev() %>% 
+        # rev() %>% 
         paste(collapse = "<br />")
         
       output$log <- renderUI(div(HTML(log), style = "font-weight: 500; font-family: monospace;"))
+      
+      # Scroll to the bottom of the page
+      shinyjs::delay(100,
+        shinyjs::runjs("
+          const element = document.getElementById('log-main');
+          element.scrollTop = element.scrollHeight;")
+      )
     })
     
     observeEvent(input$reset_log, {
