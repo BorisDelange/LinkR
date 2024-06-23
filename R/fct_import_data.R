@@ -1290,14 +1290,10 @@ import_dataset <- function(output, ns = character(), i18n = character(), r = shi
 #' Import a vocabulary table
 #' 
 #' @description Import an OMOP vocabulary and save it in app database
-#' @param output variable from Shiny, used to render messages on the message bar
-#' @param ns Shiny namespace
-#' @param i18n shiny.i18n object for translations
 #' @param r A shiny::reactiveValues object, used to communicate between modules
 #' @param m A shiny::reactiveValues object, used to communicate between modules
 #' @param table_name Name of the vocabulary table we import (concept, concept_relationship or other) (character)
 #' @param data A tibble containing the data
-#' @param add_vocabulary If concepts are imported, should the corresponding terminologies be added? (logical)
 #' @details The function is used in a vocabulary code, it is launched only when you click on "Run code" on the vocabulary page.\cr\cr
 #' See \href{https://ohdsi.github.io/CommonDataModel/cdm60.html}{\strong{OMOP common data model}} for more information.
 #' @examples
@@ -1306,13 +1302,11 @@ import_dataset <- function(output, ns = character(), i18n = character(), r = shi
 #'   concept_class_id = "Clinical Observation", standard_concept = "S", concept_code = "8867-4",
 #'   valid_start_date = "1970-01-01", valid_end_date = "2099-12-31", invalid_reason = NA_character_)
 #'   
-#' import_vocabulary_table(output = output, ns = ns, i18n = i18n, r = r, m = m,
-#'   table_name = "concept", data = concept)
+#' import_vocabulary_table(r = r, m = m, table_name = "concept", data = concept)
 #' }
-import_vocabulary_table <- function(
-  i18n = character(), r = shiny::reactiveValues(), m = shiny::reactiveValues(),
-  table_name = character(), data = tibble::tibble(), add_vocabulary = FALSE
-){
+import_vocabulary_table <- function(r = shiny::reactiveValues(), m = shiny::reactiveValues(), table_name = character(), data = tibble::tibble(), add_new_vocabularies = FALSE){
+  
+  i18n <- r$i18n
   
   # Reset count rows
   rows_inserted <- 0L
@@ -1446,60 +1440,73 @@ import_vocabulary_table <- function(
   else {
     data_to_insert <- data_to_insert %>% dplyr::mutate(id = 1:dplyr::n() + last_id, .before = 1)
     
-    DBI::dbAppendTable(m$db, table_name, data_to_insert)
-
-    # Add vocabularies
-    
-    new_vocabularies <- character()
-    
-    if (table_name == "vocabulary") new_vocabularies <- row$vocabulary_name
-    else if (table_name == "concept" & add_vocabulary){
-      new_vocabularies <- data_to_insert %>% dplyr::distinct(vocabulary_id)
-    
-      # Actual vocabulary_id
-      sql <- glue::glue_sql("SELECT vocabulary_id FROM vocabulary WHERE deleted IS FALSE", .con = m$db)
-      actual_vocabulary_ids <- DBI::dbGetQuery(m$db, sql) %>% dplyr::pull(vocabulary_id)
-      new_vocabularies <- new_vocabularies %>% dplyr::filter(vocabulary_id %not_in% actual_vocabulary_ids)
-    }
-    
-    if (length(new_vocabularies) > 0){
-    
-      for (i in 1:length(new_vocabularies)){
+    # For vocabulary table, we have to add rows in options and code tables
+    if (table_name == "vocabulary"){
+      
+      if (nrow(data_to_insert) > 0){
+        
         new_data <- list()
         last_row <- list()
-        last_row$options <- get_last_row(r$db, "options")
-        last_row$code <- get_last_row(r$db, "code")
-  
-        new_data$options <- tibble::tribble(
-          ~name, ~value, ~value_num,
-          "users_allowed_read_group", "everybody", 1,
-          "user_allowed_read", "", r$user_id,
-          "version", "0.0.1.9000", NA_integer_,
-          "unique_id", paste0(sample(c(0:9, letters[1:6]), 64, TRUE), collapse = ''), NA_integer_,
-          "author", "", NA_integer_,
-          "downloaded_from", "", NA_integer_,
-          "downloaded_from_url", "", NA_integer_
-        ) %>%
-          dplyr::bind_rows(
-            r$languages %>%
-              tidyr::crossing(name = c("description", "category", "name")) %>%
-              dplyr::mutate(
-                name = paste0(name, "_", code),
-                value = ifelse(grepl("name_", name), as.character(new_vocabularies[i]), ""),
-                value_num = NA_integer_
+        
+        for (table in c("vocabulary", "options", "code")){
+          last_row[[table]] <- get_last_row(m$db, table)
+          new_data[[table]] <- tibble::tibble()
+        }
+        
+        for (i in 1:nrow(data_to_insert)){
+          
+          row <- data_to_insert[i, ]
+          
+          new_data$vocabulary <- new_data$vocabulary %>% dplyr::bind_rows(
+            row %>% dplyr::transmute(
+              id = last_row$vocabulary + 1, vocabulary_id, vocabulary_name, vocabulary_reference, vocabulary_version, vocabulary_concept_id,
+              data_source_id = "", display_order = NA_integer_, creator_id = r$user_id, creation_datetime = now(), update_datetime = now(), deleted = FALSE
+            )
+          )
+          
+          new_data$options <- new_data$options %>% dplyr::bind_rows(
+            tibble::tribble(
+              ~name, ~value, ~value_num,
+              "users_allowed_read_group", "everybody", 1,
+              "user_allowed_read", "", r$user_id,
+              "version", "0.0.1.9000", NA_integer_,
+              "unique_id", paste0(sample(c(0:9, letters[1:6]), 64, TRUE), collapse = ''), NA_integer_,
+              "author", "", NA_integer_,
+              "downloaded_from", "", NA_integer_,
+              "downloaded_from_url", "", NA_integer_
+            ) %>%
+              dplyr::bind_rows(
+                r$languages %>%
+                  tidyr::crossing(name = c("description", "category", "name")) %>%
+                  dplyr::mutate(
+                    name = paste0(name, "_", code),
+                    value = ifelse(grepl("name_", name), row$vocabulary_id, ""),
+                    value_num = NA_integer_
+                  ) %>%
+                  dplyr::select(-code, -language)
               ) %>%
-              dplyr::select(-code, -language)
-          ) %>%
-          dplyr::mutate(id = last_row$options + dplyr::row_number(), category = "vocabulary", link_id = row$id, .before = "name") %>%
-          dplyr::mutate(creator_id = r$user_id, datetime = now(), deleted = FALSE)
-  
-        new_data$code <- tibble::tribble(
-          ~id, ~category, ~link_id, ~code, ~creator_id, ~datetime, ~deleted,
-          last_row$code + 1, "vocabulary", row$id, "", r$user_id, now(), FALSE)
-  
-          for (var in c("options", "code")) DBI::dbAppendTable(r$db, var, new_data[[var]])
+              dplyr::mutate(id = last_row$options + dplyr::row_number(), category = "vocabulary", link_id = last_row$vocabulary + 1, .before = "name") %>%
+              dplyr::mutate(creator_id = r$user_id, datetime = now(), deleted = FALSE)
+          )
+          
+          new_data$code <- new_data$code %>% dplyr::bind_rows(
+            tibble::tibble(
+              id = last_row$code + 1, category = "vocabulary", link_id = last_row$vocabulary + 1, code = "",
+              creator_id = r$user_id, datetime = now(), deleted = FALSE
+            )
+          )
+          
+          last_row$code <- last_row$code + 1
+          last_row$vocabulary <- last_row$vocabulary + 1
+          last_row$options <- max(new_data$options$id)
+        }
+        
+        for (table in c("vocabulary", "options", "code")) DBI::dbAppendTable(m$db, table, new_data[[table]])
       }
     }
+    
+    # Other tables than vocabulary
+    else DBI::dbAppendTable(m$db, table_name, data_to_insert)
   }
   
   cat(paste0("\n", rows_inserted, " ", i18n$t("rows_inserted_in_table") , " ", table_name))

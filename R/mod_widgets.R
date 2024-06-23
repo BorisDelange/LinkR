@@ -773,7 +773,7 @@ mod_widgets_server <- function(id, r, d, m, language, i18n, all_divs, debug){
       if (id == "vocabularies"){
         
         # Get vocabulary_id
-        vocabulary_id <- r$vocabulary_wide %>% dplyr::filter(id == element_id) %>% dplyr::pull(vocabulary_id)
+        vocabulary_id <- r$vocabularies_wide %>% dplyr::filter(id == element_id) %>% dplyr::pull(vocabulary_id)
         
         # Delete entry in concept table
         sql_send_statement(con, glue::glue_sql("DELETE FROM concept WHERE concept_name = {vocabulary_id} AND domain_id = 'Metadata' AND concept_class_id = 'Vocabulary'", .con = con))

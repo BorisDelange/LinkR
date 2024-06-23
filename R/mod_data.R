@@ -1630,7 +1630,7 @@ mod_data_server <- function(id, r, d, m, language, i18n, debug){
     # |-------------------------------- -----
     
     # --- --- --- --- --- -
-    # Module functions ####
+    # Module functions ----
     # --- --- --- --- --- -
     
     create_translations_files <- function(plugin_id, plugin_translations_dir, plugin_folder){

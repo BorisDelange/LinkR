@@ -835,6 +835,7 @@ import_vocabulary,Importer une terminologie
 export_vocabulary,Exporter une terminologie
 export_concepts,Exporter des concepts
 import_concepts,Importer des concepts
+import_concepts_or_vocabularies,Importer des concepts ou des terminologies
 import,Importer
 export,Exporter
 imported_vocabularies,Terminologies importées
@@ -1152,6 +1153,8 @@ descendant_concept_id,ID du concept fils
 descendant_concept_name,Nom du concept fils
 min_levels_of_separation,Nombre min de niveaux de séparation
 max_levels_of_separation,Nombre max de niveaux de séparation
-import_concepts_title,Importer des concepts
+import_concepts_title,Importer des concepts ou des terminologies
 close,Fermer
 message,Message
+import_new_vocabularies,Importer les nouvelles terminologies
+import_new_vocabularies_info,"Si de nouvelles terminologies sont présentes dans les fichiers importés, elles seront ajoutées dans la base de données de l'application."

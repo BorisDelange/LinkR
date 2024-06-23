@@ -451,7 +451,7 @@ load_dataset_concepts <- function(r, d, m){
     dplyr::select(-new_concept_name_1, -new_concept_display_name_1, -new_concept_name_2)
   
   r$dataset_vocabularies <-
-    r$vocabulary_wide %>%
+    r$vocabularies_wide %>%
     dplyr::filter(vocabulary_id %in% unique(c(unique(d$dataset_all_concepts$vocabulary_id_1), unique(d$dataset_all_concepts$vocabulary_id_2)))) %>%
     dplyr::arrange(vocabulary_id)
   

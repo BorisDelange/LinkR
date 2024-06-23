@@ -25,8 +25,8 @@ mod_vocabularies_ui <- function(id, language, languages, i18n, code_hotkeys){
             id = ns("vocabulary_pivot"),
             tags$button(id = ns("summary"), i18n$t("summary"), class = "pivot_item selected_pivot_item", onclick = pivot_item_js),
             tags$button(id = ns("concepts"), i18n$t("concepts"), class = "pivot_item", onclick = pivot_item_js),
-            tags$button(id = ns("edit_code"), i18n$t("code"), class = "pivot_item", onclick = pivot_item_js),
-            tags$button(id = ns("share"), i18n$t("share"), class = "pivot_item", onclick = pivot_item_js),
+            # tags$button(id = ns("edit_code"), i18n$t("code"), class = "pivot_item", onclick = pivot_item_js),
+            # tags$button(id = ns("share"), i18n$t("share"), class = "pivot_item", onclick = pivot_item_js),
             class = "pivot"
           ),
           style = "display:flex; justify-content:space-between;"
@@ -124,33 +124,33 @@ mod_vocabularies_ui <- function(id, language, languages, i18n, code_hotkeys){
           )
         ),
         
-        ## Edit code ----
-        shinyjs::hidden(
-          div(
-            id = ns("edit_code_div"),
-            div(
-              shinyAce::aceEditor(
-                ns("vocabulary_code"), value = "", mode = "r",
-                code_hotkeys = list("r", code_hotkeys),
-                autoScrollEditorIntoView = TRUE, height = "100%", debounce = 100, fontSize = 11, showPrintMargin = FALSE
-              ),
-              class = "element_ace_editor"
-            ),
-            div(
-              verbatimTextOutput(ns("code_result")),
-              class = "element_code_result"
-            ),
-            style = "height: 100%; display: flex;"
-          )
-        ),
-        
-        ## Share ----
-        shinyjs::hidden(
-          div(
-            id = ns("share_div"),
-            style = "height: 100%;"
-          )
-        ),
+        # ## Edit code ----
+        # shinyjs::hidden(
+        #   div(
+        #     id = ns("edit_code_div"),
+        #     div(
+        #       shinyAce::aceEditor(
+        #         ns("vocabulary_code"), value = "", mode = "r",
+        #         code_hotkeys = list("r", code_hotkeys),
+        #         autoScrollEditorIntoView = TRUE, height = "100%", debounce = 100, fontSize = 11, showPrintMargin = FALSE
+        #       ),
+        #       class = "element_ace_editor"
+        #     ),
+        #     div(
+        #       verbatimTextOutput(ns("code_result")),
+        #       class = "element_code_result"
+        #     ),
+        #     style = "height: 100%; display: flex;"
+        #   )
+        # ),
+        # 
+        # ## Share ----
+        # shinyjs::hidden(
+        #   div(
+        #     id = ns("share_div"),
+        #     style = "height: 100%;"
+        #   )
+        # ),
         
         style = "height: 100%; display: flex; flex-direction: column;"
       )
@@ -177,13 +177,13 @@ mod_vocabularies_ui <- function(id, language, languages, i18n, code_hotkeys){
                 div(id = ns("close_import_concepts_modal_2_div"), shiny.fluent::DefaultButton.shinyInput(ns("close_import_concepts_modal_2"), i18n$t("close"))),
                 class = "import_concepts_modal_buttons"
               ),
-              style = "width: 50%;"
+              style = "width: 50%; overflow: auto;"
             ),
             div(
               DT::DTOutput(ns("inserted_concepts_dt")),
               style = "width: 50%; overflow: auto;"
             ),
-            style = "display: flex;"
+            style = "display: flex; gap: 10px;"
           ),
           class = "import_concepts_modal_content"
         ),
@@ -199,9 +199,13 @@ mod_vocabularies_server <- function(id = character(), r = shiny::reactiveValues(
   
   if (debug) cat(paste0("\n", now(), " - mod_vocabularies - ", id, " - start"))
   
+  # Initiate vars ----
+  authorized_concept_files <- c("concept", "domain", "concept_class", "concept_relationship", "relationship", "concept_synonym", "concept_ancestor", "drug_strength", "vocabulary")
+  
   # Load widgets ----
   
-  all_divs <- c("summary", "concepts", "edit_code", "share")
+  # all_divs <- c("summary", "concepts", "edit_code", "share")
+  all_divs <- c("summary", "concepts")
   mod_widgets_server(id, r, d, m, language, i18n, all_divs, debug)
   
   # Vocabularies module ----
@@ -363,8 +367,12 @@ mod_vocabularies_server <- function(id = character(), r = shiny::reactiveValues(
     
     # Show / hide import concepts modal
     
-    observeEvent(input$import_concepts, {
-      if (debug) cat(paste0("\n", now(), " - mod_vocabularies - observer input$import_concepts"))
+    observeEvent(input$import_concepts_1, {
+      if (debug) cat(paste0("\n", now(), " - mod_vocabularies - observer input$import_concepts_1"))
+      shinyjs::show("import_concepts_modal")
+    })
+    observeEvent(input$import_concepts_2, {
+      if (debug) cat(paste0("\n", now(), " - mod_vocabularies - observer input$import_concepts_2"))
       shinyjs::show("import_concepts_modal")
     })
     
@@ -433,6 +441,13 @@ mod_vocabularies_server <- function(id = character(), r = shiny::reactiveValues(
       }
       
       output$selected_files <- renderUI(files_ui)
+      
+      # Reset datatable
+      render_datatable(
+        output = output, ns = ns, i18n = i18n, data = tibble::tibble(table_name = character(), n_rows = integer(), message = character()),
+        output_name = "inserted_concepts_dt", datatable_dom = "<'top't><'bottom'p>",
+        sortable_cols = c("table_name", "n_rows", "message"), col_names = c(i18n$t("table_name"), i18n$t("rows_inserted"), i18n$t("message"))
+      )
     })
     
     # Import files
@@ -459,6 +474,9 @@ mod_vocabularies_server <- function(id = character(), r = shiny::reactiveValues(
       shinyjs::hide("import_files_div")
       shinyjs::show("close_import_concepts_modal_2_div")
       
+      # Add new vocabularies ?
+      add_vocabulary <- input$import_new_vocabularies
+      
       # Reset count rows var
       inserted_data <- tibble::tibble(table_name = character(), n_rows = character(), message = character())
       
@@ -471,6 +489,14 @@ mod_vocabularies_server <- function(id = character(), r = shiny::reactiveValues(
         
         if (file_ext == "csv"){
           
+          table_name <- tolower(substr(row$name, 1, nchar(row$name) - 4))
+          
+          if (table_name %in% authorized_concept_files){
+            
+            # Insert new data
+            new_inserted_data <- load_concepts_from_csv_file(r, m, table_name, row$datapath, col_types[[table_name]])
+            inserted_data <- inserted_data %>% dplyr::bind_rows(new_inserted_data)
+          }
         }
         
         else if (file_ext == "zip"){
@@ -484,18 +510,15 @@ mod_vocabularies_server <- function(id = character(), r = shiny::reactiveValues(
             
             if (grepl(".csv$", filename)){
               
-              # Name of the table
               table_name <- tolower(substr(filename, 1, nchar(filename) - 4))
               
-              if (table_name %in% c("concept", "domain", "concept_class", "concept_relationship", "relationship", "concept_synonym", "concept_ancestor", "drug_strength")){
+              if (table_name %in% authorized_concept_files){
                 
-                # Load CSV file
-                data <- vroom::vroom(paste0(temp_dir, "/", filename), col_types = col_types[[table_name]], progress = FALSE)
-
-                if ("valid_start_date" %in% names(data)) data <- data %>% dplyr::mutate_at(c("valid_start_date", "valid_end_date"), lubridate::ymd)
+                file_path <- paste0(temp_dir, "/", filename)
                 
-                res <- import_vocabulary_table(i18n = i18n, r = r, m = m, table_name = table_name, data = data, add_vocabulary = FALSE)
-                inserted_data <- inserted_data %>% dplyr::bind_rows(tibble::tibble(table_name = table_name, n_rows = res[1], message = res[2]))
+                # Insert new data
+                new_inserted_data <- load_concepts_from_csv_file(r, m, table_name, file_path, col_types[[table_name]])
+                inserted_data <- inserted_data %>% dplyr::bind_rows(new_inserted_data)
               }
             }
           }
@@ -507,6 +530,9 @@ mod_vocabularies_server <- function(id = character(), r = shiny::reactiveValues(
         output = output, ns = ns, i18n = i18n, data = inserted_data, output_name = "inserted_concepts_dt", datatable_dom = "<'top't><'bottom'p>",
         sortable_cols = c("table_name", "n_rows", "message"), col_names = c(i18n$t("table_name"), i18n$t("rows_inserted"), i18n$t("message"))
       )
+      
+      # Reload widgets
+      shinyjs::runjs(paste0("Shiny.setInputValue('", id, "-reload_elements_var', Math.random());"))
     })
     
     # |-------------------------------- -----
@@ -515,5 +541,21 @@ mod_vocabularies_server <- function(id = character(), r = shiny::reactiveValues(
     # Edit vocabulary code ----
     # --- --- --- --- --- --- -
     
+    # |-------------------------------- -----
+    
+    # --- --- --- --- --- -
+    # Module functions ----
+    # --- --- --- --- --- -
+    
+    load_concepts_from_csv_file <- function(r, m, table_name, file_path, col_types, add_vocabulary){
+      
+      # Load CSV file
+      data <- vroom::vroom(file_path, col_types = col_types, progress = FALSE)
+      
+      if ("valid_start_date" %in% names(data)) data <- data %>% dplyr::mutate_at(c("valid_start_date", "valid_end_date"), lubridate::ymd)
+      
+      res <- import_vocabulary_table(r = r, m = m, table_name = table_name, data = data)
+      return(tibble::tibble(table_name = table_name, n_rows = res[1], message = res[2]))
+    }
   })
 }

@@ -118,6 +118,11 @@ button.ms-Toggle-background {
   height: 15px;
 }
 
+.ms-Checkbox-text {
+  font-size: 12px;
+  line-height: 12px;
+}
+
 .ms-ComboBox-container .ms-ComboBox-Input {
     font-size: 12px;
     height: 25px;

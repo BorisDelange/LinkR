@@ -157,7 +157,7 @@ app_server <- function(pages, language, languages, i18n, app_folder, debug, log_
       
       # Load vocabularies
       sql <- glue::glue_sql("SELECT * FROM vocabulary", .con = m$db)
-      r$vocabulary_wide <- DBI::dbGetQuery(m$db, sql) %>% tibble::as_tibble()
+      r$vocabularies_wide <- DBI::dbGetQuery(m$db, sql) %>% tibble::as_tibble()
       
       # Load users names
       sql <- glue::glue_sql("SELECT id, (firstname || ' ' || lastname) AS name, (SUBSTR(firstname, 1, 1) || SUBSTR(lastname, 1, 1)) AS initials FROM users", .con = r$db)

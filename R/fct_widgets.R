@@ -115,7 +115,7 @@ create_elements_ui <- function(page_id, elements, r, language, i18n){
     
     widget_buttons <- tagList()
     onclick <- paste0("
-      Shiny.setInputValue('", page_id, "-selected_element', ", i, ");
+      Shiny.setInputValue('", page_id, "-selected_element', ", row$id, ");
       Shiny.setInputValue('", page_id, "-selected_element_trigger', Math.random());
     ")
     

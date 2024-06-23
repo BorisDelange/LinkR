@@ -60,7 +60,7 @@ mod_git_repos_ui <- function(id = character(), language = "en", languages = tibb
             tags$button(id = ns("plugins"), i18n$t("plugins"), class = "pivot_item", onclick = pivot_item_js),
             tags$button(id = ns("data_cleaning_scripts"), i18n$t("data_cleaning"), class = "pivot_item", onclick = pivot_item_js),
             tags$button(id = ns("datasets"), i18n$t("datasets"), class = "pivot_item", onclick = pivot_item_js),
-            tags$button(id = ns("vocabularies"), i18n$t("vocabularies"), class = "pivot_item", onclick = pivot_item_js),
+            # tags$button(id = ns("vocabularies"), i18n$t("vocabularies"), class = "pivot_item", onclick = pivot_item_js),
             class = "pivot"
           ),
           style = "display: flex; justify-content: space-between; z-index: 100;"
@@ -125,7 +125,8 @@ mod_git_repos_server <- function(id, r, d, m, language, i18n, debug){
     
     # Initiate vars ----
     
-    all_divs <- c("summary", "projects", "plugins", "data_cleaning_scripts", "datasets", "vocabularies")
+    # all_divs <- c("summary", "projects", "plugins", "data_cleaning_scripts", "datasets", "vocabularies")
+    all_divs <- c("summary", "projects", "plugins", "data_cleaning_scripts", "datasets")
     
     r$loaded_git_repos <- tibble::tibble(unique_id = character(), datetime = character())
     
@@ -394,7 +395,8 @@ mod_git_repos_server <- function(id, r, d, m, language, i18n, debug){
             # git2r::config(repo, user.name = "username", user.email = "")
             
             # Create dirs & files that don't exist
-            for (dir in c("datasets", "plugins", "data_cleaning_scripts", "projects", "vocabularies")){
+            # for (dir in c("datasets", "plugins", "data_cleaning_scripts", "projects", "vocabularies")){
+            for (dir in c("datasets", "plugins", "data_cleaning_scripts", "projects")){
               dir_path <- paste0(local_path, "/", dir)
               file_path <- paste0(local_path, "/", dir, "/.gitkeep")
               xml_file_path <- paste0(dir_path, "/", dir, ".xml")
@@ -469,8 +471,8 @@ mod_git_repos_server <- function(id, r, d, m, language, i18n, debug){
           "datasets" = "dataset",
           "projects" = "project", 
           "plugins" = "plugin", 
-          "subsets" = "subset", 
-          "vocabularies" = "vocabulary"
+          "subsets" = "subset"#, 
+          # "vocabularies" = "vocabulary"
         )
         
         elements <- tibble::tibble()

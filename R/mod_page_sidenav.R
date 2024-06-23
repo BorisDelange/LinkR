@@ -527,32 +527,33 @@ mod_page_sidenav_ui <- function(id = character(), i18n = character()){
         div(
           id = ns("all_elements_reduced_sidenav"),
           create_hover_card(ui = shiny.fluent::IconButton.shinyInput(ns("create_element"), iconProps = list(iconName = "Add")), text = i18n$t("create_vocabulary")),
+          create_hover_card(ui = shiny.fluent::IconButton.shinyInput(ns("import_concepts_1"), iconProps = list(iconName = "Upload")), text = i18n$t("import_concepts_or_vocabularies")),
           class = "reduced_sidenav_buttons"
         ),
         shinyjs::hidden(
           div(
             id = ns("concepts_reduced_sidenav"),
-            create_hover_card(ui = shiny.fluent::IconButton.shinyInput(ns("import_concepts"), iconProps = list(iconName = "Upload")), text = i18n$t("import_concepts")),
+            create_hover_card(ui = shiny.fluent::IconButton.shinyInput(ns("import_concepts_2"), iconProps = list(iconName = "Upload")), text = i18n$t("import_concepts_or_vocabularies")),
             class = "reduced_sidenav_buttons"
           )
-        ),
-        shinyjs::hidden(
-          div(
-            id = ns("edit_code_reduced_sidenav"),
-            div(
-              div(
-                id = ns("run_code_div"),
-                create_hover_card(ui = shiny.fluent::IconButton.shinyInput(ns("run_code"), iconProps = list(iconName = "Play")), text = i18n$t("run_code")),
-                class = "reduced_sidenav_buttons",
-              ),
-              div(
-                id = ns("save_code_div"),
-                create_hover_card(ui = shiny.fluent::IconButton.shinyInput(ns("save_code"), iconProps = list(iconName = "Save")), text = i18n$t("save")),
-                class = "reduced_sidenav_buttons",
-              )
-            )
-          )
         )
+        # shinyjs::hidden(
+        #   div(
+        #     id = ns("edit_code_reduced_sidenav"),
+        #     div(
+        #       div(
+        #         id = ns("run_code_div"),
+        #         create_hover_card(ui = shiny.fluent::IconButton.shinyInput(ns("run_code"), iconProps = list(iconName = "Play")), text = i18n$t("run_code")),
+        #         class = "reduced_sidenav_buttons",
+        #       ),
+        #       div(
+        #         id = ns("save_code_div"),
+        #         create_hover_card(ui = shiny.fluent::IconButton.shinyInput(ns("save_code"), iconProps = list(iconName = "Save")), text = i18n$t("save")),
+        #         class = "reduced_sidenav_buttons",
+        #       )
+        #     )
+        #   )
+        # )
       ),
       hide_sidenav
     ) -> result

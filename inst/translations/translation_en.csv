@@ -836,6 +836,7 @@ import_vocabulary,Import a vocabulary
 export_vocabulary,Export a vocabulary
 export_concepts,Export concepts
 import_concepts,Import concepts
+import_concepts_or_vocabularies,Import concepts or vocabularies
 import,Import
 export,Export
 imported_vocabularies,Imported vocabularies
@@ -1153,5 +1154,7 @@ descendant_concept_id,Descendant concept ID
 descendant_concept_name,Descendant concept name
 min_levels_of_separation,Min levels of separation
 max_levels_of_separation,Max levels of separation
-import_concepts_title,Import concepts
+import_concepts_title,Import concepts or vocabularies
 message,Message
+import_new_vocabularies,Import new vocabularies
+import_new_vocabularies_info,"If new vocabularies are present in the imported files, they will be added to app database."
