@@ -26,92 +26,6 @@ convert_tibble_to_list <- function(data = tibble::tibble(), key_col = character(
   my_list
 }
 
-#' Coalesce2
-#' 
-#' @description Returns a NA value
-#' @param type Type of the variable c("char", "int") (character)
-#' @param x Variable
-#' @return Returns NA if variable is null or empty, returns the variable if not null & not empty
-#' @examples 
-#' coalesce2("char", "my_char")
-coalesce2 <- function(type, x){
-  if (length(x) >= 2) return(x)
-  if (type == "int"){
-    if (is.null(x)) return(NA_integer_)
-    if (length(x) == 0) return(NA_integer_)
-    if (x == "") return(NA_integer_)
-    return(tryCatch(as.integer(x)))
-  }
-  if (type == "char"){
-    if (is.null(x)) return(NA_character_)
-    if(length(x) == 0) return(NA_character_)
-    if (x == "") return(NA_character_)
-    return(tryCatch(as.character(x)))
-  }
-}
-
-#' Resize and pad image
-#' 
-#' @description Resize and pad a PNG image
-#' @param input_path Path of the input image
-#' @param output_path Path of the output image
-#' @param target_width Width of the output image
-#' @param target_height Height of the output image
-#' @return Returns a PNG image with new dimensions
-#' @examples
-#' resize_and_pad_image("my_image.png", "my_image_resized.png", target_width = 318, target_height = 200)
-resize_and_pad_image <- function(input_path, output_path, target_width = 318, target_height = 200, i18n = character()){
-  # Check if file exists
-  if (!file.exists(input_path)) stop(i18n$t("input_image_doesnt_exist"))
-  
-  # Read image
-  img <- magick::image_read(input_path)
-  
-  # Determine image format
-  image_format <- tolower(magick::image_info(img)$format)
-  
-  # Input image & output path must be PNG files
-  if (image_format %not_in% c("png", "svg", "jpg", "jpeg")) stop(i18n$t("imported_image_must_be_png_svg_or_jpg"))
-  if (!grepl("\\.png$|\\.jpg$|\\.jpeg|\\.svg$$", output_path, ignore.case = TRUE)) stop(i18n$t("imported_image_must_be_png_svg_or_jpg"))
-  
-  # Calculate original image ratio
-  original_aspect_ratio <- magick::image_info(img)$height / magick::image_info(img)$width
-  
-  # Calculate target ratio
-  target_aspect_ratio <- target_height / target_width
-  
-  # New dimensions
-  if (original_aspect_ratio > target_aspect_ratio) {
-    new_height <- target_height
-    new_width <- as.integer(target_height / original_aspect_ratio)
-  } else {
-    new_width <- target_width
-    new_height <- as.integer(target_width * original_aspect_ratio)
-  }
-  
-  # Resize image
-  img_resized <- magick::image_resize(img, paste0(new_width, "x", new_height))
-  
-  # If the image is jpeg/jpg, just save the resized image
-  if (image_format %in% c("jpg", "jpeg")) {
-    magick::image_write(img_resized, output_path)
-    return(invisible(NULL))
-  }
-  
-  # Center image
-  x_off <- floor((target_width - new_width) / 2)
-  y_off <- floor((target_height - new_height) / 2)
-  
-  # New transparent image
-  img_transparent <- magick::image_blank(target_width, target_height, "transparent")
-  
-  # Overlay transparent image & resized image
-  img_final <- magick::image_composite(img_transparent, img_resized, operator = "src-over", offset = paste0("+", x_off, "+", y_off))
-  
-  # Write image
-  magick::image_write(img_final, output_path)
-}
-
 #' Is integer
 #' 
 #' @description Test if a number is an integer or an integer64
@@ -131,7 +45,3 @@ now <- function(format = "%Y-%m-%d %H:%M:%S"){
 }
 
 `%not_in%` <- Negate(`%in%`)
-
-not_null <- Negate(is.null)
-
-not_na <- Negate(is.na)

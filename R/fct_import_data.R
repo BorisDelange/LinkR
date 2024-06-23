@@ -1309,191 +1309,97 @@ import_dataset <- function(output, ns = character(), i18n = character(), r = shi
 #' import_vocabulary_table(output = output, ns = ns, i18n = i18n, r = r, m = m,
 #'   table_name = "concept", data = concept)
 #' }
-import_vocabulary_table <- function(output, ns = character(), i18n = character(), r = shiny::reactiveValues(), m = shiny::reactiveValues(),
-  table_name = character(), data = tibble::tibble(), add_vocabulary = FALSE){
- 
-  error_flag <- FALSE
+import_vocabulary_table <- function(
+  i18n = character(), r = shiny::reactiveValues(), m = shiny::reactiveValues(),
+  table_name = character(), data = tibble::tibble(), add_vocabulary = FALSE
+){
   
-  # Create var to count rows if doesn't exist
-  if (length(r$import_concepts_count_rows) == 0) r$import_concepts_count_rows <- tibble::tibble(table_name = character(), n_rows = integer())
+  # Reset count rows
+  rows_inserted <- 0L
   
   if (table_name %not_in% c("concept", "vocabulary", "domain", "concept_class", "concept_relationship", "relationship", "concept_synonym", "concept_ancestor", "drug_strength")){
-    add_log_entry(r = r, category = "Error", name = paste0("import_vocabulary_table - invalid_vocabulary_table"), value = i18n$t("invalid_vocabulary_table"))
-    cat(paste0(tags$span(paste0("**", i18n$t("error"), "** ", i18n$t("invalid_vocabulary_table")), style = "font-weight:bold; color:red;"), "\n"))
-    return(NULL)
-  }
-  
-  if (table_name == "concept") var_cols <- tibble::tribble(
-    ~name, ~type,
-    "concept_id", "integer",
-    "concept_name", "character",
-    "domain_id", "character",
-    "vocabulary_id", "character",
-    "concept_class_id", "character",
-    "standard_concept", "character",
-    "concept_code", "character",
-    "valid_start_date", "date",
-    "valid_end_date", "date",
-    "invalid_reason", "character")
-  
-  else if (table_name == "vocabulary") var_cols <- tibble::tribble(
-    ~name, ~type,
-    "vocabulary_id", "character",
-    "vocabulary_name", "character",
-    "vocabulary_reference", "character",
-    "vocabulary_version", "character",
-    "vocabulary_concept_id", "integer")
-  
-  else if (table_name == "domain") var_cols <- tibble::tribble(
-    ~name, ~type,
-    "domain_id", "character",
-    "domain_name", "character",
-    "domain_concept_id", "integer")
-  
-  else if (table_name == "concept_class") var_cols <- tibble::tribble(
-    ~name, ~type,
-    "concept_class_id", "character",
-    "concept_class_name", "character",
-    "concept_class_concept_id", "integer")
-  
-  else if (table_name == "concept_relationship") var_cols <- tibble::tribble(
-    ~name, ~type,
-    "concept_id_1", "integer",
-    "concept_id_2", "integer",
-    "relationship_id", "character",
-    "valid_start_date", "date",
-    "valid_end_date", "date",
-    "invalid_reason", "character")
-  
-  else if (table_name == "relationship") var_cols <- tibble::tribble(
-    ~name, ~type,
-    "relationship_id", "character",
-    "relationship_name", "character",
-    "is_hierarchical", "character",
-    "defines_ancestry", "character",
-    "reverse_relationship_id", "character",
-    "relationship_concept_id", "integer")
-  
-  else if (table_name == "concept_synonym") var_cols <- tibble::tribble(
-    ~name, ~type,
-    "concept_id", "integer",
-    "concept_synonym_name", "character",
-    "language_concept_id", "integer")
-  
-  else if (table_name == "concept_ancestor") var_cols <- tibble::tribble(
-    ~name, ~type,
-    "ancestor_concept_id", "integer",
-    "descendant_concept_id", "integer",
-    "min_levels_of_separation", "integer",
-    "max_levels_of_separation", "integer")
-  
-  else if (table_name == "drug_strength") var_cols <- tibble::tribble(
-    ~name, ~type,
-    "drug_concept_id", "integer",
-    "ingredient_concept_id", "integer",
-    "amount_value", "numeric",
-    "amount_unit_concept_id", "integer",
-    "numerator_value", "numeric",
-    "numerator_unit_concept_id", "integer",
-    "denominator_value", "numeric",
-    "denominator_unit_concept_id", "integer",
-    "box_size", "integer",
-    "valid_start_date", "date",
-    "valid_end_date", "date",
-    "invalid_reason", "character")
-
-  # Check columns var types & names
-  
-  if (!identical(colnames(data), var_cols$name)){
-    add_log_entry(r = r, category = "Error", name = paste0("import_vocabulary_table - invalid_col_names"), value = paste0(i18n$t("valid_col_names_are"), "</span>\n", toString(var_cols %>% dplyr::pull(name))))
-    cat(paste0(tags$span(paste0("**", i18n$t("error"), "** ", i18n$t("valid_col_names_are")), style = "font-weight:bold; color:red;"), "\n", toString(var_cols %>% dplyr::pull(name)), "\n"))
-    return(NULL)
-  }
-  
-  # Check col types
-  
-  error_message <- ""
-  cols_to_char <- character(0)
-  
-  for (i in 1:nrow(var_cols)){
-    var_name <- var_cols[[i, "name"]]
-    if (var_cols[[i, "type"]] == "integer" & !is_integer_or_integer64(data[[var_name]])){
-      add_log_entry(r = r, category = "Error", name = paste0("import_vocabulary_table - invalid_col_types"), value = paste0(i18n$t("column"), " ", var_name, " ", i18n$t("type_must_be_integer")))
-      error_message <- paste0(tags$span(paste0("**", i18n$t("error"), "** ", i18n$t("column"), " ", var_name, " ", i18n$t("type_must_be_integer")), style = "font-weight:bold; color:red;"), "\n")
-    }
-    else if (var_cols[[i, "type"]] == "character" & !is.character(data[[var_name]])){
-      add_log_entry(r = r, category = "Error", name = paste0("import_vocabulary_table - invalid_col_types - id"), value = paste0(i18n$t("column"), " ", var_name, " ", i18n$t("type_must_be_character")))
-      error_message <- paste0(tags$span(paste0("**", i18n$t("error"), "** ", i18n$t("column"), " ", var_name, " ", i18n$t("type_must_be_character")), style = "font-weight:bold; color:red;"), "\n")
-    }
-    else if (var_cols[[i, "type"]] == "numeric" & !is.numeric(data[[var_name]])){
-      add_log_entry(r = r, category = "Error", name = paste0("import_vocabulary_table - invalid_col_types - id"), value = paste0(i18n$t("column"), " ", var_name, " ", i18n$t("type_must_be_numeric")))
-      error_message <- paste0(tags$span(paste0("**", i18n$t("error"), "** ", i18n$t("column"), " ", var_name, " ", i18n$t("type_must_be_numeric")), style = "font-weight:bold; color:red;"), "\n")
-    }
-    else if (var_cols[[i, "type"]] == "date" & !lubridate::is.Date(data[[var_name]])){
-      add_log_entry(r = r, category = "Error", name = paste0("import_vocabulary_table - invalid_col_types - id"), value = paste0(i18n$t("column"), " ", var_name, " ", i18n$t("type_must_be_date")))
-      error_message <- paste0(tags$span(paste0("**", i18n$t("error"), "** ", i18n$t("column"), " ", var_name, " ", i18n$t("type_must_be_date")), style = "font-weight:bold; color:red;"), "\n")
-    }
-    
-    if (var_cols[[i, "type"]] == "date") cols_to_char <- c(cols_to_char, var_name)
-  }
-  
-  if (error_message != ""){
-    cat(error_message)
-    return(NULL) 
-  }
-  
-  # Transform date cols to character
-  if (length(cols_to_char) > 0) data <- data %>% dplyr::mutate_at(cols_to_char, as.character)
-
-  # Transform as tibble
-  if (!is.data.frame(data)){
-    add_log_entry(r = r, category = "Error", name = paste0("import_vocabulary_table - error_transforming_tibble"), value = i18n$t("error_transforming_tibble"))
-    cat(paste0(tags$span(paste0("**", i18n$t("error"), "** ", i18n$t("error_transforming_tibble")), style = "font-weight:bold; color:red;"), "\n"))
-    return(NULL)
+    cat(paste0("\n", i18n$t("invalid_vocabulary_table")))
+    return(c(0L, i18n$t("invalid_vocabulary_table")))
   }
   
   data <- tibble::as_tibble(data)
   
-  # Change vocabulary_id col if value is not null
-  # if (table_name == "concept" & length(vocabulary_id) > 0) data <- data %>% dplyr::mutate(vocabulary_id = !!vocabulary_id)
-
-  # Add data to database
+  # Concept tables col types
+  col_types <- list(
+    concept = "iccccccccc",
+    vocabulary = "cccci",
+    domain = "cci",
+    concept_class = "cci",
+    concept_relationship = "iicccc",
+    relationship = "ccccci",
+    concept_synonym = "ici",
+    concept_ancestor = "iiii",
+    drug_strength = "iinininiiccc"
+  )
   
+  col_names <- list(
+    concept = c("concept_id", "concept_name", "domain_id", "vocabulary_id", "concept_class_id", "standard_concept", "concept_code", "valid_start_date", "valid_end_date", "invalid_reason"),
+    vocabulary = c("vocabulary_id", "vocabulary_name", "vocabulary_reference", "vocabulary_version", "vocabulary_concept_id"),
+    domain = c("domain_id", "domain_name", "domain_concept_id"),
+    concept_class = c("concept_class_id", "concept_class_name", "concept_class_concept_id"),
+    concept_relationship = c("concept_id_1", "concept_id_2", "relationship_id", "valid_start_date", "valid_end_date", "invalid_reason"),
+    relationship = c("relationship_id", "relationship_name", "is_hierarchical", "defines_ancestry", "reverse_relationship_id", "relationship_concept_id"),
+    concept_synonym = c("concept_id", "concept_synonym_name", "language_concept_id"),
+    concept_ancestor = c("ancestor_concept_id", "descendant_concept_id", "min_levels_of_separation", "max_levels_of_separation"),
+    drug_strength = c("drug_concept_id", "ingredient_concept_id", "amount_value", "amount_unit_concept_id", "numerator_value", "numerator_unit_concept_id",
+      "denominator_value", "denominator_unit_concept_id", "box_size", "valid_start_date", "valid_end_date", "invalid_reason")
+  )
+  if (!identical(colnames(data), col_names[[table_name]])){
+    cat(paste0("\n", i18n$t("invalid_col_names")))
+    return(c(0L, i18n$t("invalid_col_names")))
+  }
+  
+  # Transform col types
+  transform_column <- function(column, type){
+    switch(
+      type,
+      "c" = as.character(column),
+      "i" = bit64::as.integer64(column),
+      "n" = as.numeric(column)
+    )
+  }
+  
+  types <- col_types[[table_name]]
+  
+  for (i in seq_along(types)) {
+    col_name <- names(data)[i]
+    col_type <- substr(types, i, i)
+    data[[col_name]] <- transform_column(data[[col_name]], col_type)
+  }
+  
+  # Add data to database
+
   tables_with_primary_key <- c("concept", "vocabulary", "domain", "concept_class", "relationship")
 
   # Case 1 : table has a primary key, add data not already in database, filtered by primary key
-  
+
   if (table_name %in% tables_with_primary_key){
-  
+
   # Check if there are duplicates in primary_keys
 
     primary_keys_duplicates <- data %>% dplyr::group_by_at(paste0(table_name, "_id")) %>% dplyr::summarize(n = dplyr::n()) %>% dplyr::filter(n > 1) %>% nrow()
     if (primary_keys_duplicates > 0){
-      add_log_entry(r = r, category = "Error", name = paste0("import_vocabulary_table - error_multiple_primary_keys"), value = i18n$t("error_multiple_primary_keys"))
-      cat(paste0(tags$span(paste0("**", i18n$t("error"), "** ", i18n$t("error_multiple_primary_keys")), style = "font-weight:bold; color:red;"), "\n"))
-      return(NULL)
+      cat(paste0("\n", i18n$t("error_multiple_primary_keys")))
+      return(c(0L, i18n$t("error_multiple_primary_keys")))
     }
 
-    tryCatch({
-      if (table_name == "vocabulary") sql <- glue::glue_sql("SELECT vocabulary_id FROM vocabulary WHERE deleted IS FALSE", .con = m$db)
-      else sql <- glue::glue_sql("SELECT {`paste0(table_name, '_id')`} FROM {`table_name`}", .con = m$db)
-      actual_data <- DBI::dbGetQuery(m$db, sql)
-    },
-      error = function(e){
-        if (nchar(e[1]) > 0) add_log_entry(r = r, category = "Error", name = paste0("import_vocabulary_table - error_get_actual_primary_keys"), value = toString(e))
-        cat(paste0(tags$span(paste0("**", i18n$t("error"), "** ", i18n$t("error_get_actual_primary_keys")), style = "font-weight:bold; color:red;"), "\n"))
-        error_flag <<- TRUE}
-    )
-    if (error_flag) return(NULL)
+    if (table_name == "vocabulary") sql <- glue::glue_sql("SELECT vocabulary_id FROM vocabulary WHERE deleted IS FALSE", .con = m$db)
+    else sql <- glue::glue_sql("SELECT {`paste0(table_name, '_id')`} FROM {`table_name`}", .con = m$db)
+    actual_data <- DBI::dbGetQuery(m$db, sql)
 
     # Get items to insert with an anti-join
     data_to_insert <- data %>% dplyr::anti_join(actual_data, by = paste0(table_name, "_id"))
   }
 
   # Case 2 : table has no primary key, add data if not already in database filtered with selected cols
-  
-  if (table_name %not_in% tables_with_primary_key){
-    
+
+  else {
+
     data_duplicates_cols <- switch(table_name,
       "concept_relationship" = c("concept_id_1", "concept_id_2", "relationship_id"),
       "concept_synonym" = c("concept_id", "concept_synonym_name", "language_concept_id"),
@@ -1501,168 +1407,102 @@ import_vocabulary_table <- function(output, ns = character(), i18n = character()
       "drug_strength" = c("drug_concept_id", "ingredient_concept_id", "amount_value", "amount_unit_concept_id", "numerator_value", "numerator_unit_concept_id",
         "denominator_value", "denominator_unit_concept_id", "box_size")
     )
-    
+
     data_duplicates <- data %>% dplyr::group_by_at(data_duplicates_cols) %>% dplyr::summarize(n = dplyr::n()) %>% dplyr::filter(n > 1) %>% nrow()
-    
+
     if (data_duplicates > 0){
-      add_log_entry(r = r, category = "Error", name = paste0("import_vocabulary_table - error_multiple_identical_values"), value = i18n$t("error_multiple_identical_values"))
-      cat(paste0(tags$span(paste0("**", i18n$t("error"), "** ", i18n$t("error_multiple_identical_values")), style = "font-weight:bold; color:red;"), "\n"))
-      return(NULL)
+      cat(paste0("\n", i18n$t("error_multiple_identical_values")))
+      return(c(0L, i18n$t("error_multiple_identical_values")))
     }
-    
-    tryCatch({
-      sql <- glue::glue_sql("SELECT {`data_duplicates_cols`*} FROM {`table_name`}", .con = m$db)
-      actual_data <- DBI::dbGetQuery(m$db, sql)
-    },
-      error = function(e){
-        if (nchar(e[1]) > 0) add_log_entry(r = r, category = "Error", name = paste0("import_vocabulary_table - error_get_actual_primary_keys"), value = toString(e))
-        cat(paste0(tags$span(paste0("**", i18n$t("error"), "** ", i18n$t("error_get_actual_primary_keys")), style = "font-weight:bold; color:red;"), "\n"))
-        error_flag <<- TRUE}
-    )
-    if (error_flag) return(NULL)
-    
+
+    sql <- glue::glue_sql("SELECT {`data_duplicates_cols`*} FROM {`table_name`}", .con = m$db)
+    actual_data <- DBI::dbGetQuery(m$db, sql)
+
     # Get items to insert with an anti-join
     data_to_insert <- data %>% dplyr::anti_join(actual_data, by = data_duplicates_cols)
   }
-  
+
   # Add cols if table is vocabulary
   if (table_name == "vocabulary"){
-    data_to_insert <- data_to_insert %>%
+    data_to_insert <-
+      data_to_insert %>%
       dplyr::mutate(id = get_last_row(m$db, "vocabulary") + dplyr::row_number(), .before = "vocabulary_id") %>%
-      dplyr::mutate(data_source_id = NA_character_, display_order = NA_integer_, creator_id = NA_integer_, 
-        creation_datetime = now(), update_datetime = now(), deleted = FALSE)
+      dplyr::mutate(data_source_id = NA_character_, display_order = NA_integer_, creator_id = NA_integer_, creation_datetime = now(), update_datetime = now(), deleted = FALSE)
   }
-  
+
   # Insert data
-  
-  # Add nrow to r$import_concepts_count_rows
-  if (length(r$import_concepts_count_rows) > 0) r$import_concepts_count_rows <- r$import_concepts_count_rows %>%
-    dplyr::bind_rows(tibble::tibble(table_name = table_name, n_rows = as.integer(nrow(data_to_insert))))
-  
+
+  # Add nrow rows_inserted
+  rows_inserted <- as.integer(nrow(data_to_insert))
+
   # Last ID in vocabulary table
   last_id <- get_last_row(m$db, table_name)
-  
+
   if (nrow(data_to_insert) == 0){
-    add_log_entry(r = r, category = "Error", name = paste0("import_vocabulary_table - vocabulary_no_data_to_insert"), value = i18n$t("vocabulary_no_data_to_insert"))
-    cat(paste0(tags$span(paste0("**", i18n$t("error"), "** ", i18n$t("vocabulary_no_data_to_insert")), style = "font-weight:bold; color:red;"), "\n"))
-    return(NULL)
+    cat(paste0("\n", i18n$t("no_data_to_insert_in_table"), " ", table_name))
+    return(c(0L, i18n$t("no_data_to_insert")))
   }
-  
+
   else {
     data_to_insert <- data_to_insert %>% dplyr::mutate(id = 1:dplyr::n() + last_id, .before = 1)
     
-    tryCatch({
-      DBI::dbAppendTable(m$db, table_name, data_to_insert)
+    DBI::dbAppendTable(m$db, table_name, data_to_insert)
+
+    # Add vocabularies
     
-      # For vocabulary table, update r$vocabulary, add options & code rows
-      if (table_name == "vocabulary"){
-        r$vocabulary <- r$vocabulary %>% dplyr::bind_rows(data_to_insert)
-        
-        for (i in 1:nrow(data_to_insert)){
-          row <- data_to_insert[i, ]
-          
-          new_data <- list()
-          last_row <- list()
-          last_row$options <- get_last_row(r$db, "options")
-          last_row$code <- get_last_row(r$db, "code")
-          
-          new_data$options <- tibble::tribble(
-            ~name, ~value, ~value_num,
-            "version", "0.0.1", NA_integer_,
-            "unique_id", paste0(sample(c(0:9, letters[1:6]), 64, TRUE), collapse = ''), NA_integer_,
-            "author", "", NA_integer_,
-            "downloaded_from", "", NA_integer_,
-            "downloaded_from_url", "", NA_integer_
-          ) %>%
-            dplyr::bind_rows(
-              r$languages %>%
-                tidyr::crossing(name = c("description", "category", "name")) %>%
-                dplyr::mutate(
-                  name = paste0(name, "_", code),
-                  value = ifelse(grepl("name_", name), as.character(row$vocabulary_name), ""),
-                  value_num = NA_integer_
-                ) %>%
-                dplyr::select(-code, -language)
-            ) %>%
-            dplyr::mutate(id = last_row$options + dplyr::row_number(), category = "vocabulary", link_id = row$id, .before = "name") %>%
-            dplyr::mutate(creator_id = r$user_id, datetime = now(), deleted = FALSE)
-          
-          new_data$code <- tibble::tribble(~id, ~category, ~link_id, ~code, ~creator_id, ~datetime, ~deleted,
-            last_row$code + 1, "vocabulary", row$id, "", r$user_id, now(), FALSE)
-          
-          for (var in c("options", "code")){
-            DBI::dbAppendTable(r$db, var, new_data[[var]])
-            r[[var]] <- r[[var]] %>% dplyr::bind_rows(new_data[[var]])
-          }
-        }
-      }
-      
-      # Add vocabulary from vocabulary_id of concept table
-      if (table_name == "concept" & add_vocabulary){
-        vocabulary_ids <- data_to_insert %>% dplyr::distinct(vocabulary_id)
-        
-        # Actual vocabulary_id
-        sql <- glue::glue_sql("SELECT vocabulary_id FROM vocabulary WHERE deleted IS FALSE", .con = m$db)
-        actual_vocabulary_ids <- DBI::dbGetQuery(m$db, sql) %>% dplyr::pull(vocabulary_id)
-        vocabulary_ids <- vocabulary_ids %>% dplyr::filter(vocabulary_id %not_in% actual_vocabulary_ids)
-        
-        if (nrow(vocabulary_ids) > 0){
-          
-          new_vocabulary <- vocabulary_ids %>% 
-            dplyr::mutate(id = get_last_row(m$db, "vocabulary") + dplyr::row_number(), .before = "vocabulary_id") %>%
-            dplyr::mutate(vocabulary_name = vocabulary_id, vocabulary_reference = "", vocabulary_version = "",
-              vocabulary_concept_id = NA_integer_, data_source_id = NA_character_, display_order = NA_integer_, creator_id = r$user_id,
-              creation_datetime = now(), update_datetime = now(), deleted = FALSE)
-        
-          DBI::dbAppendTable(m$db, "vocabulary", new_vocabulary)
-          r$vocabulary <- r$vocabulary %>% dplyr::bind_rows(new_vocabulary)
-          
-          for (i in 1:nrow(new_vocabulary)){
-            row <- new_vocabulary[i, ]
-            
-            new_data <- list()
-            last_row <- list()
-            last_row$options <- get_last_row(r$db, "options")
-            last_row$code <- get_last_row(r$db, "code")
-            
-            new_data$options <- tibble::tribble(
-              ~name, ~value, ~value_num,
-              "version", "0.0.1", NA_integer_,
-              "unique_id", paste0(sample(c(0:9, letters[1:6]), 64, TRUE), collapse = ''), NA_integer_,
-              "author", "", NA_integer_,
-              "downloaded_from", "", NA_integer_,
-              "downloaded_from_url", "", NA_integer_
-            ) %>%
-              dplyr::bind_rows(
-                r$languages %>%
-                  tidyr::crossing(name = c("description", "category", "name")) %>%
-                  dplyr::mutate(
-                    name = paste0(name, "_", code),
-                    value = ifelse(grepl("name_", name), as.character(row$vocabulary_name), ""),
-                    value_num = NA_integer_
-                  ) %>%
-                  dplyr::select(-code, -language)
+    new_vocabularies <- character()
+    
+    if (table_name == "vocabulary") new_vocabularies <- row$vocabulary_name
+    else if (table_name == "concept" & add_vocabulary){
+      new_vocabularies <- data_to_insert %>% dplyr::distinct(vocabulary_id)
+    
+      # Actual vocabulary_id
+      sql <- glue::glue_sql("SELECT vocabulary_id FROM vocabulary WHERE deleted IS FALSE", .con = m$db)
+      actual_vocabulary_ids <- DBI::dbGetQuery(m$db, sql) %>% dplyr::pull(vocabulary_id)
+      new_vocabularies <- new_vocabularies %>% dplyr::filter(vocabulary_id %not_in% actual_vocabulary_ids)
+    }
+    
+    if (length(new_vocabularies) > 0){
+    
+      for (i in 1:length(new_vocabularies)){
+        new_data <- list()
+        last_row <- list()
+        last_row$options <- get_last_row(r$db, "options")
+        last_row$code <- get_last_row(r$db, "code")
+  
+        new_data$options <- tibble::tribble(
+          ~name, ~value, ~value_num,
+          "users_allowed_read_group", "everybody", 1,
+          "user_allowed_read", "", r$user_id,
+          "version", "0.0.1.9000", NA_integer_,
+          "unique_id", paste0(sample(c(0:9, letters[1:6]), 64, TRUE), collapse = ''), NA_integer_,
+          "author", "", NA_integer_,
+          "downloaded_from", "", NA_integer_,
+          "downloaded_from_url", "", NA_integer_
+        ) %>%
+          dplyr::bind_rows(
+            r$languages %>%
+              tidyr::crossing(name = c("description", "category", "name")) %>%
+              dplyr::mutate(
+                name = paste0(name, "_", code),
+                value = ifelse(grepl("name_", name), as.character(new_vocabularies[i]), ""),
+                value_num = NA_integer_
               ) %>%
-              dplyr::mutate(id = last_row$options + dplyr::row_number(), category = "vocabulary", link_id = row$id, .before = "name") %>%
-              dplyr::mutate(creator_id = r$user_id, datetime = now(), deleted = FALSE)
-            
-            new_data$code <- tibble::tribble(~id, ~category, ~link_id, ~code, ~creator_id, ~datetime, ~deleted,
-              last_row$code + 1, "vocabulary", row$id, "", r$user_id, now(), FALSE)
-            
-            for (var in c("options", "code")){
-              DBI::dbAppendTable(r$db, var, new_data[[var]])
-              r[[var]] <- r[[var]] %>% dplyr::bind_rows(new_data[[var]])
-            }
-          }
-        }
+              dplyr::select(-code, -language)
+          ) %>%
+          dplyr::mutate(id = last_row$options + dplyr::row_number(), category = "vocabulary", link_id = row$id, .before = "name") %>%
+          dplyr::mutate(creator_id = r$user_id, datetime = now(), deleted = FALSE)
+  
+        new_data$code <- tibble::tribble(
+          ~id, ~category, ~link_id, ~code, ~creator_id, ~datetime, ~deleted,
+          last_row$code + 1, "vocabulary", row$id, "", r$user_id, now(), FALSE)
+  
+          for (var in c("options", "code")) DBI::dbAppendTable(r$db, var, new_data[[var]])
       }
-    }, error = function(e){
-      if (nchar(e[1]) > 0) add_log_entry(r = r, category = "Error", name = paste0("import_vocabulary_table - vocabulary_error_append_table"), value = toString(e))
-      cat(paste0(tags$span(paste0("**", i18n$t("error"), "** ", i18n$t("vocabulary_error_append_table")), style = "font-weight:bold; color:red;"), "\n"))
-      error_flag <<- TRUE}
-    )
-    if (error_flag) return(NULL)
+    }
   }
   
-  cat(paste0(tags$span(paste0(i18n$t("import_vocabulary_table_success"), ". ", nrow(data_to_insert), " ", tolower(i18n$t("rows_inserted"))), style = "font-weight:bold; color:#0078D4;"), "\n"))
+  cat(paste0("\n", rows_inserted, " ", i18n$t("rows_inserted_in_table") , " ", table_name))
+
+  return(c(rows_inserted, i18n$t("success_importing_concepts")))
 }

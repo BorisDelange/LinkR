@@ -807,14 +807,12 @@ mod_plugins_server <- function(id, r, d, m, language, i18n, debug){
             write.csv(data_lang, filename, row.names = FALSE)
           }
         },
-        error = function(e) report_bug(r = r, output = output, error_message = "error_creating_translations_file",
-          error_name = paste0(id, " - create translations files"), category = "Error", error_report = toString(e), i18n = i18n, ns = ns))
+        error = function(e) cat(paste0("\n", now(), " - mod_plugins - error creating translations file - plugin_id = ", input$selected_element, " - ", toString(e))))
 
         tryCatch({
           i18np <- suppressWarnings(shiny.i18n::Translator$new(translation_csvs_path = new_dir))
           i18np$set_translation_language(language)},
-          error = function(e) report_bug(r = r, output = output, error_message = "error_creating_new_translator",
-            error_name = paste0(id, " - create i18np translator"), category = "Error", error_report = toString(e), i18n = i18n, ns = ns))
+          error = function(e) cat(paste0("\n", now(), " - mod_plugins - error creating new translator - plugin_id = ", input$selected_element, " - ", toString(e))))
 
       # Get vocabulary concepts
       selected_concepts <- r[[paste0(id, "_selected_concepts")]]

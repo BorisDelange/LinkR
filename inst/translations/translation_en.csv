@@ -127,6 +127,7 @@ choose_zip_file,Choose a ZIP file
 zip,ZIP
 choose_csv_files,Choose CSV files
 csv,CSV
+choose_files,Choose files
 loaded_file,Loaded file
 loaded_files,Loaded files
 plugins_patient_lvl,Plugins - Patient-level data
@@ -185,6 +186,7 @@ new_password,New password
 invalid_old_password,Invalid old password
 password_changed,Password successfully changed
 id,ID
+close,Close
 description,Description
 creator,Creator
 datetime,Date & time
@@ -413,7 +415,8 @@ type_must_be_numeric,type must be numeric
 type_must_be_date,type must be date
 type_must_be_datetime,type must be datetime
 omop_version_must_be_numeric,OMOP version must be numeric
-vocabulary_no_data_to_insert,There's not any new data to insert in the database
+no_data_to_insert,No data to insert
+no_data_to_insert_in_table,No data to insert in table
 column,Column
 columns,Columns
 columns_concepts,Concepts columns
@@ -865,6 +868,7 @@ summary,Summary
 omop_version,OMOP version
 invalid_omop_version,"Invalid OMOP version, valid versions are 5.3, 5.4 & 6.0.",
 rows_inserted,Rows inserted
+rows_inserted_in_table,rows inserted in table
 concept_name,Concept name
 concept_name_1,Concept 1 name
 concept_name_2,Concept 2 name
@@ -1149,3 +1153,5 @@ descendant_concept_id,Descendant concept ID
 descendant_concept_name,Descendant concept name
 min_levels_of_separation,Min levels of separation
 max_levels_of_separation,Max levels of separation
+import_concepts_title,Import concepts
+message,Message

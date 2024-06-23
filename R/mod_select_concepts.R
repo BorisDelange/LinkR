@@ -284,7 +284,7 @@ mod_select_concepts_server <- function(id, r, d, m, language, i18n, debug){
               ),
               create_hover_card(ui = div(concept_name, class = concept_style), text = concept_name),
               style = "display: flex; margin: 2px 0;"
-            ),
+            )
           )
           
           selected_concepts_ui <- tagList(

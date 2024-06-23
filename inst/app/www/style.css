@@ -213,7 +213,8 @@ a.no-hover-effect:hover {
 /* MODALS          */
 /* --------------- */
 
-.delete_modal, .create_element_modal, .import_modal, .load_status_modal, .select_concepts_modal, .select_a_plugin_modal {
+.delete_modal, .create_element_modal, .import_modal, .load_status_modal, .select_concepts_modal, .select_a_plugin_modal,
+.import_concepts_modal {
   display: flex;
   align-items: center;
   justify-content: center;
@@ -228,7 +229,8 @@ a.no-hover-effect:hover {
 }
 
 .delete_modal_content, .create_tab_modal_content, .import_modal_content, .create_widget_modal_content, .load_status_modal_content, .create_plugin_modal_content, .create_project_modal_content, .create_dataset_modal_content, .create_subset_modal_content,
-.create_vocabulary_modal_content, .create_data_cleaning_modal_content, .select_concepts_modal_content, .select_a_plugin_modal_content {
+.create_vocabulary_modal_content, .create_data_cleaning_modal_content, .select_concepts_modal_content, .select_a_plugin_modal_content,
+.import_concepts_modal_content {
   background: #fff;
   padding: 5px 10px 10px 15px;
   position: relative;
@@ -239,7 +241,8 @@ a.no-hover-effect:hover {
   height: 100px;
 }
 
-.delete_modal_content h1, .create_element_modal h1, .import_modal_content h1, .load_status_modal h1, .select_concepts_modal h1, .select_a_plugin_modal h1 {
+.delete_modal_content h1, .create_element_modal h1, .import_modal_content h1, .load_status_modal h1, .select_concepts_modal h1, .select_a_plugin_modal h1,
+.import_concepts_modal_content h1 {
   font-size: 14px;
 }
 
@@ -247,7 +250,7 @@ a.no-hover-effect:hover {
   font-size: 12px;
 }
 
-.delete_modal_buttons, .import_modal_buttons, .create_element_modal_buttons, .select_concepts_modal_buttons {
+.delete_modal_buttons, .import_modal_buttons, .create_element_modal_buttons, .select_concepts_modal_buttons, .import_concepts_modal_buttons {
   position: absolute;
   right: 10px;
   bottom: 3px;
@@ -265,16 +268,20 @@ a.no-hover-effect:hover {
   height: 320px;
 }
 
+.import_concepts_modal_content {
+  width: 60%;
+  height: 320px;
+}
+
 .select_concepts_modal_content {
   width: 80%;
   height: 80%;
   padding-bottom: 50px;
 }
 
-.create_element_modal_head, .select_concepts_modal_head, .select_a_plugin_modal_head {
+.create_element_modal_head, .select_concepts_modal_head, .select_a_plugin_modal_head, .import_concepts_modal_head {
   display: flex;
   justify-content: space-between;
-  margin: 0 10px;
 }
 
 .create_element_modal_body, .select_concepts_modal_body {
@@ -305,7 +312,7 @@ a.no-hover-effect:hover {
   overflow-y: auto;
 }
 
-.selected_concept {
+.selected_concept, .selected_file {
   display: inline-block;
   color: white;
   max-width: 320px;
@@ -318,6 +325,9 @@ a.no-hover-effect:hover {
   overflow: hidden;
   text-overflow: ellipsis;
 }
+
+.csv_file { background-color: #FF8C00; }
+.zip_file { background-color: #606060; }
 
 .drug_domain_id { background-color: #5D3FD3; }
 .condition_domain_id { background-color: #1E4D8B; }

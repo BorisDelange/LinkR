@@ -130,6 +130,7 @@ choose_zip_file,Choisir un fichier ZIP
 zip,ZIP
 choose_csv_files,Choisir des fichiers CSV
 csv,CSV
+choose_files,Choisir des fichiers
 loaded_file,Fichier chargé
 loaded_files,Fichiers chargés
 plugins_patient_lvl,Plugins - Données individuelles
@@ -416,7 +417,8 @@ type_must_be_numeric,doit être de type numeric
 type_must_be_date,doit être de type date
 type_must_be_datetime,doit être de type datetime
 omop_version_must_be_numeric,La version OMOP doit être de type numérique
-vocabulary_no_data_to_insert,Pas de nouvelles données à insérer dans la base de données
+no_data_to_insert,Pas de nouvelles données à insérer
+no_data_to_insert_in_table,Pas de données à insérer dans la table
 column,Colonne
 columns,Colonnes
 columns_concepts,Colonnes des concepts
@@ -865,6 +867,7 @@ summary,Sommaire
 omop_version,Version d'OMOP
 invalid_omop_version,"Version d'OMOP non valide. Versions valides : 5.3, 5.4 et 6.0."
 rows_inserted,Lignes ajoutées
+rows_inserted_in_table,lignes ajoutées dans la table
 concept_name,Nom du concept
 concept_name_1,Nom du concept 1
 concept_name_2,Nom du concept 2
@@ -1146,6 +1149,9 @@ concept_synonym_name,Synonyme
 ancestor_concept_id,ID du concept parent
 ancestor_concept_name,Nom du concept parent
 descendant_concept_id,ID du concept fils
-descendant_concept_name,Nol du concept fils
+descendant_concept_name,Nom du concept fils
 min_levels_of_separation,Nombre min de niveaux de séparation
-max_levels_of_separationNombre max de niveaux de séparation
+max_levels_of_separation,Nombre max de niveaux de séparation
+import_concepts_title,Importer des concepts
+close,Fermer
+message,Message

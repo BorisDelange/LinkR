@@ -7,176 +7,189 @@ mod_vocabularies_ui <- function(id, language, languages, i18n, code_hotkeys){
     Shiny.setInputValue('", id, "-current_tab_trigger', Math.random());"
   )
   
-  div(class = "main",
+  div(
+    class = "main",
       
-      # Load widget UI ----
-      
-      mod_widgets_ui(id, language, languages, i18n),
-      
-      # Vocabulary details ----
-      
-      shinyjs::hidden(
+    # Load widget UI ----
+    
+    mod_widgets_ui(id, language, languages, i18n),
+    
+    # Vocabulary details ----
+    
+    shinyjs::hidden(
+      div(
+        id = ns("one_element"),
         div(
-          id = ns("one_element"),
+          uiOutput(ns("breadcrumb")),
           div(
-            uiOutput(ns("breadcrumb")),
-            div(
-              id = ns("vocabulary_pivot"),
-              tags$button(id = ns("summary"), i18n$t("summary"), class = "pivot_item selected_pivot_item", onclick = pivot_item_js),
-              tags$button(id = ns("concepts"), i18n$t("concepts"), class = "pivot_item", onclick = pivot_item_js),
-              tags$button(id = ns("edit_code"), i18n$t("code"), class = "pivot_item", onclick = pivot_item_js),
-              tags$button(id = ns("share"), i18n$t("share"), class = "pivot_item", onclick = pivot_item_js),
-              class = "pivot"
-            ),
-            style = "display:flex; justify-content:space-between;"
+            id = ns("vocabulary_pivot"),
+            tags$button(id = ns("summary"), i18n$t("summary"), class = "pivot_item selected_pivot_item", onclick = pivot_item_js),
+            tags$button(id = ns("concepts"), i18n$t("concepts"), class = "pivot_item", onclick = pivot_item_js),
+            tags$button(id = ns("edit_code"), i18n$t("code"), class = "pivot_item", onclick = pivot_item_js),
+            tags$button(id = ns("share"), i18n$t("share"), class = "pivot_item", onclick = pivot_item_js),
+            class = "pivot"
           ),
-          
-          ## Summary ----
+          style = "display:flex; justify-content:space-between;"
+        ),
+        
+        ## Summary ----
+        div(
+          id = ns("summary_div"),
           div(
-            id = ns("summary_div"),
             div(
+              h1(i18n$t("informations")),
+              uiOutput(ns("vocabulary_summary")),
               div(
-                h1(i18n$t("informations")),
-                uiOutput(ns("vocabulary_summary")),
-                div(
-                  div(shiny.fluent::PrimaryButton.shinyInput(ns("delete_element"), i18n$t("delete")), class = "delete_button"),
-                  class = "create_element_modal_buttons"
-                ),
-                class = "widget", style = "height: 50%;"
+                div(shiny.fluent::PrimaryButton.shinyInput(ns("delete_element"), i18n$t("delete")), class = "delete_button"),
+                class = "create_element_modal_buttons"
               ),
-              div(
-                # h1(i18n$t("vocabulary_tables")),
-                # tags$ul(
-                #   tags$li(
-                #     shiny.fluent::Link(
-                #       href = "", paste0(i18n$t("concept_table"), " (concept)"), target = "_blank",
-                #       onClick = htmlwidgets::JS(paste0(
-                #         "item => {",
-                #           "Shiny.setInputValue('", id, "-show_vocabulary_table', Math.random());",
-                #           "Shiny.setInputValue('", id, "-show_vocabulary_table_type', 'concept');",
-                #         "}"
-                #     )))
-                #   ),
-                #   tags$li(
-                #     shiny.fluent::Link(
-                #       href = "", paste0(i18n$t("concept_relationship_table"), " (concept_relationship)"), target = "_blank",
-                #       onClick = htmlwidgets::JS(paste0(
-                #         "item => {",
-                #         "Shiny.setInputValue('", id, "-show_vocabulary_table', Math.random());",
-                #         "Shiny.setInputValue('", id, "-show_vocabulary_table_type', 'concept_relationship');",
-                #         "}"
-                #       )))
-                #   )
-                # ),
-                class = "widget", style = "height: 50%;"
-              ),
-              class = "vocabularies_summary_left"
+              class = "widget", style = "height: 50%;"
             ),
             div(
-              div(
-                h1(i18n$t("description")),
-                class = "widget", style = "height: calc(100% - 25px); padding-top: 1px;"
-              ),
-              class = "vocabularies_summary_right"
+              class = "widget", style = "height: 50%;"
             ),
-            class = "vocabularies_summary_container"
+            class = "vocabularies_summary_left"
           ),
-          
-          ## Concepts ----
-          shinyjs::hidden(
+          div(
             div(
-              id = ns("concepts_div"),
+              h1(i18n$t("description")),
+              class = "widget", style = "height: calc(100% - 25px); padding-top: 1px;"
+            ),
+            class = "vocabularies_summary_right"
+          ),
+          class = "vocabularies_summary_container"
+        ),
+        
+        ## Concepts ----
+        shinyjs::hidden(
+          div(
+            id = ns("concepts_div"),
+            div(
               div(
                 div(
                   div(
-                    div(
-                      shiny.fluent::Dropdown.shinyInput(
-                        ns("vocabulary_table"),
-                        label = i18n$t("table"),
-                        options = list(
-                          list(key = "concept", text = paste0(i18n$t("concept_table"), " (concept)")),
-                          list(key = "concept_relationship", text = paste0(i18n$t("concept_relationship_table"), " (concept_relationship)")),
-                          list(key = "concept_synonym", text = paste0(i18n$t("concept_synonym_table"), " (concept_synonym)")),
-                          list(key = "concept_ancestor", text = paste0(i18n$t("concept_ancestor_table"), " (concept_ancestor)")),
-                          list(key = "drug_strength", text = paste0(i18n$t("drug_strength_table"), " (drug_strength)"))
-                        )
-                      ),
-                      style = "width: 300px;"
+                    shiny.fluent::Dropdown.shinyInput(
+                      ns("vocabulary_table"),
+                      label = i18n$t("table"),
+                      options = list(
+                        list(key = "concept", text = paste0(i18n$t("concept_table"), " (concept)")),
+                        list(key = "concept_relationship", text = paste0(i18n$t("concept_relationship_table"), " (concept_relationship)")),
+                        list(key = "concept_synonym", text = paste0(i18n$t("concept_synonym_table"), " (concept_synonym)")),
+                        list(key = "concept_ancestor", text = paste0(i18n$t("concept_ancestor_table"), " (concept_ancestor)")),
+                        list(key = "drug_strength", text = paste0(i18n$t("drug_strength_table"), " (drug_strength)"))
+                      )
                     ),
-                    div(
-                      shiny.fluent::Dropdown.shinyInput(ns("primary_concepts_dt_cols"), multiSelect = TRUE, label = i18n$t("columns"),
-                        options = list(
-                          list(key = 0, text = i18n$t("concept_id")),
-                          list(key = 1, text = i18n$t("concept_name")),
-                          list(key = 2, text = i18n$t("domain_id")),
-                          list(key = 3, text = i18n$t("concept_class_id")),
-                          list(key = 4, text = i18n$t("standard_concept")),
-                          list(key = 5, text = i18n$t("concept_code")),
-                          list(key = 6, text = i18n$t("valid_start_date")),
-                          list(key = 7, text = i18n$t("valid_end_date")),
-                          list(key = 8, text = i18n$t("invalid_reason"))
-                        ),
-                        value = c(0, 1, 2, 3)
-                      ),
-                      style = "width: 200px;"
-                    ),
-                    style = "display: flex; gap: 5px;"
+                    style = "width: 300px;"
                   ),
-                  DT::DTOutput(ns("primary_concepts_dt")),
-                  class = "widget", style = "height: 50%; padding: 10px 15px; overflow: auto;"
+                  div(
+                    shiny.fluent::Dropdown.shinyInput(ns("primary_concepts_dt_cols"), multiSelect = TRUE, label = i18n$t("columns"),
+                      options = list(
+                        list(key = 0, text = i18n$t("concept_id")),
+                        list(key = 1, text = i18n$t("concept_name")),
+                        list(key = 2, text = i18n$t("domain_id")),
+                        list(key = 3, text = i18n$t("concept_class_id")),
+                        list(key = 4, text = i18n$t("standard_concept")),
+                        list(key = 5, text = i18n$t("concept_code")),
+                        list(key = 6, text = i18n$t("valid_start_date")),
+                        list(key = 7, text = i18n$t("valid_end_date")),
+                        list(key = 8, text = i18n$t("invalid_reason"))
+                      ),
+                      value = c(0, 1, 2, 3)
+                    ),
+                    style = "width: 200px;"
+                  ),
+                  style = "display: flex; gap: 5px;"
                 ),
-                div(
-                  DT::DTOutput(ns("secondary_concepts_dt")),
-                  class = "widget", style = "height: 50%;"
-                ),
-                class = "vocabularies_concepts"
+                DT::DTOutput(ns("primary_concepts_dt")),
+                class = "widget", style = "height: 50%; padding: 10px 15px; overflow: auto;"
               ),
               div(
-                div(
-                  uiOutput(ns("primary_concepts_details_ui")),
-                  class = "widget", style = "height: 50%;"
-                ),
-                div(
-                  uiOutput(ns("secondary_concepts_details_ui")),
-                  class = "widget", style = "height: 50%;"
-                ),
-                class = "vocabularies_concepts"
+                DT::DTOutput(ns("secondary_concepts_dt")),
+                class = "widget", style = "height: 50%;"
               ),
-              class = "vocabularies_concepts_container"
-            )
-          ),
-          
-          ## Edit code ----
-          shinyjs::hidden(
+              class = "vocabularies_concepts"
+            ),
             div(
-              id = ns("edit_code_div"),
               div(
-                shinyAce::aceEditor(
-                  ns("vocabulary_code"), value = "", mode = "r",
-                  code_hotkeys = list("r", code_hotkeys),
-                  autoScrollEditorIntoView = TRUE, height = "100%", debounce = 100, fontSize = 11, showPrintMargin = FALSE
-                ),
-                class = "element_ace_editor"
+                uiOutput(ns("primary_concepts_details_ui")),
+                class = "widget", style = "height: 50%;"
               ),
               div(
-                verbatimTextOutput(ns("code_result")),
-                class = "element_code_result"
+                uiOutput(ns("secondary_concepts_details_ui")),
+                class = "widget", style = "height: 50%;"
               ),
-              style = "height: 100%; display: flex;"
-            )
-          ),
-          
-          ## Share ----
-          shinyjs::hidden(
+              class = "vocabularies_concepts"
+            ),
+            class = "vocabularies_concepts_container"
+          )
+        ),
+        
+        ## Edit code ----
+        shinyjs::hidden(
+          div(
+            id = ns("edit_code_div"),
             div(
-              id = ns("share_div"),
-              style = "height: 100%;"
-            )
-          ),
-          
-          style = "height: 100%; display: flex; flex-direction: column;"
-        )
+              shinyAce::aceEditor(
+                ns("vocabulary_code"), value = "", mode = "r",
+                code_hotkeys = list("r", code_hotkeys),
+                autoScrollEditorIntoView = TRUE, height = "100%", debounce = 100, fontSize = 11, showPrintMargin = FALSE
+              ),
+              class = "element_ace_editor"
+            ),
+            div(
+              verbatimTextOutput(ns("code_result")),
+              class = "element_code_result"
+            ),
+            style = "height: 100%; display: flex;"
+          )
+        ),
+        
+        ## Share ----
+        shinyjs::hidden(
+          div(
+            id = ns("share_div"),
+            style = "height: 100%;"
+          )
+        ),
+        
+        style = "height: 100%; display: flex; flex-direction: column;"
       )
+    ),
+    
+    # Import concepts modal ----
+    
+    shinyjs::hidden(
+      div(
+        id = ns("import_concepts_modal"),
+        div(
+          div(
+            tags$h1(i18n$t("import_concepts_title")),
+            shiny.fluent::IconButton.shinyInput(ns("close_import_concepts_modal_1"), iconProps = list(iconName = "ChromeClose")),
+            class = "import_concepts_modal_head small_close_button"
+          ),
+          div(
+            div(
+              shiny.fluent::DefaultButton.shinyInput(ns("select_files"), i18n$t("choose_files")),
+              div(fileInput(ns("select_files_input"), label = "", multiple = TRUE, accept = c(".zip", ".csv")), style = "display:none;"),
+              uiOutput(ns("selected_files"), style = "margin-top: 10px;"),
+              div(
+                shinyjs::hidden(div(id = ns("import_files_div"), shiny.fluent::PrimaryButton.shinyInput(ns("import_files"), i18n$t("import")))),
+                div(id = ns("close_import_concepts_modal_2_div"), shiny.fluent::DefaultButton.shinyInput(ns("close_import_concepts_modal_2"), i18n$t("close"))),
+                class = "import_concepts_modal_buttons"
+              ),
+              style = "width: 50%;"
+            ),
+            div(
+              DT::DTOutput(ns("inserted_concepts_dt")),
+              style = "width: 50%; overflow: auto;"
+            ),
+            style = "display: flex;"
+          ),
+          class = "import_concepts_modal_content"
+        ),
+        class = "import_concepts_modal"
+      )
+    )
   )
 }
 
@@ -297,7 +310,29 @@ mod_vocabularies_server <- function(id = character(), r = shiny::reactiveValues(
       }
       
       else if (table == "drug_strength"){
+        if (nrow(m$drug_strength) == 0) m$drug_strength <- DBI::dbGetQuery(m$db, glue::glue_sql(paste0(
+          "SELECT ds.drug_concept_id, c1.concept_name AS drug_concept_name, ds.ingredient_concept_id, c2.concept_name AS ingredient_concept_name, ",
+          "ds.amount_value, ds.amount_unit_concept_id, c3.concept_name AS amount_unit_concept_name, ds.numerator_value, ",
+          "ds.numerator_unit_concept_id, c4.concept_name AS numerator_unit_concept_name, ds.denominator_value, ",
+          "ds.denominator_unit_concept_id, c5.concept_name AS denominator_concept_name, ds.box_size, ",
+          "ds.valid_start_date, ds.valid_end_date, ds.invalid_reason ",
+          "FROM drug_strength ds ",
+          "INNER JOIN concept c1 ON ds.drug_concept_id = c1.concept_id ",
+          "LEFT JOIN concept c2 ON ds.ingredient_concept_id = c2.concept_id ",
+          "LEFT JOIN concept c3 ON ds.amount_unit_concept_id = c3.concept_id ",
+          "LEFT JOIN concept c4 ON ds.numerator_unit_concept_id = c4.concept_id ",
+          "LEFT JOIN concept c5 ON ds.denominator_unit_concept_id = c5.concept_id ",
+          "WHERE c1.vocabulary_id = {vocabulary_id}"), .con = m$db))
         
+        data <- m$drug_strength
+        
+        # sortable_cols <- c("drug_concept_id", "ingredient_concept_id", "descendant_concept_id", "descendant_concept_name")
+        # searchable_cols <-  c("ancestor_concept_id", "ancestor_concept_name", "descendant_concept_id", "descendant_concept_name")
+        sortable_cols <- ""
+        searchable_cols <- ""
+        factorize_cols <- ""
+        hidden_cols <- ""
+        editable_cols <- ""
       }
       
       col_names <- unname(sapply(colnames(data), i18n$t))
@@ -324,7 +359,155 @@ mod_vocabularies_server <- function(id = character(), r = shiny::reactiveValues(
     
     ## Concepts secondary table ----
     
+    ## Import concepts ----
     
+    # Show / hide import concepts modal
+    
+    observeEvent(input$import_concepts, {
+      if (debug) cat(paste0("\n", now(), " - mod_vocabularies - observer input$import_concepts"))
+      shinyjs::show("import_concepts_modal")
+    })
+    
+    observeEvent(input$close_import_concepts_modal_1, {
+      if (debug) cat(paste0("\n", now(), " - mod_vocabularies - observer input$close_import_concepts_modal"))
+      shinyjs::runjs(paste0("Shiny.setInputValue('", id, "-close_import_concepts_modal', Math.random());"))
+    })
+    
+    observeEvent(input$close_import_concepts_modal_2, {
+      if (debug) cat(paste0("\n", now(), " - mod_vocabularies - observer input$close_import_concepts_modal_2"))
+      shinyjs::runjs(paste0("Shiny.setInputValue('", id, "-close_import_concepts_modal', Math.random());"))
+    })
+    
+    observeEvent(input$close_import_concepts_modal, {
+      if (debug) cat(paste0("\n", now(), " - mod_vocabularies - observer input$close_import_concepts_modal"))
+      
+      shinyjs::hide("import_concepts_modal")
+      
+      # Reset fields
+      render_datatable(
+        output = output, ns = ns, i18n = i18n, data = tibble::tibble(table_name = character(), n_rows = character(), message = character()),
+        output_name = "inserted_concepts_dt", datatable_dom = "<'top't><'bottom'p>", col_names = c(i18n$t("table_name"), i18n$t("rows_inserted"), i18n$t("message"))
+      )
+      
+      output$selected_files <- renderUI(div())
+    })
+    
+    # Show file browser input
+    
+    observeEvent(input$select_files, {
+      if (debug) cat(paste0("\n", now(), " - mod_vocabularies - observer input$select_files"))
+      shinyjs::click("select_files_input")
+    })
+    
+    # Select files
+    
+    observeEvent(input$select_files_input, {
+      if (debug) cat(paste0("\n", now(), " - mod_vocabularies - observer input$select_files_input"))
+      
+      req(length(input$select_files_input) > 0)
+      
+      # Change button, from close to import
+      shinyjs::hide("close_import_concepts_modal_2_div")
+      shinyjs::show("import_files_div")
+      
+      # Create files to import UI
+      
+      files_ui <- tagList()
+      
+      for (filename in input$select_files_input$name){
+        file_ext <- sub(".*\\.", "", tolower(filename))
+        
+        concept_style <- "selected_file"
+        
+        if (file_ext %in% c("csv", "zip")){
+          concept_style <- paste0(concept_style, " ", file_ext, "_file")
+        
+          files_ui <- tagList(
+            files_ui,
+            div(
+              create_hover_card(ui = div(filename, class = concept_style), text = filename),
+              style = "display: flex; margin: 2px 0;"
+            )
+          )
+        }
+      }
+      
+      output$selected_files <- renderUI(files_ui)
+    })
+    
+    # Import files
+    
+    # CSV col types
+    col_types <- list(
+      concept = "iccccccccc",
+      vocabulary = "cccci",
+      domain = "cci",
+      concept_class = "cci",
+      concept_relationship = "iicccc",
+      relationship = "ccccci",
+      concept_synonym = "ici",
+      concept_ancestor = "iiii",
+      drug_strength = "iinininiiccc"
+    )
+    
+    observeEvent(input$import_files, {
+      if (debug) cat(paste0("\n", now(), " - mod_vocabularies - observer input$import_files"))
+      
+      req(length(input$select_files_input) > 0)
+      
+      # Change button, from import to close
+      shinyjs::hide("import_files_div")
+      shinyjs::show("close_import_concepts_modal_2_div")
+      
+      # Reset count rows var
+      inserted_data <- tibble::tibble(table_name = character(), n_rows = character(), message = character())
+      
+      files <- input$select_files_input %>% tibble::as_tibble()
+      
+      for (i in 1:nrow(files)){
+        
+        row <- files[i, ]
+        file_ext <- sub(".*\\.", "", tolower(row$name))
+        
+        if (file_ext == "csv"){
+          
+        }
+        
+        else if (file_ext == "zip"){
+          
+          # Extract zip file
+          temp_dir <- paste0(r$app_folder, "/temp_files/", r$user_id, "/vocabularies/", now() %>% stringr::str_replace_all(":| |-", ""), paste0(sample(c(0:9, letters[1:6]), 24, TRUE), collapse = ''))
+          zip::unzip(row$datapath, exdir = temp_dir)
+          zip_files <- zip::zip_list(row$datapath)
+          
+          for(filename in zip_files$filename){
+            
+            if (grepl(".csv$", filename)){
+              
+              # Name of the table
+              table_name <- tolower(substr(filename, 1, nchar(filename) - 4))
+              
+              if (table_name %in% c("concept", "domain", "concept_class", "concept_relationship", "relationship", "concept_synonym", "concept_ancestor", "drug_strength")){
+                
+                # Load CSV file
+                data <- vroom::vroom(paste0(temp_dir, "/", filename), col_types = col_types[[table_name]], progress = FALSE)
+
+                if ("valid_start_date" %in% names(data)) data <- data %>% dplyr::mutate_at(c("valid_start_date", "valid_end_date"), lubridate::ymd)
+                
+                res <- import_vocabulary_table(i18n = i18n, r = r, m = m, table_name = table_name, data = data, add_vocabulary = FALSE)
+                inserted_data <- inserted_data %>% dplyr::bind_rows(tibble::tibble(table_name = table_name, n_rows = res[1], message = res[2]))
+              }
+            }
+          }
+        }
+      }
+      
+      # Show inserted data
+      render_datatable(
+        output = output, ns = ns, i18n = i18n, data = inserted_data, output_name = "inserted_concepts_dt", datatable_dom = "<'top't><'bottom'p>",
+        sortable_cols = c("table_name", "n_rows", "message"), col_names = c(i18n$t("table_name"), i18n$t("rows_inserted"), i18n$t("message"))
+      )
+    })
     
     # |-------------------------------- -----
     
