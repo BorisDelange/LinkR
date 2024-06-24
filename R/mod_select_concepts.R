@@ -2,69 +2,99 @@
 mod_select_concepts_ui <- function(id, language, languages, i18n){
   ns <- NS(id)
   
-  shinyjs::hidden(
-    div(
-      id = ns("select_concepts_modal"),
+  tagList(
+    
+    # Select concepts modal ----
+    shinyjs::hidden(
       div(
+        id = ns("select_concepts_modal"),
         div(
-          tags$h1(i18n$t("select_concepts")),
-          shiny.fluent::IconButton.shinyInput(ns("close_select_concepts_modal_1"), iconProps = list(iconName = "ChromeClose")),
-          class = "select_concepts_modal_head small_close_button"
-        ),
-        div(
+          div(
+            tags$h1(i18n$t("select_concepts")),
+            shiny.fluent::IconButton.shinyInput(ns("close_select_concepts_modal_1"), iconProps = list(iconName = "ChromeClose")),
+            class = "select_concepts_modal_head small_close_button"
+          ),
           div(
             div(
               div(
-                make_combobox(i18n, ns, id = "vocabulary", label = "vocabulary", allowFreeform = FALSE, multiSelect = FALSE, width = "200px"),
-                make_dropdown(i18n, ns, id = "vocabulary_dt_cols", label = "columns", multiSelect = TRUE,
-                  options = list(
-                    list(key = 0, text = i18n$t("concept_id")),
-                    list(key = 1, text = i18n$t("concept_name")),
-                    list(key = 2, text = i18n$t("domain_id")),
-                    list(key = 3, text = i18n$t("vocabulary_id")),
-                    list(key = 4, text = i18n$t("concept_class_id")),
-                    list(key = 5, text = i18n$t("standard_concept")),
-                    list(key = 6, text = i18n$t("concept_code")),
-                    list(key = 7, text = i18n$t("num_patients")),
-                    list(key = 8, text = i18n$t("num_rows")),
-                    list(key = 9, text = i18n$t("action"))
+                div(
+                  make_combobox(i18n, ns, id = "vocabulary", label = "vocabulary", allowFreeform = FALSE, multiSelect = FALSE, width = "200px"),
+                  make_dropdown(i18n, ns, id = "vocabulary_dt_cols", label = "columns", multiSelect = TRUE,
+                    options = list(
+                      list(key = 0, text = i18n$t("concept_id")),
+                      list(key = 1, text = i18n$t("concept_name")),
+                      list(key = 2, text = i18n$t("domain_id")),
+                      list(key = 3, text = i18n$t("vocabulary_id")),
+                      list(key = 4, text = i18n$t("concept_class_id")),
+                      list(key = 5, text = i18n$t("standard_concept")),
+                      list(key = 6, text = i18n$t("concept_code")),
+                      list(key = 7, text = i18n$t("num_patients")),
+                      list(key = 8, text = i18n$t("num_rows")),
+                      list(key = 9, text = i18n$t("action"))
+                    ),
+                    value = c(0, 1, 2, 7, 8, 9),
+                    width = "200px"
                   ),
-                  value = c(0, 1, 2, 7, 8, 9),
-                  width = "200px"
+                  div(
+                    create_hover_card(
+                      ui = shiny.fluent::IconButton.shinyInput(ns("reload_dataset_concepts"), iconProps = list(iconName ="SyncOccurence")), 
+                      text = i18n$t("reload_dataset_concepts")
+                    ),
+                    style = "margin-top: 17px;",
+                    class = "small_icon_button"
+                  ),
+                  style = "display: flex; gap: 10px;"
                 ),
-                style = "display: flex; gap: 10px;"
+                DT::DTOutput(ns("vocabulary_concepts")),
+                class = "widget",
+                style = "height: auto; padding: 10px"
               ),
-              DT::DTOutput(ns("vocabulary_concepts")),
-              class = "widget",
-              style = "height: auto; padding: 10px"
+              div(
+                div(
+                  class = "widget",
+                  style = "width: 50%;"
+                ),
+                div(
+                  class = "widget",
+                  style = "width: 50%;"
+                ),
+                style = "display: flex; height: 100%;"
+              ),
+              style = "width: 100%; display:flex; flex-direction: column;"
             ),
             div(
-              div(
-                class = "widget",
-                style = "width: 50%;"
-              ),
-              div(
-                class = "widget",
-                style = "width: 50%;"
-              ),
-              style = "display: flex; height: 100%;"
+              uiOutput(ns("selected_concepts_list")),
+              style = "width: 500px; overflow-y: auto; padding-top: 10px;",
+              class = "widget"
             ),
-            style = "width: 100%; display:flex; flex-direction: column;"
+            style = "display: flex; height: calc(100% - 30px);"
           ),
           div(
-            uiOutput(ns("selected_concepts_list")),
-            style = "width: 500px; overflow-y: auto; padding-top: 10px;",
-            class = "widget"
+            shiny.fluent::PrimaryButton.shinyInput(ns("close_select_concepts_modal_2"), i18n$t("confirm")),
+            style = "display: flex; justify-content: flex-end; margin-right: 10px;"
           ),
-          style = "display: flex; height: calc(100% - 30px);"
+          class = "select_concepts_modal_content"
         ),
+        class = "select_concepts_modal"
+      )
+    ),
+    
+    # Reload dataset concepts modal ----
+    
+    shinyjs::hidden(
+      div(
+        id = ns("reload_dataset_concepts_modal"),
         div(
-          shiny.fluent::PrimaryButton.shinyInput(ns("close_select_concepts_modal_2"), i18n$t("confirm")),
-          style = "display: flex; justify-content: flex-end; margin-right: 10px;"
+          tags$h1(i18n$t("reload_dataset_concepts_title")), tags$p(i18n$t("reload_dataset_concepts_text")),
+          div(
+            shiny.fluent::DefaultButton.shinyInput(ns("close_reload_dataset_concepts_modal"), i18n$t("dont_reload")),
+            div(shiny.fluent::PrimaryButton.shinyInput(ns("confirm_reload_dataset_concepts"), i18n$t("reload"))),
+            class = "reload_dataset_concepts_modal_buttons"
+          ),
+          class = "reload_dataset_concepts_modal_content"
         ),
-        class = "select_concepts_modal_content"
-      ),
-      class = "select_concepts_modal"
+        class = "reload_dataset_concepts_modal"
+      )
     )
   )
 }
@@ -119,8 +149,10 @@ mod_select_concepts_server <- function(id, r, d, m, language, i18n, debug){
     observeEvent(input$vocabulary, {
 
       if (debug) cat(paste0("\n", now(), " - mod_select_concepts - (", id, ") - observer input$vocabulary"))
-
+      
       req(length(d$dataset_all_concepts) > 0, nrow(d$dataset_all_concepts) > 0)
+      
+      shinyjs::show("vocabulary_concepts")
 
       vocabulary_id <- input$vocabulary$key
       req(length(vocabulary_id) > 0)
@@ -155,7 +187,7 @@ mod_select_concepts_server <- function(id, r, d, m, language, i18n, debug){
         )
         sortable_cols <- c("concept_id", "concept_name", "domain_id", "vocabulary_id", "count_persons_rows", "count_concepts_rows")
         centered_cols <- c("concept_id", "count_persons_rows", "count_concepts_rows", "add_concept_input")
-        col_names <- get_col_names("plugins_vocabulary_concepts_with_counts", i18n)
+        col_names <- unname(sapply(colnames(widget_vocabulary_concepts), i18n$t))
         hidden_cols <- ""
 
         # Render datatable
@@ -313,6 +345,41 @@ mod_select_concepts_server <- function(id, r, d, m, language, i18n, debug){
       
       # Update selected concepts list
       shinyjs::runjs(paste0("Shiny.setInputValue('", id, "-update_selected_concepts_list', Math.random())"))
+    })
+    
+    # Reload dataset concepts ----
+    observeEvent(input$reload_dataset_concepts, {
+      if (debug) cat(paste0("\n", now(), " - mod_select_concepts - (", id, ") - observer input$reload_dataset_concepts"))
+      shinyjs::show("reload_dataset_concepts_modal")
+    })
+    
+    observeEvent(input$close_reload_dataset_concepts_modal, {
+      if (debug) cat(paste0("\n", now(), " - mod_select_concepts - (", id, ") - observer input$close_reload_dataset_concepts_modal"))
+      shinyjs::hide("reload_dataset_concepts_modal")
+    })
+    
+    observeEvent(input$confirm_reload_dataset_concepts, {
+      if (debug) cat(paste0("\n", now(), " - mod_select_concepts - (", id, ") - observer input$confirm_reload_dataset_concepts"))
+      
+      # Remove dataset_all_concepts file
+      dataset_folder <- paste0(r$app_folder, "/datasets_files/", r$selected_dataset)
+      dataset_all_concepts_filename <- paste0(dataset_folder, "/dataset_all_concepts.csv")
+      if (file.exists(dataset_all_concepts_filename)) unlink(dataset_all_concepts_filename)
+      
+      # Reset fields
+      shinyjs::hide("vocabulary_concepts")
+      r[[paste0(id, "_selected_concepts")]] <- tibble::tibble(
+        concept_id = integer(), concept_name = character(), domain_id = character(), vocabulary_id = character(),
+        mapped_to_concept_id = integer(), merge_mapped_concepts = logical()
+      )
+      shinyjs::runjs(paste0("Shiny.setInputValue('", id, "-update_selected_concepts_list', Math.random())"))
+      
+      # Reload concepts count
+      load_dataset_concepts(r, d, m)
+      
+      shinyjs::runjs(paste0("Shiny.setInputValue('", id, "-reload_vocabularies', Math.random())"))
+      
+      shinyjs::hide("reload_dataset_concepts_modal")
     })
   })
 }

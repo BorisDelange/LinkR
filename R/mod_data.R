@@ -215,13 +215,13 @@ mod_data_server <- function(id, r, d, m, language, i18n, debug){
     r$data_loaded_studies <- integer()
     
     # Initiate var for list of cards
-    r$data_grids <- character()
+    r$data_grids <- tibble::tibble(study_id = integer(), grids = character())
     
     # Tabs server code already loaded
     r$widgets_server_code_loaded <- character()
     
     # Project loading status
-    r$project_load_status_displayed <- FALSE
+    # r$project_load_status_displayed <- FALSE
     
     r$patient_lvl_no_tabs_to_display <- TRUE
     r$aggregated_no_tabs_to_display <- TRUE
@@ -258,9 +258,9 @@ mod_data_server <- function(id, r, d, m, language, i18n, debug){
       # Reload plugin dropdown
       r$data_reload_plugins_dropdown <- now()
       
-      # Show / hide no tabs to display message
+      # Show / hide "no tabs to display" message
       sapply(categories, function(category) shinyjs::hide(paste0(category, "_no_tabs_to_display")))
-      if (r[[paste0(r$data_page, "_no_tabs_to_display")]]) shinyjs::show(paste0(r$data_page, "_no_tabs_to_display"))
+      if (r[[paste0(r$data_page, "_no_tabs_to_display")]] & length(m$selected_study) > 0) shinyjs::show(paste0(r$data_page, "_no_tabs_to_display"))
     })
     
     # --- --- --- --- --- --- --
@@ -276,13 +276,19 @@ mod_data_server <- function(id, r, d, m, language, i18n, debug){
       
       if (debug) cat(paste0("\n", now(), " - mod_data - observer r$load_project_data_trigger"))
       
+      # Hide all grids
+      sapply(r$data_grids, shinyjs::hide)
+      
+      # Show selected project div
+      shinyjs::show("selected_project_div")
+      
       # Show loading status
-      r$project_load_status_displayed <- TRUE
-      r$project_load_status <- list()
-      shinyjs::show("load_status_modal")
+      # r$project_load_status_displayed <- TRUE
+      # r$project_load_status <- list()
+      # shinyjs::show("load_status_modal")
 
       # Display project loading status
-      if (r$project_load_status_displayed) r$project_load_status$init_vars_starttime <- now("%Y-%m-%d %H:%M:%OS3")
+      # if (r$project_load_status_displayed) r$project_load_status$init_vars_starttime <- now("%Y-%m-%d %H:%M:%OS3")
 
       shinyjs::delay(100, {
         
@@ -318,7 +324,7 @@ mod_data_server <- function(id, r, d, m, language, i18n, debug){
         r$aggregated_selected_tab <- NA_integer_
 
         # Reset displayed tabs
-        r$data_grids <- character()
+        # r$data_grids <- character()
         
         r$data_load_ui_stage <- "first_time"
 
@@ -355,7 +361,7 @@ mod_data_server <- function(id, r, d, m, language, i18n, debug){
       })
 
       # Display project loading status
-      if (r$project_load_status_displayed) r$project_load_status$init_vars_endtime <- now("%Y-%m-%d %H:%M:%OS3")
+      # if (r$project_load_status_displayed) r$project_load_status$init_vars_endtime <- now("%Y-%m-%d %H:%M:%OS3")
     })
     
     # Show loading status ----
@@ -397,7 +403,7 @@ mod_data_server <- function(id, r, d, m, language, i18n, debug){
       if (debug) cat(paste0("\n", now(), " - mod_data - observer r$selected_dataset"))
       
       # Display project loading status
-      if (r$project_load_status_displayed) r$project_load_status$dataset_starttime <- now("%Y-%m-%d %H:%M:%OS3")
+      # if (r$project_load_status_displayed) r$project_load_status$dataset_starttime <- now("%Y-%m-%d %H:%M:%OS3")
       
       shinyjs::delay(100, {
         # Reset data vars
@@ -430,7 +436,7 @@ mod_data_server <- function(id, r, d, m, language, i18n, debug){
       })
       
       # Display project loading status
-      if (r$project_load_status_displayed) r$project_load_status$dataset_endtime <- now("%Y-%m-%d %H:%M:%OS3")
+      # if (r$project_load_status_displayed) r$project_load_status$dataset_endtime <- now("%Y-%m-%d %H:%M:%OS3")
     })
     
     ## Subset ----
@@ -655,8 +661,17 @@ mod_data_server <- function(id, r, d, m, language, i18n, debug){
         
         if (!no_stay_available){
           
-          visit_detail <- d$visit_detail %>% dplyr::filter(person_id == !!person_id, is.na(visit_detail_parent_id)) %>% dplyr::collect() %>% 
-            dplyr::left_join(d$dataset_all_concepts %>% dplyr::filter(is.na(relationship_id)) %>% dplyr::select(visit_detail_concept_id = concept_id_1, visit_detail_concept_name = concept_name_1), by = "visit_detail_concept_id") %>%
+          visit_detail <- d$visit_detail %>% dplyr::filter(person_id == !!person_id)
+          
+          if (m$omop_version %in% c("5.4", "6.0")) visit_detail <- visit_detail %>% dplyr::filter(is.na(parent_visit_detail_id))
+          else visit_detail <- visit_detail %>% dplyr::filter(is.na(visit_detail_parent_id))
+          
+          visit_detail <- visit_detail %>% 
+            dplyr::collect() %>% 
+            dplyr::left_join(
+              d$dataset_all_concepts %>% dplyr::filter(is.na(relationship_id)) %>% dplyr::select(visit_detail_concept_id = concept_id_1, visit_detail_concept_name = concept_name_1),
+              by = "visit_detail_concept_id"
+            ) %>%
             dplyr::arrange(visit_detail_start_datetime)
           
           if ("visit_detail_concept_name" %in% colnames(visit_detail)){
@@ -853,7 +868,7 @@ mod_data_server <- function(id, r, d, m, language, i18n, debug){
       observeEvent(r$data_reload_menu, {
         if (debug) cat(paste0("\n", now(), " - mod_data - r$data_reload_menu"))
         
-        if (r$project_load_status_displayed) r$project_load_status$menu_starttime <- now("%Y-%m-%d %H:%M:%OS3")
+        # if (r$project_load_status_displayed) r$project_load_status$menu_starttime <- now("%Y-%m-%d %H:%M:%OS3")
         
         sapply(categories, function(category){
           
@@ -1040,7 +1055,7 @@ mod_data_server <- function(id, r, d, m, language, i18n, debug){
           shinyjs::hide(paste0(hidden_category, "_study_menu"))
         })
         
-        if (r$project_load_status_displayed) r$project_load_status$menu_endtime <- now("%Y-%m-%d %H:%M:%OS3")
+        # if (r$project_load_status_displayed) r$project_load_status$menu_endtime <- now("%Y-%m-%d %H:%M:%OS3")
       })
       
       # --- --- --- --- --
@@ -1499,8 +1514,6 @@ mod_data_server <- function(id, r, d, m, language, i18n, debug){
         )
       }
       
-      print(selected_concepts)
-      
       # Notify user
       show_message_bar(output, message = "widget_added", type = "success", i18n = i18n, ns = ns)
       
@@ -1683,7 +1696,7 @@ mod_data_server <- function(id, r, d, m, language, i18n, debug){
     
     load_tab_ui <- function(category, tab_id, widget_id = NA_integer_, action = "reload"){
       
-      if (r$project_load_status_displayed) r$project_load_status$widgets_ui_starttime <- now("%Y-%m-%d %H:%M:%OS3")
+      # if (r$project_load_status_displayed) r$project_load_status$widgets_ui_starttime <- now("%Y-%m-%d %H:%M:%OS3")
       
       selected_tab <- r[[paste0(category, "_selected_tab")]]
 
@@ -1790,12 +1803,12 @@ mod_data_server <- function(id, r, d, m, language, i18n, debug){
         })
       }
       
-      if (r$project_load_status_displayed) r$project_load_status$widgets_ui_endtime <- now("%Y-%m-%d %H:%M:%OS3")
+      # if (r$project_load_status_displayed) r$project_load_status$widgets_ui_endtime <- now("%Y-%m-%d %H:%M:%OS3")
     }
     
     load_tab_server <- function(tab_id, widget_id = NA_integer_, action = "reload"){
       
-      if (r$project_load_status_displayed) r$project_load_status$widgets_server_starttime <- now("%Y-%m-%d %H:%M:%OS3")
+      # if (r$project_load_status_displayed) r$project_load_status$widgets_server_starttime <- now("%Y-%m-%d %H:%M:%OS3")
       
       shinyjs::delay(100, {
         # Get tabs and widgets
@@ -1923,7 +1936,7 @@ mod_data_server <- function(id, r, d, m, language, i18n, debug){
         r$data_server_loaded <- TRUE
       })
       
-      if (r$project_load_status_displayed) r$project_load_status$widgets_server_endtime <- now("%Y-%m-%d %H:%M:%OS3")
+      # if (r$project_load_status_displayed) r$project_load_status$widgets_server_endtime <- now("%Y-%m-%d %H:%M:%OS3")
     }
   })
 }

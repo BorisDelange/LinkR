@@ -205,6 +205,8 @@ mod_widgets_server <- function(id, r, d, m, language, i18n, all_divs, debug){
     observeEvent(input$search_element, {
       if (debug) cat(paste0("\n", now(), " - mod_widgets - (", id, ") - observer input$search_element"))
       
+      req(length(r[[long_var]]) > 0)
+      
       if (input$search_element == "") r[[long_var_filtered]] <- r[[long_var]]
       else {
         

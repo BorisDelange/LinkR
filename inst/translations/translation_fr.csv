@@ -1168,3 +1168,11 @@ update_git_element_dataset_text,Mettre à jour ce set de données sur le git ? C
 delete_git_element_dataset_title,Supprimer un élément du git
 delete_git_element_dataset_text,Supprimer ce set de données sur le git ?
 dont_update,Cancel
+reload_dataset_concepts,Recharger les concepts du set de données
+reload_dataset_concepts_title,Recharger les concepts
+reload_dataset_concepts_text,Recharger le décompte des concepts du set de données actuel ? Cette opération peut prendre quelques minutes.
+reload,Recharger
+dont_reload,Annuler
+count_persons_rows,Patients
+count_concepts_rows,Lignes
+add_concept_input,Ajouter

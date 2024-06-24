@@ -68,7 +68,16 @@ mod_page_header_ui <- function(id = character(), i18n = character()){
     tags$a(
       id = ns("command_bar_2_a"),
       href = shiny.router::route_link("projects"),
-      div(div(uiOutput(ns("selected_project")), class = "selected_project"), class = "selected_project_container"),
+      div(
+        shinyjs::hidden(
+          div(
+            id = ns("selected_project_div"),
+            uiOutput(ns("selected_project")), 
+            class = "selected_project"
+          )
+        ), 
+        class = "selected_project_container"
+      ),
       style = "z-index:200; text-decoration:none; margin-left:-28px;",
     ),
     div(

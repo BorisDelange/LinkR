@@ -1168,3 +1168,11 @@ update_git_element_dataset_text,Update git dataset? This will erase and replace 
 delete_git_element_dataset_title,Delete git element
 delete_git_element_dataset_text,Delete this dataset from the git repository?
 dont_update,Cancel
+reload_dataset_concepts,Reload dataset concepts
+reload_dataset_concepts_title,Reload concepts
+reload_dataset_concepts_text,Reload count of current dataset concepts? This operation may take a few minutes.
+reload,Reload
+dont_reload,Don't load
+count_persons_rows,Patients
+count_concepts_rows,Rows
+add_concept_input,Add

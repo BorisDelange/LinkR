@@ -456,8 +456,8 @@ load_dataset_concepts <- function(r, d, m){
     dplyr::arrange(vocabulary_id)
   
   # Join d$person, d$visit_occurrence & d$visit_detail with d$dataset_all_concepts
-  r$merge_concepts_and_d_vars <- now()
+  # r$merge_concepts_and_d_vars <- now()
   
   # Then load d$dataset_drug_strength
-  r$load_dataset_drug_strength <- now()
+  # r$load_dataset_drug_strength <- now()
 }

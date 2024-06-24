@@ -135,6 +135,8 @@ mod_projects_server <- function(id, r, d, m, language, i18n, debug){
     observeEvent(r$load_project_trigger, {
       if (debug) cat(paste0("\n", now(), " - mod_projects - observer r$load_project_trigger"))
       
+      req(length(m$selected_study) > 0)
+      
       shiny.router::change_page("data")
       r$project_data_loaded <- TRUE
       shinyjs::delay(500, r$load_project_data_trigger <- now())
