@@ -80,7 +80,7 @@ mod_widgets_ui <- function(id, language, languages, i18n){
         )
       ),
       
-      # Confirm import element modal ----
+      # Import element modal ----
       
       shinyjs::hidden(
         div(
@@ -89,7 +89,7 @@ mod_widgets_ui <- function(id, language, languages, i18n){
             tags$h1(i18n$t(paste0("import_", single_id, "_title"))), tags$p(i18n$t(paste0("import_", single_id, "_text"))),
             div(
               shiny.fluent::DefaultButton.shinyInput(ns("close_element_import_modal"), i18n$t("dont_import")),
-              div(shiny.fluent::PrimaryButton.shinyInput(ns("confirm_element_import"), i18n$t("import")), class = "delete_button"),
+              div(shiny.fluent::PrimaryButton.shinyInput(ns("confirm_element_import"), i18n$t("import"))),
               class = "import_modal_buttons"
             ),
             class = "import_modal_content"
@@ -97,6 +97,44 @@ mod_widgets_ui <- function(id, language, languages, i18n){
           class = "import_modal"
         )
       ),
+      
+      # Update git element modal ----
+      
+      shinyjs::hidden(
+        div(
+          id = ns("update_git_element_modal"),
+          div(
+            tags$h1(i18n$t(paste0("update_git_element_", single_id, "_title"))), tags$p(i18n$t(paste0("update_git_element_", single_id, "_text"))),
+            shiny.fluent::TextField.shinyInput(ns("update_git_element_api_key"), label = i18n$t("api_key")),
+            div(
+              shiny.fluent::DefaultButton.shinyInput(ns("close_update_git_element_modal"), i18n$t("dont_update")),
+              div(shiny.fluent::PrimaryButton.shinyInput(ns("confirm_element_import"), i18n$t("update"))),
+              class = "update_git_element_modal_buttons"
+            ),
+            class = "update_git_element_modal_content"
+          ),
+          class = "update_git_element_modal"
+        )
+      ),
+      
+      # Delete git element modal ----
+      
+      shinyjs::hidden(
+        div(
+          id = ns("delete_git_element_modal"),
+          div(
+            tags$h1(i18n$t(paste0("delete_git_element_", single_id, "_title"))), tags$p(i18n$t(paste0("delete_git_element_", single_id, "_text"))),
+            shiny.fluent::TextField.shinyInput(ns("delete_git_element_api_key"), label = i18n$t("api_key")),
+            div(
+              shiny.fluent::DefaultButton.shinyInput(ns("close_delete_git_element_modal"), i18n$t("dont_delete")),
+              div(shiny.fluent::PrimaryButton.shinyInput(ns("confirm_element_import"), i18n$t("delete")), class = "delete_button"),
+              class = "delete_git_element_modal_buttons"
+            ),
+            class = "delete_git_element_modal_content"
+          ),
+          class = "delete_git_element_modal"
+        )
+      )
   )
 }
 
@@ -109,15 +147,10 @@ mod_widgets_server <- function(id, r, d, m, language, i18n, all_divs, debug){
     
     if (debug) cat(paste0("\n", now(), " - mod_widgets - (", id, ") - start"))
     
-    # Unlock reactivity / show or hide divs ----
+    # get_page observer ----
     observeEvent(shiny.router::get_page(), {
       req(shiny.router::get_page() == id)
       if (debug) cat(paste0("\n", now(), " - mod_widgets - (", id, ") - observer shiny.router::get_page()"))
-      
-      divs <- c(paste0(all_divs, "_reduced_sidenav"), paste0(all_divs, "_large_sidenav"))
-      sapply(c("one_element", divs), shinyjs::hide)
-      
-      sapply(c("all_elements", "all_elements_reduced_sidenav"), shinyjs::show)
       
       # Prevent a bug with scroll into ace editor
       shinyjs::runjs("var event = new Event('resize'); window.dispatchEvent(event);")
@@ -223,6 +256,9 @@ mod_widgets_server <- function(id, r, d, m, language, i18n, all_divs, debug){
       # Show or hide pages depending on selected tab
       divs <- setdiff(all_divs, current_tab)
       divs <- c(paste0(divs, "_reduced_sidenav"), paste0(divs, "_large_sidenav"), paste0(divs, "_div"))
+      
+      # Prevent a bug with scroll into ace editor
+      if (current_tab == "edit_code") shinyjs::runjs("var event = new Event('resize'); window.dispatchEvent(event);")
       
       sapply(divs, shinyjs::hide)
       sapply(c(paste0(current_tab, "_div"), paste0(current_tab, "_reduced_sidenav"), paste0(current_tab, "_large_sidenav")), shinyjs::show)
@@ -881,7 +917,11 @@ mod_widgets_server <- function(id, r, d, m, language, i18n, all_divs, debug){
             )
             
             # Update synchronize buttons
-            synchronize_git_buttons <- shiny.fluent::PrimaryButton.shinyInput(ns("update_git_repo"), i18n$t("update"))
+            synchronize_git_buttons <- div(
+              div(shiny.fluent::PrimaryButton.shinyInput(ns("git_repo_delete_element"), i18n$t("delete")), class = "delete_button"),
+              shiny.fluent::PrimaryButton.shinyInput(ns("git_repo_update_element"), i18n$t("update")),
+              style = "display: flex; gap: 5px;"
+            )
           }
         }
         
@@ -891,6 +931,9 @@ mod_widgets_server <- function(id, r, d, m, language, i18n, all_divs, debug){
             shiny.fluent::MessageBar(i18n$t(paste0(single_id, "_doesnt_exist_in_git_repo")), messageBarType = 5), 
             style = "display: inline-block;"
           )
+          
+          # Update synchronize buttons
+          synchronize_git_buttons <- shiny.fluent::PrimaryButton.shinyInput(ns("git_repo_update_element"), i18n$t("add"))
         }
       }
       
@@ -898,11 +941,32 @@ mod_widgets_server <- function(id, r, d, m, language, i18n, all_divs, debug){
       output$synchronize_git_buttons <- renderUI(synchronize_git_buttons)
     })
     
+    # Update git element
+    observeEvent(input$git_repo_update_element, {
+      if (debug) cat(paste0("\n", now(), " - mod_widgets - (", id, ") - observer input$git_repo_update_element"))
+      shinyjs::show("update_git_element_modal")
+    })
+    
+    observeEvent(input$close_update_git_element_modal, {
+      if (debug) cat(paste0("\n", now(), " - mod_widgets - (", id, ") - observer input$close_update_git_element_modal"))
+      shinyjs::hide("update_git_element_modal")
+    })
+    
+    # Delete git element
+    observeEvent(input$git_repo_delete_element, {
+      if (debug) cat(paste0("\n", now(), " - mod_widgets - (", id, ") - observer input$git_repo_delete_element"))
+      shinyjs::show("delete_git_element_modal")
+    })
+    
+    observeEvent(input$close_delete_git_element_modal, {
+      if (debug) cat(paste0("\n", now(), " - mod_widgets - (", id, ") - observer input$close_delete_git_element_modal"))
+      shinyjs::hide("delete_git_element_modal")
+    })
+    
     ## Export element ----
     
     observeEvent(input$export_element, {
       if (debug) cat(paste0("\n", now(), " - mod_widgets - (", id, ") - observer input$export_element"))
-
       shinyjs::click("export_element_download")
     })
     

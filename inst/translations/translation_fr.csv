@@ -1163,3 +1163,8 @@ dataset_doesnt_exist_in_git_repo,Ce set de données n'existe pas dans le dépôt
 updated_x_ago,Auparavant
 days,Jours
 hours,Heures
+update_git_element_dataset_title,Mise à jour un élément du git
+update_git_element_dataset_text,Mettre à jour ce set de données sur le git ? Ceci va supprimer et remplacer l'ancien set de données sur le dépôt git distant.
+delete_git_element_dataset_title,Supprimer un élément du git
+delete_git_element_dataset_text,Supprimer ce set de données sur le git ?
+dont_update,Cancel
