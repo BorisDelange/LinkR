@@ -985,7 +985,7 @@ api_key,API key
 git_repo_already_in_db,This git repository has already been added
 error_downloading_git_repos_csv,Error downloading git repos CSV file
 error_loading_git_repos_csv,Error loading git repos CSV file
-error_downloading_git_repo,Error downloading git repo
+error_loading_git_repo,Error loading git repo
 error_loading_category_xml_file,Error loading selected repo category XML file
 edit_git_repo,Edit git repo
 add_files,Add files
@@ -995,7 +995,7 @@ edit_git_repo_delete_file,Delete a file
 edit_git_repo_delete_file_subtext,Confirm deletion of this file?
 file_deleted,File deleted
 error_deleting_file,Error deleting file
-error_creating_xml_files,Error creating XML files
+error_creating_xml_file,Error creating XML file
 success_update_remote_git_repo,Remote git repo successfully updated
 error_update_remote_git_repo,Error updating remote git repo
 error_downloading_remote_plugin_images,Error downloading remote git plugin's images
@@ -1162,7 +1162,9 @@ plugin_doesnt_exist_in_git_repo,This plugin does not exist in this git repositor
 dataset_doesnt_exist_in_git_repo,This dataset does not exist in this git repository
 updated_x_ago,Ago
 days,Days
+day,Day
 hours,Hours
+hour,Hour
 update_git_element_dataset_title,Update git element
 update_git_element_dataset_text,Update git dataset? This will erase and replace actual dataset in the git repository.
 delete_git_element_dataset_title,Delete git element
@@ -1176,3 +1178,11 @@ dont_reload,Don't load
 count_persons_rows,Patients
 count_concepts_rows,Rows
 add_concept_input,Add
+element_git_version_more_recent,Remote git version is newer
+minutes,Minutes
+minute,Minute
+cancel,Cancel
+error_downloading_plugin,Error downloading plugin
+error_downloading_dataset,Error downloading dataset
+element_git_and_local_versions_are_the_same,Local and remote git versions are the same
+reload_git_repo,Reload git

@@ -208,3 +208,50 @@ create_element_ui <- function(page_id, single_id, element_name, users_ui, widget
     )
   )
 }
+
+#' @noRd
+create_element_files <- function(id, r, element_id, single_id, element_options, element_dir){
+  
+  if (!dir.exists(element_dir)) dir.create(element_dir)
+  
+  if (id == "datasets"){
+    # Get dataset code
+    
+    sql <- glue::glue_sql("SELECT code FROM code WHERE category = {single_id} AND link_id = {element_id}", .con = r$db)
+    code <- DBI::dbGetQuery(r$db, sql) %>% dplyr::pull()
+    
+    writeLines(code, paste0(element_dir, "/import_dataset.R"))
+  }
+  
+  # Create XML file
+  create_element_xml(id, r, element_id, single_id, element_options, element_dir)
+}
+
+create_element_xml <- function(id, r, element_id, single_id, element_options, element_dir){
+  
+  xml <- XML::newXMLDoc()
+  
+  elements_node <- XML::newXMLNode(id, doc = xml)
+  element_node <- XML::newXMLNode(single_id, parent = elements_node)
+  
+  XML::newXMLNode("app_version", r$app_version, parent = element_node)
+  
+  for(name in c("unique_id", "version", "author", paste0("name_", r$languages$code), paste0("category_", r$languages$code))){
+    XML::newXMLNode(name, element_options %>% dplyr::filter(name == !!name) %>% dplyr::pull(value), parent = element_node)
+  }
+  for(name in c(paste0("description_", r$languages$code))) XML::newXMLNode(
+    name,
+    element_options %>% dplyr::filter(name == !!name) %>% dplyr::pull(value) %>% stringr::str_replace_all("''", "'"),
+    parent = element_node
+  )
+  
+  element <- r[[paste0(id, "_wide")]] %>% dplyr::filter(id == element_id)
+  
+  for (name in c("creation_datetime", "update_datetime")) XML::newXMLNode(name, element %>% dplyr::pull(get(!!name)), parent = element_node)
+  
+  # Specific nodes
+  if (id == "plugins")  XML::newXMLNode("type", element$tab_type_id, parent = element_node)
+  
+  # Create XML file
+  XML::saveXML(xml, file = paste0(element_dir, paste0("/", single_id, ".xml")))
+}

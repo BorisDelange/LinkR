@@ -1041,7 +1041,6 @@ mod_data_server <- function(id, r, d, m, language, i18n, debug){
           }
           
           output[[paste0(category, "_study_menu")]] <- renderUI({
-            r$temp <- now()
             div(
               study_menu_ui,
               style = "display:flex; justify-content:space-between; margin:5px 13px 0px 0px;"
@@ -1084,8 +1083,8 @@ mod_data_server <- function(id, r, d, m, language, i18n, debug){
             load_tab_server(tab_id)
           })
           
-          displayed_category <- r$data_page
-          hidden_category <- categories[categories != displayed_category]
+          # displayed_category <- r$data_page
+          # hidden_category <- categories[categories != displayed_category]
         })
         
         # Indicate that this study has been loaded, so that UI elements aren't loaded twice
@@ -1714,7 +1713,10 @@ mod_data_server <- function(id, r, d, m, language, i18n, debug){
         gridstack_div <- div(id = ns(gridstack_id), class = "grid-stack")
 
         hide_div <- TRUE
-        if (!is.na(selected_tab)) if (tab_id == selected_tab) hide_div <- FALSE
+        print(paste0("category = ", category, " / tab_id = ", tab_id))
+        print(selected_tab)
+        if (!is.na(selected_tab) & category == r$data_page) if (tab_id == selected_tab) hide_div <- FALSE
+        print(hide_div)
         if (hide_div) gridstack_div <- shinyjs::hidden(gridstack_div)
 
         insertUI(selector = paste0("#", ns("study_widgets")), where = "beforeEnd", ui = gridstack_div)

@@ -128,8 +128,6 @@ mod_git_repos_server <- function(id, r, d, m, language, i18n, debug){
     # all_divs <- c("summary", "projects", "plugins", "data_cleaning_scripts", "datasets", "vocabularies")
     all_divs <- c("summary", "projects", "plugins", "data_cleaning_scripts", "datasets")
     
-    r$loaded_git_repos <- tibble::tibble(unique_id = character(), datetime = character())
-    
     # No internet access ----
     
     if (!r$has_internet) {
@@ -353,6 +351,7 @@ mod_git_repos_server <- function(id, r, d, m, language, i18n, debug){
       
       # A repo is selected ----
       
+      # Selected from DT
       observeEvent(input$show_content_list, {
         if (debug) cat(paste0("\n", now(), " - mog_git_repos - observer input$show_content_list"))
         
@@ -360,10 +359,17 @@ mod_git_repos_server <- function(id, r, d, m, language, i18n, debug){
         shinyjs::runjs(paste0("Shiny.setInputValue('", id, "-show_content_trigger', Math.random());"))
       })
       
+      # Selected from the map
       observeEvent(input$show_content_map, {
         if (debug) cat(paste0("\n", now(), " - mog_git_repos - observer input$show_content_map"))
         
         r$git_repo <- r$map_git_repo
+        shinyjs::runjs(paste0("Shiny.setInputValue('", id, "-show_content_trigger', Math.random());"))
+      })
+      
+      # Sidenav reload git button
+      observeEvent(input$reload_git_repo, {
+        if (debug) cat(paste0("\n", now(), " - mog_git_repos - observer input$reload_git_repo"))
         shinyjs::runjs(paste0("Shiny.setInputValue('", id, "-show_content_trigger', Math.random());"))
       })
       
@@ -383,15 +389,27 @@ mod_git_repos_server <- function(id, r, d, m, language, i18n, debug){
         
         # Clone git repo if not already loaded
         
-        local_path <- ""
-        tryCatch(local_path <- load_git_repo(id, r, r$git_repo),
-          error = function(e){
-            show_message_bar(output, "error_downloading_git_repo", "warning", i18n = i18n, ns = ns)
+        loaded_git_repo <- tibble::tibble()
+        
+        tryCatch({
+          if (length(r$loaded_git_repos) > 0) r$loaded_git_repos <- r$loaded_git_repos %>% dplyr::filter(unique_id != r$git_repo$unique_id)
+          loaded_git_repo <- load_git_repo(id, r, r$git_repo)
+          }, error = function(e){
+            show_message_bar(output, "error_loading_git_repo", "warning", i18n = i18n, ns = ns)
             cat(paste0("\n", now(), " - mod_git_repos - error downloading git repo - error = ", toString(e)))
           }
         )
         
+        if (nrow(loaded_git_repo) > 0) local_path <- loaded_git_repo$local_path
+        else local_path <- ""
+        
         shinyjs::runjs(paste0("Shiny.setInputValue('", id, "-git_repo_local_path', '", local_path, "');"))
+        
+        # Return to summary tab (in case we have clicked on reload_git_repo)
+        shinyjs::runjs(paste0("
+          Shiny.setInputValue('", id, "-current_tab', '", id, "-summary');
+          Shiny.setInputValue('", id, "-current_tab_trigger', Math.random());"
+        ))
       })
       
       # Repo current tab ----

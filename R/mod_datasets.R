@@ -92,6 +92,8 @@ mod_datasets_ui <- function(id, language, languages, i18n, code_hotkeys){
                   uiOutput(ns("synchronize_git_buttons")),
                   class = "datasets_share_buttons"
                 ),
+                # Button for download a dataset (sidenav button)
+                div(downloadButton(ns("export_element_download")), style = "visibility: hidden; position: absolute; right: 0; bottom: 0;"),
                 class = "widget", style = "height: 50%; padding-top: 1px;"
               ),
               class = "datasets_share_left",
@@ -228,8 +230,10 @@ mod_datasets_server <- function(id, r, d, m, language, i18n, debug){
       
       code_id <- DBI::dbGetQuery(r$db, glue::glue_sql("SELECT id FROM code WHERE category = 'dataset' AND link_id = {dataset_id}", .con = r$db)) %>% dplyr::pull()
       
-      edited_code <- gsub("'", "''", input$dataset_code)
-      sql_send_statement(r$db, glue::glue_sql("UPDATE code SET code = {edited_code} WHERE id = {code_id}", .con = r$db))
+      sql_send_statement(r$db, glue::glue_sql("UPDATE code SET code = {input$dataset_code} WHERE id = {code_id}", .con = r$db))
+      
+      # Reload datasets vars
+      shinyjs::runjs(paste0("Shiny.setInputValue('", id, "-reload_elements_var', Math.random());"))
       
       show_message_bar(output, "modif_saved", "success", i18n = i18n, ns = ns)
     })

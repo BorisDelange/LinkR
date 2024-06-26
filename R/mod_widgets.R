@@ -98,41 +98,44 @@ mod_widgets_ui <- function(id, language, languages, i18n){
         )
       ),
       
-      # Update git element modal ----
+      # Update or delete git element modal ----
       
       shinyjs::hidden(
         div(
-          id = ns("update_git_element_modal"),
+          id = ns("update_or_delete_git_element_modal"),
           div(
-            tags$h1(i18n$t(paste0("update_git_element_", single_id, "_title"))), tags$p(i18n$t(paste0("update_git_element_", single_id, "_text"))),
-            shiny.fluent::TextField.shinyInput(ns("update_git_element_api_key"), label = i18n$t("api_key")),
             div(
-              shiny.fluent::DefaultButton.shinyInput(ns("close_update_git_element_modal"), i18n$t("dont_update")),
-              div(shiny.fluent::PrimaryButton.shinyInput(ns("confirm_element_import"), i18n$t("update"))),
-              class = "update_git_element_modal_buttons"
+              id = ns("update_git_element_text_div"),
+              tags$h1(i18n$t(paste0("update_git_element_", single_id, "_title"))), 
+              tags$p(i18n$t(paste0("update_git_element_", single_id, "_text")))
             ),
-            class = "update_git_element_modal_content"
-          ),
-          class = "update_git_element_modal"
-        )
-      ),
-      
-      # Delete git element modal ----
-      
-      shinyjs::hidden(
-        div(
-          id = ns("delete_git_element_modal"),
-          div(
-            tags$h1(i18n$t(paste0("delete_git_element_", single_id, "_title"))), tags$p(i18n$t(paste0("delete_git_element_", single_id, "_text"))),
-            shiny.fluent::TextField.shinyInput(ns("delete_git_element_api_key"), label = i18n$t("api_key")),
+            shinyjs::hidden(
+              div(
+                id = ns("delete_git_element_text_div"),
+                tags$h1(i18n$t(paste0("delete_git_element_", single_id, "_title"))), 
+                tags$p(i18n$t(paste0("delete_git_element_", single_id, "_text")))
+              )
+            ),
+            shiny.fluent::TextField.shinyInput(ns("update_or_delete_git_element_api_key"), type = "password", canRevealPassword = TRUE, label = i18n$t("api_key")),
+            shiny.fluent::TextField.shinyInput(ns("update_or_delete_git_element_commit_message"), label = i18n$t("commit_message")),
             div(
-              shiny.fluent::DefaultButton.shinyInput(ns("close_delete_git_element_modal"), i18n$t("dont_delete")),
-              div(shiny.fluent::PrimaryButton.shinyInput(ns("confirm_element_import"), i18n$t("delete")), class = "delete_button"),
-              class = "delete_git_element_modal_buttons"
+              shiny.fluent::DefaultButton.shinyInput(ns("close_update_or_delete_git_element_modal"), i18n$t("cancel")),
+              div(
+                id = ns("confirm_git_element_update_div"),
+                shiny.fluent::PrimaryButton.shinyInput(ns("confirm_git_element_update"), i18n$t("update"))
+              ),
+              shinyjs::hidden(
+                div(
+                  id = ns("confirm_git_element_deletion_div"),
+                  shiny.fluent::PrimaryButton.shinyInput(ns("confirm_git_element_deletion"), i18n$t("delete")), 
+                  class = "delete_button"
+                )
+              ),
+              class = "update_or_delete_git_element_modal_buttons"
             ),
-            class = "delete_git_element_modal_content"
+            class = "update_or_delete_git_element_modal_content"
           ),
-          class = "delete_git_element_modal"
+          class = "update_or_delete_git_element_modal"
         )
       )
   )
@@ -844,37 +847,93 @@ mod_widgets_server <- function(id, r, d, m, language, i18n, all_divs, debug){
     
     ## Git synchronization ----
     
-    # Load a git repo
+    ### Load a git repo ----
     observeEvent(input$git_repo, {
       if (debug) cat(paste0("\n", now(), " - mod_widgets - (", id, ") - observer input$git_repo"))
       
+      # Reload git repo
+      shinyjs::runjs(paste0("Shiny.setInputValue('", id, "-reload_git_repo', Math.random());"))
+    })
+    
+    observeEvent(input$reload_git_repo, {
+      if (debug) cat(paste0("\n", now(), " - mod_widgets - (", id, ") - observer input$reload_git_repo"))
+      
       git_repo <- r$git_repos %>% dplyr::filter(id == input$git_repo)
       
+      # Clone git repo if not already loaded
+      
+      loaded_git_repo <- tibble::tibble()
+      
+      tryCatch({
+        loaded_git_repo <- load_git_repo(id, r, git_repo)
+      }, error = function(e) cat(paste0("\n", now(), " - mod_widgets - (", id, ") - error downloading git repo - error = ", toString(e))))
+      
+      if (nrow(loaded_git_repo) > 0){
+        git_repo_local_path <- loaded_git_repo$local_path
+        
+        # Show upload git button
+        shinyjs::show("reload_git_repo_div")
+      }
+      else {
+        git_repo_local_path <- ""
+        r$loaded_git_repos_objects[[git_repo$unique_id]] <- character(0)
+        
+        # Hide upload git button
+        shinyjs::hide("reload_git_repo_div")
+      }
+      
+      shinyjs::runjs(paste0("Shiny.setInputValue('", id, "-git_repo_local_path', '", git_repo_local_path, "');"))
+
+      # Reload git element UI
+      shinyjs::runjs(paste0("Shiny.setInputValue('", id, "-reload_git_element_ui', Math.random());"))
+    })
+    
+    ### Reload git element UI ----
+    
+    observeEvent(input$reload_git_element_ui, {
+      if (debug) cat(paste0("\n", now(), " - mod_widgets - (", id, ") - observer input$reload_git_element_ui"))
+      
       element_long <- r[[long_var]] %>% dplyr::filter(id == input$selected_element)
-      element_ui <- div(
-        shiny.fluent::MessageBar(i18n$t("error_downloading_git_repo"), messageBarType = 5), 
+      git_element_ui <- div(
+        shiny.fluent::MessageBar(i18n$t("error_loading_git_repo"), messageBarType = 5),
         style = "display: inline-block;"
       )
       synchronize_git_buttons <- tagList()
       
-      # Clone git repo if not already loaded
+      git_repo_local_path <- input$git_repo_local_path
       
-      local_path <- ""
-      tryCatch({
-        local_path <- load_git_repo(id, r, git_repo)
-        element_ui <- tagList()
-      }, error = function(e) cat(paste0("\n", now(), " - mod_widgets - (", id, ") - error downloading git repo - error = ", toString(e))))
-      
-      shinyjs::runjs(paste0("Shiny.setInputValue('", id, "-git_repo_local_path', '", local_path, "');"))
-      
-      if (local_path != ""){
+      if (git_repo_local_path != ""){
+        
+        elements_folder <- paste0(git_repo_local_path, "/", id)
+        shinyjs::runjs(paste0("Shiny.setInputValue('", id, "-git_repo_elements_folder', '", elements_folder, "');"))
+        
+        element_unique_id <- element_long %>% dplyr::filter(name == "unique_id") %>% dplyr::pull(value)
+        shinyjs::runjs(paste0("Shiny.setInputValue('", id, "-git_repo_element_unique_id', '", element_unique_id, "');"))
+        
+        element_name_en <- element_long %>% dplyr::filter(name == "name_en") %>% dplyr::pull(value)
+        shinyjs::runjs(paste0("Shiny.setInputValue('", id, "-git_repo_element_name_en', '", element_name_en, "');"))
+        
+        # Reload git repo element UI
+        shinyjs::runjs(paste0("Shiny.setInputValue('", id, "-reload_git_repo_element_ui', 'Math.random()');"))
+        
+        element_exists <- FALSE
         
         # Check if this element already exists
-        element_path <- paste0(local_path, "/", id, "/", element_long %>% dplyr::filter(name == "unique_id") %>% dplyr::pull(value))
-        element_exists <- dir.exists(element_path)
+        file_names <- list.files(path = elements_folder)
+        
+        for (file_name in file_names){
+          if (grepl(element_unique_id, file_name)){
+            element_exists <- TRUE
+            element_path <- paste0(elements_folder, "/", file_name)
+          }
+        }
         
         # The element exists in the git repo
         if (element_exists){
+          
+          shinyjs::runjs(paste0("Shiny.setInputValue('", id, "-element_git_path', '", element_path, "');"))
+          
+          element <- r[[wide_var]] %>% dplyr::filter(id == input$selected_element)
           
           # Get element infos from XML file
           xml_file_path <- paste0(element_path, "/", single_id, ".xml")
@@ -882,46 +941,76 @@ mod_widgets_server <- function(id, r, d, m, language, i18n, all_divs, debug){
           error_loading_xml_file <- TRUE
           
           tryCatch({
-          element <-
-            xml2::read_xml(xml_file_path) %>%
-            XML::xmlParse() %>%
-            XML::xmlToDataFrame(nodes = XML::getNodeSet(., paste0("//", single_id)), stringsAsFactors = FALSE) %>%
-            tibble::as_tibble()
-          
-          error_loading_xml_file <- FALSE
+            git_element <-
+              xml2::read_xml(xml_file_path) %>%
+              XML::xmlParse() %>%
+              XML::xmlToDataFrame(nodes = XML::getNodeSet(., paste0("//", single_id)), stringsAsFactors = FALSE) %>%
+              tibble::as_tibble()
+            
+            error_loading_xml_file <- FALSE
           }, error = function(e) cat(paste0("\n", now(), " - mod_git_repos - error downloading ", current_tab, " readme - error = ", toString(e))))
           
-          if (error_loading_xml_file) element_ui <- div(
+          if (error_loading_xml_file) git_element_ui <- div(
             shiny.fluent::MessageBar(i18n$t("error_loading_category_xml_file"), messageBarType = 5), 
             style = "display: inline-block;"
           )
           
           else {
+            # First, we compare update datetimes: is the element on remote git repo is newer than our version?
+            diff_time <- difftime(element$update_datetime, git_element$update_datetime, unit = "mins") %>% as.integer()
             
-            diff_time_unit <- "hours"
-            diff_time <- difftime(now() %>% lubridate::ymd_hms(), element$update_datetime, unit = diff_time_unit) %>% as.integer()
+            if (diff_time < 0) diff_time_text <- strong(tolower(i18n$t("element_git_version_more_recent")))
             
-            if (diff_time > 24){
-              diff_time_unit <- "days"
-              diff_time <- difftime(now() %>% lubridate::ymd_hms(), element$update_datetime, unit = diff_time_unit) %>% as.integer()
+            # The two versions are the same
+            else if (diff_time == 0) diff_time_text <- strong(tolower(i18n$t("element_git_and_local_versions_are_the_same")))
+              
+            # Our version is newer
+            # Then, we compare the update datetime from now (update XX time ago...)
+            else {
+              diff_time <- difftime(now(), git_element$update_datetime, unit = "mins") %>% as.integer()
+              
+              if (diff_time < 60) {
+                diff_time <- difftime(element$update_datetime, git_element$update_datetime, unit = "mins") %>% as.integer()
+                
+                if (diff_time == 1) diff_time_unit_text <- i18n$t("minute")
+                else diff_time_unit_text <- i18n$t("minutes")
+                diff_time_text <- tagList(strong(diff_time, " ", tolower(diff_time_unit_text)), " ", tolower(i18n$t("updated_x_ago")))
+              }
+              else if (diff_time < 1440) {
+                diff_time <- difftime(element$update_datetime, git_element$update_datetime, unit = "hours") %>% as.integer()
+                
+                if (diff_time == 1) diff_time_unit_text <- i18n$t("hour")
+                else diff_time_unit_text <- i18n$t("hours")
+                diff_time_text <- tagList(strong(diff_time, " ", tolower(diff_time_unit_text)), " ", tolower(i18n$t("updated_x_ago")))
+              }
+              else {
+                diff_time <- difftime(element$update_datetime, git_element$update_datetime, unit = "days") %>% as.integer()
+                
+                if (diff_time == 1) diff_time_unit_text <- i18n$t("day")
+                else diff_time_unit_text <- i18n$t("days")
+                diff_time_text <- tagList(strong(diff_time, " ", tolower(diff_time_unit_text)), " ", tolower(i18n$t("updated_x_ago")))
+              }
             }
             
-            element_ui <- div(
+            git_element_ui <- div(
               tags$table(
-                tags$tr(tags$td(strong(i18n$t("name")), style = "min-width: 80px;"), tags$td(element[[paste0("name_", language)]])),
-                tags$tr(tags$td(strong(i18n$t("author_s"))), tags$td(element$author)),
-                tags$tr(tags$td(strong(i18n$t("created_on"))), tags$td(element$creation_datetime)),
+                tags$tr(tags$td(strong(i18n$t("name")), style = "min-width: 80px;"), tags$td(git_element[[paste0("name_", language)]])),
+                tags$tr(tags$td(strong(i18n$t("author_s"))), tags$td(git_element$author)),
+                tags$tr(tags$td(strong(i18n$t("created_on"))), tags$td(git_element$creation_datetime)),
                 tags$tr(
                   tags$td(strong(i18n$t("updated_on"))),
-                  tags$td(element$update_datetime, " -", strong(diff_time, " ", tolower(i18n$t(diff_time_unit))), " ", tolower(i18n$t("updated_x_ago")))
+                  tags$td(git_element$update_datetime, " -", diff_time_text)
                 )
               )
             )
             
             # Update synchronize buttons
+            if (diff_time < 0 | diff_time == 0) update_button <- ""
+            else update_button <- shiny.fluent::PrimaryButton.shinyInput(ns("git_repo_update_element"), i18n$t("update"))
+            
             synchronize_git_buttons <- div(
               div(shiny.fluent::PrimaryButton.shinyInput(ns("git_repo_delete_element"), i18n$t("delete")), class = "delete_button"),
-              shiny.fluent::PrimaryButton.shinyInput(ns("git_repo_update_element"), i18n$t("update")),
+              update_button,
               style = "display: flex; gap: 5px;"
             )
           }
@@ -929,7 +1018,7 @@ mod_widgets_server <- function(id, r, d, m, language, i18n, all_divs, debug){
         
         # The element doesn't exist
         else {
-          element_ui <- div(
+          git_element_ui <- div(
             shiny.fluent::MessageBar(i18n$t(paste0(single_id, "_doesnt_exist_in_git_repo")), messageBarType = 5), 
             style = "display: inline-block;"
           )
@@ -939,30 +1028,163 @@ mod_widgets_server <- function(id, r, d, m, language, i18n, all_divs, debug){
         }
       }
       
-      output$git_repo_element_ui <- renderUI(element_ui)
+      output$git_repo_element_ui <- renderUI(git_element_ui)
       output$synchronize_git_buttons <- renderUI(synchronize_git_buttons)
     })
     
-    # Update git element
+    ### Update or delete git element ----
     observeEvent(input$git_repo_update_element, {
       if (debug) cat(paste0("\n", now(), " - mod_widgets - (", id, ") - observer input$git_repo_update_element"))
-      shinyjs::show("update_git_element_modal")
+      
+      sapply(c("update_git_element_text_div", "confirm_git_element_update_div"), shinyjs::show)
+      sapply(c("delete_git_element_text_div", "confirm_git_element_deletion_div"), shinyjs::hide)
+      shinyjs::show("update_or_delete_git_element_modal")
     })
     
-    observeEvent(input$close_update_git_element_modal, {
-      if (debug) cat(paste0("\n", now(), " - mod_widgets - (", id, ") - observer input$close_update_git_element_modal"))
-      shinyjs::hide("update_git_element_modal")
-    })
-    
-    # Delete git element
     observeEvent(input$git_repo_delete_element, {
-      if (debug) cat(paste0("\n", now(), " - mod_widgets - (", id, ") - observer input$git_repo_delete_element"))
-      shinyjs::show("delete_git_element_modal")
+      if (debug) cat(paste0("\n", now(), " - mod_widgets - (", id, ") - observer input$git_repo_update_element"))
+      
+      sapply(c("delete_git_element_text_div", "confirm_git_element_deletion_div"), shinyjs::show)
+      sapply(c("update_git_element_text_div", "confirm_git_element_update_div"), shinyjs::hide)
+      shinyjs::show("update_or_delete_git_element_modal")
     })
     
-    observeEvent(input$close_delete_git_element_modal, {
-      if (debug) cat(paste0("\n", now(), " - mod_widgets - (", id, ") - observer input$close_delete_git_element_modal"))
-      shinyjs::hide("delete_git_element_modal")
+    observeEvent(input$close_update_or_delete_git_element_modal, {
+      if (debug) cat(paste0("\n", now(), " - mod_widgets - (", id, ") - observer input$close_update_or_delete_git_element_modal"))
+      shinyjs::hide("update_or_delete_git_element_modal")
+    })
+    
+    observeEvent(input$confirm_git_element_update, {
+      if (debug) cat(paste0("\n", now(), " - mod_widgets - (", id, ") - observer input$confirm_git_element_update"))
+      
+      shinyjs::runjs(paste0("Shiny.setInputValue('", id, "-update_git_type', 'update');"))
+      shinyjs::runjs(paste0("Shiny.setInputValue('", id, "-update_git', Math.random());"))
+    })
+    
+    observeEvent(input$confirm_git_element_deletion, {
+      if (debug) cat(paste0("\n", now(), " - mod_widgets - (", id, ") - observer input$confirm_git_element_deletion"))
+      
+      shinyjs::runjs(paste0("Shiny.setInputValue('", id, "-update_git_type', 'deletion');"))
+      shinyjs::runjs(paste0("Shiny.setInputValue('", id, "-update_git', Math.random());"))
+    })
+    
+    # Update / delete git element confirmed
+    observeEvent(input$update_git, {
+      if (debug) cat(paste0("\n", now(), " - mod_widgets - (", id, ") - observer input$update_git"))
+      
+      # Check if API key is empty
+      api_key_empty <- TRUE
+      if (input$update_or_delete_git_element_api_key == ""){
+        shiny.fluent::updateTextField.shinyInput(session, "update_or_delete_git_element_api_key", errorMessage = i18n$t("provide_valid_api_key"))
+      }
+      else {
+        api_key_empty <- FALSE
+        shiny.fluent::updateTextField.shinyInput(session, "update_or_delete_git_element_api_key", errorMessage = NULL)
+      }
+      
+      req(!api_key_empty)
+      
+      git_repo <- r$git_repos %>% dplyr::filter(id == input$git_repo)
+      
+      # Local git repo dir
+      local_dir <- paste0(r$app_folder, "/", id, "/", input$git_repo_element_unique_id)
+      
+      # Delete element folder
+      unlink(input$element_git_path, recursive = TRUE)
+      
+      # If this is an update, copy new element
+      
+      if (input$update_git_type == "update"){
+        
+        new_dir <- paste0(
+          input$git_repo_elements_folder, "/", 
+          input$git_repo_element_name_en %>% remove_special_chars(), "-",
+          input$git_repo_element_unique_id
+        )
+        
+        dir.create(new_dir)
+        
+        # Create element files
+        
+        sql <- glue::glue_sql("SELECT * FROM options WHERE category = {single_id} AND link_id = {input$selected_element}", .con = con)
+        element_options <- DBI::dbGetQuery(r$db, sql)
+        element_dir <- paste0(r$app_folder, "/", id, "/", input$git_repo_element_unique_id)
+        
+        if (id == "plugins") create_plugin_files(id = id, r = r, plugin_id = input$selected_element)
+        else create_element_files(id, r, input$selected_element, single_id, element_options, element_dir)
+        
+        create_element_xml(id, r, input$selected_element, single_id, element_options, element_dir)
+        
+        files <- list.files(local_dir, full.names = TRUE)
+        file.copy(files, new_dir, overwrite = TRUE)
+      }
+      
+      # Update global XML file
+      
+      # Delete old XML file
+      elements_dir <- paste0(input$git_repo_local_path, "/", id)
+      xml_file_path <- paste0(elements_dir, "/", id, ".xml")
+      unlink(xml_file_path)
+      
+      xml_files <- list.files(elements_dir, pattern = "\\.xml$", recursive = TRUE, full.names = TRUE)
+      elements_list <- list()
+      
+      # Read each XML file and extract element node
+      for (file in xml_files) {
+        xml_doc <- xml2::read_xml(file)
+        elements <- xml2::xml_find_all(xml_doc, paste0("//", id))
+        elements_list <- c(elements_list, elements)
+      }
+      
+      final_xml <- xml2::xml_new_root(id)
+      
+      # Add each element element node to final XML
+      for (element in elements_list) xml2::xml_add_child(final_xml, element)
+      
+      # Write XML file
+      xml2::write_xml(final_xml, xml_file_path)
+      
+      # Commit and push
+      if (length(r$loaded_git_repos_objects[[git_repo$unique_id]]) > 0){
+        tryCatch({
+          repo <- r$loaded_git_repos_objects[[git_repo$unique_id]]
+          git2r::config(repo, user.name = "username", user.email = "email@email.com")
+          git2r::add(repo, ".")
+
+          if (length(git2r::status(repo, unstaged = FALSE, untracked = FALSE, ignored = FALSE)$staged) > 0){
+
+            commit_message <- input$update_or_delete_git_element_commit_message
+            if (commit_message == "") commit_message <- paste0("Update ", single_id, " from LinkR")
+            git2r::commit(repo, message = commit_message)
+
+            # Create main branch if doesn't exist
+            git_branches <- names(git2r::branches(repo))
+            if (!"main" %in% git_branches){
+              git2r::branch_create(commit = git2r::last_commit(repo), name = "main")
+              git2r::checkout(repo, "main")
+            }
+
+            credentials <- git2r::cred_user_pass("linkr_user", input$update_or_delete_git_element_api_key)
+
+            git2r::push(repo, "origin", "refs/heads/main", credentials = credentials)
+
+            # Reset fields
+            shiny.fluent::updateTextField.shinyInput(session, "update_or_delete_git_element_api_key", value = "")
+            shiny.fluent::updateTextField.shinyInput(session, "update_or_delete_git_element_commit_message", value = "")
+
+            # Notify user
+            show_message_bar(output, "success_update_remote_git_repo", "success", i18n = i18n, ns = ns)
+          }
+        }, error = function(e){
+          show_message_bar(output, message = "error_update_remote_git_repo", type = "severeWarning", i18n = i18n, ns = ns)
+          cat(paste0("\n", now(), " - mod_widgets - (", id, ") - update remot git error - ", toString(e)))
+        })
+
+        shinyjs::hide("update_or_delete_git_element_modal")
+
+        # Reload git element UI
+        shinyjs::runjs(paste0("Shiny.setInputValue('", id, "-reload_git_element_ui', Math.random());"))
+      }
     })
     
     ## Export element ----
@@ -979,18 +1201,7 @@ mod_widgets_server <- function(id, r, d, m, language, i18n, all_divs, debug){
           r[[wide_var]] %>% 
           dplyr::filter(id == input$selected_element) %>%
           dplyr::pull(name) %>%
-          tolower() %>%
-          gsub(" ", "_", .) %>%
-          gsub("[àáâãäå]", "a", .) %>%
-          gsub("[èéêë]", "e", .) %>%
-          gsub("[ìíîï]", "i", .) %>%
-          gsub("[òóôõö]", "o", .) %>%
-          gsub("[ùúûü]", "u", .) %>%
-          gsub("ç", "c", .) %>%
-          gsub("ñ", "n", .) %>%
-          gsub("ÿ", "y", .) %>%
-          gsub("ß", "ss", .) %>%
-          gsub("[^a-z0-9_]", "", .)
+          remove_special_chars()
         
         paste0("linkr_", single_id, "_", element_name, "_", now() %>% stringr::str_replace_all(" ", "_") %>% stringr::str_replace_all(":", "_") %>% as.character(), ".zip")
       },
@@ -998,45 +1209,29 @@ mod_widgets_server <- function(id, r, d, m, language, i18n, all_divs, debug){
       content = function(file){
         if (debug) cat(paste0("\n", now(), " - mod_widgets - (", id, ") - output$export_elements_download"))
 
-        # Element dir
-        sql <- glue::glue_sql("SELECT value FROM options WHERE category = {single_id} AND name = 'unique_id' AND link_id = {input$selected_element}", .con = con)
-        element_unique_id <- DBI::dbGetQuery(r$db, sql) %>% dplyr::pull()
-        element_dir <- paste0(r$app_folder, "/", id, "/", element_unique_id)
-        
-        # Create files if don't exist
-        if (id == "plugins") create_plugin_files(id = id, r = r, plugin_id = input$selected_element)
-        
-        # Get element options
-        sql <- glue::glue_sql("SELECT * FROM options WHERE category = {single_id} AND link_id = {input$selected_element}", .con = con)
-        element_options <- DBI::dbGetQuery(r$db, sql)
-        
-        # Create XML file
-        xml <- XML::newXMLDoc()
-        
-        elements_node <- XML::newXMLNode(id, doc = xml)
-        element_node <- XML::newXMLNode(single_id, parent = elements_node)
-        
-        XML::newXMLNode("app_version", r$app_version, parent = element_node)
-        
-        for(name in c("unique_id", "version", "author", paste0("name_", r$languages$code), paste0("category_", r$languages$code))){
-          XML::newXMLNode(name, element_options %>% dplyr::filter(name == !!name) %>% dplyr::pull(value), parent = element_node)
-        }
-        for(name in c(paste0("description_", r$languages$code))) XML::newXMLNode(name, element_options %>% dplyr::filter(name == !!name) %>%
-          dplyr::pull(value) %>% stringr::str_replace_all("''", "'"), parent = element_node)
-        
-        # Specific nodes depending on current page
-        if (id == "plugins"){
-          plugin <- r$plugins_wide %>% dplyr::filter(id == input$selected_element)
+        tryCatch({
+          # Element dir
+          sql <- glue::glue_sql("SELECT value FROM options WHERE category = {single_id} AND name = 'unique_id' AND link_id = {input$selected_element}", .con = con)
+          element_unique_id <- DBI::dbGetQuery(r$db, sql) %>% dplyr::pull()
+          element_dir <- paste0(r$app_folder, "/", id, "/", element_unique_id)
           
-          XML::newXMLNode("type", plugin$tab_type_id, parent = element_node)
-          for (name in c("creation_datetime", "update_datetime")) XML::newXMLNode(name, plugin %>% dplyr::pull(get(!!name)), parent = element_node)
-        }
-        
-        # Create XML file
-        XML::saveXML(xml, file = paste0(element_dir, paste0("/", single_id, ".xml")))
-        
-        # Create a ZIP
-        zip::zipr(file, list.files(element_dir, full.names = TRUE))
+          # Create files if don't exist
+          if (id == "plugins") create_plugin_files(id = id, r = r, plugin_id = input$selected_element)
+          else create_element_files(id, r, input$selected_element, single_id, element_options, element_dir)
+          
+          # Get element options
+          sql <- glue::glue_sql("SELECT * FROM options WHERE category = {single_id} AND link_id = {input$selected_element}", .con = con)
+          element_options <- DBI::dbGetQuery(r$db, sql)
+          
+          # Create XML file
+          create_element_xml(id, r, input$selected_element, single_id, element_options, element_dir)
+          
+          # Create a ZIP
+          zip::zipr(file, list.files(element_dir, full.names = TRUE))
+        }, error = function(e){
+          show_message_bar(output, message = paste0("error_downloading_", single_id), type = "severeWarning", i18n = i18n, ns = ns)
+          cat(paste0("\n", now(), " - mod_widgets - (", id, ") - import element error - ", toString(e)))
+        })
       }
     )
   })

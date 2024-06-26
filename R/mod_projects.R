@@ -137,7 +137,7 @@ mod_projects_server <- function(id, r, d, m, language, i18n, debug){
       
       req(length(m$selected_study) > 0)
       
-      shiny.router::change_page("data")
+      shiny.router::change_page("data?type=patient_lvl")
       r$project_data_loaded <- TRUE
       shinyjs::delay(500, r$load_project_data_trigger <- now())
     })

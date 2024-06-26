@@ -90,26 +90,19 @@ mod_plugins_ui <- function(id, language, languages, i18n){
                 h1(i18n$t("synchronize_with_git_repo")),
                 div(shiny.fluent::Dropdown.shinyInput(ns("git_repo"), label = i18n$t("git_repo")), style = "width: 200px;"),
                 div(uiOutput(ns("git_repo_element_ui")), style = "margin-top:10px;"),
+                div(
+                  uiOutput(ns("synchronize_git_buttons")),
+                  class = "datasets_share_buttons"
+                ),
+                # Button for download a plugin (sidenav button)
+                div(downloadButton(ns("export_element_download")), style = "visibility: hidden; position: absolute; right: 0; bottom: 0;"),
                 class = "widget", style = "height: 50%; padding-top: 1px;"
               ),
               class = "plugins_share_right"
             ),
-            div(
-              div(
-                h1(i18n$t("export")),
-                div(
-                  shiny.fluent::PrimaryButton.shinyInput(ns("export_element"), i18n$t("export"), iconProps = list(iconName = "Download")),
-                  class = "create_element_modal_buttons"
-                ),
-                div(downloadButton(ns("export_element_download")), style = "visibility: hidden; position: absolute; right: 0; bottom: 0;"),
-                class = "widget", style = "height: 25%;"
-              ),
-              class = "plugins_share_left"
-            ),
             class = "plugins_share_container"
           )
         ),
-        
         style = "height: 100%; display: flex; flex-direction: column;"
       )
     ),
@@ -617,6 +610,13 @@ mod_plugins_server <- function(id, r, d, m, language, i18n, debug){
       # Update database
       sql <- glue::glue_sql("UPDATE code SET code = {new_code} WHERE category = 'plugin' AND link_id = {file$id}", .con = r$db)
       sql_send_statement(r$db, sql)
+      
+      # Update update_datetime
+      plugin_id <- input$selected_element
+      sql_send_statement(r$db, glue::glue_sql("UPDATE plugins SET update_datetime = {now()} WHERE id = {plugin_id}", .con = r$db))
+      
+      # Reload plugins vars
+      shinyjs::runjs(paste0("Shiny.setInputValue('", id, "-reload_elements_var', Math.random());"))
       
       show_message_bar(output,  "modif_saved", "success", i18n = i18n, ns = ns)
     })

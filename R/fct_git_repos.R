@@ -1,7 +1,8 @@
 #' @noRd
 load_git_repo <- function(id, r, git_repo){
   
-  local_path <- ""
+  if (length(r$loaded_git_repos) == 0) r$loaded_git_repos <- tibble::tibble(unique_id = character(), datetime = character(), local_path = character(), repo = list())
+  if (length(r$loaded_git_repos_objects) == 0) r$loaded_git_repos_objects <- list()
   
   if (git_repo$unique_id %not_in% r$loaded_git_repos$unique_id){
     
@@ -37,8 +38,10 @@ load_git_repo <- function(id, r, git_repo){
     # Add this repo to loaded repos
     r$loaded_git_repos <- 
       r$loaded_git_repos %>%
-      dplyr::bind_rows(tibble::tibble(unique_id = r$git_repo$unique_id, datetime = now()))
+      dplyr::bind_rows(tibble::tibble(unique_id = git_repo$unique_id, datetime = now(), local_path = local_path))
+    
+    r$loaded_git_repos_objects[[git_repo$unique_id]] <- repo
   }
   
-  return(local_path)
+  return(r$loaded_git_repos %>% dplyr::filter(unique_id == git_repo$unique_id))
 }

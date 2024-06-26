@@ -984,7 +984,7 @@ api_key,Clef API
 git_repo_already_in_db,Ce dépôt git a déjà été ajouté
 error_downloading_git_repos_csv,Erreur lors du téléchargement du fichier CSV des git distants
 error_loading_git_repos_csv,Erreur lors du chargement du fichier CSV des git distants
-error_downloading_git_repo,Erreur lors du téléchargement du dépôt git
+error_loading_git_repo,Erreur lors du chargement du dépôt git
 error_loading_category_xml_file,Erreur lors du chargement du fichier XML de la catégorie sélectionnée
 edit_git_repo,Modifier un dépôt git
 add_files,Ajouter des fichiers
@@ -994,7 +994,7 @@ edit_git_repo_delete_file,Supprimer un fichier
 edit_git_repo_delete_file_subtext,Confirmer la suppression de ce fichier ?
 file_deleted,Fichier supprimé
 error_deleting_file,Erreur lors de la suppression du fichier
-error_creating_xml_files,Erreur lors de la création des fichiers XML
+error_creating_xml_file,Erreur lors de la création du fichier XML
 success_update_remote_git_repo,Dépôt git distant mis à jour avec succès
 error_update_remote_git_repo,Erreur lors de la mise à jour du dépôt git distant
 error_downloading_remote_plugin_images,Erreur lors du téléchargement des images du plugin du dépôt git distant
@@ -1162,7 +1162,9 @@ plugin_doesnt_exist_in_git_repo,Ce plugin n'existe pas dans le dépôt git
 dataset_doesnt_exist_in_git_repo,Ce set de données n'existe pas dans le dépôt git
 updated_x_ago,Auparavant
 days,Jours
+day,Jour
 hours,Heures
+hour,Heure
 update_git_element_dataset_title,Mise à jour un élément du git
 update_git_element_dataset_text,Mettre à jour ce set de données sur le git ? Ceci va supprimer et remplacer l'ancien set de données sur le dépôt git distant.
 delete_git_element_dataset_title,Supprimer un élément du git
@@ -1176,3 +1178,11 @@ dont_reload,Annuler
 count_persons_rows,Patients
 count_concepts_rows,Lignes
 add_concept_input,Ajouter
+element_git_version_more_recent,Version sur le git plus récente
+minutes,Minutes
+minute,Minute
+cancel,Annuler
+error_downloading_plugin,Erreur lors du téléchargement du plugin
+error_downloading_dataset,Erreur lors du téléchargement du set de données
+element_git_and_local_versions_are_the_same,Mêmes versions en local et sur le git
+reload_git_repo,Recharger le git

@@ -199,6 +199,23 @@ mod_page_sidenav_ui <- function(id = character(), i18n = character()){
               )
             )
           )
+        ),
+        shinyjs::hidden(
+          div(
+            id = ns("share_reduced_sidenav"),
+            div(
+              create_hover_card(ui = shiny.fluent::IconButton.shinyInput(ns("export_element"), iconProps = list(iconName = "Download")), text = i18n$t("export_plugin")),
+              shinyjs::hidden(
+                div(
+                  id = ns("reload_git_repo_div"),
+                  create_hover_card(ui = shiny.fluent::IconButton.shinyInput(ns("reload_git_repo"), iconProps = list(iconName = "SyncOccurence")), text = i18n$t("reload_git_repo")),
+                  onclick = paste0("Shiny.setInputValue('", id, "-reload_git_repo', Math.random());"),
+                  class = "reduced_sidenav_buttons"
+                )
+              ),
+              class = "reduced_sidenav_buttons"
+            )
+          )
         )
       ),
       hide_sidenav
@@ -270,7 +287,12 @@ mod_page_sidenav_ui <- function(id = character(), i18n = character()){
           class = "reduced_sidenav_buttons"
         ),
         div(
-          id = ns("one_repo_reduced_sidenav")
+          id = ns("one_repo_reduced_sidenav"),
+          div(
+            id = ns("reload_git_repo_div"),
+            create_hover_card(ui = shiny.fluent::IconButton.shinyInput(ns("reload_git_repo"), iconProps = list(iconName = "SyncOccurence")), text = i18n$t("reload_git_repo")),
+            class = "reduced_sidenav_buttons"
+          )
         )
       ),
       shinyjs::hidden(show_sidenav)
@@ -386,20 +408,37 @@ mod_page_sidenav_ui <- function(id = character(), i18n = character()){
               div(
                 id = ns("edit_page_on_div"),
                 create_hover_card(ui = shiny.fluent::IconButton.shinyInput(ns("edit_page_on"), iconProps = list(iconName = "Edit")), text = i18n$t("edit_page")),
-                class = "reduced_sidenav_buttons_11",
+                class = "reduced_sidenav_buttons_11"
               ),
               shinyjs::hidden(
                 div(
                   id = ns("edit_page_off_div"),
                   shiny.fluent::IconButton.shinyInput(ns("edit_page_off"), iconProps = list(iconName = "Accept")),
-                  class = "reduced_sidenav_buttons_11",
+                  class = "reduced_sidenav_buttons"
                 )
               )
             ),
             div(
               create_hover_card(ui = shiny.fluent::IconButton.shinyInput(ns("reload_plugin_code"), iconProps = list(iconName = "SyncOccurence")), text = i18n$t("reload_plugin_code")),
-              class = "reduced_sidenav_buttons_11",
+              class = "reduced_sidenav_buttons"
             )
+          )
+        ),
+        shinyjs::hidden(
+          div(
+            id = ns("share_reduced_sidenav"),
+            div(
+              create_hover_card(ui = shiny.fluent::IconButton.shinyInput(ns("export_element"), iconProps = list(iconName = "Download")), text = i18n$t("export_plugin")),
+              class = "reduced_sidenav_buttons"
+            ),
+            shinyjs::hidden(
+              div(
+                id = ns("reload_git_repo_div"),
+                create_hover_card(ui = shiny.fluent::IconButton.shinyInput(ns("reload_git_repo"), iconProps = list(iconName = "SyncOccurence")), text = i18n$t("reload_git_repo")),
+                onclick = paste0("Shiny.setInputValue('", id, "-reload_git_repo', Math.random());"),
+                class = "reduced_sidenav_buttons"
+              )
+            ),
           )
         )
       ),
