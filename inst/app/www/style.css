@@ -527,12 +527,22 @@ a.no-hover-effect:hover {
   align-items: center;
 }
 
-.pivot_item:hover {
+.widget_pivot_item {
+  font-size: 12px;
+  height: 25px;
+  padding: 5px 10px;
+  background-color: white;
+  border: none;
+  display: flex;
+  align-items: center;
+}
+
+.pivot_item:hover, .widget_pivot_item:hover {
   background-color: #F3F2F1;
   cursor: pointer;
 }
 
-.selected_pivot_item {
+.selected_pivot_item, .selected_widget_pivot_item {
   font-weight: 600;
   box-shadow: 0 2px 0 0 rgb(0, 120, 212);
 }
@@ -984,7 +994,7 @@ td[data-type="factor"] input {
 /* GIT REPOS PAGE          */
 /* ----------------------- */
 
-.git_repos_container {
+.git_repos_container, .git_element_details_container {
   display: flex;
   justify-content: space-between;
   height: 100%;
@@ -1008,14 +1018,14 @@ td[data-type="factor"] input {
   height: calc(100% - 40px);
 }
 
-.git_repos_summary_left {
+.git_repos_summary_left, .git_element_details_left {
   display: flex;
   flex-direction: column;
   width: 50%;
   height: calc(100% - 5px);
 }
 
-.git_repos_summary_right {
+.git_repos_summary_right, .git_element_details_right {
   width: 50%;
   calc(100% - 16px)
 }

@@ -60,7 +60,6 @@ mod_git_repos_ui <- function(id = character(), language = "en", languages = tibb
             tags$button(id = ns("plugins"), i18n$t("plugins"), class = "pivot_item", onclick = pivot_item_js),
             tags$button(id = ns("data_cleaning_scripts"), i18n$t("data_cleaning"), class = "pivot_item", onclick = pivot_item_js),
             tags$button(id = ns("datasets"), i18n$t("datasets"), class = "pivot_item", onclick = pivot_item_js),
-            # tags$button(id = ns("vocabularies"), i18n$t("vocabularies"), class = "pivot_item", onclick = pivot_item_js),
             class = "pivot"
           ),
           style = "display: flex; justify-content: space-between; z-index: 100;"
@@ -96,6 +95,27 @@ mod_git_repos_ui <- function(id = character(), language = "en", languages = tibb
             div(shiny.fluent::SearchBox.shinyInput(ns("search_element")), style = "width:320px; margin:10px 0 0 10px;"),
             uiOutput(ns("elements")),
             style = "height: 100%;"
+          )
+        ),
+        
+        ## Selected element details ----
+        shinyjs::hidden(
+          div(
+            id = ns("element_details_div"),
+            div(
+              div(
+                class = "widget", style = "height: 50%;"
+              ),
+              class = "git_element_details_left"
+            ),
+            div(
+              div(
+                uiOutput(ns("element_details_description")),
+                class = "widget markdown_widget",
+              ),
+              class = "git_element_details_right"
+            ),
+            class = "git_element_details_container"
           )
         ),
         style = "height: 100%; display: flex; flex-direction: column;"
@@ -379,13 +399,7 @@ mod_git_repos_server <- function(id, r, d, m, language, i18n, debug){
         sapply(c("one_repo_reduced_sidenav", "one_git_repo"), shinyjs::show)
         sapply(c("all_repos_reduced_sidenav", "all_git_repos"), shinyjs::hide)
         
-        output$breadcrumb <- renderUI(
-          shiny.fluent::Breadcrumb(items = list(
-            list(key = "main", text = i18n$t("git_repos"), href = shiny.router::route_link("git_repos"), 
-              onClick = htmlwidgets::JS(paste0("item => { Shiny.setInputValue('", id, "-show_home', Math.random()); }"))),
-            list(key = "main", text = r$git_repo$name))
-          )
-        )
+        output$breadcrumb <- renderUI(create_breadcrumb(c(1, 2), i18n))
         
         # Clone git repo if not already loaded
         
@@ -417,6 +431,9 @@ mod_git_repos_server <- function(id, r, d, m, language, i18n, debug){
       observeEvent(input$current_tab_trigger, {
         if (debug) cat(paste0("\n", now(), " - mod_git_repos - observer input$current_tab_trigger"))
         
+        # Hide element details
+        shinyjs::hide("element_details_div")
+        
         current_tab <- gsub(paste0(id, "-"), "", input$current_tab, fixed = FALSE)
         
         # Show or hide pages depending on selected tab
@@ -437,6 +454,9 @@ mod_git_repos_server <- function(id, r, d, m, language, i18n, debug){
         sapply(all_divs, function(button_id) shinyjs::removeClass(class = "selected_pivot_item", selector = paste0("#", id, "-", button_id)))
         shinyjs::addClass(class = "selected_pivot_item", selector = paste0("#", id, "-", current_tab))
         
+        # Update breadcrumb
+        output$breadcrumb <- renderUI(create_breadcrumb(c(1, 2, 3), i18n, current_tab))
+        
         # Reload widgets UI
         shinyjs::runjs(paste0("Shiny.setInputValue('", id, "-reload_elements_list', Math.random());"))
       })
@@ -453,11 +473,11 @@ mod_git_repos_server <- function(id, r, d, m, language, i18n, debug){
           "datasets" = "dataset",
           "projects" = "project", 
           "plugins" = "plugin", 
-          "subsets" = "subset"#, 
-          # "vocabularies" = "vocabulary"
+          "subsets" = "subset"
         )
         
         elements <- tibble::tibble()
+        r$loaded_git_repo_elements <- elements
         
         # Get elements from XML file
         
@@ -471,6 +491,7 @@ mod_git_repos_server <- function(id, r, d, m, language, i18n, debug){
             XML::xmlParse() %>%
             XML::xmlToDataFrame(nodes = XML::getNodeSet(., paste0("//", single_id)), stringsAsFactors = FALSE) %>%
             tibble::as_tibble()
+          r$loaded_git_repo_elements <- elements
           
           error_loading_xml_file <- FALSE
         }, error = function(e) cat(paste0("\n", now(), " - mod_git_repos - error downloading ", current_tab, " readme - error = ", toString(e))))
@@ -522,7 +543,7 @@ mod_git_repos_server <- function(id, r, d, m, language, i18n, debug){
         output$elements <- renderUI(elements_ui)
       })
       
-      # Go to all repos page ----
+      # Return to all repos page ----
       
       observeEvent(input$show_home, {
         if (debug) cat(paste0("\n", now(), " - mod_git_repos - observer input$show_home"))
@@ -532,6 +553,39 @@ mod_git_repos_server <- function(id, r, d, m, language, i18n, debug){
         
         # Prevent a bug with leaflet map display
         shinyjs::runjs("var event = new Event('resize'); window.dispatchEvent(event);")
+      })
+      
+      # An element is selected ----
+      
+      observeEvent(input$selected_element_trigger, {
+        if (debug) cat(paste0("\n", now(), " - mod_git_repos - observer input$selected_element_trigger"))
+        
+        selected_element <- r$loaded_git_repo_elements %>% dplyr::filter(unique_id == input$selected_element)
+        
+        shinyjs::hide("widgets_div")
+        shinyjs::show("element_details_div")
+        
+        current_tab <- gsub(paste0(id, "-"), "", input$current_tab, fixed = FALSE)
+        
+        # Update breadcrumb
+        output$breadcrumb <- renderUI(create_breadcrumb(c(1, 2, 3, 4), i18n, current_tab, selected_element[[paste0("name_", language)]]))
+        
+        # Show element description
+        description <- selected_element %>% dplyr::select(!!rlang::sym(paste0("description_", language))) %>% dplyr::pull() %>% includeMarkdown()
+        output$element_details_description <- renderUI(div(description))
+      })
+      
+      # Return to selected repo page ----
+      
+      observeEvent(input$show_git_repo, {
+        if (debug) cat(paste0("\n", now(), " - mod_git_repos - observer input$show_git_repo"))
+        
+        shinyjs::hide("element_details_div")
+        shinyjs::show("widgets_div")
+        
+        current_tab <- gsub(paste0(id, "-"), "", input$current_tab, fixed = FALSE)
+        
+        output$breadcrumb <- renderUI(create_breadcrumb(c(1, 2, 3), i18n, current_tab))
       })
     }
     
@@ -582,13 +636,59 @@ mod_git_repos_server <- function(id, r, d, m, language, i18n, debug){
           download.file(filename_remote, new_file, quiet = TRUE)
           
           con <- textConnection(new_file)
-          readme <- div(readLines(con, warn = FALSE) %>% includeMarkdown() %>% withMathJax())
+          readme <- div(readLines(con, warn = FALSE) %>% includeMarkdown())
           close(con)
         },
         error = function(e) cat(paste0("\n", now(), " - mod_git_repos - error loading remote git readme - error = ", toString(e))))
       } 
       
       readme
+    }
+    
+    create_breadcrumb <- function(levels, i18n, current_tab = "", selected_element_name = ""){
+      
+      items <- list()
+      
+      if (1 %in% levels) items <- rlist::list.append(
+        items,
+        list(
+          key = "main", text = i18n$t("git_repos"), href = shiny.router::route_link("git_repos"),
+          onClick = htmlwidgets::JS(paste0("item => { Shiny.setInputValue('", id, "-show_home', Math.random()); }"))
+        )
+      )
+      
+      if (2 %in% levels) items <- rlist::list.append(
+        items,
+        list(
+          key = "git_repo", text = r$git_repo$name,
+          onClick = htmlwidgets::JS(paste0(
+            "item => { ",
+              "Shiny.setInputValue('", id, "-current_tab_trigger', Math.random()); ",
+              "Shiny.setInputValue('", id, "-current_tab', 'summary'); ",
+            "}")
+          )
+        )
+      )
+      
+      if (3 %in% levels){
+        if (4 %in% levels) onclick <- htmlwidgets::JS(paste0("item => { Shiny.setInputValue('", id, "-show_git_repo', Math.random()); }"))
+        else onclick <- ""
+        
+        items <- rlist::list.append(
+          items,
+          list(
+            key = current_tab, text = i18n$t(current_tab),
+            onClick = onclick
+          )
+        )
+      }
+      
+      if (4 %in% levels) items <- rlist::list.append(
+        items,
+        list(key = "element", text = selected_element_name)
+      )
+      
+      shiny.fluent::Breadcrumb(items = items)
     }
     
   })

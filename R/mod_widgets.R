@@ -681,7 +681,7 @@ mod_widgets_server <- function(id, r, d, m, language, i18n, all_divs, debug){
         
         shiny.fluent::Breadcrumb(items = list(
           list(key = "main", text = i18n$t(id), href = shiny.router::route_link(id), 
-             onClick = htmlwidgets::JS(paste0("item => { Shiny.setInputValue('", id, "-show_home', Math.random()); }"))),
+            onClick = htmlwidgets::JS(paste0("item => { Shiny.setInputValue('", id, "-show_home', Math.random()); }"))),
           list(key = "main", text = element_name))
         )
       })

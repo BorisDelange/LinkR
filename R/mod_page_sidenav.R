@@ -218,7 +218,7 @@ mod_page_sidenav_ui <- function(id = character(), i18n = character()){
           )
         )
       ),
-      hide_sidenav
+      shinyjs::hidden(show_sidenav)
     ) -> result
   }
   
