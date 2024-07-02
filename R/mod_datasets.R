@@ -92,7 +92,7 @@ mod_datasets_ui <- function(id, language, languages, i18n, code_hotkeys){
                   uiOutput(ns("synchronize_git_buttons")),
                   class = "datasets_share_buttons"
                 ),
-                # Button for download a dataset (sidenav button)
+                # Button to download a dataset (sidenav button)
                 div(downloadButton(ns("export_element_download")), style = "visibility: hidden; position: absolute; right: 0; bottom: 0;"),
                 class = "widget", style = "height: 50%; padding-top: 1px;"
               ),

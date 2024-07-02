@@ -227,6 +227,7 @@ create_element_files <- function(id, r, element_id, single_id, element_options, 
   create_element_xml(id, r, element_id, single_id, element_options, element_dir)
 }
 
+#' @noRd
 create_element_xml <- function(id, r, element_id, single_id, element_options, element_dir){
   
   xml <- XML::newXMLDoc()
@@ -254,4 +255,44 @@ create_element_xml <- function(id, r, element_id, single_id, element_options, el
   
   # Create XML file
   XML::saveXML(xml, file = paste0(element_dir, paste0("/", single_id, ".xml")))
+}
+
+compare_git_elements_datetimes <- function(action, i18n, local_element, git_element){
+  
+  # First, we compare update datetimes: is the element on remote git repo is newer than our version?
+  diff_time <- difftime(local_element$update_datetime, git_element$update_datetime, unit = "mins") %>% as.integer()
+  
+  # No action
+  # The two versions are the same or, for push, git version is newer, and for pull, local version is newer
+  if (diff_time == 0) diff_time_text <- strong(tolower(i18n$t("element_git_and_local_versions_are_the_same")))
+  else if (diff_time < 0 & action == "push") diff_time_text <- strong(tolower(i18n$t("element_git_version_more_recent")))
+  else if (diff_time > 0 & action == "pull") diff_time_text <- strong(tolower(i18n$t("element_local_version_more_recent")))
+  
+  # Action
+  # Then, we compare the update datetime from now (update XX time ago...)
+  else {
+    diff_time_now <- difftime(now(), git_element$update_datetime, unit = "mins") %>% as.integer()
+    
+    if (diff_time_now < 60) {
+      if (diff_time_now == 1) diff_time_unit_text <- i18n$t("minute")
+      else diff_time_unit_text <- i18n$t("minutes")
+      diff_time_text <- tagList(strong(diff_time_now, " ", tolower(diff_time_unit_text)), " ", tolower(i18n$t("updated_x_ago")))
+    }
+    else if (diff_time_now < 1440) {
+      diff_time_now <- difftime(now(), git_element$update_datetime, unit = "hours") %>% as.integer()
+      
+      if (diff_time_now == 1) diff_time_unit_text <- i18n$t("hour")
+      else diff_time_unit_text <- i18n$t("hours")
+      diff_time_text <- tagList(strong(diff_time_now, " ", tolower(diff_time_unit_text)), " ", tolower(i18n$t("updated_x_ago")))
+    }
+    else {
+      diff_time_now <- difftime(now(), git_element$update_datetime, unit = "days") %>% as.integer()
+      
+      if (diff_time_now == 1) diff_time_unit_text <- i18n$t("day")
+      else diff_time_unit_text <- i18n$t("days")
+      diff_time_text <- tagList(strong(diff_time_now, " ", tolower(diff_time_unit_text)), " ", tolower(i18n$t("updated_x_ago")))
+    }
+  }
+  
+  return(list(diff_time, diff_time_text))
 }

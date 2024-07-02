@@ -482,7 +482,6 @@ plugin_added,Nouveau plugin ajouté
 unauthorized_action,Action non autorisée
 plugins_deleted,Plugin(s) supprimé(s)
 mapping_deleted,Alignement(s) de concepts supprimé(s)
-install_plugin,Installer ce plugin
 update_plugin,Mettre à jour ce plugin
 update_plugins,Mettre à jour les plugins
 plugin_up_to_date,Plugin à jour
@@ -1179,6 +1178,7 @@ count_persons_rows,Patients
 count_concepts_rows,Lignes
 add_concept_input,Ajouter
 element_git_version_more_recent,Version sur le git plus récente
+element_local_version_more_recent,Version locale plus récente
 minutes,Minutes
 minute,Minute
 cancel,Annuler
@@ -1186,3 +1186,9 @@ error_downloading_plugin,Erreur lors du téléchargement du plugin
 error_downloading_dataset,Erreur lors du téléchargement du set de données
 element_git_and_local_versions_are_the_same,Mêmes versions en local et sur le git
 reload_git_repo,Recharger le git
+install,Installer
+install_project,Installer le projet
+install_plugin,Installer le plugin
+install_data_cleaning_script,Installer le script de data cleaning
+install_dataset,Installer le set de données
+local_version_up_to_date,Version locale à jour

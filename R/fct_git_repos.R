@@ -7,7 +7,7 @@ load_git_repo <- function(id, r, git_repo){
   if (git_repo$unique_id %not_in% r$loaded_git_repos$unique_id){
     
     repo_url <- git_repo %>% dplyr::pull(repo_url_address)
-    local_path <- paste0(r$app_folder, "/temp_files/", r$user_id, "/git_repos/", paste0(sample(c(0:9, letters[1:6]), 64, TRUE), collapse = ''))
+    local_path <- paste0(r$app_folder, "/temp_files/", r$user_id, "/git_repos/", git_repo$unique_id)
     
     credentials <- git2r::cred_user_pass("linkr_user", "")
     

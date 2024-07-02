@@ -426,7 +426,7 @@ mod_widgets_server <- function(id, r, d, m, language, i18n, all_divs, debug){
       
       new_options <- tibble::tribble(
         ~name, ~value, ~value_num,
-        "users_allowed_read_group", "everybody", 1,
+        "users_allowed_read_group", "people_picker", 1,
         "user_allowed_read", "", r$user_id,
         "version", "0.0.1.9000", NA_integer_,
         "unique_id", paste0(sample(c(0:9, letters[1:6]), 64, TRUE), collapse = ''), NA_integer_,
@@ -933,7 +933,7 @@ mod_widgets_server <- function(id, r, d, m, language, i18n, all_divs, debug){
           
           shinyjs::runjs(paste0("Shiny.setInputValue('", id, "-element_git_path', '", element_path, "');"))
           
-          element <- r[[wide_var]] %>% dplyr::filter(id == input$selected_element)
+          local_element <- r[[wide_var]] %>% dplyr::filter(id == input$selected_element)
           
           # Get element infos from XML file
           xml_file_path <- paste0(element_path, "/", single_id, ".xml")
@@ -956,41 +956,10 @@ mod_widgets_server <- function(id, r, d, m, language, i18n, all_divs, debug){
           )
           
           else {
-            # First, we compare update datetimes: is the element on remote git repo is newer than our version?
-            diff_time <- difftime(element$update_datetime, git_element$update_datetime, unit = "mins") %>% as.integer()
             
-            if (diff_time < 0) diff_time_text <- strong(tolower(i18n$t("element_git_version_more_recent")))
-            
-            # The two versions are the same
-            else if (diff_time == 0) diff_time_text <- strong(tolower(i18n$t("element_git_and_local_versions_are_the_same")))
-              
-            # Our version is newer
-            # Then, we compare the update datetime from now (update XX time ago...)
-            else {
-              diff_time <- difftime(now(), git_element$update_datetime, unit = "mins") %>% as.integer()
-              
-              if (diff_time < 60) {
-                diff_time <- difftime(element$update_datetime, git_element$update_datetime, unit = "mins") %>% as.integer()
-                
-                if (diff_time == 1) diff_time_unit_text <- i18n$t("minute")
-                else diff_time_unit_text <- i18n$t("minutes")
-                diff_time_text <- tagList(strong(diff_time, " ", tolower(diff_time_unit_text)), " ", tolower(i18n$t("updated_x_ago")))
-              }
-              else if (diff_time < 1440) {
-                diff_time <- difftime(element$update_datetime, git_element$update_datetime, unit = "hours") %>% as.integer()
-                
-                if (diff_time == 1) diff_time_unit_text <- i18n$t("hour")
-                else diff_time_unit_text <- i18n$t("hours")
-                diff_time_text <- tagList(strong(diff_time, " ", tolower(diff_time_unit_text)), " ", tolower(i18n$t("updated_x_ago")))
-              }
-              else {
-                diff_time <- difftime(element$update_datetime, git_element$update_datetime, unit = "days") %>% as.integer()
-                
-                if (diff_time == 1) diff_time_unit_text <- i18n$t("day")
-                else diff_time_unit_text <- i18n$t("days")
-                diff_time_text <- tagList(strong(diff_time, " ", tolower(diff_time_unit_text)), " ", tolower(i18n$t("updated_x_ago")))
-              }
-            }
+            datetimes_comparison <- compare_git_elements_datetimes("push", i18n, local_element, git_element)
+            diff_time <- datetimes_comparison[[1]]
+            diff_time_text <- datetimes_comparison[[2]]
             
             git_element_ui <- div(
               tags$table(
@@ -1003,8 +972,9 @@ mod_widgets_server <- function(id, r, d, m, language, i18n, all_divs, debug){
                 )
               )
             )
-            
+
             # Update synchronize buttons
+            
             if (diff_time < 0 | diff_time == 0) update_button <- ""
             else update_button <- shiny.fluent::PrimaryButton.shinyInput(ns("git_repo_update_element"), i18n$t("update"))
             

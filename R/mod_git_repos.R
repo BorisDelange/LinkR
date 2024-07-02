@@ -104,7 +104,13 @@ mod_git_repos_ui <- function(id = character(), language = "en", languages = tibb
             id = ns("element_details_div"),
             div(
               div(
-                class = "widget", style = "height: 50%;"
+                uiOutput(ns("element_details_title")),
+                div(uiOutput(ns("element_details_ui")), style = "margin-top:10px;"),
+                div(
+                  uiOutput(ns("synchronize_git_buttons")),
+                  class = "git_element_details_git_buttons"
+                ),
+                class = "widget", style = "height: 50%; padding-top: 1px;"
               ),
               class = "git_element_details_left"
             ),
@@ -560,19 +566,199 @@ mod_git_repos_server <- function(id, r, d, m, language, i18n, debug){
       observeEvent(input$selected_element_trigger, {
         if (debug) cat(paste0("\n", now(), " - mod_git_repos - observer input$selected_element_trigger"))
         
-        selected_element <- r$loaded_git_repo_elements %>% dplyr::filter(unique_id == input$selected_element)
+        git_element <- r$loaded_git_repo_elements %>% dplyr::filter(unique_id == input$selected_element)
+        
+        current_tab <- gsub(paste0(id, "-"), "", input$current_tab, fixed = FALSE)
+        current_tab_single <- switch(
+          current_tab, 
+          "data_cleaning_scripts" = "data_cleaning_script", 
+          "datasets" = "dataset",
+          "projects" = "project", 
+          "plugins" = "plugin"
+        )
+        if (current_tab == "data_cleaning_scripts") sql_table <- "scripts"
+        else sql_table <- current_tab
+        
+        # Update breadcrumb
+        git_element_name <- git_element[[paste0("name_", language)]]
+        output$breadcrumb <- renderUI(create_breadcrumb(c(1, 2, 3, 4), i18n, current_tab, git_element_name))
+        
+        # Show element description
+        description <- git_element %>% dplyr::select(!!rlang::sym(paste0("description_", language))) %>% dplyr::pull() %>% includeMarkdown()
+        output$element_details_description <- renderUI(div(description))
+        
+        # Update installation UI
+        output$element_details_title <- renderUI(tags$h1(i18n$t(paste0("install_", current_tab_single))))
+        
+        ## Does the element is already installed locally?
+        
+        sql <- glue::glue_sql(paste0(
+          "SELECT * FROM {sql_table} WHERE id = (",
+            "SELECT link_id FROM options WHERE category = {current_tab_single} AND name = 'unique_id' AND value = {input$selected_element}",
+          ")"), .con = r$db)
+        local_element <- DBI::dbGetQuery(r$db, sql)
+        
+        if (nrow(local_element) > 0){
+          
+          datetimes_comparison <- compare_git_elements_datetimes("pull", i18n, local_element, git_element)
+          diff_time <- datetimes_comparison[[1]]
+          diff_time_text <- datetimes_comparison[[2]]
+          
+          git_element_ui <- div(
+            tags$table(
+              tags$tr(tags$td(strong(i18n$t("name")), style = "min-width: 80px;"), tags$td(git_element[[paste0("name_", language)]])),
+              tags$tr(tags$td(strong(i18n$t("author_s"))), tags$td(git_element$author)),
+              tags$tr(tags$td(strong(i18n$t("created_on"))), tags$td(git_element$creation_datetime)),
+              tags$tr(
+                tags$td(strong(i18n$t("updated_on"))),
+                tags$td(git_element$update_datetime, " -", diff_time_text)
+              )
+            )
+          )
+          
+          # Update synchronize buttons
+          if (diff_time == 0) install_button <- shiny.fluent::DefaultButton.shinyInput(ns("git_repo_element_already_installed"), i18n$t("local_version_up_to_date"), disabled = TRUE)
+          else if (diff_time > 0) install_button <- shiny.fluent::DefaultButton.shinyInput(ns("git_repo_element_local_version_more_recent"), i18n$t("element_local_version_more_recent"), disabled = TRUE)
+          else install_button <- shiny.fluent::PrimaryButton.shinyInput(ns("git_install_element"), i18n$t("update"))
+          
+          synchronize_git_buttons <- div(
+            install_button,
+            style = "display: flex; gap: 5px;"
+          )
+        }
+        else {
+          git_element_ui <- div(
+            shiny.fluent::MessageBar(i18n$t(paste0(current_tab_single, "_doesnt_exist_in_git_repo")), messageBarType = 5), 
+            style = "display: inline-block;"
+          )
+          
+          # Update synchronize buttons
+          synchronize_git_buttons <- shiny.fluent::PrimaryButton.shinyInput(ns("git_install_element"), i18n$t("install"))
+        }
+        
+        output$element_details_ui <- renderUI(git_element_ui)
+        output$synchronize_git_buttons <- renderUI(synchronize_git_buttons)
         
         shinyjs::hide("widgets_div")
         shinyjs::show("element_details_div")
+      })
+      
+      # Install an element ----
+      observeEvent(input$git_install_element, {
+        if (debug) cat(paste0("\n", now(), " - mod_git_repos - observer input$git_install_element"))
         
         current_tab <- gsub(paste0(id, "-"), "", input$current_tab, fixed = FALSE)
+        git_element <- r$loaded_git_repo_elements %>% dplyr::filter(unique_id == input$selected_element)
         
-        # Update breadcrumb
-        output$breadcrumb <- renderUI(create_breadcrumb(c(1, 2, 3, 4), i18n, current_tab, selected_element[[paste0("name_", language)]]))
+        req(current_tab %in% c("datasets"))
         
-        # Show element description
-        description <- selected_element %>% dplyr::select(!!rlang::sym(paste0("description_", language))) %>% dplyr::pull() %>% includeMarkdown()
-        output$element_details_description <- renderUI(div(description))
+        # Delete local element from db
+        
+        current_tab_single <- switch(
+          current_tab, 
+          "data_cleaning_scripts" = "data_cleaning_script", 
+          "datasets" = "dataset",
+          "projects" = "project", 
+          "plugins" = "plugin"
+        )
+        
+        if (current_tab == "data_cleaning_scripts") sql_table <- "scripts"
+        else sql_table <- current_tab
+        
+        sql <- glue::glue_sql(paste0(
+          "SELECT * FROM {sql_table} WHERE id = (",
+          "SELECT link_id FROM options WHERE category = {current_tab_single} AND name = 'unique_id' AND value = {input$selected_element}",
+          ")"), .con = r$db)
+        local_element <- DBI::dbGetQuery(r$db, sql)
+        
+        ## Delete rows in element table
+        sql <- glue::glue_sql("DELETE FROM {sql_table} WHERE id = {local_element$id}", .con = r$db)
+        # sql_send_statement(r$db, sql)
+        
+        ## Delete rows in options table
+        sql <- glue::glue_sql("DELETE FROM options WHERE category = {current_tab_single} AND link_id = {local_element$id}", .con = r$db)
+        # sql_send_statement(r$db, sql)
+        
+        ## Delete rows in code table
+        sql <- glue::glue_sql("DELETE FROM code WHERE category = {current_tab_single} AND link_id = {local_element$id}", .con = r$db)
+        # sql_send_statement(r$db, sql)
+        
+        # Delete local element files
+        local_element_folder <- paste0(r$app_folder, "/", current_tab, "/", input$selected_element)
+        unlink(local_element_folder, recursive = TRUE)
+        
+        # Add local element db rows
+        
+        ## Add rows in element table
+        element_id <- get_last_row(r$db, sql_table) + 1
+        
+        if (sql_table == "datasets") new_data <- tibble::tibble(
+          id = element_id, name = git_element[[paste0("name_", language)]], data_source_id = NA_integer_, creator_id = r$user_id, 
+          creation_datetime = git_element$creation_datetime, update_datetime = git_element$update_datetime, deleted = FALSE)
+        
+        # DBI::dbAppendTable(r$db, sql_table, new_data)
+        
+        ## Add rows in options table
+        
+        # new_options <- tibble::tribble(
+        #   ~name, ~value, ~value_num,
+        #   "users_allowed_read_group", "people_picker", 1,
+        #   "user_allowed_read", "", r$user_id,
+        #   "version", git_element$version, NA_integer_,
+        #   "unique_id", git_element$unique_id, NA_integer_,
+        #   "author", git_element$author, NA_integer_,
+        #   "downloaded_from", r$git_repo[[paste0("name_", language)]], NA_integer_,
+        #   "downloaded_from_url", r$git_repo$repo_url_address, NA_integer_
+        # ) %>%
+        #   dplyr::bind_rows(
+        #     r$languages %>%
+        #       tidyr::crossing(name = c("description", "category", "name")) %>%
+        #       dplyr::mutate(
+        #         name = paste0(name, "_", code),
+        #         value = ifelse(grepl("name_", name), element_name, ""),
+        #         value_num = NA_integer_
+        #       ) %>%
+        #       dplyr::select(-code, -language)
+        #   ) %>%
+        #   dplyr::mutate(id = get_last_row(r$db, "options") + dplyr::row_number(), category = current_tab_single, link_id = element_id, .before = "name") %>%
+        #   dplyr::mutate(creator_id = r$user_id, datetime = now(), deleted = FALSE)
+        
+        # if (id == "datasets"){
+        #   new_options <- new_options %>%
+        #     dplyr::bind_rows(
+        #       tibble::tibble(
+        #         id = max(new_options$id) + 1, category = "dataset", link_id = element_id, name = "omop_version",
+        #         value = "5.3", value_num = NA_real_, creator_id = r$user_id, datetime = now(), deleted = FALSE
+        #       )
+        #     )
+        # }
+        
+        # DBI::dbAppendTable(r$db, "options", new_options)
+        
+        ## Add rows in code table
+        
+        # new_code <- tibble::tibble(
+        #   id = get_last_row(con, "code") + 1, category = sql_category, link_id = element_id, code = code,
+        #   creator_id = r$user_id, datetime = now(), deleted = FALSE)
+        
+        # DBI::dbAppendTable(con, "code", new_code)
+        
+        # Copy files
+        git_folder <- r$loaded_git_repos %>% dplyr::filter(unique_id == r$git_repo$unique_id) %>% dplyr::pull(local_path)
+        git_category_folder <- paste0(git_folder, "/", current_tab)
+        
+        ## Get element folder
+        file_names <- list.files(path = git_category_folder)
+        for (file_name in file_names) if (grepl(input$selected_element, file_name)) git_element_folder <- paste0(git_category_folder, "/", file_name)
+        
+        ## Copy files in local folder
+        
+        if (!dir.exists(local_element_folder)) dir.create(local_element_folder)
+        files_to_copy <- list.files(git_element_folder, full.names = TRUE)
+        file.copy(files_to_copy, local_element_folder, overwrite = TRUE)
+        
+        # Update selected element UI
+        shinyjs::runjs(paste0("Shiny.setInputValue('", id, "-selected_element_trigger', Math.random());"))
       })
       
       # Return to selected repo page ----
