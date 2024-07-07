@@ -134,7 +134,6 @@ mod_page_header_ui <- function(id = character(), i18n = character()){
           command_bar_2,
           uiOutput(ns("current_page"), class = "current_page"),
           div(class = "message_bars", uiOutput(ns("message_bar"))),
-          # div(class = "message_bars", shiny.fluent::MessageBar("test")),
           style = "display:flex;"
         )
       ),
@@ -168,7 +167,7 @@ mod_page_header_server <- function(id = character(), r = shiny::reactiveValues()
     
     if (id == "data"){
       observeEvent(shiny.router::get_page(), {
-        if (debug) cat(paste0("\n", now(), " - mod_page_header (", id, ") - observer shiny.router::change_page()"))
+        if (debug) cat(paste0("\n", now(), " - mod_page_header (", id, ") - observer shiny.router::get_page()"))
         output$current_page <- renderUI(i18n$t(paste0(r$data_page, "_data")))
       })
     }
@@ -178,6 +177,7 @@ mod_page_header_server <- function(id = character(), r = shiny::reactiveValues()
     # Selected project
     
     if (id %in% c("concepts", "data", "projects", "project_messages", "project_console", "subsets", "tasks")){
+      
       observeEvent(m$selected_study, {
         if (debug) cat(paste0("\n", now(), " - mod_page_header (", id, ") - observer m$selected_study"))
         

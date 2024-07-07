@@ -517,9 +517,12 @@ level_under,Niveau d'en-dessous
 add_a_tab,Ajouter un onglet
 edit_a_tab,Editer un onglet
 invalid_dataset_id_value,La variable dataset_id doit être de type integer
+invalid_data_folder,L'argument data_folder doit être de type character
+error_getting_files_from_data_folder,Echec lors de la récupération des fichiers du dossier de données
 var_type_not_valid,La variable type n'est pas valide
 var_omop_table_not_valid,La variable omop_table n'est pas valide
 error_loading_csv,Erreur lors du chargement du fichier CSV
+error_loading_csv_files,Erreur lors du chargement des fichiers CSV
 error_transforming_tibble,Erreur dans la conversion de la variable au format tibble
 valid_col_names_are,Noms de colonnes non valides.
 error_saving_csv,Erreur dans l'enregistrement du fichier CSV
@@ -969,7 +972,7 @@ show_imported_data,Afficher les données importées
 dataset_invalid_save_as,"Value non valide pour le paramètre 'save as'. Valeurs acceptées : 'none', 'csv' et 'parquet'."
 dataset_invalid_read_with,"Valeur non valide pour le paramètre 'read_with'. Valeurs acceptées : 'none', 'vroom', 'duckdb', 'spark'."
 wrong_association_read_with_and_save_as,"L'association entre les paramètres 'read_with' et 'save_as' n'est pas valide."
-error_loading_duckdb,Erreur lors du chargement de la base de données duckdb
+error_loading_duckdb,Erreur lors du chargement des données avec duckdb
 error_loading_sparklyr,Erreur lors du chargement des données avec sparklyr
 language,Langue
 programming_language,Langage
@@ -1192,3 +1195,5 @@ install_plugin,Installer le plugin
 install_data_cleaning_script,Installer le script de data cleaning
 install_dataset,Installer le set de données
 local_version_up_to_date,Version locale à jour
+reload_list,Recharger la liste
+error_transforming_cols,Erreur lors de la transformation des colonnes

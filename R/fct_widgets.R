@@ -220,7 +220,7 @@ create_element_files <- function(id, r, element_id, single_id, element_options, 
     sql <- glue::glue_sql("SELECT code FROM code WHERE category = {single_id} AND link_id = {element_id}", .con = r$db)
     code <- DBI::dbGetQuery(r$db, sql) %>% dplyr::pull()
     
-    writeLines(code, paste0(element_dir, "/import_dataset.R"))
+    writeLines(code, paste0(element_dir, "/code.R"))
   }
   
   # Create XML file

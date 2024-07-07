@@ -518,9 +518,12 @@ edit_page,Edit page
 quit_edit_page,Quit edit page
 edit_a_tab,Edit a tab
 invalid_dataset_id_value,Variable dataset_id must be of integer type
+invalid_data_folder,Invalid data_folder argument
+error_getting_files_from_data_folder,Error getting files from data folder
 var_type_not_valid,Variable type is not valid
 var_omop_table_not_valid,Variable omop_table is not valid
 error_loading_csv,Error loading CSV file
+error_loading_csv_files,Error loading CSV files
 error_transforming_tibble,Error transforming data to tibble
 valid_col_names_are,Column names are not valid.
 error_saving_csv,Error saving CSV file
@@ -970,7 +973,7 @@ show_imported_data,Show imported data
 dataset_invalid_save_as,"Invalid value for 'save as' argument. Accepted values are : 'none', 'csv' et 'parquet'."
 dataset_invalid_read_with,"Invalid value for 'read_with' argument. Accepted values are : 'none', 'vroom', 'duckdb', 'spark'."
 wrong_association_read_with_and_save_as,"The association between 'read_with' and 'save_as' arguments is not valid."
-error_loading_duckdb,Error loading duck database
+error_loading_duckdb,Error loading data with duckdb
 error_loading_sparklyr,Error loading data with sparklyr
 language,Language
 programming_language,Language
@@ -1192,3 +1195,5 @@ install_plugin,Install plugin
 install_data_cleaning_script,Install data cleaning script
 install_dataset,Install dataset
 local_version_up_to_date,Local version up to date
+reload_list,Reload list
+error_transforming_cols,Error transforming columns

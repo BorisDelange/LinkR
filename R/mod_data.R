@@ -1665,7 +1665,7 @@ mod_data_server <- function(id, r, d, m, language, i18n, debug){
         }
         
         # Get translations file
-        data <- vroom::vroom(translations_file)
+        data <- vroom::vroom(translations_file, progress = FALSE)
         
         # Create one csv by language
         for(lang in names(data)[-1]){
@@ -1713,10 +1713,7 @@ mod_data_server <- function(id, r, d, m, language, i18n, debug){
         gridstack_div <- div(id = ns(gridstack_id), class = "grid-stack")
 
         hide_div <- TRUE
-        print(paste0("category = ", category, " / tab_id = ", tab_id))
-        print(selected_tab)
         if (!is.na(selected_tab) & category == r$data_page) if (tab_id == selected_tab) hide_div <- FALSE
-        print(hide_div)
         if (hide_div) gridstack_div <- shinyjs::hidden(gridstack_div)
 
         insertUI(selector = paste0("#", ns("study_widgets")), where = "beforeEnd", ui = gridstack_div)
