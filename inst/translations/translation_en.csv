@@ -970,9 +970,12 @@ exported_image_must_be_png_svg_or_jpg,"Exported image must be a PNG, a SVG or a 
 input_image_doesnt_exist,Input image doesn't exist
 error,Error
 show_imported_data,Show imported data
-dataset_invalid_save_as,"Invalid value for 'save as' argument. Accepted values are : 'none', 'csv' et 'parquet'."
+dataset_invalid_save_as,"Invalid value for 'save as' argument. Accepted values are: 'none', 'csv' et 'parquet'."
+dataset_invalid-rewrite,Invalid value for 'rewrite' argument. Accepted values are TRUE or FALSE.
 dataset_invalid_read_with,"Invalid value for 'read_with' argument. Accepted values are : 'none', 'vroom', 'duckdb', 'spark'."
-wrong_association_read_with_and_save_as,"The association between 'read_with' and 'save_as' arguments is not valid."
+dataset_invalid_data_source,Invalid value for 'source'
+dataset_error_with_db_connection,Failed to connect to database
+wrong_association_read_with_and_save_as,The association between 'read_with' and 'save_as' arguments is not valid
 error_loading_duckdb,Error loading data with duckdb
 error_loading_sparklyr,Error loading data with sparklyr
 language,Language
@@ -1171,6 +1174,10 @@ update_git_element_dataset_title,Update git element
 update_git_element_dataset_text,Update git dataset? This will erase and replace actual dataset in the git repository.
 delete_git_element_dataset_title,Delete git element
 delete_git_element_dataset_text,Delete this dataset from the git repository?
+update_git_element_plugin_title,Update git element
+update_git_element_plugin_text,Update git plugin? This will erase and replace actual plugin in the git repository.
+delete_git_element_plugin_title,Delete git element
+delete_git_element_plugin_text,Delete this plugin from the git repository?
 dont_update,Cancel
 reload_dataset_concepts,Reload dataset concepts
 reload_dataset_concepts_title,Reload concepts

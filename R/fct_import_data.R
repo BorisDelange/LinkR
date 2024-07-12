@@ -1,12 +1,16 @@
 #' Import a dataset
 #' 
-#' @description Import a dataset in the application, with the OMOP Common Data Model
-#' @param r A shiny::reactiveValues object, used to communicate between modules
-#' @param d A shiny::reactiveValues object, used to communicate between modules
-#' @param dataset_id ID of the dataset, used to create a specific dataset folder in the application folders (integer)
-#' @param data_folder Folder containing the data (character)
-#' @param omop_version OMOP version of the imported data, accepts "5.3", "5.4" and "6.0" (character)
-#' @param read_with The library used to read the data. Accepted values: "none", "vroom", "duckdb", "spark", "arrow" (character)
+#' @description Imports a dataset into the application using the OMOP Common Data Model.
+#' @param r A shiny::reactiveValues object used for communication between modules.
+#' @param d A shiny::reactiveValues object used for communication between modules.
+#' @param dataset_id The ID of the dataset, used to create a specific dataset folder in the application directories (integer).
+#' @param source The source of the data: either a database connection ("db") or disk ("disk") (character).
+#' @param data_folder The folder containing the data (character).
+#' @param con A DBI::dbConnect object representing the database connection.
+#' @param omop_version The OMOP version of the imported data; accepted values are "5.3", "5.4", and "6.0" (character).
+#' @param read_with The library used to read the data. Accepted values are: "none", "vroom", "duckdb", "spark", "arrow" (character).
+#' @param save_as Specifies whether the data should be saved in the app folder. Accepted values are: "none", "parquet", "csv" (character).
+#' @param rewrite If save_as is not "none", specifies whether the data files should be overwritten (logical).
 #' @details 
 #' This function is used within a dataset code and is invoked each time a user selects a dataset.
 #'
@@ -40,7 +44,11 @@
 #' @examples
 #' \dontrun{
 #' }
-import_dataset <- function(r = shiny::reactiveValues(), d = shiny::reactiveValues(), dataset_id = integer(), data_folder = character(), omop_version = "6.0", read_with = "none"){
+import_dataset <- function(
+  r = shiny::reactiveValues(), d = shiny::reactiveValues(), dataset_id = integer(), omop_version = "6.0",
+  data_source = "disk", data_folder = character(), con = DBI::dbConnect(duckdb::duckdb(), ":memory:"),
+  load_tables = character(), read_with = "none", save_as = "none", rewrite = FALSE
+){
   
   i18n <- r$i18n
   
@@ -49,6 +57,18 @@ import_dataset <- function(r = shiny::reactiveValues(), d = shiny::reactiveValue
   # Check read_with
   if (read_with %not_in% c("none", "vroom", "duckdb", "spark", "arrow")){
     cat(paste0("\n", i18n$t("dataset_invalid_read_with")))
+    return(tibble::tibble())
+  }
+  
+  # Check save_as
+  if (save_as %not_in% c("none", "csv", "parquet")){
+    cat(paste0("\n", i18n$t("dataset_invalid_save_as")))
+    return(tibble::tibble())
+  }
+  
+  # Check rewrite
+  if (!is.logical(rewrite)){
+    cat(paste0("\n", i18n$t("dataset_invalid_rewrite")))
     return(tibble::tibble())
   }
 
@@ -63,13 +83,19 @@ import_dataset <- function(r = shiny::reactiveValues(), d = shiny::reactiveValue
     return(tibble::tibble())
   }
   
+  # Check data_source
+  if (data_source %not_in% c("db", "disk")){
+    cat(paste0("\n", i18n$t("dataset_invalid_data_source")))
+    return(tibble::tibble())
+  }
+  
   # Check omop_version
   if (omop_version %not_in% c("5.3", "5.4", "6.0")){
     cat(paste0("\n", i18n$t("invalid_omop_version")))
     return(tibble::tibble())
   }
   
-  if (length(data_folder) == 0){
+  if (data_source == "disk" & length(data_folder) == 0){
     cat(paste0("\n", i18n$t("invalid_data_folder")))
     return(tibble::tibble())
   }
@@ -121,84 +147,152 @@ import_dataset <- function(r = shiny::reactiveValues(), d = shiny::reactiveValue
     col_types$condition_era <- "iiiDDi"
   }
   
+  # Load tables from load_tables argument if specified. If not specified, load all OMOP tables.
+  if (length(load_tables) == 0) load_tables <- names(col_types)
+  if (length(load_tables) > 0) load_tables <- intersect(load_tables, names(col_types))
+  
   # Record loaded tables
   loaded_tables <- c()
-  
-  transform_col_types <- function(data, col_types){
-    for (i in seq_along(col_types)) {
-      col_type <- substr(col_types, i, i)
-      col_name <- colnames(data)[i]
-      data <- data %>% dplyr::mutate(!!rlang::sym(col_name) := transform_column(!!rlang::sym(col_name), col_type))
-    }
-    return(data)
-  }
   
   # Folder where data will be saved
   
   data_app_folder <- paste0(r$app_folder, "/datasets_files/", dataset_id)
+  if (!dir.exists(data_app_folder)) dir.create(data_app_folder)
   
-  # List files of provided folder
+  ## Import data from app saved data ----
   
-  file_names <- list.files(path = data_folder)
-  if (length(file_names) == 0){
-    cat(paste0("\n", i18n$t("error_getting_files_from_data_folder")))
-    return(tibble::tibble())
+  missing_files <- TRUE
+  
+  if (save_as != "none" & !rewrite){
+    
+    missing_files <- FALSE
+    
+    if (read_with == "duckdb"){
+      duckdb_con <- DBI::dbConnect(duckdb::duckdb(), dbdir = paste0(data_app_folder, "/dataset.duckdb"))
+      duckdb_tables <- DBI::dbListTables(duckdb_con)
+    }
+    
+    for (table in load_tables){
+      
+      file_path <- paste0(data_app_folder, "/", table, ".", save_as)
+      
+      if (file.exists(file_path)){
+        
+        if (save_as == "parquet"){
+          
+          if (read_with == "duckdb"){
+            
+            if (table %not_in% duckdb_tables) DBI::dbExecute(duckdb_con, paste0("CREATE TABLE ", table, " AS SELECT * FROM parquet_scan('", file_path, "');"))
+            
+            d[[table]] <- dplyr::tbl(duckdb_con, table)
+            
+            loaded_tables <- c(loaded_tables, table)
+          }
+        }
+        
+        else if (save_as == "csv"){
+          
+        }
+      }
+      else missing_files <- TRUE
+    }
   }
   
-  ## read_with "duckdb" ----
-  
-  if (read_with == "duckdb"){
+  # If there are missing files, reload data from data source
+  if (missing_files){
     
-    tryCatch({
+    ## Import data from disk files ----
+    
+    if (data_source == "disk"){
       
-      # Connection to duckdb database
-      con <- DBI::dbConnect(duckdb::duckdb(), dbdir = paste0(data_app_folder, "/dataset.duckdb"))
+      # List files of provided folder
       
-      for (file_name in file_names){
+      file_names <- list.files(path = data_folder)
+      if (length(file_names) == 0){
+        cat(paste0("\n", i18n$t("error_getting_files_from_data_folder")))
+        return(tibble::tibble())
+      }
+      
+      ### read_with "duckdb" ----
+      
+      if (read_with == "duckdb"){
         
-        table <- sub("\\.[^.]*$", "", file_name)
-        file_ext <- sub(".*\\.", "", tolower(file_name))
+        tryCatch({
+          
+          # Connection to duckdb database
+          con <- DBI::dbConnect(duckdb::duckdb(), dbdir = paste0(data_app_folder, "/dataset.duckdb"))
+          
+          for (file_name in file_names){
+            
+            table <- sub("\\.[^.]*$", "", file_name)
+            file_ext <- sub(".*\\.", "", tolower(file_name))
+            
+            # Check if this is an OMOP table
+            
+            if (table %in% load_tables & file_ext %in% c("parquet", "")){
+              
+              duckdb::duckdb_unregister_arrow(con, table)
+              duckdb::duckdb_register_arrow(con, table, arrow::open_dataset(paste0(data_folder, "/", file_name)))
+              
+              d[[table]] <- dplyr::tbl(con, table)
+              
+              loaded_tables <- c(loaded_tables, table)
+            }
+          }
+        },
+        error = function(e){
+          cat(paste0("\n", i18n$t("error_loading_duckdb"), " - ", toString(e)))
+          return(tibble::tibble())
+        })
+      }
+      
+      ### read_with "vroom" ----
+      
+      else if (read_with == "vroom"){
         
-        # Check if this is an OMOP table
-        if (table %in% names(col_types) & file_ext %in% c("parquet", "")){
+        tryCatch({
           
-          duckdb::duckdb_unregister_arrow(con, table)
-          duckdb::duckdb_register_arrow(con, table, arrow::open_dataset(paste0(data_folder, "/", file_name)))
-          
+          for (file_name in file_names){
+            
+            table <- sub("\\.[^.]*$", "", file_name)
+            file_ext <- sub(".*\\.", "", tolower(file_name))
+            
+            # Check if this is an OMOP table
+            if (table %in% load_tables & file_ext == "csv"){
+              
+              d[[table]] <- vroom::vroom(paste0(data_folder, "/", file_name), col_types = col_types[[table]], progress = FALSE)
+              
+              loaded_tables <- c(loaded_tables, table)
+            }
+          }
+        },
+        error = function(e){
+          cat(paste0("\n", i18n$t("error_loading_csv_files"), " - ", toString(e)))
+          return(tibble::tibble())
+        })
+      }
+    }
+    
+    ## Import data from database connection ----
+    
+    else if (data_source == "db"){
+      
+      # Test connection
+      if (!DBI::dbIsValid(con)){
+        cat(paste0("\n", i18n$t("dataset_error_with_db_connection")))
+        return(tibble::tibble())
+      }
+      
+      tables <- DBI::dbListTables(con)
+      
+      for (table in tables){
+        if (table %in% load_tables){
           d[[table]] <- dplyr::tbl(con, table)
           
           loaded_tables <- c(loaded_tables, table)
         }
       }
-    },
-    error = function(e){
-      cat(paste0("\n", i18n$t("error_loading_duckdb"), " - ", toString(e)))
-      return(tibble::tibble())
-    })
-  }
-  
-  else if (read_with == "vroom"){
-    
-    tryCatch({
-      
-      for (file_name in file_names){
-        
-        table <- sub("\\.[^.]*$", "", file_name)
-        file_ext <- sub(".*\\.", "", tolower(file_name))
-        
-        # Check if this is an OMOP table
-        if (table %in% names(col_types) & file_ext == "csv"){
-          
-          d[[table]] <- vroom::vroom(paste0(data_folder, "/", file_name), col_types = col_types[[table]], progress = FALSE)
-          
-          loaded_tables <- c(loaded_tables, table)
-        }
-      }
-    },
-    error = function(e){
-      cat(paste0("\n", i18n$t("error_loading_csv_files"), " - ", toString(e)))
-      return(tibble::tibble())
-    })
+    }
   }
   
   # Transform data ----
@@ -229,7 +323,7 @@ import_dataset <- function(r = shiny::reactiveValues(), d = shiny::reactiveValue
     location_history = c("location_id", "relationship_type_concept_id", "domain_id", "entity_id", "start_date", "end_date"),
     care_site = c("care_site_id", "care_site_name", "place_of_service_concept_id", "location_id", "care_site_source_value", "place_of_service_source_value"),
     provider = c("provider_id", "provider_name", "npi", "dea", "specialty_concept_id", "care_site_id", "year_of_birth", "gender_concept_id", "provider_source_value", "specialty_source_value", "specialty_source_concept_id", "gender_source_value", "gender_source_concept_id"),
-    payer_plan_period = c("payer_plan_period_id", "person_id", "contract_person_id", "payer_plan_period_start_date", "payer_plan_period_end_date", "payer_concept_id", "payer_source_value", "payer_source_concept_id", "plan_concept_id", "plan_source_value", "plan_source_concept_id", "contract_concept_id", "contract_source_value", "contract_source_concept_id", "sponsor_concept_id", "sponsor_source_value", "sponsor_source_concept_id", "family_source_value", "stop_reason_concept_id", "stop_reason_source_value", "stop_reason_source_concept_id"),
+    payer_plan_period = c("payer_plan_period_id", "person_id", "payer_plan_period_start_date", "payer_plan_period_end_date", "payer_concept_id", "payer_source_value", "payer_source_concept_id", "plan_concept_id", "plan_source_value", "plan_source_concept_id", "sponsor_concept_id", "sponsor_source_value", "sponsor_source_concept_id", "family_source_value", "stop_reason_concept_id", "stop_reason_source_value", "stop_reason_source_concept_id"),
     cost = c("cost_id", "person_id", "cost_event_id", "cost_event_field_concept_id", "cost_concept_id", "cost_type_concept_id", "cost_source_concept_id", "cost_source_value", "currency_concept_id", "cost", "incurred_date", "billed_date", "paid_date", "revenue_code_concept_id", "drg_concept_id", "revenue_code_source_value", "drg_source_value", "payer_plan_period_id")
   )
   
@@ -237,11 +331,13 @@ import_dataset <- function(r = shiny::reactiveValues(), d = shiny::reactiveValue
     data_cols$person <- c("person_id", "gender_concept_id", "year_of_birth", "month_of_birth", "day_of_birth", "birth_datetime", "race_concept_id", "ethnicity_concept_id", "location_id", "provider_id", "care_site_id", "person_source_value", "gender_source_value", "gender_source_concept_id", "race_source_value", "race_source_concept_id", "ethnicity_source_value", "ethnicity_source_concept_id")
     data_cols$visit_occurrence = c("visit_occurrence_id", "person_id", "visit_concept_id", "visit_start_date", "visit_start_datetime", "visit_end_date", "visit_end_datetime", "visit_type_concept_id", "provider_id", "care_site_id", "visit_source_value", "visit_source_concept_id", "admitting_source_concept_id", "admitting_source_value", "discharge_to_concept_id", "discharge_to_source_value", "preceding_visit_occurrence_id")
     data_cols$visit_detail <- c("visit_detail_id", "person_id", "visit_detail_concept_id", "visit_detail_start_date", "visit_detail_start_datetime", "visit_detail_end_date", "visit_detail_end_datetime", "visit_detail_type_concept_id", "provider_id", "care_site_id", "visit_detail_source_value", "visit_detail_source_concept_id", "admitting_source_value", "admitting_source_concept_id", "discharge_to_source_value", "discharge_to_concept_id", "preceding_visit_detail_id", "visit_detail_parent_id", "visit_occurrence_id")
+    data_cols$note <- c("note_id", "person_id", "note_date", "note_datetime", "note_type_concept_id", "note_class_concept_id", "note_title", "note_text", "encoding_concept_id", "language_concept_id", "provider_id", "visit_occurrence_id", "visit_detail_id", "note_source_value")
     data_cols$observation <- c("observation_id", "person_id", "observation_concept_id", "observation_date", "observation_datetime", "observation_type_concept_id", "value_as_number", "value_as_string", "value_as_concept_id", "qualifier_concept_id", "unit_concept_id", "provider_id", "visit_occurrence_id", "visit_detail_id", "observation_source_value", "observation_source_concept_id", "unit_source_value", "qualifier_source_value")
     data_cols$location <- c("location_id", "address_1", "address_2", "city", "state", "zip", "county", "location_source_value")
     data_cols$drug_era <- c("drug_era_id", "person_id", "drug_concept_id", "drug_era_start_date", "drug_era_end_date", "drug_exposure_count", "gap_days")
     data_cols$dose_era <- c("dose_era_id", "person_id", "drug_concept_id", "unit_concept_id", "dose_value", "dose_era_start_date", "dose_era_end_date")
     data_cols$condition_era <- c("condition_era_id", "person_id", "condition_concept_id", "condition_era_start_date", "condition_era_end_date", "condition_occurrence_count")
+    data_cols$cost <- c("cost_id", "cost_event_id", "cost_domain_id", "cost_type_concept_id", "currency_concept_id", "total_charge", "total_cost", "total_paid", "paid_by_payer", "paid_by_patient", "paid_patient_copay", "paid_patient_coinsurance", "paid_patient_deductible", "paid_by_primary", "paid_ingredient_cost", "paid_dispensing_fee", "payer_plan_period_id", "amount_allowed", "revenue_code_concept_id", "revenue_code_source_value", "drg_concept_id", "drg_source_value")
   }
   
   if (omop_version == "5.4"){
@@ -252,6 +348,7 @@ import_dataset <- function(r = shiny::reactiveValues(), d = shiny::reactiveValue
     data_cols$drug_era <- c("drug_era_id", "person_id", "drug_concept_id", "drug_era_start_date", "drug_era_end_date", "drug_exposure_count", "gap_days")
     data_cols$dose_era <- c("dose_era_id", "person_id", "drug_concept_id", "unit_concept_id", "dose_value", "dose_era_start_date", "dose_era_end_date")
     data_cols$condition_era <- c("condition_era_id", "person_id", "condition_concept_id", "condition_era_start_date", "condition_era_end_date", "condition_occurrence_count")
+    data_cols$cost <- c("cost_id", "cost_event_id", "cost_domain_id", "cost_type_concept_id", "currency_concept_id", "total_charge", "total_cost", "total_paid", "paid_by_payer", "paid_by_patient", "paid_patient_copay", "paid_patient_coinsurance", "paid_patient_deductible", "paid_by_primary", "paid_ingredient_cost", "paid_dispensing_fee", "payer_plan_period_id", "amount_allowed", "revenue_code_concept_id", "revenue_code_source_value", "drg_concept_id", "drg_source_value")
   }
   
   loaded_data <- tibble::tibble(table = character(), n_rows = integer())
@@ -265,12 +362,31 @@ import_dataset <- function(r = shiny::reactiveValues(), d = shiny::reactiveValue
     },
     error = function(e){
       cat(paste0("\n", i18n$t("error_transforming_cols"), " table = ", table, " - ", toString(e)))
-      return(tibble::tibble())
+      stop()
     })
   }
   
   ## Transform cols ----
   # ....
+  
+  # Save data ----
+  # If rewrite is true or if there are missing files
+  
+  if (save_as != "none" & (rewrite | missing_files)){
+    
+    for (table in loaded_tables){
+      
+      file_path <- paste0(data_app_folder, "/", table, ".", save_as)
+      
+      # Rewrite data only if data is missing or rewrite is true
+      
+      if (rewrite | !file.exists(file_path)){
+        
+        if (save_as == "parquet") arrow::write_parquet(d[[table]] %>% dplyr::collect(), file_path)
+        else if (save_as == "csv") write.csv(d[[table]] %>% dplyr::collect(), file_path, row.names = FALSE)
+      }
+    }
+  }
   
   return(loaded_data)
 }

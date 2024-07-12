@@ -618,7 +618,7 @@ mod_plugins_server <- function(id, r, d, m, language, i18n, debug){
       # Reload plugins vars
       shinyjs::runjs(paste0("Shiny.setInputValue('", id, "-reload_elements_var', Math.random());"))
       
-      show_message_bar(output,  "modif_saved", "success", i18n = i18n, ns = ns)
+      show_message_bar(output, "modif_saved", "success", i18n = i18n, ns = ns)
     })
     
     ## Rename a file ----

@@ -455,16 +455,6 @@ render_datatable <- function(output, ns = character(), i18n = character(), data 
     # Default options
     rownames = FALSE, escape = FALSE,
     
-    # CSS
-    # drawCallback = htmltools::JS(
-    #   "function(settings) {",
-    #   "  $('.dataTable tbody tr td ').css({",
-    #   "    'height', '12px'",
-    #   "    'padding', '2px 5px'",
-    #   "  });",
-    #   "}"
-    # ),
-    
     # Javascript code allowing to have dropdowns & actionButtons on the DataTable
     callback = htmlwidgets::JS(
       "table.rows().every(function(i, tab, row) {",

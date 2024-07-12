@@ -219,7 +219,6 @@ a.no-hover-effect:hover {
   align-items: center;
   justify-content: center;
   position: fixed;
-  z-index:10;
   left: 0;
   top: 0; 
   width: 100%;

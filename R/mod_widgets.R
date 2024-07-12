@@ -150,7 +150,7 @@ mod_widgets_server <- function(id, r, d, m, language, i18n, all_divs, debug){
     
     if (debug) cat(paste0("\n", now(), " - mod_widgets - (", id, ") - start"))
     
-    # get_page observer ----
+    # Page change observer ----
     observeEvent(shiny.router::get_page(), {
       req(shiny.router::get_page() == id)
       if (debug) cat(paste0("\n", now(), " - mod_widgets - (", id, ") - observer shiny.router::get_page()"))
@@ -758,6 +758,9 @@ mod_widgets_server <- function(id, r, d, m, language, i18n, all_divs, debug){
       else if (id == "datasets"){
         
         shinyjs::runjs(paste0("Shiny.setInputValue('", id, "-load_dataset_code', Math.random());"))
+        
+        # Clear code output
+        output$code_result <- renderText("")
       }
       
       # Load subset
@@ -800,25 +803,24 @@ mod_widgets_server <- function(id, r, d, m, language, i18n, all_divs, debug){
       sql_send_statement(con, glue::glue_sql("DELETE FROM {sql_table} WHERE id = {element_id}", .con = con))
       
       # For plugins, get options id to delete corresponding code rows
+      # Set plugin_id to 0 in widgets table
+      # Delete plugins files
       if (id == "plugins"){
         options_ids <- DBI::dbGetQuery(r$db, glue::glue_sql("SELECT id FROM options WHERE category = 'plugin_code' AND link_id = {element_id}", .con = con)) %>% dplyr::pull()
         
         # Delete code in db
         sql_send_statement(con, glue::glue_sql("DELETE FROM code WHERE link_id IN ({options_ids*})", .con = con))
         sql_send_statement(con, glue::glue_sql("DELETE FROM options WHERE category = 'plugin_code' AND link_id = {element_id}", .con = con))
+        
+        # Set plugin_id to 0 in widgets table
+        sql_send_statement(con, glue::glue_sql("UPDATE widgets SET plugin_id = 0 WHERE plugin_id = {element_id}", .con = con))
+        
+        # Delete files
+        unlink(input$selected_plugin_folder, recursive = TRUE)
       }
       
-      # Delete code in db
-      sql_send_statement(con, glue::glue_sql("DELETE FROM code WHERE category = {sql_category} AND link_id = {element_id}", .con = con))
-      
-      # Delete options in db
-      sql_send_statement(con, glue::glue_sql("DELETE FROM options WHERE category = {sql_category} AND link_id = {element_id}", .con = con))
-        
-      # Delete files
-      if (id == "plugins") unlink(input$selected_plugin_folder, recursive = TRUE)
-      
       # If it is a vocabulary, delete entry in concept table
-      if (id == "vocabularies"){
+      else if (id == "vocabularies"){
         
         # Get vocabulary_id
         vocabulary_id <- r$vocabularies_wide %>% dplyr::filter(id == element_id) %>% dplyr::pull(vocabulary_id)
@@ -826,6 +828,28 @@ mod_widgets_server <- function(id, r, d, m, language, i18n, all_divs, debug){
         # Delete entry in concept table
         sql_send_statement(con, glue::glue_sql("DELETE FROM concept WHERE concept_name = {vocabulary_id} AND domain_id = 'Metadata' AND concept_class_id = 'Vocabulary'", .con = con))
       }
+      
+      # For datasets, set dataset_id to 0 in other tables having a dataset_id col
+      # Delete dataset files
+      else if (id == "datasets"){
+        
+        # Set dataset_id to 0 in widgets in tables having a dataset_id col
+        
+        for (table in c("persons_options", "concept_dataset")) sql_send_statement(
+          m$db, glue::glue_sql("UPDATE {`table`} SET dataset_id = 0 WHERE dataset_id = {element_id}", .con = m$db))
+        
+        sql_send_statement(con, glue::glue_sql("UPDATE studies SET dataset_id = 0 WHERE dataset_id = {element_id}", .con = con))
+        
+        # Delete dataset files
+        dataset_folder <- paste0(r$app_folder, "/datasets_files/", element_id)
+        unlink(dataset_folder, recursive = TRUE)
+      }
+      
+      # Delete code in db
+      sql_send_statement(con, glue::glue_sql("DELETE FROM code WHERE category = {sql_category} AND link_id = {element_id}", .con = con))
+      
+      # Delete options in db
+      sql_send_statement(con, glue::glue_sql("DELETE FROM options WHERE category = {sql_category} AND link_id = {element_id}", .con = con))
       
       # Reload widgets
       shinyjs::runjs(paste0("

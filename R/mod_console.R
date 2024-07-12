@@ -3,7 +3,6 @@ mod_console_ui <- function(id = character(), language = "en", languages = tibble
   ns <- NS(id)
   
   code_hotkeys <- list(
-    save = list(win = "CTRL-S", mac = "CTRL-S|CMD-S"),
     run_selection = list(win = "CTRL-ENTER", mac = "CTRL-ENTER|CMD-ENTER"),
     run_all = list(win = "CTRL-SHIFT-ENTER", mac = "CTRL-SHIFT-ENTER|CMD-SHIFT-ENTER"),
     comment = list(win = "CTRL-SHIFT-C", mac = "CTRL-SHIFT-C|CMD-SHIFT-C")
@@ -121,7 +120,7 @@ mod_console_server <- function(id = character(), r = shiny::reactiveValues(), d 
       shinyAce::updateAceEditor(session, "code", value = paste0(lines, collapse = "\n"))
 
       shinyjs::runjs(sprintf("
-        var editor = ace.edit('%s-rode');
+        var editor = ace.edit('%s-code');
         editor.moveCursorTo(%d, %d);
         editor.focus();
       ", id, input$code_comment$range$end$row, input$code_comment$range$end$column))

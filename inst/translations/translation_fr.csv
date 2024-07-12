@@ -969,9 +969,12 @@ exported_image_must_be_png_svg_or_jpg,"L'image exportée doit être au format PN
 input_image_doesnt_exist,Le fichier de l'image n'existe pas
 error,Erreur
 show_imported_data,Afficher les données importées
-dataset_invalid_save_as,"Value non valide pour le paramètre 'save as'. Valeurs acceptées : 'none', 'csv' et 'parquet'."
+dataset_invalid_save_as,"Valeur non valide pour le paramètre 'save as'. Valeurs acceptées : 'none', 'csv' et 'parquet'."
+dataset_invalid_rewrite,Valeur non valide pour le paramètre 'rewrite'. Valeurs acceptées : TRUE ou FALSE.
 dataset_invalid_read_with,"Valeur non valide pour le paramètre 'read_with'. Valeurs acceptées : 'none', 'vroom', 'duckdb', 'spark'."
-wrong_association_read_with_and_save_as,"L'association entre les paramètres 'read_with' et 'save_as' n'est pas valide."
+dataset_invalid_data_source,Valeur non valid pour le paramètre 'source'
+dataset_error_with_db_connection,Erreur lors de la connexion à la base de données
+wrong_association_read_with_and_save_as,"L'association entre les paramètres 'read_with' et 'save_as' n'est pas valide"
 error_loading_duckdb,Erreur lors du chargement des données avec duckdb
 error_loading_sparklyr,Erreur lors du chargement des données avec sparklyr
 language,Langue
@@ -1171,6 +1174,10 @@ update_git_element_dataset_title,Mise à jour un élément du git
 update_git_element_dataset_text,Mettre à jour ce set de données sur le git ? Ceci va supprimer et remplacer l'ancien set de données sur le dépôt git distant.
 delete_git_element_dataset_title,Supprimer un élément du git
 delete_git_element_dataset_text,Supprimer ce set de données sur le git ?
+update_git_element_plugin_title,Mise à jour un élément du git
+update_git_element_plugin_text,Mettre à jour ce plugin sur le git ? Ceci va supprimer et remplacer l'ancien plugin sur le dépôt git distant.
+delete_git_element_plugin_title,Supprimer un élément du git
+delete_git_element_plugin_text,Supprimer ce plugin sur le git ?
 dont_update,Cancel
 reload_dataset_concepts,Recharger les concepts du set de données
 reload_dataset_concepts_title,Recharger les concepts

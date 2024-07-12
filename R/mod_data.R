@@ -1637,6 +1637,9 @@ mod_data_server <- function(id, r, d, m, language, i18n, debug){
       
       # Hide resize button when sidenav is displayed or not
       r$data_edit_page_activated <- FALSE
+      
+      # Prevent a bug with scroll into ace editor
+      shinyjs::runjs("var event = new Event('resize'); window.dispatchEvent(event);")
     })
     
     # |-------------------------------- -----
