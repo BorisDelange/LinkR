@@ -123,6 +123,7 @@ grant_access_to,Grant access to
 everybody,Everybody
 everybody_who_has_access_to_dataset,Everybody who has access to study's dataset
 choose_users,Select users
+some_users,Some users
 choose_zip_file,Choose a ZIP file
 zip,ZIP
 choose_csv_files,Choose CSV files
@@ -188,6 +189,7 @@ password_changed,Password successfully changed
 id,ID
 close,Close
 description,Description
+short_description,Short description
 creator,Creator
 datetime,Date & time
 deleted,Deleted
@@ -466,6 +468,7 @@ spanish,Spanish
 description_french,French
 description_english,English
 author,Author
+authors,Authors
 author_s,Author(s)
 browse,Browse
 import_image,Import image
@@ -1204,3 +1207,7 @@ install_dataset,Install dataset
 local_version_up_to_date,Local version up to date
 reload_list,Reload list
 error_transforming_cols,Error transforming columns
+give_access_to,Give access to
+plugin_For,Plugin for
+edit_description,Edit description
+save_description,Save updates

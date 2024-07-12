@@ -257,8 +257,8 @@ a.no-hover-effect:hover {
 .delete_modal_buttons, .import_modal_buttons, .create_element_modal_buttons, .select_concepts_modal_buttons, .import_concepts_modal_buttons,
 .datasets_share_buttons, .update_or_delete_git_element_modal_buttons, .reload_dataset_concepts_modal_buttons, .git_element_details_git_buttons {
   position: absolute;
-  right: 10px;
-  bottom: 3px;
+  right: 8px;
+  bottom: 8px;
   display: flex;
   gap: 5px;
 }
@@ -306,7 +306,7 @@ a.no-hover-effect:hover {
 
 .create_plugin_modal_content {
   width: 500px;
-  padding-bottom: 30px;
+  height: 130px;
 }
 
 .create_project_modal_content, .create_dataset_modal_content, .create_subset_modal_content, .create_vocabulary_modal_content,
@@ -922,8 +922,8 @@ td[data-type="factor"] input {
 
 .home_widget_button {
   position: absolute;
-  bottom: 0px;
-  right: 5px;
+  bottom: 8px;
+  right: 8px;
 }
 
 .home_link {
@@ -957,6 +957,7 @@ td[data-type="factor"] input {
   display: flex;
   flex-direction: column;
   width: 50%;
+  overflow: auto;
 }
 
 .plugins_summary_right, .plugins_share_right {

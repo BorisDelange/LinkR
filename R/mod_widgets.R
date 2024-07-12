@@ -15,14 +15,14 @@ mod_widgets_ui <- function(id, language, languages, i18n){
   
   add_element_inputs <- tagList()
   
-  if (id == "plugins") add_element_inputs <- make_dropdown(
-    i18n, ns, id = "plugin_creation_type", label = "data_type",
-    options = list(
-      list(key = 1, text = i18n$t("patient_lvl_data")),
-      list(key = 2, text = i18n$t("aggregated_data"))
+  if (id == "plugins") add_element_inputs <- div(
+    shiny.fluent::Dropdown.shinyInput("plugin_creation_type", label = i18n$t("data_type"),
+      options = list(
+        list(key = 1, text = i18n$t("patient_lvl_data")),
+        list(key = 2, text = i18n$t("aggregated_data"))
+      ), value = 1
     ),
-    value = 1,
-    width = "200px"
+    style = "width: 200px;"
   )
   
   tagList(
@@ -49,8 +49,11 @@ mod_widgets_ui <- function(id, language, languages, i18n){
               class = "create_element_modal_head small_close_button"
             ),
             div(
-              make_textfield(i18n, ns, id = "element_creation_name", label = "name", width = "200px"),
-              add_element_inputs,
+              div(
+                div(shiny.fluent::TextField.shinyInput(ns("element_creation_name"), label = i18n$t("name")), style = "width: 200px;"),
+                add_element_inputs,
+                style = "display: flex; gap: 20px;"
+              ),
               div(
                 shiny.fluent::PrimaryButton.shinyInput(ns("add_element"), i18n$t("add")),
                 class = "create_element_modal_buttons"
@@ -674,6 +677,7 @@ mod_widgets_server <- function(id, r, d, m, language, i18n, all_divs, debug){
       element_wide <- r[[wide_var]] %>% dplyr::filter(id == input$selected_element)
       element_long <- r[[long_var]] %>% dplyr::filter(id == input$selected_element)
       
+      ## Update breadcrumb ----
       output$breadcrumb <- renderUI({
         
         if (id == "vocabularies") element_name <- element_wide$vocabulary_id
@@ -701,6 +705,39 @@ mod_widgets_server <- function(id, r, d, m, language, i18n, all_divs, debug){
       output$git_repo_element_ui <- renderUI(div())
       output$synchronize_git_buttons <- renderUI(div())
       
+      # Update summary fields ----
+      
+      shiny.fluent::updateDropdown.shinyInput(session, "language", value = language)
+      
+      for (lang in r$languages$code){
+        
+        for (field in c("name", "short_description")) shiny.fluent::updateTextField.shinyInput(
+          session, paste0(field, "_", lang), value = element_long %>% dplyr::filter(name == paste0(field, "_", lang)) %>% dplyr::pull(value))
+      }
+      
+      shiny.fluent::updateTextField.shinyInput(session, "authors", value = element_long %>% dplyr::filter(name == "author") %>% dplyr::pull(value))
+      shiny.fluent::updateDropdown.shinyInput(session, "users_allowed_read_group", value = element_long %>% dplyr::filter(name == "users_allowed_read_group") %>% dplyr::pull(value))
+      
+      ## Load users UI
+      
+      picker_options <- r$users %>% dplyr::select(key = id, imageInitials = initials, text = name, secondaryText = user_status)
+      shiny.fluent::updateNormalPeoplePicker.shinyInput(session, "users_allowed_read", options = picker_options)
+      
+      # 
+      # # Users who has access
+      # picker_value <-
+      #   picker_options %>%
+      #   dplyr::mutate(n = 1:dplyr::n()) %>%
+      #   dplyr::inner_join(
+      #     options %>%
+      #       dplyr::filter(name == "user_allowed_read") %>%
+      #       dplyr::select(key = value_num),
+      #     by = "key"
+      #   ) %>%
+      #   dplyr::pull(key)
+      
+      if (id == "plugins") shiny.fluent::updateDropdown.shinyInput(session, "type", value = element_wide$tab_type_id)
+      
       # Load plugin code files and store selected plugin infos
       if (id == "plugins") {
         
@@ -720,7 +757,7 @@ mod_widgets_server <- function(id, r, d, m, language, i18n, all_divs, debug){
         r$reload_plugin_code_files <- now()
       }
       
-      # Load project
+      # Load project ----
       else if (id == "projects"){
         
         # Change header
@@ -754,7 +791,7 @@ mod_widgets_server <- function(id, r, d, m, language, i18n, all_divs, debug){
         }
       }
       
-      # Load dataset
+      # Load dataset ----
       else if (id == "datasets"){
         
         shinyjs::runjs(paste0("Shiny.setInputValue('", id, "-load_dataset_code', Math.random());"))
@@ -763,12 +800,13 @@ mod_widgets_server <- function(id, r, d, m, language, i18n, all_divs, debug){
         output$code_result <- renderText("")
       }
       
-      # Load subset
+      # Load subset ----
       else if (id == "subsets"){
         
         shinyjs::runjs(paste0("Shiny.setInputValue('", id, "-load_subset_code', Math.random());"))
       }
       
+      # Load vocabulary ----
       else if (id == "vocabularies"){
         
         shinyjs::runjs(paste0("Shiny.setInputValue('", id, "-load_vocabulary_code', Math.random());"))
@@ -781,6 +819,83 @@ mod_widgets_server <- function(id, r, d, m, language, i18n, all_divs, debug){
     # --- --- --- --- -- -
     # Element summary ----
     # --- --- --- --- -- -
+    
+    ## Show / hide users UI ----
+    
+    observeEvent(input$users_allowed_read_group, {
+      if (debug) cat(paste0("\n", now(), " - mod_widgets - (", id, ") - observer input$users_allowed_read_group"))
+      
+      if (input$users_allowed_read_group == "people_picker") shinyjs::show("users_allowed_read_div")
+      else shinyjs::hide("users_allowed_read_div")
+    })
+    
+    ## Change language ----
+    
+    observeEvent(input$language, {
+      if (debug) cat(paste0("\n", now(), " - mod_widgets - (", id, ") - observer input$language"))
+      
+      sapply(r$languages$code, function(lang){
+        if (lang != input$language) sapply(c("name", "short_description"), function(field) shinyjs::hide(paste0(field, "_", lang, "_div")))
+      })
+      
+      sapply(c("name", "short_description"), function(field) shinyjs::show(paste0(field, "_", input$language, "_div")))
+    })
+    
+    ## Edit description ----
+    
+    observeEvent(input$edit_description, {
+      if (debug) cat(paste0("\n", now(), " - mod_widgets - (", id, ") - observer input$edit_description"))
+      
+      sapply(c("edit_description_button", "summary_informations_div"), shinyjs::hide)
+      sapply(c("save_description_button", "edit_description_div"), shinyjs::show)
+    })
+    
+    ## Run description code ----
+    
+    observeEvent(input$run_description_code, {
+      if (debug) cat(paste0("\n", now(), " - mod_widgets - (", id, ") - observer input$run_description_code"))
+      shinyjs::runjs(paste0("Shiny.setInputValue('", id, "-run_description_code_trigger', Math.random());"))
+    })
+    
+    observeEvent(input$description_code_run_all, {
+      if (debug) cat(paste0("\n", now(), " - mod_widgets - (", id, ") - observer input$description_code_run_all"))
+      shinyjs::runjs(paste0("Shiny.setInputValue('", id, "-run_description_code_trigger', Math.random());"))
+    })
+    
+    observeEvent(input$run_description_code_trigger, {
+      if (debug) cat(paste0("\n", now(), " - mod_widgets - (", id, ") - observer input$run_description_code_trigger"))
+    
+      code <- input$description_code %>% stringr::str_replace_all("\r", "\n")
+      
+      # Create temp dir
+      dir <- paste0(r$app_folder, "/temp_files/", r$user_id, "/markdowns")
+      output_file <- paste0(dir, "/", paste0(sample(c(0:9, letters[1:6]), 8, TRUE), collapse = ''), "_", now() %>% stringr::str_replace_all(":", "_") %>% stringr::str_replace_all(" ", "_"), ".Md")
+      if (!dir.exists(dir)) dir.create(dir)
+      
+      # Create the markdown file
+      knitr::knit(text = code, output = output_file, quiet = TRUE)
+      
+      output$description_ui <- renderUI(div(class = "markdown", withMathJax(includeMarkdown(output_file))))
+    })
+    
+    ## Save description updates ----
+    
+    observeEvent(input$save_description, {
+      if (debug) cat(paste0("\n", now(), " - mod_widgets - (", id, ") - observer input$edit_description"))
+      
+      sapply(c("save_description_button", "edit_description_div"), shinyjs::hide)
+      sapply(c("edit_description_button", "summary_informations_div"), shinyjs::show)
+      
+      show_message_bar(output, "modif_saved", "success", i18n = i18n, ns = ns)
+    })
+    
+    ## Save summary updates ----
+    
+    observeEvent(input$save_summary, {
+      if (debug) cat(paste0("\n", now(), " - mod_widgets - (", id, ") - observer input$save_summary"))
+      
+      show_message_bar(output, "modif_saved", "success", i18n = i18n, ns = ns)
+    })
     
     ## Delete an element ----
     

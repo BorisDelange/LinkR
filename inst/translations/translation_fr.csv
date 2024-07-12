@@ -126,6 +126,7 @@ grant_access_to,Donner l'accès à
 everybody,Tout le monde
 everybody_who_has_access_to_dataset,Tout le monde ayant accès au set de données
 choose_users,Choisir les utilisateurs
+some_users,Certains utilisateurs
 choose_zip_file,Choisir un fichier ZIP
 zip,ZIP
 choose_csv_files,Choisir des fichiers CSV
@@ -190,6 +191,7 @@ invalid_old_password,Ancien mot de passe non valide
 password_changed,Mot de passe modifié avec succès
 id,ID
 description,Description
+short_description,Description courte
 creator,Créateur
 datetime,Date & heure
 deleted,Supprimé
@@ -468,6 +470,7 @@ spasnish,Espagnol
 description_french,Française
 description_english,Anglaise
 author,Auteur
+authors,Auteurs
 author_s,Auteur(s)
 browse,Parcourir
 import_image,Importer une image
@@ -1204,3 +1207,7 @@ install_dataset,Installer le set de données
 local_version_up_to_date,Version locale à jour
 reload_list,Recharger la liste
 error_transforming_cols,Erreur lors de la transformation des colonnes
+give_access_to,Donner l'accès à
+plugin_for,Plugin pour
+edit_description,Modifier la description
+save_description,Sauvegarder les modifications
