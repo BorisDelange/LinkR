@@ -16,7 +16,7 @@ mod_widgets_ui <- function(id, language, languages, i18n){
   add_element_inputs <- tagList()
   
   if (id == "plugins") add_element_inputs <- div(
-    shiny.fluent::Dropdown.shinyInput("plugin_creation_type", label = i18n$t("data_type"),
+    shiny.fluent::Dropdown.shinyInput(ns("plugin_creation_type"), label = i18n$t("data_type"),
       options = list(
         list(key = 1, text = i18n$t("patient_lvl_data")),
         list(key = 2, text = i18n$t("aggregated_data"))
@@ -715,28 +715,38 @@ mod_widgets_server <- function(id, r, d, m, language, i18n, all_divs, debug){
           session, paste0(field, "_", lang), value = element_long %>% dplyr::filter(name == paste0(field, "_", lang)) %>% dplyr::pull(value))
       }
       
-      shiny.fluent::updateTextField.shinyInput(session, "authors", value = element_long %>% dplyr::filter(name == "author") %>% dplyr::pull(value))
+      shiny.fluent::updateTextField.shinyInput(session, "author", value = element_long %>% dplyr::filter(name == "author") %>% dplyr::pull(value))
       shiny.fluent::updateDropdown.shinyInput(session, "users_allowed_read_group", value = element_long %>% dplyr::filter(name == "users_allowed_read_group") %>% dplyr::pull(value))
+      
+      ## Description
+      description_code <- element_long %>% dplyr::filter(name == paste0("description_", language)) %>% dplyr::pull(value)
+      shinyAce::updateAceEditor(session, "description_code", value = description_code)
+      output_file <- create_rmarkdown_file(r, description_code)
+      output$description_ui <- renderUI(div(class = "markdown", withMathJax(includeMarkdown(output_file))))
       
       ## Load users UI
       
       picker_options <- r$users %>% dplyr::select(key = id, imageInitials = initials, text = name, secondaryText = user_status)
-      shiny.fluent::updateNormalPeoplePicker.shinyInput(session, "users_allowed_read", options = picker_options)
+      picker_value <- element_long %>% dplyr::filter(name == "user_allowed_read") %>% dplyr::pull(value_num) %>% unique()
+      picker_value <- intersect(picker_options %>% dplyr::pull(key), picker_value)
+      default_selected_items <- picker_options %>% dplyr::filter(key %in% picker_value)
       
-      # 
-      # # Users who has access
-      # picker_value <-
-      #   picker_options %>%
-      #   dplyr::mutate(n = 1:dplyr::n()) %>%
-      #   dplyr::inner_join(
-      #     options %>%
-      #       dplyr::filter(name == "user_allowed_read") %>%
-      #       dplyr::select(key = value_num),
-      #     by = "key"
-      #   ) %>%
-      #   dplyr::pull(key)
+      output$users_allowed_read_ui <- renderUI(
+        div(
+          shiny.fluent::NormalPeoplePicker.shinyInput(
+            ns("users_allowed_read"),
+            options = picker_options, value = picker_value, defaultSelectedItems = default_selected_items,
+            pickerSuggestionsProps = list(
+              suggestionsHeaderText = i18n$t("users"),
+              noResultsFoundText = i18n$t("no_results_found"),
+              showRemoveButtons = TRUE
+            )
+          ),
+          style = "width: 400px; margin-top: 12px"
+        )
+      )
       
-      if (id == "plugins") shiny.fluent::updateDropdown.shinyInput(session, "type", value = element_wide$tab_type_id)
+      if (id == "plugins") shiny.fluent::updateDropdown.shinyInput(session, "tab_type_id", value = element_wide$tab_type_id)
       
       # Load plugin code files and store selected plugin infos
       if (id == "plugins") {
@@ -825,8 +835,8 @@ mod_widgets_server <- function(id, r, d, m, language, i18n, all_divs, debug){
     observeEvent(input$users_allowed_read_group, {
       if (debug) cat(paste0("\n", now(), " - mod_widgets - (", id, ") - observer input$users_allowed_read_group"))
       
-      if (input$users_allowed_read_group == "people_picker") shinyjs::show("users_allowed_read_div")
-      else shinyjs::hide("users_allowed_read_div")
+      if (input$users_allowed_read_group == "people_picker") shinyjs::show("users_allowed_read_ui")
+      else shinyjs::hide("users_allowed_read_ui")
     })
     
     ## Change language ----
@@ -834,9 +844,16 @@ mod_widgets_server <- function(id, r, d, m, language, i18n, all_divs, debug){
     observeEvent(input$language, {
       if (debug) cat(paste0("\n", now(), " - mod_widgets - (", id, ") - observer input$language"))
       
+      req(input$selected_element)
+      
+      # Update name et short description fields
       sapply(r$languages$code, function(lang){
         if (lang != input$language) sapply(c("name", "short_description"), function(field) shinyjs::hide(paste0(field, "_", lang, "_div")))
       })
+      
+      # Update description editor
+      element_long <- r[[long_var]] %>% dplyr::filter(id == input$selected_element)
+      shinyAce::updateAceEditor(session, "description_code", value = element_long %>% dplyr::filter(name == paste0("description_", input$language)) %>% dplyr::pull(value))
       
       sapply(c("name", "short_description"), function(field) shinyjs::show(paste0(field, "_", input$language, "_div")))
     })
@@ -847,7 +864,7 @@ mod_widgets_server <- function(id, r, d, m, language, i18n, all_divs, debug){
       if (debug) cat(paste0("\n", now(), " - mod_widgets - (", id, ") - observer input$edit_description"))
       
       sapply(c("edit_description_button", "summary_informations_div"), shinyjs::hide)
-      sapply(c("save_description_button", "edit_description_div"), shinyjs::show)
+      sapply(c("save_and_cancel_description_buttons", "edit_description_div"), shinyjs::show)
     })
     
     ## Run description code ----
@@ -864,17 +881,8 @@ mod_widgets_server <- function(id, r, d, m, language, i18n, all_divs, debug){
     
     observeEvent(input$run_description_code_trigger, {
       if (debug) cat(paste0("\n", now(), " - mod_widgets - (", id, ") - observer input$run_description_code_trigger"))
-    
-      code <- input$description_code %>% stringr::str_replace_all("\r", "\n")
       
-      # Create temp dir
-      dir <- paste0(r$app_folder, "/temp_files/", r$user_id, "/markdowns")
-      output_file <- paste0(dir, "/", paste0(sample(c(0:9, letters[1:6]), 8, TRUE), collapse = ''), "_", now() %>% stringr::str_replace_all(":", "_") %>% stringr::str_replace_all(" ", "_"), ".Md")
-      if (!dir.exists(dir)) dir.create(dir)
-      
-      # Create the markdown file
-      knitr::knit(text = code, output = output_file, quiet = TRUE)
-      
+      output_file <- create_rmarkdown_file(r, input$description_code)
       output$description_ui <- renderUI(div(class = "markdown", withMathJax(includeMarkdown(output_file))))
     })
     
@@ -883,16 +891,115 @@ mod_widgets_server <- function(id, r, d, m, language, i18n, all_divs, debug){
     observeEvent(input$save_description, {
       if (debug) cat(paste0("\n", now(), " - mod_widgets - (", id, ") - observer input$edit_description"))
       
-      sapply(c("save_description_button", "edit_description_div"), shinyjs::hide)
+      sapply(c("save_and_cancel_description_buttons", "edit_description_div"), shinyjs::hide)
       sapply(c("edit_description_button", "summary_informations_div"), shinyjs::show)
       
+      # Update database and r var
+      sql <- glue::glue_sql("UPDATE options SET value = {input$description_code} WHERE category = {single_id} AND link_id = {input$selected_element} AND name = {paste0('description_', input$language)}", .con = r$db)
+      sql_send_statement(r$db, sql)
+      
+      r[[long_var]] <- r[[long_var]] %>% dplyr::mutate(
+        value = dplyr::case_when(
+          id == input$selected_element & name == paste0('description_', input$language) ~ input$description_code,
+          TRUE ~ value
+        )
+      )
+      
+      # Reload markdown
+      output_file <- create_rmarkdown_file(r, input$description_code)
+      output$description_ui <- renderUI(div(class = "markdown", withMathJax(includeMarkdown(output_file))))
+      
       show_message_bar(output, "modif_saved", "success", i18n = i18n, ns = ns)
+    })
+    
+    ## Cancel description updates ----
+    
+    observeEvent(input$cancel_description, {
+      if (debug) cat(paste0("\n", now(), " - mod_widgets - (", id, ") - observer input$cancel_description"))
+      
+      sapply(c("save_and_cancel_description_buttons", "edit_description_div"), shinyjs::hide)
+      sapply(c("edit_description_button", "summary_informations_div"), shinyjs::show)
+      
+      # Reset description editor with last value
+      element_long <- r[[long_var]] %>% dplyr::filter(id == input$selected_element) 
+      description_code <- element_long %>% dplyr::filter(name == paste0("description_", input$language)) %>% dplyr::pull(value)
+      shinyAce::updateAceEditor(session, "description_code", value = description_code)
     })
     
     ## Save summary updates ----
     
     observeEvent(input$save_summary, {
       if (debug) cat(paste0("\n", now(), " - mod_widgets - (", id, ") - observer input$save_summary"))
+      
+      fields <- c(
+        paste0("name_", r$languages$code),
+        paste0("short_description_", r$languages$code),
+        paste0("description_", r$languages$code),
+        "author", "users_allowed_read_group"
+      )
+      
+      # List existing fields : add fields that don't exist
+      
+      sql <- glue::glue_sql("SELECT DISTINCT(name) FROM options WHERE category = {single_id} AND link_id = {input$selected_element}", .con = r$db)
+      existing_fields <- DBI::dbGetQuery(r$db, sql) %>% dplyr::pull()
+      new_fields <- setdiff(fields, existing_fields)
+      options_last_row <- get_last_row(r$db, "options")
+      
+      if (length(new_fields) > 0){
+        new_data <- tibble::tibble(
+          id = options_last_row + (1:length(new_fields)), category = single_id, link_id = input$selected_element,
+          name = new_fields, value = "", value_num = NA_integer_, creator_id = r$user_id,
+          datetime = now(), deleted = FALSE
+        )
+        options_last_row <- options_last_row + length(new_fields)
+        DBI::dbAppendTable(r$db, "options", new_data)
+      }
+        
+      # Update sql data
+      
+      cases <- sapply(fields, function(field) {
+        value <- if (length(input[[field]]) > 0) gsub("'", "''", input[[field]]) else ""
+        paste0("WHEN name = '", field, "' THEN '", value, "'")
+      })
+      
+      case_statement <- paste(cases, collapse = " ")
+      sql <- glue::glue_sql(paste0(
+        "UPDATE options SET value = CASE {DBI::SQL(case_statement)} ELSE value END ",
+        "WHERE name IN ({fields*}) AND category = {single_id} AND link_id = {input$selected_element}"), .con = con)
+      sql_send_statement(r$db, sql)
+      
+      sql <- glue::glue_sql("DELETE FROM options WHERE category = {single_id} AND link_id = {input$selected_element} AND name = 'users_allowed_read'", .con = r$db)
+      sql_send_statement(r$db, sql)
+      
+      # Add users allowed read (one row by user)
+      
+      if (length(input$users_allowed_read) > 0){
+        
+        value_num <- unique(input$users_allowed_read)
+        
+        new_data <- tibble::tibble(
+          id = options_last_row + (1:length(value_num)), category = single_id, link_id = input$selected_element,
+          name = "user_allowed_read", value = "", value_num = value_num, creator_id = r$user_id,
+          datetime = now(), deleted = FALSE
+        )
+        DBI::dbAppendTable(r$db, "options", new_data)
+      }
+      
+      # Update tab_type_id and name
+      new_name <- gsub("'", "''", input[[paste0('name_', language)]])
+      sql <- glue::glue_sql("UPDATE {`sql_table`} SET name = {new_name}, tab_type_id = {input$tab_type_id} WHERE id = {input$selected_element}", .con = r$db)
+      sql_send_statement(r$db, sql)
+      
+      # Reload widgets
+      shinyjs::runjs(paste0("Shiny.setInputValue('", id, "-reload_elements_var', Math.random());"))
+      
+      # Reload breadcrumb
+      output$breadcrumb <- renderUI(shiny.fluent::Breadcrumb(items = list(
+          list(key = "main", text = i18n$t(id), href = shiny.router::route_link(id), 
+            onClick = htmlwidgets::JS(paste0("item => { Shiny.setInputValue('", id, "-show_home', Math.random()); }"))),
+          list(key = "main", text = new_name))
+        )
+      )
       
       show_message_bar(output, "modif_saved", "success", i18n = i18n, ns = ns)
     })
@@ -932,6 +1039,16 @@ mod_widgets_server <- function(id, r, d, m, language, i18n, all_divs, debug){
         
         # Delete files
         unlink(input$selected_plugin_folder, recursive = TRUE)
+        
+        # Delete files from code files list
+        r$edit_plugin_code_files_list <- r$edit_plugin_code_files_list %>% dplyr::filter(plugin_id != element_id)
+        
+        # Delete editor
+        editor_ids <- r$edit_plugin_code_editors %>% dplyr::filter(plugin_id == element_id) %>% dplyr::pull(id)
+        
+        # Clear editors
+        editor_ids <- r$edit_plugin_code_editors %>% dplyr::filter(plugin_id == element_id) %>% dplyr::pull(id)
+        for (editor_id in editor_ids) shinyAce::updateAceEditor(session, paste0("edit_code_editor_div_", editor_id), value = "")
       }
       
       # If it is a vocabulary, delete entry in concept table

@@ -149,56 +149,6 @@ make_dropdown <- function(i18n = character(), ns = character(), id = NA_characte
   )
 }
 
-#' Make people picker
-#' 
-#' @description Creates a shiny.fluent people picker
-#' @details 
-#' Options argument has to be a data.frame or a tibble, with columns = c("key", "imageInitials", "text", "secondaryText").\cr
-#' Key is the ID of the choice, text is the text of the choice, imageInitials are the letters put on a circle,
-#' SecondaryText is the text under the principal text.
-#' @param i18n Translator object from shiny.i18n library
-#' @param ns Shiny namespace
-#' @param id ID used for the input (character)
-#' @param label Label used for the input (character)
-#' @param options Options available for the input (data.frame or tibble)
-#' @param value Options already selected (character)
-#' @param width CSS code for width, could be all CSS forms, as "200px" or "100\%" etc (character)
-#' @param style CSS style added to the div containing the people picker (character)
-#' @return HTML / Shiny UI code
-#' @examples
-#' \dontrun{
-#' options <- tibble::tribble(~key,  ~imageInitials, ~text, ~secondaryText,
-#'   1, "JD", "John Doe", "Clinician",
-#'   2, "DA", "Doug Altman", "Statistician")
-#' make_people_picker(i18n = i18n, ns = ns, id = "my_people_picker", "My people picker", 
-#'   options = options, value = 2, width = "200px")
-#' }
-make_people_picker <- function(i18n = character(), ns = character(), id = NA_character_, label = character(), 
-  options = tibble::tibble(), value = NULL, width = NULL, style = character()){
-  
-  if (!is.null(value)) default_selected_items <- options %>% dplyr::filter(key %in% value)
-  else default_selected_items <- NULL
-  
-  style <- ""
-  if (!is.null(width)) style <- paste0(style, "width: ", width)
-  if (is.na(id)) id <- label
-  div(
-    div(class = "input_title", i18n$t(label)),
-    div(shiny.fluent::NormalPeoplePicker.shinyInput(
-      ns(id),
-      options = options,
-      pickerSuggestionsProps = list(
-        suggestionsHeaderText = i18n$t("users"),
-        noResultsFoundText = i18n$t("no_results_found"),
-        showRemoveButtons = TRUE
-      ),
-      defaultSelectedItems = default_selected_items,
-      value = value),
-      style = style
-    )
-  )
-}
-
 #' Make textfield
 #' 
 #' @description Creates a shiny.fluent textfield

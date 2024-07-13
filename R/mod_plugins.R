@@ -88,7 +88,7 @@ mod_plugins_ui <- function(id, language, languages, i18n){
                 result
               }),
               div(
-                shiny.fluent::Dropdown.shinyInput(ns("type"), label = i18n$t("plugin_for"),
+                shiny.fluent::Dropdown.shinyInput(ns("tab_type_id"), label = i18n$t("plugin_for"),
                   options = list(
                     list(key = 1, text = i18n$t("patient_lvl_data")),
                     list(key = 2, text = i18n$t("aggregated_data"))
@@ -96,7 +96,7 @@ mod_plugins_ui <- function(id, language, languages, i18n){
                 ),
                 style = "width: 200px;"
               ),
-              div(shiny.fluent::TextField.shinyInput(ns("authors"), label = i18n$t("authors")), style = "width: 200px;"),
+              div(shiny.fluent::TextField.shinyInput(ns("author"), label = i18n$t("authors")), style = "width: 200px;"),
               lapply(1:nrow(languages), function(i) {
                 row <- languages[i, ]
                 result <- div(
@@ -116,20 +116,7 @@ mod_plugins_ui <- function(id, language, languages, i18n){
                 ),
                 style = "width: 200px;"
               ),
-              shinyjs::hidden(
-                div(
-                  id = ns("users_allowed_read_div"),
-                  shiny.fluent::NormalPeoplePicker.shinyInput(
-                    ns("users_allowed_read"),
-                    pickerSuggestionsProps = list(
-                      suggestionsHeaderText = i18n$t("users"),
-                      noResultsFoundText = i18n$t("no_results_found"),
-                      showRemoveButtons = TRUE
-                    )
-                  ),
-                  style = "width: 400px; margin-top: 12px"
-                )
-              ),
+              shinyjs::hidden(uiOutput(ns("users_allowed_read_ui"))),
               div(
                 div(shiny.fluent::PrimaryButton.shinyInput(ns("delete_element"), i18n$t("delete")), class = "delete_button"),
                 shiny.fluent::PrimaryButton.shinyInput(ns("save_summary"), i18n$t("save")),
@@ -150,8 +137,16 @@ mod_plugins_ui <- function(id, language, languages, i18n){
                   ),
                   shinyjs::hidden(
                     div(
-                      id = ns("save_description_button"),
-                      create_hover_card(ui = shiny.fluent::IconButton.shinyInput(ns("save_description"), iconProps = list(iconName = "Accept")), text = i18n$t("save_description"))
+                      id = ns ("save_and_cancel_description_buttons"),
+                      div(
+                        id = ns("save_description_button"),
+                        create_hover_card(ui = shiny.fluent::IconButton.shinyInput(ns("save_description"), iconProps = list(iconName = "Accept")), text = i18n$t("save_description"))
+                      ),
+                      div(
+                        id = ns("cancel_description_button"),
+                        create_hover_card(ui = shiny.fluent::IconButton.shinyInput(ns("cancel_description"), iconProps = list(iconName = "Cancel")), text = i18n$t("cancel_description_updates"))
+                      ),
+                      style = "display: flex; gap: 5px;"
                     )
                   ),
                   style = "margin-top: 5px;"
@@ -159,7 +154,7 @@ mod_plugins_ui <- function(id, language, languages, i18n){
                 style = "display: flex; justify-content: space-between;"
               ),
               uiOutput(ns("description_ui")),
-              class = "widget", style = "height: calc(100% - 25px); padding-top: 1px;"
+              class = "widget", style = "height: calc(100% - 25px); padding-top: 1px; overflow: auto;"
             ),
             class = "plugins_summary_right"
           ),
@@ -334,7 +329,8 @@ mod_plugins_server <- function(id, r, d, m, language, i18n, debug){
         if (filename == "ui.R") r$edit_plugin_code_selected_file <- file_id
         
         if (file_id %in% r$edit_plugin_code_editors$id & filename == "ui.R") shinyjs::show(paste0("edit_code_editor_div_", file_id))
-        else {
+        
+        if (file_id %not_in% r$edit_plugin_code_editors$id){
           ui_div <- div(
             id = ns(paste0("edit_code_editor_div_", file_id)),
             shinyAce::aceEditor(
@@ -633,16 +629,18 @@ mod_plugins_server <- function(id, r, d, m, language, i18n, debug){
       # Hide all editors
       sapply(paste0("edit_code_editor_div_", r$edit_plugin_code_editors$id), shinyjs::hide)
 
-      # Create editor
-      insertUI(selector = paste0("#", ns("edit_code_editors_div")), where = "beforeEnd", ui = div(
-        id = ns(paste0("edit_code_editor_div_", options_new_row_id)),
-        shinyAce::aceEditor(
-          ns(paste0("edit_code_editor_", options_new_row_id)), value = "", mode = "r",
-          hotkeys = code_hotkeys,
-          autoScrollEditorIntoView = TRUE, height = "100%", debounce = 100, fontSize = 11, showPrintMargin = FALSE
-        ),
-        style = "width: 100%; height: 100%; display: flex; flex-direction: column;"
-      ))
+      # Create editor if doesn't exist (when we delete and recreate a plugin, some editors could persist...)
+      if (options_new_row_id %not_in% r$edit_plugin_code_editors$id){
+        insertUI(selector = paste0("#", ns("edit_code_editors_div")), where = "beforeEnd", ui = div(
+          id = ns(paste0("edit_code_editor_div_", options_new_row_id)),
+          shinyAce::aceEditor(
+            ns(paste0("edit_code_editor_", options_new_row_id)), value = "", mode = "r",
+            hotkeys = code_hotkeys,
+            autoScrollEditorIntoView = TRUE, height = "100%", debounce = 100, fontSize = 11, showPrintMargin = FALSE
+          ),
+          style = "width: 100%; height: 100%; display: flex; flex-direction: column;"
+        ))
+      }
       
       # Add observers for editor hotkeys
       shinyjs::runjs(paste0("Shiny.setInputValue('", id, "-add_code_editor_hotkeys', ", options_new_row_id, ");"))

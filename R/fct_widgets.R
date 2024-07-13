@@ -296,3 +296,19 @@ compare_git_elements_datetimes <- function(action, i18n, local_element, git_elem
   
   return(list(diff_time, diff_time_text))
 }
+
+#' @noRd
+create_rmarkdown_file <- function(r, code){
+  
+  code <- gsub("\r", "\n", code)
+  
+  # Create temp dir
+  dir <- paste0(r$app_folder, "/temp_files/", r$user_id, "/markdowns")
+  output_file <- paste0(dir, "/", paste0(sample(c(0:9, letters[1:6]), 8, TRUE), collapse = ''), "_", now() %>% stringr::str_replace_all(":", "_") %>% stringr::str_replace_all(" ", "_"), ".Md")
+  if (!dir.exists(dir)) dir.create(dir)
+  
+  # Create the markdown file
+  knitr::knit(text = code, output = output_file, quiet = TRUE)
+  
+  return(output_file)
+}

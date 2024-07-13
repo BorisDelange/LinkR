@@ -152,7 +152,7 @@ mod_console_server <- function(id = character(), r = shiny::reactiveValues(), d 
     observeEvent(r$console_code_trigger, {
       if (debug) cat(paste0("\n", now(), " - mod_console - observer r$console_code_trigger"))
       
-      code <- r$console_code %>% stringr::str_replace_all("\r", "\n")
+      code <- gsub("\r", "\n", r$console_code)
       
       ## Run R code ----
       
@@ -194,14 +194,7 @@ mod_console_server <- function(id = character(), r = shiny::reactiveValues(), d 
         # RMarkdown
         else if (input$output == "rmarkdown"){
           
-          # Create temp dir
-          dir <- paste0(r$app_folder, "/temp_files/", r$user_id, "/markdowns")
-          output_file <- paste0(dir, "/", paste0(sample(c(0:9, letters[1:6]), 8, TRUE), collapse = ''), "_", now() %>% stringr::str_replace_all(":", "_") %>% stringr::str_replace_all(" ", "_"), ".Md")
-          if (!dir.exists(dir)) dir.create(dir)
-          
-          # Create the markdown file
-          knitr::knit(text = code, output = output_file, quiet = TRUE)
-  
+          output_file <- create_rmarkdown_file(r, code)
           output$ui_output <- renderUI(div(class = "markdown", withMathJax(includeMarkdown(output_file))))
         }
         
