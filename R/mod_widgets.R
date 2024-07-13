@@ -987,13 +987,17 @@ mod_widgets_server <- function(id, r, d, m, language, i18n, all_divs, debug){
     observeEvent(input$save_summary, {
       if (debug) cat(paste0("\n", now(), " - mod_widgets - (", id, ") - observer input$save_summary"))
       
+      # Change update datetime
+      sql <- glue::glue_sql("UPDATE {sql_table} SET update_datetime = {now()} WHERE id = {input$selected_element}", .con = r$db)
+      sql_send_statement(r$db, sql)
+      
+      # List existing fields : add fields that don't exist
+      
       fields <- c(
         paste0("name_", r$languages$code),
         paste0("short_description_", r$languages$code),
         "author", "users_allowed_read_group"
       )
-      
-      # List existing fields : add fields that don't exist
       
       sql <- glue::glue_sql("SELECT DISTINCT(name) FROM options WHERE category = {single_id} AND link_id = {input$selected_element}", .con = r$db)
       existing_fields <- DBI::dbGetQuery(r$db, sql) %>% dplyr::pull()
@@ -1021,7 +1025,6 @@ mod_widgets_server <- function(id, r, d, m, language, i18n, all_divs, debug){
       sql <- glue::glue_sql(paste0(
         "UPDATE options SET value = CASE {DBI::SQL(case_statement)} ELSE value END ",
         "WHERE name IN ({fields*}) AND category = {single_id} AND link_id = {input$selected_element}"), .con = con)
-      print(sql)
       sql_send_statement(r$db, sql)
       
       sql <- glue::glue_sql("DELETE FROM options WHERE category = {single_id} AND link_id = {input$selected_element} AND name = 'users_allowed_read'", .con = r$db)
@@ -1463,8 +1466,7 @@ mod_widgets_server <- function(id, r, d, m, language, i18n, all_divs, debug){
 
             git2r::push(repo, "origin", "refs/heads/main", credentials = credentials)
 
-            # Reset fields
-            shiny.fluent::updateTextField.shinyInput(session, "update_or_delete_git_element_api_key", value = "")
+            # Reset commit message (we keep API key, easier when we push files frequently)
             shiny.fluent::updateTextField.shinyInput(session, "update_or_delete_git_element_commit_message", value = "")
 
             # Notify user

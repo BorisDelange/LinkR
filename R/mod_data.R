@@ -38,7 +38,7 @@ mod_data_ui <- function(id, language, languages, i18n){
             ),
             className = "inline_choicegroup"
           ),
-          make_textfield(i18n, ns, id = "tab_name", label = "name", width = "200px"),
+          div(shiny.fluent::TextField.shinyInput(ns("tab_name"), label = i18n$t("name")), style = "width: 200px;"),
           class = "create_element_modal_body"
         ),
         div(
@@ -63,7 +63,7 @@ mod_data_ui <- function(id, language, languages, i18n){
           class = "create_element_modal_head small_close_button"
         ),
         div(
-          make_textfield(i18n, ns, id = "edit_tab_name", label = "name", width = "200px"),
+          div(shiny.fluent::TextField.shinyInput(ns("edit_tab_name"), label = i18n$t("name")), style = "width: 200px;"),
           class = "create_element_modal_body"
         ),
         div(
@@ -90,7 +90,7 @@ mod_data_ui <- function(id, language, languages, i18n){
         ),
         div(
           div(
-            div(make_textfield(i18n, ns, id = "widget_creation_name", label = "name", width = "320px"), style = "height: 70px; margin-left: 10px;"),
+            div(shiny.fluent::TextField.shinyInput(ns("widget_creation_name"), label = i18n$t("name")), style = "width: 320px; height: 70px; margin-left: 10px;"),
             div(
               uiOutput(ns("selected_plugin"), style = "height: 100%;"),
               onclick = paste0("Shiny.setInputValue('", id, "-open_select_a_plugin_modal', Math.random());")
@@ -164,7 +164,7 @@ mod_data_ui <- function(id, language, languages, i18n){
     shinyjs::hidden(uiOutput(ns(paste0(category, "_study_menu")))),
     shinyjs::hidden(div(
       id = ns(paste0(category, "_no_tabs_to_display")), shiny.fluent::MessageBar(i18n$t("no_tabs_to_display_click_add_tab"), messageBarType = 5),
-      style = "display: inline-block;"
+      style = "display: inline-block; margin-top: 10px;"
     )),
   )
   
@@ -322,9 +322,6 @@ mod_data_server <- function(id, r, d, m, language, i18n, debug){
         # Reset selected key
         r$patient_lvl_selected_tab <- NA_integer_
         r$aggregated_selected_tab <- NA_integer_
-
-        # Reset displayed tabs
-        # r$data_grids <- character()
         
         r$data_load_ui_stage <- "first_time"
 
@@ -1209,7 +1206,7 @@ mod_data_server <- function(id, r, d, m, language, i18n, debug){
         
         # Can't add a tab at the level under if there are tabs elements attached to current tab
         if (input$add_tab_type == "level_under"){
-          selected_tab <- r[[paste0(category, "_selected_tab")]]
+          # selected_tab <- r[[paste0(category, "_selected_tab")]]
           widgets <- r$data_widgets %>% dplyr::filter(tab_id == selected_tab, !deleted) %>% dplyr::rename(widget_id = id)
           if (nrow(widgets) > 0) show_message_bar(output, message = "add_tab_has_widgets", i18n = i18n, ns = ns)
           req(nrow(widgets) == 0)
@@ -1235,7 +1232,7 @@ mod_data_server <- function(id, r, d, m, language, i18n, debug){
       r$data_tabs <- r$data_tabs %>% dplyr::bind_rows(new_data)
       
       # Add gridstack instance
-      load_tab_ui(category, selected_tab, "add")
+      load_tab_ui(category, new_id, "add")
       
       # Notify user
       show_message_bar(output, "tab_added", "success", i18n = i18n, ns = ns)
@@ -1292,13 +1289,34 @@ mod_data_server <- function(id, r, d, m, language, i18n, debug){
       tab_id <- input$edit_tab_id
       
       # Check if name is not empty
+      tab_name <- input$edit_tab_name
+      if (is.na(tab_name) | tab_name == "") shiny.fluent::updateTextField.shinyInput(session, "edit_tab_name", errorMessage = i18n$t("provide_valid_name"))
+      req(!is.na(tab_name) & tab_name != "")
       
       # Check if name is not already used
+      name_already_used <- nrow(r$data_tabs %>% dplyr::filter(category == r$data_page, tolower(name) == tolower(tab_name)))
+      
+      if (name_already_used) shiny.fluent::updateTextField.shinyInput(session, "edit_tab_name", errorMessage = i18n$t("name_already_used"))
+      req(!name_already_used)
       
       # Save updates in db
+      sql <- glue::glue_sql("UPDATE tabs SET name = {tab_name} WHERE id = {tab_id}", .con = r$db)
+      sql_send_statement(r$db, sql)
+      
+      # Update r var
+      r$data_tabs <- r$data_tabs %>% dplyr::mutate(name = dplyr::case_when(
+        id == tab_id ~ tab_name,
+        TRUE ~ name
+      ))
       
       # Reload study menu
       r$data_reload_tabs <- now()
+      
+      # Notify user
+      show_message_bar(output, message = "modif_saved", type = "success", i18n = i18n, ns = ns)
+      
+      # Close modal
+      shinyjs::hide("edit_tab_modal")
     })
     
     # Delete a tab
@@ -1751,7 +1769,7 @@ mod_data_server <- function(id, r, d, m, language, i18n, debug){
           # Check if plugin has been deleted
           check_deleted_plugin <- nrow(DBI::dbGetQuery(r$db, paste0("SELECT * FROM plugins WHERE id = ", plugin_id))) == 0
           if (check_deleted_plugin){
-            ui_code <- div(shiny.fluent::MessageBar(i18n$t("plugin_deleted"), messageBarType = 5), style = 'margin-top:10px;')
+            ui_code <- div(shiny.fluent::MessageBar(i18n$t("plugin_deleted"), messageBarType = 5), style = "display: inline-block; margin-top:10px;")
             settings_widget_button <- ""
           }
           else {

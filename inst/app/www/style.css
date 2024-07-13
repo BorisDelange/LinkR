@@ -382,7 +382,7 @@ a.no-hover-effect:hover {
 .edit_tab_button .ms-Button {
   margin: 0 0 0 2px;
   width: 24px;
-  height: 20px;
+  height: 16px;
 }
 
 /* ---------------- */
@@ -402,7 +402,7 @@ a.no-hover-effect:hover {
 }
 
 .data_widget {
-  padding: 0px 10px 5px 10px;
+  padding: 0 10px;
   height: 100%;
   box-sizing: border-box;
 }
@@ -443,8 +443,8 @@ a.no-hover-effect:hover {
 
 .data_widget_buttons {
   position: absolute;
-  top: 0px;
-  right: 7px;
+  top: 5px;
+  right: 20px;
 }
 
 .plugin_widget_labels {
