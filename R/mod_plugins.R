@@ -66,61 +66,66 @@ mod_plugins_ui <- function(id, language, languages, i18n){
             ),
             div(
               id = ns("summary_informations_div"),
-              div(
-                h1(i18n$t("informations")),
+              shinyjs::hidden(
                 div(
-                  shiny.fluent::Dropdown.shinyInput(
-                    ns("language"), i18n$t("language"),
-                    options = convert_tibble_to_list(languages, key_col = "code", text_col = "language"), value = language
+                  id = ns("summary_edit_informations_div"),
+                  div(
+                    h1(i18n$t("edit_informations")),
+                    div(
+                      shiny.fluent::Dropdown.shinyInput(
+                        ns("language"), i18n$t("language"),
+                        options = convert_tibble_to_list(languages, key_col = "code", text_col = "language"), value = language
+                      ),
+                      style = "width: 100px; margin-top: 8px; height: 30px;"
+                    ),
+                    style = "display: flex; justify-content: space-between;"
                   ),
-                  style = "width: 100px; margin-top: 8px; height: 30px;"
-                ),
-                style = "display: flex; justify-content: space-between;"
-              ),
-              lapply(1:nrow(languages), function(i) {
-                row <- languages[i, ]
-                result <- div(
-                  id = ns(paste0("name_", row$code, "_div")),
-                  shiny.fluent::TextField.shinyInput(ns(paste0("name_", row$code)), label = i18n$t("name")),
-                  style = "width: 200px;"
+                  lapply(1:nrow(languages), function(i) {
+                    row <- languages[i, ]
+                    result <- div(
+                      id = ns(paste0("name_", row$code, "_div")),
+                      shiny.fluent::TextField.shinyInput(ns(paste0("name_", row$code)), label = i18n$t("name")),
+                      style = "width: 200px;"
+                    )
+                    if (row$code != language) result <- shinyjs::hidden(result)
+                    result
+                  }),
+                  div(
+                    shiny.fluent::Dropdown.shinyInput(ns("tab_type_id"), label = i18n$t("plugin_for"),
+                      options = list(
+                        list(key = 1, text = i18n$t("patient_lvl_data")),
+                        list(key = 2, text = i18n$t("aggregated_data"))
+                      )
+                    ),
+                    style = "width: 200px;"
+                  ),
+                  div(shiny.fluent::TextField.shinyInput(ns("author"), label = i18n$t("authors")), style = "width: 200px;"),
+                  lapply(1:nrow(languages), function(i) {
+                    row <- languages[i, ]
+                    result <- div(
+                      id = ns(paste0("short_description_", row$code, "_div")),
+                      shiny.fluent::TextField.shinyInput(ns(paste0("short_description_", row$code)), label = i18n$t("short_description")),
+                      style = "width: 400px;"
+                    )
+                    if (row$code != language) result <- shinyjs::hidden(result)
+                    result
+                  }),
+                  div(
+                    shiny.fluent::Dropdown.shinyInput(ns("users_allowed_read_group"), label = i18n$t("give_access_to"),
+                      options = list(
+                        list(key = "everybody", text = i18n$t("everybody")),
+                        list(key = "people_picker", text = i18n$t("some_users"))
+                      )
+                    ),
+                    style = "width: 200px;"
+                  ),
+                  shinyjs::hidden(uiOutput(ns("users_allowed_read_ui"))),
                 )
-                if (row$code != language) result <- shinyjs::hidden(result)
-                result
-              }),
-              div(
-                shiny.fluent::Dropdown.shinyInput(ns("tab_type_id"), label = i18n$t("plugin_for"),
-                  options = list(
-                    list(key = 1, text = i18n$t("patient_lvl_data")),
-                    list(key = 2, text = i18n$t("aggregated_data"))
-                  )
-                ),
-                style = "width: 200px;"
               ),
-              div(shiny.fluent::TextField.shinyInput(ns("author"), label = i18n$t("authors")), style = "width: 200px;"),
-              lapply(1:nrow(languages), function(i) {
-                row <- languages[i, ]
-                result <- div(
-                  id = ns(paste0("short_description_", row$code, "_div")),
-                  shiny.fluent::TextField.shinyInput(ns(paste0("short_description_", row$code)), label = i18n$t("short_description")),
-                  style = "width: 400px;"
-                )
-                if (row$code != language) result <- shinyjs::hidden(result)
-                result
-              }),
               div(
-                shiny.fluent::Dropdown.shinyInput(ns("users_allowed_read_group"), label = i18n$t("give_access_to"),
-                  options = list(
-                    list(key = "everybody", text = i18n$t("everybody")),
-                    list(key = "people_picker", text = i18n$t("some_users"))
-                  )
-                ),
-                style = "width: 200px;"
-              ),
-              shinyjs::hidden(uiOutput(ns("users_allowed_read_ui"))),
-              div(
-                div(shiny.fluent::PrimaryButton.shinyInput(ns("delete_element"), i18n$t("delete")), class = "delete_button"),
-                shiny.fluent::PrimaryButton.shinyInput(ns("save_summary"), i18n$t("save")),
-                class = "create_element_modal_buttons"
+                id = ns("summary_view_informations_div"),
+                h1(i18n$t("informations")),
+                uiOutput(ns("summary_informations_ui"))
               ),
               class = "widget", style = "min-height: 50%;"
             ),
@@ -131,22 +136,24 @@ mod_plugins_ui <- function(id, language, languages, i18n){
               div(
                 h1(i18n$t("description")),
                 div(
-                  div(
-                    id = ns("edit_description_button"),
-                    create_hover_card(ui = shiny.fluent::IconButton.shinyInput(ns("edit_description"), iconProps = list(iconName = "Edit")), text = i18n$t("edit_description"))
+                  shinyjs::hidden(
+                    div(
+                      id = ns("edit_description_button"),
+                      create_hover_card(ui = shiny.fluent::IconButton.shinyInput(ns("edit_description"), iconProps = list(iconName = "Edit")), text = i18n$t("edit_description"))
+                    )
                   ),
                   shinyjs::hidden(
                     div(
                       id = ns ("save_and_cancel_description_buttons"),
                       div(
-                        id = ns("save_description_button"),
-                        create_hover_card(ui = shiny.fluent::IconButton.shinyInput(ns("save_description"), iconProps = list(iconName = "Accept")), text = i18n$t("save_description"))
-                      ),
-                      div(
                         id = ns("cancel_description_button"),
                         create_hover_card(ui = shiny.fluent::IconButton.shinyInput(ns("cancel_description"), iconProps = list(iconName = "Cancel")), text = i18n$t("cancel_description_updates"))
                       ),
-                      style = "display: flex; gap: 5px;"
+                      div(
+                        id = ns("save_description_button"),
+                        create_hover_card(ui = shiny.fluent::IconButton.shinyInput(ns("save_description"), iconProps = list(iconName = "Accept")), text = i18n$t("save_description")),
+                      ),
+                      style = "display: flex;"
                     )
                   ),
                   style = "margin-top: 5px;"

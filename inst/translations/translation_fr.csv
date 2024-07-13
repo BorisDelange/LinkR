@@ -1054,6 +1054,7 @@ delete_file_title,Supprimer un fichier
 delete_file_text,Confirmer la suppression de ce fichier ?
 delete_plugin_title,Supprimer un plugin
 delete_plugin_text,Confirmer la suppression de ce plugin ?
+delete_plugin,Supprimer le plugin
 delete_vocabulary_title,Supprimer une terminologie
 delete_vocabulary_text,Confirmer la suppression de cette terminologie ?
 delete_git_repo_title,Supprimer un dépôt git
@@ -1072,6 +1073,7 @@ delete_widget,Supprimer le widget
 choose_a_plugin,Choisir un plugin
 data_type,Type de données
 informations,Informations
+edit_informations,Editer les informations
 plugin_no_selected_project,Chargez un projet afin que le code du plugin fonctionne
 set_up_project,Paramétrer le projet
 load_project,Charger le projet

@@ -705,6 +705,9 @@ mod_widgets_server <- function(id, r, d, m, language, i18n, all_divs, debug){
       output$git_repo_element_ui <- renderUI(div())
       output$synchronize_git_buttons <- renderUI(div())
       
+      # Reload description UI ----
+      shinyjs::runjs(paste0("Shiny.setInputValue('", id, "-reload_description_ui', Math.random());"))
+      
       # Update summary fields ----
       
       shiny.fluent::updateDropdown.shinyInput(session, "language", value = language)
@@ -830,6 +833,43 @@ mod_widgets_server <- function(id, r, d, m, language, i18n, all_divs, debug){
     # Element summary ----
     # --- --- --- --- -- -
     
+    ## Edit summary ----
+    
+    observeEvent(input$edit_summary, {
+      if (debug) cat(paste0("\n", now(), " - mod_widgets - (", id, ") - observer input$edit_summary"))
+      
+      # Reload markdown
+      element_long <- r[[long_var]] %>% dplyr::filter(id == input$selected_element)
+      description_code <- element_long %>% dplyr::filter(name == paste0("description_", input$language)) %>% dplyr::pull(value)
+      output_file <- create_rmarkdown_file(r, description_code)
+      output$description_ui <- renderUI(div(class = "markdown", withMathJax(includeMarkdown(output_file))))
+      
+      sapply(c("summary_view_informations_div", "edit_summary_div"), shinyjs::hide)
+      sapply(c("summary_edit_informations_div", "save_summary_div", "edit_description_button"), shinyjs::show)
+    })
+    
+    ## Reload description UI ----
+    
+    observeEvent(input$reload_description_ui, {
+      if (debug) cat(paste0("\n", now(), " - mod_widgets - (", id, ") - observer input$reload_description_ui"))
+      
+      element_wide <- r[[wide_var]] %>% dplyr::filter(id == input$selected_element)
+      element_long <- r[[long_var]] %>% dplyr::filter(id == input$selected_element)
+      
+      output$summary_informations_ui <- renderUI(
+        div(
+          tags$table(
+            tags$tr(tags$td(strong(i18n$t("name"))), tags$td(element_wide$name)),
+            tags$tr(tags$td(strong(i18n$t("created_on"))), tags$td(element_wide$creation_datetime)),
+            tags$tr(tags$td(strong(i18n$t("updated_on"))), tags$td(element_wide$update_datetime)),
+            tags$tr(tags$td(strong(i18n$t("author_s"))), tags$td(element_long %>% dplyr::filter(name == "author") %>% dplyr::pull(value))),
+            tags$tr(tags$td(strong(i18n$t("short_description")), style = "min-width: 150px;"), tags$td(element_long %>% dplyr::filter(name == paste0("short_description_", language)) %>% dplyr::pull(value)))
+          )
+        )
+      )
+      
+    })
+    
     ## Show / hide users UI ----
     
     observeEvent(input$users_allowed_read_group, {
@@ -853,7 +893,12 @@ mod_widgets_server <- function(id, r, d, m, language, i18n, all_divs, debug){
       
       # Update description editor
       element_long <- r[[long_var]] %>% dplyr::filter(id == input$selected_element)
-      shinyAce::updateAceEditor(session, "description_code", value = element_long %>% dplyr::filter(name == paste0("description_", input$language)) %>% dplyr::pull(value))
+      description_code <- element_long %>% dplyr::filter(name == paste0("description_", input$language)) %>% dplyr::pull(value)
+      shinyAce::updateAceEditor(session, "description_code", value = description_code)
+      
+      # Reload markdown
+      output_file <- create_rmarkdown_file(r, description_code)
+      output$description_ui <- renderUI(div(class = "markdown", withMathJax(includeMarkdown(output_file))))
       
       sapply(c("name", "short_description"), function(field) shinyjs::show(paste0(field, "_", input$language, "_div")))
     })
@@ -888,11 +933,22 @@ mod_widgets_server <- function(id, r, d, m, language, i18n, all_divs, debug){
     
     ## Save description updates ----
     
+    observeEvent(input$description_code_save, {
+      if (debug) cat(paste0("\n", now(), " - mod_widgets - (", id, ") - observer input$description_code_save"))
+      shinyjs::runjs(paste0("Shiny.setInputValue('", id, "-save_description_trigger', Math.random());"))
+    })
+    
     observeEvent(input$save_description, {
-      if (debug) cat(paste0("\n", now(), " - mod_widgets - (", id, ") - observer input$edit_description"))
+      if (debug) cat(paste0("\n", now(), " - mod_widgets - (", id, ") - observer input$save_description"))
+      
+      shinyjs::runjs(paste0("Shiny.setInputValue('", id, "-save_description_trigger', Math.random());"))
       
       sapply(c("save_and_cancel_description_buttons", "edit_description_div"), shinyjs::hide)
       sapply(c("edit_description_button", "summary_informations_div"), shinyjs::show)
+    })
+    
+    observeEvent(input$save_description_trigger, {
+      if (debug) cat(paste0("\n", now(), " - mod_widgets - (", id, ") - observer input$save_description_trigger"))
       
       # Update database and r var
       sql <- glue::glue_sql("UPDATE options SET value = {input$description_code} WHERE category = {single_id} AND link_id = {input$selected_element} AND name = {paste0('description_', input$language)}", .con = r$db)
@@ -934,7 +990,6 @@ mod_widgets_server <- function(id, r, d, m, language, i18n, all_divs, debug){
       fields <- c(
         paste0("name_", r$languages$code),
         paste0("short_description_", r$languages$code),
-        paste0("description_", r$languages$code),
         "author", "users_allowed_read_group"
       )
       
@@ -966,6 +1021,7 @@ mod_widgets_server <- function(id, r, d, m, language, i18n, all_divs, debug){
       sql <- glue::glue_sql(paste0(
         "UPDATE options SET value = CASE {DBI::SQL(case_statement)} ELSE value END ",
         "WHERE name IN ({fields*}) AND category = {single_id} AND link_id = {input$selected_element}"), .con = con)
+      print(sql)
       sql_send_statement(r$db, sql)
       
       sql <- glue::glue_sql("DELETE FROM options WHERE category = {single_id} AND link_id = {input$selected_element} AND name = 'users_allowed_read'", .con = r$db)
@@ -1002,6 +1058,19 @@ mod_widgets_server <- function(id, r, d, m, language, i18n, all_divs, debug){
       )
       
       show_message_bar(output, "modif_saved", "success", i18n = i18n, ns = ns)
+      
+      # Reload description UI
+      shinyjs::runjs(paste0("Shiny.setInputValue('", id, "-reload_description_ui', Math.random());"))
+      
+      # Reload description depending on app language
+      element_long <- r[[long_var]] %>% dplyr::filter(id == input$selected_element)
+      description_code <- element_long %>% dplyr::filter(name == paste0("description_", language)) %>% dplyr::pull(value)
+      output_file <- create_rmarkdown_file(r, description_code)
+      output$description_ui <- renderUI(div(class = "markdown", withMathJax(includeMarkdown(output_file))))
+      
+      # Close edition mode
+      sapply(c("summary_edit_informations_div", "save_summary_div", "edit_description_button"), shinyjs::hide)
+      sapply(c("summary_view_informations_div", "edit_summary_div"), shinyjs::show)
     })
     
     ## Delete an element ----

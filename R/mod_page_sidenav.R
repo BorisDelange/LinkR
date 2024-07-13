@@ -405,11 +405,32 @@ mod_page_sidenav_ui <- function(id = character(), i18n = character()){
         ),
         shinyjs::hidden(
           div(
+            id = ns("summary_reduced_sidenav"),
+            div(
+              id = ns("edit_summary_div"),
+              create_hover_card(ui = shiny.fluent::IconButton.shinyInput(ns("edit_summary"), iconProps = list(iconName = "Edit")), text = i18n$t("edit_informations")),
+              class = "reduced_sidenav_buttons_11"
+            ),
+            shinyjs::hidden(
+              div(
+                id = ns("save_summary_div"),
+                create_hover_card(ui = shiny.fluent::IconButton.shinyInput(ns("save_summary"), iconProps = list(iconName = "Accept")), text = i18n$t("save")),
+                class = "reduced_sidenav_buttons"
+              )
+            ),
+            div(
+              create_hover_card(ui = shiny.fluent::IconButton.shinyInput(ns("delete_element"), iconProps = list(iconName = "Delete")), text = i18n$t("delete")),
+              class = "reduced_sidenav_buttons"
+            )
+          )
+        ),
+        shinyjs::hidden(
+          div(
             id = ns("run_code_reduced_sidenav"),
             div(
               div(
                 id = ns("edit_page_on_div"),
-                create_hover_card(ui = shiny.fluent::IconButton.shinyInput(ns("edit_page_on"), iconProps = list(iconName = "Edit")), text = i18n$t("edit_page")),
+                create_hover_card(ui = shiny.fluent::IconButton.shinyInput(ns("run_code_edit_page_on"), iconProps = list(iconName = "Edit")), text = i18n$t("edit_page")),
                 class = "reduced_sidenav_buttons_11"
               ),
               shinyjs::hidden(
