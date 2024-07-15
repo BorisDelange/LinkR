@@ -18,22 +18,25 @@ mod_select_concepts_ui <- function(id, language, languages, i18n){
             div(
               div(
                 div(
-                  make_combobox(i18n, ns, id = "vocabulary", label = "vocabulary", allowFreeform = FALSE, multiSelect = FALSE, width = "200px"),
-                  make_dropdown(i18n, ns, id = "vocabulary_dt_cols", label = "columns", multiSelect = TRUE,
-                    options = list(
-                      list(key = 0, text = i18n$t("concept_id")),
-                      list(key = 1, text = i18n$t("concept_name")),
-                      list(key = 2, text = i18n$t("domain_id")),
-                      list(key = 3, text = i18n$t("vocabulary_id")),
-                      list(key = 4, text = i18n$t("concept_class_id")),
-                      list(key = 5, text = i18n$t("standard_concept")),
-                      list(key = 6, text = i18n$t("concept_code")),
-                      list(key = 7, text = i18n$t("num_patients")),
-                      list(key = 8, text = i18n$t("num_rows")),
-                      list(key = 9, text = i18n$t("action"))
-                    ),
-                    value = c(0, 1, 2, 7, 8, 9),
-                    width = "200px"
+                  div(shiny.fluent::ComboBox.shinyInput(ns("vocabulary"), label = i18n$t("vocabulary"), allowFreeform = FALSE, multiSelect = FALSE), style = "width: 200px;"),
+                  div(
+                    shiny.fluent::Dropdown.shinyInput(
+                      ns("vocabulary_dt_cols"), label = i18n$t("columns"),  multiSelect = FALSE,
+                      options = list(
+                        list(key = 0, text = i18n$t("concept_id")),
+                        list(key = 1, text = i18n$t("concept_name")),
+                        list(key = 2, text = i18n$t("domain_id")),
+                        list(key = 3, text = i18n$t("vocabulary_id")),
+                        list(key = 4, text = i18n$t("concept_class_id")),
+                        list(key = 5, text = i18n$t("standard_concept")),
+                        list(key = 6, text = i18n$t("concept_code")),
+                        list(key = 7, text = i18n$t("num_patients")),
+                        list(key = 8, text = i18n$t("num_rows")),
+                        list(key = 9, text = i18n$t("action"))
+                      ),
+                      value = c(0, 1, 2, 7, 8, 9)
+                    ), 
+                    style = "width: 200px;"
                   ),
                   div(
                     create_hover_card(

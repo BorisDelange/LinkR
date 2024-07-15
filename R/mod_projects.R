@@ -65,7 +65,7 @@ mod_projects_ui <- function(id, language, languages, i18n){
           div(
             id = ns("datasets_div"),
             div(
-              make_dropdown(i18n, ns, id = "project_dataset", label = "dataset", width = "300px"),
+              div(shiny.fluent::Dropdown.shinyInput(ns("project_dataset"), label = i18n$t("dataset")), style = "width: 300px"),
               div(
                 div(shiny.fluent::PrimaryButton.shinyInput(ns("save_datasets"), i18n$t("save"))),
                 class = "create_element_modal_buttons"

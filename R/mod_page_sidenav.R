@@ -155,9 +155,9 @@ mod_page_sidenav_ui <- function(id = character(), i18n = character()){
             )
           )
         ), br(),
-        make_combobox(i18n, ns, id = "subset", label = "subset", width = "200px"),
-        make_combobox(i18n, ns, id = "person", label = "person", allowFreeform = TRUE, autoComplete = TRUE, width = "200px"),
-        make_combobox(i18n, ns, id = "visit_detail", label = "visit_detail", width = "200px"),
+        div(shiny.fluent::ComboBox.shinyInput(ns("subset"), label = i18n$t("subset")), style = "width: 200px"),
+        div(shiny.fluent::ComboBox.shinyInput(ns("person"), label = i18n$t("person"), allowFreeform = TRUE, autoComplete = TRUE), style = "width: 200px"),
+        div(shiny.fluent::ComboBox.shinyInput(ns("visit_detail"), label = i18n$t("visit_detail")), style = "width: 200px"),
         div(id = ns("person_info_div"), uiOutput(ns("person_info")), class = "person_info")
       ),
       div(
@@ -430,7 +430,7 @@ mod_page_sidenav_ui <- function(id = character(), i18n = character()){
             div(
               div(
                 id = ns("edit_page_on_div"),
-                create_hover_card(ui = shiny.fluent::IconButton.shinyInput(ns("run_code_edit_page_on"), iconProps = list(iconName = "Edit")), text = i18n$t("edit_page")),
+                create_hover_card(ui = shiny.fluent::IconButton.shinyInput(ns("edit_page_on"), iconProps = list(iconName = "Edit")), text = i18n$t("edit_page")),
                 class = "reduced_sidenav_buttons_11"
               ),
               shinyjs::hidden(
