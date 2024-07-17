@@ -220,6 +220,7 @@ database_structure,Database structure
 db_restore_long,Restore database
 db_restore_card,Restore database
 connection_infos,Connection informations
+connection_settings,Connection settings
 app_db_request,Request database
 app_db_request_long,Request database
 request,Request
@@ -1214,3 +1215,5 @@ plugin_For,Plugin for
 edit_description,Edit description
 save_description,Save updates
 cancel_description_updates,Cancel updates
+backups,Backups
+save_settings,Save settings

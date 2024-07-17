@@ -28,6 +28,9 @@ linkr <- function(
   port = 3838
 ) {
   
+  # Set umask 002 for files creation
+  Sys.umask("002")
+  
   # Maximum size for uploaded data (4096 MB)
   # Used to restore database and import vocabularies
   # shiny.launch.browser to automatically open browser

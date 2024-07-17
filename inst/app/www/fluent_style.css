@@ -288,17 +288,13 @@ button.ms-Toggle-background {
   border-width: 4px;
   border-color: rgb(0, 120, 212);
 }
-/*.ms-ChoiceField-field::after {
-  width: 8px;
-  height: 8px;
-  left: 6px;
-  top: 6px;
-  border-width: 4px;
-  border-color: rgb(0, 120, 212);
-}*/
 
 .ms-ChoiceFieldLabel {
   font-size: 12px;
   font-weight: 600;
   padding-top: 1px;
+}
+
+.ms-ChoiceFieldGroup .ms-Label {
+  padding: 0;
 }

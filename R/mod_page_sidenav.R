@@ -27,9 +27,25 @@ mod_page_sidenav_ui <- function(id = character(), i18n = character()){
         id = ns("large_sidenav")
       ),
       div(
-        id = ns("reduced_sidenav")
+        id = ns("reduced_sidenav"),
+        div(
+          id = ns("connection_settings_reduced_sidenav"),
+          create_hover_card(ui = shiny.fluent::IconButton.shinyInput(ns("save_app_db_settings"), iconProps = list(iconName = "Save")), text = i18n$t("save_settings")),
+          shinyjs::hidden(
+            div(
+              id = ns("test_connection_div"),
+              create_hover_card(ui = shiny.fluent::IconButton.shinyInput(ns("test_connection"), iconProps = list(iconName = "Play")), text = i18n$t("test_connection"))
+            )
+          ),
+          class = "reduced_sidenav_buttons"
+        ),
+        div(
+          id = ns("request_db_reduced_sidenav"),
+          create_hover_card(ui = shiny.fluent::IconButton.shinyInput(ns("run_code"), iconProps = list(iconName = "Play")), text = i18n$t("run_code")),
+          class = "reduced_sidenav_buttons"
+        )
       ),
-      hide_sidenav
+      shinyjs::hidden(show_sidenav)
     ) -> result
   }
   

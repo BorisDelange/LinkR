@@ -434,7 +434,7 @@ mod_plugins_server <- function(id, r, d, m, language, i18n, debug){
                     onclick = "event.stopPropagation();"
                   )
                 ),
-                div(id = ns(paste0("edit_code_filename_div_", file$id)), file$short_filename)
+                create_hover_card(ui = div(id = ns(paste0("edit_code_filename_div_", file$id)), file$short_filename), text = file$filename)
               ),
               icons_div,
               onClick = htmlwidgets::JS(paste0("Shiny.setInputValue('", id, "-edit_code_selected_file', this.id, {priority: 'event'});"))

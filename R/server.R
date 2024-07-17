@@ -329,6 +329,7 @@ app_server <- function(pages, language, languages, i18n, app_folder, debug, log_
       }
       else {
         if (page == "users") args <- list(page, r, d, m, language, i18n, debug, users_accesses_toggles_options)
+        else if (page == "app_db") args <- list(page, r, d, m, language, i18n, db_col_types, app_folder, debug)
         else args <- list(page, r, d, m, language, i18n, debug)
         do.call(paste0("mod_", page, "_server"), args)
         

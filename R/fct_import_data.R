@@ -227,6 +227,9 @@ import_dataset <- function(
             table <- sub("\\.[^.]*$", "", file_name)
             file_ext <- sub(".*\\.", "", tolower(file_name))
             
+            # If no file_ext, consider it is a folder containing parquet files
+            if (file_ext == table) file_ext <- ""
+            
             # Check if this is an OMOP table
             
             if (table %in% load_tables & file_ext %in% c("parquet", "")){
@@ -342,7 +345,7 @@ import_dataset <- function(
   
   if (omop_version == "5.4"){
     data_cols$person <- c("person_id", "gender_concept_id", "year_of_birth", "month_of_birth", "day_of_birth", "birth_datetime", "race_concept_id", "ethnicity_concept_id", "location_id", "provider_id", "care_site_id", "person_source_value", "gender_source_value", "gender_source_concept_id", "race_source_value", "race_source_concept_id", "ethnicity_source_value", "ethnicity_source_concept_id")
-    data_cols$visit_detail <- c("visit_detail_id", "person_id", "visit_detail_concept_id", "visit_detail_start_date", "visit_detail_start_datetime", "visit_detail_end_date", "visit_detail_end_datetime", "visit_detail_type_concept_id", "provider_id", "care_site_id", "visit_detail_source_value", "visit_detail_source_concept_id", "admitted_from_concept_id", "admitted_from_source_value", "discharge_to_source_value", "discharge_to_concept_id", "preceding_visit_detail_id", "parent_visit_detail_id", "visit_occurrence_id")
+    data_cols$visit_detail <- c("visit_detail_id", "person_id", "visit_detail_concept_id", "visit_detail_start_date", "visit_detail_start_datetime", "visit_detail_end_date", "visit_detail_end_datetime", "visit_detail_type_concept_id", "provider_id", "care_site_id", "visit_detail_source_value", "visit_detail_source_concept_id", "admitted_from_concept_id", "admitted_from_source_value", "discharged_to_source_value", "discharged_to_concept_id", "preceding_visit_detail_id", "parent_visit_detail_id", "visit_occurrence_id")
     data_cols$observation <- c("observation_id", "person_id", "observation_concept_id", "observation_date", "observation_datetime", "observation_type_concept_id", "value_as_number", "value_as_string", "value_as_concept_id", "qualifier_concept_id", "unit_concept_id", "provider_id", "visit_occurrence_id", "visit_detail_id", "observation_source_value", "observation_source_concept_id", "unit_source_value", "qualifier_source_value", "value_source_value", "observation_event_id", "obs_event_field_concept_id")
     data_cols$location = c("location_id", "address_1", "address_2", "city", "state", "zip", "county", "location_source_value", "country_concept_id", "latitude", "longitude")
     data_cols$drug_era <- c("drug_era_id", "person_id", "drug_concept_id", "drug_era_start_date", "drug_era_end_date", "drug_exposure_count", "gap_days")

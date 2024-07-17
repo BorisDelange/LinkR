@@ -614,11 +614,10 @@ a.no-hover-effect:hover {
   width: 50%;
   border: dashed grey 1px;
   margin: 10px 0 10px 10px;
-  padding: 0px 10px;
+  padding: 10px;
   font-size: 12px;
   overflow-y: auto;
 }
-
 /* ------------------- */
 /* DATATABLES          */
 /* ------------------- */
@@ -1175,4 +1174,19 @@ td[data-type="factor"] input {
   margin-top: 10px;
   padding-top: 10px;
   font-size: 12px;
+}
+
+/* --------------------- */
+/* APP DB PAGE           */
+/* --------------------- */
+
+.app_db_connection_container, .app_db_backups_container {
+  display: flex;
+  justify-content: space-between;
+  height: calc(100% - 50px);
+}
+
+.app_db_connection_right, .app_db_backups_right, .app_db_backups_left {
+  width: 50%;
+  calc(100% - 16px)
 }

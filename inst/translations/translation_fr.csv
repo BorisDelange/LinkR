@@ -222,6 +222,7 @@ database_structure,Structure de la base de données
 db_restore_long,Restaurer la base de données
 db_restore_card,Restaurer la BDD
 connection_infos,Informations de connexion
+connection_settings,Paramètres de connexion
 app_db_request,Requêter la BDD
 app_db_request_long,Requêter la base de données
 request,Requêter
@@ -1214,3 +1215,5 @@ plugin_for,Plugin pour
 edit_description,Modifier la description
 save_description,Sauvegarder les modifications
 cancel_description_updates,Annuler les modifications
+backups,Sauvegardes
+save_settings,Sauvegarder les paramètres

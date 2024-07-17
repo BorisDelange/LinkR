@@ -10,7 +10,7 @@ app_ui <- function(pages, language, languages, i18n, users_accesses_toggles_opti
       
       args <- list(page, language, languages, i18n)
       if (page == "users") args <- list(page, language, languages, i18n, users_accesses_toggles_options)
-      if (page %in% c("data_cleaning", "datasets", "vocabularies")){
+      if (page %in% c("app_db", "data_cleaning", "datasets", "vocabularies")){
         
         code_hotkeys <- list(
           save = list(win = "CTRL-S", mac = "CTRL-S|CMD-S"),
@@ -39,23 +39,16 @@ app_ui <- function(pages, language, languages, i18n, users_accesses_toggles_opti
   
   golem::add_resource_path("www", system.file("app/www", package = "linkr"))
   
-  # Secure page with ShinyManager
-  # shinymanager::secure_app(
   tagList(
     golem_add_external_resources(),
     shiny.fluent::fluentPage(page)
-  )#,
-    # enable_admin = FALSE, language = tolower(language), fab_position = "none"
-  # )
+  )
 }
 
 #' @noRd
 golem_add_external_resources <- function(){
   
   golem::add_resource_path("www", app_sys("app/www"))
-  
-  # Marker is used to highlight some text
-  # if (require("marker")) marker_div <- marker::useMarker() else marker_div <- ""
  
   tags$head(
     golem::favicon(ext = "png"),
@@ -75,27 +68,6 @@ golem_add_external_resources <- function(){
         window.gridStackInstances = {};
       });
     ")),
-
-    # Add highlight.js
-    # tags$link(rel = "stylesheet", href = "https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.3.1/styles/tomorrow-night-blue.min.css"),
-    # tags$script(src = "https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.3.1/highlight.min.js"),
-    # tags$script(HTML("
-    #   document.addEventListener('DOMContentLoaded', function() {
-    #     var observer = new MutationObserver(function(mutations) {
-    #       mutations.forEach(function(mutation) {
-    #         if (mutation.addedNodes.length > 0) {
-    #           document.querySelectorAll('.code_highlight:not(.hljs)').forEach((block) => {
-    #             hljs.highlightElement(block);
-    #             block.classList.add('hljs'); // Ajoute une classe pour marquer que le highlight a été appliqué
-    #           });
-    #         }
-    #       });
-    #     });
-    #
-    #     var target = document.querySelector('body'); // Observez tout le body pour les changements
-    #     observer.observe(target, { childList: true, subtree: true });
-    #   });
-    # ")),
 
     # Script to make an input when a text is entered in the person ComboBox.shinyInput
     tags$script("

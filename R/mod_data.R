@@ -443,14 +443,18 @@ mod_data_server <- function(id, r, d, m, language, i18n, debug){
       req(!is.na(m$selected_subset))
       
       for(table in subset_tables){
-        if (nrow(m$subset_persons) > 0){
-          if (d[[table]] %>% dplyr::count() %>% dplyr::pull() > 0){
-            person_ids <- m$subset_persons$person_id
-            d$data_subset[[table]] <- d[[table]] %>% dplyr::filter(person_id %in% person_ids)
+        
+        # No person_id col in note_nlp table
+        if (table != "note_nlp"){
+          if (nrow(m$subset_persons) > 0){
+            if (d[[table]] %>% dplyr::count() %>% dplyr::pull() > 0){
+              person_ids <- m$subset_persons$person_id
+              d$data_subset[[table]] <- d[[table]] %>% dplyr::filter(person_id %in% person_ids)
+            }
+            else d$data_subset[[table]] <- tibble::tibble()
           }
           else d$data_subset[[table]] <- tibble::tibble()
         }
-        else d$data_subset[[table]] <- tibble::tibble()
       }
     })
     
@@ -559,7 +563,11 @@ mod_data_server <- function(id, r, d, m, language, i18n, debug){
         if (nrow(m$subset_persons) > 0 & d$person %>% dplyr::count() %>% dplyr::pull() > 0){
           person_ids <- m$subset_persons$person_id
           
-          persons <- d$person %>% dplyr::filter(person_id %in% person_ids) %>% dplyr::collect() %>%
+          persons <-
+            d$person %>% 
+            dplyr::mutate_at("person_id", as.integer) %>%
+            dplyr::filter(person_id %in% person_ids) %>% 
+            dplyr::collect() %>%
             dplyr::left_join(d$dataset_all_concepts %>% dplyr::filter(is.na(relationship_id)) %>% dplyr::select(gender_concept_id = concept_id_1, gender_concept_name = concept_name_1), by = "gender_concept_id")
         }
         
@@ -634,7 +642,10 @@ mod_data_server <- function(id, r, d, m, language, i18n, debug){
         }
         if (length(input$person$key) > 0){
           person_key <- input$person$key
-          person <- d$person %>% dplyr::filter(person_id == person_key) %>% dplyr::collect() %>%
+          person <- 
+            d$person %>%
+            dplyr::mutate_at("person_id", as.integer) %>%
+            dplyr::filter(person_id == person_key) %>% dplyr::collect() %>%
             dplyr::left_join(d$dataset_all_concepts %>% dplyr::filter(is.na(relationship_id)) %>% dplyr::select(gender_concept_id = concept_id_1, gender_concept_name = concept_name_1), by = "gender_concept_id") %>%
             dplyr::mutate(name_display = paste0(person_id, " - ", gender_concept_name))
         }
@@ -658,7 +669,7 @@ mod_data_server <- function(id, r, d, m, language, i18n, debug){
         
         if (!no_stay_available){
           
-          visit_detail <- d$visit_detail %>% dplyr::filter(person_id == !!person_id)
+          visit_detail <- d$visit_detail %>% dplyr::mutate_at("person_id", as.integer) %>% dplyr::filter(person_id == !!person_id)
           
           if (m$omop_version %in% c("5.4", "6.0")) visit_detail <- visit_detail %>% dplyr::filter(is.na(parent_visit_detail_id))
           else visit_detail <- visit_detail %>% dplyr::filter(is.na(visit_detail_parent_id))
@@ -730,11 +741,19 @@ mod_data_server <- function(id, r, d, m, language, i18n, debug){
         style <- "display:inline-block; width:80px; font-weight:bold;"
         
         person_id <- m$selected_person
-        person <- d$person %>% dplyr::filter(person_id == !!person_id) %>% dplyr::collect() %>%
+        person <- 
+          d$person %>%
+          dplyr::mutate_at("person_id", as.integer) %>%
+          dplyr::filter(person_id == !!person_id) %>% 
+          dplyr::collect() %>%
           dplyr::left_join(d$dataset_all_concepts %>% dplyr::filter(is.na(relationship_id)) %>% dplyr::select(gender_concept_id = concept_id_1, gender_concept_name = concept_name_1), by = "gender_concept_id")
         
         visit_detail_id <- input$visit_detail$key
-        visit_detail <- d$visit_detail %>% dplyr::filter(visit_detail_id == !!visit_detail_id) %>% dplyr::collect() %>%
+        visit_detail <- 
+          d$visit_detail %>% 
+          dplyr::mutate_at("visit_detail_id", as.integer) %>%
+          dplyr::filter(visit_detail_id == !!visit_detail_id) %>% 
+          dplyr::collect() %>%
           dplyr::left_join(d$dataset_all_concepts %>% dplyr::filter(is.na(relationship_id)) %>% dplyr::select(visit_detail_concept_id = concept_id_1, visit_detail_concept_name = concept_name_1), by = "visit_detail_concept_id")
         
         if (!is.na(person$birth_datetime)) age <- lubridate::interval(person$birth_datetime, visit_detail$visit_detail_start_datetime) / lubridate::years(1)
@@ -757,15 +776,15 @@ mod_data_server <- function(id, r, d, m, language, i18n, debug){
             span(i18n$t("from"), style = style), visit_detail$visit_detail_start_datetime %>% format_datetime(language), br(),
             span(i18n$t("to"), style = style), visit_detail$visit_detail_end_datetime %>% format_datetime(language))
         })
+        
+        sapply(visit_detail_tables, function(table) d$data_visit_detail[[table]] <- tibble::tibble())
+        
+        if (length(m$selected_visit_detail) > 0){
+          selected_visit_detail <- m$selected_visit_detail
+          for(table in visit_detail_tables) if (d$data_person[[table]] %>% dplyr::count() %>% dplyr::pull() > 0) d$data_visit_detail[[table]] <- 
+              d$data_person[[table]] %>% dplyr::filter(visit_detail_id == selected_visit_detail)
+        }
       })
-      
-      sapply(visit_detail_tables, function(table) d$data_visit_detail[[table]] <- tibble::tibble())
-      
-      if (length(m$selected_visit_detail) > 0){
-        selected_visit_detail <- m$selected_visit_detail
-        for(table in visit_detail_tables) if (d$data_person[[table]] %>% dplyr::count() %>% dplyr::pull() > 0) d$data_visit_detail[[table]] <- 
-          d$data_person[[table]] %>% dplyr::filter(visit_detail_id == selected_visit_detail)
-      }
       
       # --- --- --- --- -- -
       # Other dropdowns ----
