@@ -1,5 +1,5 @@
 #' @noRd
-app_server <- function(pages, language, languages, i18n, app_folder, debug, log_file, local, users_accesses_toggles_options){
+app_server <- function(pages, language, languages, i18n, app_folder, debug, log_file, local, users_accesses_toggles_options, db_col_types){
   function(input, output, session ) {
     
     if (debug) cat(paste0("\n", now(), " - server - init"))
@@ -52,49 +52,6 @@ app_server <- function(pages, language, languages, i18n, app_folder, debug, log_
     r$app_version <- "0.3.0.9012"
     
     # Databse col types ----
-    
-    # Col types of database tables, to import and restore database
-    db_col_types <- tibble::tribble(
-      ~table, ~col_types, ~db,
-      "users", "icccciicl", "main",
-      "users_accesses", "icccl", "main",
-      "users_statuses", "icccl", "main",
-      "datasets", "iciiccl", "main",
-      "studies", "iciiiiccl", "main",
-      "plugins", "iciccl", "main",
-      "scripts", "icccl", "main",
-      "tabs_groups", "icccicl", "main",
-      "tabs", "iccciiiicl", "main",
-      "widgets", "icciiiicl", "main",
-      "code", "icicicl", "main",
-      "options", "iciccnicl", "main",
-      "messages", "iiicccicl", "main",
-      "conversations", "iccl", "main",
-      "user_deleted_conversations", "iiic", "main",
-      "inbox_messages", "iiilcl", "main",
-      "log", "icccic", "main",
-      "git_repos", "icccccicl", "main",
-      "persons_options", "iiiiiiciccnicl", "public",
-      "widgets_options", "iiiicccnicl", "public",
-      "subsets", "icciicl", "public",
-      "options", "iciccnicl", "public",
-      "code", "icicicl", "public",
-      "subset_persons", "iiiicl", "public",
-      "concept", "iiccccccccc", "public",
-      "concept_dataset", "iiciiii", "public",
-      "concept_user", "iiiccc", "public",
-      "vocabulary", "icccciciiccl", "public",
-      "domain", "icci", "public",
-      "concept_class", "icci", "public",
-      "concept_relationship", "iiicccc", "public",
-      "concept_relationship_user", "iicic", "public",
-      "concept_relationship_evals", "iiicc", "public",
-      "relationship", "iccccci", "public",
-      "concept_synonym", "iici", "public",
-      "concept_ancestor", "iiiii", "public",
-      "drug_strength", "iiinininiiccc", "public",
-      "widgets_concepts", "iiicccilicl", "public"
-    )
     
     # Test internet connection ----
     # If local is TRUE, don't use internet connection

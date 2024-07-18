@@ -1217,3 +1217,5 @@ save_description,Sauvegarder les modifications
 cancel_description_updates,Annuler les modifications
 backups,Sauvegardes
 save_settings,Sauvegarder les paramètres
+unselect_all_tables,Désélectionner toutes les tables
+select_all_tables,Sélectionner toutes les tables

@@ -1,6 +1,6 @@
 #' @import shiny
 #' @noRd
-app_ui <- function(pages, language, languages, i18n, users_accesses_toggles_options, debug) {
+app_ui <- function(pages, language, languages, i18n, users_accesses_toggles_options, db_col_types, debug) {
   
   do.call(shiny.router::router_ui,
     lapply(pages, function(page_url){
@@ -8,19 +8,18 @@ app_ui <- function(pages, language, languages, i18n, users_accesses_toggles_opti
       
       if (page_url == "/") page <- "home" else page <- page_url
       
+      code_hotkeys <- list(
+        save = list(win = "CTRL-S", mac = "CTRL-S|CMD-S"),
+        run_selection = list(win = "CTRL-ENTER", mac = "CTRL-ENTER|CMD-ENTER"),
+        run_all = list(win = "CTRL-SHIFT-ENTER", mac = "CTRL-SHIFT-ENTER|CMD-SHIFT-ENTER"),
+        comment = list(win = "CTRL-SHIFT-C", mac = "CTRL-SHIFT-C|CMD-SHIFT-C")
+      )
+      
       args <- list(page, language, languages, i18n)
+      
       if (page == "users") args <- list(page, language, languages, i18n, users_accesses_toggles_options)
-      if (page %in% c("app_db", "data_cleaning", "datasets", "vocabularies")){
-        
-        code_hotkeys <- list(
-          save = list(win = "CTRL-S", mac = "CTRL-S|CMD-S"),
-          run_selection = list(win = "CTRL-ENTER", mac = "CTRL-ENTER|CMD-ENTER"),
-          run_all = list(win = "CTRL-SHIFT-ENTER", mac = "CTRL-SHIFT-ENTER|CMD-SHIFT-ENTER"),
-          comment = list(win = "CTRL-SHIFT-C", mac = "CTRL-SHIFT-C|CMD-SHIFT-C")
-        )
-        
-        args <- list(page, language, languages, i18n, code_hotkeys)
-      }
+      else if (page == "app_db") args <- list(page, language, languages, i18n, code_hotkeys, db_col_types)
+      else if (page %in% c("data_cleaning", "datasets", "vocabularies")) args <- list(page, language, languages, i18n, code_hotkeys)
       
       shiny.router::route(page_url,
         div(

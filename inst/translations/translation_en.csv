@@ -1217,3 +1217,5 @@ save_description,Save updates
 cancel_description_updates,Cancel updates
 backups,Backups
 save_settings,Save settings
+unselect_all_tables,Unselect all tables
+select_all_tables,Select all tables

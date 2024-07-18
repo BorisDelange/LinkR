@@ -1,5 +1,5 @@
 #' @noRd 
-mod_app_db_ui <- function(id, language, languages, i18n, code_hotkeys){
+mod_app_db_ui <- function(id, language, languages, i18n, code_hotkeys, db_col_types){
   ns <- NS(id)
   
   pivot_item_js <- paste0("
@@ -110,6 +110,52 @@ mod_app_db_ui <- function(id, language, languages, i18n, code_hotkeys){
         div(
           div(
             tags$h1(i18n$t("export_db")),
+            div(uiOutput(ns("last_db_save")), style = "margin-top: 15px;"), br(),
+            div(
+              div(
+                shiny.fluent::Dropdown.shinyInput(
+                  ns("main_tables_to_export"), label = i18n$t("main_tables_to_export"), multiSelect = TRUE,
+                  options = db_col_types %>% dplyr::filter(db == "main") %>% convert_tibble_to_list(key_col = "table", text_col = "table"),
+                  value = db_col_types %>% dplyr::filter(db == "main" & table != "log") %>% dplyr::pull(table)
+                ),
+                style = "width: 200px;"
+              ),
+              div(
+                create_hover_card(ui = shiny.fluent::IconButton.shinyInput(ns("check_all_main_tables"), iconProps = list(iconName = "CheckboxComposite")), text = i18n$t("select_all_tables")),
+                create_hover_card(ui = shiny.fluent::IconButton.shinyInput(ns("uncheck_all_main_tables"), iconProps = list(iconName = "Checkbox")), text = i18n$t("unselect_all_tables")),
+                style = "margin: 27px 0 0 5px; display: flex;"
+              ),
+              class = "small_icon_button",
+              style = "display: flex;"
+            ),
+            div(
+              div(
+                shiny.fluent::Dropdown.shinyInput(
+                  ns("public_tables_to_export"), label = i18n$t("public_tables_to_export"), multiSelect = TRUE,
+                  options = db_col_types %>% dplyr::filter(db == "public") %>% convert_tibble_to_list(key_col = "table", text_col = "table"),
+                  value = db_col_types %>% 
+                    dplyr::filter(db == "public" & table %not_in% c(
+                      "concept", "concept_dataset", "concept_user", "domain", "concept_class", 
+                      "concept_relationship", "concept_relationship_user", "concept_relationship_evals",
+                      "relationship", "concept_synonym", "concept_ancestor", "drug_strength"
+                    )) %>% 
+                    dplyr::pull(table)
+                ),
+                style = "width: 200px;"
+              ),
+              div(
+                create_hover_card(ui = shiny.fluent::IconButton.shinyInput(ns("check_all_public_tables"), iconProps = list(iconName = "CheckboxComposite")), text = i18n$t("select_all_tables")),
+                create_hover_card(ui = shiny.fluent::IconButton.shinyInput(ns("uncheck_all_public_tables"), iconProps = list(iconName = "Checkbox")), text = i18n$t("unselect_all_tables")),
+                style = "margin: 27px 0 0 5px; display: flex;"
+              ),
+              class = "small_icon_button",
+              style = "display: flex;"
+            ),
+            div(
+              div(style = "visibility:hidden;", downloadButton(ns("db_save"))),
+              shiny.fluent::PrimaryButton.shinyInput(ns("export_db"), i18n$t("export_db"), iconProps = list(iconName = "Download")),
+              class = "export_db_buttons"
+            ),
             class = "widget", style = "min-height: 50%; padding-top: 1px; padding: 1px 15px 15px 15px;"
           ),
           class = "app_db_backups_left"
@@ -334,6 +380,114 @@ mod_app_db_server <- function(id, r, d, m, language, i18n, db_col_types, app_fol
     # Backups ----
     
     ## Download db ----
+    
+    ### Check / uncheck tables
+    
+    observeEvent(input$check_all_main_tables, {
+      if (debug) cat(paste0("\n", now(), " - mod_app_db - observer input$check_all_main_tables"))
+      shiny.fluent::updateDropdown.shinyInput(session, "main_tables_to_export", value = db_col_types %>% dplyr::filter(db == "main") %>% dplyr::pull(table))
+    })
+    
+    observeEvent(input$uncheck_all_main_tables, {
+      if (debug) cat(paste0("\n", now(), " - mod_app_db - observer input$uncheck_all_main_tables"))
+      shiny.fluent::updateDropdown.shinyInput(session, "main_tables_to_export", value = NULL)
+    })
+    
+    observeEvent(input$check_all_public_tables, {
+      if (debug) cat(paste0("\n", now(), " - mod_app_db - observer input$check_all_public_tables"))
+      shiny.fluent::updateDropdown.shinyInput(session, "public_tables_to_export", value = db_col_types %>% dplyr::filter(db == "public") %>% dplyr::pull(table))
+    })
+    
+    observeEvent(input$uncheck_all_public_tables, {
+      if (debug) cat(paste0("\n", now(), " - mod_app_db - observer input$uncheck_all_public_tables"))
+      shiny.fluent::updateDropdown.shinyInput(session, "public_tables_to_export", value = NULL)
+    })
+    
+    ### Export button is clicked
+    
+    observeEvent(input$export_db, {
+      if (debug) cat(paste0("\n", now(), " - mod_app_db - observer input$export_db"))
+      
+      req(length(input$main_tables_to_export) > 0 | length(input$public_tables_to_export))
+      
+      last_save <- DBI::dbGetQuery(r$db, "SELECT * FROM options WHERE category = 'last_db_save' AND name = 'last_db_save'")
+      
+      if (nrow(last_save) == 0){
+        
+        # Insert last time row
+        last_row <- get_last_row(r$db, "options")
+        new_data <- tibble::tribble(
+          id = as.integer(last_row + 1), category = "last_db_save", link_id = NA_integer_, name = "last_db_save", value = now(),
+          value_num = NA_real_, creator_id = r$user_id, datetime = now(), deleted = FALSE
+        )
+        DBI::dbAppendTable(r$db, "options", new_data)
+      }
+      
+      else {
+        sql <- glue::glue_sql("UPDATE options SET value = {now()}, datetime = {now()} WHERE category = 'last_db_save' AND name = 'last_db_save'", .con = r$db)
+        sql_send_statement(r$db, sql)
+      }
+      
+      shinyjs::click("db_save")
+      
+      shinyjs::runjs(paste0("Shiny.setInputValue('", id, "-reload_last_db_save', Math.random());"))
+    })
+    
+    ### Download zip file
+    
+    output$db_save <- downloadHandler(
+      filename = function() paste0("linkr_db_backup_", now() %>% as.character() %>% stringr::str_replace_all(" |:|-", "_"), ".zip"),
+      
+      content = function(file){
+        
+        if (debug) cat(paste0("\n", now(), " - mod_app_db - output$db_save"))
+        
+        owd <- setwd(tempdir())
+        on.exit(setwd(owd))
+        
+        files <- NULL
+        
+        db_list <- c("main", "public")
+        
+        for (db in db_list){
+          
+          tables <- input[[paste0(db, "_tables_to_export")]]
+          
+          if (db == "main") con <- r$db
+          if (db == "public") con <- m$db
+          
+          if (length(tables) > 0){
+            for (table in tables){
+              file_name <- paste0(table, ".csv")
+              readr::write_csv(DBI::dbGetQuery(con, paste0("SELECT * FROM ", table)), file_name)
+              files <- c(file_name, files)
+            }
+          }
+        }
+        
+        # XML file for app version
+        
+        xml <- XML::newXMLDoc()
+        db_node <- XML::newXMLNode("db", doc = xml)
+        XML::newXMLNode("app_version", r$app_version, parent = db_node)
+        XML::saveXML(xml, file = "db_info.xml")
+        files <- c("db_info.xml", files)
+        
+        zip::zipr(file, files, include_directories = FALSE)
+      }
+    )
+    
+    ### Update last db save field
+    
+    shinyjs::runjs(paste0("Shiny.setInputValue('", id, "-reload_last_db_save', Math.random());"))
+    
+    observeEvent(input$reload_last_db_save, {
+      if (debug) cat(paste0("\n", now(), " - mod_app_db - observer input$reload_last_db_save"))
+      
+      last_save <- DBI::dbGetQuery(r$db, "SELECT * FROM options WHERE category = 'last_db_save' AND name = 'last_db_save'")
+      
+      if (nrow(last_save) > 0) output$last_db_save <- renderUI(tagList(strong(i18n$t("last_db_save")), " : ", last_save %>% dplyr::pull(value)))
+    })
     
     ## Restore db ----
     
