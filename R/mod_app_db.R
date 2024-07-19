@@ -486,7 +486,10 @@ mod_app_db_server <- function(id, r, d, m, language, i18n, db_col_types, app_fol
       
       last_save <- DBI::dbGetQuery(r$db, "SELECT * FROM options WHERE category = 'last_db_save' AND name = 'last_db_save'")
       
-      if (nrow(last_save) > 0) output$last_db_save <- renderUI(tagList(strong(i18n$t("last_db_save")), " : ", last_save %>% dplyr::pull(value)))
+      if (nrow(last_save) > 0){
+        last_save_datetime <- format_datetime(last_save %>% dplyr::pull(value), language = "fr", sec = FALSE)
+        output$last_db_save <- renderUI(tagList(strong(i18n$t("last_db_save")), " : ", last_save_datetime))
+      }
     })
     
     ## Restore db ----

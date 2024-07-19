@@ -20,12 +20,18 @@ create_gridstack_instance <- function(id, tab_id){
 }
 
 #' @noRd
-create_widget <- function(id, widget_id, ui_code){
+create_widget <- function(id, widget_id, ui_code, w = 6, h = 4, x = 0, y = 0){
   ns <- NS(id)
+  
+  if (is.na(w) | w == 0) w <- 6
+  if (is.na(h) | h == 0) h <- 4
+  if (is.na(x)) x <- 0
+  if (is.na(y)) y <- 0
   
   div(
     id = ns(paste0(id, "_gridstack_item_", widget_id)),
     class = "grid-stack-item",
+    `gs-w` = w, `gs-h` = h, `gs-x` = x, `gs-y` = y,
     div(
       class = "grid-stack-item-content",
       div(
@@ -80,7 +86,7 @@ add_widget_to_gridstack <- function(id, tab_id, ui_output, widget_id, previous_w
         ", delete_previous_widget, "
         
         // Add new widget
-        grid.addWidget(`", ui_output, "`, {w: 6, h: 4});
+        grid.addWidget(`", ui_output, "`);
         
         // Load react components
         $(document).on('shiny:idle', function(event) {

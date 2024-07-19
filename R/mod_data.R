@@ -1655,6 +1655,28 @@ mod_data_server <- function(id, r, d, m, language, i18n, debug){
     observeEvent(input$edit_page_off, {
       if (debug) cat(paste0("\n", now(), " - mod_data - observer input$edit_page_off"))
       
+      # Save each widget position
+      data_widgets <- r$data_widgets %>% dplyr::filter(tab_id == r[[paste0(r$data_page, "_selected_tab")]])
+      for (i in 1:nrow(data_widgets)){
+        
+        data_widget <- data_widgets[i, ]
+        
+        shinyjs::runjs(paste0(
+          "var widget = document.getElementById('", id, "-data_gridstack_item_", data_widget$id, "');",
+          "if (widget) {",
+          "  var widgetPosition = {",
+          "    id: ", data_widget$id, ",",
+          "    w: widget.getAttribute('gs-w'),",
+          "    h: widget.getAttribute('gs-h'),",
+          "    x: widget.getAttribute('gs-x'),",
+          "    y: widget.getAttribute('gs-y')",
+          "  }",
+          "};",
+          "Shiny.setInputValue('", id, "-widget_position', widgetPosition);",
+          "Shiny.setInputValue('", id, "-widget_position_trigger', Math.random());"
+        ))
+      }
+      
       # Disable gridstack edition
       sapply(gsub("gridstack_", "", r$data_grids, fixed = FALSE), function(tab_id) shinyjs::runjs(paste0("
         const grid = window.gridStackInstances['", tab_id, "'];
@@ -1677,6 +1699,36 @@ mod_data_server <- function(id, r, d, m, language, i18n, debug){
       
       # Prevent a bug with scroll into ace editor
       shinyjs::runjs("var event = new Event('resize'); window.dispatchEvent(event);")
+    })
+    
+    # Save each widget position
+    observeEvent(input$widget_position_trigger, {
+      if (debug) cat(paste0("\n", now(), " - mod_data - observer input$widget_position_trigger"))
+      
+      widget <- input$widget_position
+      
+      widget_position <- ""
+      for (pos in c("w", "h", "x", "y")){
+        if (length(widget[[pos]]) == 0) widget_pos <- 1
+        else widget_pos <- widget[[pos]]
+        widget_position <- paste0(widget_position, pos, "=", widget_pos, ";")
+      }
+      
+      # Check if this data is already registred
+      sql <- glue::glue_sql("SELECT * FROM widgets_options WHERE widget_id = {widget$id} AND category = 'widget_position'", .con = m$db)
+      
+      if (nrow(DBI::dbGetQuery(m$db, sql)) > 0){
+        sql <- glue::glue_sql("UPDATE widgets_options SET value = {widget_position} WHERE widget_id = {widget$id} AND category = 'widget_position'", .con = m$db)
+        sql_send_statement(m$db, sql)
+      }
+      else {
+        new_data <- tibble::tibble(
+          id =  get_last_row(m$db, "widgets_options") + 1, widget_id = widget$id, person_id = NA_integer_, link_id = NA_integer_,
+          category = "widget_position", name = NA_character_, value = widget_position, value_num = NA_integer_,
+          creator_id = r$user_id, datetime = now(), deleted = FALSE
+        )
+        DBI::dbAppendTable(m$db, "widgets_options", new_data)
+      }
     })
     
     # |-------------------------------- -----
@@ -1834,8 +1886,15 @@ mod_data_server <- function(id, r, d, m, language, i18n, debug){
               }
             )
           }
-
-          ui_output <- create_widget(id, widget_id, ui_code)
+          
+          # Get widget position
+          sql <- glue::glue_sql("SELECT value FROM widgets_options WHERE widget_id = {widget_id} AND category = 'widget_position'", .con = m$db)
+          widget_position <- DBI::dbGetQuery(m$db, sql) %>% dplyr::pull(value)
+          matches <- stringr::str_match(widget_position, "w=(\\d+);h=(\\d+);x=(\\d+);y=(\\d+)")
+          widget_pos <- list(w = as.integer(matches[2]), h = as.integer(matches[3]), x = as.integer(matches[4]), y = as.integer(matches[5]))
+          
+          ui_output <- create_widget(id, widget_id, ui_code, w = widget_pos$w, h = widget_pos$h, x = widget_pos$x, y = widget_pos$y)
+          
           add_widget_to_gridstack(id, tab_id, ui_output, widget_id)
           output[[paste0("ui_", widget_id)]] <- renderUI(ui_code)
           output[[paste0("edit_buttons_", widget_id)]] <- renderUI(get_widget_edit_buttons(id, widget_id))
