@@ -1,46 +1,13 @@
-#' Check user authentification
-#' 
-#' @description Check user authentification using shinymanager library
-#' @param db A DBI database connection object
-# check_authentification <- function(db){
-#   function(user, password) {
-#     
-#     password <- rlang::hash(password)
-#     
-#     res <- DBI::dbGetQuery(db, paste0("SELECT * FROM users WHERE username = '", user, "' AND password = '", password, "' AND deleted IS FALSE"))
-#     
-#     if (nrow(res) > 0) list(result = TRUE, user_info = list(user = user, id = res$id))
-#     else list(result = FALSE)
-#   }
-# }
-
-#' Create a new table
-#' 
-#' @description Create a new table in the database
-#' @details The distinct constraints can be combined (a column can have a constraint UNIQUE and NOT NULL)
-#' 
-#' @param db A DBI database connection object
-#' @param table_name Name of the new table in the database (character)
-#' @param dataframe Dataframe with table informations (columns names & type of value) (dataframe / tibble)
-#' @param dbms Database management system used ("postgres" and "sqlite" supported) (character)
-#' @param primary_key_col Character vector containing the primary key columns, to create a PRIMARY KEY constraint (character)
-#' @param unique_cols Character vector containing the columns with a UNIQUE contraint (character)
-#' @param not_null_cols Character vector containing the columns with a NOT NULL constraint (character)
-#' @param text_cols Character vector containing the text columns, to create a column with TEXT type in postgres DBMS (character)
-#' @examples 
-#' \dontrun{
-#' db_create_table(db = db, "my_new_table", tibble::tibble(id = integer(), name = character()), dbms = "postgres",
-#'   primary_key_col = "id")
-#' }
-db_create_table <- function(db, table_name = character(), dataframe = tibble::tibble(), dbms = character(), 
-  primary_key_col = character(), unique_cols = character(), not_null_cols = character(), text_cols = character()){
-  if (table_name %not_in% DBI::dbListTables(db)){
+#' @noRd
+db_create_table <- function(db, table, dbms, empty_tibble, primary_key_col, text_cols, unique_cols = character(), not_null_cols = character()){
+  
+  if (table %not_in% DBI::dbListTables(db)){
     
     sql <- ""
     
-    for (i in 1:ncol(dataframe)){
-      col_class <- dataframe[, i] %>% dplyr::pull() %>% class()
-      col_name <- colnames(dataframe[, i])
+    for (i in 1:ncol(empty_tibble)){
+      col_class <- empty_tibble[, i] %>% dplyr::pull() %>% class()
+      col_name <- colnames(empty_tibble[, i])
       
       if (dbms == "postgres"){
         if (col_name %in% text_cols) col_type <- "TEXT"
@@ -58,240 +25,58 @@ db_create_table <- function(db, table_name = character(), dataframe = tibble::ti
       else sql <- paste0(sql, ", ", col_name, " ", col_type, primary_key_constraint, unique_constraint, not_null_constraint)
     }
     
-    sql <- glue::glue_sql("CREATE TABLE {`table_name`} (", sql, ")", .con = db)
+    sql <- glue::glue_sql("CREATE TABLE {`table`} (", sql, ")", .con = db)
     query <- DBI::dbSendStatement(db, sql)
     DBI::dbClearResult(query)
   }
 }
 
-#' Create tables
-#' 
-#' @description Create all the tables used in the application.
-#' @param db A DBI database connection object
-#' @param dbms Database management system used ("postgres" and "sqlite" supported) (character)
-#' @examples 
-#' \dontrun{
-#' db_create_tables(db = db, dbms = "postgres")
-#' }
-db_create_tables <- function(db, type = character(), dbms = character()){
+#' @noRd
+db_create_tables <- function(db, type, dbms, db_col_types){
   
   # Create tables if does not exist
   
   # Type = main for main database
   # Type = public for plugins / tabs database
   
-  # Don't forget to add table characteristics in mod_settings_app_database when you add a new table
-  # (for import database)
-  
-  if (type == "main"){
-    # In table users, create an admin user
-    db_create_table(db, "users", primary_key_col = "id", dbms = dbms,
-      tibble::tibble(id = integer(), username = character(), firstname = character(), lastname = character(), password = character(),
-        user_access_id = integer(), user_status_id = integer(), datetime = character(), deleted = logical()))
+  for (type in c("main", "public")){
     
-    db_create_table(db, "users_accesses", primary_key_col = "id", dbms = dbms,
-      tibble::tibble(id = integer(), name = character(), description = character(),
-        datetime = character(), deleted = logical()))
+    tables <- db_col_types %>% dplyr::filter(db == type) %>% dplyr::pull(table)
     
-    db_create_table(db, "users_statuses", primary_key_col = "id", dbms = dbms,
-      tibble::tibble(id = integer(), name = character(), description = character(),
-        datetime = character(), deleted = logical()))
-    
-    db_create_table(db, "datasets", primary_key_col = "id", dbms = dbms, text_cols = "description",
-      tibble::tibble(id = integer(), name = character(), data_source_id = integer(), creator_id = integer(),
-        creation_datetime = character(), update_datetime = character(), deleted = logical()))
-    
-    db_create_table(db, "studies", primary_key_col = "id", dbms = dbms, text_cols = "description",
-      tibble::tibble(id = integer(), name = character(), dataset_id = integer(),
-        patient_lvl_tab_group_id = integer(), aggregated_tab_group_id = integer(), creator_id = integer(),
-        creation_datetime = character(), update_datetime = character(), deleted = logical()))
-    
-    db_create_table(db, "plugins", primary_key_col = "id", dbms = dbms, text_cols = "description",
-      tibble::tibble(id = integer(), name = character(), tab_type_id = integer(), 
-        creation_datetime = character(), update_datetime = character(), deleted = logical()))
-    
-    db_create_table(db, "scripts", primary_key_col = "id", dbms = dbms,
-      tibble::tibble(id = integer(), name = character(),
-        creation_datetime = character(), update_datetime = character(), deleted = logical()))
-    
-    db_create_table(db, "tabs_groups", primary_key_col = "id", dbms = dbms, text_cols = "description",
-      tibble::tibble(id = integer(), category = character(), name = character(), description = character(), 
-        creator_id = integer(), datetime = character(), deleted = logical()))
-    
-    db_create_table(db, "tabs", primary_key_col = "id", dbms = dbms, text_cols = "description",
-      tibble::tibble(id = integer(), category = character(), name = character(), description = character(), 
-        tab_group_id = integer(), parent_tab_id = integer(), display_order = integer(), creator_id = integer(), datetime = character(), deleted = logical()))
-    
-    db_create_table(db, "widgets", primary_key_col = "id", dbms = dbms,
-      tibble::tibble(id = integer(), category = character(), name = character(), tab_id = integer(), plugin_id = integer(), 
-        display_order = integer(), creator_id = integer(), datetime = character(), deleted = logical()))
-    
-    db_create_table(db, "code", primary_key_col = "id", dbms = dbms, text_cols = "code",
-      tibble::tibble(id = integer(), category = character(), link_id = integer(), code = character(), creator_id = integer(),
-        datetime = character(), deleted = logical()))
-    
-    db_create_table(db, "options", primary_key_col = "id", dbms = dbms, text_cols = "value",
-      tibble::tibble(id = integer(), category = character(), link_id = integer(), name = character(), value = character(),
-        value_num = numeric(), creator_id = integer(), datetime = character(), deleted = logical()))
-    
-    db_create_table(db, "messages", primary_key_col = "id", dbms = dbms, text_cols = c("message", "filepath"),
-      tibble::tibble(id = integer(), conversation_id = integer(), study_id = integer(), category = character(), 
-        message = character(), filepath = character(), creator_id = integer(), datetime = character(), deleted = logical()))
-    
-    db_create_table(db, "conversations", primary_key_col = "id", dbms = dbms, text_cols = "name",
-      tibble::tibble(id = integer(), name = character(), datetime = character(), deleted = logical()))
-    
-    db_create_table(db, "user_deleted_conversations", primary_key_col = "id", dbms = dbms, text_cols = "name",
-      tibble::tibble(id = integer(), conversation_id = integer(), user_id = integer(), datetime = character()))
-    
-    db_create_table(db, "inbox_messages", primary_key_col = "id", dbms = dbms,
-      tibble::tibble(id = integer(), message_id = integer(), receiver_id = integer(), read = logical(), 
-        datetime = character(), deleted = logical()))
-    
-    db_create_table(db, "log", primary_key_col = "id", dbms = dbms, text_cols = "value",
-      tibble::tibble(id = integer(), category = character(), name = character(), value = character(), creator_id = integer(), datetime = character()))
-    
-    db_create_table(db, "git_repos", primary_key_col = "id", dbms = dbms, text_cols = c("description", "link"),
-      tibble::tibble(id = integer(), unique_id = character(), name = character(), api_key = character(),
-        repo_url_address = character(), raw_files_url_address = character(), creator_id = integer(), datetime = character(), deleted = logical()))
-  }
-  
-  if (type == "public"){
-    
-    db_create_table(db, "persons_options", primary_key_col = "id", dbms = dbms, text_cols = "value",
-      tibble::tibble(id = integer(), dataset_id = integer(), study_id = integer(), subset_id = integer(), person_id = integer(), visit_detail_id = integer(),
-        category = character(), link_id = integer(), name = character(), value = character(), value_num = numeric(), 
-        creator_id = integer(), datetime = character(), deleted = logical()))
-    
-    db_create_table(db, "widgets_options", primary_key_col = "id", dbms = dbms, text_cols = "value",
-      tibble::tibble(id = integer(), widget_id = integer(), person_id = integer(), link_id = integer(),
-        category = character(), name = character(), value = character(), value_num = numeric(),
-        creator_id = integer(), datetime = character(), deleted = logical()))
-    
-    db_create_table(db, "options", primary_key_col = "id", dbms = dbms, text_cols = "value",
-      tibble::tibble(id = integer(), category = character(), link_id = integer(), name = character(), value = character(),
-      value_num = numeric(), creator_id = integer(), datetime = character(), deleted = logical()))
-    
-    db_create_table(db, "code", primary_key_col = "id", dbms = dbms, text_cols = "code",
-      tibble::tibble(id = integer(), category = character(), link_id = integer(), code = character(), creator_id = integer(),
-      datetime = character(), deleted = logical()))
-    
-    db_create_table(db, "subsets", primary_key_col = "id", dbms = dbms, text_cols = "description",
-      tibble::tibble(id = integer(), name = character(), description = character(), study_id = integer(), creator_id = integer(),
-        datetime = character(), deleted = logical()))
-    
-    db_create_table(db, "subset_persons", primary_key_col = "id", dbms = dbms,
-      tibble::tibble(id = integer(), subset_id = integer(), person_id = integer(), creator_id = integer(), datetime = character(), deleted = logical()))
-    
-    db_create_table(db, "concept", primary_key_col = "id", dbms = dbms, 
-      tibble::tibble(id = integer(), concept_id = integer(), concept_name = character(), domain_id = character(), vocabulary_id = character(),
-        concept_class_id = character(), standard_concept = character(), concept_code = character(), valid_start_date = character(),
-        valid_end_date = character(), invalid_reason = character()))
-    
-    db_create_table(db, "concept_dataset", primary_key_col = "id", dbms = dbms,
-      tibble::tibble(id = integer(), concept_id = integer(), vocabulary_id = character(), dataset_id = integer(), 
-        count_persons_rows = integer(), count_concepts_rows = integer(), count_secondary_concepts_rows = integer()))
-    
-    db_create_table(db, "concept_user", primary_key_col = "id", dbms = dbms, text_cols = c("name", "display_name"),
-      tibble::tibble(id = integer(), user_id = integer(), concept_id = integer(), concept_name = character(), concept_display_name = character(),
-        vocabulary_id = character()))
-    
-    db_create_table(db, "vocabulary", primary_key_col = "id", dbms = dbms,
-      tibble::tibble(id = integer(), vocabulary_id = character(), vocabulary_name = character(), 
-        vocabulary_reference = character(), vocabulary_version = character(), vocabulary_concept_id = integer(), data_source_id = character(), 
-        display_order = integer(), creator_id = integer(), creation_datetime = character(), update_datetime = character(), deleted = logical()))
-    
-    db_create_table(db, "domain", primary_key_col = "id", dbms = dbms,
-      tibble::tibble(id = integer(), domain_id = character(), domain_name = character(), domain_concept_id = integer()))
-    
-    db_create_table(db, "concept_class", primary_key_col = "id", dbms = dbms,
-      tibble::tibble(id = integer(), concept_class_id = character(), concept_class_name = character(), concept_class_concept_id = integer()))
-    
-    db_create_table(db, "concept_relationship", primary_key_col = "id", dbms = dbms,
-      tibble::tibble(id = integer(), concept_id_1 = integer(), concept_id_2 = integer(), relationship_id = character(),
-        valid_start_date = character(), valid_end_date = character(), invalid_reason = character()))
-    
-    db_create_table(db, "concept_relationship_user", primary_key_col = "id", dbms = dbms,
-      tibble::tibble(id = integer(), concept_relationship_id = integer(), comment = character(), creator_id = integer(), datetime = character()))
-    
-    db_create_table(db, "concept_relationship_evals", primary_key_col = "id", dbms = dbms,
-      tibble::tibble(id = integer(), concept_relationship_id = integer(), creator_id = integer(), evaluation_id = integer(),
-        datetime = character()))
-    
-    db_create_table(db, "relationship", primary_key_col = "id", dbms = dbms,
-      tibble::tibble(id = integer(), relationship_id = character(), relationship_name = character(), is_hierarchical = character(),
-        defines_ancestry = character(), reverse_relationship_id = character(), relationship_concept_id = integer()))
-    
-    db_create_table(db, "concept_synonym", primary_key_col = "id", dbms = dbms,
-      tibble::tibble(id = integer(), concept_id = integer(), concept_synonym_name = character(), language_concept_id = integer()))
-    
-    db_create_table(db, "concept_ancestor", primary_key_col = "id", dbms = dbms,
-      tibble::tibble(id = integer(), ancestor_concept_id = integer(), descendant_concept_id = integer(),
-        min_levels_of_separation = integer(), max_levels_of_separation = integer()))
-    
-    db_create_table(db, "drug_strength", primary_key_col = "id", dbms = dbms,
-      tibble::tibble(id = integer(), drug_concept_id = integer(), ingredient_concept_id = integer(), amount_value = numeric(),
-        amount_unit_concept_id = integer(), numerator_value = numeric(), numerator_unit_concept_id = integer(),
-        denominator_value = numeric(), denominator_unit_concept_id = integer(), box_size = integer(),
-        valid_start_date = character(), valid_end_date = character(), invalid_reason = character()))
-    
-    db_create_table(db, "widgets_concepts", primary_key_col = "id", dbms = dbms,
-      tibble::tibble(id = integer(), widget_id = integer(), concept_id = integer(),
-        concept_name = character(), concept_display_name = character(), domain_id = character(), 
-        mapped_to_concept_id = integer(), merge_mapped_concepts = logical(),
-        creator_id = integer(), datetime = character(), deleted = logical()))
+    for (table in tables){
+      
+      row <- db_col_types %>% dplyr::filter(db == type, table == !!table)
+      
+      types <- strsplit(row$col_types, "")[[1]]
+      cols <- lapply(seq_along(types), function(i) {
+        switch(types[[i]],
+               "i" = integer(),
+               "c" = character(),
+               "n" = numeric(),
+               "l" = logical())
+      })
+      names(cols) <- row$col_names %>% unlist()
+      empty_tibble <- tibble::as_tibble(cols)
+      
+      primary_key_col <- "id"
+      
+      text_cols <- character()
+      if (table %in% c("datasets", "studies", "plugins", "tabs_groups", "tabs", "subsets")) text_cols = "description"
+      else if (table == "code") text_cols <- "code"
+      else if (table %in% c("options", "persons_options", "widgets_options")) text_cols <- "value"
+      else if (table == "messages") text_cols <- c("message", "filepath")
+      else if (table %in% c("conversations", "user_deleted_conversations")) text_cols <- "name"
+      else if (table == "log") text_cols <- "value"
+      else if (table == "git_repos") text_cols <- c("description", "link")
+      else if (table == "concept_user") text_cols <- c("name", "display_name")
+      
+      db_create_table(db = db, table = table, dbms = dbms, empty_tibble = empty_tibble, primary_key_col = primary_key_col, text_cols = text_cols)
+    }
   }
 }
 
-#' Get authorized data for a user
-#'
-#' @details Some data have a restricted access. This function filter the data the user has access to.
-#' @param r Shiny reactive value, used to communicate between modules
-#' @param table Name of the table in the database (character)
-#' @param data If data is not r[[table]] (tibble / dataframe)
-#' @examples
-#' \dontrun{
-#' get_authorized_data(r = r, table = "plugins")
-#' }
-get_authorized_data <- function(r, table, data = tibble::tibble()){
-  
-  if (nrow(data) == 0) data <- r[[table]]
-  
-  # Merge with options
-  options <- data %>% dplyr::inner_join(r$options %>% dplyr::filter(category == get_singular(table)) %>% 
-      dplyr::select(option_id = id, link_id, option_name = name, value, value_num), by = c("id" = "link_id"))
-  
-  # Vector of authorized data
-  data_allowed <- integer()
-  
-  # For each data row, select those the user has access
-  sapply(unique(options$id), function(data_id){
-    
-    # Loop over each data ID
-    
-    users_allowed_read_group <- options %>% dplyr::filter(id == data_id, option_name == "users_allowed_read_group")
-    users_allowed_read <- options %>% dplyr::filter(id == data_id, option_name == "user_allowed_read")
-    
-    if (users_allowed_read_group %>% dplyr::pull(value) == "everybody") data_allowed <<- c(data_allowed, data_id)
-    else if (nrow(users_allowed_read %>% dplyr::filter(value_num == r$user_id)) > 0) data_allowed <<- c(data_allowed, data_id)
-    
-  })
-  
-  # Select authorized data
-  data %>% dplyr::filter(id %in% data_allowed)
-}
-
-#' Get database DBI object
-#'
-#' @description Get final database connection DBI object (local or remote).
-#' @param r Shiny reactive value, used to communicate between modules
-#' @param m Shiny reactive value, used to communicate between modules
-#' @param app_db_folder Folder where the application database is saved (character)
-#' @examples
-#' \dontrun{
-#' get_db(r = r, m = m, app_db_folder = paste0(r$app_folder, "/app_database"))
-#' }
-get_db <- function(r = shiny::reactiveValues(), m = shiny::reactiveValues(), app_db_folder = character()){
+#' @noRd
+get_db <- function(r, m, app_db_folder, db_col_types){
   
   # Get local database connection
   
@@ -305,8 +90,8 @@ get_db <- function(r = shiny::reactiveValues(), m = shiny::reactiveValues(), app
   
   # Create tables for local databases
   
-  db_create_tables(db = db$local_main, type = "main", dbms = "sqlite")
-  db_create_tables(db = db$local_public, type = "public", dbms = "sqlite")
+  db_create_tables(db = db$local_main, type = "main", dbms = "sqlite", db_col_types = db_col_types)
+  db_create_tables(db = db$local_public, type = "public", dbms = "sqlite", db_col_types = db_col_types)
   
   # Add remote db rows if they do not already exist
   
@@ -363,8 +148,8 @@ get_db <- function(r = shiny::reactiveValues(), m = shiny::reactiveValues(), app
         r$db <- db$remote_main
         m$db <- db$remote_public
         
-        db_create_tables(db = db$remote_main, type = "main", dbms = db_info$sql_lib)
-        db_create_tables(db = db$remote_public, type = "public", dbms = db_info$sql_lib)
+        db_create_tables(db = db$remote_main, type = "main", dbms = db_info$sql_lib, db_col_types = db_col_types)
+        db_create_tables(db = db$remote_public, type = "public", dbms = db_info$sql_lib, db_col_types = db_col_types)
         
         result <- "success"
       }
@@ -396,19 +181,8 @@ get_last_row <- function(con, table){
   DBI::dbGetQuery(con, sql) %>% dplyr::pull() %>% as.integer()
 }
 
-#' Connection to remote database
-#' 
-#' @description Get a connection to a remote database. If the remote connection fails, returns local DBI connection object.
-#' @param r Shiny reactive value, used to communicate between modules
-#' @param m Shiny reactive value, used to communicate between modules
-#' @param output Shiny output variable
-#' @param i18n Translator object from shiny.i18n library
-#' @param ns Shiny namespace
-#' @examples
-#' \dontrun{
-#' get_remote_db(r = r, m = m, output = output, i18n = i18n, ns = ns)
-#' }
-get_remote_db <- function(r = shiny::reactiveValues(), m = shiny::reactiveValues(), output, i18n = character(), ns = character()){
+#' @noRd
+get_remote_db <- function(r, m, output, i18n, ns){
   
   result <- "failure"
   
@@ -445,17 +219,9 @@ get_remote_db <- function(r = shiny::reactiveValues(), m = shiny::reactiveValues
   result
 }
 
-#' Load database
-#' 
-#' @description Load application database with only used tables
-#' @param r Shiny reactive value, used to communicate between modules
-#' @param m Shiny reactive value, used to communicate between modules
-#' @param i18n Translator object from shiny.i18n library
-#' @examples
-#' \dontrun{
-#' load_database(r = r, m = m, i18n = i18n)
-#' }
-load_database <- function(r = shiny::reactiveValues(), m = shiny::reactiveValues(), i18n = character()){
+#' @noRd
+load_database <- function(r, m, i18n){
+  
   # Database tables to load
   r_tables <- c("users", "users_accesses", "users_statuses", "datasets",
     "plugins", "scripts", "code", "options", "git_repos")

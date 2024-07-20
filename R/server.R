@@ -83,7 +83,7 @@ app_server <- function(pages, language, languages, i18n, app_folder, debug, log_
     r$local_db <- DBI::dbConnect(RSQLite::SQLite(), paste0(app_db_folder, "/linkr_main"))
     m$local_db <- DBI::dbConnect(RSQLite::SQLite(), paste0(app_db_folder, "/linkr_public"))
     
-    db_local_main <- get_db(r = r, m = m, app_db_folder = app_db_folder)
+    db_local_main <- get_db(r = r, m = m, app_db_folder = app_db_folder, db_col_types = db_col_types)
     
     # Close DB connection on exit
     # And restore initial working directory
