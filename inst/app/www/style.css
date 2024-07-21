@@ -56,7 +56,7 @@ a.no-hover-effect:hover {
 }
 
 .logo {
-  margin: 10px 8px 0px 0px;
+  margin: 10px 0 0 0;
   cursor: pointer;
   width: 40px;
   height: 20px;
@@ -75,8 +75,6 @@ a.no-hover-effect:hover {
 }
 
 .header_command_bar {
-  margin-left: 193px;
-  transition: margin-left 0.3s ease-in-out;
   z-index: 200;
 }
 
@@ -105,6 +103,10 @@ a.no-hover-effect:hover {
 .header_command_bar .ms-Button--commandBar:hover .ms-Icon {
   font-size: 15px;
   color: rgb(0, 120, 212);
+}
+
+.header_command_bar_1 {
+  padding: 0 35px;
 }
 
 .message_bars {
@@ -709,7 +711,7 @@ td[data-type="factor"] input {
 .current_page {
   font-size: 12px;
   font-weight: bold;
-  margin: 10px 0 0 10px;
+  padding: 11px;
 }
 
 .btn {
@@ -1148,10 +1150,8 @@ td[data-type="factor"] input {
 }
 
 .selected_project_container, .selected_plugin_container {
-  width: 195px;
   display: flex;
   justify-content: center;
-  margin-left: 16px;
 }
 
 .selected_project, .selected_plugin {
@@ -1161,7 +1161,7 @@ td[data-type="factor"] input {
   font-size: 12px;
   border-radius: 3px;
   padding: 5px 10px;
-  margin: 8px 0px;
+  margin: 7px 0px;
   text-align: center;
   line-height: 16px;
 }

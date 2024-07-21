@@ -568,7 +568,7 @@ mod_data_server <- function(id, r, d, m, language, i18n, debug){
             dplyr::mutate_at("person_id", as.integer) %>%
             dplyr::filter(person_id %in% person_ids) %>% 
             dplyr::collect() %>%
-            dplyr::left_join(d$dataset_all_concepts %>% dplyr::filter(is.na(relationship_id)) %>% dplyr::select(gender_concept_id = concept_id_1, gender_concept_name = concept_name_1), by = "gender_concept_id")
+            dplyr::left_join(d$concept %>% dplyr::select(gender_concept_id = concept_id, gender_concept_name = concept_name), by = "gender_concept_id")
         }
         
         if (nrow(persons) == 0){
@@ -609,7 +609,7 @@ mod_data_server <- function(id, r, d, m, language, i18n, debug){
           filtered_person <- filtered_person %>%
             dplyr::collect() %>%
             dplyr::slice_head(n = 100) %>%
-            dplyr::left_join(d$dataset_all_concepts %>% dplyr::filter(is.na(relationship_id)) %>% dplyr::select(gender_concept_id = concept_id_1, gender_concept_name = concept_name_1), by = "gender_concept_id") %>%
+            dplyr::left_join(d$concept %>% dplyr::select(gender_concept_id = concept_id, gender_concept_name = concept_name), by = "gender_concept_id") %>%
             dplyr::mutate(name_display = paste0(person_id, " - ", gender_concept_name))
           
           shiny.fluent::updateComboBox.shinyInput(session, "person", options = convert_tibble_to_list(filtered_person, key_col = "person_id", text_col = "name_display"))
@@ -619,7 +619,7 @@ mod_data_server <- function(id, r, d, m, language, i18n, debug){
               dplyr::arrange(person_id) %>%
               dplyr::collect() %>%
               dplyr::slice_head(n = 100) %>% 
-              dplyr::left_join(d$dataset_all_concepts %>% dplyr::filter(is.na(relationship_id)) %>% dplyr::select(gender_concept_id = concept_id_1, gender_concept_name = concept_name_1), by = "gender_concept_id") %>%
+              dplyr::left_join(d$concept %>% dplyr::select(gender_concept_id = concept_id, gender_concept_name = concept_name), by = "gender_concept_id") %>%
               dplyr::mutate(name_display = paste0(person_id, " - ", gender_concept_name)),
             key_col = "person_id", text_col = "name_display"), value = NULL)
         }
@@ -636,7 +636,7 @@ mod_data_server <- function(id, r, d, m, language, i18n, debug){
         if (length(input$person$key) == 0){
           person_text <- input$person$text
           person <- d$person %>%
-            dplyr::left_join(d$dataset_all_concepts %>% dplyr::filter(is.na(relationship_id)) %>% dplyr::select(gender_concept_id = concept_id_1, gender_concept_name = concept_name_1), by = "gender_concept_id") %>%
+            dplyr::left_join(d$concept %>% dplyr::select(gender_concept_id = concept_id, gender_concept_name = concept_name), by = "gender_concept_id") %>%
             dplyr::mutate(name_display = paste0(person_id, " - ", gender_concept_name)) %>%
             dplyr::filter(name_display == person_text) %>% dplyr::collect()
         }
@@ -646,7 +646,7 @@ mod_data_server <- function(id, r, d, m, language, i18n, debug){
             d$person %>%
             dplyr::mutate_at("person_id", as.integer) %>%
             dplyr::filter(person_id == person_key) %>% dplyr::collect() %>%
-            dplyr::left_join(d$dataset_all_concepts %>% dplyr::filter(is.na(relationship_id)) %>% dplyr::select(gender_concept_id = concept_id_1, gender_concept_name = concept_name_1), by = "gender_concept_id") %>%
+            dplyr::left_join(d$concept %>% dplyr::select(gender_concept_id = concept_id, gender_concept_name = concept_name), by = "gender_concept_id") %>%
             dplyr::mutate(name_display = paste0(person_id, " - ", gender_concept_name))
         }
         req(nrow(person) == 1)
@@ -677,7 +677,7 @@ mod_data_server <- function(id, r, d, m, language, i18n, debug){
           visit_detail <- visit_detail %>% 
             dplyr::collect() %>% 
             dplyr::left_join(
-              d$dataset_all_concepts %>% dplyr::filter(is.na(relationship_id)) %>% dplyr::select(visit_detail_concept_id = concept_id_1, visit_detail_concept_name = concept_name_1),
+              d$concept %>% dplyr::select(visit_detail_concept_id = concept_id, visit_detail_concept_name = concept_name),
               by = "visit_detail_concept_id"
             ) %>%
             dplyr::arrange(visit_detail_start_datetime)
@@ -746,7 +746,7 @@ mod_data_server <- function(id, r, d, m, language, i18n, debug){
           dplyr::mutate_at("person_id", as.integer) %>%
           dplyr::filter(person_id == !!person_id) %>% 
           dplyr::collect() %>%
-          dplyr::left_join(d$dataset_all_concepts %>% dplyr::filter(is.na(relationship_id)) %>% dplyr::select(gender_concept_id = concept_id_1, gender_concept_name = concept_name_1), by = "gender_concept_id")
+          dplyr::left_join(d$concept %>% dplyr::select(gender_concept_id = concept_id, gender_concept_name = concept_name), by = "gender_concept_id")
         
         visit_detail_id <- input$visit_detail$key
         visit_detail <- 
@@ -754,7 +754,7 @@ mod_data_server <- function(id, r, d, m, language, i18n, debug){
           dplyr::mutate_at("visit_detail_id", as.integer) %>%
           dplyr::filter(visit_detail_id == !!visit_detail_id) %>% 
           dplyr::collect() %>%
-          dplyr::left_join(d$dataset_all_concepts %>% dplyr::filter(is.na(relationship_id)) %>% dplyr::select(visit_detail_concept_id = concept_id_1, visit_detail_concept_name = concept_name_1), by = "visit_detail_concept_id")
+          dplyr::left_join(d$concept %>% dplyr::select(visit_detail_concept_id = concept_id, visit_detail_concept_name = concept_name), by = "visit_detail_concept_id")
         
         if (!is.na(person$birth_datetime)) age <- lubridate::interval(person$birth_datetime, visit_detail$visit_detail_start_datetime) / lubridate::years(1)
         else if (is.na(person$birth_datetime) & !is.na(person$year_of_birth)) age <- as.numeric(format(visit_detail$visit_detail_start_datetime, "%Y")) - person$year_of_birth

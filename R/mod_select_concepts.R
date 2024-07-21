@@ -43,7 +43,7 @@ mod_select_concepts_ui <- function(id, language, languages, i18n){
                       ui = shiny.fluent::IconButton.shinyInput(ns("reload_dataset_concepts"), iconProps = list(iconName ="SyncOccurence")), 
                       text = i18n$t("reload_dataset_concepts")
                     ),
-                    style = "margin-top: 17px;",
+                    style = "margin-top: 27px;",
                     class = "small_icon_button"
                   ),
                   style = "display: flex; gap: 10px;"
@@ -153,7 +153,7 @@ mod_select_concepts_server <- function(id, r, d, m, language, i18n, debug){
 
       if (debug) cat(paste0("\n", now(), " - mod_select_concepts - (", id, ") - observer input$vocabulary"))
       
-      req(length(d$dataset_all_concepts) > 0, nrow(d$dataset_all_concepts) > 0)
+      req(length(d$concept) > 0, nrow(d$concept) > 0)
       
       shinyjs::show("vocabulary_concepts")
 
@@ -161,20 +161,15 @@ mod_select_concepts_server <- function(id, r, d, m, language, i18n, debug){
       req(length(vocabulary_id) > 0)
 
       widget_vocabulary_concepts <- 
-        d$dataset_all_concepts %>%
-        dplyr::filter(vocabulary_id_1 == vocabulary_id) %>%
+        d$concept %>%
+        dplyr::filter(vocabulary_id == !!vocabulary_id) %>%
         dplyr::select(
-          concept_id = concept_id_1, concept_name = concept_name_1,
-          relationship_id, domain_id, vocabulary_id = vocabulary_id_1, concept_class_id, standard_concept, concept_code,
+          concept_id, concept_name, domain_id, vocabulary_id, concept_class_id, standard_concept, concept_code,
           count_persons_rows, count_concepts_rows, add_concept_input
         ) %>%
-        dplyr::filter(is.na(relationship_id)) %>%
-        dplyr::select(-relationship_id) %>%
         dplyr::mutate_at(c("add_concept_input"), stringr::str_replace_all, "%ns%", id) %>%
-        dplyr::mutate_at("add_concept_input", stringr::str_replace_all, "%input_prefix%", "add_concept") %>%
-        dplyr::mutate_at("add_concept_input", stringr::str_replace_all, "%input_prefix_2%", "") %>%
         dplyr::mutate_at("concept_id", as.character) %>%
-        dplyr::mutate(add_concept_input = stringr::str_replace_all(add_concept_input, "%concept_id_1%", concept_id)) %>%
+        dplyr::mutate(add_concept_input = stringr::str_replace_all(add_concept_input, "%concept_id%", concept_id)) %>%
         dplyr::arrange(dplyr::desc(count_concepts_rows))
 
       r[[paste0(id, "_vocabulary_concepts")]] <- widget_vocabulary_concepts
@@ -257,10 +252,10 @@ mod_select_concepts_server <- function(id, r, d, m, language, i18n, debug){
     # 
     
     # Select / unselect a concept ----
-    observeEvent(input$concept_selected, {
-      if (debug) cat(paste0("\n", now(), " - mod_select_concepts - (", id, ") - observer input$concept_selected"))
+    observeEvent(input$add_concept_trigger, {
+      if (debug) cat(paste0("\n", now(), " - mod_select_concepts - (", id, ") - observer input$add_concept_trigger"))
       
-      concept_id <- as.numeric(substr(input$concept_selected, nchar(paste0(id , "-add_concept_")) + 1, nchar(input$concept_selected)))
+      concept_id <- input$concept_selected
       
       # Add concept
       
@@ -274,15 +269,27 @@ mod_select_concepts_server <- function(id, r, d, m, language, i18n, debug){
               dplyr::transmute(concept_id, concept_name, domain_id, vocabulary_id, mapped_to_concept_id = NA_integer_, merge_mapped_concepts = FALSE)
           )     
         
-        shinyjs::runjs(paste0("$('#", input$concept_selected, " i').removeClass('fa-plus').addClass('fa-minus');"))
+        shinyjs::runjs(paste0("$('#", id, "-add_concept_", input$concept_selected, " i').removeClass('fa-plus').addClass('fa-minus');"))
       }
       
       # Remove concept
       else {
         r[[paste0(id, "_selected_concepts")]] <- r[[paste0(id, "_selected_concepts")]] %>% dplyr::filter(concept_id != !!concept_id)
         
-        shinyjs::runjs(paste0("$('#", input$concept_selected, " i').removeClass('fa-minus').addClass('fa-plus');"))
+        shinyjs::runjs(paste0("$('#", id, "-add_concept_", input$concept_selected, " i').removeClass('fa-minus').addClass('fa-plus');"))
       }
+      
+      # Update selected concepts list
+      shinyjs::runjs(paste0("Shiny.setInputValue('", id, "-update_selected_concepts_list', Math.random())"))
+    })
+    
+    # Remove a concept ----
+    observeEvent(input$remove_concept_trigger, {
+      if (debug) cat(paste0("\n", now(), " - mod_select_concepts - (", id, ") - observer input$remove_concept_trigger"))
+      
+      shinyjs::runjs(paste0("$('#", id, "-add_concept_", input$remove_concept, " i').removeClass('fa-minus').addClass('fa-plus');"))
+      
+      r[[paste0(id, "_selected_concepts")]] <- r[[paste0(id, "_selected_concepts")]] %>% dplyr::filter(concept_id != input$remove_concept)
       
       # Update selected concepts list
       shinyjs::runjs(paste0("Shiny.setInputValue('", id, "-update_selected_concepts_list', Math.random())"))
@@ -338,18 +345,6 @@ mod_select_concepts_server <- function(id, r, d, m, language, i18n, debug){
       output$selected_concepts_list <- renderUI(selected_concepts_list_ui)
     })
     
-    # Remove a concept ----
-    observeEvent(input$remove_concept_trigger, {
-      if (debug) cat(paste0("\n", now(), " - mod_select_concepts - (", id, ") - observer input$remove_concept_trigger"))
-      
-      shinyjs::runjs(paste0("$('#", id, "-add_concept_", input$remove_concept, " i').removeClass('fa-minus').addClass('fa-plus');"))
-      
-      r[[paste0(id, "_selected_concepts")]] <- r[[paste0(id, "_selected_concepts")]] %>% dplyr::filter(concept_id != input$remove_concept)
-      
-      # Update selected concepts list
-      shinyjs::runjs(paste0("Shiny.setInputValue('", id, "-update_selected_concepts_list', Math.random())"))
-    })
-    
     # Reload dataset concepts ----
     observeEvent(input$reload_dataset_concepts, {
       if (debug) cat(paste0("\n", now(), " - mod_select_concepts - (", id, ") - observer input$reload_dataset_concepts"))
@@ -364,10 +359,10 @@ mod_select_concepts_server <- function(id, r, d, m, language, i18n, debug){
     observeEvent(input$confirm_reload_dataset_concepts, {
       if (debug) cat(paste0("\n", now(), " - mod_select_concepts - (", id, ") - observer input$confirm_reload_dataset_concepts"))
       
-      # Remove dataset_all_concepts file
+      # Remove concept file
       dataset_folder <- paste0(r$app_folder, "/datasets_files/", r$selected_dataset)
-      dataset_all_concepts_filename <- paste0(dataset_folder, "/dataset_all_concepts.csv")
-      if (file.exists(dataset_all_concepts_filename)) unlink(dataset_all_concepts_filename)
+      concept_filename <- paste0(dataset_folder, "/concept.csv")
+      if (file.exists(concept_filename)) unlink(concept_filename)
       
       # Reset fields
       shinyjs::hide("vocabulary_concepts")

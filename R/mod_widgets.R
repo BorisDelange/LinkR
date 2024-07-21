@@ -313,8 +313,7 @@ mod_widgets_server <- function(id, r, d, m, language, i18n, all_divs, debug){
       if (id == "projects"){
         
         # Change header
-        shinyjs::show("command_bar_1_div")
-        sapply(c("command_bar_2_a", "command_bar_2_div"), shinyjs::hide)
+        sapply(c("command_bar_2_link", "command_bar_2_div"), shinyjs::hide)
       }
     })
     
@@ -774,8 +773,7 @@ mod_widgets_server <- function(id, r, d, m, language, i18n, all_divs, debug){
       else if (id == "projects"){
         
         # Change header
-        shinyjs::hide("command_bar_1_div")
-        sapply(c("command_bar_2_a", "command_bar_2_div"), shinyjs::show)
+        sapply(c("command_bar_2_link", "command_bar_2_div"), shinyjs::show)
         
         # Change current project name
         m$selected_study <- input$selected_element

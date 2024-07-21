@@ -655,7 +655,6 @@ mod_page_sidenav_server <- function(id = character(), r = shiny::reactiveValues(
       var button = document.getElementById('", id, "-show_hide_sidenav');
       var large_sidenav = document.getElementById('", id, "-large_sidenav');
       var reduced_sidenav = document.getElementById('", id, "-reduced_sidenav');
-      var header_command_bar = document.getElementById('", id, "-command_bar_1_div');
     ")
     js_show_sidenav <- paste0("
       sidenav.style.width = '220px';
@@ -665,7 +664,6 @@ mod_page_sidenav_server <- function(id = character(), r = shiny::reactiveValues(
       button.classList.remove('button_show_sidenav');
       reduced_sidenav.style.display = 'none';
       setTimeout(() => large_sidenav.style.display = 'block', 300);
-      header_command_bar.style.marginLeft = '193px';
     ")
     js_hide_sidenav <- paste0("
       sidenav.style.width = '40px';
@@ -675,7 +673,6 @@ mod_page_sidenav_server <- function(id = character(), r = shiny::reactiveValues(
       button.classList.add('button_show_sidenav');
       large_sidenav.style.display = 'none';
       setTimeout(() => reduced_sidenav.style.display = 'block', 300);
-      header_command_bar.style.marginLeft = '10px';
     ")
     
     # Prevent display bug

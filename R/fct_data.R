@@ -178,11 +178,11 @@ load_dataset_concepts <- function(r, d, m){
   if (!dir.exists(dataset_folder)) dir.create(dataset_folder)
   
   # Load csv file if it exists
-  dataset_all_concepts_filename <- paste0(dataset_folder, "/dataset_all_concepts.csv")
+  concept_filename <- paste0(dataset_folder, "/concept.csv")
   
-  if (file.exists(dataset_all_concepts_filename)) d$dataset_all_concepts <- vroom::vroom(dataset_all_concepts_filename, col_types = "icicccciccccccccii", progress = FALSE)
+  if (file.exists(concept_filename)) d$concept <- vroom::vroom(concept_filename, col_types = "iicccccccDDciic", progress = FALSE)
   
-  if (!file.exists(dataset_all_concepts_filename)){
+  if (!file.exists(concept_filename)){
     
     # Load all concepts for this dataset, with rows count
     omop_version <- DBI::dbGetQuery(r$db, glue::glue_sql("SELECT value FROM options WHERE category = 'dataset' AND link_id = {r$selected_dataset} AND name = 'omop_version'", .con = r$db)) %>% dplyr::pull()
@@ -224,7 +224,8 @@ load_dataset_concepts <- function(r, d, m){
     
     for (table in tables){
       
-      concept_ids <- d[[table]] %>%
+      concept_ids <- 
+        d[[table]] %>%
         dplyr::select(dplyr::contains("concept_id")) %>%
         dplyr::distinct() %>%
         dplyr::collect() %>%
@@ -237,12 +238,8 @@ load_dataset_concepts <- function(r, d, m){
       dataset_concept_ids <- unique(c(dataset_concept_ids, concept_ids))
     }
     
-    sql <- glue::glue_sql(paste0(
-      "SELECT * ",
-      "FROM concept ",
-      "WHERE concept_id IN ({dataset_concept_ids*}) ",
-      "ORDER BY concept_id"), .con = m$db)
-    dataset_all_concepts <- DBI::dbGetQuery(m$db, sql) %>% tibble::as_tibble() %>% dplyr::mutate(concept_display_name = NA_character_, .after = "concept_name")
+    sql <- glue::glue_sql("SELECT * FROM concept WHERE concept_id IN ({dataset_concept_ids*}) AND concept_id != 0 ORDER BY concept_id", .con = m$db)
+    concept <- DBI::dbGetQuery(m$db, sql) %>% tibble::as_tibble() %>% dplyr::mutate(concept_display_name = NA_character_, .after = "concept_name")
     
     # Count rows
     
@@ -260,9 +257,13 @@ load_dataset_concepts <- function(r, d, m){
     if (omop_version %in% c("5.3", "5.0")) secondary_cols <- rlist::list.append(secondary_cols, "death" = c("death_type", "cause"))
     
     for(table in tables){
+      
       if (d[[table]] %>% dplyr::count() %>% dplyr::pull() > 0){
+        
         if (table %in% names(main_cols)){
+          
           # Group by concept_id cols & source_concept_id cols (except for specimen & era tables)
+          
           if (paste0(main_cols[[table]], "_concept_id") %in% colnames(d[[table]])){
             count_rows <-
               count_rows %>%
@@ -274,6 +275,7 @@ load_dataset_concepts <- function(r, d, m){
                   dplyr::rename(concept_id = paste0(main_cols[[table]], "_concept_id")) %>%
                   dplyr::collect()
               )
+            
             if (table %not_in% c("specimen", "drug_era", "dose_era", "condition_era")) count_rows <-
               count_rows %>%
               dplyr::bind_rows(
@@ -286,9 +288,13 @@ load_dataset_concepts <- function(r, d, m){
               )
           }
         }
+        
         if (table %in% names(secondary_cols)){
+          
           for (col in secondary_cols[[table]]){
+            
             if (paste0(col, "_concept_id") %in% colnames(d[[table]])){
+              
               count_rows <-
                 count_rows %>%
                 dplyr::bind_rows(
@@ -305,106 +311,65 @@ load_dataset_concepts <- function(r, d, m){
       }
     }
     
-    if (nrow(count_rows) > 0){
+    if (nrow(concept) == 0) concept <- 
+      concept %>% 
+      dplyr::slice(0) %>%
+      dplyr::mutate(count_persons_rows = numeric(), count_concepts_rows = numeric(), add_concept_input = character())
+    
+    if (nrow(count_rows) > 0) {
       
       # Group count_rows : if a concept_id is in distinct tables, it will produce multiple rows by concept_id
-      count_rows <- count_rows %>%
+      count_rows <- 
+        count_rows %>%
         dplyr::filter(!is.na(concept_id)) %>%
         dplyr::group_by(concept_id) %>%
         dplyr::summarize(count_persons_rows = as.numeric(max(count_persons_rows)), count_concepts_rows = as.numeric(sum(count_concepts_rows))) %>%
         dplyr::ungroup()
       
       # Merge count_rows, transform count_rows cols to integer, to be sortable
-      dataset_all_concepts <- dataset_all_concepts %>%
+      concept <- concept %>%
         dplyr::left_join(count_rows, by = "concept_id") %>%
         dplyr::mutate_at(c("count_persons_rows", "count_concepts_rows"), as.numeric) %>%
         dplyr::filter(count_concepts_rows > 0)
-    }
-    
-    if (nrow(count_rows) == 0) dataset_all_concepts <- dataset_all_concepts %>% dplyr::slice(0)
-    
-    dataset_all_concepts <- dataset_all_concepts %>%
-      dplyr::rename(concept_id_1 = concept_id, concept_name_1 = concept_name, concept_display_name_1 = concept_display_name, vocabulary_id_1 = vocabulary_id) %>%
-      dplyr::mutate(relationship_id = NA_character_, vocabulary_id_2 = NA_character_, concept_id_2 = NA_integer_, concept_name_2 = NA_character_, .after = "concept_display_name_1") %>%
-      dplyr::relocate(vocabulary_id_1, .before = "concept_id_1")
-    
-    # Load d$concept & d$concept_relationship if not already loaded from mod_settings_data_management.R
-    # Convert cols to char and arrange cols as done in mod_settings_data_management.R
-    
-    tables <- c("concept", "concept_relationship")
-    
-    cols_to_char <- list()
-    cols_to_char$concept = "concept_id"
-    cols_to_char$relationship = "relationship_concept_id"
-    
-    cols_order <- list()
-    cols_order$concept <- "concept_id"
-    cols_order$concept_relationship <- "concept_id_1"
-    
-    for (table in tables){
-      if (length(d[[table]]) == 0){
-        if (table == "concept") sql <- glue::glue_sql("SELECT * FROM concept", .con = m$db)
-        else if (table == "concept_relationship") sql <- glue::glue_sql(paste0(
-          "SELECT cr.* FROM concept_relationship cr WHERE cr.id NOT IN ( ",
-          "WITH cr2 AS (",
-          "SELECT cru.concept_relationship_id, ",
-          "SUM(CASE WHEN cre.evaluation_id = 1 THEN 1 ELSE 0 END) AS positive_evals, ",
-          "SUM(CASE WHEN cre.evaluation_id = 2 THEN 1 ELSE 0 END) AS negative_evals ",
-          "FROM concept_relationship_user cru ",
-          "LEFT JOIN concept_relationship_evals cre ON cru.concept_relationship_id = cre.concept_relationship_id ",
-          "GROUP BY cru.concept_relationship_id ",
-          "HAVING positive_evals = 0 OR (positive_evals > 0 AND positive_evals <= negative_evals) ",
-          ") ",
-          "SELECT concept_relationship_id FROM cr2 ",
-          ")"), .con = m$db)
-        
-        d[[table]] <- DBI::dbGetQuery(m$db, sql) %>%
-          dplyr::arrange(cols_order[[table]]) %>%
-          dplyr::mutate_at(cols_to_char[[table]], as.character) %>%
-          dplyr::mutate(modified = FALSE)
-      }
-    }
-    
-    # Merge mapped concepts
-    
-    if (nrow(d$concept) > 0 & nrow(dataset_all_concepts) > 0){
-      dataset_all_concepts <- dataset_all_concepts %>%
-        dplyr::bind_rows(
-          dataset_all_concepts %>%
-            dplyr::select(
-              vocabulary_id_2 = vocabulary_id_1, concept_id_2 = concept_id_1, concept_name_2 = concept_name_1,
-              count_persons_rows, count_concepts_rows) %>%
-            dplyr::left_join(
-              d$concept_relationship %>%
-                dplyr::mutate_at(c("concept_id_1", "concept_id_2"), as.integer) %>%
-                dplyr::select(concept_id_1, concept_id_2, relationship_id),
-              by = "concept_id_2"
-            ) %>%
-            dplyr::filter(concept_id_1 != concept_id_2) %>%
-            dplyr::left_join(
-              d$concept %>%
-                dplyr::mutate_at("concept_id", as.integer) %>%
-                dplyr::select(
-                  vocabulary_id_1 = vocabulary_id, concept_id_1 = concept_id, concept_name_1 = concept_name,
-                  domain_id, concept_class_id, standard_concept, concept_code, valid_start_date, valid_end_date, invalid_reason),
-              by = "concept_id_1"
-            ) %>%
-            dplyr::arrange(dplyr::desc(count_concepts_rows)) %>%
-            dplyr::mutate(concept_display_name_1 = NA_character_, .after = "concept_name_1")
-        )
-    }
-    
-    if (nrow(dataset_all_concepts) == 0){
-      dataset_all_concepts <- dataset_all_concepts %>% dplyr::mutate(
-        count_persons_rows = numeric(), count_concepts_rows = numeric(), add_concept_input = character())
-    }
-    
-    else {
+      
       # Add plus col
-      dataset_all_concepts <- dataset_all_concepts %>%
+      concept <- 
+        concept %>%
         dplyr::mutate(
-          add_concept_input = as.character(shiny::actionButton(NS("%ns%")("%input_prefix%_%concept_id_1%"), "", icon = icon("plus"),
-            onclick = paste0("Shiny.setInputValue('%ns%-%input_prefix_2%concept_selected', this.id, {priority: 'event'})")))
+          add_concept_input = as.character(
+            # div(
+            #   shiny.fluent::IconButton.shinyInput(
+            #     "%ns%-concept_info_%concept_id%", iconProps = list(iconName = "Info"),
+            #     onClick = paste0("Shiny.setInputValue('%ns%-concept_selected', %concept_id%)")
+            #   ),
+            #   shiny.fluent::IconButton.shinyInput(
+            #     "%ns%-add_concept_%concept_id%", iconProps = list(iconName = "Add"),
+            #     onClick = paste0("Shiny.setInputValue('%ns%-concept_selected', %concept_id%)")
+            #   ),
+            #   class = "small_icon_button",
+            #   style = "display: flex; justify-content:center;"
+            # )
+            div(
+              shiny::actionButton(
+                "%ns%-show_concept_%concept_id%", "", icon = icon("info"),
+                onclick = paste0(
+                  "Shiny.setInputValue('%ns%-show_concept_trigger', Math.random());",
+                  "Shiny.setInputValue('%ns%-concept_selected', %concept_id%);"
+                ),
+                style = "width: 22px;"
+              ),
+              shiny::actionButton(
+                "%ns%-add_concept_%concept_id%", "", icon = icon("plus"),
+                onclick = paste0(
+                  "Shiny.setInputValue('%ns%-add_concept_trigger', Math.random());",
+                  "Shiny.setInputValue('%ns%-concept_selected', %concept_id%);"
+                ),
+                style = "width: 22px;"
+              ),
+              class = "small_icon_button",
+              style = "display: flex; gap: 5px; justify-content:center;"
+            )
+          )
         )
     }
     
@@ -414,54 +379,54 @@ load_dataset_concepts <- function(r, d, m){
     DBI::dbClearResult(query)
     
     # Add new rows to database
-    if (nrow(dataset_all_concepts) > 0) DBI::dbAppendTable(
+    if (nrow(concept) > 0) DBI::dbAppendTable(
       m$db, "concept_dataset",
-        dataset_all_concepts %>%
+        concept %>%
         dplyr::transmute(
-          id = get_last_row(m$db, "concept_dataset") + 1:dplyr::n(), concept_id = concept_id_1, dataset_id = r$selected_dataset, vocabulary_id = vocabulary_id_1,
+          id = get_last_row(m$db, "concept_dataset") + 1:dplyr::n(), concept_id, dataset_id = r$selected_dataset, vocabulary_id,
           count_persons_rows, count_concepts_rows, count_secondary_concepts_rows = as.numeric(0)))
     
     # Save data as csv
-    readr::write_csv(dataset_all_concepts, dataset_all_concepts_filename, progress = FALSE)
+    readr::write_csv(concept, concept_filename, progress = FALSE)
     
     # Update d var
-    d$dataset_all_concepts <- dataset_all_concepts
+    d$concept <- concept
   }
   
-  # Get user's modifications on items names & concept_display_names
-  
-  sql <- glue::glue_sql(paste0(
-    "SELECT id, concept_id, concept_name, concept_display_name ",
-    "FROM concept_user ",
-    "WHERE user_id = {r$user_id}"), .con = m$db)
-  dataset_user_concepts <- DBI::dbGetQuery(m$db, sql) %>% tibble::as_tibble()
-  
-  # Merge tibbles
-  if (nrow(dataset_user_concepts) > 0) d$dataset_all_concepts <-
-    d$dataset_all_concepts %>%
-    dplyr::left_join(
-      dataset_user_concepts %>% dplyr::select(concept_id_1 = concept_id, new_concept_name_1 = concept_name, new_concept_display_name_1 = concept_display_name),
-      by = "concept_id_1"
-    ) %>%
-    dplyr::mutate(
-      concept_name_1 = dplyr::case_when(!is.na(new_concept_name_1) ~ new_concept_name_1, TRUE ~ concept_name_1),
-      concept_display_name_1 = dplyr::case_when(!is.na(new_concept_display_name_1) ~ new_concept_display_name_1, TRUE ~ concept_display_name_1)
-    ) %>%
-    dplyr::left_join(
-      dataset_user_concepts %>% dplyr::select(concept_id_2 = concept_id, new_concept_name_2 = concept_name),
-      by = "concept_id_2"
-    ) %>%
-    dplyr::mutate(
-      concept_name_2 = dplyr::case_when(!is.na(new_concept_name_2) ~ new_concept_name_2, TRUE ~ concept_name_2)
-    ) %>%
-    dplyr::select(-new_concept_name_1, -new_concept_display_name_1, -new_concept_name_2)
+  # # Get user's modifications on items names & concept_display_names
+  # 
+  # sql <- glue::glue_sql(paste0(
+  #   "SELECT id, concept_id, concept_name, concept_display_name ",
+  #   "FROM concept_user ",
+  #   "WHERE user_id = {r$user_id}"), .con = m$db)
+  # dataset_user_concepts <- DBI::dbGetQuery(m$db, sql) %>% tibble::as_tibble()
+  # 
+  # # Merge tibbles
+  # if (nrow(dataset_user_concepts) > 0) d$concept <-
+  #   d$concept %>%
+  #   dplyr::left_join(
+  #     dataset_user_concepts %>% dplyr::select(concept_id_1 = concept_id, new_concept_name_1 = concept_name, new_concept_display_name_1 = concept_display_name),
+  #     by = "concept_id_1"
+  #   ) %>%
+  #   dplyr::mutate(
+  #     concept_name_1 = dplyr::case_when(!is.na(new_concept_name_1) ~ new_concept_name_1, TRUE ~ concept_name_1),
+  #     concept_display_name_1 = dplyr::case_when(!is.na(new_concept_display_name_1) ~ new_concept_display_name_1, TRUE ~ concept_display_name_1)
+  #   ) %>%
+  #   dplyr::left_join(
+  #     dataset_user_concepts %>% dplyr::select(concept_id_2 = concept_id, new_concept_name_2 = concept_name),
+  #     by = "concept_id_2"
+  #   ) %>%
+  #   dplyr::mutate(
+  #     concept_name_2 = dplyr::case_when(!is.na(new_concept_name_2) ~ new_concept_name_2, TRUE ~ concept_name_2)
+  #   ) %>%
+  #   dplyr::select(-new_concept_name_1, -new_concept_display_name_1, -new_concept_name_2)
   
   r$dataset_vocabularies <-
     r$vocabularies_wide %>%
-    dplyr::filter(vocabulary_id %in% unique(c(unique(d$dataset_all_concepts$vocabulary_id_1), unique(d$dataset_all_concepts$vocabulary_id_2)))) %>%
+    dplyr::inner_join(d$concept %>% dplyr::distinct(vocabulary_id), by = "vocabulary_id") %>%
     dplyr::arrange(vocabulary_id)
   
-  # Join d$person, d$visit_occurrence & d$visit_detail with d$dataset_all_concepts
+  # Join d$person, d$visit_occurrence & d$visit_detail with d$concept
   # r$merge_concepts_and_d_vars <- now()
   
   # Then load d$dataset_drug_strength

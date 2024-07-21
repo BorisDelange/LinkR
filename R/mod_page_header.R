@@ -12,39 +12,30 @@ mod_page_header_ui <- function(id = character(), i18n = character()){
   
   ns <- NS(id)
   
-  header_command_bar_style <- ""
-  
-  if (id %in% c("home", "log", "plugins", "projects")) header_command_bar_style <- "margin-left: 10px;"
-  
   command_bar_1 <- div(
     id = ns("command_bar_1_div"),
     shiny.fluent::CommandBar(
       items = list(
-        # Configure
-        shiny.fluent::CommandBarItem(text = "", "Settings",
+        
+        # Main pages
+        shiny.fluent::CommandBarItem("", "CustomList", title = i18n$t("projects"), href = shiny.router::route_link("projects")),
+        shiny.fluent::CommandBarItem("", "Code", title = i18n$t("console"), href = shiny.router::route_link("console")),
+        shiny.fluent::CommandBarItem("", "World", title = i18n$t("explore"), href = shiny.router::route_link("git_repos")),
+        
+        # Other pages
+        shiny.fluent::CommandBarItem(
+          text = "", "Settings",
           subMenuProps = list(items = list(
-            list(text = i18n$t("projects"), iconProps = list(iconName = "CustomList"), href = shiny.router::route_link("projects")),
-            list(text = i18n$t("datasets"), iconProps = list(iconName = "OfflineStorage"), href = shiny.router::route_link("datasets")),
-            list(text = i18n$t("vocabularies"), iconProps = list(iconName = "AllApps"), href = shiny.router::route_link("vocabularies"))
-          )),
-          title = i18n$t("configure")
-        ),
-        # Develop
-        shiny.fluent::CommandBarItem("", "CodeEdit",
-          subMenuProps = list(items = list(
-            list(text = i18n$t("console"), iconProps = list(iconName = "Embed"), href = shiny.router::route_link("console")),
             list(text = i18n$t("plugins"), iconProps = list(iconName = "Code"), href = shiny.router::route_link("plugins")),
+            list(text = i18n$t("datasets"), iconProps = list(iconName = "OfflineStorage"), href = shiny.router::route_link("datasets")),
+            list(text = i18n$t("vocabularies"), iconProps = list(iconName = "AllApps"), href = shiny.router::route_link("vocabularies")),
             list(text = i18n$t("data_cleaning"), iconProps = list(iconName = "CodeEdit"), href = shiny.router::route_link("data_cleaning"))
           )),
-          title = i18n$t("develop")
-        ),
-        # Discover
-        shiny.fluent::CommandBarItem("", "World", title = i18n$t("explore"), href = shiny.router::route_link("git_repos"))
+          title = i18n$t("other_pages")
+        )
       )
     ),
-    # id = ns("header_command_bar"),
-    class = "header_command_bar",
-    style = header_command_bar_style
+    class = "header_command_bar header_command_bar_1"
   )
   
   settings_div <- div(
@@ -66,19 +57,17 @@ mod_page_header_ui <- function(id = character(), i18n = character()){
   
   command_bar_2 <- tagList(
     tags$a(
-      id = ns("command_bar_2_a"),
+      id = ns("command_bar_2_link"),
       href = shiny.router::route_link("projects"),
       div(
-        shinyjs::hidden(
-          div(
-            id = ns("selected_project_div"),
-            uiOutput(ns("selected_project")), 
-            class = "selected_project"
-          )
+        div(
+          id = ns("selected_project_div"),
+          uiOutput(ns("selected_project")), 
+          class = "selected_project"
         ), 
         class = "selected_project_container"
       ),
-      style = "z-index:200; text-decoration:none; margin-left:-28px;",
+      style = "z-index:200; text-decoration:none;",
     ),
     div(
       id = ns("command_bar_2_div"),
@@ -106,7 +95,6 @@ mod_page_header_ui <- function(id = character(), i18n = character()){
   
   if (id %in% c("app_db", "home", "console", "datasets", "data_cleaning", "git_repos",
     "log", "plugins", "projects", "users", "vocabularies")) command_bar_2 <- shinyjs::hidden(command_bar_2)
-  else command_bar_1 <- shinyjs::hidden(command_bar_1)
   
   tagList(
     div(
@@ -172,8 +160,10 @@ mod_page_header_server <- function(id = character(), r = shiny::reactiveValues()
         
         project_name <- r$projects_long %>% dplyr::filter(id == m$selected_study, name == paste0("name_", language)) %>% dplyr::pull(value)
         project_name_short <- project_name
+        
         max_length <- 27
         if (nchar(project_name_short) > max_length) project_name_short <- paste0(substr(project_name_short, 1, max_length - 3), "...")
+        
         output$selected_project <- renderUI(create_hover_card(ui = project_name_short, text = project_name))
       })
     }
