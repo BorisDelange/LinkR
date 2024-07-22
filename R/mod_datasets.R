@@ -197,7 +197,7 @@ mod_datasets_ui <- function(id, language, languages, i18n, code_hotkeys){
                 div(uiOutput(ns("git_repo_element_ui")), style = "margin-top:10px;"),
                 div(
                   uiOutput(ns("synchronize_git_buttons")),
-                  class = "datasets_share_buttons"
+                  class = "projects_share_buttons"
                 ),
                 # Button to download a dataset (sidenav button)
                 div(downloadButton(ns("export_element_download")), style = "visibility: hidden; position: absolute; right: 0; bottom: 0;"),

@@ -91,8 +91,10 @@ edit_plugin_code,Edit plugin code
 plugin_options,Plugin options
 import_plugin,Import a plugin
 import_dataset,Import a dataset
+import_project,Import a project
 import_plugins,Import plugins
 export_plugin,Export a plugin
+export_project,Export a project
 export_selected_plugins,Export plugins
 export_plugins,Export plugins
 import_data_cleaning_script,Import a data cleaning script
@@ -1175,6 +1177,7 @@ import_new_vocabularies_info,"If new vocabularies are present in the imported fi
 plugin_doesnt_exist_in_git_repo,This plugin does not exist in this git repository
 dataset_doesnt_exist_in_git_repo,This dataset does not exist in this git repository
 data_cleaning_doesnt_exist_in_git_repo,This data cleaning script does not exist in this git repository
+project_doesnt_exist_in_git_repo,This project does not exist in this git repository
 updated_x_ago,Ago
 days,Days
 day,Day
@@ -1215,6 +1218,7 @@ minutes,Minutes
 minute,Minute
 cancel,Cancel
 error_downloading_plugin,Error downloading plugin
+error_downloading_project,Error downloading project
 error_downloading_dataset,Error downloading dataset
 error_downloading_data_cleaning,Error downloading data cleaning script
 element_git_and_local_versions_are_the_same,Local and remote git versions are the same

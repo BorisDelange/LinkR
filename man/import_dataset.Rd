@@ -5,53 +5,42 @@
 \title{Import a dataset}
 \usage{
 import_dataset(
-  output,
-  ns = character(),
-  i18n = character(),
   r = shiny::reactiveValues(),
   d = shiny::reactiveValues(),
   dataset_id = integer(),
-  data = tibble::tibble(),
-  omop_table = "",
   omop_version = "6.0",
+  data_source = "disk",
+  data_folder = character(),
+  con = DBI::dbConnect(duckdb::duckdb(), ":memory:"),
+  load_tables = character(),
   read_with = "none",
   save_as = "none",
-  rewrite = FALSE,
-  allow_numeric_instead_integer = FALSE,
-  allow_dttm_instead_date = FALSE
+  rewrite = FALSE
 )
 }
 \arguments{
-\item{output}{Shiny output variable}
+\item{r}{A shiny::reactiveValues object used for communication between modules.}
 
-\item{ns}{Shiny namespace}
+\item{d}{A shiny::reactiveValues object used for communication between modules.}
 
-\item{i18n}{shiny.i18n object for translations}
+\item{dataset_id}{The ID of the dataset, used to create a specific dataset folder in the application directories (integer).}
 
-\item{r}{A shiny::reactiveValues object, used to communicate between modules}
+\item{omop_version}{The OMOP version of the imported data; accepted values are "5.3", "5.4", and "6.0" (character).}
 
-\item{d}{A shiny::reactiveValues object, used to communicate between modules}
+\item{data_folder}{The folder containing the data (character).}
 
-\item{dataset_id}{ID of the dataset, used to create a specific dataset folder in the application folders (integer)}
+\item{con}{A DBI::dbConnect object representing the database connection.}
 
-\item{data}{Data variable (data.frame or tibble)}
+\item{read_with}{The library used to read the data. Accepted values are: "none", "vroom", "duckdb", "spark", "arrow" (character).}
 
-\item{omop_table}{Name of the OMOP table to import (character)}
+\item{save_as}{Specifies whether the data should be saved in the app folder. Accepted values are: "none", "parquet", "csv" (character).}
 
-\item{omop_version}{OMOP version of the imported data, accepts "5.3", "5.4" and "6.0" (character)}
+\item{rewrite}{If save_as is not "none", specifies whether the data files should be overwritten (logical).}
 
-\item{read_with}{The library used to read the data. Accepted values: "none", "vroom", "duckdb", "spark", "arrow" (character)}
-
-\item{save_as}{Save the data locally. Accepted values: "none", "csv", "parquet" (character)}
-
-\item{rewrite}{If save_as is different from 'none', rewrite or not existing data file (logical)}
-
-\item{allow_numeric_instead_integer}{Allow columns that should be of type integer to be of type numeric (logical)}
-
-\item{allow_dttm_instead_date}{Allow columns that should be of type datetime to be of type date (logical)}
+\item{source}{The source of the data: either a database connection ("db") or disk ("disk") (character).}
 }
 \description{
-Import a dataset in the application, with the OMOP Common Data Model
+Imports a dataset into the application using the OMOP Common Data Model.
 }
 \details{
 This function is used within a dataset code and is invoked each time a user selects a dataset.
@@ -86,38 +75,5 @@ For more information, refer to the help pages in the app.
 }
 \examples{
 \dontrun{
-person <- function() tibble::tibble(
-    person_id = 1:100,
-    gender_concept_id = sample(c(8507L, 8532L), 100, replace = TRUE),
-    year_of_birth = sample(1920:2010, 100, replace = TRUE),
-    month_of_birth = sample(1:12, 100, replace = TRUE),
-    day_of_birth = sample(1:28, 100, replace = TRUE),
-    race_concept_id = NA_integer_,
-    ethnicity_concept_id = NA_integer_,
-    location_id = sample(1:10, 100, replace = TRUE),
-    provider_id = sample(1:10, 100, replace = TRUE),
-    care_site_id = sample(1:10, 100, replace = TRUE),
-    person_source_value = paste("Source", 1:100),
-    gender_source_value = NA_character_,
-    gender_source_concept_id = NA_integer_,
-    race_source_value = NA_character_,
-    race_source_concept_id = NA_integer_,
-    ethnicity_source_value = NA_character_,
-    ethnicity_source_concept_id = NA_integer_
-    ) \%>\%
-    dplyr::mutate(
-        birth_datetime = lubridate::ymd_hms(paste0(paste(year_of_birth, month_of_birth, day_of_birth, sep = "-"), " 00:00:00")),
-        death_datetime = dplyr::case_when(runif(100) < 2/3 ~ as.POSIXct(NA), TRUE ~ birth_datetime + lubridate::years(sample(30:80, 100, replace = TRUE))),
-        .after = "day_of_birth"
-   )
-    
-import_dataset(
-    data = person(), omop_table = "person", omop_version = "6.0", read_with = "none", save_as = "none", rewrite = FALSE,
-    output = output, ns = ns, i18n = i18n, r = r, d = d, dataset_id = 5, 
-)
-
-cat("\n")
-
-d$person \%>\% nrow() # n = 100
 }
 }

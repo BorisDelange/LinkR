@@ -120,7 +120,7 @@ create_elements_ui <- function(page_id, elements, r, language, i18n){
       Shiny.setInputValue('", page_id, "-selected_element_trigger', Math.random());
     ")
     
-    if (id %in% c("plugins", "datasets", "data_cleaning")) short_description <- row %>% dplyr::filter(name == paste0("short_description_", language)) %>% dplyr::pull(value)
+    if (id %in% c("data_cleaning", "datasets", "plugins", "projects")) short_description <- row %>% dplyr::filter(name == paste0("short_description_", language)) %>% dplyr::pull(value)
     
     if (id == "plugins"){
       plugin_type <- row %>% dplyr::slice(1) %>% dplyr::pull(tab_type_id)
@@ -254,14 +254,14 @@ create_element_ui <- function(page_id, single_id, element_name, users_ui, widget
 }
 
 #' @noRd
-create_element_files <- function(id, r, element_id, single_id, element_options, element_dir){
+create_element_files <- function(id, r, element_id, single_id, sql_category, element_options, element_dir){
   
   if (!dir.exists(element_dir)) dir.create(element_dir)
   
   if (id %in% c("data_cleaning", "datasets")){
     # Get dataset code
     
-    sql <- glue::glue_sql("SELECT code FROM code WHERE category = {single_id} AND link_id = {element_id}", .con = r$db)
+    sql <- glue::glue_sql("SELECT code FROM code WHERE category = {sql_category} AND link_id = {element_id}", .con = r$db)
     code <- DBI::dbGetQuery(r$db, sql) %>% dplyr::pull()
     
     writeLines(code, paste0(element_dir, "/code.R"))
@@ -329,6 +329,205 @@ create_options_tibble <- function(element_id, element_name, sql_category, user_i
     ) %>%
     dplyr::mutate(id = last_options_id + dplyr::row_number(), category = sql_category, link_id = element_id, .before = "name") %>%
     dplyr::mutate(creator_id = user_id, datetime = now(), deleted = FALSE)
+}
+
+#' @noRd
+create_project_files <- function(id, r, m, single_id, element_id, element_wide, element_options, element_dir){
+  
+  if (!dir.exists(element_dir)) dir.create(element_dir)
+  
+  # Create a temp dir
+  
+  temp_dir <- paste0(r$app_folder, "/temp_files/", r$user_id, "/projects/", now() %>% stringr::str_replace_all(":| |-", ""), paste0(sample(c(0:9, letters[1:6]), 24, TRUE), collapse = ""))
+  dir.create(temp_dir, recursive = TRUE)
+  
+  temp_dir_copy <- paste0(temp_dir, "/", element_options %>% dplyr::filter(name == "unique_id") %>% dplyr::pull(value))
+  if (!dir.exists(temp_dir_copy)) dir.create(temp_dir_copy, recursive = TRUE)
+  
+  # Export CSV files
+  
+  # Tables :
+  # - tabs_groups
+  # - tabs
+  # - widgets
+  # - widgets_concepts
+  # - widgets_options
+  # - plugins
+  # - code
+  # - options
+  
+  corresponding_ids <- list()
+  for (table in c("plugins", "options", "code")) corresponding_ids[[table]] <- tibble::tibble(old_id = integer(), new_id = integer())
+  data <- list()
+  
+  # Get data
+  
+  ### tabs_groups
+  sql <- glue::glue_sql("SELECT * FROM tabs_groups WHERE id IN ({c(element_wide$patient_lvl_tab_group_id, element_wide$aggregated_tab_group_id)*})", .con = r$db)
+  data$tabs_groups <- DBI::dbGetQuery(r$db, sql) %>% dplyr::mutate(creator_id = NA_integer_)
+  corresponding_ids$tabs_groups <- tibble::tibble(old_id = as.integer(data$tabs_groups$id), new_id = c(1L, 2L))
+  
+  ### tabs
+  sql <- glue::glue_sql("SELECT * FROM tabs WHERE tab_group_id IN ({c(element_wide$patient_lvl_tab_group_id, element_wide$aggregated_tab_group_id)*})", .con = r$db)
+  data$tabs <- DBI::dbGetQuery(r$db, sql) %>% dplyr::mutate(creator_id = NA_integer_)
+  if (nrow(data$tabs) > 0) corresponding_ids$tabs <- data$tabs %>% dplyr::select(old_id = id) %>% dplyr::mutate(new_id = 1:dplyr::n())
+  
+  ### widgets
+  sql <- glue::glue_sql("SELECT * FROM widgets WHERE tab_id IN ({data$tabs$id*}) AND deleted IS FALSE", .con = r$db)
+  data$widgets <- DBI::dbGetQuery(r$db, sql) %>% dplyr::mutate(creator_id = NA_integer_)
+  if (nrow(data$widgets) > 0) corresponding_ids$widgets <- data$widgets %>% dplyr::select(old_id = id) %>% dplyr::mutate(new_id = 1:dplyr::n())
+  
+  ### widgets_concepts
+  sql <- glue::glue_sql("SELECT * FROM widgets_concepts WHERE widget_id IN ({data$widgets$id*})", .con = m$db)
+  data$widgets_concepts <- DBI::dbGetQuery(m$db, sql) %>% dplyr::mutate(creator_id = NA_integer_)
+  if (nrow(data$widgets_concept) > 0) corresponding_ids$widgets_concepts <- data$widgets_concepts %>% dplyr::select(old_id = id) %>% dplyr::mutate(new_id = 1:dplyr::n())
+  
+  ### widgets_options
+  sql <- glue::glue_sql("SELECT * FROM widgets_options WHERE widget_id IN ({data$widgets$id*})", .con = m$db)
+  data$widgets_options <- DBI::dbGetQuery(m$db, sql) %>% dplyr::mutate(creator_id = NA_integer_, person_id = NA_integer_)
+  if (nrow(data$widgets_options) > 0) corresponding_ids$widgets_options <- data$widgets_options %>% dplyr::select(old_id = id) %>% dplyr::mutate(new_id = 1:dplyr::n())
+  
+  ### plugins
+  sql <- glue::glue_sql("SELECT * FROM plugins WHERE id IN ({data$widgets %>% dplyr::distinct(plugin_id) %>% dplyr::pull()*}) AND deleted IS FALSE", .con = r$db)
+  data$plugins <- DBI::dbGetQuery(r$db, sql)
+  if (nrow(data$plugins) > 0){
+    
+    # Create plugins files
+    for (plugin_id in data$plugins$id) create_plugin_files(id = id, r = r, plugin_id = plugin_id)
+    
+    if (nrow(corresponding_ids$plugins) > 0) last_row <- max(corresponding_ids$plugins$new_id)
+    else last_row <- 0L
+    corresponding_ids$plugins <- corresponding_ids$plugins %>% dplyr::bind_rows(
+      data$plugins %>% dplyr::select(old_id = id) %>% dplyr::mutate(new_id = last_row + 1:dplyr::n()))
+  }
+  
+  ### options (for plugins)
+  sql <- glue::glue_sql("SELECT * FROM options WHERE category IN ('plugin', 'plugin_code') AND link_id IN ({data$plugins %>% dplyr::distinct(id) %>% dplyr::pull()*})", .con = r$db)
+  data$options <- DBI::dbGetQuery(r$db, sql)
+  if (nrow(data$options) > 0){
+    if (nrow(corresponding_ids$options) > 0) last_row <- max(corresponding_ids$options$new_id)
+    else last_row <- 0L
+    corresponding_ids$options <- corresponding_ids$options %>% dplyr::bind_rows(
+      data$options %>% dplyr::select(old_id = id) %>% dplyr::mutate(new_id = last_row + 1:dplyr::n()))
+  }
+  
+  ### code (for plugins)
+  sql <- glue::glue_sql("SELECT * FROM code WHERE category = 'plugin' AND link_id IN ({data$options %>% dplyr::filter(category == 'plugin_code') %>% dplyr::distinct(id) %>% dplyr::pull()*})", .con = r$db)
+  
+  data$code <- DBI::dbGetQuery(r$db, sql)
+  if (nrow(data$code) > 0){
+    if (nrow(corresponding_ids$code) > 0) last_row <- max(corresponding_ids$code$new_id)
+    else last_row <- 0L
+    corresponding_ids$code <- corresponding_ids$code %>% dplyr::bind_rows(
+      data$code %>% dplyr::select(old_id = id) %>% dplyr::mutate(new_id = last_row + 1:dplyr::n()))
+  }
+  
+  # Change IDs
+
+  ### tabs_groups
+  data$tabs_groups <- data$tabs_groups %>% dplyr::mutate(id = c(1L, 2L), .before = "category")
+
+  ### tabs
+  if (nrow(data$tabs) > 0) data$tabs <- data$tabs %>%
+    dplyr::left_join(corresponding_ids$tabs %>% dplyr::select(id = old_id, new_id), by = "id") %>%
+    dplyr::left_join(corresponding_ids$tabs %>% dplyr::select(parent_tab_id = old_id, new_parent_tab_id = new_id), by = "parent_tab_id") %>%
+    dplyr::left_join(corresponding_ids$tabs_groups %>% dplyr::select(tab_group_id = old_id, new_tab_group_id = new_id), by = "tab_group_id") %>%
+    dplyr::select(-id, -parent_tab_id, -tab_group_id) %>%
+    dplyr::rename(id = new_id, parent_tab_id = new_parent_tab_id, tab_group_id = new_tab_group_id) %>%
+    dplyr::relocate(id, .before = "category") %>%
+    dplyr::relocate(parent_tab_id, .before = "display_order") %>%
+    dplyr::relocate(tab_group_id, .before = "parent_tab_id")
+
+  ### widgets
+  if (nrow(data$widgets) > 0) data$widgets <- data$widgets %>%
+    dplyr::left_join(corresponding_ids$widgets %>% dplyr::select(id = old_id, new_id = new_id), by = "id") %>%
+    dplyr::left_join(corresponding_ids$tabs %>% dplyr::select(tab_id = old_id, new_tab_id = new_id), by = "tab_id") %>%
+    dplyr::left_join(corresponding_ids$plugins %>% dplyr::select(plugin_id = old_id, new_plugin_id = new_id), by = "plugin_id") %>%
+    dplyr::select(-id, -tab_id, -plugin_id) %>%
+    dplyr::rename(id = new_id, tab_id = new_tab_id, plugin_id = new_plugin_id) %>%
+    dplyr::relocate(id, .before = "category") %>%
+    dplyr::relocate(tab_id, .after = "name") %>%
+    dplyr::relocate(plugin_id, .before = "display_order")
+
+  ### widgets_concepts
+  if (nrow(data$widgets_concepts) > 0) data$widgets_concepts <- data$widgets_concepts %>%
+    dplyr::left_join(corresponding_ids$widgets_concepts %>% dplyr::select(id = old_id, new_id = new_id), by = "id") %>%
+    dplyr::left_join(corresponding_ids$widgets %>% dplyr::select(widget_id = old_id, new_widget_id = new_id), by = "widget_id") %>%
+    dplyr::select(-id, -widget_id) %>%
+    dplyr::rename(id = new_id, widget_id = new_widget_id) %>%
+    dplyr::relocate(id, .before = "concept_id") %>%
+    dplyr::relocate(widget_id, .after = "id")
+
+  ### widgets_options
+  if (nrow(data$widgets_options) > 0) data$widgets_options <- data$widgets_options %>%
+    dplyr::left_join(corresponding_ids$widgets_options %>% dplyr::select(id = old_id, new_id = new_id), by = "id") %>%
+    dplyr::left_join(corresponding_ids$widgets %>% dplyr::select(widget_id = old_id, new_widget_id = new_id), by = "widget_id") %>%
+    dplyr::select(-id, -widget_id) %>%
+    dplyr::rename(id = new_id, widget_id = new_widget_id) %>%
+    dplyr::relocate(id, .before = "person_id") %>%
+    dplyr::relocate(widget_id, .after = "id")
+
+  ### plugins
+  if (nrow(data$plugins) > 0) data$plugins <- data$plugins %>%
+    dplyr::left_join(corresponding_ids$plugins %>% dplyr::select(id = old_id, new_id), by = "id") %>%
+    dplyr::select(-id) %>%
+    dplyr::rename(id = new_id) %>%
+    dplyr::relocate(id, .before = "name")
+
+  ### options
+  if (nrow(data$options) > 0) data$options <- data$options %>%
+    dplyr::left_join(corresponding_ids$options %>% dplyr::select(id = old_id, new_id), by = "id") %>%
+    dplyr::left_join(corresponding_ids$plugins %>% dplyr::select(link_id = old_id, new_link_id = new_id), by = "link_id") %>%
+    dplyr::select(-id, -link_id) %>%
+    dplyr::rename(id = new_id, link_id = new_link_id) %>%
+    dplyr::relocate(id, .before = "category") %>%
+    dplyr::relocate(link_id, .before = "name")
+
+  ### code
+  if (nrow(data$code) > 0) data$code <- data$code %>%
+    dplyr::left_join(corresponding_ids$code %>% dplyr::select(id = old_id, new_id), by = "id") %>%
+    dplyr::left_join(corresponding_ids$options %>% dplyr::select(link_id = old_id, new_link_id = new_id), by = "link_id") %>%
+    dplyr::select(-id, -link_id) %>%
+    dplyr::rename(id = new_id, link_id = new_link_id) %>%
+    dplyr::relocate(id, .before = "category") %>%
+    dplyr::relocate(link_id, .before = "code")
+
+  # Create CSV files
+  dir.create(paste0(temp_dir_copy, "/app_database"))
+  for (csv_file in c(
+    "tabs_groups", "tabs", "widgets", "widgets_concepts", "widgets_options",
+    "plugins", "options", "code"
+    )
+  ) readr::write_csv(data[[csv_file]], paste0(temp_dir_copy, "/app_database/", csv_file, ".csv"))
+
+  # Copy plugins folders
+  dir.create(paste0(temp_dir_copy, "/plugins"))
+
+  if (nrow(data$plugins) > 0){
+    for (i in 1:nrow(data$plugins)){
+      plugin <- data$plugins[i, ]
+      unique_id <- data$options %>% dplyr::filter(category == "plugin" & name == "unique_id" & link_id == plugin$id) %>% dplyr::pull(value)
+      
+      plugin_dir <- paste0(r$app_folder, "/plugins/", unique_id)
+      
+      list_of_files <- list.files(plugin_dir)
+      dir.create(paste0(temp_dir_copy, "/plugins/", unique_id))
+      file.copy(paste0(plugin_dir, "/", list_of_files), paste0(temp_dir_copy, "/plugins/", unique_id, "/", list_of_files))
+    }
+  }
+  
+  # Create XML file
+  create_element_xml(id, r, element_id, single_id, element_options, element_dir)
+  
+  # Copy XML file in temp dir
+  file.copy(paste0(element_dir, "/project.xml"), paste0(temp_dir_copy, "/project.xml"))
+  
+  # Write README.md
+  readme <- element_options %>% dplyr::filter(name == "description_en") %>% dplyr::pull(value)
+  writeLines(readme, paste0(element_dir, "/README.md"))
+  writeLines(readme, paste0(temp_dir_copy, "/README.md"))
+  
+  return(temp_dir_copy)
 }
 
 #' @noRd

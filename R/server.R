@@ -49,7 +49,7 @@ app_server <- function(pages, language, languages, i18n, app_folder, debug, log_
     o <- reactiveValues()
     
     # App version ----
-    r$app_version <- "0.3.0.9012"
+    r$app_version <- "0.3.0.9013"
     
     # Databse col types ----
     
@@ -234,7 +234,7 @@ app_server <- function(pages, language, languages, i18n, app_folder, debug, log_
       unlink(temp_files_folder, recursive = TRUE, force = TRUE)
       dir.create(temp_files_folder)
       
-      for (folder in c("markdowns", "plugins", "data_cleaning_scripts", "vocabularies", "datasets", "studies", "app_db", "git_repos")){
+      for (folder in c("markdowns", "plugins", "data_cleaning", "datasets", "projects", "app_db", "git_repos")){
         sub_folder <- paste0(app_folder, "/temp_files/", r$user_id, "/", folder)
         unlink(sub_folder, recursive = TRUE, force = TRUE)
         if (!dir.exists(sub_folder)) dir.create(sub_folder)

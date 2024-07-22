@@ -616,7 +616,7 @@ mod_widgets_server <- function(id, r, d, m, language, i18n, all_divs, debug){
         
         # Delete old entries in database
         
-        element_id <- DBI::dbGetQuery(r$db, glue::glue_sql("SELECT link_id FROM options WHERE category = {single_id} AND name = 'unique_id' AND value = {r$imported_element$unique_id}", .con = con)) %>% dplyr::pull()
+        element_id <- DBI::dbGetQuery(r$db, glue::glue_sql("SELECT link_id FROM options WHERE category = {sql_category} AND name = 'unique_id' AND value = {r$imported_element$unique_id}", .con = con)) %>% dplyr::pull()
         
         if (length(element_id) > 0){
           
@@ -1022,7 +1022,7 @@ mod_widgets_server <- function(id, r, d, m, language, i18n, all_divs, debug){
       if (debug) cat(paste0("\n", now(), " - mod_widgets - (", id, ") - observer input$save_description_trigger"))
       
       # Update database and r var
-      sql <- glue::glue_sql("UPDATE options SET value = {input$description_code} WHERE category = {single_id} AND link_id = {input$selected_element} AND name = {paste0('description_', input$language)}", .con = r$db)
+      sql <- glue::glue_sql("UPDATE options SET value = {input$description_code} WHERE category = {sql_category} AND link_id = {input$selected_element} AND name = {paste0('description_', input$language)}", .con = r$db)
       sql_send_statement(r$db, sql)
       
       r[[long_var]] <- r[[long_var]] %>% dplyr::mutate(
@@ -1073,14 +1073,14 @@ mod_widgets_server <- function(id, r, d, m, language, i18n, all_divs, debug){
       # OMOP version field
       if (id == "datasets") fields <- c(fields, "omop_version")
       
-      sql <- glue::glue_sql("SELECT DISTINCT(name) FROM options WHERE category = {single_id} AND link_id = {input$selected_element}", .con = r$db)
+      sql <- glue::glue_sql("SELECT DISTINCT(name) FROM options WHERE category = {sql_category} AND link_id = {input$selected_element}", .con = r$db)
       existing_fields <- DBI::dbGetQuery(r$db, sql) %>% dplyr::pull()
       new_fields <- setdiff(fields, existing_fields)
       options_last_row <- get_last_row(r$db, "options")
       
       if (length(new_fields) > 0){
         new_data <- tibble::tibble(
-          id = options_last_row + (1:length(new_fields)), category = single_id, link_id = input$selected_element,
+          id = options_last_row + (1:length(new_fields)), category = sql_category, link_id = input$selected_element,
           name = new_fields, value = "", value_num = NA_integer_, creator_id = r$user_id,
           datetime = now(), deleted = FALSE
         )
@@ -1098,10 +1098,10 @@ mod_widgets_server <- function(id, r, d, m, language, i18n, all_divs, debug){
       case_statement <- paste(cases, collapse = " ")
       sql <- glue::glue_sql(paste0(
         "UPDATE options SET value = CASE {DBI::SQL(case_statement)} ELSE value END ",
-        "WHERE name IN ({fields*}) AND category = {single_id} AND link_id = {input$selected_element}"), .con = con)
+        "WHERE name IN ({fields*}) AND category = {sql_category} AND link_id = {input$selected_element}"), .con = con)
       sql_send_statement(r$db, sql)
       
-      sql <- glue::glue_sql("DELETE FROM options WHERE category = {single_id} AND link_id = {input$selected_element} AND name = 'user_allowed_read'", .con = r$db)
+      sql <- glue::glue_sql("DELETE FROM options WHERE category = {sql_category} AND link_id = {input$selected_element} AND name = 'user_allowed_read'", .con = r$db)
       sql_send_statement(r$db, sql)
       
       # Add users allowed read (one row by user)
@@ -1111,7 +1111,7 @@ mod_widgets_server <- function(id, r, d, m, language, i18n, all_divs, debug){
         value_num <- unique(input$users_allowed_read)
         
         new_data <- tibble::tibble(
-          id = options_last_row + (1:length(value_num)), category = single_id, link_id = input$selected_element,
+          id = options_last_row + (1:length(value_num)), category = sql_category, link_id = input$selected_element,
           name = "user_allowed_read", value = "", value_num = value_num, creator_id = r$user_id,
           datetime = now(), deleted = FALSE
         )
@@ -1497,21 +1497,56 @@ mod_widgets_server <- function(id, r, d, m, language, i18n, all_divs, debug){
         
         # Create element files
         
-        sql <- glue::glue_sql("SELECT * FROM options WHERE category = {single_id} AND link_id = {input$selected_element}", .con = con)
+        sql <- glue::glue_sql("SELECT * FROM options WHERE category = {sql_category} AND link_id = {input$selected_element}", .con = con)
         element_options <- DBI::dbGetQuery(r$db, sql)
         element_dir <- paste0(r$app_folder, "/", id, "/", input$git_repo_element_unique_id)
         
+        # Create files if don't exist
         if (id == "plugins") create_plugin_files(id = id, r = r, plugin_id = input$selected_element)
-        else create_element_files(id, r, input$selected_element, single_id, element_options, element_dir)
         
-        create_element_xml(id, r, input$selected_element, single_id, element_options, element_dir)
+        # To download a project, we have to copy db files and plugins files
+        else if (id == "projects"){
+          element_wide <- r[[wide_var]] %>% dplyr::filter(id == input$selected_element)
+          project_dir <- create_project_files(id, r, m, single_id, input$selected_element, element_wide, element_options, element_dir)
+        }
         
-        # Write README.md
-        writeLines(element_options %>% dplyr::filter(name == "description_en") %>% dplyr::pull(value), paste0(element_dir, "/README.md"))
+        else create_element_files(id, r, input$selected_element, single_id, sql_category, element_options, element_dir)
+        
+        if (id != "projects"){
+          
+          # Create XML file
+          create_element_xml(id, r, input$selected_element, single_id, element_options, element_dir)
+          
+          # Write README.md
+          writeLines(element_options %>% dplyr::filter(name == "description_en") %>% dplyr::pull(value), paste0(element_dir, "/README.md"))
+        }
         
         # Copy files
-        files <- list.files(local_dir, full.names = TRUE)
-        file.copy(files, new_dir, overwrite = TRUE)
+        
+        if (id == "projects"){
+          
+          files <- list.files(project_dir, full.names = TRUE, recursive = TRUE)
+          
+          # Ensure the new directories exist
+          dirs <- unique(dirname(files))
+          new_dirs <- file.path(new_dir, dirs)
+          new_dirs <- gsub(paste0("^", project_dir), new_dir, dirs)
+          new_dirs <- unique(new_dirs)
+          
+          # Ensure all directories exist
+          sapply(new_dirs, function(x) {
+            if (!dir.exists(x)) dir.create(x, recursive = TRUE)
+          })
+          
+          sapply(files, function(file) {
+            file.copy(file, gsub(project_dir, new_dir, file), overwrite = TRUE)
+          })
+        }
+        
+        else {
+          files <- list.files(local_dir, full.names = TRUE)
+          file.copy(files, new_dir, overwrite = TRUE)
+        }
       }
       
       # Update global XML file
@@ -1607,27 +1642,39 @@ mod_widgets_server <- function(id, r, d, m, language, i18n, all_divs, debug){
         if (debug) cat(paste0("\n", now(), " - mod_widgets - (", id, ") - output$export_elements_download"))
 
         tryCatch({
+          
           # Element dir
-          sql <- glue::glue_sql("SELECT value FROM options WHERE category = {single_id} AND name = 'unique_id' AND link_id = {input$selected_element}", .con = con)
+          sql <- glue::glue_sql("SELECT value FROM options WHERE category = {sql_category} AND name = 'unique_id' AND link_id = {input$selected_element}", .con = con)
           element_unique_id <- DBI::dbGetQuery(r$db, sql) %>% dplyr::pull()
           element_dir <- paste0(r$app_folder, "/", id, "/", element_unique_id)
           
           # Get element options
-          sql <- glue::glue_sql("SELECT * FROM options WHERE category = {single_id} AND link_id = {input$selected_element}", .con = con)
+          sql <- glue::glue_sql("SELECT * FROM options WHERE category = {sql_category} AND link_id = {input$selected_element}", .con = con)
           element_options <- DBI::dbGetQuery(r$db, sql)
           
           # Create files if don't exist
           if (id == "plugins") create_plugin_files(id = id, r = r, plugin_id = input$selected_element)
-          else create_element_files(id, r, input$selected_element, single_id, element_options, element_dir)
           
-          # Create XML file
-          create_element_xml(id, r, input$selected_element, single_id, element_options, element_dir)
+          # To download a project, we have to copy db files and plugins files
+          else if (id == "projects"){
+            element_wide <- r[[wide_var]] %>% dplyr::filter(id == input$selected_element)
+            element_dir <- create_project_files(id, r, m, single_id, input$selected_element, element_wide, element_options, element_dir)
+          }
           
-          # Write README.md
-          writeLines(element_options %>% dplyr::filter(name == "description_en") %>% dplyr::pull(value), paste0(element_dir, "/README.md"))
+          else create_element_files(id, r, input$selected_element, single_id, sql_category, element_options, element_dir)
+          
+          if (id != "projects"){
+            
+            # Create XML file
+            create_element_xml(id, r, input$selected_element, single_id, element_options, element_dir)
+            
+            # Write README.md
+            writeLines(element_options %>% dplyr::filter(name == "description_en") %>% dplyr::pull(value), paste0(element_dir, "/README.md"))
+          }
           
           # Create a ZIP
           zip::zipr(file, list.files(element_dir, full.names = TRUE))
+          
         }, error = function(e){
           shinyjs::runjs(paste0("Shiny.setInputValue('", id, "-error_downloading_element', Math.random());"))
           cat(paste0("\n", now(), " - mod_widgets - (", id, ") - import element error - ", toString(e)))

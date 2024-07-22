@@ -9,6 +9,7 @@ linkr(
   app_folder = character(),
   local = FALSE,
   debug = FALSE,
+  log_file = FALSE,
   port = 3838
 )
 }
@@ -20,6 +21,8 @@ linkr(
 \item{local}{Run the app in local mode, do not load files on the internet (logical)}
 
 \item{debug}{Debug mode : steps and errors will by displayed in the console (logical)}
+
+\item{log_file}{Create a log file to see app log directly in the app (logical)}
 
 \item{port}{Port used by shiny app (integer)}
 }

@@ -35,7 +35,7 @@ linkr <- function(
   # Used to restore database and import vocabularies
   # shiny.launch.browser to automatically open browser
   
-  if (debug) cat(paste0(now(), " - linkr - init - v0.3.0.9012"))
+  if (debug) cat(paste0(now(), " - linkr - init - v0.3.0.9013"))
   options(shiny.maxRequestSize = 4096*1024^2, shiny.launch.browser = TRUE, shiny.port = port)
   
   if (!is.logical(debug) | !is.logical(local)) stop("debug or local are not logical")
@@ -53,7 +53,7 @@ linkr <- function(
   
   # Create app sub-dirs
   if (debug) cat(paste0("\n", now(), " - linkr - app sub-dirs"))
-  sub_dirs <- c("app_database", "datasets", "datasets_files", "messages", "plugins", "studies", "studies_files", "data_cleaning", "temp_files", "translations", "vocabularies", "log")
+  sub_dirs <- c("app_database", "datasets", "datasets_files", "messages", "plugins", "projects", "projects_files", "data_cleaning", "temp_files", "translations", "log")
   for (sub_dir in sub_dirs) if (!dir.exists(paste0(app_folder, "/", sub_dir))) dir.create(paste0(app_folder, "/", sub_dir))
   
   # Load translations

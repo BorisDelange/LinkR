@@ -5,23 +5,14 @@
 \title{Import a vocabulary table}
 \usage{
 import_vocabulary_table(
-  output,
-  ns = character(),
-  i18n = character(),
   r = shiny::reactiveValues(),
   m = shiny::reactiveValues(),
   table_name = character(),
   data = tibble::tibble(),
-  add_vocabulary = FALSE
+  add_new_vocabularies = FALSE
 )
 }
 \arguments{
-\item{output}{variable from Shiny, used to render messages on the message bar}
-
-\item{ns}{Shiny namespace}
-
-\item{i18n}{shiny.i18n object for translations}
-
 \item{r}{A shiny::reactiveValues object, used to communicate between modules}
 
 \item{m}{A shiny::reactiveValues object, used to communicate between modules}
@@ -29,8 +20,6 @@ import_vocabulary_table(
 \item{table_name}{Name of the vocabulary table we import (concept, concept_relationship or other) (character)}
 
 \item{data}{A tibble containing the data}
-
-\item{add_vocabulary}{If concepts are imported, should the corresponding terminologies be added? (logical)}
 }
 \description{
 Import an OMOP vocabulary and save it in app database
@@ -45,7 +34,6 @@ concept <- tibble::tibble(concept_id = 3027018, concept_name = "Heart rate", dom
   concept_class_id = "Clinical Observation", standard_concept = "S", concept_code = "8867-4",
   valid_start_date = "1970-01-01", valid_end_date = "2099-12-31", invalid_reason = NA_character_)
   
-import_vocabulary_table(output = output, ns = ns, i18n = i18n, r = r, m = m,
-  table_name = "concept", data = concept)
+import_vocabulary_table(r = r, m = m, table_name = "concept", data = concept)
 }
 }

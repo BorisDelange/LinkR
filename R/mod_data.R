@@ -261,6 +261,12 @@ mod_data_server <- function(id, r, d, m, language, i18n, debug){
     # session max widget_id (prevent a UI bug when we create a widget with the same id of a widget we just deleted)
     r$session_max_widget <- get_last_row(r$db, "widgets")
     
+    # Widget selected concepts
+    r[[paste0(id, "_selected_concepts")]] <- tibble::tibble(
+      concept_id = integer(), concept_name = character(), domain_id = character(), vocabulary_id = character(),
+      mapped_to_concept_id = integer(), merge_mapped_concepts = logical()
+    )
+    
     # --- --- --- --- --- -
     # Change data page ----
     # --- --- --- --- --- -
@@ -1581,6 +1587,8 @@ mod_data_server <- function(id, r, d, m, language, i18n, debug){
 
       # Vocabulary concepts for server code
       selected_concepts <- r[[paste0(id, "_selected_concepts")]]
+      print(length(selected_concepts))
+      print(selected_concepts)
       
       if (nrow(r[[paste0(id, "_selected_concepts")]]) > 0){
 
@@ -1807,35 +1815,34 @@ mod_data_server <- function(id, r, d, m, language, i18n, debug){
     # --- --- --- --- --- -
     
     create_translations_files <- function(plugin_id, plugin_translations_dir, plugin_folder){
-      # tryCatch({
-        if (!dir.exists(plugin_translations_dir)) dir.create(plugin_translations_dir)
-        if (!dir.exists(plugin_folder)) dir.create(plugin_folder)
+      
+      if (!dir.exists(plugin_translations_dir)) dir.create(plugin_translations_dir)
+      if (!dir.exists(plugin_folder)) dir.create(plugin_folder)
+      
+      # Create translations file if doesn't exist, from database
+      translations_file <- paste0(plugin_folder, "/translations.csv")
+      
+      if (!file.exists(translations_file)){
         
-        # Create translations file if doesn't exist, from database
-        translations_file <- paste0(plugin_folder, "/translations.csv")
+        sql <- glue::glue_sql("SELECT id FROM options WHERE category = 'plugin_code' AND link_id = {plugin_id} AND name = 'filename' AND value = 'translations.csv'", .con = r$db)
+        options_id <- DBI::dbGetQuery(r$db, sql) %>% dplyr::pull()
         
-        if (!file.exists(translations_file)){
-          
-          sql <- glue::glue_sql("SELECT id FROM options WHERE category = 'plugin_code' AND link_id = {plugin_id} AND name = 'filename' AND value = 'translations.csv'", .con = r$db)
-          options_id <- DBI::dbGetQuery(r$db, sql) %>% dplyr::pull()
-          
-          sql <- glue::glue_sql("SELECT code FROM code WHERE category = 'plugin' AND link_id = {options_id}", .con = r$db)
-          translations_code <- DBI::dbGetQuery(r$db, sql) %>% dplyr::pull()
-          
-          writeLines(translations_code, translations_file)
-        }
+        sql <- glue::glue_sql("SELECT code FROM code WHERE category = 'plugin' AND link_id = {options_id}", .con = r$db)
+        translations_code <- DBI::dbGetQuery(r$db, sql) %>% dplyr::pull()
         
-        # Get translations file
-        data <- vroom::vroom(translations_file, progress = FALSE)
-        
-        # Create one csv by language
-        for(lang in names(data)[-1]){
-          # Create a new dataframe with base & current language cols
-          data_lang <- data[, c("base", lang)]
-          filename <- paste0(plugin_translations_dir, "/translation_", lang, ".csv")
-          write.csv(data_lang, filename, row.names = FALSE)
-        }
-      # }, error = function(e) cat(paste0("\n", now(), " - mod_data - error creating translations file - plugin_id = ", plugin_id)))
+        writeLines(translations_code, translations_file)
+      }
+      
+      # Get translations file
+      data <- vroom::vroom(translations_file, col_types = "ccc", progress = FALSE)
+      
+      # Create one csv by language
+      for(lang in names(data)[-1]){
+        # Create a new dataframe with base & current language cols
+        data_lang <- data[, c("base", lang)]
+        filename <- paste0(plugin_translations_dir, "/translation_", lang, ".csv")
+        write.csv(data_lang, filename, row.names = FALSE)
+      }
     }
     
     load_tab_plugins <- function(tab_id, widget_id = NA_integer_, action = "reload"){

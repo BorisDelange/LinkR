@@ -560,9 +560,48 @@ mod_page_sidenav_ui <- function(id = character(), i18n = character()){
         div(
           id = ns("all_elements_reduced_sidenav"),
           create_hover_card(ui = shiny.fluent::IconButton.shinyInput(ns("create_element"), iconProps = list(iconName = "Add")), text = i18n$t("create_project")),
-          create_hover_card(ui = shiny.fluent::IconButton.shinyInput(ns("reload_elements_var"), iconProps = list(iconName = "SyncOccurence")), text = i18n$t("reload_list"))
+          create_hover_card(ui = shiny.fluent::IconButton.shinyInput(ns("reload_elements_var"), iconProps = list(iconName = "SyncOccurence")), text = i18n$t("reload_list")),
+          create_hover_card(ui = shiny.fluent::IconButton.shinyInput(ns("import_element"), iconProps = list(iconName = "Upload")), text = i18n$t("import_project")),
+          class = "reduced_sidenav_buttons"
         ),
-        class = "reduced_sidenav_buttons"
+        shinyjs::hidden(
+          div(
+            id = ns("summary_reduced_sidenav"),
+            div(
+              id = ns("edit_summary_div"),
+              create_hover_card(ui = shiny.fluent::IconButton.shinyInput(ns("edit_summary"), iconProps = list(iconName = "Edit")), text = i18n$t("edit_informations")),
+              class = "reduced_sidenav_buttons_11"
+            ),
+            shinyjs::hidden(
+              div(
+                id = ns("save_summary_div"),
+                create_hover_card(ui = shiny.fluent::IconButton.shinyInput(ns("save_summary"), iconProps = list(iconName = "Accept")), text = i18n$t("save")),
+                class = "reduced_sidenav_buttons"
+              )
+            ),
+            div(
+              create_hover_card(ui = shiny.fluent::IconButton.shinyInput(ns("delete_element"), iconProps = list(iconName = "Delete")), text = i18n$t("delete")),
+              class = "reduced_sidenav_buttons"
+            )
+          )
+        ),
+        shinyjs::hidden(
+          div(
+            id = ns("share_reduced_sidenav"),
+            div(
+              create_hover_card(ui = shiny.fluent::IconButton.shinyInput(ns("export_element"), iconProps = list(iconName = "Download")), text = i18n$t("export_plugin")),
+              shinyjs::hidden(
+                div(
+                  id = ns("reload_git_repo_div"),
+                  create_hover_card(ui = shiny.fluent::IconButton.shinyInput(ns("reload_git_repo"), iconProps = list(iconName = "SyncOccurence")), text = i18n$t("reload_git_repo")),
+                  onclick = paste0("Shiny.setInputValue('", id, "-reload_git_repo', Math.random());"),
+                  class = "reduced_sidenav_buttons"
+                )
+              ),
+              class = "reduced_sidenav_buttons"
+            )
+          )
+        )
       )
     ) -> result
   }
