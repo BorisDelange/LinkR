@@ -1,0 +1,23 @@
+<?xml version="1.0"?>
+<data_cleaning>
+  <data_cleaning>
+    <app_version>0.3.0.9012</app_version>
+    <unique_id>17f03bed02234e37b036428695d64b443cd53734cfcb362b28bf178d31eb0603</unique_id>
+    <version>0.0.1.9000</version>
+    <author>Boris Delange</author>
+    <name_en>SOFA score</name_en>
+    <name_fr>SOFA score</name_fr>
+    <category_en></category_en>
+    <category_fr></category_fr>
+    <description_en># SOFA
+
+Readme</description_en>
+    <description_fr># SOFA score
+
+Script pour calculer le score SOFA</description_fr>
+    <short_description_en></short_description_en>
+    <short_description_fr>desc fr</short_description_fr>
+    <creation_datetime>2024-07-22 17:53:50</creation_datetime>
+    <update_datetime>2024-07-22 18:08:45</update_datetime>
+  </data_cleaning>
+</data_cleaning>

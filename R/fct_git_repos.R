@@ -36,6 +36,7 @@ load_git_repo <- function(id, r, git_repo){
     writeLines(".DS_Store", paste0(local_path, "/.gitignore"))
     
     # Add this repo to loaded repos
+    
     r$loaded_git_repos <- 
       r$loaded_git_repos %>%
       dplyr::bind_rows(tibble::tibble(unique_id = git_repo$unique_id, datetime = now(), local_path = local_path))

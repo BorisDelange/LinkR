@@ -91,7 +91,8 @@ mod_plugins_ui <- function(id, language, languages, i18n){
                     result
                   }),
                   div(
-                    shiny.fluent::Dropdown.shinyInput(ns("tab_type_id"), label = i18n$t("plugin_for"),
+                    shiny.fluent::Dropdown.shinyInput(
+                      ns("tab_type_id"), label = i18n$t("plugin_for"),
                       options = list(
                         list(key = 1, text = i18n$t("patient_lvl_data")),
                         list(key = 2, text = i18n$t("aggregated_data"))
@@ -111,7 +112,8 @@ mod_plugins_ui <- function(id, language, languages, i18n){
                     result
                   }),
                   div(
-                    shiny.fluent::Dropdown.shinyInput(ns("users_allowed_read_group"), label = i18n$t("give_access_to"),
+                    shiny.fluent::Dropdown.shinyInput(
+                      ns("users_allowed_read_group"), label = i18n$t("give_access_to"),
                       options = list(
                         list(key = "everybody", text = i18n$t("everybody")),
                         list(key = "people_picker", text = i18n$t("some_users"))

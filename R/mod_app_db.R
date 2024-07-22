@@ -83,7 +83,7 @@ mod_app_db_ui <- function(id, language, languages, i18n, code_hotkeys, db_col_ty
             shiny.fluent::ChoiceGroup.shinyInput(ns("run_sql_code_db"), label = i18n$t("database"), options = list(
               list(key = "main", text = i18n$t("main_db")),
               list(key = "public", text = i18n$t("public_db"))
-            ), value = "public", className = "inline_choicegroup"),
+            ), value = "main", className = "inline_choicegroup"),
             style = "margin-bottom: 10px;"
           ),
           shinyAce::aceEditor(
@@ -354,17 +354,15 @@ mod_app_db_server <- function(id, r, d, m, language, i18n, db_col_types, app_fol
     observeEvent(input$run_code_trigger, {
       if (debug) cat(paste0("\n", now(), " - mod_app_db - observer input$run_code_trigger"))
       
-      # Replace \r with \n to prevent bugs
-      # request <- r$sql_code %>% stringr::str_replace_all("\r", "\n")
-      
-        # Capture console output of our code
+      # Capture console output of our code
 
-      code <- r$sql_code
+      code <- r$sql_code  %>% stringr::str_replace_all("\r", "\n")
       
-      if (input$run_sql_code_db == "public") con <- r$db else con <- m$db
+      if (input$run_sql_code_db == "main") con <- r$db else con <- m$db
       
       if (!grepl("^select", tolower(code))) captured_output <- capture.output(tryCatch({
         DBI::dbSendStatement(con, code) -> query
+        print(query)
         DBI::dbClearResult(query)
       }, error = function(e) print(e), warning = function(w) print(w)))
         

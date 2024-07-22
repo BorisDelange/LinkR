@@ -93,14 +93,15 @@ plugins_management,Gestion des plugins
 edit_plugin_code,Editer le code du plugin
 plugin_options,Options du plugin
 import_plugin,Importer un plugin
+import_dataset,Importer un set de données
 import_plugins,Importer des plugins
 export_plugin,Exporter un plugin
 export_plugins,Exporter des plugins
 export_selected_plugins,Exporter les plugins
-import_script,Importer un script
+import_data_cleaning_script,Importer un script de data cleaning
 import_scripts,Importer des scripts
 import_studies,Importer des études
-export_script,Exporter un script
+export_data_cleaning_script,Exporter un script de data cleaning
 export_scripts,Exporter des scripts
 export_studies,Exporter des études
 export_selected_scripts,Exporter les scripts
@@ -491,7 +492,7 @@ update_plugins,Mettre à jour les plugins
 plugin_up_to_date,Plugin à jour
 local_plugin_newer,Le plugin local est plus récent
 error_install_remote_git_plugin,Erreur lors de l'installation d'un plugin depuis le git distant
-error_install_remote_git_script,Erreur lors de l'installation d'un script depuis le git distant
+error_install_remote_git_data_cleaning,Erreur lors de l'installation d'un script de data cleaning depuis le git distant
 error_install_remote_git_study,Erreur lors de l'installation d'une étude depuis le git distant
 error_install_remote_git_dataset,Erreur lors de l'installation d'un set de données depuis le git distant
 error_install_remote_git_vocabulary,Erreur lors de l'installation d'une terminologie depuis le git distant
@@ -642,6 +643,8 @@ tab_added,Onglet ajouté
 widget_added,Widget ajouté
 delete_widget_title,Suppression de widget
 delete_widget_text,Confirmer la suppression de ce widget ?
+delete_tab_title,Suppression d'onglet
+delete_tab_text,Confirmer la suppression de cet onglet ?
 widget_deleted,Widget supprimé
 tab_contains_sub_tabs,Cet onglet contient des sous-onglets. Cliquer de nouveau sur le lien de l'onglet pour afficher les sous-onglets.
 add_tab_has_widgets,Impossible d'ajouter un onglet en-dessous de celui-ci parce qu'il contient au moins un widget. Supprimer ces widgets avant.
@@ -1171,19 +1174,36 @@ import_new_vocabularies,Importer les nouvelles terminologies
 import_new_vocabularies_info,"Si de nouvelles terminologies sont présentes dans les fichiers importés, elles seront ajoutées dans la base de données de l'application."
 plugin_doesnt_exist_in_git_repo,Ce plugin n'existe pas dans le dépôt git
 dataset_doesnt_exist_in_git_repo,Ce set de données n'existe pas dans le dépôt git
+data_cleaning_doesnt_exist_in_git_repo,Ce script de data cleaning n'existe pas dans le dépôt git
 updated_x_ago,Auparavant
 days,Jours
 day,Jour
 hours,Heures
 hour,Heure
-update_git_element_dataset_title,Mise à jour un élément du git
+update_git_element_dataset_title,Mise à jour d'un élément du git
 update_git_element_dataset_text,Mettre à jour ce set de données sur le git ? Ceci va supprimer et remplacer l'ancien set de données sur le dépôt git distant.
 delete_git_element_dataset_title,Supprimer un élément du git
 delete_git_element_dataset_text,Supprimer ce set de données sur le git ?
-update_git_element_plugin_title,Mise à jour un élément du git
+update_git_element_plugin_title,Mise à jour d'un élément du git
 update_git_element_plugin_text,Mettre à jour ce plugin sur le git ? Ceci va supprimer et remplacer l'ancien plugin sur le dépôt git distant.
 delete_git_element_plugin_title,Supprimer un élément du git
 delete_git_element_plugin_text,Supprimer ce plugin sur le git ?
+update_git_element_data_cleaning_title,Mise à jour d'un élément du git
+update_git_element_data_cleaning_text,Mettre à jour ce script de data cleaning sur le git ? Ceci va supprimer et remplacer l'ancien script sur le dépôt git distant.
+delete_git_element_data_cleaning_title,Supprimer un élément du git
+delete_git_element_data_cleaning_text,Supprimer ce script de data cleaning sur le git ?
+update_git_element_project_title,Mise à jour d'un élément du git
+update_git_element_project_text,Mettre à jour ce projet sur le git ? Ceci va supprimer et remplacer l'ancien projet sur le dépôt git distant.
+delete_git_element_project_title,Supprimer un élément du git
+delete_git_element_project_text,Supprimer ce projet sur le git ?
+update_git_element_subset_title,Mise à jour d'un élément du git
+update_git_element_subset_text,Mettre à jour ce subset sur le git ? Ceci va supprimer et remplacer l'ancien subset sur le dépôt git distant.
+delete_git_element_subset_title,Supprimer un élément du git
+delete_git_element_subset_text,Supprimer ce subset sur le git ?
+update_git_element_vocabulary_title,Mise à jour d'un élément du git
+update_git_element_vocabulary_text,Mettre à jour cette terminologie sur le git ? Ceci va supprimer et remplacer l'ancienne terminologie sur le dépôt git distant.
+delete_git_element_vocabulary_title,Supprimer un élément du git
+delete_git_element_vocabulary_text,Supprimer cette terminologie sur le git ?
 dont_update,Cancel
 reload_dataset_concepts,Recharger les concepts du set de données
 reload_dataset_concepts_title,Recharger les concepts
@@ -1200,6 +1220,7 @@ minute,Minute
 cancel,Annuler
 error_downloading_plugin,Erreur lors du téléchargement du plugin
 error_downloading_dataset,Erreur lors du téléchargement du set de données
+error_downloading_data_cleaning,Erreur lors du téléchargement du script de data cleaning
 element_git_and_local_versions_are_the_same,Mêmes versions en local et sur le git
 reload_git_repo,Recharger le git
 install,Installer

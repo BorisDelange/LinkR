@@ -30,13 +30,15 @@ mod_data_ui <- function(id, language, languages, i18n){
           class = "create_element_modal_head small_close_button"
         ),
         div(
-          shiny.fluent::ChoiceGroup.shinyInput(
-            ns("add_tab_type"), value = "same_level", 
-            options = list(
-              list(key = "same_level", text = i18n$t("same_level_current_tab")),
-              list(key = "level_under", text = i18n$t("level_under"))
-            ),
-            className = "inline_choicegroup"
+          shinyjs::hidden(
+            shiny.fluent::ChoiceGroup.shinyInput(
+              ns("add_tab_type"), value = "same_level", 
+              options = list(
+                list(key = "same_level", text = i18n$t("same_level_current_tab")),
+                list(key = "level_under", text = i18n$t("level_under"))
+              ),
+              className = "inline_choicegroup"
+            )
           ),
           div(shiny.fluent::TextField.shinyInput(ns("tab_name"), label = i18n$t("name")), style = "width: 200px;"),
           class = "create_element_modal_body"
@@ -74,6 +76,24 @@ mod_data_ui <- function(id, language, languages, i18n){
         class = "create_tab_modal_content"
       ),
       class = "create_element_modal"
+    )
+  )
+  
+  # Delete a tab modal ----
+  
+  delete_tab_modal <- shinyjs::hidden(
+    div(
+      id = ns("delete_tab_modal"),
+      div(
+        tags$h1(i18n$t("delete_tab_title")), tags$p(i18n$t("delete_tab_text")),
+        div(
+          shiny.fluent::DefaultButton.shinyInput(ns("close_tab_deletion_modal"), i18n$t("dont_delete")),
+          div(shiny.fluent::PrimaryButton.shinyInput(ns("confirm_tab_deletion"), i18n$t("delete")), class = "delete_button"),
+          class = "delete_modal_buttons"
+        ),
+        class = "delete_modal_content"
+      ),
+      class = "delete_modal"
     )
   )
   
@@ -172,6 +192,7 @@ mod_data_ui <- function(id, language, languages, i18n){
     class = "main", style = "margin-left: 10px;",
     add_tab_modal,
     edit_tab_modal,
+    delete_tab_modal,
     add_widget_modal,
     delete_wigdet_modal,
     select_a_plugin_modal,
@@ -236,6 +257,9 @@ mod_data_server <- function(id, r, d, m, language, i18n, debug){
       "$('#", id, "-selected_concepts').css('align-items', 'left;');"
     )
     default_selected_concepts_ui <- div(i18n$t("select_concepts"), class = "default_content_widget")
+    
+    # session max widget_id (prevent a UI bug when we create a widget with the same id of a widget we just deleted)
+    r$session_max_widget <- get_last_row(r$db, "widgets")
     
     # --- --- --- --- --- -
     # Change data page ----
@@ -425,9 +449,8 @@ mod_data_server <- function(id, r, d, m, language, i18n, debug){
           dataset_code %>% 
           stringr::str_replace_all("%dataset_id%", as.character(dataset_id)) %>%
           stringr::str_replace_all("%omop_version%", paste0("'", omop_version, "'")) %>%
-          stringr::str_replace_all("%dataset_folder%", paste0(r$app_folder, "/datasets/", unique_id)) %>%
           stringr::str_replace_all("\r", "\n") %>%
-          stringr::str_replace_all("''", "'")
+          stringr::str_replace_all("%dataset_folder%", paste0(r$app_folder, "/datasets/", unique_id))
         
         tryCatch(capture.output(eval(parse(text = dataset_code))), error = function(e) cat(paste0("\n", now(), " - mod_data - error loading dataset - dataset_id = ", dataset_id)))
       })
@@ -536,10 +559,9 @@ mod_data_server <- function(id, r, d, m, language, i18n, debug){
           subset_code <- 
             DBI::dbGetQuery(m$db, sql) %>% 
             dplyr::pull() %>% 
-            stringr::str_replace_all("%dataset_id%", as.character(r$selected_dataset)) %>%
-            stringr::str_replace_all("%subset_id%", as.character(m$selected_subset)) %>%
             stringr::str_replace_all("\r", "\n") %>%
-            stringr::str_replace_all("''", "'")
+            stringr::str_replace_all("%dataset_id%", as.character(r$selected_dataset)) %>%
+            stringr::str_replace_all("%subset_id%", as.character(m$selected_subset))
           
           tryCatch(eval(parse(text = subset_code)),
             error = function(e) if (nchar(e[1]) > 0) cat(paste0("\n", now(), " - mod_data - error executing subset code - subset_id = ", m$selected_subset)))
@@ -1095,7 +1117,7 @@ mod_data_server <- function(id, r, d, m, language, i18n, debug){
           # Load front-end & back-end
           sapply(distinct_tabs, function(tab_id){
             load_tab_plugins(tab_id)
-            load_tab_ui(category, tab_id)
+            load_tab_ui(category, tab_id, action = "load_tabs")
             load_tab_server(tab_id)
           })
           
@@ -1251,7 +1273,7 @@ mod_data_server <- function(id, r, d, m, language, i18n, debug){
       r$data_tabs <- r$data_tabs %>% dplyr::bind_rows(new_data)
       
       # Add gridstack instance
-      load_tab_ui(category, new_id, "add")
+      load_tab_ui(category, new_id, action = "add_tab")
       
       # Notify user
       show_message_bar(output, "tab_added", "success", i18n = i18n, ns = ns)
@@ -1338,9 +1360,22 @@ mod_data_server <- function(id, r, d, m, language, i18n, debug){
       shinyjs::hide("edit_tab_modal")
     })
     
-    # Delete a tab
+    # --- --- --- --- -
+    # Delete a tab ----
+    # --- --- --- --- -
+    
     observeEvent(input$delete_tab_button, {
       if (debug) cat(paste0("\n", now(), " - mod_data - observer input$delete_tab_button"))
+      shinyjs::show("delete_tab_modal")
+    })
+    
+    observeEvent(input$close_tab_deletion_modal, {
+      if (debug) cat(paste0("\n", now(), " - mod_data - observer input$close_tab_deletion_modal"))
+      shinyjs::hide("delete_tab_modal")
+    })
+    
+    observeEvent(input$confirm_tab_deletion, {
+      if (debug) cat(paste0("\n", now(), " - mod_data - observer input$confirm_tab_deletion"))
       
       category <- r$data_page
       
@@ -1353,10 +1388,25 @@ mod_data_server <- function(id, r, d, m, language, i18n, debug){
       query <- DBI::dbSendStatement(r$db, sql)
       DBI::dbClearResult(query)
       
+      # Delete widgets_options and widgets_concepts
+      sql <- glue::glue_sql("SELECT id FROM widgets WHERE tab_id = {tab_id}", .con = r$db)
+      widgets_ids <- DBI::dbGetQuery(r$db, sql) %>% dplyr::pull()
+      print(widgets_ids)
+      
+      sql <- glue::glue_sql("DELETE FROM widgets_options WHERE widget_id IN ({widgets_ids*})", .con = m$db)
+      print(sql)
+      sql_send_statement(m$db, sql)
+      sql <- glue::glue_sql("DELETE FROM widgets_concepts WHERE widget_id IN ({widgets_ids*})", .con = m$db)
+      print(sql)
+      sql_send_statement(m$db, sql)
+      
       # Delete widgets from db
       sql <- glue::glue_sql("DELETE FROM widgets WHERE tab_id = {tab_id}", .con = r$db)
       query <- DBI::dbSendStatement(r$db, sql)
       DBI::dbClearResult(query)
+      
+      # Update session max widget_id
+      r$session_max_widget <- max(r$session_max_widget, r$data_widgets %>% dplyr::filter(tab_id == !!tab_id) %>% dplyr::pull(id))
       
       # Update r vars
       r$data_tabs <- r$data_tabs %>% dplyr::filter(id != tab_id)
@@ -1382,8 +1432,8 @@ mod_data_server <- function(id, r, d, m, language, i18n, debug){
       # Notify user
       show_message_bar(output, message = "tab_deleted", type = "warning", i18n = i18n, ns = ns)
       
-      # Close modal
-      shinyjs::hide("edit_tab_modal")
+      # Close modals
+      sapply(c("edit_tab_modal", "delete_tab_modal"), shinyjs::hide)
     })
     
     # --- --- --- --- -
@@ -1463,10 +1513,11 @@ mod_data_server <- function(id, r, d, m, language, i18n, debug){
       row <- r$filtered_data_plugins_long %>% dplyr::filter(id == input$selected_element)
       plugin_type <- row %>% dplyr::slice(1) %>% dplyr::pull(tab_type_id)
       plugin_name <- row %>% dplyr::filter(name == paste0("name_", language)) %>% dplyr::pull(value)
+      short_description <- row %>% dplyr::filter(name == paste0("short_description_", language)) %>% dplyr::pull(value)
       
-      users_ui <- create_users_ui(row, r$users)
+      users_ui <- create_authors_ui(row %>% dplyr::filter(name == "author") %>% dplyr::pull(value))
       plugin_buttons <- ""
-      element_ui <- create_element_ui(id, "plugin", plugin_name, users_ui, plugin_buttons, "")
+      element_ui <- create_element_ui(id, "plugin", plugin_name, users_ui, plugin_buttons, "", short_description)
       
       output$selected_plugin <- renderUI(element_ui)
       
@@ -1516,6 +1567,7 @@ mod_data_server <- function(id, r, d, m, language, i18n, debug){
       
       # Add widget in db
       widget_id <- get_last_row(r$db, "widgets") + 1
+      if (widget_id <= r$session_max_widget) widget_id <- r$session_max_widget + 1
       
       new_data <- tibble::tibble(
         id = widget_id, name = widget_name, category = category, tab_id = as.integer(tab_id), plugin_id = plugin_id, display_order = NA_integer_,
@@ -1571,7 +1623,7 @@ mod_data_server <- function(id, r, d, m, language, i18n, debug){
       ## Load front-end & back-end ----
       
       load_tab_plugins(tab_id, widget_id, "add")
-      load_tab_ui(category, tab_id, widget_id, "add")
+      load_tab_ui(category, tab_id, widget_id, action = "add_widget")
       load_tab_server(tab_id, widget_id, "add")
       
       # Close modal
@@ -1580,6 +1632,12 @@ mod_data_server <- function(id, r, d, m, language, i18n, debug){
       # Reload menu (issue : it changed selected tab)
       r$data_reload_menu <- now()
     })
+    
+    # --- --- --- --- --
+    # Edit a widget ----
+    # --- --- --- --- --
+    
+    # ...
     
     # --- --- --- --- -- -
     # Delete a widget ----
@@ -1598,10 +1656,18 @@ mod_data_server <- function(id, r, d, m, language, i18n, debug){
       tab_id <- r[[paste0(category, "_selected_tab")]]
       widget_id <- r$data_selected_widget
       
+      # Update session max widget_id
+      r$session_max_widget <- max(r$session_max_widget, widget_id)
+      
       # Delete from database
-      sql <- glue::glue_sql("DELETE FROM widgets WHERE id = {widget_id}", .con = m$db)
-      query <- DBI::dbSendStatement(r$db, sql)
-      DBI::dbClearResult(query)
+      sql <- glue::glue_sql("DELETE FROM widgets WHERE id = {widget_id}", .con = r$db)
+      sql_send_statement(r$db, sql)
+      
+      # Delete widgets_options and widgets_concepts
+      sql <- glue::glue_sql("DELETE FROM widgets_options WHERE widget_id = {widget_id}", .con = m$db)
+      sql_send_statement(m$db, sql)
+      sql <- glue::glue_sql("DELETE FROM widgets_concepts WHERE widget_id = {widget_id}", .con = m$db)
+      sql_send_statement(m$db, sql)
       
       # Update r var
       r$data_widgets <- r$data_widgets %>% dplyr::filter(id != widget_id)
@@ -1657,24 +1723,27 @@ mod_data_server <- function(id, r, d, m, language, i18n, debug){
       
       # Save each widget position
       data_widgets <- r$data_widgets %>% dplyr::filter(tab_id == r[[paste0(r$data_page, "_selected_tab")]])
-      for (i in 1:nrow(data_widgets)){
-        
-        data_widget <- data_widgets[i, ]
-        
-        shinyjs::runjs(paste0(
-          "var widget = document.getElementById('", id, "-data_gridstack_item_", data_widget$id, "');",
-          "if (widget) {",
-          "  var widgetPosition = {",
-          "    id: ", data_widget$id, ",",
-          "    w: widget.getAttribute('gs-w'),",
-          "    h: widget.getAttribute('gs-h'),",
-          "    x: widget.getAttribute('gs-x'),",
-          "    y: widget.getAttribute('gs-y')",
-          "  }",
-          "};",
-          "Shiny.setInputValue('", id, "-widget_position', widgetPosition);",
-          "Shiny.setInputValue('", id, "-widget_position_trigger', Math.random());"
-        ))
+      
+      if (nrow(data_widgets) > 0){
+        for (i in 1:nrow(data_widgets)){
+          
+          data_widget <- data_widgets[i, ]
+          
+          shinyjs::runjs(paste0(
+            "var widget = document.getElementById('", id, "-data_gridstack_item_", data_widget$id, "');",
+            "if (widget) {",
+            "  var widgetPosition = {",
+            "    id: ", data_widget$id, ",",
+            "    w: widget.getAttribute('gs-w'),",
+            "    h: widget.getAttribute('gs-h'),",
+            "    x: widget.getAttribute('gs-x'),",
+            "    y: widget.getAttribute('gs-y')",
+            "  }",
+            "};",
+            "Shiny.setInputValue('", id, "-widget_position', widgetPosition);",
+            "Shiny.setInputValue('", id, "-widget_position_trigger', Math.random());"
+          ))
+        }
       }
       
       # Disable gridstack edition
@@ -1785,7 +1854,7 @@ mod_data_server <- function(id, r, d, m, language, i18n, debug){
       }
     }
     
-    load_tab_ui <- function(category, tab_id, widget_id = NA_integer_, action = "reload"){
+    load_tab_ui <- function(category, tab_id, widget_id = NA_integer_, action){
       
       # if (r$project_load_status_displayed) r$project_load_status$widgets_ui_starttime <- now("%Y-%m-%d %H:%M:%OS3")
       
@@ -1793,19 +1862,23 @@ mod_data_server <- function(id, r, d, m, language, i18n, debug){
 
       widgets_ui <- tagList()
 
-      if (action == "reload") widgets <- r$data_widgets %>% dplyr::filter(tab_id == !!tab_id)
-      else if (action == "add") widgets <- r$data_widgets %>% dplyr::filter(id == !!widget_id)
+      if (action %in% c("add_tab", "load_tabs")) widgets <- r$data_widgets %>% dplyr::filter(tab_id == !!tab_id)
+      else if (action %in% "add_widget") widgets <- r$data_widgets %>% dplyr::filter(id == !!widget_id)
       widgets <- widgets %>% dplyr::rename(widget_id = id)
 
       gridstack_id <- paste0("gridstack_", tab_id)
 
-      if (action == "reload"){
+      # Create a tab gridstack instance ?
+      if (action %in% c("load_tabs", "add_tab")){
 
         # Add gridstack div
         gridstack_div <- div(id = ns(gridstack_id), class = "grid-stack")
 
+        # Hide this gridstack instance ? Not if this is current tab of if this is a new stab
         hide_div <- TRUE
-        if (!is.na(selected_tab) & category == r$data_page) if (tab_id == selected_tab) hide_div <- FALSE
+        if (action == "add_tab") hide_div <- FALSE
+        else if (!is.na(selected_tab) & category == r$data_page) if (tab_id == selected_tab) hide_div <- FALSE
+        
         if (hide_div) gridstack_div <- shinyjs::hidden(gridstack_div)
 
         insertUI(selector = paste0("#", ns("study_widgets")), where = "beforeEnd", ui = gridstack_div)
@@ -1897,7 +1970,7 @@ mod_data_server <- function(id, r, d, m, language, i18n, debug){
           
           add_widget_to_gridstack(id, tab_id, ui_output, widget_id)
           output[[paste0("ui_", widget_id)]] <- renderUI(ui_code)
-          output[[paste0("edit_buttons_", widget_id)]] <- renderUI(get_widget_edit_buttons(id, widget_id))
+          output[[paste0("edit_buttons_", widget_id)]] <- renderUI(get_widget_edit_buttons(id, widget_id, show_edit_buttons = r$data_edit_page_activated))
         })
       }
       

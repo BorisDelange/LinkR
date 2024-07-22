@@ -239,7 +239,7 @@ a.no-hover-effect:hover {
 
 .delete_modal_content, .import_modal_content {
   width: 400px;
-  height: 100px;
+  height: 110px;
 }
 
 .update_or_delete_git_element_modal_content {
@@ -258,7 +258,7 @@ a.no-hover-effect:hover {
 
 .delete_modal_buttons, .import_modal_buttons, .create_element_modal_buttons, .select_concepts_modal_buttons, .import_concepts_modal_buttons,
 .datasets_share_buttons, .update_or_delete_git_element_modal_buttons, .reload_dataset_concepts_modal_buttons, .git_element_details_git_buttons,
-.export_db_buttons {
+.export_db_buttons, .data_cleaning_share_buttons {
   position: absolute;
   right: 8px;
   bottom: 8px;
@@ -267,7 +267,7 @@ a.no-hover-effect:hover {
 }
 
 .create_tab_modal_content {
-  width: 600px;
+  width: 400px;
   padding-bottom: 30px;
 }
 
@@ -721,9 +721,8 @@ td[data-type="factor"] input {
 
 .sidenav_top {
   display: flex;
-  height: 25px;
   border-bottom: solid 1px #ccc;
-  padding-bottom: 10px;
+  padding-bottom: 5px;
 }
 
 .active-file {
@@ -1100,19 +1099,19 @@ td[data-type="factor"] input {
 /* DATA CLEANING SCRIPTS PAGE */
 /* -------------------------- */
 
-.data_cleaning_summary_container {
+.data_cleaning_summary_container, .data_cleaning_share_container {
   display: flex;
   justify-content: space-between;
   height: calc(100% - 50px);
 }
 
-.data_cleaning_summary_left {
+.data_cleaning_summary_left, .data_cleaning_share_left {
   display: flex;
   flex-direction: column;
   width: 50%;
 }
 
-.data_cleaning_summary_right {
+.data_cleaning_summary_right, .data_cleaning_share_right {
   width: 50%;
   calc(100% - 16px)
 }

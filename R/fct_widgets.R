@@ -5,7 +5,7 @@ reload_elements_var <- function(page_id, con, r, m, long_var_filtered){
   else id <- page_id
   
   sql_category <- switch(id, 
-    "data_cleaning" = "script",
+    "data_cleaning" = "data_cleaning",
     "datasets" = "dataset",
     "projects" = "study",
     "plugins" = "plugin", 
@@ -104,7 +104,7 @@ create_elements_ui <- function(page_id, elements, r, language, i18n){
   for (i in unique(elements$id)){
     row <- elements %>% dplyr::filter(id == i)
     
-    users_ui <- create_users_ui(row, r$users)
+    users_ui <- create_authors_ui(row %>% dplyr::filter(name == "author") %>% dplyr::pull(value))
     
     element_name <- row %>% dplyr::filter(name == paste0("name_", language)) %>% dplyr::pull(value)
     
@@ -114,10 +114,13 @@ create_elements_ui <- function(page_id, elements, r, language, i18n){
     # For plugins widgets, we add some content on the bottom
     
     widget_buttons <- tagList()
+    short_description <- ""
     onclick <- paste0("
       Shiny.setInputValue('", page_id, "-selected_element', ", row$id, ");
       Shiny.setInputValue('", page_id, "-selected_element_trigger', Math.random());
     ")
+    
+    if (id %in% c("plugins", "datasets", "data_cleaning")) short_description <- row %>% dplyr::filter(name == paste0("short_description_", language)) %>% dplyr::pull(value)
     
     if (id == "plugins"){
       plugin_type <- row %>% dplyr::slice(1) %>% dplyr::pull(tab_type_id)
@@ -146,115 +149,12 @@ create_elements_ui <- function(page_id, elements, r, language, i18n){
     }
     
     elements_ui <- tagList(
-      create_element_ui(page_id, single_id, element_name, users_ui, widget_buttons, onclick),
+      create_element_ui(page_id, single_id, element_name, users_ui, widget_buttons, onclick, short_description),
       elements_ui
     )
   }
   
   div(elements_ui, class = paste0(id, "_container"))
-}
-
-#' @noRd
-get_plugin_buttons <- function(plugin_type, i18n){
-  
-  if (plugin_type == 1) {
-    plugin_type_icon <- div(shiny.fluent::FontIcon(iconName = "Contact"), class = "small_icon_button")
-    plugin_type_text <- i18n$t("patient_lvl_plugin")
-  }
-  else {
-    plugin_type_icon <- div(shiny.fluent::FontIcon(iconName = "Group"), class = "small_icon_button")
-    plugin_type_text <- i18n$t("aggregated_plugin")
-  }
-  
-  plugin_type_icon <- create_hover_card(ui = plugin_type_icon, text = plugin_type_text)
-  
-  div(
-    div(
-      # div("R", class = "prog_label r_label"),
-      # div("Python", class = "prog_label python_label"),
-      # class = "plugin_widget_labels"
-    ),
-    plugin_type_icon,
-    class = "plugin_widget_bottom"
-  )
-}
-
-#' @noRd
-create_users_ui <- function(row, users){
-  
-  personas <- list()
-  element_users <- row %>% dplyr::filter(name == "user_allowed_read") %>% dplyr::distinct(value_num) %>% dplyr::pull(value_num)
-  for (j in element_users){
-    user <- users %>% dplyr::filter(id == j)
-    personas <- rlist::list.append(personas, list(personaName = user$name))
-  }
-  
-  shiny.fluent::Facepile(personas = personas)
-}
-
-#' @noRd
-create_element_ui <- function(page_id, single_id, element_name, users_ui, widget_buttons, onclick){
-  
-  div(
-    onclick = paste0(onclick, "Shiny.setInputValue('", page_id, "-selected_element_type', '');"),
-    div(
-      class = paste0(single_id, "_widget"),
-      div(
-        tags$h1(element_name),
-        users_ui,
-        div(paste0("Short description of my ", single_id))
-      ),
-      widget_buttons
-    )
-  )
-}
-
-#' @noRd
-create_element_files <- function(id, r, element_id, single_id, element_options, element_dir){
-  
-  if (!dir.exists(element_dir)) dir.create(element_dir)
-  
-  if (id == "datasets"){
-    # Get dataset code
-    
-    sql <- glue::glue_sql("SELECT code FROM code WHERE category = {single_id} AND link_id = {element_id}", .con = r$db)
-    code <- DBI::dbGetQuery(r$db, sql) %>% dplyr::pull()
-    
-    writeLines(code, paste0(element_dir, "/code.R"))
-  }
-  
-  # Create XML file
-  create_element_xml(id, r, element_id, single_id, element_options, element_dir)
-}
-
-#' @noRd
-create_element_xml <- function(id, r, element_id, single_id, element_options, element_dir){
-  
-  xml <- XML::newXMLDoc()
-  
-  elements_node <- XML::newXMLNode(id, doc = xml)
-  element_node <- XML::newXMLNode(single_id, parent = elements_node)
-  
-  XML::newXMLNode("app_version", r$app_version, parent = element_node)
-  
-  for(name in c("unique_id", "version", "author", paste0("name_", r$languages$code), paste0("category_", r$languages$code))){
-    XML::newXMLNode(name, element_options %>% dplyr::filter(name == !!name) %>% dplyr::pull(value), parent = element_node)
-  }
-  for(name in c(paste0("description_", r$languages$code))) XML::newXMLNode(
-    name,
-    element_options %>% dplyr::filter(name == !!name) %>% dplyr::pull(value) %>% stringr::str_replace_all("''", "'"),
-    parent = element_node
-  )
-  
-  element <- r[[paste0(id, "_wide")]] %>% dplyr::filter(id == element_id)
-  
-  for (name in c("creation_datetime", "update_datetime")) XML::newXMLNode(name, element %>% dplyr::pull(get(!!name)), parent = element_node)
-  
-  # Specific nodes
-  if (id == "plugins")  XML::newXMLNode("type", element$tab_type_id, parent = element_node)
-  
-  # Create XML file
-  XML::saveXML(xml, file = paste0(element_dir, paste0("/", single_id, ".xml")))
 }
 
 compare_git_elements_datetimes <- function(action, i18n, local_element, git_element){
@@ -298,7 +198,141 @@ compare_git_elements_datetimes <- function(action, i18n, local_element, git_elem
 }
 
 #' @noRd
-create_rmarkdown_file <- function(r, code){
+get_plugin_buttons <- function(plugin_type, i18n){
+  
+  if (plugin_type == 1) {
+    plugin_type_icon <- div(shiny.fluent::FontIcon(iconName = "Contact"), class = "small_icon_button")
+    plugin_type_text <- i18n$t("patient_lvl_plugin")
+  }
+  else {
+    plugin_type_icon <- div(shiny.fluent::FontIcon(iconName = "Group"), class = "small_icon_button")
+    plugin_type_text <- i18n$t("aggregated_plugin")
+  }
+  
+  plugin_type_icon <- create_hover_card(ui = plugin_type_icon, text = plugin_type_text)
+  
+  div(
+    div(
+      # div("R", class = "prog_label r_label"),
+      # div("Python", class = "prog_label python_label"),
+      # class = "plugin_widget_labels"
+    ),
+    plugin_type_icon,
+    class = "plugin_widget_bottom"
+  )
+}
+
+#' @noRd
+create_authors_ui <- function(authors){
+  
+  personas <- list()
+  authors <- authors %>% strsplit(split = "[,;]") %>% unlist() %>% trimws()
+  
+  if (length(authors) > 0) for (author in authors) personas <- rlist::list.append(personas, list(personaName = author))
+  
+  div(
+    shiny.fluent::Facepile(personas = personas),
+    style = "height: 35px; display: flex; align-items: center;"
+  )
+}
+
+#' @noRd
+create_element_ui <- function(page_id, single_id, element_name, users_ui, widget_buttons, onclick, short_description){
+  
+  div(
+    onclick = paste0(onclick, "Shiny.setInputValue('", page_id, "-selected_element_type', '');"),
+    div(
+      class = paste0(single_id, "_widget"),
+      div(
+        tags$h1(element_name),
+        users_ui,
+        div(short_description)
+      ),
+      widget_buttons
+    )
+  )
+}
+
+#' @noRd
+create_element_files <- function(id, r, element_id, single_id, element_options, element_dir){
+  
+  if (!dir.exists(element_dir)) dir.create(element_dir)
+  
+  if (id %in% c("data_cleaning", "datasets")){
+    # Get dataset code
+    
+    sql <- glue::glue_sql("SELECT code FROM code WHERE category = {single_id} AND link_id = {element_id}", .con = r$db)
+    code <- DBI::dbGetQuery(r$db, sql) %>% dplyr::pull()
+    
+    writeLines(code, paste0(element_dir, "/code.R"))
+  }
+  
+  # Create XML file
+  create_element_xml(id, r, element_id, single_id, element_options, element_dir)
+}
+
+#' @noRd
+create_element_xml <- function(id, r, element_id, single_id, element_options, element_dir){
+  
+  xml <- XML::newXMLDoc()
+  
+  xml_root <- id
+  if (id == "data_cleaning") xml_root <- "data_cleaning_scripts"
+  
+  elements_node <- XML::newXMLNode(xml_root, doc = xml)
+  element_node <- XML::newXMLNode(single_id, parent = elements_node)
+  
+  XML::newXMLNode("app_version", r$app_version, parent = element_node)
+  
+  for(name in c("unique_id", "version", "author", paste0("name_", r$languages$code), paste0("category_", r$languages$code))){
+    XML::newXMLNode(name, element_options %>% dplyr::filter(name == !!name) %>% dplyr::pull(value), parent = element_node)
+  }
+  for(name in c(paste0("description_", r$languages$code), paste0("short_description_", r$languages$code))) XML::newXMLNode(
+    name,
+    element_options %>% dplyr::filter(name == !!name) %>% dplyr::pull(value),
+    parent = element_node
+  )
+  
+  element <- r[[paste0(id, "_wide")]] %>% dplyr::filter(id == element_id)
+  
+  for (name in c("creation_datetime", "update_datetime")) XML::newXMLNode(name, element %>% dplyr::pull(get(!!name)), parent = element_node)
+  
+  # Specific nodes
+  if (id == "plugins")  XML::newXMLNode("type", element$tab_type_id, parent = element_node)
+  else if (id == "datasets") XML::newXMLNode("omop_version", element_options %>% dplyr::filter(name == "omop_version") %>% dplyr::pull(value), parent = element_node)
+  
+  # Create XML file
+  XML::saveXML(xml, file = paste0(element_dir, paste0("/", single_id, ".xml")))
+}
+
+#' @noRd
+create_options_tibble <- function(element_id, element_name, sql_category, user_id, username, languages, last_options_id){
+  tibble::tribble(
+    ~name, ~value, ~value_num,
+    "users_allowed_read_group", "people_picker", 1,
+    "user_allowed_read", "", user_id,
+    "version", "0.0.1.9000", NA_integer_,
+    "unique_id", paste0(sample(c(0:9, letters[1:6]), 64, TRUE), collapse = ''), NA_integer_,
+    "author", username, NA_integer_,
+    "downloaded_from", "", NA_integer_,
+    "downloaded_from_url", "", NA_integer_
+  ) %>%
+    dplyr::bind_rows(
+      languages %>%
+        tidyr::crossing(name = c("description", "category", "name")) %>%
+        dplyr::mutate(
+          name = paste0(name, "_", code),
+          value = ifelse(grepl("name_", name), element_name, ""),
+          value_num = NA_integer_
+        ) %>%
+        dplyr::select(-code, -language)
+    ) %>%
+    dplyr::mutate(id = last_options_id + dplyr::row_number(), category = sql_category, link_id = element_id, .before = "name") %>%
+    dplyr::mutate(creator_id = user_id, datetime = now(), deleted = FALSE)
+}
+
+#' @noRd
+create_rmarkdown_file <- function(r, code, interpret_code = TRUE){
   
   code <- gsub("\r", "\n", code)
   
@@ -308,7 +342,8 @@ create_rmarkdown_file <- function(r, code){
   if (!dir.exists(dir)) dir.create(dir)
   
   # Create the markdown file
-  knitr::knit(text = code, output = output_file, quiet = TRUE)
+  if (interpret_code) knitr::knit(text = code, output = output_file, quiet = TRUE)
+  else writeLines(code, con = output_file)
   
   return(output_file)
 }

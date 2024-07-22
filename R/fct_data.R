@@ -8,7 +8,9 @@ create_gridstack_instance <- function(id, tab_id){
         import('https://esm.sh/gridstack').then((module) => {
           const GridStack = module.GridStack;
           window.gridStackInstances['", tab_id, "'] = GridStack.init({
-            cellHeight: 100,
+            cellHeight: 15,
+            scroll: false,
+            column: 12,
             staticGrid: true,
             resizable: { handles: 'se, ne, nw, sw' },
             margin: 10
@@ -20,11 +22,11 @@ create_gridstack_instance <- function(id, tab_id){
 }
 
 #' @noRd
-create_widget <- function(id, widget_id, ui_code, w = 6, h = 4, x = 0, y = 0){
+create_widget <- function(id, widget_id, ui_code, w = 6, h = 25, x = 0, y = 0){
   ns <- NS(id)
   
   if (is.na(w) | w == 0) w <- 6
-  if (is.na(h) | h == 0) h <- 4
+  if (is.na(h) | h == 0) h <- 25
   if (is.na(x)) x <- 0
   if (is.na(y)) y <- 0
   

@@ -81,7 +81,7 @@ mod_subsets_ui <- function(id, language, languages, i18n){
               verbatimTextOutput(ns("code_result")),
               class = "element_code_result"
             ),
-            style = "height: 100%; display: flex;"
+            style = "height: calc(100% - 35px); display: flex;"
           )
         ),
 

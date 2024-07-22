@@ -184,7 +184,7 @@ mod_widgets_server <- function(id, r, d, m, language, i18n, all_divs, debug){
     
     # For retro-compatibility : studies -> projects
     sql_category <- switch(id, 
-      "data_cleaning" = "script",
+      "data_cleaning" = "data_cleaning",
       "datasets" = "dataset",
       "projects" = "study",
       "plugins" = "plugin",
@@ -341,6 +341,7 @@ mod_widgets_server <- function(id, r, d, m, language, i18n, all_divs, debug){
       if (debug) cat(paste0("\n", now(), " - mod_widgets - (", id, ") - observer input$add_element"))
       
       element_name <- input$element_creation_name
+      username <- r$users %>% dplyr::filter(id == r$user_id) %>% dplyr::pull(name)
 
       # Check if name is not empty
       empty_name <- TRUE
@@ -367,6 +368,7 @@ mod_widgets_server <- function(id, r, d, m, language, i18n, all_divs, debug){
         creation_datetime = now(), update_datetime = now(), deleted = FALSE)
       
       else if (sql_table == "studies"){
+        
         patient_lvl_tab_group_id <- get_last_row(con, "tabs_groups") + 1
         aggregated_tab_group_id <- get_last_row(con, "tabs_groups") + 2
         
@@ -382,6 +384,30 @@ mod_widgets_server <- function(id, r, d, m, language, i18n, all_divs, debug){
             name = element_name, description = "", creator_id = r$user_id, datetime = now(), deleted = FALSE)
         
         DBI::dbAppendTable(con, "tabs_groups", new_tabs_groups)
+        
+        ## Add a default subset
+        subset_id <- get_last_row(m$db, "subsets") + 1
+        new_subset <- tibble::tibble(
+          id = subset_id, name = i18n$t("subset_all_patients"), description = NA_character_, study_id = element_id,
+          creator_id = r$user_id, datetime = now(), deleted = FALSE)
+        DBI::dbAppendTable(m$db, "subsets", new_subset)
+        
+        new_subset_options <- create_options_tibble(
+          element_id = subset_id, element_name = i18n$t("subset_all_patients"), sql_category = "subset", user_id = r$user_id, username = username, 
+          languages = r$languages, last_options_id = get_last_row(m$db, "options"))
+        DBI::dbAppendTable(m$db, "options", new_subset_options)
+        
+        code <- paste0(
+          "add_patients_to_subset(\n",
+          "    patients = d$person %>% dplyr::pull(person_id),\n",
+          "    subset_id = %subset_id%,\n",
+          "    output = output, r = r, m = m, i18n = i18n, ns = ns\n",
+          ")"
+        )
+        new_subset_code <- tibble::tibble(
+          id = get_last_row(m$db, "code") + 1, category = "subset", link_id = subset_id, code = code,
+          creator_id = r$user_id, datetime = now(), deleted = FALSE)
+        DBI::dbAppendTable(m$db, "code", new_subset_code)
       }
 
       else if (sql_table == "plugins") new_data <- tibble::tibble(
@@ -424,30 +450,10 @@ mod_widgets_server <- function(id, r, d, m, language, i18n, all_divs, debug){
       r[[id]] <- r[[id]] %>% dplyr::bind_rows(new_data)
 
       ## Options table
-      username <- r$users %>% dplyr::filter(id == r$user_id) %>% dplyr::pull(name)
       
-      new_options <- tibble::tribble(
-        ~name, ~value, ~value_num,
-        "users_allowed_read_group", "people_picker", 1,
-        "user_allowed_read", "", r$user_id,
-        "version", "0.0.1.9000", NA_integer_,
-        "unique_id", paste0(sample(c(0:9, letters[1:6]), 64, TRUE), collapse = ''), NA_integer_,
-        "author", username, NA_integer_,
-        "downloaded_from", "", NA_integer_,
-        "downloaded_from_url", "", NA_integer_
-      ) %>%
-        dplyr::bind_rows(
-          r$languages %>%
-            tidyr::crossing(name = c("description", "category", "name")) %>%
-            dplyr::mutate(
-              name = paste0(name, "_", code),
-              value = ifelse(grepl("name_", name), element_name, ""),
-              value_num = NA_integer_
-            ) %>%
-            dplyr::select(-code, -language)
-        ) %>%
-        dplyr::mutate(id = get_last_row(con, "options") + dplyr::row_number(), category = sql_category, link_id = element_id, .before = "name") %>%
-        dplyr::mutate(creator_id = r$user_id, datetime = now(), deleted = FALSE)
+      new_options <- create_options_tibble(
+        element_id = element_id, element_name = element_name, sql_category = sql_category, user_id = r$user_id, username = username, 
+        languages = r$languages, last_options_id = get_last_row(con, "options"))
       
       ### For plugins table, add a row for each file
       if (id == "plugins"){
@@ -485,12 +491,43 @@ mod_widgets_server <- function(id, r, d, m, language, i18n, all_divs, debug){
       else {
         
         code <- ""
+        
         if (id == "subsets") code <- paste0(
           "add_patients_to_subset(\n",
           "    patients = d$person %>% dplyr::pull(person_id),\n",
           "    subset_id = %subset_id%,\n",
           "    output = output, r = r, m = m, i18n = i18n, ns = ns\n",
           ")"
+        )
+        else if (id == "datasets") code <- paste0(
+          "# See documentation here: https://linkr.interhop.org/en/docs/import_data/\n\n",
+          "# 1) Import data from a folder\n\n",
+          "# Specify a folder: all CSV and Parquet files will be automatically loaded.\n",
+          "# The library specified in the read_with argument will be used to load data.\n",
+          "# To save data in the app folder, specify a save_as argument with the desired format\n",
+          "# To delete and rewrite data each time the dataset is loaded, set rewrite to TRUE\n\n",
+          "# import_dataset(\n",
+          "#     r, d, dataset_id = %dataset_id%, omop_version = \"5.4\",\n",
+          "#     data_source = \"disk\", data_folder = \"/my_data_folder\",\n",
+          "#     read_with = \"duckdb\", save_as = \"parquet\", rewrite = FALSE\n",
+          "# )\n\n",
+          "# 2) Import data from a database connection\n\n",
+          "# con <- DBI::dbConnect(\n",
+          "#     RPostgres::Postgres(),\n",
+          "#     host = \"localhost\",\n",
+          "#     port = 5432,\n",
+          "#     dbname = \"mimic-iv\",\n",
+          "#     user = \"postgres\",\n",
+          "#     password = \"postgres\"\n",
+          "# )\n",
+          "# \n",
+          "# import_dataset(\n",
+          "#     r, d, dataset_id = %dataset_id%, omop_version = \"5.4\",\n",
+          "#     data_source = \"db\", con = con,\n",
+          "#     read_with = \"duckdb\", save_as = \"parquet\", rewrite = FALSE\n",
+          "# )\n\n",
+          "# To import only specific tables, add load_tables argument:\n",
+          "# load_tables = c(\"person\", \"visit_occurrence\", \"visit_detail\", \"measurement\")"
         )
         
         new_code <- tibble::tibble(
@@ -605,7 +642,7 @@ mod_widgets_server <- function(id, r, d, m, language, i18n, all_divs, debug){
         # Import data in database
         
         # Create columns if don't exist (one column for option and for language)
-        prefixes <- c("description", "name", "category")
+        prefixes <- c("short_description", "description", "name", "category")
         new_cols <- outer(prefixes, r$languages$code, paste, sep = "_") %>% as.vector()
         for(col in new_cols) if(!col %in% colnames(r$imported_element)) r$imported_element <- r$imported_element %>% dplyr::mutate(!!col := "")
         
@@ -616,6 +653,10 @@ mod_widgets_server <- function(id, r, d, m, language, i18n, all_divs, debug){
         if (id == "plugins") new_data <-
           r$imported_element %>%
           dplyr::transmute(id = get_last_row(con, "plugins") + 1, name, tab_type_id = type, creation_datetime, update_datetime, deleted = FALSE)
+        
+        else if (id == "datasets") new_data <-
+          r$imported_element %>%
+          dplyr::transmute(id = get_last_row(con, "datasets") + 1, name, data_source_id = NA_integer_, creation_datetime, update_datetime, deleted = FALSE)
         
         DBI::dbAppendTable(con, sql_table, new_data)
         
@@ -632,10 +673,17 @@ mod_widgets_server <- function(id, r, d, m, language, i18n, all_divs, debug){
         ) %>%
           dplyr::bind_rows(
             r$imported_element %>%
-              dplyr::select(dplyr::starts_with(c("category", "name", "description")), -name) %>%
-              tidyr::pivot_longer(dplyr::starts_with(c("category", "name", "description")), names_to = "name", values_to = "value") %>%
+              dplyr::select(dplyr::starts_with(c("category", "name", "description", "short_description")), -name) %>%
+              tidyr::pivot_longer(dplyr::starts_with(c("category", "name", "description", "short_description")), names_to = "name", values_to = "value") %>%
               dplyr::mutate(value_num = NA_real_)
-          ) %>%
+          )
+        
+        if (id == "datasets") new_options <- 
+          new_options %>% 
+          dplyr::bind_rows(tibble::tibble(name = "omop_version", value = r$imported_element$omop_version, value_num = NA_integer_))
+        
+        new_options <- 
+          new_options %>%
           dplyr::mutate(id = get_last_row(con, "options") + dplyr::row_number(), category = sql_category, link_id = new_data$id, .before = "name") %>%
           dplyr::mutate(creator_id = r$user_id, datetime = now(), deleted = FALSE)
         
@@ -656,7 +704,7 @@ mod_widgets_server <- function(id, r, d, m, language, i18n, all_divs, debug){
         # Reload elements var and widgets
         shinyjs::runjs(paste0("Shiny.setInputValue('", id, "-reload_elements_var', Math.random());"))
        
-        show_message_bar(output, paste0("success_importing_", single_id), "success", i18n = i18n, ns = ns)
+        show_message_bar(output, message = paste0("success_importing_", single_id), type = "success", i18n = i18n, ns = ns)
         
       }, error = function(e) cat(paste0("\n", now(), " - mod_widgets - (", id, ") - import element error - ", toString(e))))
     })
@@ -721,9 +769,10 @@ mod_widgets_server <- function(id, r, d, m, language, i18n, all_divs, debug){
       shiny.fluent::updateDropdown.shinyInput(session, "users_allowed_read_group", value = element_long %>% dplyr::filter(name == "users_allowed_read_group") %>% dplyr::pull(value))
       
       ## Description
+      
       description_code <- element_long %>% dplyr::filter(name == paste0("description_", language)) %>% dplyr::pull(value)
       shinyAce::updateAceEditor(session, "description_code", value = description_code)
-      output_file <- create_rmarkdown_file(r, description_code)
+      output_file <- create_rmarkdown_file(r, description_code, interpret_code = FALSE)
       output$description_ui <- renderUI(div(class = "markdown", withMathJax(includeMarkdown(output_file))))
       
       ## Load users UI
@@ -748,7 +797,14 @@ mod_widgets_server <- function(id, r, d, m, language, i18n, all_divs, debug){
         )
       )
       
+      ## Tab type id
       if (id == "plugins") shiny.fluent::updateDropdown.shinyInput(session, "tab_type_id", value = element_wide$tab_type_id)
+      
+      ## OMOP version
+      if (id == "datasets") shiny.fluent::updateDropdown.shinyInput(
+        session, "omop_version",
+        value = element_long %>% dplyr::filter(name == "omop_version") %>% dplyr::pull(value)
+      )
       
       # Load plugin code files and store selected plugin infos
       if (id == "plugins") {
@@ -823,6 +879,12 @@ mod_widgets_server <- function(id, r, d, m, language, i18n, all_divs, debug){
         shinyjs::runjs(paste0("Shiny.setInputValue('", id, "-load_vocabulary_code', Math.random());"))
         shinyjs::runjs(paste0("Shiny.setInputValue('", id, "-load_vocabulary_tables', Math.random());"))
       }
+      
+      # Load data cleaning scripts ----
+      else if (id == "data_cleaning"){
+        
+        shinyjs::runjs(paste0("Shiny.setInputValue('", id, "-load_data_cleaning_code', Math.random());"))
+      }
     })
     
     # |-------------------------------- -----
@@ -839,7 +901,7 @@ mod_widgets_server <- function(id, r, d, m, language, i18n, all_divs, debug){
       # Reload markdown
       element_long <- r[[long_var]] %>% dplyr::filter(id == input$selected_element)
       description_code <- element_long %>% dplyr::filter(name == paste0("description_", input$language)) %>% dplyr::pull(value)
-      output_file <- create_rmarkdown_file(r, description_code)
+      output_file <- create_rmarkdown_file(r, description_code, interpret_code = FALSE)
       output$description_ui <- renderUI(div(class = "markdown", withMathJax(includeMarkdown(output_file))))
       
       sapply(c("summary_view_informations_div", "edit_summary_div"), shinyjs::hide)
@@ -854,12 +916,23 @@ mod_widgets_server <- function(id, r, d, m, language, i18n, all_divs, debug){
       element_wide <- r[[wide_var]] %>% dplyr::filter(id == input$selected_element)
       element_long <- r[[long_var]] %>% dplyr::filter(id == input$selected_element)
       
+      specific_row <- tagList()
+      if (id == "plugins"){
+        if(element_wide$tab_type_id == 1) tab_type <- i18n$t("patient_lvl_data") else tab_type <- i18n$t("aggregated_data")
+        specific_row <- tags$tr(tags$td(strong(i18n$t("plugin_for"))), tags$td(tab_type))
+      }
+      else if (id == "datasets") specific_row <- tags$tr(
+        tags$td(strong(i18n$t("omop_version"))), 
+        tags$td(element_long %>% dplyr::filter(name == "omop_version") %>% dplyr::pull(value))
+      )
+      
       output$summary_informations_ui <- renderUI(
         div(
           tags$table(
             tags$tr(tags$td(strong(i18n$t("name"))), tags$td(element_wide$name)),
             tags$tr(tags$td(strong(i18n$t("created_on"))), tags$td(element_wide$creation_datetime)),
             tags$tr(tags$td(strong(i18n$t("updated_on"))), tags$td(element_wide$update_datetime)),
+            specific_row,
             tags$tr(tags$td(strong(i18n$t("author_s"))), tags$td(element_long %>% dplyr::filter(name == "author") %>% dplyr::pull(value))),
             tags$tr(tags$td(strong(i18n$t("short_description")), style = "min-width: 150px;"), tags$td(element_long %>% dplyr::filter(name == paste0("short_description_", language)) %>% dplyr::pull(value)))
           )
@@ -895,7 +968,7 @@ mod_widgets_server <- function(id, r, d, m, language, i18n, all_divs, debug){
       shinyAce::updateAceEditor(session, "description_code", value = description_code)
       
       # Reload markdown
-      output_file <- create_rmarkdown_file(r, description_code)
+      output_file <- create_rmarkdown_file(r, description_code, interpret_code = FALSE)
       output$description_ui <- renderUI(div(class = "markdown", withMathJax(includeMarkdown(output_file))))
       
       sapply(c("name", "short_description"), function(field) shinyjs::show(paste0(field, "_", input$language, "_div")))
@@ -925,7 +998,7 @@ mod_widgets_server <- function(id, r, d, m, language, i18n, all_divs, debug){
     observeEvent(input$run_description_code_trigger, {
       if (debug) cat(paste0("\n", now(), " - mod_widgets - (", id, ") - observer input$run_description_code_trigger"))
       
-      output_file <- create_rmarkdown_file(r, input$description_code)
+      output_file <- create_rmarkdown_file(r, input$description_code, interpret_code = FALSE)
       output$description_ui <- renderUI(div(class = "markdown", withMathJax(includeMarkdown(output_file))))
     })
     
@@ -960,7 +1033,7 @@ mod_widgets_server <- function(id, r, d, m, language, i18n, all_divs, debug){
       )
       
       # Reload markdown
-      output_file <- create_rmarkdown_file(r, input$description_code)
+      output_file <- create_rmarkdown_file(r, input$description_code, interpret_code = FALSE)
       output$description_ui <- renderUI(div(class = "markdown", withMathJax(includeMarkdown(output_file))))
       
       show_message_bar(output, "modif_saved", "success", i18n = i18n, ns = ns)
@@ -997,6 +1070,9 @@ mod_widgets_server <- function(id, r, d, m, language, i18n, all_divs, debug){
         "author", "users_allowed_read_group"
       )
       
+      # OMOP version field
+      if (id == "datasets") fields <- c(fields, "omop_version")
+      
       sql <- glue::glue_sql("SELECT DISTINCT(name) FROM options WHERE category = {single_id} AND link_id = {input$selected_element}", .con = r$db)
       existing_fields <- DBI::dbGetQuery(r$db, sql) %>% dplyr::pull()
       new_fields <- setdiff(fields, existing_fields)
@@ -1025,7 +1101,7 @@ mod_widgets_server <- function(id, r, d, m, language, i18n, all_divs, debug){
         "WHERE name IN ({fields*}) AND category = {single_id} AND link_id = {input$selected_element}"), .con = con)
       sql_send_statement(r$db, sql)
       
-      sql <- glue::glue_sql("DELETE FROM options WHERE category = {single_id} AND link_id = {input$selected_element} AND name = 'users_allowed_read'", .con = r$db)
+      sql <- glue::glue_sql("DELETE FROM options WHERE category = {single_id} AND link_id = {input$selected_element} AND name = 'user_allowed_read'", .con = r$db)
       sql_send_statement(r$db, sql)
       
       # Add users allowed read (one row by user)
@@ -1042,10 +1118,16 @@ mod_widgets_server <- function(id, r, d, m, language, i18n, all_divs, debug){
         DBI::dbAppendTable(r$db, "options", new_data)
       }
       
-      # Update tab_type_id and name
+      # Update name
       new_name <- gsub("'", "''", input[[paste0('name_', language)]])
-      sql <- glue::glue_sql("UPDATE {`sql_table`} SET name = {new_name}, tab_type_id = {input$tab_type_id} WHERE id = {input$selected_element}", .con = r$db)
+      sql <- glue::glue_sql("UPDATE {`sql_table`} SET name = {new_name} WHERE id = {input$selected_element}", .con = r$db)
       sql_send_statement(r$db, sql)
+      
+      # Update tab_type_id
+      if (id == "plugins"){
+        sql <- glue::glue_sql("UPDATE {`sql_table`} SET tab_type_id = {input$tab_type_id} WHERE id = {input$selected_element}", .con = r$db)
+        sql_send_statement(r$db, sql)
+      }
       
       # Reload widgets
       shinyjs::runjs(paste0("Shiny.setInputValue('", id, "-reload_elements_var', Math.random());"))
@@ -1063,10 +1145,14 @@ mod_widgets_server <- function(id, r, d, m, language, i18n, all_divs, debug){
       # Reload description UI
       shinyjs::runjs(paste0("Shiny.setInputValue('", id, "-reload_description_ui', Math.random());"))
       
+      # Hide edit description buttons
+      sapply(c("save_and_cancel_description_buttons", "edit_description_div"), shinyjs::hide)
+      sapply(c("edit_description_button", "summary_informations_div"), shinyjs::show)
+      
       # Reload description depending on app language
       element_long <- r[[long_var]] %>% dplyr::filter(id == input$selected_element)
       description_code <- element_long %>% dplyr::filter(name == paste0("description_", language)) %>% dplyr::pull(value)
-      output_file <- create_rmarkdown_file(r, description_code)
+      output_file <- create_rmarkdown_file(r, description_code, interpret_code = FALSE)
       output$description_ui <- renderUI(div(class = "markdown", withMathJax(includeMarkdown(output_file))))
       
       # Close edition mode
@@ -1106,9 +1192,6 @@ mod_widgets_server <- function(id, r, d, m, language, i18n, all_divs, debug){
         
         # Set plugin_id to 0 in widgets table
         sql_send_statement(con, glue::glue_sql("UPDATE widgets SET plugin_id = 0 WHERE plugin_id = {element_id}", .con = con))
-        
-        # Delete files
-        unlink(input$selected_plugin_folder, recursive = TRUE)
         
         # Delete files from code files list
         r$edit_plugin_code_files_list <- r$edit_plugin_code_files_list %>% dplyr::filter(plugin_id != element_id)
@@ -1153,6 +1236,12 @@ mod_widgets_server <- function(id, r, d, m, language, i18n, all_divs, debug){
       # Delete options in db
       sql_send_statement(con, glue::glue_sql("DELETE FROM options WHERE category = {sql_category} AND link_id = {element_id}", .con = con))
       
+      # Delete files
+      element_long <- r[[long_var]] %>% dplyr::filter(id == element_id)
+      element_unique_id <- element_long %>% dplyr::filter(name == "unique_id") %>% dplyr::pull(value)
+      element_folder <- paste0(r$app_folder, "/", id, "/", element_unique_id)
+      unlink(element_folder, recursive = TRUE)
+      
       # Reload widgets
       shinyjs::runjs(paste0("
         Shiny.setInputValue('", id, "-reload_elements_var', Math.random());
@@ -1192,7 +1281,11 @@ mod_widgets_server <- function(id, r, d, m, language, i18n, all_divs, debug){
       
       tryCatch({
         loaded_git_repo <- load_git_repo(id, r, git_repo)
-      }, error = function(e) cat(paste0("\n", now(), " - mod_widgets - (", id, ") - error downloading git repo - error = ", toString(e))))
+        }, error = function(e){
+          show_message_bar(output, "error_loading_git_repo", "warning", i18n = i18n, ns = ns)
+          cat(paste0("\n", now(), " - mod_widgets - error downloading git repo - error = ", toString(e)))
+        }
+      )
       
       if (nrow(loaded_git_repo) > 0){
         git_repo_local_path <- loaded_git_repo$local_path
@@ -1392,6 +1485,8 @@ mod_widgets_server <- function(id, r, d, m, language, i18n, all_divs, debug){
       
       if (input$update_git_type == "update"){
         
+        if (!dir.exists(input$git_repo_elements_folder)) dir.create(input$git_repo_elements_folder)
+        
         new_dir <- paste0(
           input$git_repo_elements_folder, "/", 
           input$git_repo_element_name_en %>% remove_special_chars(), "-",
@@ -1411,6 +1506,10 @@ mod_widgets_server <- function(id, r, d, m, language, i18n, all_divs, debug){
         
         create_element_xml(id, r, input$selected_element, single_id, element_options, element_dir)
         
+        # Write README.md
+        writeLines(element_options %>% dplyr::filter(name == "description_en") %>% dplyr::pull(value), paste0(element_dir, "/README.md"))
+        
+        # Copy files
         files <- list.files(local_dir, full.names = TRUE)
         file.copy(files, new_dir, overwrite = TRUE)
       }
@@ -1425,6 +1524,9 @@ mod_widgets_server <- function(id, r, d, m, language, i18n, all_divs, debug){
       xml_files <- list.files(elements_dir, pattern = "\\.xml$", recursive = TRUE, full.names = TRUE)
       elements_list <- list()
       
+      xml_root <- id
+      if (id == "data_cleaning") xml_root <- "data_cleaning_scripts"
+      
       # Read each XML file and extract element node
       for (file in xml_files) {
         xml_doc <- xml2::read_xml(file)
@@ -1432,7 +1534,7 @@ mod_widgets_server <- function(id, r, d, m, language, i18n, all_divs, debug){
         elements_list <- c(elements_list, elements)
       }
       
-      final_xml <- xml2::xml_new_root(id)
+      final_xml <- xml2::xml_new_root(xml_root)
       
       # Add each element element node to final XML
       for (element in elements_list) xml2::xml_add_child(final_xml, element)
@@ -1510,24 +1612,33 @@ mod_widgets_server <- function(id, r, d, m, language, i18n, all_divs, debug){
           element_unique_id <- DBI::dbGetQuery(r$db, sql) %>% dplyr::pull()
           element_dir <- paste0(r$app_folder, "/", id, "/", element_unique_id)
           
-          # Create files if don't exist
-          if (id == "plugins") create_plugin_files(id = id, r = r, plugin_id = input$selected_element)
-          else create_element_files(id, r, input$selected_element, single_id, element_options, element_dir)
-          
           # Get element options
           sql <- glue::glue_sql("SELECT * FROM options WHERE category = {single_id} AND link_id = {input$selected_element}", .con = con)
           element_options <- DBI::dbGetQuery(r$db, sql)
           
+          # Create files if don't exist
+          if (id == "plugins") create_plugin_files(id = id, r = r, plugin_id = input$selected_element)
+          else create_element_files(id, r, input$selected_element, single_id, element_options, element_dir)
+          
           # Create XML file
           create_element_xml(id, r, input$selected_element, single_id, element_options, element_dir)
+          
+          # Write README.md
+          writeLines(element_options %>% dplyr::filter(name == "description_en") %>% dplyr::pull(value), paste0(element_dir, "/README.md"))
           
           # Create a ZIP
           zip::zipr(file, list.files(element_dir, full.names = TRUE))
         }, error = function(e){
-          show_message_bar(output, message = paste0("error_downloading_", single_id), type = "severeWarning", i18n = i18n, ns = ns)
+          shinyjs::runjs(paste0("Shiny.setInputValue('", id, "-error_downloading_element', Math.random());"))
           cat(paste0("\n", now(), " - mod_widgets - (", id, ") - import element error - ", toString(e)))
         })
       }
     )
+    
+    # Prevent a bug : show_message_bar in downloadHandler never ends
+    observeEvent(input$error_downloading_element, {
+      if (debug) cat(paste0("\n", now(), " - mod_widgets - (", id, ") - observer input$error_downloading_element"))
+      show_message_bar(output, message = paste0("error_downloading_", single_id), type = "severeWarning", i18n = i18n, ns = ns)
+    })
   })
 }

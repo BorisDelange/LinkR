@@ -90,14 +90,15 @@ plugins_management,Plugins management
 edit_plugin_code,Edit plugin code
 plugin_options,Plugin options
 import_plugin,Import a plugin
+import_dataset,Import a dataset
 import_plugins,Import plugins
 export_plugin,Export a plugin
 export_selected_plugins,Export plugins
 export_plugins,Export plugins
-import_script,Import a script
+import_data_cleaning_script,Import a data cleaning script
 import_scripts,Import scripts
 import_studies,Import studies
-export_script,Export a script
+export_data_cleaning_script,Export a data cleaning script
 export_selected_scripts,Export scripts
 export_scripts,Export scripts
 export_studies,Export studies
@@ -489,7 +490,7 @@ update_plugins,Update plugins
 plugin_up_to_date,Plugin up to date
 local_plugin_newer,Local plugin is newer
 error_install_remote_git_plugin,Error installing a plugin from remote git
-error_install_remote_git_script,Error installing a script from remote git
+error_install_remote_git_data_cleaning,Error installing a data cleaning script from remote git
 error_install_remote_git_study,Error installing a study from remote git
 error_install_remote_git_dataset,Error installing a dataset from remote git
 error_install_remote_git_vocabulary,Error installing a vocabulary from remote git
@@ -643,6 +644,8 @@ tab_added,Tab added
 widget_added,Widget added
 delete_widget_title,Delete a widget
 delete_widget_text,Confirm deletion of this widget?
+delete_tab_title,Delete a tab
+delete_tab_text,Confirm deletion of this tab?
 widget_deleted,Widget removed
 tab_contains_sub_tabs,This tab contains sub-tabs. Click again on the tab link to show sub-tabs.
 add_tab_has_widgets, Can't add a tab under this tab because it contains at least one widget. Delete these widgets first.
@@ -1171,6 +1174,7 @@ import_new_vocabularies,Import new vocabularies
 import_new_vocabularies_info,"If new vocabularies are present in the imported files, they will be added to app database."
 plugin_doesnt_exist_in_git_repo,This plugin does not exist in this git repository
 dataset_doesnt_exist_in_git_repo,This dataset does not exist in this git repository
+data_cleaning_doesnt_exist_in_git_repo,This data cleaning script does not exist in this git repository
 updated_x_ago,Ago
 days,Days
 day,Day
@@ -1184,6 +1188,18 @@ update_git_element_plugin_title,Update git element
 update_git_element_plugin_text,Update git plugin? This will erase and replace actual plugin in the git repository.
 delete_git_element_plugin_title,Delete git element
 delete_git_element_plugin_text,Delete this plugin from the git repository?
+update_git_element_data_cleaning_title,Update git element
+update_git_element_data_cleaning_text,Update git data cleaning script? This will erase and replace actual data cleaning script in the git repository.
+delete_git_element_data_cleaning_title,Delete git element
+delete_git_element_data_cleaning_text,Delete this data cleaning script from the git repository?
+update_git_element_subset_title,Update git element
+update_git_element_subset_text,Update git subset? This will erase and replace actual subset in the git repository.
+delete_git_element_subset_title,Delete git element
+delete_git_element_subset_text,Delete this subset from the git repository?
+update_git_element_vocabulary_title,Update git element
+update_git_element_vocabulary_text,Update git vocabulary? This will erase and replace actual vocabulary in the git repository.
+delete_git_element_vocabulary_title,Delete git element
+delete_git_element_vocabulary_text,Delete this vocabulary from the git repository?
 dont_update,Cancel
 reload_dataset_concepts,Reload dataset concepts
 reload_dataset_concepts_title,Reload concepts
@@ -1200,6 +1216,7 @@ minute,Minute
 cancel,Cancel
 error_downloading_plugin,Error downloading plugin
 error_downloading_dataset,Error downloading dataset
+error_downloading_data_cleaning,Error downloading data cleaning script
 element_git_and_local_versions_are_the_same,Local and remote git versions are the same
 reload_git_repo,Reload git
 install,Install

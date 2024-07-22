@@ -24,7 +24,7 @@ mod_page_header_ui <- function(id = character(), i18n = character()){
         
         # Other pages
         shiny.fluent::CommandBarItem(
-          text = "", "Settings",
+          text = "", "More",
           subMenuProps = list(items = list(
             list(text = i18n$t("plugins"), iconProps = list(iconName = "Code"), href = shiny.router::route_link("plugins")),
             list(text = i18n$t("datasets"), iconProps = list(iconName = "OfflineStorage"), href = shiny.router::route_link("datasets")),
@@ -36,23 +36,6 @@ mod_page_header_ui <- function(id = character(), i18n = character()){
       )
     ),
     class = "header_command_bar header_command_bar_1"
-  )
-  
-  settings_div <- div(
-    shiny.fluent::CommandBar(
-      items = list(
-        shiny.fluent::CommandBarItem(
-          "", "Settings",
-          subMenuProps = list(items = list(
-            list(text = i18n$t("users"), iconProps = list(iconName = "Contact"), href = shiny.router::route_link("users")),
-            list(text = i18n$t("app_db"), iconProps = list(iconName = "OfflineStorage"), href = shiny.router::route_link("app_db")),
-            list(text = i18n$t("log"), iconProps = list(iconName = "KnowledgeArticle"), href = shiny.router::route_link("log"))
-          )),
-          title = i18n$t("app_settings")
-        )
-      )
-    ),
-    class = "header_command_bar"
   )
   
   command_bar_2 <- tagList(
@@ -79,7 +62,7 @@ mod_page_header_ui <- function(id = character(), i18n = character()){
           shiny.fluent::CommandBarItem("", "Code", href = shiny.router::route_link("project_console"), title = i18n$t("console")),
           shiny.fluent::CommandBarItem("", "Chat", href = shiny.router::route_link("project_messages"), title = i18n$t("messages")),
           shiny.fluent::CommandBarItem(
-            "", "Settings",
+            "", "More",
             subMenuProps = list(items = list(
               list(text = i18n$t("subsets"), iconProps = list(iconName = "People"), href = shiny.router::route_link("subsets")),
               list(text = i18n$t("tasks"), iconProps = list(iconName = "CheckList"), href = shiny.router::route_link("tasks"))
@@ -91,6 +74,23 @@ mod_page_header_ui <- function(id = character(), i18n = character()){
       class = "header_command_bar",
       style = "display:inline-block; margin-left:8px;"
     )
+  )
+  
+  settings_div <- div(
+    shiny.fluent::CommandBar(
+      items = list(
+        shiny.fluent::CommandBarItem(
+          "", "Settings",
+          subMenuProps = list(items = list(
+            list(text = i18n$t("users"), iconProps = list(iconName = "Contact"), href = shiny.router::route_link("users")),
+            list(text = i18n$t("app_db"), iconProps = list(iconName = "OfflineStorage"), href = shiny.router::route_link("app_db")),
+            list(text = i18n$t("log"), iconProps = list(iconName = "KnowledgeArticle"), href = shiny.router::route_link("log"))
+          )),
+          title = i18n$t("app_settings")
+        )
+      )
+    ),
+    class = "header_command_bar"
   )
   
   if (id %in% c("app_db", "home", "console", "datasets", "data_cleaning", "git_repos",

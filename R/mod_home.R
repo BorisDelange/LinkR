@@ -4,6 +4,9 @@ mod_home_ui <- function(id, language, languages, i18n){
   
   if (id == "home") page <- "home" else page <- substr(id, 6, nchar(id))
   
+  if (language == "fr") help_link <- "https://linkr.interhop.org/docs/"
+  else help_link <- "https://linkr.interhop.org/en/docs/"
+  
   div(
     class = "main",
     div(
@@ -114,7 +117,7 @@ mod_home_ui <- function(id, language, languages, i18n){
             div(
               shiny.fluent::DefaultButton.shinyInput(
                 ns("go_help_page"), i18n$t("open_help"), 
-                href = shiny.router::route_link(""), iconProps = list(iconName = "Play")),
+                href = help_link, target = "_blank", iconProps = list(iconName = "Play")),
               class = "home_widget_button"
             )
           ),

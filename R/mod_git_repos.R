@@ -58,7 +58,7 @@ mod_git_repos_ui <- function(id = character(), language = "en", languages = tibb
             tags$button(id = ns("summary"), i18n$t("summary"), class = "pivot_item selected_pivot_item", onclick = pivot_item_js),
             tags$button(id = ns("projects"), i18n$t("projects"), class = "pivot_item", onclick = pivot_item_js),
             tags$button(id = ns("plugins"), i18n$t("plugins"), class = "pivot_item", onclick = pivot_item_js),
-            tags$button(id = ns("data_cleaning_scripts"), i18n$t("data_cleaning"), class = "pivot_item", onclick = pivot_item_js),
+            tags$button(id = ns("data_cleaning"), i18n$t("data_cleaning"), class = "pivot_item", onclick = pivot_item_js),
             tags$button(id = ns("datasets"), i18n$t("datasets"), class = "pivot_item", onclick = pivot_item_js),
             class = "pivot"
           ),
@@ -151,8 +151,7 @@ mod_git_repos_server <- function(id, r, d, m, language, i18n, debug){
     
     # Initiate vars ----
     
-    # all_divs <- c("summary", "projects", "plugins", "data_cleaning_scripts", "datasets", "vocabularies")
-    all_divs <- c("summary", "projects", "plugins", "data_cleaning_scripts", "datasets")
+    all_divs <- c("summary", "projects", "plugins", "data_cleaning", "datasets")
     
     # No internet access ----
     
@@ -412,7 +411,6 @@ mod_git_repos_server <- function(id, r, d, m, language, i18n, debug){
         loaded_git_repo <- tibble::tibble()
         
         tryCatch({
-          if (length(r$loaded_git_repos) > 0) r$loaded_git_repos <- r$loaded_git_repos %>% dplyr::filter(unique_id != r$git_repo$unique_id)
           loaded_git_repo <- load_git_repo(id, r, r$git_repo)
           }, error = function(e){
             show_message_bar(output, "error_loading_git_repo", "warning", i18n = i18n, ns = ns)
@@ -473,6 +471,7 @@ mod_git_repos_server <- function(id, r, d, m, language, i18n, debug){
         if (debug) cat(paste0("\n", now(), " - mod_git_repos - observer input$reload_elements_list"))
         
         current_tab <- gsub(paste0(id, "-"), "", input$current_tab, fixed = FALSE)
+        req(current_tab != "summary")
         
         single_id <- switch(current_tab, 
           "data_cleaning" = "data_cleaning", 
@@ -488,7 +487,7 @@ mod_git_repos_server <- function(id, r, d, m, language, i18n, debug){
         # Get elements from XML file
         
         xml_file_path <- paste0(input$git_repo_local_path, "/", current_tab, "/", current_tab, ".xml")
-
+        
         error_loading_xml_file <- TRUE
         
         tryCatch({
@@ -497,6 +496,7 @@ mod_git_repos_server <- function(id, r, d, m, language, i18n, debug){
             XML::xmlParse() %>%
             XML::xmlToDataFrame(nodes = XML::getNodeSet(., paste0("//", single_id)), stringsAsFactors = FALSE) %>%
             tibble::as_tibble()
+          
           r$loaded_git_repo_elements <- elements
           
           error_loading_xml_file <- FALSE
@@ -540,7 +540,7 @@ mod_git_repos_server <- function(id, r, d, m, language, i18n, debug){
             ")
   
             elements_ui <- tagList(
-              create_element_ui(page_id = id, single_id, element_name, users_ui, widget_buttons, onclick),
+              create_element_ui(page_id = id, single_id, element_name, users_ui, widget_buttons, onclick, ""),
               elements_ui
             )
           }
@@ -572,12 +572,12 @@ mod_git_repos_server <- function(id, r, d, m, language, i18n, debug){
         current_tab <- gsub(paste0(id, "-"), "", input$current_tab, fixed = FALSE)
         current_tab_single <- switch(
           current_tab, 
-          "data_cleaning_scripts" = "data_cleaning_script", 
+          "data_cleaning" = "data_cleaning", 
           "datasets" = "dataset",
           "projects" = "project", 
           "plugins" = "plugin"
         )
-        if (current_tab == "data_cleaning_scripts") sql_table <- "scripts"
+        if (current_tab == "data_cleaning") sql_table <- "scripts"
         else sql_table <- current_tab
         
         # Update breadcrumb
@@ -658,7 +658,7 @@ mod_git_repos_server <- function(id, r, d, m, language, i18n, debug){
           current_tab <- gsub(paste0(id, "-"), "", input$current_tab, fixed = FALSE)
           git_element <- r$loaded_git_repo_elements %>% dplyr::filter(unique_id == input$selected_element)
           
-          req(current_tab %in% c("datasets", "plugins"))
+          req(current_tab %in% c("datasets", "plugins", "data_cleaning"))
           
           # Delete local element files
           local_element_folder <- paste0(r$app_folder, "/", current_tab, "/", input$selected_element)
@@ -679,16 +679,15 @@ mod_git_repos_server <- function(id, r, d, m, language, i18n, debug){
           file.copy(files_to_copy, local_element_folder, overwrite = TRUE)
           
           # Delete local element from db
-          
           current_tab_single <- switch(
             current_tab, 
-            "data_cleaning_scripts" = "data_cleaning_script", 
+            "data_cleaning" = "data_cleaning", 
             "datasets" = "dataset",
             "projects" = "project", 
             "plugins" = "plugin"
           )
           
-          if (current_tab == "data_cleaning_scripts") sql_table <- "scripts"
+          if (current_tab == "data_cleaning") sql_table <- "scripts"
           else sql_table <- current_tab
           
           sql <- glue::glue_sql(paste0(
@@ -721,8 +720,13 @@ mod_git_repos_server <- function(id, r, d, m, language, i18n, debug){
           if (sql_table == "datasets") new_data <- tibble::tibble(
             id = element_id, name = element_name, data_source_id = NA_integer_, creator_id = r$user_id, 
             creation_datetime = git_element$creation_datetime, update_datetime = git_element$update_datetime, deleted = FALSE)
+          
           else if (sql_table == "plugins") new_data <- tibble::tibble(
             id = element_id, name = element_name, tab_type_id = git_element$type,
+            creation_datetime = git_element$creation_datetime, update_datetime = git_element$update_datetime, deleted = FALSE)
+          
+          else if (sql_table == "scripts") new_data <- tibble::tibble(
+            id = element_id, name = element_name,
             creation_datetime = git_element$creation_datetime, update_datetime = git_element$update_datetime, deleted = FALSE)
           
           DBI::dbAppendTable(r$db, sql_table, new_data)
@@ -741,7 +745,7 @@ mod_git_repos_server <- function(id, r, d, m, language, i18n, debug){
           )
           
           for (language in r$languages$code){
-            for (col in c("description", "category", "name")){
+            for (col in c("short_description", "description", "category", "name")){
               colname <- paste0(col, "_", language)
               if (colname %in% colnames(git_element)) value <- git_element[[colname]]
               else value <- ""
@@ -760,7 +764,7 @@ mod_git_repos_server <- function(id, r, d, m, language, i18n, debug){
           
           ## Add rows in code table
           
-          if (current_tab %in% c("datasets")){
+          if (current_tab %in% c("datasets", "data_cleaning")){
             
             element_code <- readLines(paste0(local_element_folder, "/code.R"), warn = FALSE) %>% paste(collapse = "\n")
             
