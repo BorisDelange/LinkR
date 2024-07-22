@@ -574,10 +574,11 @@ mod_git_repos_server <- function(id, r, d, m, language, i18n, debug){
           current_tab, 
           "data_cleaning" = "data_cleaning", 
           "datasets" = "dataset",
-          "projects" = "project", 
+          "projects" = "study", 
           "plugins" = "plugin"
         )
         if (current_tab == "data_cleaning") sql_table <- "scripts"
+        else if (current_tab == "projects") sql_table <- "studies"
         else sql_table <- current_tab
         
         # Update breadcrumb
@@ -635,7 +636,7 @@ mod_git_repos_server <- function(id, r, d, m, language, i18n, debug){
         }
         else {
           git_element_ui <- div(
-            shiny.fluent::MessageBar(i18n$t(paste0(current_tab_single, "_doesnt_exist_in_git_repo")), messageBarType = 5), 
+            shiny.fluent::MessageBar(i18n$t(paste0(current_tab_single, "_doesnt_exist_locally")), messageBarType = 5), 
             style = "display: inline-block;"
           )
           

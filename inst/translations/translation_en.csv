@@ -1178,6 +1178,10 @@ plugin_doesnt_exist_in_git_repo,This plugin does not exist in this git repositor
 dataset_doesnt_exist_in_git_repo,This dataset does not exist in this git repository
 data_cleaning_doesnt_exist_in_git_repo,This data cleaning script does not exist in this git repository
 project_doesnt_exist_in_git_repo,This project does not exist in this git repository
+plugin_doesnt_exist_locally,This plugin does not exist in local LinkR instance
+dataset_doesnt_exist_locally,This dataset does not exist in local LinkR instance
+data_cleaning_doesnt_exist_locally,This data cleaning script does not exist in local LinkR instance
+project_doesnt_exist_locally,This project does not exist in local LinkR instance
 updated_x_ago,Ago
 days,Days
 day,Day

@@ -1352,7 +1352,8 @@ mod_widgets_server <- function(id, r, d, m, language, i18n, all_divs, debug){
           
           shinyjs::runjs(paste0("Shiny.setInputValue('", id, "-element_git_path', '", element_path, "');"))
           
-          local_element <- r[[wide_var]] %>% dplyr::filter(id == input$selected_element)
+          sql <- glue::glue_sql("SELECT * FROM {`sql_table`} WHERE id = {input$selected_element}", .con = r$db)
+          local_element <- DBI::dbGetQuery(r$db, sql)
           
           # Get element infos from XML file
           xml_file_path <- paste0(element_path, "/", single_id, ".xml")

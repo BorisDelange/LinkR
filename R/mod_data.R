@@ -1284,6 +1284,9 @@ mod_data_server <- function(id, r, d, m, language, i18n, debug){
       # Notify user
       show_message_bar(output, "tab_added", "success", i18n = i18n, ns = ns)
       
+      # Reload update_datetime
+      sql_update_datetime(r, m)
+      
       # Reset fields
       shiny.fluent::updateTextField.shinyInput(session, "tab_name", value = "")
       shiny.fluent::updateChoiceGroup.shinyInput(session, "add_tab_type", value = "same_level")
@@ -1362,6 +1365,9 @@ mod_data_server <- function(id, r, d, m, language, i18n, debug){
       # Notify user
       show_message_bar(output, message = "modif_saved", type = "success", i18n = i18n, ns = ns)
       
+      # Reload update_datetime
+      sql_update_datetime(r, m)
+      
       # Close modal
       shinyjs::hide("edit_tab_modal")
     })
@@ -1437,6 +1443,9 @@ mod_data_server <- function(id, r, d, m, language, i18n, debug){
       
       # Notify user
       show_message_bar(output, message = "tab_deleted", type = "warning", i18n = i18n, ns = ns)
+      
+      # Reload update_datetime
+      sql_update_datetime(r, m)
       
       # Close modals
       sapply(c("edit_tab_modal", "delete_tab_modal"), shinyjs::hide)
@@ -1613,6 +1622,9 @@ mod_data_server <- function(id, r, d, m, language, i18n, debug){
       # Notify user
       show_message_bar(output, message = "widget_added", type = "success", i18n = i18n, ns = ns)
       
+      # Reload update_datetime
+      sql_update_datetime(r, m)
+      
       # Reset fields
       shiny.fluent::updateTextField.shinyInput(session, "widget_creation_name", value = "")
       
@@ -1694,6 +1706,9 @@ mod_data_server <- function(id, r, d, m, language, i18n, debug){
       
       # Notify user
       show_message_bar(output,  "widget_deleted", "warning", i18n = i18n, ns = ns)
+      
+      # Reload update_datetime
+      sql_update_datetime(r, m)
     })
     
     # --- --- --- --
@@ -1776,6 +1791,9 @@ mod_data_server <- function(id, r, d, m, language, i18n, debug){
       
       # Prevent a bug with scroll into ace editor
       shinyjs::runjs("var event = new Event('resize'); window.dispatchEvent(event);")
+      
+      # Reload update_datetime
+      sql_update_datetime(r, m)
     })
     
     # Save each widget position
@@ -2115,6 +2133,11 @@ mod_data_server <- function(id, r, d, m, language, i18n, debug){
       })
       
       # if (r$project_load_status_displayed) r$project_load_status$widgets_server_endtime <- now("%Y-%m-%d %H:%M:%OS3")
+    }
+    
+    sql_update_datetime <- function(r, m){
+      sql <- glue::glue_sql("UPDATE studies SET update_datetime = {now()} WHERE id = {m$selected_study}", .con = r$db)
+      sql_send_statement(r$db, sql)
     }
   })
 }
