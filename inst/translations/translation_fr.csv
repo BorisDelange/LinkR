@@ -248,6 +248,7 @@ port,Port
 user,Utilisateur
 password,Mot de passe
 export_db,Exporter la base de données
+import_db,Importer la base de données
 db_export_log,Exporter le log
 db_import_log,Importer le log
 restore_db,Restaurer la base de données
@@ -729,7 +730,7 @@ datetime_stop,Fin
 fail_connect_remote_db,Echec lors de la connexion à la base de données distante
 success,Succès
 successfully_connected,Connecté avec succès
-reload_app_to_take_into_account_changes,Vous devez redémarrer la session pour prendre en compte les changements
+db_restored_reload_app_to_take_into_account_changes,Base de données restaurée. Vous devez redémarrer la session pour prendre en compte les changements.
 modif_names_duplicates,"Certains noms sont utilisés plusieurs fois, retirez-les avant de sauvegarder"
 error_restoring_database,Erreur lors de la restauration de la base de données
 error_restoring_database_table,Erreur lors de la restauration d'une table de la base de données
@@ -1249,3 +1250,5 @@ save_settings,Sauvegarder les paramètres
 unselect_all_tables,Désélectionner toutes les tables
 select_all_tables,Sélectionner toutes les tables
 other_pages,Autres pages
+error_loading_db_file,Erreur lors du chargement de la sauvegarder de la base de données
+error_restoring_db_old_table_after_import_failure,Erreur lors de la restauration d'une ancienne table après échec de l'import d'une base de données

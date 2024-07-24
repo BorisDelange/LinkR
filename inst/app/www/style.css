@@ -258,7 +258,7 @@ a.no-hover-effect:hover {
 
 .delete_modal_buttons, .import_modal_buttons, .create_element_modal_buttons, .select_concepts_modal_buttons, .import_concepts_modal_buttons,
 .datasets_share_buttons, .update_or_delete_git_element_modal_buttons, .reload_dataset_concepts_modal_buttons, .git_element_details_git_buttons,
-.export_db_buttons, .data_cleaning_share_buttons, .projects_share_buttons {
+.export_db_buttons, .import_db_buttons, .data_cleaning_share_buttons, .projects_share_buttons {
   position: absolute;
   right: 8px;
   bottom: 8px;
@@ -338,7 +338,7 @@ a.no-hover-effect:hover {
   text-overflow: ellipsis;
 }
 
-.csv_file { background-color: #FF8C00; }
+.csv_file, .db_backup_file { background-color: #FF8C00; }
 .zip_file { background-color: #606060; }
 
 .drug_domain_id { background-color: #5D3FD3; }

@@ -11,6 +11,7 @@ mod_app_db_ui <- function(id, language, languages, i18n, code_hotkeys, db_col_ty
     class = "main",
     
     # Pivot ----
+    
     div(
       div(),
       div(
@@ -24,6 +25,7 @@ mod_app_db_ui <- function(id, language, languages, i18n, code_hotkeys, db_col_ty
     ),
     
     # Connection settings ----
+    
     div(
       id = ns("connection_settings_div"),
       div(
@@ -75,6 +77,7 @@ mod_app_db_ui <- function(id, language, languages, i18n, code_hotkeys, db_col_ty
     ),
     
     # Request db ----
+    
     shinyjs::hidden(
       div(
         id = ns("request_db_div"),
@@ -121,8 +124,8 @@ mod_app_db_ui <- function(id, language, languages, i18n, code_hotkeys, db_col_ty
                 style = "width: 200px;"
               ),
               div(
-                create_hover_card(ui = shiny.fluent::IconButton.shinyInput(ns("check_all_main_tables"), iconProps = list(iconName = "CheckboxComposite")), text = i18n$t("select_all_tables")),
-                create_hover_card(ui = shiny.fluent::IconButton.shinyInput(ns("uncheck_all_main_tables"), iconProps = list(iconName = "Checkbox")), text = i18n$t("unselect_all_tables")),
+                create_hover_card(ui = shiny.fluent::IconButton.shinyInput(ns("export_db_check_all_main_tables"), iconProps = list(iconName = "CheckboxComposite")), text = i18n$t("select_all_tables")),
+                create_hover_card(ui = shiny.fluent::IconButton.shinyInput(ns("export_db_uncheck_all_main_tables"), iconProps = list(iconName = "Checkbox")), text = i18n$t("unselect_all_tables")),
                 style = "margin: 27px 0 0 5px; display: flex;"
               ),
               class = "small_icon_button",
@@ -144,8 +147,8 @@ mod_app_db_ui <- function(id, language, languages, i18n, code_hotkeys, db_col_ty
                 style = "width: 200px;"
               ),
               div(
-                create_hover_card(ui = shiny.fluent::IconButton.shinyInput(ns("check_all_public_tables"), iconProps = list(iconName = "CheckboxComposite")), text = i18n$t("select_all_tables")),
-                create_hover_card(ui = shiny.fluent::IconButton.shinyInput(ns("uncheck_all_public_tables"), iconProps = list(iconName = "Checkbox")), text = i18n$t("unselect_all_tables")),
+                create_hover_card(ui = shiny.fluent::IconButton.shinyInput(ns("export_db_check_all_public_tables"), iconProps = list(iconName = "CheckboxComposite")), text = i18n$t("select_all_tables")),
+                create_hover_card(ui = shiny.fluent::IconButton.shinyInput(ns("export_db_uncheck_all_public_tables"), iconProps = list(iconName = "Checkbox")), text = i18n$t("unselect_all_tables")),
                 style = "margin: 27px 0 0 5px; display: flex;"
               ),
               class = "small_icon_button",
@@ -163,9 +166,55 @@ mod_app_db_ui <- function(id, language, languages, i18n, code_hotkeys, db_col_ty
         div(
           div(
             tags$h1(i18n$t("restore_db")),
+            div(uiOutput(ns("last_db_restore")), style = "margin-top: 15px;"), br(),
+            div(
+              shiny.fluent::DefaultButton.shinyInput(ns("db_restore_browse"), i18n$t("choose_zip_file"), style = "width: 200px;"), br(),
+              uiOutput(ns("db_restore_loaded_file"), style = "margin-left: 10px; height: 24px; display: flex; align-items: center;"),
+              style = "display: flex;"
+            ), br(),
+            div(
+              div(style = "display:none;", fileInput(ns("db_restore"), label = "", multiple = FALSE, accept = ".zip")),
+              shiny.fluent::PrimaryButton.shinyInput(ns("import_db"), i18n$t("import_db"), iconProps = list(iconName = "Upload")),
+              class = "import_db_buttons"
+            ),
+            shinyjs::hidden(
+              div(
+                id = ns("import_db_tables_div"),
+                div(
+                  div(
+                    shiny.fluent::Dropdown.shinyInput(
+                      ns("main_tables_to_import"), label = i18n$t("main_tables_to_import"), multiSelect = TRUE
+                    ),
+                    style = "width: 200px;"
+                  ),
+                  div(
+                    create_hover_card(ui = shiny.fluent::IconButton.shinyInput(ns("import_db_check_all_main_tables"), iconProps = list(iconName = "CheckboxComposite")), text = i18n$t("select_all_tables")),
+                    create_hover_card(ui = shiny.fluent::IconButton.shinyInput(ns("import_db_uncheck_all_main_tables"), iconProps = list(iconName = "Checkbox")), text = i18n$t("unselect_all_tables")),
+                    style = "margin: 27px 0 0 5px; display: flex;"
+                  ),
+                  class = "small_icon_button",
+                  style = "display: flex;"
+                ),
+                div(
+                  div(
+                    shiny.fluent::Dropdown.shinyInput(
+                      ns("public_tables_to_import"), label = i18n$t("public_tables_to_import"), multiSelect = TRUE
+                    ),
+                    style = "width: 200px;"
+                  ),
+                  div(
+                    create_hover_card(ui = shiny.fluent::IconButton.shinyInput(ns("import_db_check_all_public_tables"), iconProps = list(iconName = "CheckboxComposite")), text = i18n$t("select_all_tables")),
+                    create_hover_card(ui = shiny.fluent::IconButton.shinyInput(ns("import_db_uncheck_all_public_tables"), iconProps = list(iconName = "Checkbox")), text = i18n$t("unselect_all_tables")),
+                    style = "margin: 27px 0 0 5px; display: flex;"
+                  ),
+                  class = "small_icon_button",
+                  style = "display: flex;"
+                )
+              )
+            ),
             class = "widget", style = "min-height: 50%; padding-top: 1px; padding: 1px 15px 15px 15px;"
           ),
-          class = "app_db_backups_left"
+          class = "app_db_backups_right"
         ),
         class = "app_db_backups_container"
       )
@@ -377,29 +426,32 @@ mod_app_db_server <- function(id, r, d, m, language, i18n, db_col_types, app_fol
     
     # Backups ----
     
+    ## Check / uncheck tables
+    
+    sapply(c("export", "import"), function(category){
+      sapply(c("check", "uncheck"), function(action){
+        sapply(c("main", "public"), function(type){
+          print(paste0(category, "_db_", action, "_all_", type, "_tables"))
+          observeEvent(input[[paste0(category, "_db_", action, "_all_", type, "_tables")]], {
+            if (debug) cat(paste0("\n", now(), " - mod_app_db - observer input$", category, "_db_", action, "_all_", type, "_tables"))
+            
+            value <- NULL
+            
+            if (action == "check"){
+              if (category == "export") value <- db_col_types %>% dplyr::filter(db == type) %>% dplyr::pull(table)
+              else if (category == "import") if (length(r$import_db_files) > 0) value <- r$import_db_files %>% dplyr::filter(prefix == type) %>% dplyr::pull(name)
+            }
+            
+            if (category == "export") dropdown_options <- db_col_types %>% dplyr::filter(db == type) %>% convert_tibble_to_list(key_col = "table", text_col = "table")
+            else if (category == "import") dropdown_options <- convert_tibble_to_list(r$import_db_files %>% dplyr::filter(prefix == type), key_col = "name", text_col = "name")
+            
+            shiny.fluent::updateDropdown.shinyInput(session, paste0(type, "_tables_to_", category), options = dropdown_options, value = value)
+          })
+        })
+      })
+    })
+    
     ## Download db ----
-    
-    ### Check / uncheck tables
-    
-    observeEvent(input$check_all_main_tables, {
-      if (debug) cat(paste0("\n", now(), " - mod_app_db - observer input$check_all_main_tables"))
-      shiny.fluent::updateDropdown.shinyInput(session, "main_tables_to_export", value = db_col_types %>% dplyr::filter(db == "main") %>% dplyr::pull(table))
-    })
-    
-    observeEvent(input$uncheck_all_main_tables, {
-      if (debug) cat(paste0("\n", now(), " - mod_app_db - observer input$uncheck_all_main_tables"))
-      shiny.fluent::updateDropdown.shinyInput(session, "main_tables_to_export", value = NULL)
-    })
-    
-    observeEvent(input$check_all_public_tables, {
-      if (debug) cat(paste0("\n", now(), " - mod_app_db - observer input$check_all_public_tables"))
-      shiny.fluent::updateDropdown.shinyInput(session, "public_tables_to_export", value = db_col_types %>% dplyr::filter(db == "public") %>% dplyr::pull(table))
-    })
-    
-    observeEvent(input$uncheck_all_public_tables, {
-      if (debug) cat(paste0("\n", now(), " - mod_app_db - observer input$uncheck_all_public_tables"))
-      shiny.fluent::updateDropdown.shinyInput(session, "public_tables_to_export", value = NULL)
-    })
     
     ### Export button is clicked
     
@@ -456,7 +508,7 @@ mod_app_db_server <- function(id, r, d, m, language, i18n, db_col_types, app_fol
           
           if (length(tables) > 0){
             for (table in tables){
-              file_name <- paste0(table, ".csv")
+              file_name <- paste0(db, "_", table, ".csv")
               readr::write_csv(DBI::dbGetQuery(con, paste0("SELECT * FROM ", table)), file_name)
               files <- c(file_name, files)
             }
@@ -484,13 +536,188 @@ mod_app_db_server <- function(id, r, d, m, language, i18n, db_col_types, app_fol
       
       last_save <- DBI::dbGetQuery(r$db, "SELECT * FROM options WHERE category = 'last_db_save' AND name = 'last_db_save'")
       
-      if (nrow(last_save) > 0){
-        last_save_datetime <- format_datetime(last_save %>% dplyr::pull(value), language = "fr", sec = FALSE)
-        output$last_db_save <- renderUI(tagList(strong(i18n$t("last_db_save")), " : ", last_save_datetime))
-      }
+      if (nrow(last_save) > 0) last_save_datetime <- format_datetime(last_save %>% dplyr::pull(value), language = "fr", sec = FALSE)
+      else last_save_datetime <- "/"
+      
+      output$last_db_save <- renderUI(tagList(strong(i18n$t("last_db_save")), " : ", last_save_datetime))
+      
     })
     
     ## Restore db ----
+    
+    ### Browse file
+    
+    observeEvent(input$db_restore_browse, {
+      if (debug) cat(paste0("\n", now(), " - mod_app_db - observer input$db_restore_browse"))
+      shinyjs::click("db_restore")
+    })
+    
+    ### Update last db save field
+    
+    shinyjs::runjs(paste0("Shiny.setInputValue('", id, "-reload_last_db_restore', Math.random());"))
+    
+    observeEvent(input$reload_last_db_restore, {
+      if (debug) cat(paste0("\n", now(), " - mod_app_db - observer input$reload_last_db_restore"))
+      
+      last_restore <- DBI::dbGetQuery(r$db, "SELECT * FROM options WHERE category = 'last_db_restore' AND name = 'last_db_restore'")
+      
+      if (nrow(last_restore) > 0) last_restore_datetime <- format_datetime(last_restore %>% dplyr::pull(value), language = "fr", sec = FALSE)
+      else last_restore_datetime <- "/"
+      
+      output$last_db_restore <- renderUI(tagList(strong(i18n$t("last_db_restore")), " : ", last_restore_datetime))
+    })
+    
+    ### Restore file
+    
+    output$db_restore_loaded_file <- renderUI({
+      if (debug) cat(paste0("\n", now(), " - mod_app_db - output$db_restore_loaded_file"))
+      
+      req(input$db_restore$name)
+      
+      div(input$db_restore$name, class = "selected_file db_backup_file")
+    })
+    
+    observeEvent(input$db_restore, {
+      if (debug) cat(paste0("\n", now(), " - mod_app_db - input$db_restore"))
+      
+      shinyjs::show("import_db_tables_div")
+      
+      r$import_db_files <- tibble::tibble()
+      
+      tryCatch({
+        
+        exdir <- paste0(r$app_folder, "/temp_files/", r$user_id, "/app_db/import_db_", now() %>% stringr::str_replace_all(":| |-", "_"))
+        dir.create(exdir)
+        
+        zip::unzip(input$db_restore$datapath, exdir = exdir)
+        
+        files <- list.files(exdir)
+        
+        csv_files <- files[grepl("\\.csv$", files, ignore.case = TRUE)]
+        prefix <- ifelse(grepl("^(main|public)_", csv_files, ignore.case = TRUE), sub("_.*", "", csv_files), NA)
+        
+        names_without_extension <- sub("\\.csv$", "", csv_files, ignore.case = TRUE)
+        names_without_extension <- sub("^[^_]*_", "", names_without_extension)
+        
+        full_path <- file.path(exdir, csv_files)
+        
+        r$import_db_files <- data.frame(prefix = prefix, name = names_without_extension, path = full_path, stringsAsFactors = FALSE)
+        
+        for (type in c("main", "public")) shiny.fluent::updateDropdown.shinyInput(
+          session, paste0(type, "_tables_to_import"),
+          options = convert_tibble_to_list(r$import_db_files %>% dplyr::filter(prefix == type), key_col = "name", text_col = "name"),
+          value = r$import_db_files %>% dplyr::filter(prefix == type) %>% dplyr::pull(name)
+        )
+      },
+      error = function(e){
+        show_message_bar(output, "error_loading_db_file", "warning", i18n = i18n, ns = ns)
+        cat(paste0("\n", now(), " - mod_git_repos - error loading db file - error = ", toString(e)))
+      })
+    })
+    
+    observeEvent(input$import_db, {
+      if (debug) cat(paste0("\n", now(), " - mod_app_db - input$import_db"))
+      
+      # Save current database before import new one
+      
+      db_list <- c("main", "public")
+      
+      db_folder <- paste0(r$app_folder, "/temp_files/", r$user_id, "/app_db/import_db_rescue_", now() %>% stringr::str_replace_all(":| |-", "_"))
+      dir.create(db_folder)
+      
+      for (db in db_list){
+        
+        if (db == "main") con <- r$db
+        if (db == "public") con <- m$db
+        
+        tables <- db_col_types %>% dplyr::filter(db == !!db) %>% dplyr::pull(table)
+        
+        for (table in tables){
+          file_name <- paste0(db_folder, "/", db, "_", table, ".csv")
+          readr::write_csv(DBI::dbGetQuery(con, paste0("SELECT * FROM ", table)), file_name)
+        }
+      }
+      
+      # Try to import restore files
+      # Reload current database in case of error
+      
+      total_success <- TRUE
+      
+      for(i in 1:nrow(r$import_db_files)){
+        
+        row <- r$import_db_files[i, ]
+        if (row$prefix == "main") con <- r$db
+        else if (row$prefix == "public") con <- m$db
+        
+        if (row$name %in% input[[paste0(row$prefix, "_tables_to_import")]]){
+          
+          col_types <- db_col_types %>% dplyr::filter(table == row$name, db == row$prefix) %>% dplyr::pull(col_types)
+          
+          success <- FALSE
+          
+          tryCatch({
+            
+            # Load CSV file
+            data <- vroom::vroom(row$path, col_types = col_types, progress = FALSE)
+              
+            # Delete data from old table
+            sql <- glue::glue_sql("DELETE FROM {`row$name`}", .con = con)
+            sql_send_statement(con, sql)
+
+            # Insert new data in table
+            DBI::dbAppendTable(con, row$name, data)
+            
+            success <- TRUE
+
+          }, error = function(e){
+            show_message_bar(output, "error_restoring_database_table", "warning", i18n = i18n, ns = ns)
+            cat(paste0("\n", now(), " - mod_git_repos - error restoring database table (", row$name, ") - error = ", toString(e)))
+          })
+          
+          if (!success) total_success <- FALSE
+        }
+      }
+      
+      # Restore database in case of failure
+      
+      if (!total_success){
+        
+        print("Failure - reimport tables")
+        
+        tryCatch({
+          
+          for (db in db_list){
+            
+            if (db == "main") con <- r$db
+            if (db == "public") con <- m$db
+            
+            tables <- db_col_types %>% dplyr::filter(db == !!db) %>% dplyr::pull(table)
+            
+            for (table in tables){
+              
+              file_name <- paste0(db_folder, "/", db, "_", table, ".csv")
+              col_types <- db_col_types %>% dplyr::filter(table == !!table, db == !!db) %>% dplyr::pull(col_types)
+              
+              data <- vroom::vroom(file_name, col_types = col_types, progress = FALSE)
+              
+              # Delete data from old table
+              sql <- glue::glue_sql("DELETE FROM {`table`}", .con = con)
+              sql_send_statement(con, sql)
+              
+              # Insert new data in table
+              DBI::dbAppendTable(con, table, data)
+            }
+          }
+          
+        }, error = function(e){
+          show_message_bar(output, "error_restoring_db_old_table_after_import_failure", "warning", i18n = i18n, ns = ns)
+          cat(paste0("\n", now(), " - mod_git_repos - error restoring old database table after import failure (", row$name, ") - error = ", toString(e)))
+        })
+      }
+      
+      if (total_success) show_message_bar(output, "db_restored_reload_app_to_take_into_account_changes", "success", i18n = i18n, ns = ns) 
+      
+    })
     
   })
 }

@@ -1,3 +1,0 @@
-print("SOFA score")
-
-print("'")

@@ -246,6 +246,7 @@ port,Port
 user,User
 password,Password
 export_db,Export database
+import_db,Import database
 db_export_log,Export log
 db_import_log,Import log
 restore_db,Restore database
@@ -730,7 +731,7 @@ datetime_stop,Stop
 fail_connect_remote_db,Failed to connect to remote database
 success,Success
 successfully_connected,Successfully connected
-reload_app_to_take_into_account_changes,You have to restart session to take into account the changes
+db_restored_reload_app_to_take_into_account_changes,Database successfully restored. You have to restart session to take into account the changes.
 modif_names_duplicates,"There are duplicates in the names, please remove duplicates before saving"
 error_restoring_database,Error restoring database
 error_restoring_database_table,Error restoring database table
@@ -1245,3 +1246,5 @@ save_settings,Save settings
 unselect_all_tables,Unselect all tables
 select_all_tables,Select all tables
 other_pages,Other pages
+error_loading_db_file,Error loading database file
+error_restoring_db_old_table_after_import_failure,Error restoring old table after error with database import
