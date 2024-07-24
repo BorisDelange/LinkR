@@ -963,8 +963,25 @@ mod_plugins_server <- function(id, r, d, m, language, i18n, debug){
           cat(paste0("\n", now(), " - mod_plugins - error loading UI code - plugin_id = ", input$selected_element, " - ", toString(e)))
         }
       )
-
-      ui_output <- create_widget(id, widget_id, code$ui)
+      
+      # Do we have saved widget size and position ?
+      sql <- glue::glue_sql("SELECT * FROM options WHERE category = 'plugin_run_code_options' AND name = 'plugin_widget_position'", .con = r$db)
+      widget_position <- DBI::dbGetQuery(r$db, sql)
+      
+      if (nrow(widget_position) > 0) widget_position <- widget_position %>% dplyr::pull(value)
+      else {
+        widget_position <- "w=6;h=25;x=0;y=0;"
+        new_data <- tibble::tibble(
+          id = get_last_row(r$db, "options") + 1, category = "plugin_run_code_options", link_id = NA_integer_, name = "plugin_widget_position",
+          value = widget_position, value_num = NA_real_, creator_id = NA_integer_, datetime = now(), deleted = FALSE
+        )
+        DBI::dbAppendTable(r$db, "options", new_data)
+      }
+      
+      matches <- stringr::str_match(widget_position, "w=(\\d+);h=(\\d+);x=(\\d+);y=(\\d+)")
+      widget_pos <- list(w = as.integer(matches[2]), h = as.integer(matches[3]), x = as.integer(matches[4]), y = as.integer(matches[5]))
+      
+      ui_output <- create_widget(id, widget_id, code$ui, w = widget_pos$w, h = widget_pos$h, x = widget_pos$x, y = widget_pos$y)
       add_widget_to_gridstack(id, "plugin_run_code", ui_output, widget_id, previous_widget_id)
       output[[paste0("ui_", widget_id)]] <- renderUI(code$ui)
       output[[paste0("edit_buttons_", widget_id)]] <- renderUI(get_widget_edit_buttons(id, widget_id))
@@ -1027,6 +1044,8 @@ mod_plugins_server <- function(id, r, d, m, language, i18n, debug){
     observeEvent(input$edit_page_off, {
       if (debug) cat(paste0("\n", now(), " - mod_plugins - observer input$edit_page_off"))
       
+      widget_id <- r$run_plugin_last_widget_id
+      
       # Disable gridstack edition
       shinyjs::runjs("
         const grid = window.gridStackInstances['plugin_run_code'];
@@ -1034,7 +1053,7 @@ mod_plugins_server <- function(id, r, d, m, language, i18n, debug){
       ")
       
       # Hide edit and delete widget buttons
-      shinyjs::hide(paste0("plugins_widget_settings_buttons_", r$run_plugin_last_widget_id))
+      shinyjs::hide(paste0("plugins_widget_settings_buttons_", widget_id))
       
       # Show edit page button
       shinyjs::hide("edit_page_off_div")
@@ -1042,6 +1061,40 @@ mod_plugins_server <- function(id, r, d, m, language, i18n, debug){
       
       # Hide resize button when sidenav is displayed or not
       r$plugin_run_code_edit_page_activated <- FALSE
+      
+      # Save widget position
+      
+      shinyjs::runjs(paste0(
+        "var widget = document.getElementById('", id, "-plugins_gridstack_item_", widget_id, "');",
+        "if (widget) {",
+        "  var widgetPosition = {",
+        "    id: ", widget_id, ",",
+        "    w: widget.getAttribute('gs-w'),",
+        "    h: widget.getAttribute('gs-h'),",
+        "    x: widget.getAttribute('gs-x'),",
+        "    y: widget.getAttribute('gs-y')",
+        "  }",
+        "};",
+        "Shiny.setInputValue('", id, "-widget_position', widgetPosition);",
+        "Shiny.setInputValue('", id, "-widget_position_trigger', Math.random());"
+      ))
+    })
+    
+    # Save widget position
+    observeEvent(input$widget_position_trigger, {
+      if (debug) cat(paste0("\n", now(), " - mod_data - observer input$widget_position_trigger"))
+      
+      widget <- input$widget_position
+      
+      widget_position <- ""
+      for (pos in c("w", "h", "x", "y")){
+        if (length(widget[[pos]]) == 0) widget_pos <- 1
+        else widget_pos <- widget[[pos]]
+        widget_position <- paste0(widget_position, pos, "=", widget_pos, ";")
+      }
+      
+      sql <- glue::glue_sql("UPDATE options SET value = {widget_position} WHERE category = 'plugin_run_code_options' AND name = 'plugin_widget_position'", .con = r$db)
+      sql_send_statement(r$db, sql)
     })
   })
 }

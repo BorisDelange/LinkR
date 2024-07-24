@@ -168,7 +168,10 @@ import_dataset <- function(
     missing_files <- FALSE
     
     if (read_with == "duckdb"){
-      duckdb_con <- DBI::dbConnect(duckdb::duckdb(), dbdir = paste0(data_app_folder, "/dataset.duckdb"))
+      # duckdb_file <- paste0(data_app_folder, "/dataset.duckdb")
+      # if (file.exists(duckdb_file)) unlink(duckdb_file)
+      # duckdb_con <- DBI::dbConnect(duckdb::duckdb(), dbdir = duckdb_file)
+      duckdb_con <- DBI::dbConnect(duckdb::duckdb())
       duckdb_tables <- DBI::dbListTables(duckdb_con)
     }
     
@@ -220,7 +223,8 @@ import_dataset <- function(
         tryCatch({
           
           # Connection to duckdb database
-          con <- DBI::dbConnect(duckdb::duckdb(), dbdir = paste0(data_app_folder, "/dataset.duckdb"))
+          # con <- DBI::dbConnect(duckdb::duckdb(), dbdir = paste0(data_app_folder, "/dataset.duckdb"))
+          con <- DBI::dbConnect(duckdb::duckdb())
           
           for (file_name in file_names){
             

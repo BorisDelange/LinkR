@@ -699,15 +699,15 @@ mod_git_repos_server <- function(id, r, d, m, language, i18n, debug){
           
           ## Delete rows in element table
           sql <- glue::glue_sql("DELETE FROM {sql_table} WHERE id = {local_element$id}", .con = r$db)
-          # sql_send_statement(r$db, sql)
+          sql_send_statement(r$db, sql)
           
           ## Delete rows in options table
           sql <- glue::glue_sql("DELETE FROM options WHERE category = {current_tab_single} AND link_id = {local_element$id}", .con = r$db)
-          # sql_send_statement(r$db, sql)
+          sql_send_statement(r$db, sql)
           
           ## Delete rows in code table
           sql <- glue::glue_sql("DELETE FROM code WHERE category = {current_tab_single} AND link_id = {local_element$id}", .con = r$db)
-          # sql_send_statement(r$db, sql)
+          sql_send_statement(r$db, sql)
           
           # Add local element db rows
           

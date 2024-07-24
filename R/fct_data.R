@@ -12,6 +12,7 @@ create_gridstack_instance <- function(id, tab_id){
             scroll: false,
             column: 12,
             staticGrid: true,
+            float: true,
             resizable: { handles: 'se, ne, nw, sw' },
             margin: 10
           }, '#", ns(paste0("gridstack_", tab_id)), "');
