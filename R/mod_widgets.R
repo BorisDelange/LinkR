@@ -707,9 +707,9 @@ mod_widgets_server <- function(id, r, d, m, language, i18n, all_divs, debug){
         
         # For plugins, add code in database with create_plugin_files
         if (id == "plugins") create_plugin_files(id = id, r = r, plugin_id = new_data$id)
-        else {
+        else if (id == "datasets"){
           new_code <- tibble::tibble(
-            id = get_last_row(r$db, "code") + 1, category = "dataset", link_id = new_data$id,
+            id = get_last_row(r$db, "code") + 1, category = sql_category, link_id = new_data$id,
             code = "", creator_id = r$user_id, datetime = now(), deleted = FALSE
           )
           DBI::dbAppendTable(con, "code", new_code)
@@ -835,7 +835,7 @@ mod_widgets_server <- function(id, r, d, m, language, i18n, all_divs, debug){
             data$widgets_options %>%
             dplyr::mutate(widget_id = widget_id + last_row$widgets, link_id = link_id + last_row$widgets_options)
 
-          for (table in c("options", "code")) data[[table]] <- data[[table]] %>%
+          data$options <- data$options %>%
             dplyr::left_join(
               data$plugins %>% dplyr::select(link_id = id, new_link_id = new_id),
               by = "link_id"
@@ -875,11 +875,14 @@ mod_widgets_server <- function(id, r, d, m, language, i18n, all_divs, debug){
           if (!update_plugins) data$plugins <- data$plugins %>% dplyr::filter(id %in% new_plugins$id)
           
           data$plugins <- data$plugins %>% dplyr::mutate(id = new_id) %>% dplyr::select(-new_id)
-
+          
           # Filter options & code on plugins to import
           data$options <- data$options %>% dplyr::filter(link_id %in% data$plugins$id)
-          data$code <- data$code %>% dplyr::filter(link_id %in% data$options$id)
-
+          data$code <- 
+            data$code %>% 
+            dplyr::mutate(link_id = link_id + last_row$options) %>%
+            dplyr::filter(link_id %in% data$options$id)
+          
           # Copy data in app database
           for (table in c("tabs_groups", "tabs", "widgets", "widgets_concepts", "widgets_options", "plugins", "options", "code")){
 
