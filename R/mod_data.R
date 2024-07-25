@@ -1403,13 +1403,10 @@ mod_data_server <- function(id, r, d, m, language, i18n, debug){
       # Delete widgets_options and widgets_concepts
       sql <- glue::glue_sql("SELECT id FROM widgets WHERE tab_id = {tab_id}", .con = r$db)
       widgets_ids <- DBI::dbGetQuery(r$db, sql) %>% dplyr::pull()
-      print(widgets_ids)
       
       sql <- glue::glue_sql("DELETE FROM widgets_options WHERE widget_id IN ({widgets_ids*})", .con = m$db)
-      print(sql)
       sql_send_statement(m$db, sql)
       sql <- glue::glue_sql("DELETE FROM widgets_concepts WHERE widget_id IN ({widgets_ids*})", .con = m$db)
-      print(sql)
       sql_send_statement(m$db, sql)
       
       # Delete widgets from db
@@ -1596,8 +1593,6 @@ mod_data_server <- function(id, r, d, m, language, i18n, debug){
 
       # Vocabulary concepts for server code
       selected_concepts <- r[[paste0(id, "_selected_concepts")]]
-      print(length(selected_concepts))
-      print(selected_concepts)
       
       if (nrow(r[[paste0(id, "_selected_concepts")]]) > 0){
 

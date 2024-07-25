@@ -614,11 +614,17 @@ mod_widgets_server <- function(id, r, d, m, language, i18n, all_divs, debug){
         
         file.copy(paste0(r$imported_element_temp_dir, "/", files_list), paste0(element_folder, "/", files_list))
         
+        # Reassign new id
+        r$imported_element <- r$imported_element %>% dplyr::mutate(id = get_last_row(con, sql_table) + 1)
+        
         # Delete old entries in database
         
         element_id <- DBI::dbGetQuery(r$db, glue::glue_sql("SELECT link_id FROM options WHERE category = {sql_category} AND name = 'unique_id' AND value = {r$imported_element$unique_id}", .con = con)) %>% dplyr::pull()
         
         if (length(element_id) > 0){
+          
+          # Keep old element id
+          r$imported_element <- r$imported_element %>% dplyr::mutate(id = element_id)
           
           # Delete element in db
           sql_send_statement(con, glue::glue_sql("DELETE FROM {sql_table} WHERE id = {element_id}", .con = con))
@@ -651,16 +657,24 @@ mod_widgets_server <- function(id, r, d, m, language, i18n, all_divs, debug){
         # Element table
         
         if (id == "plugins") new_data <-
-          r$imported_element %>%
-          dplyr::transmute(id = get_last_row(con, "plugins") + 1, name, tab_type_id = type, creation_datetime, update_datetime, deleted = FALSE)
+          r$imported_element %>% 
+          dplyr::transmute(id, name, tab_type_id = type, creation_datetime, update_datetime, deleted = FALSE)
         
         else if (id == "datasets") new_data <-
+          r$imported_element %>% 
+          dplyr::transmute(id, name, data_source_id = NA_integer_, creation_datetime, update_datetime, deleted = FALSE)
+        
+        else if (id == "projects") new_data <-
           r$imported_element %>%
-          dplyr::transmute(id = get_last_row(con, "datasets") + 1, name, data_source_id = NA_integer_, creation_datetime, update_datetime, deleted = FALSE)
+          dplyr::transmute(
+            id, name, dataset_id = NA_integer_, patient_lvl_tab_group_id = NA_integer_, aggregated_tab_group_id = NA_integer_,
+            creator_id = r$user_id, creation_datetime, update_datetime, deleted = FALSE
+          )
         
         DBI::dbAppendTable(con, sql_table, new_data)
         
         # Options table
+        
         new_options <- tibble::tribble(
           ~name, ~value, ~value_num,
           "users_allowed_read_group", "everybody", 1,
@@ -701,12 +715,194 @@ mod_widgets_server <- function(id, r, d, m, language, i18n, all_divs, debug){
           DBI::dbAppendTable(con, "code", new_code)
         }
         
+        # Add values to SQL tables for project import
+        
+        if (id == "projects"){
+          
+          # Tables :
+          # - tabs_groups
+          # - tabs
+          # - widgets
+          # - widgets_concepts
+          # - widgets_options
+          # - plugins
+          # - code
+          # - options
+          
+          # Load CSV files
+          
+          csv_folder <- paste0(r$imported_element_temp_dir, "/app_db")
+          csv_files <- list.files(csv_folder)
+          
+          data <- list()
+          last_row <- list()
+          
+          if (length(csv_files) > 0){
+            for (csv_file in csv_files){
+              
+              table <- sub("\\.csv$", "", csv_file, ignore.case = TRUE)
+              
+              file_path <- paste0(csv_folder, "/", csv_file)
+              
+              if (table %in% c("code", "options", "plugins", "tabs", "tabs_groups", "widgets")){
+                db <- "main"
+                con <- r$db
+              }
+              else {
+                db <- "public"
+                con <- m$db
+              }
+              
+              last_row[[table]] <- get_last_row(con, table)
+              
+              col_types <- r$db_col_types %>% dplyr::filter(db == !!db, table == !!table) %>% dplyr::pull(col_types)
+              data[[table]] <- vroom::vroom(file_path, col_types = col_types, progress = FALSE)
+              
+              if (table != "plugins") data[[table]] <- data[[table]] %>% dplyr::mutate(id = id + last_row[[table]])
+            }
+          }
+          
+          # Add data in database
+          
+          ## plugins
+          
+          ### Reload r$plugins_wide & r$plugins_long
+          reload_elements_var(page_id = "plugins", con = con, r = r, m = m, long_var_filtered = "filtered_plugins_long")
+          
+          data$plugins <- data$plugins %>% dplyr::mutate(new_id = id + last_row$plugins)
+          
+          local_plugins <- 
+            r$plugins_wide %>%
+            dplyr::left_join(
+              r$plugins_long %>% dplyr::filter(name == "unique_id") %>% dplyr::select(id, unique_id = value),
+              by = "id"
+            )
+          
+          imported_plugins <-
+            data$plugins %>% dplyr::select(id, tab_type_id, imported_update_datetime = update_datetime) %>%
+            dplyr::left_join(data$options %>% dplyr::filter(category == "plugin" & name == "unique_id") %>% dplyr::select(id = link_id, unique_id = value), by = "id")
+          
+          new_plugins <- imported_plugins %>% dplyr::filter(unique_id %not_in% local_plugins$unique_id)
+          
+          more_recent_plugins <-
+            imported_plugins %>%
+            dplyr::filter(unique_id %in% local_plugins$unique_id) %>%
+            dplyr::left_join(local_plugins %>% dplyr::select(unique_id, local_update_datetime = update_datetime), by = "unique_id") %>%
+            dplyr::filter(imported_update_datetime > local_update_datetime)
+          
+          update_plugins <- TRUE
+          # if (length(input$update_plugins) > 0) if (input$update_plugins) update_plugins <- TRUE
+          
+          # Change ID
+          # If already exists locally, keep local ID
+          data$plugins <-
+            data$plugins %>%
+            dplyr::left_join(imported_plugins %>% dplyr::select(id, unique_id), by = "id") %>%
+            dplyr::left_join(local_plugins %>% dplyr::select(local_id = id, unique_id), by = "unique_id") %>%
+            dplyr::mutate_at(c("local_id", "new_id"), as.integer) %>%
+            dplyr::mutate(new_id = dplyr::case_when(
+              !is.na(local_id) ~ local_id,
+              TRUE ~ new_id
+            )) %>%
+            dplyr::select(-unique_id, -local_id)
+          
+          ## projects
+          patient_lvl_tab_group_id <- data$tabs_groups %>% dplyr::filter(category == "patient_lvl") %>% dplyr::pull(id)
+          aggregated_tab_group_id <- data$tabs_groups %>% dplyr::filter(category == "aggregated") %>% dplyr::pull(id)
+          sql <- glue::glue_sql("UPDATE studies SET patient_lvl_tab_group_id = {patient_lvl_tab_group_id}, aggregated_tab_group_id = {aggregated_tab_group_id} WHERE id = {r$imported_element$id}", .con = r$db)
+          sql_send_statement(r$db, sql)
+          
+          ## tabs
+          data$tabs <- data$tabs %>% dplyr::mutate(
+            tab_group_id = tab_group_id + last_row$tabs_groups,
+            parent_tab_id = parent_tab_id + last_row$tabs
+          )
+
+          ## widgets
+          data$widgets <-
+            data$widgets %>%
+            dplyr::mutate(tab_id = tab_id + last_row$tabs) %>%
+            dplyr::left_join(data$plugins %>% dplyr::select(plugin_id = id, new_plugin_id = new_id), by = "plugin_id") %>%
+            dplyr::select(-plugin_id) %>%
+            dplyr::rename(plugin_id = new_plugin_id) %>%
+            dplyr::relocate(plugin_id, .after = "tab_id")
+
+          ## widgets_concepts
+          data$widgets_concepts <- data$widgets_concepts %>% dplyr::mutate(widget_id = widget_id + last_row$widgets)
+
+          ## widgets_options
+          data$widgets_options <- 
+            data$widgets_options %>%
+            dplyr::mutate(widget_id = widget_id + last_row$widgets, link_id = link_id + last_row$widgets_options)
+
+          for (table in c("options", "code")) data[[table]] <- data[[table]] %>%
+            dplyr::left_join(
+              data$plugins %>% dplyr::select(link_id = id, new_link_id = new_id),
+              by = "link_id"
+            ) %>%
+            dplyr::select(-link_id) %>%
+            dplyr::rename(link_id = new_link_id) %>%
+            dplyr::relocate(link_id, .after = "category")
+          
+          # Delete data for more recent plugins
+          if (update_plugins){
+
+            # Get local IDs
+            ids_to_del <-
+              local_plugins %>% 
+              dplyr::inner_join(more_recent_plugins %>% dplyr::select(unique_id), by = "unique_id") %>%
+              dplyr::pull(id)
+            
+            if (length(ids_to_del) > 0){
+
+              sql <- glue::glue_sql("DELETE FROM plugins WHERE id IN ({ids_to_del*})", .con = r$db)
+              sql_send_statement(r$db, sql)
+              
+              # Get options ids to delete code rows
+              options_ids <- DBI::dbGetQuery(r$db, glue::glue_sql("SELECT id FROM options WHERE category = 'plugin_code' AND link_id IN ({ids_to_del*})", .con = r$db)) %>% dplyr::pull()
+              
+              # Delete code in db
+              sql <- glue::glue_sql("DELETE FROM code WHERE link_id IN ({options_ids*})", .con = r$db)
+              sql_send_statement(r$db, sql)
+              
+              sql <- glue::glue_sql("DELETE FROM options WHERE category IN ('plugin', 'plugin_code') AND link_id IN ({ids_to_del*})", .con = r$db)
+              sql_send_statement(r$db, sql)
+            }
+          }
+          
+          # Filter plugins to add
+          if (update_plugins) data$plugins <- data$plugins %>% dplyr::filter(id %in% new_plugins$id | id %in% more_recent_plugins$id)
+          if (!update_plugins) data$plugins <- data$plugins %>% dplyr::filter(id %in% new_plugins$id)
+          
+          data$plugins <- data$plugins %>% dplyr::mutate(id = new_id) %>% dplyr::select(-new_id)
+
+          # Filter options & code on plugins to import
+          data$options <- data$options %>% dplyr::filter(link_id %in% data$plugins$id)
+          data$code <- data$code %>% dplyr::filter(link_id %in% data$options$id)
+
+          # Copy data in app database
+          for (table in c("tabs_groups", "tabs", "widgets", "widgets_concepts", "widgets_options", "plugins", "options", "code")){
+
+            if (table %in% c("widgets_concepts", "widgets_options")) con <- m$db
+            else con <- r$db
+            
+            DBI::dbAppendTable(con, table, data[[table]])
+          }
+          
+          # Reload r$plugins_wide & r$plugins_long
+          if (update_plugins) reload_elements_var(page_id = "plugins", con = con, r = r, m = m, long_var_filtered = "filtered_plugins_long")
+          
+        }
+        
         # Reload elements var and widgets
         shinyjs::runjs(paste0("Shiny.setInputValue('", id, "-reload_elements_var', Math.random());"))
        
         show_message_bar(output, message = paste0("success_importing_", single_id), type = "success", i18n = i18n, ns = ns)
         
-      }, error = function(e) cat(paste0("\n", now(), " - mod_widgets - (", id, ") - import element error - ", toString(e))))
+      }, error = function(e){
+        show_message_bar(output, paste0("error_importing_", single_id), "warning", i18n = i18n, ns = ns)
+        cat(paste0("\n", now(), " - mod_widgets - (", id, ") - import element error - ", toString(e)))
+      })
     })
     
     # |-------------------------------- -----
@@ -1636,7 +1832,7 @@ mod_widgets_server <- function(id, r, d, m, language, i18n, all_divs, debug){
           dplyr::pull(name) %>%
           remove_special_chars()
         
-        paste0("linkr_", single_id, "_", element_name, "_", now() %>% stringr::str_replace_all(" ", "_") %>% stringr::str_replace_all(":", "_") %>% as.character(), ".zip")
+        paste0("linkr_", single_id, "_", element_name, "_", now() %>% stringr::str_replace_all(" ", "_") %>% stringr::str_replace_all(":", "-") %>% as.character(), ".zip")
       },
 
       content = function(file){
@@ -1678,7 +1874,7 @@ mod_widgets_server <- function(id, r, d, m, language, i18n, all_divs, debug){
           
         }, error = function(e){
           shinyjs::runjs(paste0("Shiny.setInputValue('", id, "-error_downloading_element', Math.random());"))
-          cat(paste0("\n", now(), " - mod_widgets - (", id, ") - import element error - ", toString(e)))
+          cat(paste0("\n", now(), " - mod_widgets - (", id, ") - export element error - ", toString(e)))
         })
       }
     )

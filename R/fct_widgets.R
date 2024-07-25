@@ -428,7 +428,8 @@ create_project_files <- function(id, r, m, single_id, element_id, element_wide, 
   data$tabs_groups <- data$tabs_groups %>% dplyr::mutate(id = c(1L, 2L), .before = "category")
 
   ### tabs
-  if (nrow(data$tabs) > 0) data$tabs <- data$tabs %>%
+  if (nrow(data$tabs) > 0) data$tabs <- 
+    data$tabs %>%
     dplyr::left_join(corresponding_ids$tabs %>% dplyr::select(id = old_id, new_id), by = "id") %>%
     dplyr::left_join(corresponding_ids$tabs %>% dplyr::select(parent_tab_id = old_id, new_parent_tab_id = new_id), by = "parent_tab_id") %>%
     dplyr::left_join(corresponding_ids$tabs_groups %>% dplyr::select(tab_group_id = old_id, new_tab_group_id = new_id), by = "tab_group_id") %>%
@@ -439,7 +440,8 @@ create_project_files <- function(id, r, m, single_id, element_id, element_wide, 
     dplyr::relocate(tab_group_id, .before = "parent_tab_id")
 
   ### widgets
-  if (nrow(data$widgets) > 0) data$widgets <- data$widgets %>%
+  if (nrow(data$widgets) > 0) data$widgets <- 
+    data$widgets %>%
     dplyr::left_join(corresponding_ids$widgets %>% dplyr::select(id = old_id, new_id = new_id), by = "id") %>%
     dplyr::left_join(corresponding_ids$tabs %>% dplyr::select(tab_id = old_id, new_tab_id = new_id), by = "tab_id") %>%
     dplyr::left_join(corresponding_ids$plugins %>% dplyr::select(plugin_id = old_id, new_plugin_id = new_id), by = "plugin_id") %>%
@@ -450,7 +452,8 @@ create_project_files <- function(id, r, m, single_id, element_id, element_wide, 
     dplyr::relocate(plugin_id, .before = "display_order")
 
   ### widgets_concepts
-  if (nrow(data$widgets_concepts) > 0) data$widgets_concepts <- data$widgets_concepts %>%
+  if (nrow(data$widgets_concepts) > 0) data$widgets_concepts <- 
+    data$widgets_concepts %>%
     dplyr::left_join(corresponding_ids$widgets_concepts %>% dplyr::select(id = old_id, new_id = new_id), by = "id") %>%
     dplyr::left_join(corresponding_ids$widgets %>% dplyr::select(widget_id = old_id, new_widget_id = new_id), by = "widget_id") %>%
     dplyr::select(-id, -widget_id) %>%
@@ -459,23 +462,28 @@ create_project_files <- function(id, r, m, single_id, element_id, element_wide, 
     dplyr::relocate(widget_id, .after = "id")
 
   ### widgets_options
-  if (nrow(data$widgets_options) > 0) data$widgets_options <- data$widgets_options %>%
+  if (nrow(data$widgets_options) > 0) data$widgets_options <- 
+    data$widgets_options %>%
     dplyr::left_join(corresponding_ids$widgets_options %>% dplyr::select(id = old_id, new_id = new_id), by = "id") %>%
+    dplyr::left_join(corresponding_ids$widgets_options %>% dplyr::select(link_id = old_id, new_link_id = new_id), by = "link_id") %>%
     dplyr::left_join(corresponding_ids$widgets %>% dplyr::select(widget_id = old_id, new_widget_id = new_id), by = "widget_id") %>%
-    dplyr::select(-id, -widget_id) %>%
-    dplyr::rename(id = new_id, widget_id = new_widget_id) %>%
+    dplyr::select(-id, -widget_id, -link_id) %>%
+    dplyr::rename(id = new_id, widget_id = new_widget_id, link_id = new_link_id) %>%
     dplyr::relocate(id, .before = "person_id") %>%
-    dplyr::relocate(widget_id, .after = "id")
+    dplyr::relocate(widget_id, .after = "id") %>%
+    dplyr::relocate(link_id, .after = "person_id")
 
   ### plugins
-  if (nrow(data$plugins) > 0) data$plugins <- data$plugins %>%
+  if (nrow(data$plugins) > 0) data$plugins <- 
+    data$plugins %>%
     dplyr::left_join(corresponding_ids$plugins %>% dplyr::select(id = old_id, new_id), by = "id") %>%
     dplyr::select(-id) %>%
     dplyr::rename(id = new_id) %>%
     dplyr::relocate(id, .before = "name")
 
   ### options
-  if (nrow(data$options) > 0) data$options <- data$options %>%
+  if (nrow(data$options) > 0) data$options <- 
+    data$options %>%
     dplyr::left_join(corresponding_ids$options %>% dplyr::select(id = old_id, new_id), by = "id") %>%
     dplyr::left_join(corresponding_ids$plugins %>% dplyr::select(link_id = old_id, new_link_id = new_id), by = "link_id") %>%
     dplyr::select(-id, -link_id) %>%
@@ -484,7 +492,8 @@ create_project_files <- function(id, r, m, single_id, element_id, element_wide, 
     dplyr::relocate(link_id, .before = "name")
 
   ### code
-  if (nrow(data$code) > 0) data$code <- data$code %>%
+  if (nrow(data$code) > 0) data$code <- 
+    data$code %>%
     dplyr::left_join(corresponding_ids$code %>% dplyr::select(id = old_id, new_id), by = "id") %>%
     dplyr::left_join(corresponding_ids$options %>% dplyr::select(link_id = old_id, new_link_id = new_id), by = "link_id") %>%
     dplyr::select(-id, -link_id) %>%
@@ -493,28 +502,28 @@ create_project_files <- function(id, r, m, single_id, element_id, element_wide, 
     dplyr::relocate(link_id, .before = "code")
 
   # Create CSV files
-  dir.create(paste0(temp_dir_copy, "/app_database"))
+  dir.create(paste0(temp_dir_copy, "/app_db"))
   for (csv_file in c(
     "tabs_groups", "tabs", "widgets", "widgets_concepts", "widgets_options",
     "plugins", "options", "code"
     )
-  ) readr::write_csv(data[[csv_file]], paste0(temp_dir_copy, "/app_database/", csv_file, ".csv"))
+  ) readr::write_csv(data[[csv_file]], paste0(temp_dir_copy, "/app_db/", csv_file, ".csv"))
 
   # Copy plugins folders
-  dir.create(paste0(temp_dir_copy, "/plugins"))
-
-  if (nrow(data$plugins) > 0){
-    for (i in 1:nrow(data$plugins)){
-      plugin <- data$plugins[i, ]
-      unique_id <- data$options %>% dplyr::filter(category == "plugin" & name == "unique_id" & link_id == plugin$id) %>% dplyr::pull(value)
-      
-      plugin_dir <- paste0(r$app_folder, "/plugins/", unique_id)
-      
-      list_of_files <- list.files(plugin_dir)
-      dir.create(paste0(temp_dir_copy, "/plugins/", unique_id))
-      file.copy(paste0(plugin_dir, "/", list_of_files), paste0(temp_dir_copy, "/plugins/", unique_id, "/", list_of_files))
-    }
-  }
+  # dir.create(paste0(temp_dir_copy, "/plugins"))
+  # 
+  # if (nrow(data$plugins) > 0){
+  #   for (i in 1:nrow(data$plugins)){
+  #     plugin <- data$plugins[i, ]
+  #     unique_id <- data$options %>% dplyr::filter(category == "plugin" & name == "unique_id" & link_id == plugin$id) %>% dplyr::pull(value)
+  #     
+  #     plugin_dir <- paste0(r$app_folder, "/plugins/", unique_id)
+  #     
+  #     list_of_files <- list.files(plugin_dir)
+  #     dir.create(paste0(temp_dir_copy, "/plugins/", unique_id))
+  #     file.copy(paste0(plugin_dir, "/", list_of_files), paste0(temp_dir_copy, "/plugins/", unique_id, "/", list_of_files))
+  #   }
+  # }
   
   # Create XML file
   create_element_xml(id, r, element_id, single_id, element_options, element_dir)

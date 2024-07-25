@@ -7,7 +7,6 @@ mod_console_ui <- function(id = character(), language = "en", languages = tibble
     run_all = list(win = "CTRL-SHIFT-ENTER", mac = "CTRL-SHIFT-ENTER|CMD-SHIFT-ENTER"),
     comment = list(win = "CTRL-SHIFT-C", mac = "CTRL-SHIFT-C|CMD-SHIFT-C")
   )
-  
   div(
     id = ns("console"),
     div(
@@ -19,6 +18,7 @@ mod_console_ui <- function(id = character(), language = "en", languages = tibble
       style = "width: 50%; margin-top: 10px;"
     ),
     div(
+      id = ns("console_output"),
       textOutput(ns("datetime_code_execution")),
       verbatimTextOutput(ns("code_output")),
       shinyjs::hidden(div(id = ns("plot_output_div"), plotOutput(ns("plot_output")), style = "padding-top: 10px;")),
@@ -28,7 +28,7 @@ mod_console_ui <- function(id = character(), language = "en", languages = tibble
       shinyjs::hidden(imageOutput(ns("image_output"))),
       style = "width: 50%; border: dashed grey 1px; margin: 10px 0px 0px 10px; padding: 10px; font-size: 12px; overflow-y: auto;"
     ),
-    style = "display: flex; max-height:calc(100vh - 90px);",
+    style = "display: flex; max-height:calc(100vh - 90px); width: 100%;",
     class = "main"
   )
 }

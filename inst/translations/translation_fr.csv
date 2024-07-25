@@ -501,14 +501,14 @@ error_install_remote_git_dataset,Erreur lors de l'installation d'un set de donn�
 error_install_remote_git_vocabulary,Erreur lors de l'installation d'une terminologie depuis le git distant
 success_installing_remote_git_plugin,Plugin installé avec succès depuis le git distant
 choose_remote_git,Choisissez un dépôt de git distant
-success_importing_plugin,Plugin(s) importé(s) avec succès
-success_importing_script,Script(s) importé(s) avec succès
-success_importing_study,Etude(s) importée(s) avec succès
-error_importing_plugin,Erreur lors de l'importation du ou des plugin(s)
+success_importing_plugin,Plugin importé avec succès
+success_importing_script,Script importé avec succès
+success_importing_project,Projet importé avec succès
+error_importing_plugin,Erreur lors de l'importation du plugin
 error_importing_image,Erreur lors de l'importation de l'image
 error_importing_file,Erreur lors de l'importation du fichier
-error_importing_script,Erreur lors de l'importation du ou des script(s)
-error_importing_study,Erreur lors de l'importation de la ou des étude(s)
+error_importing_script,Erreur lors de l'importation du script de data cleaning
+error_importing_project,Erreur lors de l'importation du projet
 unique_id,ID unique
 type,Type
 refresh,Rafraîchir
@@ -867,7 +867,7 @@ load_concept_data_before,Charger la table CONCEPT avant
 load_concept_relationship_data_before,Charger la table CONCEPT_RELATIONSHIP avant
 error_importing_vocabulary,Erreur lors de l'importation du ou des terminologie(s)
 error_importing_concepts,Erreur lors de l'importation des concepts
-error_importing_dataset,Erreur lors de l'importation du ou des set(s) de données
+error_importing_dataset,Erreur lors de l'importation du set de données
 all_vocabularies,Toutes les terminologies
 success_importing_vocabulary,Terminologie(s) importée(s) avec succès
 success_importing_concepts,Concepts importés avec succès

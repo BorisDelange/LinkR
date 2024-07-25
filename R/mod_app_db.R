@@ -174,7 +174,7 @@ mod_app_db_ui <- function(id, language, languages, i18n, code_hotkeys, db_col_ty
             ), br(),
             div(
               div(style = "display:none;", fileInput(ns("db_restore"), label = "", multiple = FALSE, accept = ".zip")),
-              shiny.fluent::PrimaryButton.shinyInput(ns("import_db"), i18n$t("import_db"), iconProps = list(iconName = "Upload")),
+              shiny.fluent::PrimaryButton.shinyInput(ns("import_db"), i18n$t("restore_db"), iconProps = list(iconName = "Upload")),
               class = "import_db_buttons"
             ),
             shinyjs::hidden(
@@ -431,7 +431,7 @@ mod_app_db_server <- function(id, r, d, m, language, i18n, db_col_types, app_fol
     sapply(c("export", "import"), function(category){
       sapply(c("check", "uncheck"), function(action){
         sapply(c("main", "public"), function(type){
-          print(paste0(category, "_db_", action, "_all_", type, "_tables"))
+          
           observeEvent(input[[paste0(category, "_db_", action, "_all_", type, "_tables")]], {
             if (debug) cat(paste0("\n", now(), " - mod_app_db - observer input$", category, "_db_", action, "_all_", type, "_tables"))
             
@@ -569,20 +569,18 @@ mod_app_db_server <- function(id, r, d, m, language, i18n, db_col_types, app_fol
     
     ### Restore file
     
-    output$db_restore_loaded_file <- renderUI({
-      if (debug) cat(paste0("\n", now(), " - mod_app_db - output$db_restore_loaded_file"))
-      
-      req(input$db_restore$name)
-      
-      div(input$db_restore$name, class = "selected_file db_backup_file")
-    })
-    
     observeEvent(input$db_restore, {
       if (debug) cat(paste0("\n", now(), " - mod_app_db - input$db_restore"))
       
+      req(input$db_restore$name)
+      
+      # Show loaded file
+      output$db_restore_loaded_file <- renderUI(div(input$db_restore$name, class = "selected_file db_backup_file"))
+      
+      # Show db tables dropdowns
       shinyjs::show("import_db_tables_div")
       
-      r$import_db_files <- tibble::tibble()
+      r$import_db_files <- tibble::tibble(prefix = character(), name = character(), path = character())
       
       tryCatch({
         
@@ -595,13 +593,26 @@ mod_app_db_server <- function(id, r, d, m, language, i18n, db_col_types, app_fol
         
         csv_files <- files[grepl("\\.csv$", files, ignore.case = TRUE)]
         prefix <- ifelse(grepl("^(main|public)_", csv_files, ignore.case = TRUE), sub("_.*", "", csv_files), NA)
-        
+          
+        # Remove .csv
         names_without_extension <- sub("\\.csv$", "", csv_files, ignore.case = TRUE)
+        # Remove "main_" or "public_"
         names_without_extension <- sub("^[^_]*_", "", names_without_extension)
         
         full_path <- file.path(exdir, csv_files)
         
-        r$import_db_files <- data.frame(prefix = prefix, name = names_without_extension, path = full_path, stringsAsFactors = FALSE)
+        r$import_db_files <- 
+          r$import_db_files %>%
+          dplyr::bind_rows(tibble::tibble(prefix = prefix, name = names_without_extension, path = full_path))
+        
+        # Filter on existing tables
+        r$import_db_files <- 
+          r$import_db_files %>% 
+          dplyr::filter(!is.na(prefix)) %>%
+          dplyr::inner_join(
+            db_col_types %>% dplyr::select(name = table, prefix = db),
+            by = c("name", "prefix")
+          )
         
         for (type in c("main", "public")) shiny.fluent::updateDropdown.shinyInput(
           session, paste0(type, "_tables_to_import"),
@@ -618,104 +629,149 @@ mod_app_db_server <- function(id, r, d, m, language, i18n, db_col_types, app_fol
     observeEvent(input$import_db, {
       if (debug) cat(paste0("\n", now(), " - mod_app_db - input$import_db"))
       
+      # If at least one file to import
+      req(nrow(r$import_db_files) > 0)
+      
       # Save current database before import new one
-      
+
       db_list <- c("main", "public")
-      
+
       db_folder <- paste0(r$app_folder, "/temp_files/", r$user_id, "/app_db/import_db_rescue_", now() %>% stringr::str_replace_all(":| |-", "_"))
       dir.create(db_folder)
-      
+
       for (db in db_list){
-        
+
         if (db == "main") con <- r$db
         if (db == "public") con <- m$db
-        
+
         tables <- db_col_types %>% dplyr::filter(db == !!db) %>% dplyr::pull(table)
-        
+
         for (table in tables){
           file_name <- paste0(db_folder, "/", db, "_", table, ".csv")
           readr::write_csv(DBI::dbGetQuery(con, paste0("SELECT * FROM ", table)), file_name)
         }
       }
-      
+
       # Try to import restore files
       # Reload current database in case of error
-      
+
       total_success <- TRUE
       
       for(i in 1:nrow(r$import_db_files)){
-        
+
         row <- r$import_db_files[i, ]
         if (row$prefix == "main") con <- r$db
         else if (row$prefix == "public") con <- m$db
-        
+
         if (row$name %in% input[[paste0(row$prefix, "_tables_to_import")]]){
-          
+
           col_types <- db_col_types %>% dplyr::filter(table == row$name, db == row$prefix) %>% dplyr::pull(col_types)
-          
+
           success <- FALSE
-          
+
           tryCatch({
-            
+
             # Load CSV file
             data <- vroom::vroom(row$path, col_types = col_types, progress = FALSE)
-              
+
             # Delete data from old table
             sql <- glue::glue_sql("DELETE FROM {`row$name`}", .con = con)
             sql_send_statement(con, sql)
 
             # Insert new data in table
             DBI::dbAppendTable(con, row$name, data)
-            
+
             success <- TRUE
 
           }, error = function(e){
             show_message_bar(output, "error_restoring_database_table", "warning", i18n = i18n, ns = ns)
             cat(paste0("\n", now(), " - mod_git_repos - error restoring database table (", row$name, ") - error = ", toString(e)))
           })
-          
+
           if (!success) total_success <- FALSE
         }
       }
-      
+
       # Restore database in case of failure
-      
+
       if (!total_success){
-        
-        print("Failure - reimport tables")
-        
+
         tryCatch({
-          
+
           for (db in db_list){
-            
+
             if (db == "main") con <- r$db
             if (db == "public") con <- m$db
-            
+
             tables <- db_col_types %>% dplyr::filter(db == !!db) %>% dplyr::pull(table)
-            
+
             for (table in tables){
-              
+
               file_name <- paste0(db_folder, "/", db, "_", table, ".csv")
               col_types <- db_col_types %>% dplyr::filter(table == !!table, db == !!db) %>% dplyr::pull(col_types)
-              
+
               data <- vroom::vroom(file_name, col_types = col_types, progress = FALSE)
-              
+
               # Delete data from old table
               sql <- glue::glue_sql("DELETE FROM {`table`}", .con = con)
               sql_send_statement(con, sql)
-              
+
               # Insert new data in table
               DBI::dbAppendTable(con, table, data)
             }
           }
-          
+
         }, error = function(e){
           show_message_bar(output, "error_restoring_db_old_table_after_import_failure", "warning", i18n = i18n, ns = ns)
           cat(paste0("\n", now(), " - mod_git_repos - error restoring old database table after import failure (", row$name, ") - error = ", toString(e)))
         })
       }
+
+      if (total_success){
+
+        # Reset fields
+        output$db_restore_loaded_file <- renderUI(div())
+        shinyjs::hide("import_db_tables_div")
+        
+        # Save last restore datetime
+        last_restore <- DBI::dbGetQuery(r$db, "SELECT * FROM options WHERE category = 'last_db_restore' AND name = 'last_db_restore'")
+        
+        if (nrow(last_restore) == 0){
+          
+          # Insert last time row
+          last_row <- get_last_row(r$db, "options")
+          new_data <- tibble::tribble(
+            id = as.integer(last_row + 1), category = "last_db_restore", link_id = NA_integer_, name = "last_db_restore", value = now(),
+            value_num = NA_real_, creator_id = r$user_id, datetime = now(), deleted = FALSE
+          )
+          DBI::dbAppendTable(r$db, "options", new_data)
+        }
+        
+        else {
+          sql <- glue::glue_sql("UPDATE options SET value = {now()}, datetime = {now()} WHERE category = 'last_db_restore' AND name = 'last_db_restore'", .con = r$db)
+          sql_send_statement(r$db, sql)
+        }
+        
+        shinyjs::runjs(paste0("Shiny.setInputValue('", id, "-reload_last_db_restore', Math.random());"))
+
+        # Notify user
+        show_message_bar(output, "db_restored_reload_app_to_take_into_account_changes", "success", i18n = i18n, ns = ns)
+      }
+    })
+    
+    ### Update last db restore field
+    
+    shinyjs::runjs(paste0("Shiny.setInputValue('", id, "-reload_last_db_restore', Math.random());"))
+    
+    observeEvent(input$reload_last_db_restore, {
+      if (debug) cat(paste0("\n", now(), " - mod_app_db - observer input$reload_last_db_restore"))
       
-      if (total_success) show_message_bar(output, "db_restored_reload_app_to_take_into_account_changes", "success", i18n = i18n, ns = ns) 
+      last_restore <- DBI::dbGetQuery(r$db, "SELECT * FROM options WHERE category = 'last_db_restore' AND name = 'last_db_restore'")
+      
+      if (nrow(last_restore) > 0) last_restore_datetime <- format_datetime(last_restore %>% dplyr::pull(value), language = "fr", sec = FALSE)
+      else last_restore_datetime <- "/"
+      
+      output$last_db_restore <- renderUI(tagList(strong(i18n$t("last_db_restore")), " : ", last_restore_datetime))
       
     })
     

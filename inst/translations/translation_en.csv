@@ -501,12 +501,12 @@ success_installing_remote_git_plugin,Plugin successfully installed from remote g
 choose_remote_git,Choose a remote git repository
 success_importing_plugin,Plugin(s) successfully imported
 success_importing_script,Script(s) successfully imported
-success_importing_study,Study/studies successfully imported
-error_importing_plugin,Error importing plugin(s)
+success_importing_project,Project successfully imported
+error_importing_plugin,Error importing plugin
 error_importing_image,Error importing image
 error_importing_file,,Error importing file
-error_importing_script,Error importing script(s)
-error_importing_study,Error importing study/studies
+error_importing_script,Error importing script
+error_importing_project,Error importing project
 unique_id,Unique ID
 type,Type
 refresh,Refresh
@@ -868,7 +868,7 @@ load_concept_data_before,Load CONCEPT table before
 load_concept_relationship_data_before,Load CONCEPT_RELATIONSHIP data before
 error_importing_vocabulary,Error importing vocabulary / vocabularies
 error_importing_concepts,Error importing concepts
-error_importing_dataset,Error importing dataset(s)
+error_importing_dataset,Error importing dataset
 all_vocabularies,All vocabularies
 success_importing_vocabulary,Vocabulary / vocabularies successfully imported
 success_importing_concepts,Concepts successfully imported

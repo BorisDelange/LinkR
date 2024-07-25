@@ -85,6 +85,9 @@ app_server <- function(pages, language, languages, i18n, app_folder, debug, log_
     
     db_local_main <- get_db(r = r, m = m, app_db_folder = app_db_folder, db_col_types = db_col_types)
     
+    # Db col types
+    r$db_col_types <- db_col_types
+    
     # Close DB connection on exit
     # And restore initial working directory
     trad <- list()
