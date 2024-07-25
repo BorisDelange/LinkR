@@ -1208,7 +1208,7 @@ update_git_element_vocabulary_title,Update git element
 update_git_element_vocabulary_text,Update git vocabulary? This will erase and replace actual vocabulary in the git repository.
 delete_git_element_vocabulary_title,Delete git element
 delete_git_element_vocabulary_text,Delete this vocabulary from the git repository?
-dont_update,Cancel
+dont_update,Don't update
 reload_dataset_concepts,Reload dataset concepts
 reload_dataset_concepts_title,Reload concepts
 reload_dataset_concepts_text,Reload count of current dataset concepts? This operation may take a few minutes.
@@ -1248,3 +1248,5 @@ select_all_tables,Select all tables
 other_pages,Other pages
 error_loading_db_file,Error loading database file
 error_restoring_db_old_table_after_import_failure,Error restoring old table after error with database import
+update_project_plugins_title,Update project plugins
+update_project_plugins_text,Update plugins included in the project? This will erase old versions of local plugins which are not up to date.

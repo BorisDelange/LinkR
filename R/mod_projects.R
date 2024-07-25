@@ -205,7 +205,25 @@ mod_projects_ui <- function(id, language, languages, i18n){
         
         style = "height: 100%; display: flex; flex-direction: column;"
       )
-    )
+    ),
+    
+    # Import project plugins modal ----
+    
+    shinyjs::hidden(
+      div(
+        id = ns("update_project_plugins_modal"),
+        div(
+          tags$h1(i18n$t("update_project_plugins_title")), tags$p(i18n$t("update_project_plugins_text")),
+          div(
+            shiny.fluent::DefaultButton.shinyInput(ns("close_project_plugins_import_modal"), i18n$t("dont_update")),
+            div(shiny.fluent::PrimaryButton.shinyInput(ns("confirm_project_plugins_import"), i18n$t("update"))),
+            class = "import_modal_buttons"
+          ),
+          class = "import_modal_content"
+        ),
+        class = "import_modal"
+      )
+    ),
   )
 }
 
@@ -274,5 +292,31 @@ mod_projects_server <- function(id, r, d, m, language, i18n, debug){
       show_message_bar(output,  "modif_saved", "success", i18n = i18n, ns = ns)
     })
     
+    # --- --- --- --- --- -
+    # Import a project ----
+    # --- --- --- --- --- -
+    
+    # Do plugins need to be updated?
+    observeEvent(input$ask_plugins_update, {
+      if (debug) cat(paste0("\n", now(), " - mod_projects - observer input$ask_plugins_update"))
+      
+      shinyjs::show("update_project_plugins_modal")
+    })
+    
+    observeEvent(input$confirm_project_plugins_import, {
+      if (debug) cat(paste0("\n", now(), " - mod_projects - observer input$confirm_project_plugins_import"))
+      
+      shinyjs::hide("update_project_plugins_modal")
+      shinyjs::runjs(paste0("Shiny.setInputValue('", id, "-import_project_plugins', true);"))
+      shinyjs::runjs(paste0("Shiny.setInputValue('", id, "-confirm_element_import_2', Math.random());"))
+    })
+    
+    observeEvent(input$close_project_plugins_import_modal, {
+      if (debug) cat(paste0("\n", now(), " - mod_projects - observer input$close_project_plugins_import_modal"))
+      
+      shinyjs::hide("update_project_plugins_modal")
+      shinyjs::runjs(paste0("Shiny.setInputValue('", id, "-import_project_plugins', false);"))
+      shinyjs::runjs(paste0("Shiny.setInputValue('", id, "-confirm_element_import_2', Math.random());"))
+    })
   })
 }

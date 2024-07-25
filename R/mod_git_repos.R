@@ -520,7 +520,8 @@ mod_git_repos_server <- function(id, r, d, m, language, i18n, debug){
             if (paste0("name_", language) %in% colnames(row)) element_name <- row[[paste0("name_", language)]]
             else element_name <- row$name_en
             
-            users_ui <- ""
+            print(row)
+            users_ui <- create_authors_ui(row$author)
   
             max_length <- 45
             if (nchar(element_name) > max_length) element_name <- paste0(substr(element_name, 1, max_length - 3), "...")
@@ -538,9 +539,11 @@ mod_git_repos_server <- function(id, r, d, m, language, i18n, debug){
               Shiny.setInputValue('", id, "-selected_element', '", row$unique_id, "');
               Shiny.setInputValue('", id, "-selected_element_trigger', Math.random());
             ")
-  
+            
+            short_description <- row[[paste0("short_description_", language)]]
+            
             elements_ui <- tagList(
-              create_element_ui(page_id = id, single_id, element_name, users_ui, widget_buttons, onclick, ""),
+              create_element_ui(page_id = id, single_id, element_name, users_ui, widget_buttons, onclick, short_description),
               elements_ui
             )
           }
@@ -697,17 +700,26 @@ mod_git_repos_server <- function(id, r, d, m, language, i18n, debug){
             ")"), .con = r$db)
           local_element <- DBI::dbGetQuery(r$db, sql)
           
-          ## Delete rows in element table
-          sql <- glue::glue_sql("DELETE FROM {sql_table} WHERE id = {local_element$id}", .con = r$db)
-          sql_send_statement(r$db, sql)
+          # If element exists, keep current id
+          if (nrow(local_element) > 0){
+            
+            element_id <- local_element$id
+            
+            ## Delete rows in element table
+            sql <- glue::glue_sql("DELETE FROM {sql_table} WHERE id = {local_element$id}", .con = r$db)
+            sql_send_statement(r$db, sql)
+            
+            ## Delete rows in options table
+            sql <- glue::glue_sql("DELETE FROM options WHERE category = {current_tab_single} AND link_id = {local_element$id}", .con = r$db)
+            sql_send_statement(r$db, sql)
+            
+            ## Delete rows in code table
+            sql <- glue::glue_sql("DELETE FROM code WHERE category = {current_tab_single} AND link_id = {local_element$id}", .con = r$db)
+            sql_send_statement(r$db, sql)
+          }
           
-          ## Delete rows in options table
-          sql <- glue::glue_sql("DELETE FROM options WHERE category = {current_tab_single} AND link_id = {local_element$id}", .con = r$db)
-          sql_send_statement(r$db, sql)
-          
-          ## Delete rows in code table
-          sql <- glue::glue_sql("DELETE FROM code WHERE category = {current_tab_single} AND link_id = {local_element$id}", .con = r$db)
-          sql_send_statement(r$db, sql)
+          # If element doesn't exist, create a new id
+          if (nrow(local_element) == 0) element_id <- get_last_row(r$db, sql_table) + 1
           
           # Add local element db rows
           
@@ -715,8 +727,6 @@ mod_git_repos_server <- function(id, r, d, m, language, i18n, debug){
           
           element_name <- git_element$name_en
           if (paste0("name_", language) %in% colnames(git_element)) element_name <- git_element[[paste0("name_", language)]]
-          
-          element_id <- get_last_row(r$db, sql_table) + 1
           
           if (sql_table == "datasets") new_data <- tibble::tibble(
             id = element_id, name = element_name, data_source_id = NA_integer_, creator_id = r$user_id, 

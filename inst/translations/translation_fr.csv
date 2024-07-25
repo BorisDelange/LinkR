@@ -1212,7 +1212,7 @@ update_git_element_vocabulary_title,Mise à jour d'un élément du git
 update_git_element_vocabulary_text,Mettre à jour cette terminologie sur le git ? Ceci va supprimer et remplacer l'ancienne terminologie sur le dépôt git distant.
 delete_git_element_vocabulary_title,Supprimer un élément du git
 delete_git_element_vocabulary_text,Supprimer cette terminologie sur le git ?
-dont_update,Cancel
+dont_update,Ne pas mettre à jour
 reload_dataset_concepts,Recharger les concepts du set de données
 reload_dataset_concepts_title,Recharger les concepts
 reload_dataset_concepts_text,Recharger le décompte des concepts du set de données actuel ? Cette opération peut prendre quelques minutes.
@@ -1252,3 +1252,5 @@ select_all_tables,Sélectionner toutes les tables
 other_pages,Autres pages
 error_loading_db_file,Erreur lors du chargement de la sauvegarder de la base de données
 error_restoring_db_old_table_after_import_failure,Erreur lors de la restauration d'une ancienne table après échec de l'import d'une base de données
+update_project_plugins_title,Mise à jour des plugins
+update_project_plugins_text,Mettre à jour les plugins inclus dans le projet ? Ceci va supprimer et remplacer les plugins locaux non à jour.

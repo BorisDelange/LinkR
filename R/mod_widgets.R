@@ -92,7 +92,7 @@ mod_widgets_ui <- function(id, language, languages, i18n){
             tags$h1(i18n$t(paste0("import_", single_id, "_title"))), tags$p(i18n$t(paste0("import_", single_id, "_text"))),
             div(
               shiny.fluent::DefaultButton.shinyInput(ns("close_element_import_modal"), i18n$t("dont_import")),
-              div(shiny.fluent::PrimaryButton.shinyInput(ns("confirm_element_import"), i18n$t("import"))),
+              div(shiny.fluent::PrimaryButton.shinyInput(ns("confirm_element_import_1"), i18n$t("import"))),
               class = "import_modal_buttons"
             ),
             class = "import_modal_content"
@@ -585,7 +585,7 @@ mod_widgets_server <- function(id, r, d, m, language, i18n, all_divs, debug){
         # If this element already exists, confirm its deletion
         
         if (r[[long_var]] %>% dplyr::filter(name == "unique_id" & value == r$imported_element$unique_id) %>% nrow() > 0) shinyjs::show("import_element_modal")
-        else shinyjs::runjs(paste0("Shiny.setInputValue('", id, "-confirm_element_import', Math.random());"))
+        else shinyjs::runjs(paste0("Shiny.setInputValue('", id, "-confirm_element_import_2', Math.random());"))
         
       }, error = function(e) cat(paste0("\n", now(), " - mod_widgets - (", id, ") - import element error - ", toString(e))))
     })
@@ -597,10 +597,17 @@ mod_widgets_server <- function(id, r, d, m, language, i18n, all_divs, debug){
     
     ## Import files ----
     
-    observeEvent(input$confirm_element_import, {
-      if (debug) cat(paste0("\n", now(), " - mod_widgets - (", id, ") - observer input$confirm_element_import"))
+    observeEvent(input$confirm_element_import_1, {
+      if (debug) cat(paste0("\n", now(), " - mod_widgets - (", id, ") - observer input$confirm_element_import_1"))
       
       shinyjs::hide("import_element_modal")
+      
+      if (id == "projects") shinyjs::runjs(paste0("Shiny.setInputValue('", id, "-ask_plugins_update', Math.random());"))
+      else shinyjs::runjs(paste0("Shiny.setInputValue('", id, "-confirm_element_import_2', Math.random());"))
+    })
+      
+    observeEvent(input$confirm_element_import_2, {
+      if (debug) cat(paste0("\n", now(), " - mod_widgets - (", id, ") - observer input$confirm_element_import_2"))
       
       tryCatch({
         
@@ -790,8 +797,7 @@ mod_widgets_server <- function(id, r, d, m, language, i18n, all_divs, debug){
             dplyr::left_join(local_plugins %>% dplyr::select(unique_id, local_update_datetime = update_datetime), by = "unique_id") %>%
             dplyr::filter(imported_update_datetime > local_update_datetime)
           
-          update_plugins <- TRUE
-          # if (length(input$update_plugins) > 0) if (input$update_plugins) update_plugins <- TRUE
+          update_plugins <- input$import_project_plugins
           
           # Change ID
           # If already exists locally, keep local ID
@@ -871,6 +877,8 @@ mod_widgets_server <- function(id, r, d, m, language, i18n, all_divs, debug){
           }
           
           # Filter plugins to add
+          print(new_plugins)
+          print(more_recent_plugins)
           if (update_plugins) data$plugins <- data$plugins %>% dplyr::filter(id %in% new_plugins$id | id %in% more_recent_plugins$id)
           if (!update_plugins) data$plugins <- data$plugins %>% dplyr::filter(id %in% new_plugins$id)
           
