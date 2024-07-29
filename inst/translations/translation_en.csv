@@ -1183,6 +1183,7 @@ plugin_doesnt_exist_locally,This plugin does not exist in local LinkR instance
 dataset_doesnt_exist_locally,This dataset does not exist in local LinkR instance
 data_cleaning_doesnt_exist_locally,This data cleaning script does not exist in local LinkR instance
 project_doesnt_exist_locally,This project does not exist in local LinkR instance
+study_doesnt_exist_locally,This project does not exist in local LinkR instance
 updated_x_ago,Ago
 days,Days
 day,Day
@@ -1230,6 +1231,7 @@ element_git_and_local_versions_are_the_same,Local and remote git versions are th
 reload_git_repo,Reload git
 install,Install
 install_project,Install project
+install_study,Install project
 install_plugin,Install plugin
 install_data_cleaning_script,Install data cleaning script
 install_dataset,Install dataset
@@ -1250,3 +1252,4 @@ error_loading_db_file,Error loading database file
 error_restoring_db_old_table_after_import_failure,Error restoring old table after error with database import
 update_project_plugins_title,Update project plugins
 update_project_plugins_text,Update plugins included in the project? This will erase old versions of local plugins which are not up to date.
+occurrences,Occurrences

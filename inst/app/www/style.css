@@ -966,7 +966,6 @@ td[data-type="factor"] input {
   calc(100% - 16px)
 }
 
-
 .prog_label {
   padding: 2px 7px;
   margin: 0px 2px 2px 0;
@@ -1114,6 +1113,28 @@ td[data-type="factor"] input {
 .data_cleaning_summary_right, .data_cleaning_share_right {
   width: 50%;
   calc(100% - 16px)
+}
+
+/* ---------------------- */
+/* CONCEPTS PAGE          */
+/* ---------------------- */
+
+.concepts_container {
+  display: flex;
+  justify-content: space-between;
+  height: 100%;
+}
+
+.concepts_left {
+  display: flex;
+  flex-direction: column;
+  width: 50%;
+}
+
+.concepts_right {
+  display: flex;
+  flex-direction: column;
+  width: 50%;
 }
 
 /* -------------------------- */

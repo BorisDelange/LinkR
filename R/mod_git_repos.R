@@ -69,17 +69,61 @@ mod_git_repos_ui <- function(id = character(), language = "en", languages = tibb
         div(
           id = ns("summary_div"),
           div(
-            div(
-              class = "widget", style = "height: 50%;"
+            shinyjs::hidden(
+              div(
+                id = ns("edit_description_div"),
+                div(
+                  h1(i18n$t("edit_description")),
+                  div(
+                    create_hover_card(ui = shiny.fluent::IconButton.shinyInput(ns("run_description_code"), iconProps = list(iconName = "Play")), text = i18n$t("run_code")),
+                    style = "margin-top: 5px;"
+                  ),
+                  style = "display: flex; justify-content: space-between;"
+                ),
+                div(
+                  shinyAce::aceEditor(
+                    ns("description_code"), mode = "markdown",
+                    hotkeys = list(
+                      save = list(win = "CTRL-S", mac = "CTRL-S|CMD-S"),
+                      run_all = list(win = "CTRL-SHIFT-ENTER", mac = "CTRL-SHIFT-ENTER|CMD-SHIFT-ENTER")
+                    ),
+                    autoScrollEditorIntoView = TRUE, height = "100%", debounce = 100, fontSize = 11, showPrintMargin = FALSE
+                  ),
+                  style = "width: 100%; height: calc(100% - 45px); display: flex; flex-direction: column;"
+                ),
+                class = "widget", style = "height: 100%;"
+              )
             ),
             div(
-              "",
               class = "widget", style = "height: 50%;"
             ),
             class = "git_repos_summary_left"
           ),
           div(
             div(
+              div(
+                shinyjs::hidden(
+                  div(
+                    id = ns("edit_description_button"),
+                    create_hover_card(ui = shiny.fluent::IconButton.shinyInput(ns("edit_description"), iconProps = list(iconName = "Edit")), text = i18n$t("edit_description"))
+                  )
+                ),
+                shinyjs::hidden(
+                  div(
+                    id = ns ("save_and_cancel_description_buttons"),
+                    div(
+                      id = ns("cancel_description_button"),
+                      create_hover_card(ui = shiny.fluent::IconButton.shinyInput(ns("cancel_description"), iconProps = list(iconName = "Cancel")), text = i18n$t("cancel_description_updates"))
+                    ),
+                    div(
+                      id = ns("save_description_button"),
+                      create_hover_card(ui = shiny.fluent::IconButton.shinyInput(ns("save_description"), iconProps = list(iconName = "Accept")), text = i18n$t("save_description")),
+                    ),
+                    style = "display: flex;"
+                  )
+                ),
+                style = "margin-top: 5px;"
+              ),
               uiOutput(ns("summary_git_readme")),
               class = "widget markdown_widget",
             ),
@@ -580,6 +624,7 @@ mod_git_repos_server <- function(id, r, d, m, language, i18n, debug){
           "projects" = "study", 
           "plugins" = "plugin"
         )
+        
         if (current_tab == "data_cleaning") sql_table <- "scripts"
         else if (current_tab == "projects") sql_table <- "studies"
         else sql_table <- current_tab
@@ -652,6 +697,15 @@ mod_git_repos_server <- function(id, r, d, m, language, i18n, debug){
         
         shinyjs::hide("widgets_div")
         shinyjs::show("element_details_div")
+      })
+      
+      # Edit description ----
+      
+      observeEvent(input$edit_description, {
+        if (debug) cat(paste0("\n", now(), " - mod_widgets - (", id, ") - observer input$edit_description"))
+        
+        sapply(c("edit_description_button", "summary_informations_div"), shinyjs::hide)
+        sapply(c("save_and_cancel_description_buttons", "edit_description_div"), shinyjs::show)
       })
       
       # Install an element ----

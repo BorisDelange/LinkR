@@ -1,5 +1,5 @@
 #' @noRd
-app_server <- function(pages, language, languages, i18n, app_folder, debug, log_file, local, users_accesses_toggles_options, db_col_types){
+app_server <- function(pages, language, languages, i18n, app_folder, debug, log_file, local, users_accesses_toggles_options, db_col_types, dropdowns){
   function(input, output, session ) {
     
     if (debug) cat(paste0("\n", now(), " - server - init"))
@@ -76,6 +76,8 @@ app_server <- function(pages, language, languages, i18n, app_folder, debug, log_
     r$languages <- languages
     r$language <- language
     m$language <- language
+    
+    r$dropdowns <- dropdowns
     
     # Connection to database ----
     # If connection informations have been given in linkr() function, use these informations

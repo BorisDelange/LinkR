@@ -797,7 +797,8 @@ mod_widgets_server <- function(id, r, d, m, language, i18n, all_divs, debug){
             dplyr::left_join(local_plugins %>% dplyr::select(unique_id, local_update_datetime = update_datetime), by = "unique_id") %>%
             dplyr::filter(imported_update_datetime > local_update_datetime)
           
-          update_plugins <- input$import_project_plugins
+          update_plugins <- TRUE
+          if (length(input$import_project_plugins) > 0) update_plugins <- input$import_project_plugins
           
           # Change ID
           # If already exists locally, keep local ID

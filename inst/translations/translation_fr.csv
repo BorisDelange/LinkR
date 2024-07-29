@@ -1183,6 +1183,7 @@ plugin_doesnt_exist_locally,Ce plugin n'existe pas sur votre instance de LinkR
 dataset_doesnt_exist_locally,Ce set de données n'existe pas sur votre instance de LinkR
 data_cleaning_doesnt_exist_locally,Ce script de data cleaning n'existe pas sur votre instance de LinkR
 project_doesnt_exist_locally,Ce projet n'existe pas sur votre instance de LinkR
+study_doesnt_exist_locally,Ce projet n'existe pas sur votre instance de LinkR
 updated_x_ago,Auparavant
 days,Jours
 day,Jour
@@ -1234,6 +1235,7 @@ element_git_and_local_versions_are_the_same,Mêmes versions en local et sur le g
 reload_git_repo,Recharger le git
 install,Installer
 install_project,Installer le projet
+install_study,Installer le projet
 install_plugin,Installer le plugin
 install_data_cleaning_script,Installer le script de data cleaning
 install_dataset,Installer le set de données
@@ -1254,3 +1256,4 @@ error_loading_db_file,Erreur lors du chargement de la sauvegarder de la base de 
 error_restoring_db_old_table_after_import_failure,Erreur lors de la restauration d'une ancienne table après échec de l'import d'une base de données
 update_project_plugins_title,Mise à jour des plugins
 update_project_plugins_text,Mettre à jour les plugins inclus dans le projet ? Ceci va supprimer et remplacer les plugins locaux non à jour.
+occurrences,Occurrences

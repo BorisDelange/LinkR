@@ -1,5 +1,5 @@
 #' @noRd 
-mod_vocabularies_ui <- function(id, language, languages, i18n, code_hotkeys){
+mod_vocabularies_ui <- function(id, language, languages, i18n, code_hotkeys, dropdowns){
   ns <- NS(id)
   
   pivot_item_js <- paste0("
@@ -83,17 +83,7 @@ mod_vocabularies_ui <- function(id, language, languages, i18n, code_hotkeys){
                   ),
                   div(
                     shiny.fluent::Dropdown.shinyInput(ns("primary_concepts_dt_cols"), multiSelect = TRUE, label = i18n$t("columns"),
-                      options = list(
-                        list(key = 0, text = i18n$t("concept_id")),
-                        list(key = 1, text = i18n$t("concept_name")),
-                        list(key = 2, text = i18n$t("domain_id")),
-                        list(key = 3, text = i18n$t("concept_class_id")),
-                        list(key = 4, text = i18n$t("standard_concept")),
-                        list(key = 5, text = i18n$t("concept_code")),
-                        list(key = 6, text = i18n$t("valid_start_date")),
-                        list(key = 7, text = i18n$t("valid_end_date")),
-                        list(key = 8, text = i18n$t("invalid_reason"))
-                      ),
+                      options = dropdowns$concept,
                       value = c(0, 1, 2, 3)
                     ),
                     style = "width: 200px;"
@@ -347,15 +337,15 @@ mod_vocabularies_server <- function(id = character(), r = shiny::reactiveValues(
         col_names = col_names, searchable_cols = searchable_cols, factorize_cols = factorize_cols, filter = TRUE
       )
       
-      r$primary_concepts_dt_proxy <- DT::dataTableProxy("primary_concepts_dt", deferUntilFlush = FALSE)
+      r$vocabularies_primary_concepts_dt_proxy <- DT::dataTableProxy("primary_concepts_dt", deferUntilFlush = FALSE)
     })
     
     observeEvent(input$primary_concepts_dt_cols, {
       if (debug) cat(paste0("\n", now(), " - mod_vocabularies - observer input$primary_concepts_dt_cols"))
       
-      req(r$primary_concepts_dt_proxy)
+      req(r$vocabularies_primary_concepts_dt_proxy)
       
-      r$primary_concepts_dt_proxy %>%
+      r$vocabularies_primary_concepts_dt_proxy %>%
         DT::showCols(0:8) %>%
         DT::hideCols(setdiff(0:8, input$primary_concepts_dt_cols))
     })

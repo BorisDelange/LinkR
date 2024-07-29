@@ -233,12 +233,46 @@ linkr <- function(
     "widgets_concepts", "iiicccilicl", "public", c("id", "widget_id", "concept_id", "concept_name", "concept_display_name", "domain_id", "mapped_to_concept_id", "merge_mapped_concepts", "creator_id", "datetime", "deleted")
   )
   
+  # Dropdowns options
+  
+  dropdowns <- list()
+  
+  dropdowns$concept <- tibble::tribble(
+    ~key, ~text,
+    0, "concept_id",
+    1, "concept_name",
+    2, "domain_id",
+    3, "concept_class_id",
+    4, "standard_concept",
+    5, "concept_code",
+    6, "valid_start_date",
+    7, "valid_end_date",
+    8, "invalid_reason"
+  )
+  
+  dropdowns$concept_with_counts <- tibble::tribble(
+    ~key, ~text,
+    0, "concept_id",
+    1, "concept_name",
+    2, "concept_display_name",
+    3, "domain_id",
+    4, "vocabulary_id",
+    5, "concept_class_id",
+    6, "standard_concept",
+    7, "concept_code",
+    8, "valid_start_date",
+    9, "valid_end_date",
+    10, "invalid_reason",
+    11, "count_persons_rows",
+    12, "count_concepts_rows"
+  )
+  
   # Load UI & server
   
   if (debug) cat(paste0("\n", now(), " - linkr - load UI & server"))
   shinyApp(
-    ui = app_ui(pages, language, languages, i18n, users_accesses_toggles_options, db_col_types, debug),
-    server = app_server(pages, language, languages, i18n, app_folder, debug, log_file, local, users_accesses_toggles_options, db_col_types),
+    ui = app_ui(pages, language, languages, i18n, users_accesses_toggles_options, db_col_types, dropdowns, debug),
+    server = app_server(pages, language, languages, i18n, app_folder, debug, log_file, local, users_accesses_toggles_options, db_col_types, dropdowns),
     options = options
   )
 }

@@ -54,14 +54,14 @@ mod_page_sidenav_ui <- function(id = character(), i18n = character()){
   else if (id == "concepts") {
     div(
       id = ns("sidenav"),
-      class = "sidenav",
+      class = "sidenav", style = reduced_sidenav_style,
       div(
         id = ns("large_sidenav")
       ),
       div(
         id = ns("reduced_sidenav")
       ),
-      hide_sidenav
+      shinyjs::hidden(show_sidenav)
     ) -> result
   }
   
