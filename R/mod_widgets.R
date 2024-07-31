@@ -16,7 +16,7 @@ mod_widgets_ui <- function(id, language, languages, i18n){
   add_element_inputs <- tagList()
   
   if (id == "plugins") add_element_inputs <- div(
-    shiny.fluent::Dropdown.shinyInput(ns("plugin_creation_type"), label = i18n$t("data_type"),
+    shiny.fluent::Dropdown.shinyInput(ns("plugin_creation_type"), label = i18n$t("data_type"), multiSelect = TRUE,
       options = list(
         list(key = 1, text = i18n$t("patient_lvl_data")),
         list(key = 2, text = i18n$t("aggregated_data"))
@@ -357,6 +357,12 @@ mod_widgets_server <- function(id, r, d, m, language, i18n, all_divs, debug){
 
       if (name_already_used) shiny.fluent::updateTextField.shinyInput(session, "element_creation_name", errorMessage = i18n$t("name_already_used"))
       req(!name_already_used)
+      
+      # Check if plugin_creation_type is not empty
+      if (sql_table == "plugins"){
+        if (length(input$plugin_creation_type) == 0) shiny.fluent::updateDropdown.shinyInput(session, "plugin_creation_type", errorMessage = i18n$t("field_cant_be_empty"))
+        req(length(input$plugin_creation_type) > 0)
+      }
 
       # Add element in db
 
@@ -410,9 +416,13 @@ mod_widgets_server <- function(id, r, d, m, language, i18n, all_divs, debug){
         DBI::dbAppendTable(m$db, "code", new_subset_code)
       }
 
-      else if (sql_table == "plugins") new_data <- tibble::tibble(
-        id = element_id, name = element_name, tab_type_id = input$plugin_creation_type,
-        creation_datetime = now(), update_datetime = now(), deleted = FALSE)
+      else if (sql_table == "plugins"){
+        plugin_creation_type <- as.integer(paste(input$plugin_creation_type, collapse = ""))
+        new_data <- tibble::tibble(
+          id = element_id, name = element_name, tab_type_id = plugin_creation_type,
+          creation_datetime = now(), update_datetime = now(), deleted = FALSE
+        )
+      }
       
       else if (sql_table == "subsets") new_data <- tibble::tibble(
         id = element_id, name = element_name, description = NA_character_, study_id = m$selected_study,
@@ -539,6 +549,7 @@ mod_widgets_server <- function(id, r, d, m, language, i18n, all_divs, debug){
 
       # Reset fields
       shiny.fluent::updateTextField.shinyInput(session, "element_creation_name", value = "", errorMessage = NULL)
+      if (id == "plugins") shiny.fluent::updateDropdown.shinyInput(session, "plugin_creation_type", errorMessage = NULL, value = 1)
       
       # Update elements widgets
       shinyjs::runjs(paste0("Shiny.setInputValue('", id, "-reload_elements_var', Math.random());"))
@@ -878,8 +889,6 @@ mod_widgets_server <- function(id, r, d, m, language, i18n, all_divs, debug){
           }
           
           # Filter plugins to add
-          print(new_plugins)
-          print(more_recent_plugins)
           if (update_plugins) data$plugins <- data$plugins %>% dplyr::filter(id %in% new_plugins$id | id %in% more_recent_plugins$id)
           if (!update_plugins) data$plugins <- data$plugins %>% dplyr::filter(id %in% new_plugins$id)
           
@@ -1006,7 +1015,11 @@ mod_widgets_server <- function(id, r, d, m, language, i18n, all_divs, debug){
       )
       
       ## Tab type id
-      if (id == "plugins") shiny.fluent::updateDropdown.shinyInput(session, "tab_type_id", value = element_wide$tab_type_id)
+      if (id == "plugins"){
+        tab_type_id <- element_wide$tab_type_id
+        if(element_wide$tab_type_id %in% c(12, 21)) tab_type_id <- c(1, 2)
+        shiny.fluent::updateDropdown.shinyInput(session, "tab_type_id", value = tab_type_id)
+      }
       
       ## OMOP version
       if (id == "datasets") shiny.fluent::updateDropdown.shinyInput(
@@ -1126,7 +1139,9 @@ mod_widgets_server <- function(id, r, d, m, language, i18n, all_divs, debug){
       
       specific_row <- tagList()
       if (id == "plugins"){
-        if(element_wide$tab_type_id == 1) tab_type <- i18n$t("patient_lvl_data") else tab_type <- i18n$t("aggregated_data")
+        if(element_wide$tab_type_id == 1) tab_type <- i18n$t("patient_lvl_data")
+        else if (element_wide$tab_type_id == 1) tab_type <- i18n$t("aggregated_data")
+        else if (element_wide$tab_type_id %in% c(12, 21)) tab_type <- i18n$t("patient_lvl_or_aggregated_data")
         specific_row <- tags$tr(tags$td(strong(i18n$t("plugin_for"))), tags$td(tab_type))
       }
       else if (id == "datasets") specific_row <- tags$tr(
@@ -1266,6 +1281,26 @@ mod_widgets_server <- function(id, r, d, m, language, i18n, all_divs, debug){
     observeEvent(input$save_summary, {
       if (debug) cat(paste0("\n", now(), " - mod_widgets - (", id, ") - observer input$save_summary"))
       
+      name_field <- paste0("name_", language)
+      element_name <- input[[name_field]]
+      
+      # Check if name is not empty
+      empty_name <- TRUE
+      if (length(element_name) > 0) if (!is.na(element_name) & element_name != "") empty_name <- FALSE
+      if (empty_name) shiny.fluent::updateTextField.shinyInput(session, name_field, errorMessage = i18n$t("provide_valid_name"))
+      req(!empty_name)
+      
+      # Check if name is not already used
+      sql <- glue::glue_sql("SELECT name FROM {sql_table} WHERE LOWER(name) = {tolower(element_name)} AND id != {input$selected_element}", .con = con)
+      name_already_used <- nrow(DBI::dbGetQuery(con, sql) > 0)
+      
+      if (name_already_used) shiny.fluent::updateTextField.shinyInput(session, name_field, errorMessage = i18n$t("name_already_used"))
+      req(!name_already_used)
+      
+      # Check if tab_type_id is not empty
+      if (length(input$tab_type_id) == 0) shiny.fluent::updateDropdown.shinyInput(session, "tab_type_id", errorMessage = i18n$t("field_cant_be_empty"))
+      req(length(input$tab_type_id) > 0)
+      
       # Change update datetime
       sql <- glue::glue_sql("UPDATE {sql_table} SET update_datetime = {now()} WHERE id = {input$selected_element}", .con = r$db)
       sql_send_statement(r$db, sql)
@@ -1333,7 +1368,8 @@ mod_widgets_server <- function(id, r, d, m, language, i18n, all_divs, debug){
       
       # Update tab_type_id
       if (id == "plugins"){
-        sql <- glue::glue_sql("UPDATE {`sql_table`} SET tab_type_id = {input$tab_type_id} WHERE id = {input$selected_element}", .con = r$db)
+        tab_type_id <- as.integer(paste(input$tab_type_id, collapse = ""))
+        sql <- glue::glue_sql("UPDATE {`sql_table`} SET tab_type_id = {tab_type_id} WHERE id = {input$selected_element}", .con = r$db)
         sql_send_statement(r$db, sql)
       }
       

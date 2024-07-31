@@ -318,6 +318,8 @@ patient_lvl_plugin,Plugin de données individuelles
 patient_lvl_plugins,Plugins de données individuelles
 aggregated_plugin,Plugin de données agrégées
 aggregated_plugins,Plugins de données agrégées
+patient_lvl_or_aggregated_plugin,Plugin de données individuelles ou agrégées
+patient_lvl_or_aggregated_plugins,Plugins de données individuelles ou agrégées
 all_plugins_card,Accéder au catalogue des plugins
 all_scripts_card,Tous les scripts
 all_datasets_card,Accéder à l'onglet 'Tous les sets'
@@ -1257,3 +1259,4 @@ error_restoring_db_old_table_after_import_failure,Erreur lors de la restauration
 update_project_plugins_title,Mise à jour des plugins
 update_project_plugins_text,Mettre à jour les plugins inclus dans le projet ? Ceci va supprimer et remplacer les plugins locaux non à jour.
 occurrences,Occurrences
+field_cant_be_empty,Ce champ ne doit pas être vide

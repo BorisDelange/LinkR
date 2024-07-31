@@ -74,7 +74,7 @@ reload_elements_var <- function(page_id, con, r, m, long_var_filtered){
   
   if (page_id == "data"){
     if (r$data_page == "patient_lvl") tab_type_id <- 1 else tab_type_id <- 2
-    r[[long_var_filtered]] <- r[[long_var]] %>% dplyr::filter(tab_type_id == !!tab_type_id)
+    r[[long_var_filtered]] <- r[[long_var]] %>% dplyr::filter(grepl(!!tab_type_id, tab_type_id))
   }
   else r[[long_var_filtered]] <- r[[long_var]]
   
@@ -204,9 +204,17 @@ get_plugin_buttons <- function(plugin_type, i18n){
     plugin_type_icon <- div(shiny.fluent::FontIcon(iconName = "Contact"), class = "small_icon_button")
     plugin_type_text <- i18n$t("patient_lvl_plugin")
   }
-  else {
+  else if (plugin_type == 2) {
     plugin_type_icon <- div(shiny.fluent::FontIcon(iconName = "Group"), class = "small_icon_button")
     plugin_type_text <- i18n$t("aggregated_plugin")
+  }
+  else if (plugin_type %in% c(12, 21)){
+    plugin_type_icon <- div(
+      div(shiny.fluent::FontIcon(iconName = "Contact"), class = "small_icon_button"),
+      div(shiny.fluent::FontIcon(iconName = "Group"), class = "small_icon_button"),
+      style = "display: flex; gap: 5px;"
+    )
+    plugin_type_text <- i18n$t("patient_lvl_or_aggregated_plugin")
   }
   
   plugin_type_icon <- create_hover_card(ui = plugin_type_icon, text = plugin_type_text)

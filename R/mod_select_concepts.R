@@ -50,7 +50,7 @@ mod_select_concepts_ui <- function(id, language, languages, i18n){
                 ),
                 DT::DTOutput(ns("vocabulary_concepts")),
                 class = "widget",
-                style = "height: auto; padding: 10px"
+                style = "height: auto; padding: 10px;"
               ),
               div(
                 div(

@@ -35,7 +35,7 @@ mod_concepts_ui <- function(id, language, languages, i18n, dropdowns){
             plotOutput(ns("primary_concept_plot")),
             style = "width: 50%;"
           ),
-          class = "widget", style = "height: 50%; display: flex; padding: 15px;"
+          class = "widget", style = "height: 50%; display: flex; overflow: auto; padding: 15px 10px 5px 10px;"
         ),
         div(
           class = "widget", style = "height: 50%;"
@@ -43,6 +43,25 @@ mod_concepts_ui <- function(id, language, languages, i18n, dropdowns){
         class = "concepts_right"
       ),
       class = "concepts_container",
+    ),
+    
+    # Settings modal ----
+    shinyjs::hidden(
+      div(
+        id = ns("settings_modal"),
+        div(
+          div(
+            tags$h1(i18n$t("settings")),
+            shiny.fluent::IconButton.shinyInput(ns("close_settings_modal"), iconProps = list(iconName = "ChromeClose")),
+            class = "concepts_settings_modal_head small_close_button"
+          ),
+          div(
+            class = "concepts_settings_modal_body",
+          ),
+          class = "concepts_settings_modal_content"
+        ),
+        class = "concepts_settings_modal"
+      )
     )
   )
 }
@@ -53,6 +72,13 @@ mod_concepts_server <- function(id, r, d, m, language, i18n, debug){
     ns <- session$ns
     
     if (debug) cat(paste0("\n", now(), " - mod_concepts - start"))
+    
+    # Page settings ----
+    
+    observeEvent(input$settings, {
+      if (debug) cat(paste0("\n", now(), " - mod_concepts - ", id, " - observer input$settings"))
+      
+    })
     
     # Reload vocabulary dropdown ----
     observeEvent(r$dataset_vocabularies, {
@@ -170,13 +196,15 @@ mod_concepts_server <- function(id, r, d, m, language, i18n, debug){
         data <-
           d$measurement %>%
           dplyr::select(measurement_concept_id, value_as_number) %>%
-          dplyr::filter(measurement_concept_id == concept_id) %>%
+          dplyr::filter(measurement_concept_id == concept_id, !is.na(value_as_number)) %>%
           dplyr::collect()
+        
+        # binwidth <- (max(data$value_as_number) - min(data$value_as_number)) / (1 + log2(nrow(data)))
         
         plot <- 
           data %>%
           ggplot2::ggplot(ggplot2::aes(x = value_as_number)) +
-          ggplot2::geom_histogram(color = "white", fill = "#0084D8", bins = 50) +
+          ggplot2::geom_histogram(color = "white", fill = "#0084D8", bins = 30) +
           ggplot2::theme_minimal() +
           ggplot2::labs(x = i18n$t("value"), y = i18n$t("occurrences"))
       }

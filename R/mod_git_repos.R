@@ -422,7 +422,7 @@ mod_git_repos_server <- function(id, r, d, m, language, i18n, debug){
       
       # Selected from DT
       observeEvent(input$show_content_list, {
-        if (debug) cat(paste0("\n", now(), " - mog_git_repos - observer input$show_content_list"))
+        if (debug) cat(paste0("\n", now(), " - mod_git_repos - observer input$show_content_list"))
         
         r$git_repo <- r$list_git_repo
         shinyjs::runjs(paste0("Shiny.setInputValue('", id, "-show_content_trigger', Math.random());"))
@@ -430,7 +430,7 @@ mod_git_repos_server <- function(id, r, d, m, language, i18n, debug){
       
       # Selected from the map
       observeEvent(input$show_content_map, {
-        if (debug) cat(paste0("\n", now(), " - mog_git_repos - observer input$show_content_map"))
+        if (debug) cat(paste0("\n", now(), " - mod_git_repos - observer input$show_content_map"))
         
         r$git_repo <- r$map_git_repo
         shinyjs::runjs(paste0("Shiny.setInputValue('", id, "-show_content_trigger', Math.random());"))
@@ -438,12 +438,12 @@ mod_git_repos_server <- function(id, r, d, m, language, i18n, debug){
       
       # Sidenav reload git button
       observeEvent(input$reload_git_repo, {
-        if (debug) cat(paste0("\n", now(), " - mog_git_repos - observer input$reload_git_repo"))
+        if (debug) cat(paste0("\n", now(), " - mod_git_repos - observer input$reload_git_repo"))
         shinyjs::runjs(paste0("Shiny.setInputValue('", id, "-show_content_trigger', Math.random());"))
       })
       
       observeEvent(input$show_content_trigger, {
-        if (debug) cat(paste0("\n", now(), " - mog_git_repos - observer input$show_content_trigger"))
+        if (debug) cat(paste0("\n", now(), " - mod_git_repos - observer input$show_content_trigger"))
         
         sapply(c("one_repo_reduced_sidenav", "one_git_repo"), shinyjs::show)
         sapply(c("all_repos_reduced_sidenav", "all_git_repos"), shinyjs::hide)
@@ -564,9 +564,8 @@ mod_git_repos_server <- function(id, r, d, m, language, i18n, debug){
             if (paste0("name_", language) %in% colnames(row)) element_name <- row[[paste0("name_", language)]]
             else element_name <- row$name_en
             
-            print(row)
             users_ui <- create_authors_ui(row$author)
-  
+            
             max_length <- 45
             if (nchar(element_name) > max_length) element_name <- paste0(substr(element_name, 1, max_length - 3), "...")
               

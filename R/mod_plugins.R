@@ -92,15 +92,15 @@ mod_plugins_ui <- function(id, language, languages, i18n){
                   }),
                   div(
                     shiny.fluent::Dropdown.shinyInput(
-                      ns("tab_type_id"), label = i18n$t("plugin_for"),
+                      ns("tab_type_id"), label = i18n$t("plugin_for"), multiSelect = TRUE,
                       options = list(
                         list(key = 1, text = i18n$t("patient_lvl_data")),
                         list(key = 2, text = i18n$t("aggregated_data"))
                       )
                     ),
-                    style = "width: 200px;"
+                    style = "width: 300px;"
                   ),
-                  div(shiny.fluent::TextField.shinyInput(ns("author"), label = i18n$t("authors")), style = "width: 200px;"),
+                  div(shiny.fluent::TextField.shinyInput(ns("author"), label = i18n$t("authors")), style = "width: 400px;"),
                   lapply(1:nrow(languages), function(i) {
                     row <- languages[i, ]
                     result <- div(

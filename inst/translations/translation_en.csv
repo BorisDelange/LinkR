@@ -316,6 +316,8 @@ patient_lvl_plugin,Patient-level data plugin
 patient_lvl_plugins,Patient-level data plugins
 aggregated_plugin,Aggregated data plugin
 aggregated_plugins,Aggregated data plugins
+patient_lvl_or_aggregated_plugin,Patient-level or aggregated data plugin
+patient_lvl_or_aggregated_plugins,Patient-level or aggregated data plugins
 all_plugins_card,Access to plugins catalog
 all_scripts_card,All scripts
 all_datasets_card,All datasets
@@ -1253,3 +1255,4 @@ error_restoring_db_old_table_after_import_failure,Error restoring old table afte
 update_project_plugins_title,Update project plugins
 update_project_plugins_text,Update plugins included in the project? This will erase old versions of local plugins which are not up to date.
 occurrences,Occurrences
+field_cant_be_empty,This field cannot be empty

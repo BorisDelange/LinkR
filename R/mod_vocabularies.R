@@ -334,7 +334,8 @@ mod_vocabularies_server <- function(id = character(), r = shiny::reactiveValues(
       render_datatable(
         output = output, ns = ns, i18n = i18n, data = data, hidden_cols = hidden_cols, editable_cols = editable_cols,
         output_name = "primary_concepts_dt", datatable_dom = "<'top't><'bottom'p>", sortable_cols = sortable_cols,
-        col_names = col_names, searchable_cols = searchable_cols, factorize_cols = factorize_cols, filter = TRUE
+        col_names = col_names, searchable_cols = searchable_cols, factorize_cols = factorize_cols, filter = TRUE,
+        column_widths = c("table_name" = "100px", "n_rows" = "100px")
       )
       
       r$vocabularies_primary_concepts_dt_proxy <- DT::dataTableProxy("primary_concepts_dt", deferUntilFlush = FALSE)
@@ -379,15 +380,17 @@ mod_vocabularies_server <- function(id = character(), r = shiny::reactiveValues(
     observeEvent(input$close_import_concepts_modal, {
       if (debug) cat(paste0("\n", now(), " - mod_vocabularies - observer input$close_import_concepts_modal"))
       
-      shinyjs::hide("import_concepts_modal")
-      
       # Reset fields
       render_datatable(
         output = output, ns = ns, i18n = i18n, data = tibble::tibble(table_name = character(), n_rows = character(), message = character()),
-        output_name = "inserted_concepts_dt", datatable_dom = "<'top't><'bottom'p>", col_names = c(i18n$t("table_name"), i18n$t("rows_inserted"), i18n$t("message"))
+        output_name = "inserted_concepts_dt", datatable_dom = "<'top't><'bottom'p>", col_names = c(i18n$t("table_name"), i18n$t("rows_inserted"), i18n$t("message")),
+        column_widths = c("table_name" = "100px", "n_rows" = "100px")
       )
+      shinyjs::hide("inserted_concepts_dt")
       
       output$selected_files <- renderUI(div())
+      
+      shinyjs::hide("import_concepts_modal")
     })
     
     # Show file browser input
@@ -436,7 +439,8 @@ mod_vocabularies_server <- function(id = character(), r = shiny::reactiveValues(
       render_datatable(
         output = output, ns = ns, i18n = i18n, data = tibble::tibble(table_name = character(), n_rows = integer(), message = character()),
         output_name = "inserted_concepts_dt", datatable_dom = "<'top't><'bottom'p>",
-        sortable_cols = c("table_name", "n_rows", "message"), col_names = c(i18n$t("table_name"), i18n$t("rows_inserted"), i18n$t("message"))
+        sortable_cols = c("table_name", "n_rows", "message"), col_names = c(i18n$t("table_name"), i18n$t("rows_inserted"), i18n$t("message")),
+        column_widths = c("table_name" = "100px", "n_rows" = "100px")
       )
     })
     
@@ -462,7 +466,7 @@ mod_vocabularies_server <- function(id = character(), r = shiny::reactiveValues(
       
       # Change button, from import to close
       shinyjs::hide("import_files_div")
-      shinyjs::show("close_import_concepts_modal_2_div")
+      sapply(c("close_import_concepts_modal_2_div", "inserted_concepts_dt"), shinyjs::show)
       
       # Add new vocabularies ?
       add_vocabulary <- input$import_new_vocabularies
@@ -518,7 +522,8 @@ mod_vocabularies_server <- function(id = character(), r = shiny::reactiveValues(
       # Show inserted data
       render_datatable(
         output = output, ns = ns, i18n = i18n, data = inserted_data, output_name = "inserted_concepts_dt", datatable_dom = "<'top't><'bottom'p>",
-        sortable_cols = c("table_name", "n_rows", "message"), col_names = c(i18n$t("table_name"), i18n$t("rows_inserted"), i18n$t("message"))
+        sortable_cols = c("table_name", "n_rows", "message"), col_names = c(i18n$t("table_name"), i18n$t("rows_inserted"), i18n$t("message")),
+        column_widths = c("table_name" = "100px", "n_rows" = "100px")
       )
       
       # Reload widgets

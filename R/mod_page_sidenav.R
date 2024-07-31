@@ -59,7 +59,10 @@ mod_page_sidenav_ui <- function(id = character(), i18n = character()){
         id = ns("large_sidenav")
       ),
       div(
-        id = ns("reduced_sidenav")
+        id = ns("reduced_sidenav"),
+        create_hover_card(ui = shiny.fluent::IconButton.shinyInput(ns("settings"), iconProps = list(iconName = "Settings")), text = i18n$t("settings")),
+        create_hover_card(ui = shiny.fluent::IconButton.shinyInput(ns("reload_concepts_count"), iconProps = list(iconName = "SyncOccurence")), text = i18n$t("reload_dataset_concepts")),
+        class = "reduced_sidenav_buttons"
       ),
       shinyjs::hidden(show_sidenav)
     ) -> result

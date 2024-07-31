@@ -285,9 +285,6 @@ mod_data_server <- function(id, r, d, m, language, i18n, debug){
       sapply(r$data_grids, shinyjs::hide)
       shinyjs::show(paste0("gridstack_", r[[paste0(displayed_category, "_selected_tab")]]))
       
-      # Reload plugin dropdown
-      r$data_reload_plugins_dropdown <- now()
-      
       # Show / hide "no tabs to display" message
       sapply(categories, function(category) shinyjs::hide(paste0(category, "_no_tabs_to_display")))
       if (r[[paste0(r$data_page, "_no_tabs_to_display")]] & length(m$selected_study) > 0) shinyjs::show(paste0(r$data_page, "_no_tabs_to_display"))
@@ -375,9 +372,6 @@ mod_data_server <- function(id, r, d, m, language, i18n, debug){
         
         # Load tabs
         r$data_reload_tabs <- paste0("ui_first_load_", now())
-
-        # Reload plugins dropdown
-        r$data_reload_plugins_dropdown <- now()
 
         # Load data
         sql <- glue::glue_sql("SELECT dataset_id FROM studies WHERE id = {m$selected_study}", .con = r$db)
@@ -699,8 +693,8 @@ mod_data_server <- function(id, r, d, m, language, i18n, debug){
           
           visit_detail <- d$visit_detail %>% dplyr::mutate_at("person_id", as.integer) %>% dplyr::filter(person_id == !!person_id)
           
-          if (m$omop_version %in% c("5.4", "6.0")) visit_detail <- visit_detail %>% dplyr::filter(is.na(parent_visit_detail_id))
-          else visit_detail <- visit_detail %>% dplyr::filter(is.na(visit_detail_parent_id))
+          if ("parent_visit_detail_id" %in% colnames(visit_detail)) visit_detail <- visit_detail %>% dplyr::filter(is.na(parent_visit_detail_id))
+          else if ("visit_detail_parent_id" %in% colnames(visit_detail)) visit_detail <- visit_detail %>% dplyr::filter(is.na(visit_detail_parent_id))
           
           visit_detail <- visit_detail %>% 
             dplyr::collect() %>% 
@@ -812,28 +806,6 @@ mod_data_server <- function(id, r, d, m, language, i18n, debug){
           for(table in visit_detail_tables) if (d$data_person[[table]] %>% dplyr::count() %>% dplyr::pull() > 0) d$data_visit_detail[[table]] <- 
               d$data_person[[table]] %>% dplyr::filter(visit_detail_id == selected_visit_detail)
         }
-      })
-      
-      # --- --- --- --- -- -
-      # Other dropdowns ----
-      # --- --- --- --- -- -
-      
-      # Reload plugins dropdown
-      
-      observeEvent(r$plugins_wide, {
-        if (debug) cat(paste0("\n", now(), " - mod_data - observer r$plugins_wide"))
-        r$data_reload_plugins_dropdown <- now()
-      })
-      
-      observeEvent(r$data_reload_plugins_dropdown, {
-        if (debug) cat(paste0("\n", now(), " - mod_data - observer r$..reload_plugins_dropdown"))
-        
-        if (r$data_page == "patient_lvl") tab_type_id <- 1 else tab_type_id <- 2
-        
-        plugins <- r$plugins_wide %>% dplyr::filter(tab_type_id == !!tab_type_id)
-        
-        options <- convert_tibble_to_list(data = plugins %>% dplyr::arrange(name), key_col = "id", text_col = "name", i18n = i18n)
-        shiny.fluent::updateComboBox.shinyInput(session, "widget_creation_plugin", options = options, value = NULL)
       })
       
       # |-------------------------------- -----
@@ -1502,6 +1474,7 @@ mod_data_server <- function(id, r, d, m, language, i18n, debug){
       
       if (input$search_plugin == "") r$filtered_data_plugins_long <- r$plugins_long
       else {
+        
         # Filter on name or description
         
         filtered_ids <- r$plugins_long %>% 
