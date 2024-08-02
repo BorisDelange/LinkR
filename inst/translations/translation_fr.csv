@@ -346,6 +346,7 @@ only_me,Accès uniquement à son log
 available_scripts,Scripts disponibles
 selected_scripts,Scripts choisis
 provide_valid_name,Nom valide requis
+provide_valid_value,Valeur valide requise
 provide_valid_repo_url_address,Please provide a valid URL address
 provide_valid_raw_files_url_address,Please provide a valid URL address
 provide_valid_study_name,Nom valide requis
@@ -941,7 +942,7 @@ repo_url_address,Adresse URL du dépôt git
 raw_files_url_address,Adresse URL des fichiers raw
 git_repos_delete,Suppression de dépôt git
 git_repos_delete_subtext,Confirmer la suppression du dépôt git ?
-git_repo_deleted,Dépôt(s) git supprimé(s)
+git_repo_deleted,Dépôt git supprimé
 all_categories,Toutes les catégories
 show_data,Afficher les données
 hide_concepts_datatables,Masquer les tableaux
@@ -1027,10 +1028,10 @@ show_all_relationships,Afficher toutes les associations
 no_tabs_to_display_click_add_tab,Ce projet ne contient pas d'onglets. Cliquez sur 'ajouter un onglet'.
 studies_dataset,Set de données
 files,Fichiers
-readme,README
-generate_content,Générer le contenu
-error_update_readme,Erreur lors de la modification du README
-error_generate_readme,Erreur lors de la génération du README
+readme,Readme
+generate_readme,Générer le contenu du readme
+error_update_readme,Erreur lors de la modification du readme
+error_generate_readme,Erreur lors de la génération du readme
 add_all_vocabularies,Ajouter toutes les terminologies retrouvées dans les fichiers
 data_cleaning,Data cleaning
 data_cleaning_scripts,Scripts de data cleaning
@@ -1066,8 +1067,6 @@ delete_plugin_text,Confirmer la suppression de ce plugin ?
 delete_plugin,Supprimer le plugin
 delete_vocabulary_title,Supprimer une terminologie
 delete_vocabulary_text,Confirmer la suppression de cette terminologie ?
-delete_git_repo_title,Supprimer un dépôt git
-delete_git_repo_text,Confirmer la suppression de ce dépôt git ?
 configure,Configurer
 develop,Développer
 discover,Découvrir
@@ -1155,8 +1154,8 @@ confirm,Valider
 select_a_plugin,Sélectionner un plugin
 show_content,Afficher le contenu
 no_internet_access,Pas d'accès à internet
-show_git_repos_list,Afficher la liste
-show_git_repos_map,Afficher la carte
+show_git_repos_list,Afficher la liste (dépôts git sauvegardés localement)
+show_git_repos_map,Afficher la carte (catalogue de dépôts git)
 no_elements_to_display,Pas d'élément à afficher
 concept_table,Concepts
 concept_relationship_table,Alignements de concepts
@@ -1213,6 +1212,8 @@ delete_git_element_subset_title,Supprimer un élément du git
 delete_git_element_subset_text,Supprimer ce subset sur le git ?
 update_git_element_vocabulary_title,Mise à jour d'un élément du git
 update_git_element_vocabulary_text,Mettre à jour cette terminologie sur le git ? Ceci va supprimer et remplacer l'ancienne terminologie sur le dépôt git distant.
+delete_git_repo_title,Supprimer un dépôt git
+delete_git_repo_text,Supprimer ce dépôt git ? "Ceci supprime le lien local vers ce dépôt git, il pourra toujours être de nouveau ajouté plus tard."
 delete_git_element_vocabulary_title,Supprimer un élément du git
 delete_git_element_vocabulary_text,Supprimer cette terminologie sur le git ?
 dont_update,Ne pas mettre à jour
@@ -1247,8 +1248,11 @@ error_transforming_cols,Erreur lors de la transformation des colonnes
 give_access_to,Donner l'accès à
 plugin_for,Plugin pour
 edit_description,Modifier la description
+edit_readme,Modifier le readme
 save_description,Sauvegarder les modifications
+save_readme,Sauvegarder les modifications
 cancel_description_updates,Annuler les modifications
+cancel_readme_updates,Annuler les modifications
 backups,Sauvegardes
 save_settings,Sauvegarder les paramètres
 unselect_all_tables,Désélectionner toutes les tables
@@ -1260,3 +1264,5 @@ update_project_plugins_title,Mise à jour des plugins
 update_project_plugins_text,Mettre à jour les plugins inclus dans le projet ? Ceci va supprimer et remplacer les plugins locaux non à jour.
 occurrences,Occurrences
 field_cant_be_empty,Ce champ ne doit pas être vide
+git_repo_url_address_already_used,Il y a déjà un dépôt git enregistré avec cette URL
+push_git_readme_title,Mettre à jour le readme

@@ -216,7 +216,8 @@ a.no-hover-effect:hover {
 /* --------------- */
 
 .delete_modal, .create_element_modal, .import_modal, .load_status_modal, .select_concepts_modal, .select_a_plugin_modal,
-.import_concepts_modal, .update_or_delete_git_element_modal, .reload_dataset_concepts_modal {
+.import_concepts_modal, .update_or_delete_git_element_modal, .reload_dataset_concepts_modal, .create_git_repo_modal,
+.push_git_readme_modal {
   display: flex;
   align-items: center;
   justify-content: center;
@@ -226,12 +227,13 @@ a.no-hover-effect:hover {
   width: 100%;
   height: 100%;
   background-color: rgba(0,0,0,0.2);
-  z-index: 500;
+  z-index: 1000;
 }
 
 .delete_modal_content, .create_tab_modal_content, .import_modal_content, .create_widget_modal_content, .load_status_modal_content, .create_plugin_modal_content, .create_project_modal_content, .create_dataset_modal_content, .create_subset_modal_content,
 .create_vocabulary_modal_content, .create_data_cleaning_modal_content, .select_concepts_modal_content, .select_a_plugin_modal_content,
-.import_concepts_modal_content, .update_or_delete_git_element_modal_content, .reload_dataset_concepts_modal_content {
+.import_concepts_modal_content, .update_or_delete_git_element_modal_content, .reload_dataset_concepts_modal_content,
+.create_git_repo_modal_content, .push_git_readme_modal_content {
   background: #fff;
   padding: 5px 10px 10px 15px;
   position: relative;
@@ -247,8 +249,13 @@ a.no-hover-effect:hover {
   height: 250px;
 }
 
+.push_git_readme_modal_content {
+  width: 600px;
+  height: 200px;
+}
+
 .delete_modal_content h1, .create_element_modal h1, .import_modal_content h1, .load_status_modal h1, .select_concepts_modal h1, .select_a_plugin_modal h1, .import_concepts_modal_content h1, .update_or_delete_git_element_modal_content h1,
-.reload_dataset_concepts_modal_content h1 {
+.reload_dataset_concepts_modal_content h1, .create_git_repo_modal h1, .push_git_readme_modal_content h1 {
   font-size: 14px;
 }
 
@@ -258,7 +265,8 @@ a.no-hover-effect:hover {
 
 .delete_modal_buttons, .import_modal_buttons, .create_element_modal_buttons, .select_concepts_modal_buttons, .import_concepts_modal_buttons,
 .datasets_share_buttons, .update_or_delete_git_element_modal_buttons, .reload_dataset_concepts_modal_buttons, .git_element_details_git_buttons,
-.export_db_buttons, .import_db_buttons, .data_cleaning_share_buttons, .projects_share_buttons {
+.export_db_buttons, .import_db_buttons, .data_cleaning_share_buttons, .projects_share_buttons, .create_git_repo_modal_buttons,
+.git_repo_infos_modal_buttons, .push_git_readme_modal_buttons {
   position: absolute;
   right: 8px;
   bottom: 8px;
@@ -268,6 +276,11 @@ a.no-hover-effect:hover {
 
 .create_tab_modal_content {
   width: 400px;
+  padding-bottom: 30px;
+}
+
+.create_git_repo_modal_content {
+  width: 600px;
   padding-bottom: 30px;
 }
 
@@ -291,7 +304,7 @@ a.no-hover-effect:hover {
   padding-bottom: 50px;
 }
 
-.create_element_modal_head, .select_concepts_modal_head, .select_a_plugin_modal_head, .import_concepts_modal_head {
+.create_element_modal_head, .select_concepts_modal_head, .select_a_plugin_modal_head, .import_concepts_modal_head, .create_git_repo_modal_head {
   display: flex;
   justify-content: space-between;
 }
@@ -849,6 +862,33 @@ td[data-type="factor"] input {
   padding: 5px;
 }
 
+.markdown h1 {
+  font-size: 15px;
+}
+
+.markdown h2 {
+  font-size: 14px;
+}
+
+.markdown h3, .markdown h4, .markdown h5, .markdown h6 {
+  font-size: 13px;
+}
+
+.markdown {
+  font-size: 12px;
+}
+
+.markdown i {
+  font-size: 12px;
+}
+
+.markdown details h1 {
+  font-size: 13px;
+}
+
+.markdown details h2, .markdown details h3, .markdown details h4, .markdown details h5, .markdown details h6 {
+  font-size: 12px;
+}
 
 /* ------------------- */
 /* OTHER INPUTS        */
@@ -1018,16 +1058,19 @@ td[data-type="factor"] input {
   height: calc(100% - 40px);
 }
 
-.git_repos_summary_left, .git_element_details_left {
+.git_element_details_left {
   display: flex;
   flex-direction: column;
   width: 50%;
   height: calc(100% - 5px);
 }
 
-.git_repos_summary_right, .git_element_details_right {
+.git_element_details_right {
   width: 50%;
-  calc(100% - 16px)
+}
+
+.git_repos_summary {
+  width: 100%;
 }
 
 /* ---------------------- */

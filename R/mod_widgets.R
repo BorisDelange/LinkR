@@ -1274,6 +1274,10 @@ mod_widgets_server <- function(id, r, d, m, language, i18n, all_divs, debug){
       element_long <- r[[long_var]] %>% dplyr::filter(id == input$selected_element) 
       description_code <- element_long %>% dplyr::filter(name == paste0("description_", input$language)) %>% dplyr::pull(value)
       shinyAce::updateAceEditor(session, "description_code", value = description_code)
+      
+      # Reload markdown UI
+      output_file <- create_rmarkdown_file(r, description_code, interpret_code = FALSE)
+      output$description_ui <- renderUI(div(class = "markdown", withMathJax(includeMarkdown(output_file))))
     })
     
     ## Save summary updates ----
@@ -1298,8 +1302,10 @@ mod_widgets_server <- function(id, r, d, m, language, i18n, all_divs, debug){
       req(!name_already_used)
       
       # Check if tab_type_id is not empty
-      if (length(input$tab_type_id) == 0) shiny.fluent::updateDropdown.shinyInput(session, "tab_type_id", errorMessage = i18n$t("field_cant_be_empty"))
-      req(length(input$tab_type_id) > 0)
+      if (id == "plugins"){
+        if (length(input$tab_type_id) == 0) shiny.fluent::updateDropdown.shinyInput(session, "tab_type_id", errorMessage = i18n$t("field_cant_be_empty"))
+        req(length(input$tab_type_id) > 0)
+      }
       
       # Change update datetime
       sql <- glue::glue_sql("UPDATE {sql_table} SET update_datetime = {now()} WHERE id = {input$selected_element}", .con = r$db)
@@ -1826,7 +1832,8 @@ mod_widgets_server <- function(id, r, d, m, language, i18n, all_divs, debug){
       if (length(r$loaded_git_repos_objects[[git_repo$unique_id]]) > 0){
         tryCatch({
           repo <- r$loaded_git_repos_objects[[git_repo$unique_id]]
-          git2r::config(repo, user.name = "username", user.email = "email@email.com")
+          username <- r$users %>% dplyr::filter(id == r$user_id) %>% dplyr::pull(name)
+          git2r::config(repo, user.name = username)
           git2r::add(repo, ".")
 
           if (length(git2r::status(repo, unstaged = FALSE, untracked = FALSE, ignored = FALSE)$staged) > 0){

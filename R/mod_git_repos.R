@@ -15,6 +15,8 @@ mod_git_repos_ui <- function(id = character(), language = "en", languages = tibb
     div(
       id = ns("all_git_repos"),
       div(
+        
+        ## Map or list
         div(
           id = ns("explore_map_and_ui_div"),
           leaflet::leafletOutput(ns("explore_map"), height = "100%"),
@@ -27,19 +29,118 @@ mod_git_repos_ui <- function(id = character(), language = "en", languages = tibb
           ),
           class = "map_widget", style = "height: 80%;"
         ),
+        
+        ## Selected git infos
         div(
           id = ns("git_infos_div"),
-          uiOutput(ns("map_git_infos")),
-          uiOutput(ns("list_git_infos")),
-          class = "widget", style = "height: 20%;"
+          div(
+            id = ns("map_git_infos_div"),
+            uiOutput(ns("map_git_infos_title")),
+            uiOutput(ns("map_git_infos_content"))
+          ),
+          shinyjs::hidden(
+            div(
+              id = ns("list_git_infos_div"),
+              div(
+                uiOutput(ns("list_git_infos_title")),
+                div(
+                  shinyjs::hidden(
+                    div(
+                      id = ns("list_git_infos_buttons"),
+                      create_hover_card(ui = shiny.fluent::IconButton.shinyInput(ns("delete_git_repo"), iconProps = list(iconName = "Delete")), text = i18n$t("delete")),
+                      div(
+                        id = ns("edit_git_repo_button"),
+                        create_hover_card(ui = shiny.fluent::IconButton.shinyInput(ns("edit_git_repo"), iconProps = list(iconName = "Edit")), text = i18n$t("edit"))
+                      ),
+                      shinyjs::hidden(
+                        div(
+                          id = ns("save_git_repo_edition_button"),
+                          create_hover_card(ui = shiny.fluent::IconButton.shinyInput(ns("save_git_repo_edition"), iconProps = list(iconName = "Accept")), text = i18n$t("save")),
+                        )
+                      ),
+                      style = "display: flex; margin-top: 5px;",
+                      class = "small_icon_button"
+                    )
+                  )
+                ),
+                style = "display: flex; justify-content: space-between;"
+              ),
+              uiOutput(ns("list_git_infos_content")),
+              shinyjs::hidden(
+                div(
+                  id = ns("edit_git_repo_div"),
+                  div(shiny.fluent::TextField.shinyInput(ns("git_repo_name"), label = i18n$t("name")), style = "width: 200px;"),
+                  div(shiny.fluent::TextField.shinyInput(ns("git_repo_url_address"), label = i18n$t("url_address")), style = "width: 400px;"),
+                  div(shiny.fluent::TextField.shinyInput(ns("git_repo_raw_files_url_address"), label = i18n$t("repo_url_address")), style = "width: 400px;")
+                )
+              )
+            )
+          ),
+          class = "widget", style = "height: 300px;"
+        ),
+        
+        # Readme ace editor
+        shinyjs::hidden(
+          div(
+            id = ns("edit_readme_div"),
+            div(
+              h1(i18n$t("edit_readme")),
+              div(
+                create_hover_card(ui = shiny.fluent::IconButton.shinyInput(ns("generate_readme"), iconProps = list(iconName = "Generate")), text = i18n$t("generate_readme")),
+                create_hover_card(ui = shiny.fluent::IconButton.shinyInput(ns("run_readme_code"), iconProps = list(iconName = "Play")), text = i18n$t("run_code")),
+                style = "display: flex; margin-top: 5px;"
+              ),
+              class = "small_icon_button",
+              style = "display: flex; justify-content: space-between;"
+            ),
+            div(
+              shinyAce::aceEditor(
+                ns("readme_code"), mode = "markdown",
+                hotkeys = list(
+                  save = list(win = "CTRL-S", mac = "CTRL-S|CMD-S"),
+                  run_all = list(win = "CTRL-SHIFT-ENTER", mac = "CTRL-SHIFT-ENTER|CMD-SHIFT-ENTER")
+                ),
+                autoScrollEditorIntoView = TRUE, height = "100%", debounce = 100, fontSize = 11, showPrintMargin = FALSE
+              ),
+              style = "width: 100%; height: calc(100% - 45px); display: flex; flex-direction: column;"
+            ),
+            class = "widget", style = "height: 100%;"
+          )
         ),
         class = "git_repos_left"
       ),
       div(
         div(
+          div(
+            div(
+              shinyjs::hidden(
+                div(
+                  id = ns("edit_readme_button"),
+                  create_hover_card(ui = shiny.fluent::IconButton.shinyInput(ns("edit_readme"), iconProps = list(iconName = "Edit")), text = i18n$t("edit_readme"))
+                )
+              ),
+              shinyjs::hidden(
+                div(
+                  id = ns ("save_and_cancel_readme_buttons"),
+                  div(
+                    id = ns("cancel_readme_button"),
+                    create_hover_card(ui = shiny.fluent::IconButton.shinyInput(ns("cancel_readme"), iconProps = list(iconName = "Cancel")), text = i18n$t("cancel_readme_updates"))
+                  ),
+                  div(
+                    id = ns("save_readme_button"),
+                    create_hover_card(ui = shiny.fluent::IconButton.shinyInput(ns("save_readme"), iconProps = list(iconName = "Accept")), text = i18n$t("save_readme")),
+                  ),
+                  style = "display: flex;"
+                )
+              ),
+              style = "margin-top: 5px;"
+            ),
+            class = "small_icon_button",
+            style = "position: absolute; top: 0; right: 10px;"
+          ),
           uiOutput(ns("map_git_readme")),
           shinyjs::hidden(uiOutput(ns("list_git_readme"))),
-          class = "widget markdown_widget"
+          class = "widget markdown_widget markdown"
         ),
         class = "git_repos_right"
       ),
@@ -69,37 +170,6 @@ mod_git_repos_ui <- function(id = character(), language = "en", languages = tibb
         div(
           id = ns("summary_div"),
           div(
-            shinyjs::hidden(
-              div(
-                id = ns("edit_description_div"),
-                div(
-                  h1(i18n$t("edit_description")),
-                  div(
-                    create_hover_card(ui = shiny.fluent::IconButton.shinyInput(ns("run_description_code"), iconProps = list(iconName = "Play")), text = i18n$t("run_code")),
-                    style = "margin-top: 5px;"
-                  ),
-                  style = "display: flex; justify-content: space-between;"
-                ),
-                div(
-                  shinyAce::aceEditor(
-                    ns("description_code"), mode = "markdown",
-                    hotkeys = list(
-                      save = list(win = "CTRL-S", mac = "CTRL-S|CMD-S"),
-                      run_all = list(win = "CTRL-SHIFT-ENTER", mac = "CTRL-SHIFT-ENTER|CMD-SHIFT-ENTER")
-                    ),
-                    autoScrollEditorIntoView = TRUE, height = "100%", debounce = 100, fontSize = 11, showPrintMargin = FALSE
-                  ),
-                  style = "width: 100%; height: calc(100% - 45px); display: flex; flex-direction: column;"
-                ),
-                class = "widget", style = "height: 100%;"
-              )
-            ),
-            div(
-              class = "widget", style = "height: 50%;"
-            ),
-            class = "git_repos_summary_left"
-          ),
-          div(
             div(
               div(
                 shinyjs::hidden(
@@ -127,7 +197,7 @@ mod_git_repos_ui <- function(id = character(), language = "en", languages = tibb
               uiOutput(ns("summary_git_readme")),
               class = "widget markdown_widget",
             ),
-            class = "git_repos_summary_right"
+            class = "git_repos_summary"
           ),
           class = "git_repos_summary_container"
         ),
@@ -161,7 +231,7 @@ mod_git_repos_ui <- function(id = character(), language = "en", languages = tibb
             div(
               div(
                 uiOutput(ns("element_details_description")),
-                class = "widget markdown_widget",
+                class = "widget markdown_widget markdown",
               ),
               class = "git_element_details_right"
             ),
@@ -169,6 +239,67 @@ mod_git_repos_ui <- function(id = character(), language = "en", languages = tibb
           )
         ),
         style = "height: 100%; display: flex; flex-direction: column;"
+      )
+    ),
+    
+    # Create a git repo modal ----
+    shinyjs::hidden(
+      div(
+        id = ns("create_git_repo_modal"),
+        div(
+          div(
+            tags$h1(i18n$t("create_git_repo")),
+            shiny.fluent::IconButton.shinyInput(ns("close_create_git_repo_modal"), iconProps = list(iconName = "ChromeClose")),
+            class = "create_git_repo_modal_head small_close_button"
+          ),
+          div(
+            div(shiny.fluent::TextField.shinyInput(ns("git_repo_creation_name"), label = i18n$t("name")), style = "width: 200px;"),
+            div(shiny.fluent::TextField.shinyInput(ns("git_repo_creation_url_address"), label = i18n$t("url_address")), style = "width: 400px;"),
+            div(shiny.fluent::TextField.shinyInput(ns("git_repo_creation_raw_files_url_address"), label = i18n$t("raw_files_url_address")), style = "width: 400px;"),
+            div(
+              shiny.fluent::PrimaryButton.shinyInput(ns("add_git_repo"), i18n$t("add")),
+              class = "create_git_repo_modal_buttons"
+            ),
+          ),
+          class = "create_git_repo_modal_content"
+        ),
+        class = "create_git_repo_modal"
+      )
+    ),
+    
+    # Delete a git repo modal ----
+    shinyjs::hidden(
+      div(
+        id = ns("delete_git_repo_modal"),
+        div(
+          tags$h1(i18n$t("delete_git_repo_title")), tags$p(i18n$t("delete_git_repo_text")),
+          div(
+            shiny.fluent::DefaultButton.shinyInput(ns("close_git_repo_deletion_modal"), i18n$t("dont_delete")),
+            div(shiny.fluent::PrimaryButton.shinyInput(ns("confirm_git_repo_deletion"), i18n$t("delete")), class = "delete_button"),
+            class = "delete_modal_buttons"
+          ),
+          class = "delete_modal_content"
+        ),
+        class = "delete_modal"
+      )
+    ),
+    
+    # Commit and push readme modal ----
+    shinyjs::hidden(
+      div(
+        id = ns("push_git_readme_modal"),
+        div(
+          tags$h1(i18n$t("push_git_readme_title")),
+          shiny.fluent::TextField.shinyInput(ns("push_git_readme_api_key"), type = "password", canRevealPassword = TRUE, label = i18n$t("api_key")),
+          shiny.fluent::TextField.shinyInput(ns("push_git_readme_commit_message"), label = i18n$t("commit_message")),
+          div(
+            shiny.fluent::DefaultButton.shinyInput(ns("close_push_git_readme_modal"), i18n$t("cancel")),
+            shiny.fluent::PrimaryButton.shinyInput(ns("confirm_push_git_readme_update"), i18n$t("update")),
+            class = "push_git_readme_modal_buttons"
+          ),
+          class = "push_git_readme_modal_content"
+        ),
+        class = "push_git_readme_modal"
       )
     )
   )
@@ -196,6 +327,10 @@ mod_git_repos_server <- function(id, r, d, m, language, i18n, debug){
     # Initiate vars ----
     
     all_divs <- c("summary", "projects", "plugins", "data_cleaning", "datasets")
+    r$list_git_repo <- tibble::tibble()
+    r$map_git_repo <- tibble::tibble()
+    r$loaded_git_readme <- tibble::tibble(unique_id = character(), type = character(), local_url = character())
+    shinyjs::runjs(paste0("Shiny.setInputValue('", id, "-current_page', 'map');"))
     
     # No internet access ----
     
@@ -220,20 +355,37 @@ mod_git_repos_server <- function(id, r, d, m, language, i18n, debug){
       observeEvent(input$show_list, {
         if (debug) cat(paste0("\n", now(), " - mod_git_repos - observer input$show_list"))
         
-        sapply(c("show_list_div", "explore_map", "map_git_infos", "map_git_readme"), shinyjs::hide)
-        sapply(c("explore_ui", "list_git_infos", "list_git_readme"), shinyjs::show)
+        sapply(c("show_list_div", "explore_map", "map_git_infos_div", "map_git_readme", "save_and_cancel_readme_buttons", "edit_readme_div"), shinyjs::hide)
+        sapply(c("explore_ui", "list_git_infos_div", "list_git_readme", "explore_map_and_ui_div", "git_infos_div"), shinyjs::show)
+        
+        if (nrow(r$list_git_repo) > 0) shinyjs::show("edit_readme_button")
+        else shinyjs::hide("edit_readme_button")
+        
         shinyjs::delay(50, shinyjs::show("show_map_div"))
+        
+        # Save that we are on the list page
+        shinyjs::runjs(paste0("Shiny.setInputValue('", id, "-current_page', 'list');"))
       })
       
       observeEvent(input$show_map, {
         if (debug) cat(paste0("\n", now(), " - mod_git_repos - observer input$show_map"))
         
-        sapply(c("show_map_div", "explore_ui", "list_git_infos", "list_git_readme"), shinyjs::hide)
-        sapply(c("map_git_infos", "map_git_readme", "explore_map"), shinyjs::show)
+        sapply(c("show_map_div", "explore_ui", "list_git_infos_div", "list_git_readme", "save_and_cancel_readme_buttons", "edit_readme_div"), shinyjs::hide)
+        sapply(c("map_git_infos_div", "map_git_readme", "explore_map", "explore_map_and_ui_div", "git_infos_div"), shinyjs::show)
+        
+        # sapply(c("show_map_div", "explore_ui", "list_git_infos_div", "list_git_readme"), shinyjs::hide)
+        # sapply(c("map_git_infos_div", "map_git_readme", "explore_map"), shinyjs::show)
+        
+        if (nrow(r$map_git_repo) > 0) shinyjs::show("edit_readme_button")
+        else shinyjs::hide("edit_readme_button")
+        
         shinyjs::delay(50, shinyjs::show("show_list_div"))
         
         # Prevent a bug with leaflet map display
         shinyjs::runjs("var event = new Event('resize'); window.dispatchEvent(event);")
+        
+        # Save that we are on the map page
+        shinyjs::runjs(paste0("Shiny.setInputValue('", id, "-current_page', 'map');"))
       })
       
       # Reload list ----
@@ -277,11 +429,513 @@ mod_git_repos_server <- function(id, r, d, m, language, i18n, debug){
         git_repo <- r$git_repos_wide %>% dplyr::filter(id == git_repo_id)
         r$list_git_repo <- git_repo
         
-        output$list_git_infos <- renderUI(get_git_infos(git_repo, "list"))
+        # Update textfields
+        shiny.fluent::updateTextField.shinyInput(session, "git_repo_name", value = git_repo$name)
+        shiny.fluent::updateTextField.shinyInput(session, "git_repo_url_address", value = git_repo$repo_url_address)
+        shiny.fluent::updateTextField.shinyInput(session, "git_repo_raw_files_url_address", value = git_repo$raw_files_url_address)
+        shiny.fluent::updateTextField.shinyInput(session, "push_git_readme_api_key", value = "")
         
-        readme <- renderUI(get_git_readme(r, git_repo))
+        # Update git infos readme
+        readme <- renderUI(get_git_readme(r, git_repo, type = "list"))
         output$list_git_readme <- renderUI(readme)
         output$summary_git_readme <- renderUI(readme)
+        
+        # Show / hide divs
+        sapply(c("save_git_repo_edition_button", "edit_git_repo_div"), shinyjs::hide)
+        sapply(c("edit_git_repo_button", "list_git_infos_content", "show_content_list_div", "edit_readme_button"), shinyjs::show)
+        
+        # Update git infos UI
+        shinyjs::runjs(paste0("Shiny.setInputValue('", id, "-reload_list_git_infos_ui', Math.random());"))
+      })
+      
+      observeEvent(input$reload_list_git_infos_ui, {
+        if (debug) cat(paste0("\n", now(), " - mod_git_repos - observer input$reload_list_git_infos_ui"))
+        
+        # Update git infos UI
+        git_repo <- r$list_git_repo
+        shinyjs::show("list_git_infos_buttons")
+        output$list_git_infos_title <- renderUI(tags$h1(git_repo$name))
+        output$list_git_infos_content <- renderUI(get_git_infos(git_repo, "list"))
+      })
+      
+      # Add a git repo ----
+      
+      ## Open modal
+      observeEvent(input$create_git_repo, {
+        if (debug) cat(paste0("\n", now(), " - mod_git_repos - observer input$create_git_repo"))
+        shinyjs::show("create_git_repo_modal")
+      })
+      
+      ## Close modal
+      observeEvent(input$close_create_git_repo_modal, {
+        if (debug) cat(paste0("\n", now(), " - mod_git_repos - observer input$close_create_git_repo_modal"))
+        shinyjs::hide("create_git_repo_modal")
+      })
+      
+      ## Add button clicked
+      observeEvent(input$add_git_repo, {
+        if (debug) cat(paste0("\n", now(), " - mod_git_repos - observer input$add_git_repo"))
+        
+        # Check if a textfield is empty
+        empty_fields <- list()
+        
+        for (field in c("git_repo_creation_name", "git_repo_creation_url_address", "git_repo_creation_raw_files_url_address")){
+          empty_fields[[field]] <- TRUE
+          field_name <- input[[field]]
+          if (length(field_name) > 0) if (!is.na(field_name) & field_name != "") empty_fields[[field]] <- FALSE
+          if (empty_fields[[field]]) shiny.fluent::updateTextField.shinyInput(session, field, errorMessage = i18n$t("provide_valid_value"))
+          else shiny.fluent::updateTextField.shinyInput(session, field, errorMessage = NULL)
+        }
+        req(!TRUE %in% empty_fields)
+        
+        # Check if name is already used
+        git_repo_name <- input$git_repo_creation_name
+        
+        sql <- glue::glue_sql("SELECT id FROM git_repos WHERE LOWER(name) = {tolower(git_repo_name)}", .con = r$db)
+        name_already_used <- nrow(DBI::dbGetQuery(r$db, sql) > 0)
+        
+        if (name_already_used) shiny.fluent::updateTextField.shinyInput(session, "git_repo_creation_name", errorMessage = i18n$t("name_already_used"))
+        req(!name_already_used)
+        
+        # Check if git repos url and raw files url address are not already in db
+        sql <- glue::glue_sql("SELECT id FROM git_repos WHERE LOWER(repo_url_address) = {tolower(input$git_repo_creation_url_address)}", .con = r$db)
+        url_already_used <- nrow(DBI::dbGetQuery(r$db, sql) > 0)
+        
+        if (url_already_used) shiny.fluent::updateTextField.shinyInput(session, "git_repo_creation_url_address", errorMessage = i18n$t("git_repo_url_address_already_used"))
+        req(!url_already_used)
+        
+        sql <- glue::glue_sql("SELECT id FROM git_repos WHERE LOWER(raw_files_url_address) = {tolower(input$git_repo_creation_raw_files_url_address)}", .con = r$db)
+        raw_files_url_already_used <- nrow(DBI::dbGetQuery(r$db, sql) > 0)
+        
+        if (raw_files_url_already_used) shiny.fluent::updateTextField.shinyInput(session, "git_repo_creation_raw_files_url_address", errorMessage = i18n$t("git_repo_url_address_already_used"))
+        req(!raw_files_url_already_used)
+        
+        # Add git repo in db
+        git_repo_new_row <- get_last_row(r$db, "git_repos") + 1
+        
+        new_data <- tibble::tibble(
+          id = git_repo_new_row, unique_id = paste0(sample(c(0:9, letters[1:6]), 64, TRUE), collapse = ''),
+          name = input$git_repo_creation_name, api_key = NA_character_,
+          repo_url_address = input$git_repo_creation_url_address, raw_files_url_address = input$git_repo_creation_raw_files_url_address,
+          creator_id = r$user_id, datetime = now(), deleted = FALSE
+        )
+        DBI::dbAppendTable(r$db, "git_repos", new_data)
+        
+        new_options <-
+          tibble::tribble(
+            ~name, ~value, ~value_num,
+            "users_allowed_read_group", "everybody", 1,
+            "user_allowed_read", "", r$user_id,
+          ) %>%
+          dplyr::mutate(id = get_last_row(r$db, "options") + dplyr::row_number(), category = "git_repo", link_id = git_repo_new_row, .before = "name") %>%
+          dplyr::mutate(creator_id = r$user_id, datetime = now(), deleted = FALSE)
+        DBI::dbAppendTable(r$db, "options", new_options)
+        
+        # Reload git repos list
+        shinyjs::runjs(paste0("Shiny.setInputValue('", id, "-reload_git_repos', Math.random());"))
+        
+        # Notify user
+        show_message_bar(output, "git_repo_added", "success", i18n = i18n, ns = ns)
+        
+        # Reset fields
+        for (field in c("git_repo_creation_name", "git_repo_creation_url_address", "git_repo_creation_raw_files_url_address")){
+          shiny.fluent::updateTextField.shinyInput(session, field, value = "") 
+        }
+        
+        # Reset selected git tibble
+        r$list_git_repo <- tibble::tibble()
+        
+        # Reset git infos fields
+        output$list_git_infos_title <- renderUI("")
+        output$list_git_infos_content <- renderUI("")
+        output$list_git_readme <- renderUI("")
+        sapply(c("list_git_infos_buttons", "show_content_list_div", "edit_readme_button"), shinyjs::hide)
+        
+        # Close modal
+        shinyjs::hide("create_git_repo_modal")
+      })
+      
+      # Delete git repo ----
+      
+      ## Open modal
+      observeEvent(input$delete_git_repo, {
+        if (debug) cat(paste0("\n", now(), " - mod_git_repos - observer input$delete_git_repo"))
+        shinyjs::show("delete_git_repo_modal")
+      })
+      
+      ## Close modal
+      observeEvent(input$close_git_repo_deletion_modal, {
+        if (debug) cat(paste0("\n", now(), " - mod_git_repos - observer input$close_git_repo_deletion_modal"))
+        shinyjs::hide("delete_git_repo_modal")
+      })
+      
+      ## Deletion confirmed
+      observeEvent(input$confirm_git_repo_deletion, {
+        if (debug) cat(paste0("\n", now(), " - mod_git_repos - observer input$confirm_git_repo_deletion"))
+        
+        sql <- glue::glue_sql("DELETE FROM git_repos WHERE id = {r$list_git_repo$id}", .con = r$db)
+        sql_send_statement(r$db, sql)
+        
+        sql <- glue::glue_sql("DELETE FROM options WHERE category = 'git_repo' AND link_id = {r$list_git_repo$id}", .con = r$db)
+        sql_send_statement(r$db, sql)
+        
+        # Reload git repos list
+        shinyjs::runjs(paste0("Shiny.setInputValue('", id, "-reload_git_repos', Math.random());"))
+        
+        # Notify user
+        show_message_bar(output, "git_repo_deleted", "warning", i18n = i18n, ns = ns)
+        
+        # Close modal
+        shinyjs::hide("delete_git_repo_modal")
+        
+        # Reset selected git tibble
+        r$list_git_repo <- tibble::tibble()
+        
+        # Reset git infos fields
+        output$list_git_infos_title <- renderUI("")
+        output$list_git_infos_content <- renderUI("")
+        output$list_git_readme <- renderUI("")
+        sapply(c("list_git_infos_buttons", "show_content_list_div", "edit_readme_button"), shinyjs::hide)
+      })
+      
+      # Edit git repo ----
+      
+      observeEvent(input$edit_git_repo, {
+        if (debug) cat(paste0("\n", now(), " - mod_git_repos - observer input$edit_git_repo"))
+        
+        sapply(c("edit_git_repo_button", "list_git_infos_content"), shinyjs::hide)
+        sapply(c("save_git_repo_edition_button", "edit_git_repo_div"), shinyjs::show)
+      })
+      
+      # Save git repo edition ----
+      
+      observeEvent(input$save_git_repo_edition, {
+        if (debug) cat(paste0("\n", now(), " - mod_git_repos - observer input$save_git_repo_edition"))
+        
+        # Check if a textfield is empty
+        empty_fields <- list()
+        
+        for (field in c("git_repo_name", "git_repo_url_address", "git_repo_raw_files_url_address")){
+          empty_fields[[field]] <- TRUE
+          field_name <- input[[field]]
+          if (length(field_name) > 0) if (!is.na(field_name) & field_name != "") empty_fields[[field]] <- FALSE
+          if (empty_fields[[field]]) shiny.fluent::updateTextField.shinyInput(session, field, errorMessage = i18n$t("provide_valid_value"))
+          else shiny.fluent::updateTextField.shinyInput(session, field, errorMessage = NULL)
+        }
+        req(!TRUE %in% empty_fields)
+        
+        # Check if name is already used
+        git_repo_name <- input$git_repo_name
+        git_repo_id <- r$list_git_repo$id
+        
+        sql <- glue::glue_sql("SELECT name FROM git_repos WHERE LOWER(name) = {tolower(git_repo_name)} AND id != {git_repo_id}", .con = r$db)
+        name_already_used <- nrow(DBI::dbGetQuery(r$db, sql) > 0)
+        
+        if (name_already_used) shiny.fluent::updateTextField.shinyInput(session, "git_repo_name", errorMessage = i18n$t("name_already_used"))
+        req(!name_already_used)
+        
+        # Update values on db
+        sql <- glue::glue_sql("UPDATE git_repos SET name = {git_repo_name}, repo_url_address = {input$git_repo_url_address}, raw_files_url_address = {input$git_repo_raw_files_url_address} WHERE id = {git_repo_id}", .con = r$db)
+        sql_send_statement(r$db, sql)
+        
+        # Reload list
+        shinyjs::runjs(paste0("Shiny.setInputValue('", id, "-reload_git_repos', Math.random());"))
+        
+        # Reload selected repo UI
+        r$list_git_repo <-
+          r$list_git_repo %>%
+          dplyr::mutate(name = git_repo_name, repo_url_address = input$git_repo_url_address, raw_files_url_address = input$git_repo_raw_files_url_address)
+  
+        shinyjs::runjs(paste0("Shiny.setInputValue('", id, "-reload_list_git_infos_ui', Math.random());"))
+        
+        sapply(c("save_git_repo_edition_button", "edit_git_repo_div"), shinyjs::hide)
+        sapply(c("edit_git_repo_button", "list_git_infos_content"), shinyjs::show)
+        
+        # Notify user
+        show_message_bar(output, "modif_saved", "success", i18n = i18n, ns = ns)
+      })
+      
+      # Edit readme ----
+      
+      ## Edit readme ----
+      
+      observeEvent(input$edit_readme, {
+        if (debug) cat(paste0("\n", now(), " - mod_git_repos - observer input$edit_readme"))
+        
+        # Update ace editor
+        readme_url <-
+          r$loaded_git_readme %>% 
+          dplyr::filter(type == input$current_page & unique_id == r[[paste0(input$current_page, "_git_repo")]]$unique_id) %>%
+          dplyr::pull(local_url)
+        
+        code <- ""
+        if (file.exists(readme_url)) code <- readLines(readme_url, warn = FALSE) %>% paste(collapse = "\n")
+        
+        shinyAce::updateAceEditor(session, "readme_code", value = code)
+        
+        sapply(c("explore_map_and_ui_div", "git_infos_div", "edit_readme_button"), shinyjs::hide)
+        sapply(c("save_and_cancel_readme_buttons", "edit_readme_div"), shinyjs::show)
+      })
+      
+      ## Generate readme ----
+      
+      observeEvent(input$generate_readme, {
+        if (debug) cat(paste0("\n", now(), " - mod_git_repos - observer input$generate_readme"))
+        
+        git_repo <- r[[paste0(input$current_page, "_git_repo")]]
+        
+        # Load git repo
+        loaded_git_repo <- tibble::tibble()
+        
+        tryCatch({
+            loaded_git_repo <- load_git_repo(id, r, git_repo)
+          }, error = function(e){
+            show_message_bar(output, "error_loading_git_repo", "warning", i18n = i18n, ns = ns)
+            cat(paste0("\n", now(), " - mod_git_repos - error downloading git repo - error = ", toString(e)))
+          }
+        )
+        
+        if (nrow(loaded_git_repo) > 0) local_path <- loaded_git_repo$local_path
+        else local_path <- ""
+        
+        code <- ""
+        
+        automatic_code <- ""
+        
+        if (local_path != ""){
+        
+          for (category in c("projects", "plugins", "datasets", "data_cleaning_scripts")){
+            
+            icon <- switch(
+              category,
+              "projects" = "file-alt",
+              "plugins" = "terminal",
+              "data_cleaning_scripts" = "code",
+              "datasets" = "database"
+            )
+            
+            single_id <- switch(
+              category, 
+              "data_cleaning_scripts" = "data_cleaning_script",
+              "datasets" = "dataset",
+              "projects" = "project",
+              "plugins" = "plugin", 
+              "subsets" = "subset"
+            )
+            
+            category_title <- category %>% stringr::str_to_title() %>% stringr::str_replace_all("_", " ")
+            readme_category <- paste0("\n\n## <i class='fa fa-", icon, "' style='color: steelblue; margin-right: 5px;'></i> ", category_title)
+            
+            tryCatch({
+              
+              # Load XML
+              xml_path <- paste0(local_path, "/", category, "/", category, ".xml")
+              
+              category_elements <-
+                xml2::read_xml(xml_path) %>%
+                XML::xmlParse() %>%
+                XML::xmlToDataFrame(nodes = XML::getNodeSet(., paste0("//", single_id)), stringsAsFactors = FALSE) %>%
+                tibble::as_tibble()
+              
+              if (nrow(category_elements) > 0){
+                
+                category_elements <- category_elements %>% dplyr::arrange(name_en)
+                
+                for (i in 1:nrow(category_elements)){
+  
+                  category_element <- category_elements[i, ]
+  
+                  # category_folder <- paste0(local_path "/", category, "/")
+                  # category_folder <- paste0(category_folder, category_element$unique_id)
+                  
+                  description <- category_element$description_en #%>%
+                  #   stringr::str_replace_all("%element_folder%", category_folder)
+                  
+                  readme_category <- paste0(
+                    readme_category, "\n\n",
+                    "<details style = 'border: solid 1px #c0c0c0; padding: 5px 10px; margin: 5px 0;'>\n",
+                    "<summary><span style = 'font-size:13px;'>", category_element$name_en, "</summary>\n\n",
+                    description, "\n\n",
+                    "</details>"
+                  )
+                }
+              }
+              
+              if (nrow(category_elements) == 0) readme_category <- paste0(readme_category, "\n\nNo ", stringr::str_replace_all(category, "_", " "), " available.")
+              
+              automatic_code <- paste0(automatic_code, readme_category)
+              
+            }, error = function(e){
+              show_message_bar(output, "error_generate_readme", "warning", i18n = i18n, ns = ns)
+              cat(paste0("\n", now(), " - mod_git_repos - error generating readme - category = ", category, " - error = ", toString(e)))
+            })
+          }
+        }
+        
+        # Add span to identity automatically generated code
+        automatic_code <- paste0(
+          "\n\n<span id='generated_code_start'></span>",
+          automatic_code,
+          "\n\n<span id='generated_code_end'></span>"
+        )
+        
+        code <- paste0("# ", git_repo$name, automatic_code)
+
+        shinyAce::updateAceEditor(session, "readme_code", value = code)
+        
+        # Run code
+        output_file <- create_rmarkdown_file(r, code, interpret_code = FALSE)
+        output[[paste0(input$current_page, "_git_readme")]] <- renderUI(div(class = "markdown", withMathJax(includeMarkdown(output_file))))
+      })
+      
+      ## Run readme code ----
+      
+      observeEvent(input$run_readme_code, {
+        if (debug) cat(paste0("\n", now(), " - mod_git_repos - observer input$run_readme_code"))
+        shinyjs::runjs(paste0("Shiny.setInputValue('", id, "-run_readme_code_trigger', Math.random());"))
+      })
+      
+      observeEvent(input$readme_code_run_all, {
+        if (debug) cat(paste0("\n", now(), " - mod_git_repos - observer input$readme_code_run_all"))
+        shinyjs::runjs(paste0("Shiny.setInputValue('", id, "-run_readme_code_trigger', Math.random());"))
+      })
+      
+      observeEvent(input$run_readme_code_trigger, {
+        if (debug) cat(paste0("\n", now(), " - mod_git_repos - observer input$run_readme_code_trigger"))
+
+        output_file <- create_rmarkdown_file(r, input$readme_code, interpret_code = FALSE)
+        output[[paste0(input$current_page, "_git_readme")]] <- renderUI(div(class = "markdown", withMathJax(includeMarkdown(output_file))))
+      })
+      
+      ## Save readme updates ----
+      
+      observeEvent(input$readme_code_save, {
+        if (debug) cat(paste0("\n", now(), " - mod_git_repos - observer input$readme_code_save"))
+        shinyjs::runjs(paste0("Shiny.setInputValue('", id, "-save_readme_trigger', Math.random());"))
+      })
+      
+      observeEvent(input$save_readme, {
+        if (debug) cat(paste0("\n", now(), " - mod_git_repos - observer input$save_readme"))
+
+        shinyjs::runjs(paste0("Shiny.setInputValue('", id, "-save_readme_trigger', Math.random());"))
+
+        sapply(c("save_and_cancel_readme_buttons", "edit_readme_div"), shinyjs::hide)
+        sapply(c("explore_map_and_ui_div", "git_infos_div", "edit_readme_button"), shinyjs::show)
+        
+        # Prevent a bug with leaflet map display
+        shinyjs::runjs("var event = new Event('resize'); window.dispatchEvent(event);")
+      })
+      
+      observeEvent(input$save_readme_trigger, {
+        if (debug) cat(paste0("\n", now(), " - mod_git_repos - observer input$save_readme_trigger"))
+        
+        git_repo <- r[[paste0(input$current_page, "_git_repo")]]
+        
+        # Load git repo
+        loaded_git_repo <- tibble::tibble()
+        
+        tryCatch({
+            loaded_git_repo <- load_git_repo(id, r, git_repo)
+          }, error = function(e){
+            show_message_bar(output, "error_loading_git_repo", "warning", i18n = i18n, ns = ns)
+            cat(paste0("\n", now(), " - mod_git_repos - error downloading git repo - error = ", toString(e)))
+          }
+        )
+        
+        # Update README.md
+        if (nrow(loaded_git_repo) > 0){
+          file_path <- paste0(loaded_git_repo$local_path, "/README.md")
+          writeLines(input$readme_code, file_path)
+          
+          copy_file_path <-
+            r$loaded_git_readme %>% 
+            dplyr::filter(type == input$current_page & unique_id == git_repo$unique_id) %>%
+            dplyr::pull(local_url)
+          writeLines(input$readme_code, copy_file_path)
+          
+          # Open commit modal
+          shinyjs::show("push_git_readme_modal")
+        }
+       
+        # Reload markdown
+        output_file <- create_rmarkdown_file(r, input$readme_code, interpret_code = FALSE)
+        output$readme_ui <- renderUI(div(class = "markdown", withMathJax(includeMarkdown(output_file))))
+      })
+      
+      ## Close git push modal
+      observeEvent(input$close_push_git_readme_modal, {
+        if (debug) cat(paste0("\n", now(), " - mod_git_repos - observer input$close_push_git_readme_modal"))
+        shinyjs::hide("push_git_readme_modal")
+      })
+      
+      ## Confirm readme update on remote git
+      observeEvent(input$confirm_push_git_readme_update, {
+        if (debug) cat(paste0("\n", now(), " - mod_git_repos - observer input$confirm_push_git_readme_update"))
+        
+        tryCatch({
+          git_repo <- r[[paste0(input$current_page, "_git_repo")]]
+          repo <- r$loaded_git_repos_objects[[git_repo$unique_id]]
+          
+          username <- r$users %>% dplyr::filter(id == r$user_id) %>% dplyr::pull(name)
+          git2r::config(repo, user.name = username)
+          git2r::add(repo, ".")
+          
+          if (length(git2r::status(repo, unstaged = FALSE, untracked = FALSE, ignored = FALSE)$staged) > 0){
+
+            commit_message <- input$push_git_readme_commit_message
+            if (commit_message == "") commit_message <- paste0("Update README from LinkR")
+            git2r::commit(repo, message = commit_message)
+
+            # Create main branch if doesn't exist
+            git_branches <- names(git2r::branches(repo))
+            if (!"main" %in% git_branches){
+              git2r::branch_create(commit = git2r::last_commit(repo), name = "main")
+              git2r::checkout(repo, "main")
+            }
+
+            credentials <- git2r::cred_user_pass("linkr_user", input$push_git_readme_api_key)
+
+            git2r::push(repo, "origin", "refs/heads/main", credentials = credentials)
+            
+            # Reset commit message (we keep API key, easier when we push files frequently)
+            shiny.fluent::updateTextField.shinyInput(session, "push_git_readme_commit_message", value = "")
+
+            # Notify user
+            show_message_bar(output, "success_update_remote_git_repo", "success", i18n = i18n, ns = ns)
+          }
+        }, error = function(e){
+          show_message_bar(output, message = "error_update_remote_git_repo", type = "severeWarning", i18n = i18n, ns = ns)
+          cat(paste0("\n", now(), " - mod_git_repos - update remot git error - ", toString(e)))
+        })
+        
+        # Close git push modal
+        shinyjs::hide("push_git_readme_modal")
+      })
+      
+      ## Cancel readme updates ----
+      
+      observeEvent(input$cancel_readme, {
+        if (debug) cat(paste0("\n", now(), " - mod_git_repos - observer input$cancel_readme"))
+
+        sapply(c("save_and_cancel_readme_buttons", "edit_readme_div"), shinyjs::hide)
+        sapply(c("explore_map_and_ui_div", "git_infos_div", "edit_readme_button"), shinyjs::show)
+        
+        # Prevent a bug with leaflet map display
+        shinyjs::runjs("var event = new Event('resize'); window.dispatchEvent(event);")
+
+        # Reset readme editor with last value
+        readme_url <-
+          r$loaded_git_readme %>% 
+          dplyr::filter(type == input$current_page & unique_id == r[[paste0(input$current_page, "_git_repo")]]$unique_id) %>%
+          dplyr::pull(local_url)
+        
+        code <- ""
+        if (file.exists(readme_url)) code <- readLines(readme_url, warn = FALSE) %>% paste(collapse = "\n")
+        
+        shinyAce::updateAceEditor(session, "readme_code", value = code)
+        
+        output_file <- create_rmarkdown_file(r, code, interpret_code = FALSE)
+        output$readme_ui <- renderUI(div(class = "markdown", withMathJax(includeMarkdown(output_file))))
       })
       
       # Download git repos ----
@@ -328,95 +982,40 @@ mod_git_repos_server <- function(id, r, d, m, language, i18n, debug){
       observeEvent(input$explore_map_marker_click, {
         if (debug) cat(paste0("\n", now(), " - mod_git_repos - observer input$explore_map_marker_click"))
         
-        #   # Update API key field
-        #   shiny.fluent::updateTextField.shinyInput(session = session, "api_key_git_repo_with_map", errorMessage = NULL, value = "")
-        
-        git_repo <- git_repos %>% dplyr::filter(
-          sprintf("%.6f", as.numeric(lat)) == sprintf("%.6f", as.numeric(input$explore_map_marker_click$lat)),
-          sprintf("%.6f", as.numeric(lng)) == sprintf("%.6f", as.numeric(input$explore_map_marker_click$lng))
-        )
-        
-        r$map_git_repo <- git_repo
-        
-        readme <- get_git_readme(r, git_repo)
-        output$map_git_readme <- renderUI(readme)
-        output$summary_git_readme <- renderUI(readme)
-        
-        # Get git repo informations
-        
-        output$map_git_infos <- renderUI(get_git_infos(git_repo, "map"))
-        
-        r$git_repo <- git_repo
-        
-      #   
-      #   # Disable add button is git repo already in db
-      #   if (r$git_repos %>% dplyr::inner_join(git_repo %>% dplyr::select(unique_id), by = "unique_id") %>% nrow() > 0){
-      #     shiny.fluent::updateActionButton.shinyInput(session = session, "add_git_repo_with_map", disabled = TRUE)
-      #     shinyjs::hide("api_key_git_repo_with_map_div")
-      #   }
-      #   else {
-      #     shiny.fluent::updateActionButton.shinyInput(session = session, "add_git_repo_with_map", disabled = FALSE)
-      #     
-      #     # If an API key is needed
-      #     if (git_repo$api_key_required) shinyjs::show("api_key_git_repo_with_map_div") else shinyjs::hide("api_key_git_repo_with_map_div")
-      #   }
-      #   
-      #   r$show_git_repo_description_trigger <- now()
-      #   r$show_git_repo_description_type <- "map"
-      #   r$show_git_repo_description_url <- git_repo$raw_files_url_address
-      #   
-      #   if (substr(r$show_git_repo_description_url, nchar(r$show_git_repo_description_url), 
-      #              nchar(r$show_git_repo_description_url)) != "/") r$show_git_repo_description_url <- paste0(r$show_git_repo_description_url, "/")
-      })
-      # 
-      # ## Add with map
-      # observeEvent(input$add_git_repo_with_map, {
-      #   if (debug) cat(paste0("\n", now(), " - mod_git_repos - observer input$add_git_repo_with_map"))
-      #   
-      #   req(length(input$git_repos_map_marker_click) > 0)
-      #   git_repo <- git_repos %>% dplyr::filter(
-      #     sprintf("%.6f", as.numeric(lat)) == sprintf("%.6f", as.numeric(input$git_repos_map_marker_click$lat)),
-      #     sprintf("%.6f", as.numeric(lng)) == sprintf("%.6f", as.numeric(input$git_repos_map_marker_click$lng))
-      #   )
-      #   
-      #   new_data <- list()
-      #   if (paste0("name_", language) %in% colnames(git_repo)) new_data$name <- git_repo[[paste0("name_", language)]]
-      #   else new_data$name <- git_repo$name_en
-      #   new_data$api_key <- coalesce2(type = "char", x = input$api_key_git_repo_with_map)
-      #   new_data$repo_url_address <- git_repo$repo_url_address
-      #   new_data$raw_files_url_address <- git_repo$raw_files_url_address
-      #   new_data$unique_id <- git_repo$unique_id
-      #   
-      #   # Check if git repo is not already in database
-      #   sql <- glue::glue_sql("SELECT * FROM git_repos WHERE unique_id = {new_data$unique_id} AND deleted IS FALSE", .con = r$db)
-      #   check_unique_id <- DBI::dbGetQuery(r$db, sql) %>% nrow() == 0
-      #   if (!check_unique_id) show_message_bar(output, "git_repo_already_in_db", "severeWarning", i18n = i18n, ns = ns)
-      #   req(check_unique_id)
-      #   
-      #   # Check if name is not already taken
-      #   sql <- glue::glue_sql("SELECT * FROM git_repos WHERE name = {new_data$name} AND deleted IS FALSE", .con = r$db)
-      #   check_unique_name <- DBI::dbGetQuery(r$db, sql) %>% nrow() == 0
-      #   if (!check_unique_name) show_message_bar(output, "name_already_used", "severeWarning", i18n = i18n, ns = ns)
-      #   req(check_unique_name)
-      #   
-      #   if (git_repo$api_key_required){
-      #     if (is.na(input$api_key_git_repo_with_map) | input$api_key_git_repo_with_map == "") shiny.fluent::updateTextField.shinyInput(session, "api_key_git_repo_with_map", errorMessage = i18n$t("provide_valid_api_key"))
-      #     else shiny.fluent::updateTextField.shinyInput(session, "api_key_git_repo_with_map", errorMessage = NULL)
-      #     req(!is.na(input$api_key_git_repo_with_map) & input$api_key_git_repo_with_map != "")
-      #   }
-      #   
-      #   add_settings_new_data(session = session, output = output, r = r, m = m, i18n = i18n, id = id, data = new_data, table = "git_repos")
-      #   
-      #   # Update & hide API key field
-      #   shiny.fluent::updateTextField.shinyInput(session = session, "api_key_git_repo_with_map", errorMessage = NULL, value = "")
-      #   shinyjs::hide("api_key_git_repo_with_map_div")
-      #   
-      #   # Disable add button
-      #   shiny.fluent::updateActionButton.shinyInput(session = session, "add_git_repo_with_map", disabled = TRUE)
-      #   
-      #   # Reload datatable
-      #   r$git_repos_temp <- r$git_repos %>% dplyr::mutate(modified = FALSE) %>% dplyr::arrange(name)
-      # })
+         git_repo <- git_repos %>% dplyr::filter(
+            sprintf("%.6f", as.numeric(lat)) == sprintf("%.6f", as.numeric(input$explore_map_marker_click$lat)),
+            sprintf("%.6f", as.numeric(lng)) == sprintf("%.6f", as.numeric(input$explore_map_marker_click$lng))
+          )
+         
+          shiny.fluent::updateTextField.shinyInput(session, "push_git_readme_api_key", value = "")
+          
+          r$map_git_repo <- git_repo
+          
+          readme <- get_git_readme(r, git_repo, type = "map")
+          output$map_git_readme <- renderUI(readme)
+          output$summary_git_readme <- renderUI(readme)
+          
+          # Get git repo informations
+          
+          if (nrow(git_repo) > 0){
+            
+            output$map_git_infos_title <- renderUI(tags$h1(git_repo$name))
+            output$map_git_infos_content <- renderUI(get_git_infos(git_repo, "map"))
+          }
+          else {
+            
+            output$map_git_infos_title <- renderUI(div())
+            output$map_git_infos <- div(
+              shiny.fluent::MessageBar(i18n$t("error_loading_git_infos"), messageBarType = 5), 
+              style = "display: inline-block; margin-top: 10px;"
+            )
+          }
+          
+          r$git_repo <- git_repo
+          
+          # Show readme edit button
+          shinyjs::show("edit_readme_button")
+        })
       
       # A repo is selected ----
       
@@ -455,7 +1054,7 @@ mod_git_repos_server <- function(id, r, d, m, language, i18n, debug){
         loaded_git_repo <- tibble::tibble()
         
         tryCatch({
-          loaded_git_repo <- load_git_repo(id, r, r$git_repo)
+            loaded_git_repo <- load_git_repo(id, r, r$git_repo)
           }, error = function(e){
             show_message_bar(output, "error_loading_git_repo", "warning", i18n = i18n, ns = ns)
             cat(paste0("\n", now(), " - mod_git_repos - error downloading git repo - error = ", toString(e)))
@@ -701,7 +1300,7 @@ mod_git_repos_server <- function(id, r, d, m, language, i18n, debug){
       # Edit description ----
       
       observeEvent(input$edit_description, {
-        if (debug) cat(paste0("\n", now(), " - mod_widgets - (", id, ") - observer input$edit_description"))
+        if (debug) cat(paste0("\n", now(), " - mod_git_repos - observer input$edit_description"))
         
         sapply(c("edit_description_button", "summary_informations_div"), shinyjs::hide)
         sapply(c("save_and_cancel_description_buttons", "edit_description_div"), shinyjs::show)
@@ -868,24 +1467,22 @@ mod_git_repos_server <- function(id, r, d, m, language, i18n, debug){
     
     get_git_infos <- function(git_repo, git_source){
       
-      if (nrow(git_repo) > 0) tagList(
-        tags$h1(git_repo$name),
+      tagList(
         div(
           strong(i18n$t("url_address")), tags$span(":", style = "margin: 0 5px;"),
           shiny.fluent::Link(href = git_repo$repo_url_address, git_repo$repo_url_address, target = "_blank"),
           style = "display: flex;"
         ),
         div(
+          id = ns(paste0("show_content_", git_source, "_div")),
           shiny.fluent::PrimaryButton.shinyInput(ns(paste0("show_content_", git_source)), i18n$t("show_content")),
-          class = "create_element_modal_buttons",
+          class = "git_repo_infos_modal_buttons",
           style = "margin-left: 10px;"
-        )) else div(
-        shiny.fluent::MessageBar(i18n$t("error_loading_git_infos"), messageBarType = 5), 
-        style = "display: inline-block; margin-top: 10px;"
+        )
       )
     }
     
-    get_git_readme <- function(r, git_repo){
+    get_git_readme <- function(r, git_repo, type){
       
       readme <- div(
         shiny.fluent::MessageBar(i18n$t("error_loading_git_readme"), messageBarType = 5), 
@@ -905,6 +1502,11 @@ mod_git_repos_server <- function(id, r, d, m, language, i18n, debug){
           if (substr(readme_url, nchar_readme_url, nchar_readme_url) != "/") readme_url <- paste0(readme_url, "/")
           
           filename_remote <- paste0(readme_url, "README.md")
+          
+          # Save local url
+          if (nrow(r$loaded_git_readme %>% dplyr::filter(unique_id == git_repo$unique_id & type == !!type)) == 0) r$loaded_git_readme <-
+            r$loaded_git_readme %>%
+            dplyr::bind_rows(tibble::tibble(unique_id = git_repo$unique_id, type = type, local_url = new_file))
           
           download.file(filename_remote, new_file, quiet = TRUE)
           

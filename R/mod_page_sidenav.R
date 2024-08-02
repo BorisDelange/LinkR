@@ -364,15 +364,17 @@ mod_page_sidenav_ui <- function(id = character(), i18n = character()){
               create_hover_card(ui = shiny.fluent::IconButton.shinyInput(ns("show_map"), iconProps = list(iconName = "POI")), text = i18n$t("show_git_repos_map")),
             )
           ),
-          create_hover_card(ui = shiny.fluent::IconButton.shinyInput(ns("create_element"), iconProps = list(iconName = "Add")), text = i18n$t("add_git_repo")),
+          create_hover_card(ui = shiny.fluent::IconButton.shinyInput(ns("create_git_repo"), iconProps = list(iconName = "Add")), text = i18n$t("create_git_repo")),
           class = "reduced_sidenav_buttons"
         ),
         div(
           id = ns("one_repo_reduced_sidenav"),
-          div(
-            id = ns("reload_git_repo_div"),
-            create_hover_card(ui = shiny.fluent::IconButton.shinyInput(ns("reload_git_repo"), iconProps = list(iconName = "SyncOccurence")), text = i18n$t("reload_git_repo")),
-            class = "reduced_sidenav_buttons"
+          shinyjs::hidden(
+            div(
+              id = ns("reload_git_repo_div"),
+              create_hover_card(ui = shiny.fluent::IconButton.shinyInput(ns("reload_git_repo"), iconProps = list(iconName = "SyncOccurence")), text = i18n$t("reload_git_repo")),
+              class = "reduced_sidenav_buttons"
+            )
           )
         )
       ),

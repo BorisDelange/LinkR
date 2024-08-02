@@ -43,6 +43,7 @@ mod_data_cleaning_ui <- function(id, language, languages, i18n, code_hotkeys){
                     create_hover_card(ui = shiny.fluent::IconButton.shinyInput(ns("run_description_code"), iconProps = list(iconName = "Play")), text = i18n$t("run_code")),
                     style = "margin-top: 5px;"
                   ),
+                  class = "small_icon_button",
                   style = "display: flex; justify-content: space-between;"
                 ),
                 div(
@@ -145,6 +146,7 @@ mod_data_cleaning_ui <- function(id, language, languages, i18n, code_hotkeys){
                   ),
                   style = "margin-top: 5px;"
                 ),
+                class = "small_icon_button",
                 style = "display: flex; justify-content: space-between;"
               ),
               uiOutput(ns("description_ui")),
