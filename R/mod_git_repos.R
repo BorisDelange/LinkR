@@ -1310,8 +1310,17 @@ mod_git_repos_server <- function(id, r, d, m, language, i18n, debug){
       observeEvent(input$git_install_element, {
         if (debug) cat(paste0("\n", now(), " - mod_git_repos - observer input$git_install_element"))
         
+        current_tab <- gsub(paste0(id, "-"), "", input$current_tab, fixed = FALSE)
+        current_tab_single <- switch(
+          current_tab, 
+          "data_cleaning" = "data_cleaning", 
+          "datasets" = "dataset",
+          "projects" = "project", 
+          "plugins" = "plugin"
+        )
+        
         tryCatch({
-          current_tab <- gsub(paste0(id, "-"), "", input$current_tab, fixed = FALSE)
+          
           git_element <- r$loaded_git_repo_elements %>% dplyr::filter(unique_id == input$selected_element)
           
           req(current_tab %in% c("datasets", "plugins", "data_cleaning"))
@@ -1335,13 +1344,6 @@ mod_git_repos_server <- function(id, r, d, m, language, i18n, debug){
           file.copy(files_to_copy, local_element_folder, overwrite = TRUE)
           
           # Delete local element from db
-          current_tab_single <- switch(
-            current_tab, 
-            "data_cleaning" = "data_cleaning", 
-            "datasets" = "dataset",
-            "projects" = "project", 
-            "plugins" = "plugin"
-          )
           
           if (current_tab == "data_cleaning") sql_table <- "scripts"
           else sql_table <- current_tab

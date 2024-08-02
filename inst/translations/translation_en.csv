@@ -497,7 +497,7 @@ plugin_up_to_date,Plugin up to date
 local_plugin_newer,Local plugin is newer
 error_install_remote_git_plugin,Error installing a plugin from remote git
 error_install_remote_git_data_cleaning,Error installing a data cleaning script from remote git
-error_install_remote_git_study,Error installing a study from remote git
+error_install_remote_git_project,Error installing a project from remote git
 error_install_remote_git_dataset,Error installing a dataset from remote git
 error_install_remote_git_vocabulary,Error installing a vocabulary from remote git
 success_installing_remote_git_plugin,Plugin successfully installed from remote git

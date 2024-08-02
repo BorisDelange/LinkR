@@ -499,7 +499,7 @@ plugin_up_to_date,Plugin à jour
 local_plugin_newer,Le plugin local est plus récent
 error_install_remote_git_plugin,Erreur lors de l'installation d'un plugin depuis le git distant
 error_install_remote_git_data_cleaning,Erreur lors de l'installation d'un script de data cleaning depuis le git distant
-error_install_remote_git_study,Erreur lors de l'installation d'une étude depuis le git distant
+error_install_remote_git_project,Erreur lors de l'installation d'un project depuis le git distant
 error_install_remote_git_dataset,Erreur lors de l'installation d'un set de données depuis le git distant
 error_install_remote_git_vocabulary,Erreur lors de l'installation d'une terminologie depuis le git distant
 success_installing_remote_git_plugin,Plugin installé avec succès depuis le git distant

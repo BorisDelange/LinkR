@@ -1427,9 +1427,6 @@ mod_widgets_server <- function(id, r, d, m, language, i18n, all_divs, debug){
       
       element_id <- input$selected_element
       
-      # Delete element in db
-      sql_send_statement(con, glue::glue_sql("DELETE FROM {sql_table} WHERE id = {element_id}", .con = con))
-      
       # For plugins, get options id to delete corresponding code rows
       # Set plugin_id to 0 in widgets table
       # Delete plugins files
@@ -1479,6 +1476,40 @@ mod_widgets_server <- function(id, r, d, m, language, i18n, all_divs, debug){
         dataset_folder <- paste0(r$app_folder, "/datasets_files/", element_id)
         unlink(dataset_folder, recursive = TRUE)
       }
+      
+      # For projects, delete subsets, widgets and tabs
+      else if (id == "projects"){
+        
+        sql <- glue::glue_sql("SELECT patient_lvl_tab_group_id, aggregated_tab_group_id FROM studies WHERE id = {element_id}", .con = r$db)
+        tabs_groups_ids <- DBI::dbGetQuery(r$db, sql)
+        tabs_groups_ids <- c(tabs_groups_ids$patient_lvl_tab_group_id, tabs_groups_ids$aggregated_tab_group_id)
+        
+        sql <- glue::glue_sql("SELECT * FROM tabs WHERE tab_group_id IN ({tabs_groups_ids*})", .con = r$db)
+        tabs_ids <- DBI::dbGetQuery(r$db, sql) %>% dplyr::pull(id)
+        
+        sql <- glue::glue_sql("SELECT * FROM widgets WHERE tab_id IN ({tabs_ids*})", .con = r$db)
+        widgets_ids <- DBI::dbGetQuery(r$db, sql) %>% dplyr::pull(id)
+        
+        sql <- glue::glue_sql("DELETE FROM widgets_options WHERE widget_id IN ({widgets_ids*})", .con = m$db)
+        sql_send_statement(m$db, sql)
+        
+        sql <- glue::glue_sql("DELETE FROM widgets_concepts WHERE widget_id IN ({widgets_ids*})", .con = m$db)
+        sql_send_statement(m$db, sql)
+        
+        sql <- glue::glue_sql("DELETE FROM persons_options WHERE study_id = {element_id}", .con = m$db)
+        sql_send_statement(m$db, sql)
+        
+        sql <- glue::glue_sql("DELETE FROM widgets WHERE tab_id IN ({tabs_ids*})", .con = r$db)
+        sql_send_statement(r$db, sql)
+        
+        sql <- glue::glue_sql("DELETE FROM tabs WHERE tab_group_id IN ({tabs_groups_ids*})", .con = r$db)
+        sql_send_statement(r$db, sql)
+        
+        # m$selected_study <- NA_integer_
+      }
+      
+      # Delete element in db
+      sql_send_statement(con, glue::glue_sql("DELETE FROM {sql_table} WHERE id = {element_id}", .con = con))
       
       # Delete code in db
       sql_send_statement(con, glue::glue_sql("DELETE FROM code WHERE category = {sql_category} AND link_id = {element_id}", .con = con))

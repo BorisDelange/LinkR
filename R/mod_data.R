@@ -277,6 +277,10 @@ mod_data_server <- function(id, r, d, m, language, i18n, debug){
       displayed_category <- r$data_page
       hidden_category <- categories[categories != displayed_category]
       
+      # Show / hide sidenav dropdowns
+      if (displayed_category == "patient_lvl") sapply(c("person_dropdown_div", "visit_detail_dropdown_div"), shinyjs::show)
+      else sapply(c("person_dropdown_div", "visit_detail_dropdown_div"), shinyjs::hide)
+      
       # Show / hide study menu
       shinyjs::hide(paste0(hidden_category, "_study_menu"))
       shinyjs::delay(100, shinyjs::show(paste0(displayed_category, "_study_menu")))
@@ -612,8 +616,8 @@ mod_data_server <- function(id, r, d, m, language, i18n, debug){
         # Reset other dropdowns & uiOutput
         shiny.fluent::updateComboBox.shinyInput(session, "visit_detail", options = list(), value = NULL)
         output$person_info <- renderUI("")
-        sapply(c("visit_detail", "person_info"), function(name) shinyjs::hide(paste0(name, "_div")))
-        shinyjs::show("person_div")
+        # sapply(c("visit_detail", "person_info"), function(name) shinyjs::hide(paste0(name, "_div")))
+        # shinyjs::show("person_div")
       })
     
       # When a patient is searched
