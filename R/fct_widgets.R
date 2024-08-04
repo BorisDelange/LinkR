@@ -1,85 +1,90 @@
-#' @noRd
-reload_elements_var <- function(page_id, con, r, m, long_var_filtered){
+compare_git_elements_datetimes <- function(action, i18n, local_element, git_element){
   
-  if (page_id == "data") id <- "plugins"
-  else id <- page_id
+  # First, we compare update datetimes: is the element on remote git repo is newer than our version?
+  diff_time <- difftime(local_element$update_datetime, git_element$update_datetime, unit = "mins") %>% as.integer()
   
-  sql_category <- switch(id, 
-    "data_cleaning" = "data_cleaning",
-    "datasets" = "dataset",
-    "projects" = "study",
-    "plugins" = "plugin", 
-    "subsets" = "subset",
-    "vocabularies" = "vocabulary"
-  )
+  # No action
+  # The two versions are the same or, for push, git version is newer, and for pull, local version is newer
+  if (diff_time == 0) diff_time_text <- strong(tolower(i18n$t("element_git_and_local_versions_are_the_same")))
+  else if (diff_time < 0 & action == "push") diff_time_text <- strong(tolower(i18n$t("element_git_version_more_recent")))
+  else if (diff_time > 0 & action == "pull") diff_time_text <- strong(tolower(i18n$t("element_local_version_more_recent")))
   
-  sql_table <- switch(
-    id, 
-    "data_cleaning" = "scripts",
-    "datasets" = "datasets",
-    "projects" = "studies",
-    "plugins" = "plugins", 
-    "subsets" = "subsets",
-    "vocabularies" = "vocabulary"
-  )
-  
-  long_var <- paste0(id, "_long")
-  wide_var <- paste0(id, "_wide")
-  
-  if (sql_table == "plugins"){
-    sql <- glue::glue_sql("WITH {paste0('selected_', id)} AS (
-      SELECT DISTINCT d.id
-      FROM {sql_table} d
-      LEFT JOIN options AS r ON d.id = r.link_id AND r.category = {sql_category} AND r.name = 'users_allowed_read_group'
-      LEFT JOIN options AS u ON d.id = u.link_id AND u.category = {sql_category} AND u.name = 'user_allowed_read'
-      WHERE r.value = 'everybody' OR (r.value = 'people_picker' AND u.value_num = {r$user_id})
-    )
-    SELECT d.id, d.update_datetime, d.tab_type_id, o.name, o.value, o.value_num
-      FROM {sql_table} d
-      INNER JOIN {paste0('selected_', id)} ON d.id = {paste0('selected_', id)}.id
-      LEFT JOIN options o ON o.category = {sql_category} AND d.id = o.link_id", .con = con)
-  }
-  
-  else if (sql_table == "subsets"){
-    sql <- glue::glue_sql("WITH {paste0('selected_', id)} AS (
-      SELECT DISTINCT d.id
-      FROM {sql_table} d
-      LEFT JOIN options AS r ON d.id = r.link_id AND r.category = {sql_category} AND r.name = 'users_allowed_read_group'
-      LEFT JOIN options AS u ON d.id = u.link_id AND u.category = {sql_category} AND u.name = 'user_allowed_read'
-      WHERE 
-        d.study_id = {m$selected_study} AND
-        (r.value = 'everybody' OR (r.value = 'people_picker' AND u.value_num = {r$user_id}))
-    )
-    SELECT d.id, o.name, o.value, o.value_num
-      FROM {sql_table} d
-      INNER JOIN {paste0('selected_', id)} ON d.id = {paste0('selected_', id)}.id
-      LEFT JOIN options o ON o.category = {sql_category} AND d.id = o.link_id", .con = con)
-  }
-  
+  # Action
+  # Then, we compare the update datetime from now (update XX time ago...)
   else {
-    sql <- glue::glue_sql("WITH {paste0('selected_', id)} AS (
-      SELECT DISTINCT d.id
-      FROM {sql_table} d
-      LEFT JOIN options AS r ON d.id = r.link_id AND r.category = {sql_category} AND r.name = 'users_allowed_read_group'
-      LEFT JOIN options AS u ON d.id = u.link_id AND u.category = {sql_category} AND u.name = 'user_allowed_read'
-      WHERE r.value = 'everybody' OR (r.value = 'people_picker' AND u.value_num = {r$user_id})
+    diff_time_now <- difftime(now(), git_element$update_datetime, unit = "mins") %>% as.integer()
+    
+    if (diff_time_now < 60) {
+      if (diff_time_now == 1) diff_time_unit_text <- i18n$t("minute")
+      else diff_time_unit_text <- i18n$t("minutes")
+      diff_time_text <- tagList(strong(diff_time_now, " ", tolower(diff_time_unit_text)), " ", tolower(i18n$t("updated_x_ago")))
+    }
+    else if (diff_time_now < 1440) {
+      diff_time_now <- difftime(now(), git_element$update_datetime, unit = "hours") %>% as.integer()
+      
+      if (diff_time_now == 1) diff_time_unit_text <- i18n$t("hour")
+      else diff_time_unit_text <- i18n$t("hours")
+      diff_time_text <- tagList(strong(diff_time_now, " ", tolower(diff_time_unit_text)), " ", tolower(i18n$t("updated_x_ago")))
+    }
+    else {
+      diff_time_now <- difftime(now(), git_element$update_datetime, unit = "days") %>% as.integer()
+      
+      if (diff_time_now == 1) diff_time_unit_text <- i18n$t("day")
+      else diff_time_unit_text <- i18n$t("days")
+      diff_time_text <- tagList(strong(diff_time_now, " ", tolower(diff_time_unit_text)), " ", tolower(i18n$t("updated_x_ago")))
+    }
+  }
+  
+  return(list(diff_time, diff_time_text))
+}
+
+#' @noRd
+create_authors_ui <- function(authors){
+  
+  personas <- list()
+  authors <- authors %>% strsplit(split = "[,;]") %>% unlist() %>% trimws()
+  
+  if (length(authors) > 0) for (author in authors) personas <- rlist::list.append(personas, list(personaName = author))
+  
+  div(
+    shiny.fluent::Facepile(personas = personas),
+    style = "height: 35px; display: flex; align-items: center;"
+  )
+}
+
+#' @noRd
+create_element_files <- function(id, r, element_id, single_id, sql_category, element_options, element_dir){
+  
+  if (!dir.exists(element_dir)) dir.create(element_dir)
+  
+  if (id %in% c("data_cleaning", "datasets")){
+    # Get dataset code
+    
+    sql <- glue::glue_sql("SELECT code FROM code WHERE category = {sql_category} AND link_id = {element_id}", .con = r$db)
+    code <- DBI::dbGetQuery(r$db, sql) %>% dplyr::pull()
+    
+    writeLines(code, paste0(element_dir, "/code.R"))
+  }
+  
+  # Create XML file
+  create_element_xml(id, r, element_id, single_id, element_options, element_dir)
+}
+
+#' @noRd
+create_element_ui <- function(page_id, single_id, element_name, users_ui, widget_buttons, onclick, short_description){
+  
+  div(
+    onclick = paste0(onclick, "Shiny.setInputValue('", page_id, "-selected_element_type', '');"),
+    div(
+      class = paste0(single_id, "_widget"),
+      div(
+        tags$h1(element_name),
+        users_ui,
+        div(short_description)
+      ),
+      widget_buttons
     )
-    SELECT d.id, d.update_datetime, o.name, o.value, o.value_num
-      FROM {sql_table} d
-      INNER JOIN {paste0('selected_', id)} ON d.id = {paste0('selected_', id)}.id
-      LEFT JOIN options o ON o.category = {sql_category} AND d.id = o.link_id", .con = con)
-  }
-  
-  r[[long_var]] <- DBI::dbGetQuery(con, sql) %>% tibble::as_tibble()
-  
-  if (page_id == "data"){
-    if (r$data_page == "patient_lvl") tab_type_id <- 1 else tab_type_id <- 2
-    r[[long_var_filtered]] <- r[[long_var]] %>% dplyr::filter(grepl(!!tab_type_id, tab_type_id))
-  }
-  else r[[long_var_filtered]] <- r[[long_var]]
-  
-  sql <- glue::glue_sql("SELECT * FROM {sql_table} WHERE id IN ({unique(r[[long_var]]$id)*})", .con = con)
-  r[[wide_var]] <- DBI::dbGetQuery(con, sql) %>% tibble::as_tibble()
+  )
 }
 
 #' @noRd
@@ -89,12 +94,12 @@ create_elements_ui <- function(page_id, elements, r, language, i18n){
   else id <- page_id
   
   single_id <- switch(id, 
-    "data_cleaning" = "data_cleaning",
-    "datasets" = "dataset",
-    "projects" = "project",
-    "plugins" = "plugin", 
-    "subsets" = "subset",
-    "vocabularies" = "vocabulary"
+                      "data_cleaning" = "data_cleaning",
+                      "datasets" = "dataset",
+                      "projects" = "project",
+                      "plugins" = "plugin", 
+                      "subsets" = "subset",
+                      "vocabularies" = "vocabulary"
   )
   
   ns <- NS(id)
@@ -155,128 +160,6 @@ create_elements_ui <- function(page_id, elements, r, language, i18n){
   }
   
   div(elements_ui, class = paste0(id, "_container"))
-}
-
-compare_git_elements_datetimes <- function(action, i18n, local_element, git_element){
-  
-  # First, we compare update datetimes: is the element on remote git repo is newer than our version?
-  diff_time <- difftime(local_element$update_datetime, git_element$update_datetime, unit = "mins") %>% as.integer()
-  
-  # No action
-  # The two versions are the same or, for push, git version is newer, and for pull, local version is newer
-  if (diff_time == 0) diff_time_text <- strong(tolower(i18n$t("element_git_and_local_versions_are_the_same")))
-  else if (diff_time < 0 & action == "push") diff_time_text <- strong(tolower(i18n$t("element_git_version_more_recent")))
-  else if (diff_time > 0 & action == "pull") diff_time_text <- strong(tolower(i18n$t("element_local_version_more_recent")))
-  
-  # Action
-  # Then, we compare the update datetime from now (update XX time ago...)
-  else {
-    diff_time_now <- difftime(now(), git_element$update_datetime, unit = "mins") %>% as.integer()
-    
-    if (diff_time_now < 60) {
-      if (diff_time_now == 1) diff_time_unit_text <- i18n$t("minute")
-      else diff_time_unit_text <- i18n$t("minutes")
-      diff_time_text <- tagList(strong(diff_time_now, " ", tolower(diff_time_unit_text)), " ", tolower(i18n$t("updated_x_ago")))
-    }
-    else if (diff_time_now < 1440) {
-      diff_time_now <- difftime(now(), git_element$update_datetime, unit = "hours") %>% as.integer()
-      
-      if (diff_time_now == 1) diff_time_unit_text <- i18n$t("hour")
-      else diff_time_unit_text <- i18n$t("hours")
-      diff_time_text <- tagList(strong(diff_time_now, " ", tolower(diff_time_unit_text)), " ", tolower(i18n$t("updated_x_ago")))
-    }
-    else {
-      diff_time_now <- difftime(now(), git_element$update_datetime, unit = "days") %>% as.integer()
-      
-      if (diff_time_now == 1) diff_time_unit_text <- i18n$t("day")
-      else diff_time_unit_text <- i18n$t("days")
-      diff_time_text <- tagList(strong(diff_time_now, " ", tolower(diff_time_unit_text)), " ", tolower(i18n$t("updated_x_ago")))
-    }
-  }
-  
-  return(list(diff_time, diff_time_text))
-}
-
-#' @noRd
-get_plugin_buttons <- function(plugin_type, i18n){
-  
-  if (plugin_type == 1) {
-    plugin_type_icon <- div(shiny.fluent::FontIcon(iconName = "Contact"), class = "small_icon_button")
-    plugin_type_text <- i18n$t("patient_lvl_plugin")
-  }
-  else if (plugin_type == 2) {
-    plugin_type_icon <- div(shiny.fluent::FontIcon(iconName = "Group"), class = "small_icon_button")
-    plugin_type_text <- i18n$t("aggregated_plugin")
-  }
-  else if (plugin_type %in% c(12, 21)){
-    plugin_type_icon <- div(
-      div(shiny.fluent::FontIcon(iconName = "Contact"), class = "small_icon_button"),
-      div(shiny.fluent::FontIcon(iconName = "Group"), class = "small_icon_button"),
-      style = "display: flex; gap: 5px;"
-    )
-    plugin_type_text <- i18n$t("patient_lvl_or_aggregated_plugin")
-  }
-  
-  plugin_type_icon <- create_hover_card(ui = plugin_type_icon, text = plugin_type_text)
-  
-  div(
-    div(
-      # div("R", class = "prog_label r_label"),
-      # div("Python", class = "prog_label python_label"),
-      # class = "plugin_widget_labels"
-    ),
-    plugin_type_icon,
-    class = "plugin_widget_bottom"
-  )
-}
-
-#' @noRd
-create_authors_ui <- function(authors){
-  
-  personas <- list()
-  authors <- authors %>% strsplit(split = "[,;]") %>% unlist() %>% trimws()
-  
-  if (length(authors) > 0) for (author in authors) personas <- rlist::list.append(personas, list(personaName = author))
-  
-  div(
-    shiny.fluent::Facepile(personas = personas),
-    style = "height: 35px; display: flex; align-items: center;"
-  )
-}
-
-#' @noRd
-create_element_ui <- function(page_id, single_id, element_name, users_ui, widget_buttons, onclick, short_description){
-  
-  div(
-    onclick = paste0(onclick, "Shiny.setInputValue('", page_id, "-selected_element_type', '');"),
-    div(
-      class = paste0(single_id, "_widget"),
-      div(
-        tags$h1(element_name),
-        users_ui,
-        div(short_description)
-      ),
-      widget_buttons
-    )
-  )
-}
-
-#' @noRd
-create_element_files <- function(id, r, element_id, single_id, sql_category, element_options, element_dir){
-  
-  if (!dir.exists(element_dir)) dir.create(element_dir)
-  
-  if (id %in% c("data_cleaning", "datasets")){
-    # Get dataset code
-    
-    sql <- glue::glue_sql("SELECT code FROM code WHERE category = {sql_category} AND link_id = {element_id}", .con = r$db)
-    code <- DBI::dbGetQuery(r$db, sql) %>% dplyr::pull()
-    
-    writeLines(code, paste0(element_dir, "/code.R"))
-  }
-  
-  # Create XML file
-  create_element_xml(id, r, element_id, single_id, element_options, element_dir)
 }
 
 #' @noRd
@@ -455,10 +338,11 @@ create_project_files <- function(id, r, m, single_id, element_id, element_wide, 
     dplyr::left_join(corresponding_ids$plugins %>% dplyr::select(plugin_id = old_id, new_plugin_id = new_id), by = "plugin_id") %>%
     dplyr::select(-id, -tab_id, -plugin_id) %>%
     dplyr::rename(id = new_id, tab_id = new_tab_id, plugin_id = new_plugin_id) %>%
+    dplyr::mutate(plugin_id = dplyr::case_when(is.na(plugin_id) ~ 0, TRUE ~ plugin_id)) %>%
     dplyr::relocate(id, .before = "category") %>%
     dplyr::relocate(tab_id, .after = "name") %>%
     dplyr::relocate(plugin_id, .before = "display_order")
-
+  
   ### widgets_concepts
   if (nrow(data$widgets_concepts) > 0) data$widgets_concepts <- 
     data$widgets_concepts %>%
@@ -562,4 +446,339 @@ create_rmarkdown_file <- function(r, code, interpret_code = TRUE){
   else writeLines(code, con = output_file)
   
   return(output_file)
+}
+
+#' @noRd
+delete_project <- function(r, m, project_id){
+  
+  sql <- glue::glue_sql("SELECT patient_lvl_tab_group_id, aggregated_tab_group_id FROM studies WHERE id = {project_id}", .con = r$db)
+  tabs_groups_ids <- DBI::dbGetQuery(r$db, sql)
+  tabs_groups_ids <- c(tabs_groups_ids$patient_lvl_tab_group_id, tabs_groups_ids$aggregated_tab_group_id)
+  
+  sql <- glue::glue_sql("SELECT * FROM tabs WHERE tab_group_id IN ({tabs_groups_ids*})", .con = r$db)
+  tabs_ids <- DBI::dbGetQuery(r$db, sql) %>% dplyr::pull(id)
+  
+  sql <- glue::glue_sql("SELECT * FROM widgets WHERE tab_id IN ({tabs_ids*})", .con = r$db)
+  widgets_ids <- DBI::dbGetQuery(r$db, sql) %>% dplyr::pull(id)
+  
+  sql <- glue::glue_sql("SELECT * FROM subsets WHERE study_id = {project_id}", .con = m$db)
+  subsets_ids <- DBI::dbGetQuery(m$db, sql) %>% dplyr::pull(id)
+  
+  sql <- glue::glue_sql("DELETE FROM subsets WHERE study_id = {project_id}", .con = m$db)
+  sql_send_statement(m$db, sql)
+  
+  sql <- glue::glue_sql("DELETE FROM options WHERE category = 'subset' AND link_id IN ({subsets_ids*})", .con = m$db)
+  sql_send_statement(m$db, sql)
+  
+  sql <- glue::glue_sql("DELETE FROM code WHERE category = 'subset' AND link_id IN ({subsets_ids*})", .con = m$db)
+  sql_send_statement(m$db, sql)
+  
+  sql <- glue::glue_sql("DELETE FROM widgets_options WHERE widget_id IN ({widgets_ids*})", .con = m$db)
+  sql_send_statement(m$db, sql)
+  
+  sql <- glue::glue_sql("DELETE FROM widgets_concepts WHERE widget_id IN ({widgets_ids*})", .con = m$db)
+  sql_send_statement(m$db, sql)
+  
+  sql <- glue::glue_sql("DELETE FROM persons_options WHERE study_id = {project_id}", .con = m$db)
+  sql_send_statement(m$db, sql)
+  
+  sql <- glue::glue_sql("DELETE FROM widgets WHERE tab_id IN ({tabs_ids*})", .con = r$db)
+  sql_send_statement(r$db, sql)
+  
+  sql <- glue::glue_sql("DELETE FROM tabs WHERE tab_group_id IN ({tabs_groups_ids*})", .con = r$db)
+  sql_send_statement(r$db, sql)
+}
+
+#' @noRd
+get_plugin_buttons <- function(plugin_type, i18n){
+  
+  if (plugin_type == 1) {
+    plugin_type_icon <- div(shiny.fluent::FontIcon(iconName = "Contact"), class = "small_icon_button")
+    plugin_type_text <- i18n$t("patient_lvl_plugin")
+  }
+  else if (plugin_type == 2) {
+    plugin_type_icon <- div(shiny.fluent::FontIcon(iconName = "Group"), class = "small_icon_button")
+    plugin_type_text <- i18n$t("aggregated_plugin")
+  }
+  else if (plugin_type %in% c(12, 21)){
+    plugin_type_icon <- div(
+      div(shiny.fluent::FontIcon(iconName = "Contact"), class = "small_icon_button"),
+      div(shiny.fluent::FontIcon(iconName = "Group"), class = "small_icon_button"),
+      style = "display: flex; gap: 5px;"
+    )
+    plugin_type_text <- i18n$t("patient_lvl_or_aggregated_plugin")
+  }
+  
+  plugin_type_icon <- create_hover_card(ui = plugin_type_icon, text = plugin_type_text)
+  
+  div(
+    div(
+      # div("R", class = "prog_label r_label"),
+      # div("Python", class = "prog_label python_label"),
+      # class = "plugin_widget_labels"
+    ),
+    plugin_type_icon,
+    class = "plugin_widget_bottom"
+  )
+}
+
+#' @noRd
+import_project <- function(r, m, csv_folder, update_plugins, project_id){
+  
+  # Tables :
+  # - tabs_groups
+  # - tabs
+  # - widgets
+  # - widgets_concepts
+  # - widgets_options
+  # - plugins
+  # - code
+  # - options
+  
+  # Load CSV files
+  
+  csv_files <- list.files(csv_folder)
+  
+  data <- list()
+  last_row <- list()
+  
+  if (length(csv_files) > 0){
+    for (csv_file in csv_files){
+      
+      table <- sub("\\.csv$", "", csv_file, ignore.case = TRUE)
+      
+      file_path <- paste0(csv_folder, "/", csv_file)
+      
+      if (table %in% c("code", "options", "plugins", "tabs", "tabs_groups", "widgets")){
+        db <- "main"
+        con <- r$db
+      }
+      else {
+        db <- "public"
+        con <- m$db
+      }
+      
+      last_row[[table]] <- get_last_row(con, table)
+      
+      col_types <- r$db_col_types %>% dplyr::filter(db == !!db, table == !!table) %>% dplyr::pull(col_types)
+      data[[table]] <- vroom::vroom(file_path, col_types = col_types, progress = FALSE)
+      
+      if (table != "plugins") data[[table]] <- data[[table]] %>% dplyr::mutate(id = id + last_row[[table]])
+    }
+  }
+  
+  # Add data in database
+  
+  ## plugins
+  
+  ### Reload r$plugins_wide & r$plugins_long
+  reload_elements_var(page_id = "plugins", con = r$db, r = r, m = m, long_var_filtered = "filtered_plugins_long")
+  
+  data$plugins <- data$plugins %>% dplyr::mutate(new_id = id + last_row$plugins)
+  
+  local_plugins <- 
+    r$plugins_wide %>%
+    dplyr::left_join(
+      r$plugins_long %>% dplyr::filter(name == "unique_id") %>% dplyr::select(id, unique_id = value),
+      by = "id"
+    )
+  
+  imported_plugins <-
+    data$plugins %>% dplyr::select(id, tab_type_id, imported_update_datetime = update_datetime) %>%
+    dplyr::left_join(data$options %>% dplyr::filter(category == "plugin" & name == "unique_id") %>% dplyr::select(id = link_id, unique_id = value), by = "id")
+  
+  new_plugins <- imported_plugins %>% dplyr::filter(unique_id %not_in% local_plugins$unique_id)
+  
+  more_recent_plugins <-
+    imported_plugins %>%
+    dplyr::filter(unique_id %in% local_plugins$unique_id) %>%
+    dplyr::left_join(local_plugins %>% dplyr::select(unique_id, local_update_datetime = update_datetime), by = "unique_id") %>%
+    dplyr::filter(imported_update_datetime > local_update_datetime)
+  
+  # Change ID
+  # If already exists locally, keep local ID
+  data$plugins <-
+    data$plugins %>%
+    dplyr::left_join(imported_plugins %>% dplyr::select(id, unique_id), by = "id") %>%
+    dplyr::left_join(local_plugins %>% dplyr::select(local_id = id, unique_id), by = "unique_id") %>%
+    dplyr::mutate_at(c("local_id", "new_id"), as.integer) %>%
+    dplyr::mutate(new_id = dplyr::case_when(
+      !is.na(local_id) ~ local_id,
+      TRUE ~ new_id
+    )) %>%
+    dplyr::select(-unique_id, -local_id)
+  
+  ## projects
+  patient_lvl_tab_group_id <- data$tabs_groups %>% dplyr::filter(category == "patient_lvl") %>% dplyr::pull(id)
+  aggregated_tab_group_id <- data$tabs_groups %>% dplyr::filter(category == "aggregated") %>% dplyr::pull(id)
+  sql <- glue::glue_sql("UPDATE studies SET patient_lvl_tab_group_id = {patient_lvl_tab_group_id}, aggregated_tab_group_id = {aggregated_tab_group_id} WHERE id = {project_id}", .con = r$db)
+  sql_send_statement(r$db, sql)
+  
+  ## tabs
+  data$tabs <- data$tabs %>% dplyr::mutate(
+    tab_group_id = tab_group_id + last_row$tabs_groups,
+    parent_tab_id = parent_tab_id + last_row$tabs
+  )
+  
+  ## widgets
+  data$widgets <-
+    data$widgets %>%
+    dplyr::mutate(tab_id = tab_id + last_row$tabs) %>%
+    dplyr::left_join(data$plugins %>% dplyr::select(plugin_id = id, new_plugin_id = new_id), by = "plugin_id") %>%
+    dplyr::select(-plugin_id) %>%
+    dplyr::rename(plugin_id = new_plugin_id) %>%
+    dplyr::relocate(plugin_id, .after = "tab_id")
+  
+  ## widgets_concepts
+  data$widgets_concepts <- data$widgets_concepts %>% dplyr::mutate(widget_id = widget_id + last_row$widgets)
+  
+  ## widgets_options
+  data$widgets_options <- 
+    data$widgets_options %>%
+    dplyr::mutate(widget_id = widget_id + last_row$widgets, link_id = link_id + last_row$widgets_options)
+  
+  data$options <- data$options %>%
+    dplyr::left_join(
+      data$plugins %>% dplyr::select(link_id = id, new_link_id = new_id),
+      by = "link_id"
+    ) %>%
+    dplyr::select(-link_id) %>%
+    dplyr::rename(link_id = new_link_id) %>%
+    dplyr::relocate(link_id, .after = "category")
+  
+  # Delete data for more recent plugins
+  if (update_plugins){
+    
+    # Get local IDs
+    ids_to_del <-
+      local_plugins %>% 
+      dplyr::inner_join(more_recent_plugins %>% dplyr::select(unique_id), by = "unique_id") %>%
+      dplyr::pull(id)
+    
+    if (length(ids_to_del) > 0){
+      
+      sql <- glue::glue_sql("DELETE FROM plugins WHERE id IN ({ids_to_del*})", .con = r$db)
+      sql_send_statement(r$db, sql)
+      
+      # Get options ids to delete code rows
+      options_ids <- DBI::dbGetQuery(r$db, glue::glue_sql("SELECT id FROM options WHERE category = 'plugin_code' AND link_id IN ({ids_to_del*})", .con = r$db)) %>% dplyr::pull()
+      
+      # Delete code in db
+      sql <- glue::glue_sql("DELETE FROM code WHERE link_id IN ({options_ids*})", .con = r$db)
+      sql_send_statement(r$db, sql)
+      
+      sql <- glue::glue_sql("DELETE FROM options WHERE category IN ('plugin', 'plugin_code') AND link_id IN ({ids_to_del*})", .con = r$db)
+      sql_send_statement(r$db, sql)
+    }
+  }
+  
+  # Filter plugins to add
+  if (update_plugins) data$plugins <- data$plugins %>% dplyr::filter(id %in% new_plugins$id | id %in% more_recent_plugins$id)
+  if (!update_plugins) data$plugins <- data$plugins %>% dplyr::filter(id %in% new_plugins$id)
+  
+  data$plugins <- data$plugins %>% dplyr::mutate(id = new_id) %>% dplyr::select(-new_id)
+  
+  # Filter options & code on plugins to import
+  data$options <- data$options %>% dplyr::filter(link_id %in% data$plugins$id)
+  data$code <- 
+    data$code %>% 
+    dplyr::mutate(link_id = link_id + last_row$options) %>%
+    dplyr::filter(link_id %in% data$options$id)
+  
+  # Copy data in app database
+  for (table in c("tabs_groups", "tabs", "widgets", "widgets_concepts", "widgets_options", "plugins", "options", "code")){
+    
+    if (table %in% c("widgets_concepts", "widgets_options")) con <- m$db
+    else con <- r$db
+    
+    DBI::dbAppendTable(con, table, data[[table]])
+  }
+  
+  # Reload r$plugins_wide & r$plugins_long
+  if (update_plugins) reload_elements_var(page_id = "plugins", con = r$db, r = r, m = m, long_var_filtered = "filtered_plugins_long")
+}
+
+#' @noRd
+reload_elements_var <- function(page_id, con, r, m, long_var_filtered){
+  
+  if (page_id == "data") id <- "plugins"
+  else id <- page_id
+  
+  sql_category <- switch(
+    id,
+    "data_cleaning" = "data_cleaning",
+    "datasets" = "dataset",
+    "projects" = "study",
+    "plugins" = "plugin", 
+    "subsets" = "subset",
+    "vocabularies" = "vocabulary"
+  )
+  
+  sql_table <- switch(
+    id, 
+    "data_cleaning" = "scripts",
+    "datasets" = "datasets",
+    "projects" = "studies",
+    "plugins" = "plugins", 
+    "subsets" = "subsets",
+    "vocabularies" = "vocabulary"
+  )
+  
+  long_var <- paste0(id, "_long")
+  wide_var <- paste0(id, "_wide")
+  
+  if (sql_table == "plugins"){
+    sql <- glue::glue_sql("WITH {paste0('selected_', id)} AS (
+      SELECT DISTINCT d.id
+      FROM {sql_table} d
+      LEFT JOIN options AS r ON d.id = r.link_id AND r.category = {sql_category} AND r.name = 'users_allowed_read_group'
+      LEFT JOIN options AS u ON d.id = u.link_id AND u.category = {sql_category} AND u.name = 'user_allowed_read'
+      WHERE r.value = 'everybody' OR (r.value = 'people_picker' AND u.value_num = {r$user_id})
+    )
+    SELECT d.id, d.update_datetime, d.tab_type_id, o.name, o.value, o.value_num
+      FROM {sql_table} d
+      INNER JOIN {paste0('selected_', id)} ON d.id = {paste0('selected_', id)}.id
+      LEFT JOIN options o ON o.category = {sql_category} AND d.id = o.link_id", .con = con)
+  }
+  
+  else if (sql_table == "subsets"){
+    sql <- glue::glue_sql("WITH {paste0('selected_', id)} AS (
+      SELECT DISTINCT d.id
+      FROM {sql_table} d
+      LEFT JOIN options AS r ON d.id = r.link_id AND r.category = {sql_category} AND r.name = 'users_allowed_read_group'
+      LEFT JOIN options AS u ON d.id = u.link_id AND u.category = {sql_category} AND u.name = 'user_allowed_read'
+      WHERE 
+        d.study_id = {m$selected_study} AND
+        (r.value = 'everybody' OR (r.value = 'people_picker' AND u.value_num = {r$user_id}))
+    )
+    SELECT d.id, o.name, o.value, o.value_num
+      FROM {sql_table} d
+      INNER JOIN {paste0('selected_', id)} ON d.id = {paste0('selected_', id)}.id
+      LEFT JOIN options o ON o.category = {sql_category} AND d.id = o.link_id", .con = con)
+  }
+  
+  else {
+    sql <- glue::glue_sql("WITH {paste0('selected_', id)} AS (
+      SELECT DISTINCT d.id
+      FROM {sql_table} d
+      LEFT JOIN options AS r ON d.id = r.link_id AND r.category = {sql_category} AND r.name = 'users_allowed_read_group'
+      LEFT JOIN options AS u ON d.id = u.link_id AND u.category = {sql_category} AND u.name = 'user_allowed_read'
+      WHERE r.value = 'everybody' OR (r.value = 'people_picker' AND u.value_num = {r$user_id})
+    )
+    SELECT d.id, d.update_datetime, o.name, o.value, o.value_num
+      FROM {sql_table} d
+      INNER JOIN {paste0('selected_', id)} ON d.id = {paste0('selected_', id)}.id
+      LEFT JOIN options o ON o.category = {sql_category} AND d.id = o.link_id", .con = con)
+  }
+  
+  r[[long_var]] <- DBI::dbGetQuery(con, sql) %>% tibble::as_tibble()
+  
+  if (page_id == "data"){
+    if (r$data_page == "patient_lvl") tab_type_id <- 1 else tab_type_id <- 2
+    r[[long_var_filtered]] <- r[[long_var]] %>% dplyr::filter(grepl(!!tab_type_id, tab_type_id))
+  }
+  else r[[long_var_filtered]] <- r[[long_var]]
+  
+  sql <- glue::glue_sql("SELECT * FROM {sql_table} WHERE id IN ({unique(r[[long_var]]$id)*})", .con = con)
+  r[[wide_var]] <- DBI::dbGetQuery(con, sql) %>% tibble::as_tibble()
 }

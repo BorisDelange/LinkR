@@ -41,6 +41,7 @@ app_server <- function(pages, language, languages, i18n, app_folder, debug, log_
       "provider"
     )
     sapply(main_tables, function(table) d[[table]] <- tibble::tibble())
+    r$main_tables <- main_tables
     
     # Create m reactive value, for plugins & widgets data
     m <- reactiveValues()
@@ -49,7 +50,7 @@ app_server <- function(pages, language, languages, i18n, app_folder, debug, log_
     o <- reactiveValues()
     
     # App version ----
-    r$app_version <- "0.3.0.9013"
+    r$app_version <- "0.3.0.9014"
     
     # Databse col types ----
     

@@ -1217,6 +1217,7 @@ delete_git_repo_text,Supprimer ce dépôt git ? "Ceci supprime le lien local ver
 delete_git_element_vocabulary_title,Supprimer un élément du git
 delete_git_element_vocabulary_text,Supprimer cette terminologie sur le git ?
 dont_update,Ne pas mettre à jour
+reload_dataset,Recharger le set de données
 reload_dataset_concepts,Recharger les concepts du set de données
 reload_dataset_concepts_title,Recharger les concepts
 reload_dataset_concepts_text,Recharger le décompte des concepts du set de données actuel ? Cette opération peut prendre quelques minutes.

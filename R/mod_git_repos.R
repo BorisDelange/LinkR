@@ -301,6 +301,23 @@ mod_git_repos_ui <- function(id = character(), language = "en", languages = tibb
         ),
         class = "push_git_readme_modal"
       )
+    ),
+    
+    # Import project plugins modal ----
+    shinyjs::hidden(
+      div(
+        id = ns("update_project_plugins_modal"),
+        div(
+          tags$h1(i18n$t("update_project_plugins_title")), tags$p(i18n$t("update_project_plugins_text")),
+          div(
+            shiny.fluent::DefaultButton.shinyInput(ns("close_project_plugins_import_modal"), i18n$t("dont_update")),
+            div(shiny.fluent::PrimaryButton.shinyInput(ns("confirm_project_plugins_import"), i18n$t("update"))),
+            class = "import_modal_buttons"
+          ),
+          class = "import_modal_content"
+        ),
+        class = "import_modal"
+      )
     )
   )
 }
@@ -1307,8 +1324,33 @@ mod_git_repos_server <- function(id, r, d, m, language, i18n, debug){
       })
       
       # Install an element ----
+      
       observeEvent(input$git_install_element, {
         if (debug) cat(paste0("\n", now(), " - mod_git_repos - observer input$git_install_element"))
+        
+        current_tab <- gsub(paste0(id, "-"), "", input$current_tab, fixed = FALSE)
+        if (current_tab == "projects") shinyjs::show("update_project_plugins_modal")
+        else shinyjs::runjs(paste0("Shiny.setInputValue('", id, "-git_install_element_confirmed', Math.random());"))
+      })
+      
+      observeEvent(input$confirm_project_plugins_import, {
+        if (debug) cat(paste0("\n", now(), " - mod_git_repos - observer input$confirm_project_plugins_import"))
+        shinyjs::hide("update_project_plugins_modal")
+        
+        shinyjs::runjs(paste0("Shiny.setInputValue('", id, "-import_project_plugins', true);"))
+        shinyjs::runjs(paste0("Shiny.setInputValue('", id, "-git_install_element_confirmed', Math.random());"))
+      })
+      
+      observeEvent(input$close_project_plugins_import_modal, {
+        if (debug) cat(paste0("\n", now(), " - mod_git_repos - observer input$close_project_plugins_import_modal"))
+        shinyjs::hide("update_project_plugins_modal")
+        
+        shinyjs::runjs(paste0("Shiny.setInputValue('", id, "-import_project_plugins', false);"))
+        shinyjs::runjs(paste0("Shiny.setInputValue('", id, "-git_install_element_confirmed', Math.random());"))
+      })
+      
+      observeEvent(input$git_install_element_confirmed, {
+        if (debug) cat(paste0("\n", now(), " - mod_git_repos - observer input$git_install_element_confirmed"))
         
         current_tab <- gsub(paste0(id, "-"), "", input$current_tab, fixed = FALSE)
         current_tab_single <- switch(
@@ -1319,11 +1361,25 @@ mod_git_repos_server <- function(id, r, d, m, language, i18n, debug){
           "plugins" = "plugin"
         )
         
+        sql_table <- switch(
+          current_tab, 
+          "data_cleaning" = "scripts", 
+          "datasets" = "datasets",
+          "projects" = "studies", 
+          "plugins" = "plugins"
+        )
+        
+        sql_category <- switch(
+          current_tab, 
+          "data_cleaning" = "data_cleaning",
+          "datasets" = "dataset",
+          "projects" = "study",
+          "plugins" = "plugin"
+        )
+        
         tryCatch({
           
           git_element <- r$loaded_git_repo_elements %>% dplyr::filter(unique_id == input$selected_element)
-          
-          req(current_tab %in% c("datasets", "plugins", "data_cleaning"))
           
           # Delete local element files
           local_element_folder <- paste0(r$app_folder, "/", current_tab, "/", input$selected_element)
@@ -1343,61 +1399,74 @@ mod_git_repos_server <- function(id, r, d, m, language, i18n, debug){
           files_to_copy <- list.files(git_element_folder, full.names = TRUE)
           file.copy(files_to_copy, local_element_folder, overwrite = TRUE)
           
+          if (current_tab == "projects"){
+            
+            # Copy app_db folder
+            app_db_folder <- paste0(local_element_folder, "/app_db")
+            if (!dir.exists(app_db_folder)) dir.create(app_db_folder)
+            files_to_copy <- list.files(paste0(git_element_folder, "/app_db"), full.names = TRUE)
+            file.copy(files_to_copy, app_db_folder, overwrite = TRUE)
+          }
+          
           # Delete local element from db
-          
-          if (current_tab == "data_cleaning") sql_table <- "scripts"
-          else sql_table <- current_tab
-          
+
           sql <- glue::glue_sql(paste0(
             "SELECT * FROM {sql_table} WHERE id = (",
-            "SELECT link_id FROM options WHERE category = {current_tab_single} AND name = 'unique_id' AND value = {input$selected_element}",
+            "SELECT link_id FROM options WHERE category = {sql_category} AND name = 'unique_id' AND value = {input$selected_element}",
             ")"), .con = r$db)
           local_element <- DBI::dbGetQuery(r$db, sql)
-          
+
           # If element exists, keep current id
           if (nrow(local_element) > 0){
-            
+
             element_id <- local_element$id
-            
+
             ## Delete rows in element table
             sql <- glue::glue_sql("DELETE FROM {sql_table} WHERE id = {local_element$id}", .con = r$db)
             sql_send_statement(r$db, sql)
-            
+
             ## Delete rows in options table
-            sql <- glue::glue_sql("DELETE FROM options WHERE category = {current_tab_single} AND link_id = {local_element$id}", .con = r$db)
+            sql <- glue::glue_sql("DELETE FROM options WHERE category = {sql_category} AND link_id = {local_element$id}", .con = r$db)
+            sql_send_statement(r$db, sql)
+
+            ## Delete rows in code table
+            sql <- glue::glue_sql("DELETE FROM code WHERE category = {sql_category} AND link_id = {local_element$id}", .con = r$db)
             sql_send_statement(r$db, sql)
             
-            ## Delete rows in code table
-            sql <- glue::glue_sql("DELETE FROM code WHERE category = {current_tab_single} AND link_id = {local_element$id}", .con = r$db)
-            sql_send_statement(r$db, sql)
+            ## Delete project
+            if (current_tab == "projects") delete_project(r, m, local_element$id)
           }
-          
+
           # If element doesn't exist, create a new id
           if (nrow(local_element) == 0) element_id <- get_last_row(r$db, sql_table) + 1
-          
+
           # Add local element db rows
-          
+
           ## Add rows in element table
-          
+
           element_name <- git_element$name_en
           if (paste0("name_", language) %in% colnames(git_element)) element_name <- git_element[[paste0("name_", language)]]
-          
+
           if (sql_table == "datasets") new_data <- tibble::tibble(
-            id = element_id, name = element_name, data_source_id = NA_integer_, creator_id = r$user_id, 
+            id = element_id, name = element_name, data_source_id = NA_integer_, creator_id = r$user_id,
             creation_datetime = git_element$creation_datetime, update_datetime = git_element$update_datetime, deleted = FALSE)
-          
+
           else if (sql_table == "plugins") new_data <- tibble::tibble(
             id = element_id, name = element_name, tab_type_id = git_element$type,
             creation_datetime = git_element$creation_datetime, update_datetime = git_element$update_datetime, deleted = FALSE)
-          
+
           else if (sql_table == "scripts") new_data <- tibble::tibble(
             id = element_id, name = element_name,
             creation_datetime = git_element$creation_datetime, update_datetime = git_element$update_datetime, deleted = FALSE)
-          
+
+          else if (sql_table == "studies") new_data <- tibble::tibble(
+            id = element_id, name = element_name, dataset_id = NA_integer_, patient_lvl_tab_group_id = NA_integer_, aggregated_tab_group_id = NA_integer_,
+            creator_id = r$user_id, creation_datetime = git_element$creation_datetime, update_datetime = git_element$update_datetime, deleted = FALSE)
+
           DBI::dbAppendTable(r$db, sql_table, new_data)
-          
+
           ## Add rows in options table
-          
+
           new_options <- tibble::tribble(
             ~name, ~value, ~value_num,
             "users_allowed_read_group", "everybody", 1,
@@ -1408,7 +1477,7 @@ mod_git_repos_server <- function(id, r, d, m, language, i18n, debug){
             "downloaded_from", element_name, NA_integer_,
             "downloaded_from_url", r$git_repo$repo_url_address, NA_integer_
           )
-          
+
           for (language in r$languages$code){
             for (col in c("short_description", "description", "category", "name")){
               colname <- paste0(col, "_", language)
@@ -1417,29 +1486,39 @@ mod_git_repos_server <- function(id, r, d, m, language, i18n, debug){
               new_options <- new_options %>% dplyr::bind_rows(tibble::tibble(name = colname, value = value, value_num = NA_integer_))
             }
           }
-          
-          if (id == "datasets") new_options <- new_options %>% dplyr::bind_rows(tibble::tibble(name = "omop_version", value = "5.3", value_num = NA_real_))
-          
+
+          if (current_tab == "datasets") new_options <- new_options %>% dplyr::bind_rows(tibble::tibble(name = "omop_version", value = "5.3", value_num = NA_real_))
+
           new_options <-
             new_options %>%
-            dplyr::mutate(id = get_last_row(r$db, "options") + dplyr::row_number(), category = current_tab_single, link_id = element_id, .before = "name") %>%
+            dplyr::mutate(id = get_last_row(r$db, "options") + dplyr::row_number(), category = sql_category, link_id = element_id, .before = "name") %>%
             dplyr::mutate(creator_id = r$user_id, datetime = now(), deleted = FALSE)
-          
+
           DBI::dbAppendTable(r$db, "options", new_options)
-          
+
           ## Add rows in code table
-          
+
           if (current_tab %in% c("datasets", "data_cleaning")){
-            
+
             element_code <- readLines(paste0(local_element_folder, "/code.R"), warn = FALSE) %>% paste(collapse = "\n")
-            
+
             new_code <- tibble::tibble(
-              id = get_last_row(r$db, "code") + 1, category = current_tab_single, link_id = element_id, code = element_code,
+              id = get_last_row(r$db, "code") + 1, category = sql_category, link_id = element_id, code = element_code,
               creator_id = r$user_id, datetime = now(), deleted = FALSE)
-            
+
             DBI::dbAppendTable(r$db, "code", new_code)
           }
-          
+
+          ## Import project
+          if (current_tab == "projects"){
+            
+            csv_folder <- paste0(local_element_folder, "/app_db")
+            update_plugins <- TRUE
+            if (length(input$import_project_plugins) > 0) update_plugins <- input$import_project_plugins
+            print(update_plugins)
+            import_project(r, m, csv_folder, update_plugins, element_id)
+          }
+
           # Update selected element UI
           shinyjs::runjs(paste0("Shiny.setInputValue('", id, "-selected_element_trigger', Math.random());"))
         },

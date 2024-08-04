@@ -380,6 +380,7 @@ mod_data_server <- function(id, r, d, m, language, i18n, debug){
         # Load data
         sql <- glue::glue_sql("SELECT dataset_id FROM studies WHERE id = {m$selected_study}", .con = r$db)
         r$selected_dataset <- DBI::dbGetQuery(r$db, sql) %>% dplyr::pull(dataset_id)
+        shinyjs::runjs(paste0("Shiny.setInputValue('", id, "-load_dataset', Math.random());"))
 
         # Load concepts
         load_dataset_concepts(r, d, m)
@@ -424,39 +425,15 @@ mod_data_server <- function(id, r, d, m, language, i18n, debug){
     # --- --- --- --
     
     ## Dataset ----
-    observeEvent(r$selected_dataset, {
-      if (debug) cat(paste0("\n", now(), " - mod_data - observer r$selected_dataset"))
+    observeEvent(input$load_dataset, {
+      if (debug) cat(paste0("\n", now(), " - mod_data - observer r$load_dataset"))
       
       # Display project loading status
       # if (r$project_load_status_displayed) r$project_load_status$dataset_starttime <- now("%Y-%m-%d %H:%M:%OS3")
       
       shinyjs::delay(100, {
-        # Reset data vars
-        sapply(main_tables, function(table) d[[table]] <- tibble::tibble())
-        
         dataset_id <- r$selected_dataset
-        
-        # Get OMOP version for this dataset
-        sql <- glue::glue_sql("SELECT value FROM options WHERE category = 'dataset' AND link_id = {dataset_id} AND name = 'omop_version'", .con = r$db)
-        omop_version <- DBI::dbGetQuery(r$db, sql) %>% dplyr::pull()
-        m$omop_version <- omop_version
-        
-        # Get dataset code from db
-        sql <- glue::glue_sql("SELECT code FROM code WHERE category = 'dataset' AND link_id = {dataset_id}", .con = r$db)
-        dataset_code <- DBI::dbGetQuery(r$db, sql) %>% dplyr::pull()
-        
-        # Get dataset unique ID
-        sql <- glue::glue_sql("SELECT value FROM options WHERE category = 'dataset' AND name = 'unique_id' AND link_id = {dataset_id}", .con = r$db)
-        unique_id <- DBI::dbGetQuery(r$db, sql) %>% dplyr::pull()
-        
-        dataset_code <-
-          dataset_code %>% 
-          stringr::str_replace_all("%dataset_id%", as.character(dataset_id)) %>%
-          stringr::str_replace_all("%omop_version%", paste0("'", omop_version, "'")) %>%
-          stringr::str_replace_all("\r", "\n") %>%
-          stringr::str_replace_all("%dataset_folder%", paste0(r$app_folder, "/datasets/", unique_id))
-        
-        tryCatch(capture.output(eval(parse(text = dataset_code))), error = function(e) cat(paste0("\n", now(), " - mod_data - error loading dataset - dataset_id = ", dataset_id)))
+        load_dataset(r, m, d, dataset_id, main_tables)
       })
       
       # Display project loading status

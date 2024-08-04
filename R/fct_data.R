@@ -171,7 +171,35 @@ process_widget_code <- function(code, tab_id, widget_id, study_id, patient_id, p
 }
 
 #' @noRd
+load_dataset <- function(r, m, d, dataset_id, main_tables){
+  
+  # Reset data vars
+  sapply(main_tables, function(table) d[[table]] <- tibble::tibble())
+  
+  # Get OMOP version for this dataset
+  sql <- glue::glue_sql("SELECT value FROM options WHERE category = 'dataset' AND link_id = {dataset_id} AND name = 'omop_version'", .con = r$db)
+  omop_version <- DBI::dbGetQuery(r$db, sql) %>% dplyr::pull()
+  m$omop_version <- omop_version
+  
+  # Get dataset code from db
+  sql <- glue::glue_sql("SELECT code FROM code WHERE category = 'dataset' AND link_id = {dataset_id}", .con = r$db)
+  dataset_code <- DBI::dbGetQuery(r$db, sql) %>% dplyr::pull()
+  
+  # Get dataset unique ID
+  sql <- glue::glue_sql("SELECT value FROM options WHERE category = 'dataset' AND name = 'unique_id' AND link_id = {dataset_id}", .con = r$db)
+  unique_id <- DBI::dbGetQuery(r$db, sql) %>% dplyr::pull()
+  
+  dataset_code <-
+    dataset_code %>% 
+    stringr::str_replace_all("%dataset_id%", as.character(dataset_id)) %>%
+    stringr::str_replace_all("%omop_version%", paste0("'", omop_version, "'")) %>%
+    stringr::str_replace_all("\r", "\n") %>%
+    stringr::str_replace_all("%dataset_folder%", paste0(r$app_folder, "/datasets/", unique_id))
+  
+  tryCatch(capture.output(eval(parse(text = dataset_code))), error = function(e) cat(paste0("\n", now(), " - mod_data - error loading dataset - dataset_id = ", dataset_id)))
+}
 
+#' @noRd
 load_dataset_concepts <- function(r, d, m){
   
   req(!is.na(r$selected_dataset), r$selected_dataset != 0)
@@ -303,7 +331,7 @@ load_dataset_concepts <- function(r, d, m){
                 dplyr::bind_rows(
                   d[[table]] %>%
                     dplyr::group_by_at(paste0(col, "_concept_id")) %>%
-                     dplyr::summarize(count_persons_rows = as.numeric(dplyr::n_distinct(person_id)), count_concepts_rows = as.numeric(dplyr::n())) %>%
+                    dplyr::summarize(count_persons_rows = as.numeric(dplyr::n_distinct(person_id)), count_concepts_rows = as.numeric(dplyr::n())) %>%
                     dplyr::ungroup() %>%
                     dplyr::rename(concept_id = paste0(col, "_concept_id")) %>%
                     dplyr::collect()

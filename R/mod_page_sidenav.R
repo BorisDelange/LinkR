@@ -600,6 +600,19 @@ mod_page_sidenav_ui <- function(id = character(), i18n = character()){
         ),
         shinyjs::hidden(
           div(
+            id = ns("dataset_reduced_sidenav"),
+            div(
+              create_hover_card(ui = shiny.fluent::IconButton.shinyInput(ns("save_dataset"), iconProps = list(iconName = "Save")), text = i18n$t("save")),
+              class = "reduced_sidenav_buttons"
+            ),
+            div(
+              create_hover_card(ui = shiny.fluent::IconButton.shinyInput(ns("reload_dataset"), iconProps = list(iconName = "SyncOccurence")), text = i18n$t("reload_dataset")),
+              class = "reduced_sidenav_buttons"
+            )
+          )
+        ),
+        shinyjs::hidden(
+          div(
             id = ns("share_reduced_sidenav"),
             div(
               create_hover_card(ui = shiny.fluent::IconButton.shinyInput(ns("export_element"), iconProps = list(iconName = "Download")), text = i18n$t("export_plugin")),

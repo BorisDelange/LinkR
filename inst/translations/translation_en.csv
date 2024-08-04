@@ -1213,6 +1213,7 @@ delete_git_element_vocabulary_text,Delete this vocabulary from the git repositor
 delete_git_repo_title,Delete git repo
 delete_git_repo_text,"Delete this git repo? This removes the local link to this git repository, which can always be added again later."
 dont_update,Don't update
+reload_dataset,Reload dataset
 reload_dataset_concepts,Reload dataset concepts
 reload_dataset_concepts_title,Reload concepts
 reload_dataset_concepts_text,Reload count of current dataset concepts? This operation may take a few minutes.

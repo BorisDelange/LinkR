@@ -23,7 +23,7 @@ mod_projects_ui <- function(id, language, languages, i18n){
           div(
             id = ns("project_pivot"),
             tags$button(id = ns("summary"), i18n$t("summary"), class = "pivot_item selected_pivot_item", onclick = pivot_item_js),
-            tags$button(id = ns("datasets"), i18n$t("dataset"), class = "pivot_item", onclick = pivot_item_js),
+            tags$button(id = ns("dataset"), i18n$t("dataset"), class = "pivot_item", onclick = pivot_item_js),
             tags$button(id = ns("data_cleaning_scripts"), i18n$t("data_cleaning"), class = "pivot_item", onclick = pivot_item_js),
             tags$button(id = ns("share"), i18n$t("share"), class = "pivot_item", onclick = pivot_item_js),
             class = "pivot"
@@ -158,16 +158,12 @@ mod_projects_ui <- function(id, language, languages, i18n){
           class = "projects_summary_container"
         ),
         
-        ## Datasets ----
+        ## Dataset ----
         shinyjs::hidden(
           div(
-            id = ns("datasets_div"),
+            id = ns("dataset_div"),
             div(
-              div(shiny.fluent::Dropdown.shinyInput(ns("project_dataset"), label = i18n$t("dataset")), style = "width: 300px"),
-              div(
-                div(shiny.fluent::PrimaryButton.shinyInput(ns("save_datasets"), i18n$t("save"))),
-                class = "create_element_modal_buttons"
-              ),
+              div(shiny.fluent::Dropdown.shinyInput(ns("project_dataset"), label = i18n$t("dataset")), style = "width: 200px"),
               class = "widget", style = "height: 50%; width: 50%; padding-top: 10px;"
             ),
             class = "projects_summary_container"
@@ -225,7 +221,7 @@ mod_projects_ui <- function(id, language, languages, i18n){
         ),
         class = "import_modal"
       )
-    ),
+    )
   )
 }
 
@@ -238,7 +234,7 @@ mod_projects_server <- function(id, r, d, m, language, i18n, debug){
   
   # Load widgets ----
   
-  all_divs <- c("summary", "datasets", "data_cleaning_scripts", "share")
+  all_divs <- c("summary", "dataset", "data_cleaning_scripts", "share")
   mod_widgets_server(id, r, d, m, language, i18n, all_divs, debug)
   
   # Projects module ----
@@ -273,14 +269,14 @@ mod_projects_server <- function(id, r, d, m, language, i18n, debug){
       shinyjs::delay(500, r$load_project_data_trigger <- now())
     })
     
-    # --- --- --- --- --- -
-    # Project datasets ----
-    # --- --- --- --- --- -
+    # --- --- --- --- -- -
+    # Project dataset ----
+    # --- --- --- --- -- -
     
     ## Save updates ----
     
-    observeEvent(input$save_datasets, {
-      if (debug) cat(paste0("\n", now(), " - mod_projects - observer input$save_datasets"))
+    observeEvent(input$save_dataset, {
+      if (debug) cat(paste0("\n", now(), " - mod_projects - observer input$save_dataset"))
       
       sql <- glue::glue_sql("UPDATE studies SET dataset_id = {input$project_dataset} WHERE id = {input$selected_element}", .con = r$db)
       query <- DBI::dbSendStatement(r$db, sql)
@@ -292,6 +288,13 @@ mod_projects_server <- function(id, r, d, m, language, i18n, debug){
       
       # Notify user
       show_message_bar(output,  "modif_saved", "success", i18n = i18n, ns = ns)
+    })
+    
+    ## Reload dataset ----
+    
+    observeEvent(input$reload_dataset, {
+      if (debug) cat(paste0("\n", now(), " - mod_projects - observer input$reload_dataset"))
+      load_dataset(r, m, d, input$project_dataset, r$main_tables)
     })
     
     # --- --- --- --- --- -
