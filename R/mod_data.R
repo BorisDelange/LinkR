@@ -298,7 +298,7 @@ mod_data_server <- function(id, r, d, m, language, i18n, debug){
     # A project is selected ----
     # --- --- --- --- --- --- --
     
-    visit_detail_tables <- c("condition_occurrence", "drug_exposure", "procedure_occurrence", "device_exposure", "measurement", "observation", "note", "note_nlp", "fact_relationship", "payer_plan_period", "cost")
+    visit_detail_tables <- c("condition_occurrence", "drug_exposure", "procedure_occurrence", "device_exposure", "measurement", "observation", "note", "note_nlp", "payer_plan_period", "cost")
     person_tables <- c(visit_detail_tables, "specimen", "death", "drug_era", "dose_era", "condition_era")
     subset_tables <- c(person_tables, "person", "observation_period", "visit_occurrence", "visit_detail")
     main_tables <- c(subset_tables, "location", "care_site", "provider")

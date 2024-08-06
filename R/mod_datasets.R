@@ -308,11 +308,15 @@ mod_datasets_server <- function(id, r, d, m, language, i18n, debug){
       
       omop_version <- DBI::dbGetQuery(r$db, glue::glue_sql("SELECT value FROM options WHERE category = 'dataset' AND name = 'omop_version' AND link_id = {dataset_id}", .con = r$db)) %>% dplyr::pull()
       
+      dataset_folder <- paste0(r$app_folder, "/datasets_files/", dataset_id)
+      if (!dir.exists(dataset_folder)) dir.create(dataset_folder)
+      
       code <- 
         input$dataset_code %>%
-        gsub("\r", "\n", .) %>%
-        gsub("%dataset_id%", as.character(dataset_id), .) %>%
-        gsub("%omop_version%", "5.3", .)
+        stringr::str_replace_all("%dataset_id%", as.character(dataset_id)) %>%
+        stringr::str_replace_all("%omop_version%", paste0("'", omop_version, "'")) %>%
+        stringr::str_replace_all("\r", "\n") %>%
+        stringr::str_replace_all("%dataset_folder%", paste0(r$app_folder, "/datasets_files/", dataset_id))
       
       result <- capture.output(tryCatch(eval(parse(text = code)), error = function(e) print(e), warning = function(w) print(w)))
       

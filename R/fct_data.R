@@ -189,12 +189,16 @@ load_dataset <- function(r, m, d, dataset_id, main_tables){
   sql <- glue::glue_sql("SELECT value FROM options WHERE category = 'dataset' AND name = 'unique_id' AND link_id = {dataset_id}", .con = r$db)
   unique_id <- DBI::dbGetQuery(r$db, sql) %>% dplyr::pull()
   
+  # Dataset folder
+  dataset_folder <- paste0(r$app_folder, "/datasets_files/", dataset_id)
+  if (!dir.exists(dataset_folder)) dir.create(dataset_folder)
+  
   dataset_code <-
     dataset_code %>% 
     stringr::str_replace_all("%dataset_id%", as.character(dataset_id)) %>%
     stringr::str_replace_all("%omop_version%", paste0("'", omop_version, "'")) %>%
     stringr::str_replace_all("\r", "\n") %>%
-    stringr::str_replace_all("%dataset_folder%", paste0(r$app_folder, "/datasets/", unique_id))
+    stringr::str_replace_all("%dataset_folder%", dataset_folder)
   
   tryCatch(capture.output(eval(parse(text = dataset_code))), error = function(e) cat(paste0("\n", now(), " - mod_data - error loading dataset - dataset_id = ", dataset_id)))
 }

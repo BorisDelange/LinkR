@@ -156,10 +156,10 @@ mod_git_repos_ui <- function(id = character(), language = "en", languages = tibb
           uiOutput(ns("breadcrumb")),
           div(
             id = ns("plugin_pivot"),
-            tags$button(id = ns("summary"), i18n$t("summary"), class = "pivot_item selected_pivot_item", onclick = pivot_item_js),
+            # tags$button(id = ns("summary"), i18n$t("summary"), class = "pivot_item selected_pivot_item", onclick = pivot_item_js),
             tags$button(id = ns("projects"), i18n$t("projects"), class = "pivot_item", onclick = pivot_item_js),
             tags$button(id = ns("plugins"), i18n$t("plugins"), class = "pivot_item", onclick = pivot_item_js),
-            tags$button(id = ns("data_cleaning"), i18n$t("data_cleaning"), class = "pivot_item", onclick = pivot_item_js),
+            tags$button(id = ns("data_cleaning_scripts"), i18n$t("data_cleaning"), class = "pivot_item", onclick = pivot_item_js),
             tags$button(id = ns("datasets"), i18n$t("datasets"), class = "pivot_item", onclick = pivot_item_js),
             class = "pivot"
           ),
@@ -167,50 +167,50 @@ mod_git_repos_ui <- function(id = character(), language = "en", languages = tibb
         ),
         
         ## Summary ----
-        div(
-          id = ns("summary_div"),
-          div(
-            div(
-              div(
-                shinyjs::hidden(
-                  div(
-                    id = ns("edit_description_button"),
-                    create_hover_card(ui = shiny.fluent::IconButton.shinyInput(ns("edit_description"), iconProps = list(iconName = "Edit")), text = i18n$t("edit_description"))
-                  )
-                ),
-                shinyjs::hidden(
-                  div(
-                    id = ns ("save_and_cancel_description_buttons"),
-                    div(
-                      id = ns("cancel_description_button"),
-                      create_hover_card(ui = shiny.fluent::IconButton.shinyInput(ns("cancel_description"), iconProps = list(iconName = "Cancel")), text = i18n$t("cancel_description_updates"))
-                    ),
-                    div(
-                      id = ns("save_description_button"),
-                      create_hover_card(ui = shiny.fluent::IconButton.shinyInput(ns("save_description"), iconProps = list(iconName = "Accept")), text = i18n$t("save_description")),
-                    ),
-                    style = "display: flex;"
-                  )
-                ),
-                style = "margin-top: 5px;"
-              ),
-              uiOutput(ns("summary_git_readme")),
-              class = "widget markdown_widget",
-            ),
-            class = "git_repos_summary"
-          ),
-          class = "git_repos_summary_container"
-        ),
+        # div(
+        #   id = ns("summary_div"),
+        #   div(
+        #     div(
+        #       div(
+        #         shinyjs::hidden(
+        #           div(
+        #             id = ns("edit_description_button"),
+        #             create_hover_card(ui = shiny.fluent::IconButton.shinyInput(ns("edit_description"), iconProps = list(iconName = "Edit")), text = i18n$t("edit_description"))
+        #           )
+        #         ),
+        #         shinyjs::hidden(
+        #           div(
+        #             id = ns ("save_and_cancel_description_buttons"),
+        #             div(
+        #               id = ns("cancel_description_button"),
+        #               create_hover_card(ui = shiny.fluent::IconButton.shinyInput(ns("cancel_description"), iconProps = list(iconName = "Cancel")), text = i18n$t("cancel_description_updates"))
+        #             ),
+        #             div(
+        #               id = ns("save_description_button"),
+        #               create_hover_card(ui = shiny.fluent::IconButton.shinyInput(ns("save_description"), iconProps = list(iconName = "Accept")), text = i18n$t("save_description")),
+        #             ),
+        #             style = "display: flex;"
+        #           )
+        #         ),
+        #         style = "margin-top: 5px;"
+        #       ),
+        #       uiOutput(ns("summary_git_readme")),
+        #       class = "widget markdown_widget",
+        #     ),
+        #     class = "git_repos_summary"
+        #   ),
+        #   class = "git_repos_summary_container"
+        # ),
         
         ## Widgets ----
-        shinyjs::hidden(
-          div(
-            id = ns("widgets_div"),
-            div(shiny.fluent::SearchBox.shinyInput(ns("search_element")), style = "width:320px; margin:10px 0 0 10px;"),
-            uiOutput(ns("elements")),
-            style = "height: 100%;"
-          )
+        # shinyjs::hidden(
+        div(
+          id = ns("widgets_div"),
+          div(shiny.fluent::SearchBox.shinyInput(ns("search_element")), style = "width:320px; margin:10px 0 0 10px;"),
+          uiOutput(ns("elements")),
+          style = "height: 100%;"
         ),
+        # ),
         
         ## Selected element details ----
         shinyjs::hidden(
@@ -230,6 +230,7 @@ mod_git_repos_ui <- function(id = character(), language = "en", languages = tibb
             ),
             div(
               div(
+                tags$h1(i18n$t("description")),
                 uiOutput(ns("element_details_description")),
                 class = "widget markdown_widget markdown",
               ),
@@ -284,22 +285,22 @@ mod_git_repos_ui <- function(id = character(), language = "en", languages = tibb
       )
     ),
     
-    # Commit and push readme modal ----
+    # Commit and push modal ----
     shinyjs::hidden(
       div(
-        id = ns("push_git_readme_modal"),
+        id = ns("push_git_modal"),
         div(
-          tags$h1(i18n$t("push_git_readme_title")),
-          shiny.fluent::TextField.shinyInput(ns("push_git_readme_api_key"), type = "password", canRevealPassword = TRUE, label = i18n$t("api_key")),
-          shiny.fluent::TextField.shinyInput(ns("push_git_readme_commit_message"), label = i18n$t("commit_message")),
+          tags$h1(i18n$t("push_git_title")),
+          shiny.fluent::TextField.shinyInput(ns("push_git_api_key"), type = "password", canRevealPassword = TRUE, label = i18n$t("api_key")),
+          shiny.fluent::TextField.shinyInput(ns("push_git_commit_message"), label = i18n$t("commit_message")),
           div(
-            shiny.fluent::DefaultButton.shinyInput(ns("close_push_git_readme_modal"), i18n$t("cancel")),
-            shiny.fluent::PrimaryButton.shinyInput(ns("confirm_push_git_readme_update"), i18n$t("update")),
-            class = "push_git_readme_modal_buttons"
+            shiny.fluent::DefaultButton.shinyInput(ns("close_push_git_modal"), i18n$t("cancel")),
+            shiny.fluent::PrimaryButton.shinyInput(ns("confirm_push_git_update"), i18n$t("update")),
+            class = "push_git_modal_buttons"
           ),
-          class = "push_git_readme_modal_content"
+          class = "push_git_modal_content"
         ),
-        class = "push_git_readme_modal"
+        class = "push_git_modal"
       )
     ),
     
@@ -343,7 +344,7 @@ mod_git_repos_server <- function(id, r, d, m, language, i18n, debug){
     
     # Initiate vars ----
     
-    all_divs <- c("summary", "projects", "plugins", "data_cleaning", "datasets")
+    all_divs <- c("summary", "projects", "plugins", "data_cleaning_scripts", "datasets")
     r$list_git_repo <- tibble::tibble()
     r$map_git_repo <- tibble::tibble()
     r$loaded_git_readme <- tibble::tibble(unique_id = character(), type = character(), local_url = character())
@@ -450,7 +451,7 @@ mod_git_repos_server <- function(id, r, d, m, language, i18n, debug){
         shiny.fluent::updateTextField.shinyInput(session, "git_repo_name", value = git_repo$name)
         shiny.fluent::updateTextField.shinyInput(session, "git_repo_url_address", value = git_repo$repo_url_address)
         shiny.fluent::updateTextField.shinyInput(session, "git_repo_raw_files_url_address", value = git_repo$raw_files_url_address)
-        shiny.fluent::updateTextField.shinyInput(session, "push_git_readme_api_key", value = "")
+        shiny.fluent::updateTextField.shinyInput(session, "push_git_api_key", value = "")
         
         # Update git infos readme
         readme <- renderUI(get_git_readme(r, git_repo, type = "list"))
@@ -871,7 +872,7 @@ mod_git_repos_server <- function(id, r, d, m, language, i18n, debug){
           writeLines(input$readme_code, copy_file_path)
           
           # Open commit modal
-          shinyjs::show("push_git_readme_modal")
+          shinyjs::show("push_git_modal")
         }
        
         # Reload markdown
@@ -880,14 +881,14 @@ mod_git_repos_server <- function(id, r, d, m, language, i18n, debug){
       })
       
       ## Close git push modal
-      observeEvent(input$close_push_git_readme_modal, {
-        if (debug) cat(paste0("\n", now(), " - mod_git_repos - observer input$close_push_git_readme_modal"))
-        shinyjs::hide("push_git_readme_modal")
+      observeEvent(input$close_push_git_modal, {
+        if (debug) cat(paste0("\n", now(), " - mod_git_repos - observer input$close_push_git_modal"))
+        shinyjs::hide("push_git_modal")
       })
       
       ## Confirm readme update on remote git
-      observeEvent(input$confirm_push_git_readme_update, {
-        if (debug) cat(paste0("\n", now(), " - mod_git_repos - observer input$confirm_push_git_readme_update"))
+      observeEvent(input$confirm_push_git_update, {
+        if (debug) cat(paste0("\n", now(), " - mod_git_repos - observer input$confirm_push_git_update"))
         
         tryCatch({
           git_repo <- r[[paste0(input$current_page, "_git_repo")]]
@@ -899,7 +900,7 @@ mod_git_repos_server <- function(id, r, d, m, language, i18n, debug){
           
           if (length(git2r::status(repo, unstaged = FALSE, untracked = FALSE, ignored = FALSE)$staged) > 0){
 
-            commit_message <- input$push_git_readme_commit_message
+            commit_message <- input$push_git_commit_message
             if (commit_message == "") commit_message <- paste0("Update README from LinkR")
             git2r::commit(repo, message = commit_message)
 
@@ -910,12 +911,12 @@ mod_git_repos_server <- function(id, r, d, m, language, i18n, debug){
               git2r::checkout(repo, "main")
             }
 
-            credentials <- git2r::cred_user_pass("linkr_user", input$push_git_readme_api_key)
+            credentials <- git2r::cred_user_pass("linkr_user", input$push_git_api_key)
 
             git2r::push(repo, "origin", "refs/heads/main", credentials = credentials)
             
             # Reset commit message (we keep API key, easier when we push files frequently)
-            shiny.fluent::updateTextField.shinyInput(session, "push_git_readme_commit_message", value = "")
+            shiny.fluent::updateTextField.shinyInput(session, "push_git_commit_message", value = "")
 
             # Notify user
             show_message_bar(output, "success_update_remote_git_repo", "success", i18n = i18n, ns = ns)
@@ -926,7 +927,7 @@ mod_git_repos_server <- function(id, r, d, m, language, i18n, debug){
         })
         
         # Close git push modal
-        shinyjs::hide("push_git_readme_modal")
+        shinyjs::hide("push_git_modal")
       })
       
       ## Cancel readme updates ----
@@ -1004,7 +1005,7 @@ mod_git_repos_server <- function(id, r, d, m, language, i18n, debug){
             sprintf("%.6f", as.numeric(lng)) == sprintf("%.6f", as.numeric(input$explore_map_marker_click$lng))
           )
          
-          shiny.fluent::updateTextField.shinyInput(session, "push_git_readme_api_key", value = "")
+          shiny.fluent::updateTextField.shinyInput(session, "push_git_api_key", value = "")
           
           r$map_git_repo <- git_repo
           
@@ -1085,7 +1086,7 @@ mod_git_repos_server <- function(id, r, d, m, language, i18n, debug){
         
         # Return to summary tab (in case we have clicked on reload_git_repo)
         shinyjs::runjs(paste0("
-          Shiny.setInputValue('", id, "-current_tab', '", id, "-summary');
+          Shiny.setInputValue('", id, "-current_tab', '", id, "-projects');
           Shiny.setInputValue('", id, "-current_tab_trigger', Math.random());"
         ))
       })
@@ -1099,16 +1100,17 @@ mod_git_repos_server <- function(id, r, d, m, language, i18n, debug){
         shinyjs::hide("element_details_div")
         
         current_tab <- gsub(paste0(id, "-"), "", input$current_tab, fixed = FALSE)
+        shinyjs::show("widgets_div")
         
         # Show or hide pages depending on selected tab
-        if (current_tab == "summary"){
-          shinyjs::show("summary_div")
-          shinyjs::hide("widgets_div")
-        }
-        else {
-          shinyjs::show("widgets_div")
-          shinyjs::hide("summary_div")
-        }
+        # if (current_tab == "summary"){
+        #   shinyjs::show("summary_div")
+        #   shinyjs::hide("widgets_div")
+        # }
+        # else {
+        #   shinyjs::show("widgets_div")
+        #   shinyjs::hide("summary_div")
+        # }
         
         shinyjs::show("one_repo_reduced_sidenav")
         shinyjs::hide("all_repos_reduced_sidenav")
@@ -1131,15 +1133,15 @@ mod_git_repos_server <- function(id, r, d, m, language, i18n, debug){
         if (debug) cat(paste0("\n", now(), " - mod_git_repos - observer input$reload_elements_list"))
         
         current_tab <- gsub(paste0(id, "-"), "", input$current_tab, fixed = FALSE)
-        req(current_tab != "summary")
+        # req(current_tab != "summary")
         
         single_id <- switch(current_tab, 
-          "data_cleaning" = "data_cleaning", 
+          "data_cleaning_scripts" = "data_cleaning_script", 
           "datasets" = "dataset",
           "projects" = "project", 
           "plugins" = "plugin", 
           "subsets" = "subset"
-        )
+        ) 
         
         elements <- tibble::tibble()
         r$loaded_git_repo_elements <- elements
@@ -1234,13 +1236,13 @@ mod_git_repos_server <- function(id, r, d, m, language, i18n, debug){
         current_tab <- gsub(paste0(id, "-"), "", input$current_tab, fixed = FALSE)
         current_tab_single <- switch(
           current_tab, 
-          "data_cleaning" = "data_cleaning", 
+          "data_cleaning_scripts" = "data_cleaning_script", 
           "datasets" = "dataset",
           "projects" = "study", 
           "plugins" = "plugin"
         )
         
-        if (current_tab == "data_cleaning") sql_table <- "scripts"
+        if (current_tab == "data_cleaning_scripts") sql_table <- "scripts"
         else if (current_tab == "projects") sql_table <- "studies"
         else sql_table <- current_tab
         
@@ -1291,11 +1293,6 @@ mod_git_repos_server <- function(id, r, d, m, language, i18n, debug){
           if (diff_time == 0) install_button <- shiny.fluent::DefaultButton.shinyInput(ns("git_repo_element_already_installed"), i18n$t("local_version_up_to_date"), disabled = TRUE)
           else if (diff_time > 0) install_button <- shiny.fluent::DefaultButton.shinyInput(ns("git_repo_element_local_version_more_recent"), i18n$t("element_local_version_more_recent"), disabled = TRUE)
           else install_button <- shiny.fluent::PrimaryButton.shinyInput(ns("git_install_element"), i18n$t("update"))
-          
-          synchronize_git_buttons <- div(
-            install_button,
-            style = "display: flex; gap: 5px;"
-          )
         }
         else {
           git_element_ui <- div(
@@ -1304,11 +1301,17 @@ mod_git_repos_server <- function(id, r, d, m, language, i18n, debug){
           )
           
           # Update synchronize buttons
-          synchronize_git_buttons <- shiny.fluent::PrimaryButton.shinyInput(ns("git_install_element"), i18n$t("install"))
+          install_button <- shiny.fluent::PrimaryButton.shinyInput(ns("git_install_element"), i18n$t("install"))
         }
         
         output$element_details_ui <- renderUI(git_element_ui)
-        output$synchronize_git_buttons <- renderUI(synchronize_git_buttons)
+        output$synchronize_git_buttons <- renderUI(
+          div(
+            div(shiny.fluent::PrimaryButton.shinyInput(ns("delete_element_from_git"), i18n$t("delete_element_from_remote_git")), class = "delete_button"),
+            install_button,
+            style = "display: flex; gap: 5px;"
+          )
+        )
         
         shinyjs::hide("widgets_div")
         shinyjs::show("element_details_div")
@@ -1355,7 +1358,7 @@ mod_git_repos_server <- function(id, r, d, m, language, i18n, debug){
         current_tab <- gsub(paste0(id, "-"), "", input$current_tab, fixed = FALSE)
         current_tab_single <- switch(
           current_tab, 
-          "data_cleaning" = "data_cleaning", 
+          "data_cleaning_scripts" = "data_cleaning_script", 
           "datasets" = "dataset",
           "projects" = "project", 
           "plugins" = "plugin"
@@ -1363,7 +1366,7 @@ mod_git_repos_server <- function(id, r, d, m, language, i18n, debug){
         
         sql_table <- switch(
           current_tab, 
-          "data_cleaning" = "scripts", 
+          "data_cleaning_scripts" = "scripts", 
           "datasets" = "datasets",
           "projects" = "studies", 
           "plugins" = "plugins"
@@ -1371,7 +1374,7 @@ mod_git_repos_server <- function(id, r, d, m, language, i18n, debug){
         
         sql_category <- switch(
           current_tab, 
-          "data_cleaning" = "data_cleaning",
+          "data_cleaning_script" = "data_cleaning",
           "datasets" = "dataset",
           "projects" = "study",
           "plugins" = "plugin"
@@ -1498,7 +1501,7 @@ mod_git_repos_server <- function(id, r, d, m, language, i18n, debug){
 
           ## Add rows in code table
 
-          if (current_tab %in% c("datasets", "data_cleaning")){
+          if (current_tab %in% c("datasets", "data_cleaning_scripts")){
 
             element_code <- readLines(paste0(local_element_folder, "/code.R"), warn = FALSE) %>% paste(collapse = "\n")
 
@@ -1526,6 +1529,44 @@ mod_git_repos_server <- function(id, r, d, m, language, i18n, debug){
           show_message_bar(output, paste0("error_install_remote_git_", current_tab_single), "warning", i18n = i18n, ns = ns)
           cat(paste0("\n", now(), " - mod_git_repos - error installing ", current_tab_single, " from git - error = ", toString(e)))
         })
+      })
+      
+      # Delete element from git ----
+      
+      observeEvent(input$delete_element_from_git, {
+        if (debug) cat(paste0("\n", now(), " - mod_git_repos - observer input$delete_element_from_git"))
+        
+        tryCatch({
+          current_tab <- gsub(paste0(id, "-"), "", input$current_tab, fixed = FALSE)
+          git_element <- r$loaded_git_repo_elements %>% dplyr::filter(unique_id == input$selected_element)
+          
+          # Delete git element files
+          git_folder <- r$loaded_git_repos %>% dplyr::filter(unique_id == r$git_repo$unique_id) %>% dplyr::pull(local_path)
+          git_category_folder <- paste0(git_folder, "/", current_tab)
+          for (file in list.files(git_category_folder, full.names = TRUE)) if (grepl(git_element$unique_id, file)) git_element_folder <- file
+          
+          unlink(git_element_folder, recursive = TRUE)
+          
+          # Update global XML file
+          create_elements_xml(current_tab, git_folder)
+          
+          # Return to elements page
+          shinyjs::runjs(paste0(
+            "Shiny.setInputValue('", id, "-current_tab', '", current_tab, "');",
+            "Shiny.setInputValue('", id, "-current_tab_trigger', Math.random());"
+          ))
+        },
+        error = function(e){
+          show_message_bar(output, "error_removing_git_element", "severeWarning", i18n = i18n, ns = ns)
+          cat(paste0("\n", now(), " - mod_git_repos - error removing git element - error = ", toString(e)))
+        })
+      })
+      
+      # Commit and push with updates ----
+      
+      observeEvent(input$save_git_repo, {
+        if (debug) cat(paste0("\n", now(), " - mod_git_repos - observer input$save_git_repo"))
+        shinyjs::show("push_git_modal")
       })
       
       # Return to selected repo page ----
@@ -1617,12 +1658,7 @@ mod_git_repos_server <- function(id, r, d, m, language, i18n, debug){
         items,
         list(
           key = "git_repo", text = r$git_repo$name,
-          onClick = htmlwidgets::JS(paste0(
-            "item => { ",
-              "Shiny.setInputValue('", id, "-current_tab_trigger', Math.random()); ",
-              "Shiny.setInputValue('", id, "-current_tab', 'summary'); ",
-            "}")
-          )
+          onClick = htmlwidgets::JS(paste0("item => { Shiny.setInputValue('", id, "-show_home', Math.random()); }"))
         )
       )
       

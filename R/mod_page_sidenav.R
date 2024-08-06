@@ -375,14 +375,18 @@ mod_page_sidenav_ui <- function(id = character(), i18n = character()){
           create_hover_card(ui = shiny.fluent::IconButton.shinyInput(ns("create_git_repo"), iconProps = list(iconName = "Add")), text = i18n$t("create_git_repo")),
           class = "reduced_sidenav_buttons"
         ),
-        div(
-          id = ns("one_repo_reduced_sidenav"),
-          shinyjs::hidden(
+        shinyjs::hidden(
+          div(
+            id = ns("one_repo_reduced_sidenav"),
             div(
-              id = ns("reload_git_repo_div"),
-              create_hover_card(ui = shiny.fluent::IconButton.shinyInput(ns("reload_git_repo"), iconProps = list(iconName = "SyncOccurence")), text = i18n$t("reload_git_repo")),
+              create_hover_card(ui = shiny.fluent::IconButton.shinyInput(ns("save_git_repo"), iconProps = list(iconName = "Save")), text = i18n$t("commit_and_push")),
               class = "reduced_sidenav_buttons"
             )
+            # div(
+            #   id = ns("reload_git_repo_div"),
+            #   create_hover_card(ui = shiny.fluent::IconButton.shinyInput(ns("reload_git_repo"), iconProps = list(iconName = "SyncOccurence")), text = i18n$t("reload_git_repo")),
+            #   class = "reduced_sidenav_buttons"
+            # )
           )
         )
       ),
@@ -707,14 +711,14 @@ mod_page_sidenav_ui <- function(id = character(), i18n = character()){
   else if (id == "users") {
     div(
       id = ns("sidenav"),
-      class = "sidenav",
+      class = "sidenav", style = reduced_sidenav_style,
       div(
         id = ns("large_sidenav")
       ),
       div(
         id = ns("reduced_sidenav")
       ),
-      hide_sidenav
+      shinyjs::hidden(show_sidenav)
     ) -> result
   }
   

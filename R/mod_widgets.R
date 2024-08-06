@@ -1642,31 +1642,7 @@ mod_widgets_server <- function(id, r, d, m, language, i18n, all_divs, debug){
       
       # Update global XML file
       
-      # Delete old XML file
-      elements_dir <- paste0(input$git_repo_local_path, "/", id)
-      xml_file_path <- paste0(elements_dir, "/", id, ".xml")
-      unlink(xml_file_path)
-      
-      xml_files <- list.files(elements_dir, pattern = "\\.xml$", recursive = TRUE, full.names = TRUE)
-      elements_list <- list()
-      
-      xml_root <- id
-      if (id == "data_cleaning") xml_root <- "data_cleaning_scripts"
-      
-      # Read each XML file and extract element node
-      for (file in xml_files) {
-        xml_doc <- xml2::read_xml(file)
-        elements <- xml2::xml_find_all(xml_doc, paste0("//", id))
-        elements_list <- c(elements_list, elements)
-      }
-      
-      final_xml <- xml2::xml_new_root(xml_root)
-      
-      # Add each element element node to final XML
-      for (element in elements_list) xml2::xml_add_child(final_xml, element)
-      
-      # Write XML file
-      xml2::write_xml(final_xml, xml_file_path)
+      create_elements_xml(id, input$git_repo_local_path)
       
       # Commit and push
       if (length(r$loaded_git_repos_objects[[git_repo$unique_id]]) > 0){

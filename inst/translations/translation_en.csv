@@ -1202,6 +1202,10 @@ update_git_element_data_cleaning_title,Update git element
 update_git_element_data_cleaning_text,Update git data cleaning script? This will erase and replace actual data cleaning script in the git repository.
 delete_git_element_data_cleaning_title,Delete git element
 delete_git_element_data_cleaning_text,Delete this data cleaning script from the git repository?
+update_git_element_project_title,Update git element
+update_git_element_project_text,Update git project? This will erase and replace actual project in the git repository.
+delete_git_element_project_title,Delete git element
+delete_git_element_project_text,Delete this project from the git repository?
 update_git_element_subset_title,Update git element
 update_git_element_subset_text,Update git subset? This will erase and replace actual subset in the git repository.
 delete_git_element_subset_title,Delete git element
@@ -1243,7 +1247,7 @@ local_version_up_to_date,Local version up to date
 reload_list,Reload list
 error_transforming_cols,Error transforming columns
 give_access_to,Give access to
-plugin_For,Plugin for
+plugin_for,Plugin for
 edit_description,Edit description
 edit_readme,Edit readme
 save_description,Save updates
@@ -1263,3 +1267,5 @@ occurrences,Occurrences
 field_cant_be_empty,This field cannot be empty
 git_repo_url_address_already_used,There is already a git repository registered with this URL
 push_git_readme_title,Update git readme
+delete_element_from_remote_git,Delete element from git
+error_removing_git_element,Error removing element from git

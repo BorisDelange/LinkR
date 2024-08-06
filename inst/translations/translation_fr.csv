@@ -1266,4 +1266,6 @@ update_project_plugins_text,Mettre à jour les plugins inclus dans le projet ? C
 occurrences,Occurrences
 field_cant_be_empty,Ce champ ne doit pas être vide
 git_repo_url_address_already_used,Il y a déjà un dépôt git enregistré avec cette URL
-push_git_readme_title,Mettre à jour le readme
+push_git_title,Mettre à jour le readme
+delete_element_from_remote_git,Supprimer l'élément du git
+error_removing_git_element,Erreur lors de la suppression de l'élément du git

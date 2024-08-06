@@ -124,8 +124,8 @@ app_server <- function(pages, language, languages, i18n, app_folder, debug, log_
       
       # Load users names
       sql <- glue::glue_sql(paste0(
-        "SELECT u.id, (u.firstname || ' ' || u.lastname) AS name, (SUBSTR(u.firstname, 1, 1) || SUBSTR(u.lastname, 1, 1)) AS initials, ",
-        "s.name AS user_status ",
+        "SELECT u.id, u.firstname, u.lastname, (u.firstname || ' ' || u.lastname) AS name, (SUBSTR(u.firstname, 1, 1) || SUBSTR(u.lastname, 1, 1)) AS initials, ",
+        "u.user_access_id, u.user_status_id, s.name AS user_status ",
         "FROM users u ",
         "LEFT JOIN users_statuses s ON u.user_status_id = s.id"), .con = r$db)
       r$users <- DBI::dbGetQuery(r$db, sql) %>% tibble::as_tibble()

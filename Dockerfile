@@ -10,6 +10,7 @@ RUN pip install numpy pandas matplotlib seaborn scipy scikit-learn imblearn xgbo
 RUN R -e "install.packages(c(\
   'duckdb',\
   'dygraphs',\
+  'markdown',\
   'reticulate'\
   'sparklyr',\
   'xts'\
