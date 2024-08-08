@@ -36,10 +36,13 @@ format_datetime <- function(datetime = character(), language = "en", sec = TRUE,
 #' @param ui UI element (character)
 #' @param text Text to display in the card (character)
 create_hover_card <- function(ui = character(), text = character()){
+  escaped_text <- gsub("'", "\\\\'", text)
+  escaped_text <- gsub('"', '\\\\"', escaped_text)
+  
   shiny.fluent::HoverCard(
   type = "PlainCard",
   plainCardProps = htmlwidgets::JS(paste0("{
-    onRenderPlainCard: (a, b, c) => '", text, "',
+    onRenderPlainCard: (a, b, c) => '", escaped_text, "',
     style: { padding: '5px', fontSize: '12px'}
     }")
   ),

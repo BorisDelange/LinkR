@@ -380,6 +380,7 @@ subset_included_patients_long,Subset comprenant seulement les patients inclus
 subset_excluded_patients,Patients exclus
 subset_excluded_patients_long,Subset comprenant seulement les patients exclus
 name_already_used,Ce nom est déjà utilisé
+firstname_and_lastname_already_used,Cette identité est déjà utilisée
 vocabulary_id_already_used,Cet ID est déjà utilisé
 username_already_used,Ce pseudo est déjà utilisé
 dropdown_empty,Il manque au moins une valeur dans les menus déroulants
@@ -1269,3 +1270,13 @@ git_repo_url_address_already_used,Il y a déjà un dépôt git enregistré avec 
 push_git_title,Mettre à jour le readme
 delete_element_from_remote_git,Supprimer l'élément du git
 error_removing_git_element,Erreur lors de la suppression de l'élément du git
+edit_user,Editer le profil de l'utilisateur
+delete_user,Supprimer l'utilisateur
+delete_user_status,Supprimer le statut
+delete_user_title,Supprimer un utilisateur
+delete_user_text,Confirmer la suppression de l'utilisateur ?
+cancel_updates,Annuler les modifications
+save_updates,Sauvegarder les modifications
+login,Identifiant de connexion
+create_user,Créer un nouvel utilisateur
+create_user_status,Créer un nouveau statut

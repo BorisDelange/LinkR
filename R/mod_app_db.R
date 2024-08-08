@@ -154,12 +154,9 @@ mod_app_db_ui <- function(id, language, languages, i18n, code_hotkeys, db_col_ty
               class = "small_icon_button",
               style = "display: flex;"
             ),
-            div(
-              div(style = "visibility:hidden;", downloadButton(ns("db_save"))),
-              shiny.fluent::PrimaryButton.shinyInput(ns("export_db"), i18n$t("export_db"), iconProps = list(iconName = "Download")),
-              class = "export_db_buttons"
-            ),
-            class = "widget", style = "min-height: 50%; padding-top: 1px; padding: 1px 15px 15px 15px;"
+            div(style = "visibility:hidden;", downloadButton(ns("db_save"))),
+            shiny.fluent::PrimaryButton.shinyInput(ns("export_db"), i18n$t("export_db"), iconProps = list(iconName = "Download")),
+            class = "widget", style = "min-height: 50%; padding-top: 1px; padding: 1px 15px 15px 15px; overflow: auto;"
           ),
           class = "app_db_backups_left"
         ),
@@ -172,11 +169,7 @@ mod_app_db_ui <- function(id, language, languages, i18n, code_hotkeys, db_col_ty
               uiOutput(ns("db_restore_loaded_file"), style = "margin-left: 10px; height: 24px; display: flex; align-items: center;"),
               style = "display: flex;"
             ), br(),
-            div(
-              div(style = "display:none;", fileInput(ns("db_restore"), label = "", multiple = FALSE, accept = ".zip")),
-              shiny.fluent::PrimaryButton.shinyInput(ns("import_db"), i18n$t("restore_db"), iconProps = list(iconName = "Upload")),
-              class = "import_db_buttons"
-            ),
+            div(style = "display:none;", fileInput(ns("db_restore"), label = "", multiple = FALSE, accept = ".zip")),
             shinyjs::hidden(
               div(
                 id = ns("import_db_tables_div"),
@@ -208,18 +201,18 @@ mod_app_db_ui <- function(id, language, languages, i18n, code_hotkeys, db_col_ty
                     style = "margin: 27px 0 0 5px; display: flex;"
                   ),
                   class = "small_icon_button",
-                  style = "display: flex;"
+                  style = "display: flex; margin-bottom: 15px;"
                 )
               )
             ),
-            class = "widget", style = "min-height: 50%; padding-top: 1px; padding: 1px 15px 15px 15px;"
+            shiny.fluent::PrimaryButton.shinyInput(ns("import_db"), i18n$t("restore_db"), iconProps = list(iconName = "Upload")),
+            class = "widget", style = "min-height: 50%; padding-top: 1px; padding: 1px 15px 15px 15px; overflow: auto;"
           ),
           class = "app_db_backups_right"
         ),
         class = "app_db_backups_container"
       )
     ),
-    
     style = "height: 100%; display: flex; flex-direction: column;"
   )
 }
@@ -466,7 +459,7 @@ mod_app_db_server <- function(id, r, d, m, language, i18n, db_col_types, app_fol
         
         # Insert last time row
         last_row <- get_last_row(r$db, "options")
-        new_data <- tibble::tribble(
+        new_data <- tibble::tibble(
           id = as.integer(last_row + 1), category = "last_db_save", link_id = NA_integer_, name = "last_db_save", value = now(),
           value_num = NA_real_, creator_id = r$user_id, datetime = now(), deleted = FALSE
         )
@@ -740,7 +733,7 @@ mod_app_db_server <- function(id, r, d, m, language, i18n, db_col_types, app_fol
           
           # Insert last time row
           last_row <- get_last_row(r$db, "options")
-          new_data <- tibble::tribble(
+          new_data <- tibble::tibble(
             id = as.integer(last_row + 1), category = "last_db_restore", link_id = NA_integer_, name = "last_db_restore", value = now(),
             value_num = NA_real_, creator_id = r$user_id, datetime = now(), deleted = FALSE
           )

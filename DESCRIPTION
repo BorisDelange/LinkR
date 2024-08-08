@@ -7,6 +7,7 @@ Description: LinkR package gives some tools to help clinicians without advanced 
   to pooled patient data analytics, using a web application created with {shiny}.
 License: GPL (>= 3)
 Imports: 
+    bcrypt (>= 1.1),
     bit64 (>= 4.0.5),
     clipr (>= 0.8.0),
     curl (>= 5.0.0),
