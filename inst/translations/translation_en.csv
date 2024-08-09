@@ -1273,10 +1273,16 @@ error_removing_git_element,Error removing element from git
 edit_user,Edit user profile
 delete_user,Delete user
 delete_user_status,Delete user status
+delete_user_access,Delete user access
 delete_user_title,Delete a user
 delete_user_text,Confirm deletion of this user?
+delete_user_status_title,Delete a user status
+delete_user_status_text,Confirm deletion of this user status?
+delete_user_access_title,Delete a user access
+delete_user_access_text,Confirm deletion of this user access?
 cancel_updates,Cancel updates
 save_updates,Save updates
 login,Login
 create_user,Create a new user
 create_user_status,Create a new user status
+create_user_access,Create a new user access

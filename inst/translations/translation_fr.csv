@@ -1273,10 +1273,16 @@ error_removing_git_element,Erreur lors de la suppression de l'élément du git
 edit_user,Editer le profil de l'utilisateur
 delete_user,Supprimer l'utilisateur
 delete_user_status,Supprimer le statut
+delete_user_access,Supprimer l'accès
 delete_user_title,Supprimer un utilisateur
 delete_user_text,Confirmer la suppression de l'utilisateur ?
+delete_user_status_title,Supprimer un status
+delete_user_status_text,Confirmer la suppression de ce statut ?
+delete_user_access_title,Supprimer un accès
+delete_user_access_text,Confirmer la suppression de cet accès ?
 cancel_updates,Annuler les modifications
 save_updates,Sauvegarder les modifications
 login,Identifiant de connexion
 create_user,Créer un nouvel utilisateur
 create_user_status,Créer un nouveau statut
+create_user_access,Créer un nouvel accès
