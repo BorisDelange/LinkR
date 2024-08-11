@@ -228,8 +228,11 @@ app_server <- function(pages, language, languages, i18n, app_folder, debug, log_
       # user_access_id <- r$users %>% dplyr::filter(id == r$user_id) %>% dplyr::pull(user_access_id)
       
       # Get user accesses
-      # r$user_accesses <- r$options %>% dplyr::filter(category == "users_accesses" & link_id == user_access_id & value_num == 1) %>% dplyr::pull(name)
-      # m$user_accesses <- r$user_accesses
+      
+      user_access_id <- r$users %>% dplyr::filter(id == user_id) %>% dplyr::pull(user_access_id) 
+      
+      sql <- glue::glue_sql("SELECT * FROM options WHERE category = 'users_accesses' AND link_id = {user_access_id} AND value_num = 1", .con = r$db)
+      r$user_accesses <- DBI::dbGetQuery(r$db, sql) %>% dplyr::pull(name)
       
       # Show username on top of the page
       # sql <- glue::glue_sql("SELECT CONCAT(firstname, ' ', lastname) AS name, CONCAT(SUBSTRING(firstname, 1, 1), SUBSTRING(lastname, 1, 1)) AS initials FROM users WHERE id = {r$user_id}", .con = r$db)

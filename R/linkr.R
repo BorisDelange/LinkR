@@ -102,11 +102,9 @@ linkr <- function(
       "git_repo_options_card",
       "git_edit_repo_card"),
     "users", c(
-      "users_creation_card",
-      "users_management_card",
-      "users_accesses_management_card",
-      "users_accesses_options_card",
-      "users_statuses_management_card"),
+      "users_management",
+      "users_statuses_management",
+      "users_accesses_management"),
     "dev", c(
       "dev_edit_r_code_card",
       "dev_edit_python_code_card"),

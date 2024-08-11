@@ -210,6 +210,7 @@ no_data_available,Pas de données disponibles
 deleted_user,Utilisateur supprimé
 choose_dataset_scripts,Configurer le set de données
 unauthorized_access_page,Accès non autorisé à cette page
+unauthorized_access_area,Accès non autorisé à cette section
 change_password_card,Changer le mot de passe
 app_db,BDD de l'application
 app_db_long,Base de données de l'application
@@ -776,6 +777,9 @@ db_request_card_user_access_description,Requêter la BDD de l'application
 db_save_card_user_access_description,Exporter la BDD de l'application
 db_restore_card_user_access_description,Restaurer la BDD de l'application
 users_creation_card_user_access_description,Créer un utilisateur
+users_management_user_access_description,"Gérer les utilisateurs (ajouter, éditer et supprimer)"
+users_statuses_management_user_access_description,"Gérer les statuts des utilisateurs (ajouter, éditer et supprimer)"
+users_accesses_management_user_access_description,"Gérer les accès des utilisateurs (ajouter, éditer et supprimer)"
 users_management_card_user_access_description,Gérer les utilisateurs (éditer et supprimer)
 users_accesses_management_card_user_access_description,"Gérer les accès utilisateurs (ajouter, éditer et supprimer)"
 users_accesses_options_card_user_access_description,Configurer les accès utilisateurs

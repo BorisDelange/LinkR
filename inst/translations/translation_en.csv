@@ -208,6 +208,7 @@ no_data_available,No data available
 deleted_user,Deleted user
 choose_dataset_scripts,Configure dataset
 unauthorized_access_page,Unauthorized access to this page
+unauthorized_access_area,Unauthorized access to this area
 change_password_card,Change password
 app_db,App database
 app_db_long,Application database
@@ -777,6 +778,9 @@ db_request_card_user_access_description,Request app database
 db_save_card_user_access_description,Export app database
 db_restore_card_user_access_description,Restore app database
 users_creation_card_user_access_description,Create a user
+users_management_user_access_description,"Manage users (add, edit and delete)"
+users_statuses_management_user_access_description,"Manage users statuses (add, edit and delete)"
+users_accesses_management_user_access_description,"Manage users accesses (add, edit and delete)"
 users_management_card_user_access_description,Manage users (edit and delete)
 users_accesses_management_card_user_access_description,"Manage users accesses (add, edit and delete)"
 users_accesses_options_card_user_access_description,Configure users accesses

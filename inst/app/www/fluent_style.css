@@ -1,5 +1,8 @@
 .ms-Toggle {
-  margin: 1.5px 0;
+  height: 17px;
+  margin: 2px 0;
+  display: flex;
+  gap: 10px;
 }
 
 .ms-Label, .ms-Fabric, .ms-SearchBox-field {
@@ -65,6 +68,12 @@
 .ms-Toggle-background {
   width: 28px;
   height: 15px;
+}
+
+.ms-Toggle-label {
+  order: 1;
+  line-height: 13px;
+  padding: 0;
 }
 
 button.ms-Toggle-background {

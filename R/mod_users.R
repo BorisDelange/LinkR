@@ -2,6 +2,88 @@
 mod_users_ui <- function(id, language, languages, i18n, users_accesses_toggles_options){
   ns <- NS(id)
   
+  # Modals ----
+  modals <- list()
+  
+  for (modal in c("user", "user_status", "user_access")){
+    
+    if (modal != "user") modals[[paste0("create_", modal, "_modal")]] <-
+      shinyjs::hidden(
+        div(
+          id = ns(paste0("create_", modal, "_modal")),
+          div(
+            div(
+              tags$h1(i18n$t(paste0("create_", modal))),
+              shiny.fluent::IconButton.shinyInput(ns(paste0("close_create_", modal, "_modal")), iconProps = list(iconName = "ChromeClose")),
+              class = "create_element_modal_head small_close_button"
+            ),
+            div(
+              div(
+                div(shiny.fluent::TextField.shinyInput(ns(paste0("create_", modal, "_name")), label = i18n$t("name")), style = "width: 200px;"),
+                div(shiny.fluent::TextField.shinyInput(ns(paste0("create_", modal, "_description")), label = i18n$t("description")), style = "width: 100%;"),
+              ),
+              div(
+                shiny.fluent::PrimaryButton.shinyInput(ns(paste0("add_", modal)), i18n$t("add")),
+                class = "create_element_modal_buttons"
+              ),
+            ),
+            class = "create_user_status_modal_content"
+          ),
+          class = "create_element_modal"
+        )
+      )
+    
+    modals[[paste0("delete_", modal, "_modal")]] <-
+      shinyjs::hidden(
+        div(
+          id = ns(paste0("delete_", modal, "_modal")),
+          div(
+            tags$h1(i18n$t(paste0("delete_", modal, "_title"))), tags$p(i18n$t(paste0("delete_", modal, "_text"))),
+            div(
+              shiny.fluent::DefaultButton.shinyInput(ns(paste0("close_", modal, "_deletion_modal")), i18n$t("dont_delete")),
+              div(shiny.fluent::PrimaryButton.shinyInput(ns(paste0("confirm_", modal, "_deletion")), i18n$t("delete")), class = "delete_button"),
+              class = "delete_modal_buttons"
+            ),
+            class = "delete_modal_content"
+          ),
+          class = "delete_modal"
+        )
+      )
+  }
+  
+  # Users accesses toggles ----
+  
+  users_accesses_toggles_options_result <- tagList()
+  
+  for (i in 1:nrow(users_accesses_toggles_options)){
+    
+    sub_results <- tagList()
+    
+    if (users_accesses_toggles_options[[i, "toggles"]] != ""){
+      for (toggle in users_accesses_toggles_options[[i, "toggles"]][[1]]){
+        sub_results <- tagList(
+          sub_results,
+          div(
+            shiny.fluent::Toggle.shinyInput(ns(paste0("toggle_", toggle)), label = i18n$t(paste0(toggle, "_user_access_description"))),
+            style = "margin-left: 40px;"
+          )
+        )
+      }
+    }
+    
+    sub_results <- div(sub_results, style = "margin: 5px 0 15px 0;")
+    label <- users_accesses_toggles_options[[i, "name"]]
+    
+    users_accesses_toggles_options_result <- tagList(
+      users_accesses_toggles_options_result,
+      div(
+        shiny.fluent::Toggle.shinyInput(ns(paste0("toggle_", label)), label = i18n$t(label)),
+        div(id = ns(paste0("sub_results_", label, "_div")), sub_results)
+      )
+    )
+  }
+  
+  
   div(
     class = "main",
     div(
@@ -31,6 +113,13 @@ mod_users_ui <- function(id, language, languages, i18n, users_accesses_toggles_o
             style = "display: flex; justify-content: space-between;"
           ),
           DT::DTOutput(ns("users_dt")),
+          shinyjs::hidden(
+            div(
+              id = ns("users_management_forbidden_access"),
+              shiny.fluent::MessageBar(i18n$t("unauthorized_access_area"), messageBarType = 5),
+              style = "display: inline-block;"
+            )
+          ),
           shinyjs::hidden(
             div(
               id = ns("user_edition_div"),
@@ -73,6 +162,13 @@ mod_users_ui <- function(id, language, languages, i18n, users_accesses_toggles_o
           DT::DTOutput(ns("users_statuses_dt")),
           shinyjs::hidden(
             div(
+              id = ns("users_statuses_management_forbidden_access"),
+              shiny.fluent::MessageBar(i18n$t("unauthorized_access_area"), messageBarType = 5),
+              style = "display: inline-block;"
+            )
+          ),
+          shinyjs::hidden(
+            div(
               id = ns("user_status_edition_div"),
               div(shiny.fluent::TextField.shinyInput(ns("edit_user_status_name"), label = i18n$t("name")), style = "width: 200px;"),
               div(shiny.fluent::TextField.shinyInput(ns("edit_user_status_description"), label = i18n$t("description")), style = "width: 100%;"),
@@ -110,21 +206,30 @@ mod_users_ui <- function(id, language, languages, i18n, users_accesses_toggles_o
           DT::DTOutput(ns("users_accesses_dt")),
           shinyjs::hidden(
             div(
+              id = ns("users_accesses_management_forbidden_access"),
+              shiny.fluent::MessageBar(i18n$t("unauthorized_access_area"), messageBarType = 5),
+              style = "display: inline-block;"
+            )
+          ),
+          shinyjs::hidden(
+            div(
               id = ns("user_access_edition_div"),
               div(shiny.fluent::TextField.shinyInput(ns("edit_user_access_name"), label = i18n$t("name")), style = "width: 200px;"),
               div(shiny.fluent::TextField.shinyInput(ns("edit_user_access_description"), label = i18n$t("description")), style = "width: 100%;"),
-              tags$hr(style = "height: 1px; border: none; background-color: #ccc; margin-top: 15px;"),
-              
+              tags$hr(style = "height: 1px; border: none; background-color: #ccc; margin: 15px 0;"),
+              users_accesses_toggles_options_result
             )
           ),
-          class = "widget", style = "height: calc(100% - 25px); padding-top: 1px;"
+          class = "widget", style = "height: calc(100% - 25px); padding-top: 1px; overflow: auto;"
         ),
         class = "users_right"
       ),
       class = "users_container"
     ),
     
-    # Create a user modal ----
+    # Modals ----
+    
+    # Create a user modal
     shinyjs::hidden(
       div(
         id = ns("create_user_modal"),
@@ -143,8 +248,8 @@ mod_users_ui <- function(id, language, languages, i18n, users_accesses_toggles_o
                 div(shiny.fluent::TextField.shinyInput(ns("create_user_lastname"), label = i18n$t("lastname")), style = "width: 200px;"),
                 style = "display: flex; gap: 10px;"
               ),
-              div(shiny.fluent::Dropdown.shinyInput(ns("create_user_status"), label = i18n$t("user_status")), style = "width: 200px;"),
-              div(shiny.fluent::Dropdown.shinyInput(ns("create_user_access"), label = i18n$t("user_access")), style = "width: 200px;")
+              div(shiny.fluent::Dropdown.shinyInput(ns("create_user_user_status"), label = i18n$t("user_status")), style = "width: 200px;"),
+              div(shiny.fluent::Dropdown.shinyInput(ns("create_user_user_access"), label = i18n$t("user_access")), style = "width: 200px;")
             ),
             div(
               shiny.fluent::PrimaryButton.shinyInput(ns("add_user"), i18n$t("add")),
@@ -157,108 +262,20 @@ mod_users_ui <- function(id, language, languages, i18n, users_accesses_toggles_o
       )
     ),
     
-    # Delete a user modal ----
-    shinyjs::hidden(
-      div(
-        id = ns("delete_user_modal"),
-        div(
-          tags$h1(i18n$t("delete_user_title")), tags$p(i18n$t("delete_user_text")),
-          div(
-            shiny.fluent::DefaultButton.shinyInput(ns("close_user_deletion_modal"), i18n$t("dont_delete")),
-            div(shiny.fluent::PrimaryButton.shinyInput(ns("confirm_user_deletion"), i18n$t("delete")), class = "delete_button"),
-            class = "delete_modal_buttons"
-          ),
-          class = "delete_modal_content"
-        ),
-        class = "delete_modal"
-      )
-    ),
+    # Delete a user modal
+    modals$delete_user_modal,
     
-    # Create a user status modal ----
-    shinyjs::hidden(
-      div(
-        id = ns("create_user_status_modal"),
-        div(
-          div(
-            tags$h1(i18n$t("create_user_status")),
-            shiny.fluent::IconButton.shinyInput(ns("close_create_user_status_modal"), iconProps = list(iconName = "ChromeClose")),
-            class = "create_element_modal_head small_close_button"
-          ),
-          div(
-            div(
-              div(shiny.fluent::TextField.shinyInput(ns("create_user_status_name"), label = i18n$t("name")), style = "width: 200px;"),
-              div(shiny.fluent::TextField.shinyInput(ns("create_user_status_description"), label = i18n$t("description")), style = "width: 100%;"),
-            ),
-            div(
-              shiny.fluent::PrimaryButton.shinyInput(ns("add_user_status"), i18n$t("add")),
-              class = "create_element_modal_buttons"
-            ),
-          ),
-          class = "create_user_status_modal_content"
-        ),
-        class = "create_element_modal"
-      )
-    ),
+    # Create a user status moda
+    modals$create_user_status_modal,
     
-    # Delete a user status modal ----
-    shinyjs::hidden(
-      div(
-        id = ns("delete_user_status_modal"),
-        div(
-          tags$h1(i18n$t("delete_user_status_title")), tags$p(i18n$t("delete_user_status_text")),
-          div(
-            shiny.fluent::DefaultButton.shinyInput(ns("close_user_status_deletion_modal"), i18n$t("dont_delete")),
-            div(shiny.fluent::PrimaryButton.shinyInput(ns("confirm_user_status_deletion"), i18n$t("delete")), class = "delete_button"),
-            class = "delete_modal_buttons"
-          ),
-          class = "delete_modal_content"
-        ),
-        class = "delete_modal"
-      )
-    ),
+    # Delete a user status modal
+    modals$delete_user_status_modal,
     
     # Create a user access modal ----
-    shinyjs::hidden(
-      div(
-        id = ns("create_user_access_modal"),
-        div(
-          div(
-            tags$h1(i18n$t("create_user_access")),
-            shiny.fluent::IconButton.shinyInput(ns("close_create_user_access_modal"), iconProps = list(iconName = "ChromeClose")),
-            class = "create_element_modal_head small_close_button"
-          ),
-          div(
-            div(
-              div(shiny.fluent::TextField.shinyInput(ns("create_user_access_name"), label = i18n$t("name")), style = "width: 200px;"),
-              div(shiny.fluent::TextField.shinyInput(ns("create_user_access_description"), label = i18n$t("description")), style = "width: 100%;"),
-            ),
-            div(
-              shiny.fluent::PrimaryButton.shinyInput(ns("add_user_access"), i18n$t("add")),
-              class = "create_element_modal_buttons"
-            ),
-          ),
-          class = "create_user_access_modal_content"
-        ),
-        class = "create_element_modal"
-      )
-    ),
+    modals$create_user_access_modal,
     
     # Delete a user access modal ----
-    shinyjs::hidden(
-      div(
-        id = ns("delete_user_access_modal"),
-        div(
-          tags$h1(i18n$t("delete_user_access_title")), tags$p(i18n$t("delete_user_access_text")),
-          div(
-            shiny.fluent::DefaultButton.shinyInput(ns("close_user_access_deletion_modal"), i18n$t("dont_delete")),
-            div(shiny.fluent::PrimaryButton.shinyInput(ns("confirm_user_access_deletion"), i18n$t("delete")), class = "delete_button"),
-            class = "delete_modal_buttons"
-          ),
-          class = "delete_modal_content"
-        ),
-        class = "delete_modal"
-      )
-    ),
+    modals$delete_user_access_modal,
   )
 }
 
@@ -266,6 +283,17 @@ mod_users_ui <- function(id, language, languages, i18n, users_accesses_toggles_o
 mod_users_server <- function(id, r, d, m, language, i18n, debug, users_accesses_toggles_options){
   moduleServer(id, function(input, output, session){
     ns <- session$ns
+    
+    # Current user accesses ----
+    
+    for (type in c("users", "users_accesses", "users_statuses")){
+      single <- switch(type, "users" = "user", "users_accesses" = "user_access", "users_statuses" = "user_status")
+      
+      if (paste0(type, "_management") %not_in% r$user_accesses){
+        sapply(c(paste0("add_", single, "_icon"), paste0("edit_", single, "_icons"), paste0(type, "_dt")), shinyjs::hide)
+        shinyjs::show(paste0(type, "_management_forbidden_access"))
+      }
+    }
     
     # |----------- USERS --------------------------- -----
     
@@ -371,14 +399,14 @@ mod_users_server <- function(id, r, d, m, language, i18n, debug, users_accesses_
       # Check if dropdowns are not empty
       empty <- list()
       
-      for (field in c("user_access", "user_status")){
+      for (field in c("user_status", "user_access")){
         if (field == "user_access") dropdown_options <- r$users_accesses
         else if (field == "user_status") dropdown_options <- r$users_statuses
         dropdown_options <- dropdown_options %>% convert_tibble_to_list(key_col = "id", text_col = "name")
         
-        if (length(input[[paste0("create_", field)]]) == 0) shiny.fluent::updateDropdown.shinyInput(session, paste0("create_", field), errorMessage = i18n$t("provide_valid_value"), options = dropdown_options)
-        else shiny.fluent::updateDropdown.shinyInput(session, paste0("create_", field), errorMessage = NULL, options = dropdown_options)
-        req(length(input[[paste0("create_", field)]]) > 0)
+        if (length(input[[paste0("create_user_", field)]]) == 0) shiny.fluent::updateDropdown.shinyInput(session, paste0("create_user_", field), errorMessage = i18n$t("provide_valid_value"), options = dropdown_options)
+        else shiny.fluent::updateDropdown.shinyInput(session, paste0("create_user_", field), errorMessage = NULL, options = dropdown_options)
+        req(length(input[[paste0("create_user_", field)]]) > 0)
       }
       
       # Add new data in db
@@ -388,7 +416,7 @@ mod_users_server <- function(id, r, d, m, language, i18n, debug, users_accesses_
       new_data <- tibble::tibble(
         id = get_last_row(r$db, "users") + 1, username = input$create_user_username,
         firstname = input$create_user_firstname, lastname = input$create_user_lastname, password = encrypted_password,
-        user_access_id = input$create_user_access, user_status_id = input$create_user_status, datetime = now(), deleted = FALSE
+        user_access_id = input$create_user_user_access, user_status_id = input$create_user_user_status, datetime = now(), deleted = FALSE
       )
       DBI::dbAppendTable(r$db, "users", new_data)
       
@@ -444,8 +472,6 @@ mod_users_server <- function(id, r, d, m, language, i18n, debug, users_accesses_
       
       # Check if dropdowns are not empty (when a user status or access is deleted)
       empty <- list()
-      
-      print(input$edit_user_status)
       
       for (field in c("user_access", "user_status")){
         empty <- TRUE
@@ -545,54 +571,7 @@ mod_users_server <- function(id, r, d, m, language, i18n, debug, users_accesses_
     
     observeEvent(input$reload_users_statuses, {
       if (debug) cat(paste0("\n", now(), " - mod_users - observer input$reload_users_statuses"))
-      
-      sql <- glue::glue_sql("SELECT * FROM users_statuses", .con = r$db)
-      r$users_statuses <- DBI::dbGetQuery(r$db, sql)
-      
-      # Update dropdowns
-      
-      dropdown_options <- convert_tibble_to_list(r$users_statuses, key_col = "id", text_col = "name")
-      value <- NULL
-      if (length(input$edit_user_status) > 0) value <- input$edit_user_status
-      
-      shiny.fluent::updateDropdown.shinyInput(session, "edit_user_status", options = dropdown_options, value = value)
-      shiny.fluent::updateDropdown.shinyInput(session, "create_user_status", options = dropdown_options)
-      
-      # Update DT
-      
-      users_statuses <- 
-        r$users_statuses %>% 
-        dplyr::select(id, name, description) %>%
-        dplyr::rowwise() %>%
-        dplyr::mutate(
-          action = as.character(
-            div(
-              shiny.fluent::IconButton.shinyInput(
-                ns(paste0("edit_user_status_", id)), iconProps = list(iconName = "Edit"),
-                onClick = htmlwidgets::JS(paste0(
-                  "item => {",
-                  "Shiny.setInputValue('users-edit_user_status_id', ", id, ");",
-                  "Shiny.setInputValue('users-edit_user_status_trigger', Math.random());",
-                  "}"
-                ))
-              ),
-              class = "small_icon_button small_icon_button_dt"
-            )
-          )
-        )
-      
-      col_names <- c(i18n$t("id"), i18n$t("name"), i18n$t("description"), i18n$t("action"))
-      
-      sortable_cols <- c("id", "name")
-      searchable_cols <- "name"
-      column_widths <- c("id" = "50px", "name" = "100px", "action" = "50px")
-      centered_cols <- "action"
-      
-      render_datatable(
-        output = output, ns = ns, i18n = i18n, data = users_statuses, selection = "none",
-        output_name = "users_statuses_dt", datatable_dom = "<'top't><'bottom'p>", sortable_cols = sortable_cols, centered_cols = centered_cols,
-        col_names = col_names, searchable_cols = searchable_cols, filter = TRUE, column_widths = column_widths
-      )
+      reload_user_attribute("user_status")
     })
     
     # Create user status ----
@@ -613,45 +592,7 @@ mod_users_server <- function(id, r, d, m, language, i18n, debug, users_accesses_
     
     observeEvent(input$add_user_status, {
       if (debug) cat(paste0("\n", now(), " - mod_users - observer input$add_user_status"))
-      
-      # Check if textfields are not empty
-      empty_name <- TRUE
-      name <- input$create_user_status_name
-      if (length(name) > 0) if (!is.na(name) & name != "") empty_name <- FALSE
-      if (empty_name) shiny.fluent::updateTextField.shinyInput(session, "create_user_status_name", errorMessage = i18n$t("provide_valid_value"))
-      else shiny.fluent::updateTextField.shinyInput(session, "create_user_status_name", errorMessage = NULL)
-      
-      req(!empty_name)
-      
-      # Check if name is not already used
-      sql <- glue::glue_sql("SELECT id FROM users_statuses WHERE LOWER(name) = {tolower(input$create_user_status_name)}", .con = r$db)
-      name_already_used <- nrow(DBI::dbGetQuery(r$db, sql) > 0)
-      
-      if (name_already_used) shiny.fluent::updateTextField.shinyInput(session, "create_user_status_name", errorMessage = i18n$t("name_already_used"))
-      req(!name_already_used)
-      shiny.fluent::updateTextField.shinyInput(session, "create_user_status_name", errorMessage = NULL)
-      
-      description <- ""
-      if (length(input$create_user_status_description) > 0) description <- input$create_user_status_description
-      
-      # Add new data in db
-      
-      new_data <- tibble::tibble(
-        id = get_last_row(r$db, "users_statuses") + 1, name = input$create_user_status_name, description = description,
-        datetime = now(), deleted = FALSE
-      )
-      DBI::dbAppendTable(r$db, "users_statuses", new_data)
-      
-      # Reload textfields
-      for (field in c("name", "description")) shiny.fluent::updateTextField.shinyInput(session, paste0("create_user_status_", field), value = "")
-
-      # Reload users var and DT
-      shinyjs::runjs(paste0("Shiny.setInputValue('", id, "-reload_users_statuses', Math.random());"))
-
-      # Notify user
-      show_message_bar(output, "user_status_added", "success", i18n = i18n, ns = ns)
-      
-      shinyjs::hide("create_user_status_modal")
+      add_user_attribute("user_status")
     })
     
     # Edit user status ----
@@ -672,43 +613,7 @@ mod_users_server <- function(id, r, d, m, language, i18n, debug, users_accesses_
     
     observeEvent(input$save_user_status_updates, {
       if (debug) cat(paste0("\n", now(), " - mod_users - observer input$save_user_status_updates"))
-      
-      # Check if textfield is not empty
-      
-      empty_name <- TRUE
-      name <- input$edit_user_status_name
-      if (length(name) > 0) if (!is.na(name) & name != "") empty_name <- FALSE
-      if (empty_name) shiny.fluent::updateTextField.shinyInput(session, "edit_user_status_name", errorMessage = i18n$t("provide_valid_value"))
-      else shiny.fluent::updateTextField.shinyInput(session, "edit_user_status_name", errorMessage = NULL)
-      
-      req(!empty_name)
-      
-      # Check if name is not already used
-      sql <- glue::glue_sql("SELECT id FROM users_statuses WHERE LOWER(name) = {tolower(input$edit_user_status_name)} AND id != {input$edit_user_status_id}", .con = r$db)
-      name_already_used <- nrow(DBI::dbGetQuery(r$db, sql) > 0)
-      
-      if (name_already_used) shiny.fluent::updateTextField.shinyInput(session, "edit_user_status_name", errorMessage = i18n$t("name_already_used"))
-      req(!name_already_used)
-      shiny.fluent::updateTextField.shinyInput(session, "edit_user_status_name", errorMessage = NULL)
-      
-      description <- ""
-      if (length(input$edit_user_status_description) > 0) description <- input$edit_user_status_description
-      
-      # Save updates in db
-      sql <- glue::glue_sql(paste0(
-        "UPDATE users_statuses SET name = {input$edit_user_status_name}, description = {description} ",
-        "WHERE id = {input$edit_user_status_id}"
-      ), .con = r$db)
-      sql_send_statement(r$db, sql)
-      
-      # Reload users var and DT
-      shinyjs::runjs(paste0("Shiny.setInputValue('", id, "-reload_users_statuses', Math.random());"))
-      
-      # Notify user
-      show_message_bar(output, "modif_saved", "success", i18n = i18n, ns = ns)
-      
-      sapply(c("user_status_edition_div", "edit_user_status_icons"), shinyjs::hide)
-      sapply(c("users_statuses_dt", "add_user_status_icon"), shinyjs::show)
+      save_user_attribute_updates("user_status")
     })
     
     # Cancel updates
@@ -738,19 +643,7 @@ mod_users_server <- function(id, r, d, m, language, i18n, debug, users_accesses_
     ## Deletion confirmed
     observeEvent(input$confirm_user_status_deletion, {
       if (debug) cat(paste0("\n", now(), " - mod_users - observer input$confirm_user_status_deletion"))
-      
-      # Delete user from db
-      sql <- glue::glue_sql("DELETE FROM users_statuses WHERE id = {input$edit_user_status_id}", .con = r$db)
-      sql_send_statement(r$db, sql)
-      
-      # Reload users var and DT
-      shinyjs::runjs(paste0("Shiny.setInputValue('", id, "-reload_users_statuses', Math.random());"))
-      
-      # Notify user
-      show_message_bar(output, "user_status_deleted", "warning", i18n = i18n, ns = ns)
-      
-      sapply(c("user_status_edition_div", "edit_user_status_icons", "delete_user_status_modal"), shinyjs::hide)
-      sapply(c("users_statuses_dt", "add_user_status_icon"), shinyjs::show)
+      delete_user_attribute("user_status")
     })
     
     # |----------- USERS ACCESSES --------- -----
@@ -762,54 +655,10 @@ mod_users_server <- function(id, r, d, m, language, i18n, debug, users_accesses_
     observeEvent(input$reload_users_accesses, {
       if (debug) cat(paste0("\n", now(), " - mod_users - observer input$reload_users_accesses"))
       
-      sql <- glue::glue_sql("SELECT * FROM users_accesses", .con = r$db)
-      r$users_accesses <- DBI::dbGetQuery(r$db, sql)
-      
-      dropdown_options <- convert_tibble_to_list(r$users_accesses, key_col = "id", text_col = "name")
-      value <- NULL
-      if (length(input$edit_user_access) > 0) value <- input$edit_user_access
-      
-      shiny.fluent::updateDropdown.shinyInput(session, "edit_user_access", options = dropdown_options, value = value)
-      shiny.fluent::updateDropdown.shinyInput(session, "create_user_access", options = dropdown_options)
-      
-      # Update DT
-      
-      users_accesses <- 
-        r$users_accesses %>% 
-        dplyr::select(id, name, description) %>%
-        dplyr::rowwise() %>%
-        dplyr::mutate(
-          action = as.character(
-            div(
-              shiny.fluent::IconButton.shinyInput(
-                ns(paste0("edit_user_access_", id)), iconProps = list(iconName = "Edit"),
-                onClick = htmlwidgets::JS(paste0(
-                  "item => {",
-                  "Shiny.setInputValue('users-edit_user_access_id', ", id, ");",
-                  "Shiny.setInputValue('users-edit_user_access_trigger', Math.random());",
-                  "}"
-                ))
-              ),
-              class = "small_icon_button small_icon_button_dt"
-            )
-          )
-        )
-      
-      col_names <- c(i18n$t("id"), i18n$t("name"), i18n$t("description"), i18n$t("action"))
-      
-      sortable_cols <- c("id", "name")
-      searchable_cols <- "name"
-      column_widths <- c("id" = "50px", "name" = "100px", "action" = "50px")
-      centered_cols <- "action"
-      
-      render_datatable(
-        output = output, ns = ns, i18n = i18n, data = users_accesses, selection = "none",
-        output_name = "users_accesses_dt", datatable_dom = "<'top't><'bottom'p>", sortable_cols = sortable_cols, centered_cols = centered_cols,
-        col_names = col_names, searchable_cols = searchable_cols, filter = TRUE, column_widths = column_widths
-      )
+      reload_user_attribute("user_access")
     })
     
-    # Create user status ----
+    # Create user access ----
     
     ## Open modal
     observeEvent(input$create_user_access, {
@@ -827,48 +676,10 @@ mod_users_server <- function(id, r, d, m, language, i18n, debug, users_accesses_
     
     observeEvent(input$add_user_access, {
       if (debug) cat(paste0("\n", now(), " - mod_users - observer input$add_user_access"))
-      
-      # Check if textfields are not empty
-      empty_name <- TRUE
-      name <- input$create_user_access_name
-      if (length(name) > 0) if (!is.na(name) & name != "") empty_name <- FALSE
-      if (empty_name) shiny.fluent::updateTextField.shinyInput(session, "create_user_access_name", errorMessage = i18n$t("provide_valid_value"))
-      else shiny.fluent::updateTextField.shinyInput(session, "create_user_access_name", errorMessage = NULL)
-      
-      req(!empty_name)
-      
-      # Check if name is not already used
-      sql <- glue::glue_sql("SELECT id FROM users_accesses WHERE LOWER(name) = {tolower(input$create_user_access_name)}", .con = r$db)
-      name_already_used <- nrow(DBI::dbGetQuery(r$db, sql) > 0)
-      
-      if (name_already_used) shiny.fluent::updateTextField.shinyInput(session, "create_user_access_name", errorMessage = i18n$t("name_already_used"))
-      req(!name_already_used)
-      shiny.fluent::updateTextField.shinyInput(session, "create_user_access_name", errorMessage = NULL)
-      
-      description <- ""
-      if (length(input$create_user_access_description) > 0) description <- input$create_user_access_description
-      
-      # Add new data in db
-      
-      new_data <- tibble::tibble(
-        id = get_last_row(r$db, "users_accesses") + 1, name = input$create_user_access_name, description = description,
-        datetime = now(), deleted = FALSE
-      )
-      DBI::dbAppendTable(r$db, "users_accesses", new_data)
-      
-      # Reload textfields
-      for (field in c("name", "description")) shiny.fluent::updateTextField.shinyInput(session, paste0("create_user_access_", field), value = "")
-      
-      # Reload users var and DT
-      shinyjs::runjs(paste0("Shiny.setInputValue('", id, "-reload_users_accesses', Math.random());"))
-      
-      # Notify user
-      show_message_bar(output, "user_access_added", "success", i18n = i18n, ns = ns)
-      
-      shinyjs::hide("create_user_access_modal")
+      add_user_attribute("user_access")
     })
     
-    # Edit user status ----
+    # Edit user access ----
     
     observeEvent(input$edit_user_access_trigger, {
       if (debug) cat(paste0("\n", now(), " - mod_users - observer input$edit_user_access_trigger"))
@@ -880,49 +691,16 @@ mod_users_server <- function(id, r, d, m, language, i18n, debug, users_accesses_
       
       sapply(c("users_accesses_dt", "add_user_access_icon"), shinyjs::hide)
       sapply(c("user_access_edition_div", "edit_user_access_icons"), shinyjs::show)
+      
+      # Update toggles
+      shinyjs::runjs(paste0("Shiny.setInputValue('", id, "-update_user_accesses_toggles', Math.random());"))
     })
     
     # Save updates
     
     observeEvent(input$save_user_access_updates, {
       if (debug) cat(paste0("\n", now(), " - mod_users - observer input$save_user_access_updates"))
-      
-      # Check if textfield is not empty
-      
-      empty_name <- TRUE
-      name <- input$edit_user_access_name
-      if (length(name) > 0) if (!is.na(name) & name != "") empty_name <- FALSE
-      if (empty_name) shiny.fluent::updateTextField.shinyInput(session, "edit_user_access_name", errorMessage = i18n$t("provide_valid_value"))
-      else shiny.fluent::updateTextField.shinyInput(session, "edit_user_access_name", errorMessage = NULL)
-
-      req(!empty_name)
-
-      # Check if name is not already used
-      sql <- glue::glue_sql("SELECT id FROM users_accesses WHERE LOWER(name) = {tolower(input$edit_user_access_name)} AND id != {input$edit_user_access_id}", .con = r$db)
-      name_already_used <- nrow(DBI::dbGetQuery(r$db, sql) > 0)
-
-      if (name_already_used) shiny.fluent::updateTextField.shinyInput(session, "edit_user_access_name", errorMessage = i18n$t("name_already_used"))
-      req(!name_already_used)
-      shiny.fluent::updateTextField.shinyInput(session, "edit_user_access_name", errorMessage = NULL)
-
-      description <- ""
-      if (length(input$edit_user_access_description) > 0) description <- input$edit_user_access_description
-
-      # Save updates in db
-      sql <- glue::glue_sql(paste0(
-        "UPDATE users_accesses SET name = {input$edit_user_access_name}, description = {description} ",
-        "WHERE id = {input$edit_user_access_id}"
-      ), .con = r$db)
-      sql_send_statement(r$db, sql)
-      
-      # Reload users var and DT
-      shinyjs::runjs(paste0("Shiny.setInputValue('", id, "-reload_users_accesses', Math.random());"))
-      
-      # Notify user
-      show_message_bar(output, "modif_saved", "success", i18n = i18n, ns = ns)
-      
-      sapply(c("user_access_edition_div", "edit_user_access_icons"), shinyjs::hide)
-      sapply(c("users_accesses_dt", "add_user_access_icon"), shinyjs::show)
+      save_user_attribute_updates("user_access")
     })
     
     # Cancel updates
@@ -932,6 +710,45 @@ mod_users_server <- function(id, r, d, m, language, i18n, debug, users_accesses_
       
       sapply(c("user_access_edition_div", "edit_user_access_icons"), shinyjs::hide)
       sapply(c("users_accesses_dt", "add_user_access_icon"), shinyjs::show)
+    })
+    
+    # Show / hide toggles
+    
+    sapply(1:nrow(users_accesses_toggles_options), function(i){
+      
+      # Show or hide toggles
+      label <- users_accesses_toggles_options[[i, "name"]]
+      
+      observeEvent(input[[paste0("toggle_", label)]], {
+        if (debug) cat(paste0("\n", now(), " - mod_users - observer input$toggle_", label))
+        if (input[[paste0("toggle_", label)]]) shinyjs::show(paste0("sub_results_", label, "_div"))
+        else shinyjs::hide(paste0("sub_results_", label, "_div"))
+      })
+    })
+    
+    # Update toggles
+    
+    observeEvent(input$update_user_accesses_toggles, {
+      if (debug) cat(paste0("\n", now(), " - mod_users - observer input$update_user_accesses_toggles"))
+      
+      sql <- glue::glue_sql("SELECT name, value_num FROM options WHERE category = 'users_accesses' AND link_id = {input$edit_user_access_id} AND value_num = 1", .con = r$db)
+      current_data <- DBI::dbGetQuery(r$db, sql)
+      
+      for (i in 1:nrow(users_accesses_toggles_options)){
+        
+        user_access_name <- users_accesses_toggles_options[[i, "name"]]
+        value <- FALSE
+        if (user_access_name %in% current_data$name) value <- TRUE
+        shiny.fluent::updateToggle.shinyInput(session, paste0("toggle_", user_access_name), value = value)
+        
+        if (users_accesses_toggles_options[[i, "toggles"]] != ""){
+          for (toggle in users_accesses_toggles_options[[i, "toggles"]][[1]]){
+            value <- FALSE
+            if (toggle %in% current_data$name) value <- TRUE
+            shiny.fluent::updateToggle.shinyInput(session, paste0("toggle_", toggle), value = value)
+          }
+        }
+      }
     })
     
     # Delete user access ----
@@ -952,19 +769,227 @@ mod_users_server <- function(id, r, d, m, language, i18n, debug, users_accesses_
     ## Deletion confirmed
     observeEvent(input$confirm_user_access_deletion, {
       if (debug) cat(paste0("\n", now(), " - mod_users - observer input$confirm_user_access_deletion"))
+      delete_user_attribute("user_access")
+    })
+    
+    # |----------- MODAL FUNCTIONS -------- -----
+    
+    add_user_attribute <- function(type){
+      
+      table <- switch(type, "user_access" = "users_accesses", "user_status" = "users_statuses")
+      
+      # Check if textfields are not empty
+      empty_name <- TRUE
+      name <- input[[paste0("create_", type, "_name")]]
+      if (length(name) > 0) if (!is.na(name) & name != "") empty_name <- FALSE
+      if (empty_name) shiny.fluent::updateTextField.shinyInput(session, paste0("create_", type, "_name"), errorMessage = i18n$t("provide_valid_value"))
+      else shiny.fluent::updateTextField.shinyInput(session, paste0("create_", type, "_name"), errorMessage = NULL)
+      
+      req(!empty_name)
+      
+      # Check if name is not already used
+      sql <- glue::glue_sql("SELECT id FROM {`table`} WHERE LOWER(name) = {tolower(input[[paste0('create_', type, '_name')]])}", .con = r$db)
+      name_already_used <- nrow(DBI::dbGetQuery(r$db, sql) > 0)
+      
+      if (name_already_used) shiny.fluent::updateTextField.shinyInput(session, paste0("create_", type, "_name"), errorMessage = i18n$t("name_already_used"))
+      req(!name_already_used)
+      shiny.fluent::updateTextField.shinyInput(session, paste0("create_", type, "_name"), errorMessage = NULL)
+      
+      description <- ""
+      if (length(input[[paste0("create_", type, "_description")]]) > 0) description <- input[[paste0("create_", type, "_description")]]
+      
+      # Add new data in db
+      
+      new_data <- tibble::tibble(
+        id = get_last_row(r$db, "users_statuses") + 1, name = input[[paste0("create_", type, "_name")]], description = description,
+        datetime = now(), deleted = FALSE
+      )
+      DBI::dbAppendTable(r$db, table, new_data)
+      
+      # Reload textfields
+      for (field in c("name", "description")) shiny.fluent::updateTextField.shinyInput(session, paste0("create_", type, "_", field), value = "")
+      
+      # Reload users var and DT
+      shinyjs::runjs(paste0("Shiny.setInputValue('", id, "-reload_", table, "', Math.random());"))
+      
+      # Notify user
+      show_message_bar(output, paste0(type, "_added"), "success", i18n = i18n, ns = ns)
+      
+      shinyjs::hide(paste0("create_", type, "_modal"))
+    }
+    
+    delete_user_attribute <- function(type){
+      
+      table <- switch(type, "user_access" = "users_accesses", "user_status" = "users_statuses")
       
       # Delete user from db
-      sql <- glue::glue_sql("DELETE FROM users_accesses WHERE id = {input$edit_user_access_id}", .con = r$db)
+      sql <- glue::glue_sql("DELETE FROM {`table`} WHERE id = {input[[paste0('edit_', type, '_id')]]}", .con = r$db)
       sql_send_statement(r$db, sql)
       
       # Reload users var and DT
-      shinyjs::runjs(paste0("Shiny.setInputValue('", id, "-reload_users_accesses', Math.random());"))
+      shinyjs::runjs(paste0("Shiny.setInputValue('", id, "-reload_", table, "', Math.random());"))
       
       # Notify user
-      show_message_bar(output, "user_access_deleted", "warning", i18n = i18n, ns = ns)
+      show_message_bar(output, paste0(type, "_deleted"), "warning", i18n = i18n, ns = ns)
       
-      sapply(c("user_access_edition_div", "edit_user_access_icons", "delete_user_access_modal"), shinyjs::hide)
-      sapply(c("users_accesses_dt", "add_user_access_icon"), shinyjs::show)
-    })
+      sapply(c(paste0(type, "_edition_div"), paste0("edit_", type, "_icons"), paste0("delete_", type, "_modal")), shinyjs::hide)
+      sapply(c(paste0(table, "_dt"), paste0("add_", type, "_icon")), shinyjs::show)
+    }
+    
+    reload_user_attribute <- function(type){
+      
+      table <- switch(type, "user_access" = "users_accesses", "user_status" = "users_statuses")
+      
+      sql <- glue::glue_sql("SELECT * FROM {`table`}", .con = r$db)
+      r[[table]] <- DBI::dbGetQuery(r$db, sql)
+      
+      # Update dropdowns
+      
+      dropdown_options <- convert_tibble_to_list(r[[table]], key_col = "id", text_col = "name")
+      value <- NULL
+      if (length(input[[paste0("edit_", type)]]) > 0) value <- input[[paste0("edit_", type)]]
+      
+      shiny.fluent::updateDropdown.shinyInput(session, paste0("edit_", type), options = dropdown_options, value = value)
+      shiny.fluent::updateDropdown.shinyInput(session, paste0("create_", type), options = dropdown_options)
+      
+      # Update DT
+      
+      users_statuses <- 
+        r[[table]] %>% 
+        dplyr::select(id, name, description) %>%
+        dplyr::rowwise() %>%
+        dplyr::mutate(
+          action = as.character(
+            div(
+              shiny.fluent::IconButton.shinyInput(
+                ns(paste0("edit_", type, "_", id)), iconProps = list(iconName = "Edit"),
+                onClick = htmlwidgets::JS(paste0(
+                  "item => {",
+                  "Shiny.setInputValue('users-edit_", type, "_id', ", id, ");",
+                  "Shiny.setInputValue('users-edit_", type, "_trigger', Math.random());",
+                  "}"
+                ))
+              ),
+              class = "small_icon_button small_icon_button_dt"
+            )
+          )
+        )
+      
+      col_names <- c(i18n$t("id"), i18n$t("name"), i18n$t("description"), i18n$t("action"))
+      
+      sortable_cols <- c("id", "name")
+      searchable_cols <- "name"
+      column_widths <- c("id" = "50px", "name" = "100px", "action" = "50px")
+      centered_cols <- "action"
+      
+      render_datatable(
+        output = output, ns = ns, i18n = i18n, data = users_statuses, selection = "none",
+        output_name = paste0(table, "_dt"), datatable_dom = "<'top't><'bottom'p>", sortable_cols = sortable_cols, centered_cols = centered_cols,
+        col_names = col_names, searchable_cols = searchable_cols, filter = TRUE, column_widths = column_widths
+      )
+    }
+    
+    save_user_attribute_updates <- function(type){
+      
+      table <- switch(type, "user_access" = "users_accesses", "user_status" = "users_statuses")
+      
+      empty_name <- TRUE
+      name <- input[[paste0("edit_", type, "_name")]]
+      if (length(name) > 0) if (!is.na(name) & name != "") empty_name <- FALSE
+      if (empty_name) shiny.fluent::updateTextField.shinyInput(session, paste0("edit_", type, "_name"), errorMessage = i18n$t("provide_valid_value"))
+      else shiny.fluent::updateTextField.shinyInput(session, paste0("edit_", type, "_name"), errorMessage = NULL)
+      
+      req(!empty_name)
+      
+      # Check if name is not already used
+      sql <- glue::glue_sql("SELECT id FROM {`table`} WHERE LOWER(name) = {tolower(input[[paste0('edit_', type, '_name')]])} AND id != {input[[paste0('edit_', type, '_id')]]}", .con = r$db)
+      name_already_used <- nrow(DBI::dbGetQuery(r$db, sql) > 0)
+      
+      if (name_already_used) shiny.fluent::updateTextField.shinyInput(session, paste0("edit_", type, "_name"), errorMessage = i18n$t("name_already_used"))
+      req(!name_already_used)
+      shiny.fluent::updateTextField.shinyInput(session, paste0("edit_", type, "_name"), errorMessage = NULL)
+      
+      description <- ""
+      if (length(input[[paste0("edit_", type, "_description")]]) > 0) description <- input[[paste0("edit_", type, "_description")]]
+      
+      # Save updates in db
+      sql <- glue::glue_sql(paste0(
+        "UPDATE {`table`} SET name = {input[[paste0('edit_', type, '_name')]]}, description = {description} ",
+        "WHERE id = {input[[paste0('edit_', type, '_id')]]}"
+      ), .con = r$db)
+      sql_send_statement(r$db, sql)
+      
+      # Add user accesses in db
+      if (type == "user_access"){
+        
+        # Delete old rows
+        sql <- glue::glue_sql("DELETE FROM options WHERE category = 'users_accesses' AND link_id = {input$edit_user_access_id}", .con = r$db)
+        sql_send_statement(r$db, sql)
+        print(sql)
+        
+        # Add new ones
+        new_data <- tibble::tibble(
+          category = character(), link_id = integer(), name = character(), value = character(),
+          value_num = numeric(), creator_id = integer(), datetime = character(), deleted = logical()
+        )
+        
+        # Loop over all toggles
+        
+        for (i in 1:nrow(users_accesses_toggles_options)){
+          
+          user_access_name <- users_accesses_toggles_options[[i, "name"]]
+          
+          new_data <- new_data %>% dplyr::bind_rows(
+            tibble::tibble(
+              category = "users_accesses", 
+              link_id = input$edit_user_access_id, 
+              name = user_access_name,
+              value = "",
+              value_num = as.numeric(input[[paste0("toggle_", user_access_name)]]),
+              creator_id = r$user_id,
+              datetime = now(),
+              deleted = FALSE
+            )
+          )
+          
+          if (users_accesses_toggles_options[[i, "toggles"]] != ""){
+            
+            for (toggle in users_accesses_toggles_options[[i, "toggles"]][[1]]){
+              
+              value_num <- as.numeric(input[[paste0("toggle_", toggle)]])
+              
+              if (input[[paste0("toggle_", user_access_name)]] == 0) value_num <- 0
+              
+              new_data <- new_data %>% dplyr::bind_rows(
+                tibble::tibble(
+                  category = "users_accesses", 
+                  link_id = input$edit_user_access_id, 
+                  name = toggle,
+                  value = "",
+                  value_num = value_num,
+                  creator_id = r$user_id,
+                  datetime = now(),
+                  deleted = FALSE
+                )
+              )
+            }
+          }
+        }
+        
+        new_data <- new_data %>% dplyr::mutate(id = get_last_row(r$db, "options") + 1 + dplyr::row_number(), .before = "category")
+        print(new_data)
+        
+        DBI::dbAppendTable(r$db, "options", new_data)
+      }
+      
+      # Reload users var and DT
+      shinyjs::runjs(paste0("Shiny.setInputValue('", id, "-reload_", table, "', Math.random());"))
+      
+      # Notify user
+      show_message_bar(output, "modif_saved", "success", i18n = i18n, ns = ns)
+      
+      sapply(c(paste0(type, "_edition_div"), paste0("edit_", type, "_icons")), shinyjs::hide)
+      sapply(c(paste0(table, "_dt"), paste0("add_", type, "_icon")), shinyjs::show)
+    }
   })
 }
