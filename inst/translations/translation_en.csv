@@ -770,72 +770,6 @@ whats_a_script,What is a script?
 local_and_remote_plugins,Local & remote plugins
 local_and_remote_scripts,Local & remote scripts
 access_log,Access the log
-change_password_card_user_access_description,Change password of current account
-configure_python_card_user_access_description,Configure Python access
-db_connection_infos_card_user_access_description,Configure app database connections
-db_datatable_card_user_access_description,Access to app database tables list
-db_request_card_user_access_description,Request app database
-db_save_card_user_access_description,Export app database
-db_restore_card_user_access_description,Restore app database
-users_creation_card_user_access_description,Create a user
-users_management_user_access_description,"Manage users (add, edit and delete)"
-users_statuses_management_user_access_description,"Manage users statuses (add, edit and delete)"
-users_accesses_management_user_access_description,"Manage users accesses (add, edit and delete)"
-users_management_card_user_access_description,Manage users (edit and delete)
-users_accesses_management_card_user_access_description,"Manage users accesses (add, edit and delete)"
-users_accesses_options_card_user_access_description,Configure users accesses
-users_statuses_management_card_user_access_description,"Manage user statuses (add, edit and delete)"
-dev_edit_r_code_card_user_access_description,Execute code on R console without data restriction
-dev_edit_python_code_card_user_access_description,Execute code on Python console
-dev_edit_terminal_code_card_user_access_description,Execute code on terminal
-dev_perf_monitoring_card_user_access_description,Access to performances monitoring
-data_sources_datatable_card_user_access_description,"Manage data sources (add, edit and delete)"
-datasets_see_all_data_user_access_description,"Access to all datasets, even if current user is not in authorized users for a dataset"
-datasets_datatable_card_user_access_description,"Manage datasets (add, edit and delete)"
-datasets_options_card_user_access_description,Edit datasets options
-datasets_edit_code_card_user_access_description,Edit datasets code
-studies_see_all_data_user_access_description,"Access to all studies, even if current user is not in authorized users for a study"
-studies_description_card_user_access_description,Access to studies descriptions
-all_studies_card_user_access_description,Access to 'All studies' card
-import_study_card_user_access_description,Import studies
-export_study_card_user_access_description,Export studies
-studies_datatable_card_user_access_description,"Manage studies (add, edit and delete)"
-studies_options_card_user_access_description,Edit studies options
-subsets_datatable_card_user_access_description,"Manage subsets (add, edit and delete)"
-subsets_edit_code_card_user_access_description,Edit subsets code
-subsets_persons_card_user_access_description,Manage subset patients (add and remove patients from a subset)
-vocabularies_datatable_card_user_access_description,"Manage thesauri (add, edit and delete)"
-vocabularies_vocabularies_tables_datatable_card_user_access_description,"Access to vocabulary tables (from the settings page)"
-vocabularies_edit_code_card_user_access_description,Edit vocabularies code
-vocabularies_options_card_user_access_description,Edit vocabularies options
-vocabularies_import_vocabulary_card_user_access_description,Import a vocabulary
-vocabularies_export_vocabulary_card_user_access_description,Export a vocabulary
-vocabularies_concepts_card_user_access_description,Access to vocabulary concepts (from the tab at the top of the page)
-vocabularies_mapping_card_user_access_description,Access to vocabulary concepts mapping
-vocabularies_evaluate_mapping_user_access_description,Evaluate mappings
-vocabularies_delete_mapping_user_access_description,Delete mappings
-study_messages_card_user_access_description,Access to studies conversations
-plugins_see_all_data_user_access_description,"Access to all plugins, even if current user is not in authorized users for a plugin"
-all_plugins_card_user_access_description,Access to 'All plugins' tab
-plugins_datatable_card_user_access_description,"Manage plugins (add, edit and delete)"
-plugins_options_card_user_access_description,Edit plugins options
-plugins_edit_code_card_user_access_description,Edit plugins code
-import_plugin_card_user_access_description,Import plugins
-export_plugin_card_user_access_description,Export plugins
-scripts_datatable_card_user_access_description,"Manage scripts (add, edit and delete)"
-all_scripts_card_user_access_description,Access to 'All scripts' tab
-dataset_scripts_card_user_access_description,Configure datasets scripts (which scripts are loaded when a dataset is loaded)
-scripts_edit_code_card_user_access_description,Edit scripts code
-scripts_options_card_user_access_description,Edit scripts options
-import_script_card_user_access_description,Import scripts
-export_script_card_user_access_description,Export scripts
-all_users_user_access_description,Access to log of all users
-only_me_user_access_description,Access the log of the connected user
-data_console_user_access_description,Accessing the console from a study
-datasets_import_dataset_card_user_access_description,Import datasets
-datasets_export_dataset_card_user_access_description,Export datasets
-datasets_all_datasets_card_user_access_description,Access to 'All datasets' card
-vocabularies_all_vocabularies_card_user_access_description,Access to 'All vocabularies' card
 vocabulary_id_col,ID (vocabulary_id)
 vocabulary_id,Vocabulary ID
 vocabulary_id_1,Vocabulary ID 1
@@ -1290,3 +1224,29 @@ login,Login
 create_user,Create a new user
 create_user_status,Create a new user status
 create_user_access,Create a new user access
+users_management_user_access_description,"Manage users (add, edit and delete)"
+users_statuses_management_user_access_description,"Manage users statuses (add, edit and delete)"
+users_accesses_management_user_access_description,"Manage users accesses (add, edit and delete)"
+projects_see_all_data_user_access_description,Access to all projects
+projects_management_user_access_description,"Manage projects (add, edit and delete)"
+projects_import_user_access_description,Import a project
+projects_dataset_user_access_description,Set up project's dataset
+projects_data_cleaning_user_access_description,Set up projet's data cleaning scripts
+projects_share_user_access_description,Share projects (zip and git)
+plugins_see_all_data_user_access_description,Access to all plugins
+plugins_management_user_access_description,"Manage plugins (add, edit and delete)"
+plugins_import_user_access_description,Import a plugin
+plugins_edit_code_user_access_description,Edit and test plugin's code
+plugins_share_user_access_description,Share plugins (zip and git)
+datasets_see_all_data_user_access_description,Access to all datasets
+datasets_management_user_access_description,"Manage datasets (add, edit and delete)"
+datasets_import_user_access_description,Import a dataset
+datasets_edit_code_user_access_description,Edit and test dataset's code
+datasets_share_user_access_description,Share datasets (zip and git)
+data_cleaning_see_all_data_user_access_description,Access to all data cleaning scripts
+data_cleaning_management_user_access_description,"Manage data cleaning scripts (add, edit and delete)"
+data_cleaning_import_user_access_description,Import a data cleaning script
+data_cleaning_edit_code_user_access_description,Edit and test data cleaning script's code
+data_cleaning_share_user_access_description,Share data cleaning script (zip and git)
+vocabularies_management_user_access_description,"Manage vocabularies (add, edit and delete)"
+console_execute_code_user_access_description,Execute code on console

@@ -173,18 +173,29 @@ mod_datasets_ui <- function(id, language, languages, i18n, code_hotkeys){
           div(
             id = ns("edit_code_div"),
             div(
-              shinyAce::aceEditor(
-                ns("dataset_code"), value = "", mode = "r",
-                code_hotkeys = list("r", code_hotkeys),
-                autoScrollEditorIntoView = TRUE, height = "100%", debounce = 100, fontSize = 11, showPrintMargin = FALSE
-              ),
-              class = "element_ace_editor"
+              id = ns("edit_code_forbidden_access"),
+              shiny.fluent::MessageBar(i18n$t("unauthorized_access_area"), messageBarType = 5),
+              style = "display: inline-block; margin-top: 15px;"
             ),
-            div(
-              verbatimTextOutput(ns("code_result")),
-              class = "element_code_result"
+            shinyjs::hidden(
+              div(
+                id = ns("edit_code_content_div"),
+                div(
+                  shinyAce::aceEditor(
+                    ns("dataset_code"), value = "", mode = "r",
+                    code_hotkeys = list("r", code_hotkeys),
+                    autoScrollEditorIntoView = TRUE, height = "100%", debounce = 100, fontSize = 11, showPrintMargin = FALSE
+                  ),
+                  class = "element_ace_editor"
+                ),
+                div(
+                  verbatimTextOutput(ns("code_result")),
+                  class = "element_code_result"
+                ),
+                style = "height: 100%; display: flex;"
+              )
             ),
-            style = "height: 100%; display: flex;"
+            style = "height: 100%;"
           )
         ),
 
@@ -195,14 +206,24 @@ mod_datasets_ui <- function(id, language, languages, i18n, code_hotkeys){
             div(
               div(
                 h1(i18n$t("synchronize_with_git_repo")),
-                div(shiny.fluent::Dropdown.shinyInput(ns("git_repo"), label = i18n$t("git_repo")), style = "width: 200px;"),
-                div(uiOutput(ns("git_repo_element_ui")), style = "margin-top:10px;"),
                 div(
-                  uiOutput(ns("synchronize_git_buttons")),
-                  class = "projects_share_buttons"
+                  id = ns("share_forbidden_access"),
+                  shiny.fluent::MessageBar(i18n$t("unauthorized_access_area"), messageBarType = 5),
+                  style = "display: inline-block; margin-top: 5px;"
                 ),
-                # Button to download a dataset (sidenav button)
-                div(downloadButton(ns("export_element_download")), style = "visibility: hidden; position: absolute; right: 0; bottom: 0;"),
+                shinyjs::hidden(
+                  div(
+                    id = ns("share_content_div"),
+                    div(shiny.fluent::Dropdown.shinyInput(ns("git_repo"), label = i18n$t("git_repo")), style = "width: 200px;"),
+                    div(uiOutput(ns("git_repo_element_ui")), style = "margin-top:10px;"),
+                    div(
+                      uiOutput(ns("synchronize_git_buttons")),
+                      class = "projects_share_buttons"
+                    ),
+                    # Button to download a dataset (sidenav button)
+                    div(downloadButton(ns("export_element_download")), style = "visibility: hidden; position: absolute; right: 0; bottom: 0;")
+                  )
+                ),
                 class = "widget", style = "height: 50%; padding-top: 1px;"
               ),
               class = "datasets_share_left",
@@ -233,6 +254,20 @@ mod_datasets_server <- function(id, r, d, m, language, i18n, debug){
   
   moduleServer(id, function(input, output, session){
     ns <- session$ns
+    
+    # Current user accesses ----
+    
+    if ("datasets_management" %in% r$user_accesses) sapply(c("create_element_button", "edit_summary_div", "delete_element_div"), shinyjs::show)
+    if ("datasets_import" %in% r$user_accesses) shinyjs::show("import_element_button")
+    if ("datasets_edit_code" %in% r$user_accesses){
+      shinyjs::hide("edit_code_forbidden_access")
+      sapply(c("edit_code_buttons", "edit_code_content_div"), shinyjs::show)
+    }
+    
+    if ("datasets_share" %in% r$user_accesses){
+      sapply(c("share_content_div", "export_element_button"), shinyjs::show)
+      shinyjs::hide("share_forbidden_access")
+    }
     
     # |-------------------------------- -----
     

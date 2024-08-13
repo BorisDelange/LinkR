@@ -173,22 +173,33 @@ mod_plugins_ui <- function(id, language, languages, i18n){
         ),
         
         ## Edit code ----
-        shinyjs::hidden(
+        div(
+          id = ns("edit_code_div"),
           div(
-            id = ns("edit_code_div"),
-            div(uiOutput(ns("edit_code_tabs"))),
-            div(id = ns("edit_code_editors_div"), style = "height: calc(100% - 45px);"),
-            style = "height: 100%;"
-          )
+            id = ns("edit_code_forbidden_access"),
+            shiny.fluent::MessageBar(i18n$t("unauthorized_access_area"), messageBarType = 5),
+            style = "display: inline-block; margin-top: 15px;"
+          ),
+          shinyjs::hidden(div(id = ns("edit_code_tabs_div"), uiOutput(ns("edit_code_tabs")))),
+          shinyjs::hidden(div(id = ns("edit_code_editors_div"), style = "height: calc(100% - 45px);")),
+          style = "height: 100%;"
         ),
         
         ## Test code ----
         shinyjs::hidden(
           div(
             id = ns("run_code_div"),
-            div(textOutput(ns("run_code_datetime_code_execution")), style = "color:#878787; font-size:12px; margin-left:8px;"),
-            div(id = ns("gridstack_plugin_run_code"), class = "grid-stack"),
-            div(verbatimTextOutput(ns("run_code_result_server")), style = "font-size:12px; margin-left:8px; padding-top:10px;")
+            div(
+              id = ns("run_code_forbidden_access"),
+              shiny.fluent::MessageBar(i18n$t("unauthorized_access_area"), messageBarType = 5),
+              style = "display: inline-block; margin-top: 15px;"
+            ),
+            div(
+              id = ns("run_code_content_div"),
+              div(textOutput(ns("run_code_datetime_code_execution")), style = "color:#878787; font-size:12px; margin-left:8px;"),
+              div(id = ns("gridstack_plugin_run_code"), class = "grid-stack"),
+              div(verbatimTextOutput(ns("run_code_result_server")), style = "font-size:12px; margin-left:8px; padding-top:10px;")
+            )
           )
         ),
         
@@ -199,14 +210,24 @@ mod_plugins_ui <- function(id, language, languages, i18n){
             div(
               div(
                 h1(i18n$t("synchronize_with_git_repo")),
-                div(shiny.fluent::Dropdown.shinyInput(ns("git_repo"), label = i18n$t("git_repo")), style = "width: 200px;"),
-                div(uiOutput(ns("git_repo_element_ui")), style = "margin-top:10px;"),
                 div(
-                  uiOutput(ns("synchronize_git_buttons")),
-                  class = "datasets_share_buttons"
+                  id = ns("share_forbidden_access"),
+                  shiny.fluent::MessageBar(i18n$t("unauthorized_access_area"), messageBarType = 5),
+                  style = "display: inline-block; margin-top: 5px;"
                 ),
-                # Button to download a plugin (sidenav button)
-                div(downloadButton(ns("export_element_download")), style = "visibility: hidden; position: absolute; right: 0; bottom: 0;"),
+                shinyjs::hidden(
+                  div(
+                    id = ns("share_content_div"),
+                    div(shiny.fluent::Dropdown.shinyInput(ns("git_repo"), label = i18n$t("git_repo")), style = "width: 200px;"),
+                    div(uiOutput(ns("git_repo_element_ui")), style = "margin-top:10px;"),
+                    div(
+                      uiOutput(ns("synchronize_git_buttons")),
+                      class = "datasets_share_buttons"
+                    ),
+                    # Button to download a plugin (sidenav button)
+                    div(downloadButton(ns("export_element_download")), style = "visibility: hidden; position: absolute; right: 0; bottom: 0;")
+                  )
+                ),
                 class = "widget", style = "min-height: 50%; padding-top: 1px;"
               ),
               class = "plugins_share_right"
@@ -283,6 +304,24 @@ mod_plugins_server <- function(id, r, d, m, language, i18n, debug){
   moduleServer(id, function(input, output, session){
     
     ns <- session$ns
+    
+    # Current user accesses ----
+    
+    if ("plugins_management" %in% r$user_accesses) sapply(c("create_element_button", "edit_summary_div", "delete_element_div"), shinyjs::show)
+    if ("plugins_import" %in% r$user_accesses) shinyjs::show("import_element_button")
+    
+    if ("plugins_share" %in% r$user_accesses){
+      sapply(c("share_content_div", "export_element_button"), shinyjs::show)
+      shinyjs::hide("share_forbidden_access")
+    }
+    
+    if ("plugins_edit_code" %in% r$user_accesses){
+      sapply(c(
+        "edit_code_tabs_div", "edit_code_editors_div", "run_code_content_div", "edit_page_on_div", "reload_plugin_code_button",
+        "edit_code_buttons", "edit_code_directory_browser_div", "edit_code_files_browser_div"
+        ), shinyjs::show)
+      sapply(c("edit_code_forbidden_access", "run_code_forbidden_access"), shinyjs::hide)
+    }
 
     # |-------------------------------- -----
     

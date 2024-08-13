@@ -8,27 +8,37 @@ mod_console_ui <- function(id = character(), language = "en", languages = tibble
     comment = list(win = "CTRL-SHIFT-C", mac = "CTRL-SHIFT-C|CMD-SHIFT-C")
   )
   div(
-    id = ns("console"),
     div(
-      shinyAce::aceEditor(
-        ns("code"), value = "", mode = "r",
-        code_hotkeys = list("r", code_hotkeys),
-        autoScrollEditorIntoView = TRUE, height = "100%", debounce = 100, fontSize = 11, showPrintMargin = FALSE
-      ),
-      style = "width: 50%; margin-top: 10px;"
+      id = ns("console_forbidden_access"),
+      shiny.fluent::MessageBar(i18n$t("unauthorized_access_area"), messageBarType = 5),
+      style = "display: inline-block; margin-top: 15px;"
     ),
-    div(
-      id = ns("console_output"),
-      textOutput(ns("datetime_code_execution")),
-      verbatimTextOutput(ns("code_output")),
-      shinyjs::hidden(div(id = ns("plot_output_div"), plotOutput(ns("plot_output")), style = "padding-top: 10px;")),
-      shinyjs::hidden(uiOutput(ns("ui_output"))),
-      shinyjs::hidden(div(id = ns("table_output_div"), tableOutput(ns("table_output")), style = "padding-top: 10px;")),
-      shinyjs::hidden(div(id = ns("datatable_output_div"), DT::DTOutput(ns("datatable_output")), style = "padding-top: 10px;")),
-      shinyjs::hidden(imageOutput(ns("image_output"))),
-      style = "width: 50%; border: dashed grey 1px; margin: 10px 0px 0px 10px; padding: 10px; font-size: 12px; overflow-y: auto;"
+    shinyjs::hidden(
+      div(
+        id = ns("console_div"),
+        div(
+          shinyAce::aceEditor(
+            ns("code"), value = "", mode = "r",
+            code_hotkeys = list("r", code_hotkeys),
+            autoScrollEditorIntoView = TRUE, height = "100%", debounce = 100, fontSize = 11, showPrintMargin = FALSE
+          ),
+          style = "width: 50%; margin-top: 10px;"
+        ),
+        div(
+          id = ns("console_output"),
+          textOutput(ns("datetime_code_execution")),
+          verbatimTextOutput(ns("code_output")),
+          shinyjs::hidden(div(id = ns("plot_output_div"), plotOutput(ns("plot_output")), style = "padding-top: 10px;")),
+          shinyjs::hidden(uiOutput(ns("ui_output"))),
+          shinyjs::hidden(div(id = ns("table_output_div"), tableOutput(ns("table_output")), style = "padding-top: 10px;")),
+          shinyjs::hidden(div(id = ns("datatable_output_div"), DT::DTOutput(ns("datatable_output")), style = "padding-top: 10px;")),
+          shinyjs::hidden(imageOutput(ns("image_output"))),
+          style = "width: 50%; border: dashed grey 1px; margin: 10px 0px 0px 10px; padding: 10px; font-size: 12px; overflow-y: auto;"
+        ),
+        style = "height: 100%; display: flex;"
+      )
     ),
-    style = "display: flex; max-height:calc(100vh - 90px); width: 100%;",
+    style = "max-height:calc(100vh - 90px); width: 100%;",
     class = "main"
   )
 }
@@ -37,6 +47,13 @@ mod_console_ui <- function(id = character(), language = "en", languages = tibble
 mod_console_server <- function(id = character(), r = shiny::reactiveValues(), d = shiny::reactiveValues(), m = shiny::reactiveValues(), language = "en", i18n = character(), debug = FALSE){
   moduleServer(id, function(input, output, session){
     ns <- session$ns
+    
+    # Current user accesses ----
+    
+    if ("console_execute_code" %in% r$user_accesses){
+      sapply(c("console_sidenav_buttons", "reduced_sidenav_execute_code_button", "console_div"), shinyjs::show) 
+      shinyjs::hide("console_forbidden_access")
+    }
     
     r$load_console <- now()
     

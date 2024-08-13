@@ -17,6 +17,99 @@ mod_page_sidenav_ui <- function(id = character(), i18n = character()){
   
   reduced_sidenav_style <- "width: 40px; min-width: 40px; padding: 0;"
   
+  # Common UI ----
+  
+  edit_code_buttons <- function(){
+    shinyjs::hidden(
+      div(
+        id = ns("edit_code_buttons"),
+        div(
+          id = ns("run_code_div"),
+          create_hover_card(ui = shiny.fluent::IconButton.shinyInput(ns("run_code"), iconProps = list(iconName = "Play")), text = i18n$t("run_code")),
+          class = "reduced_sidenav_buttons",
+        ),
+        div(
+          id = ns("save_code_div"),
+          create_hover_card(ui = shiny.fluent::IconButton.shinyInput(ns("save_code"), iconProps = list(iconName = "Save")), text = i18n$t("save")),
+          class = "reduced_sidenav_buttons",
+        )
+      )
+    )
+  }
+  
+  edit_summary_buttons <- function(){
+    tagList(
+      shinyjs::hidden(
+        div(
+          id = ns("edit_summary_div"),
+          create_hover_card(ui = shiny.fluent::IconButton.shinyInput(ns("edit_summary"), iconProps = list(iconName = "Edit")), text = i18n$t("edit_informations")),
+          class = "reduced_sidenav_buttons_11"
+        )
+      ),
+      shinyjs::hidden(
+        div(
+          id = ns("save_summary_div"),
+          create_hover_card(ui = shiny.fluent::IconButton.shinyInput(ns("save_summary"), iconProps = list(iconName = "Accept")), text = i18n$t("save")),
+          class = "reduced_sidenav_buttons"
+        )
+      ),
+      shinyjs::hidden(
+        div(
+          id = ns("delete_element_div"),
+          create_hover_card(ui = shiny.fluent::IconButton.shinyInput(ns("delete_element"), iconProps = list(iconName = "Delete")), text = i18n$t("delete")),
+          class = "reduced_sidenav_buttons"
+        )
+      )
+    )
+  }
+  
+  element_management_buttons <- function(type){
+    tagList(
+      create_hover_card(
+        ui = shinyjs::hidden(
+          div(
+            id = ns("create_element_button"),
+            shiny.fluent::IconButton.shinyInput(ns("create_element"), iconProps = list(iconName = "Add"))
+          )
+        ),
+        text = i18n$t("create_project")
+      ),
+      create_hover_card(ui = div(shiny.fluent::IconButton.shinyInput(ns("reload_elements_var"), iconProps = list(iconName = "SyncOccurence"))), text = i18n$t("reload_list")),
+      create_hover_card(
+        ui = shinyjs::hidden(
+          div(
+            id = ns("import_element_button"),
+            shiny.fluent::IconButton.shinyInput(ns("import_element"), iconProps = list(iconName = "Upload"))
+          )
+        ),
+        text = i18n$t(paste0("import_", type))
+      )
+    )
+  }
+  
+  share_buttons <- function(type){
+    div(
+      create_hover_card(
+        ui = shinyjs::hidden(
+          div(
+            id = ns("export_element_button"),
+            shiny.fluent::IconButton.shinyInput(ns("export_element"), iconProps = list(iconName = "Download"))
+          )
+        ),
+        text = i18n$t(paste0("export_", type))
+      ),
+      shinyjs::hidden(
+        div(
+          id = ns("reload_git_repo_div"),
+          create_hover_card(ui = shiny.fluent::IconButton.shinyInput(ns("reload_git_repo"), iconProps = list(iconName = "SyncOccurence")), text = i18n$t("reload_git_repo")),
+          onclick = paste0("Shiny.setInputValue('", id, "-reload_git_repo', Math.random());"),
+          class = "reduced_sidenav_buttons"
+        )
+      ),
+      class = "reduced_sidenav_buttons"
+    )
+  }
+  
   # App database ----
   
   if (id == "app_db") {
@@ -76,65 +169,80 @@ mod_page_sidenav_ui <- function(id = character(), i18n = character()){
       class = "sidenav",
       div(
         id = ns("large_sidenav"),
-        div(
-          shiny.fluent::PrimaryButton.shinyInput(ns("r_code"), i18n$t("run_code"), iconProps = list(iconName = "Play"), style = "width: calc(50% - 5px);"),
-          onclick = paste0("Shiny.setInputValue('", id, "-execute_code', Math.random());")
-        ),
-        div(
-          div(
-            shiny.fluent::Dropdown.shinyInput(ns("programming_language"), label = i18n$t("programming_language"),
-              options = list(
-                list(key = "r", text = i18n$t("r")),
-                list(key = "python", text = i18n$t("python")),
-                list(key = "shell", text = i18n$t("shell"))
-              ),
-              value = "r"
-            ),
-            style = "width: 50%;"
-          ),
-          div(
-            shiny.fluent::Dropdown.shinyInput(ns("output"), label = i18n$t("output"),
-              options = list(
-                list(key = "console", text = i18n$t("console")),
-                list(key = "figure", text = i18n$t("figure")),
-                list(key = "table", text = i18n$t("table_output")),
-                list(key = "datatable", text = i18n$t("datatable_output")),
-                list(key = "rmarkdown", text = i18n$t("rmarkdown"))
-              ),
-              value = "console"
-            ),
-            style = "width: 50%;"
-          ),
-          style = "display: flex; gap: 10px;"
-        ),
         shinyjs::hidden(
           div(
-            id = ns("plot_size_div"),
+            id = ns("console_sidenav_buttons"),
             div(
               div(
-                shiny.fluent::SpinButton.shinyInput(ns("plot_width"), min = 0, value = 400, step = 50, label = i18n$t("width")),
-                style = "width: calc(50% - 5px);"
+                shiny.fluent::PrimaryButton.shinyInput(ns("r_code"), i18n$t("run_code"), iconProps = list(iconName = "Play"), style = "width: calc(50% - 5px);"),
+                onclick = paste0("Shiny.setInputValue('", id, "-execute_code', Math.random());")
               ),
               div(
-                shiny.fluent::SpinButton.shinyInput(ns("plot_height"), min = 0, value = 300, step = 50, label = i18n$t("height")),
-                style = "width: calc(50% - 5px);"
+                div(
+                  shiny.fluent::Dropdown.shinyInput(ns("programming_language"), label = i18n$t("programming_language"),
+                    options = list(
+                      list(key = "r", text = i18n$t("r")),
+                      list(key = "python", text = i18n$t("python")),
+                      list(key = "shell", text = i18n$t("shell"))
+                    ),
+                    value = "r"
+                  ),
+                  style = "width: 50%;"
+                ),
+                div(
+                  shiny.fluent::Dropdown.shinyInput(ns("output"), label = i18n$t("output"),
+                    options = list(
+                      list(key = "console", text = i18n$t("console")),
+                      list(key = "figure", text = i18n$t("figure")),
+                      list(key = "table", text = i18n$t("table_output")),
+                      list(key = "datatable", text = i18n$t("datatable_output")),
+                      list(key = "rmarkdown", text = i18n$t("rmarkdown"))
+                    ),
+                    value = "console"
+                  ),
+                  style = "width: 50%;"
+                ),
+                style = "display: flex; gap: 10px;"
               ),
-              style = "display: flex; gap: 10px;"
-            ),
-            div(
-              div(
-                shiny.fluent::SpinButton.shinyInput(ns("plot_dpi"), min = 1, value = 100, step = 50, label = i18n$t("dpi")),
-                style = "width: calc(50% - 5px);"
-              ),
-              style = "display: flex; gap: 10px;"
-            ),
+              shinyjs::hidden(
+                div(
+                  id = ns("plot_size_div"),
+                  div(
+                    div(
+                      shiny.fluent::SpinButton.shinyInput(ns("plot_width"), min = 0, value = 400, step = 50, label = i18n$t("width")),
+                      style = "width: calc(50% - 5px);"
+                    ),
+                    div(
+                      shiny.fluent::SpinButton.shinyInput(ns("plot_height"), min = 0, value = 300, step = 50, label = i18n$t("height")),
+                      style = "width: calc(50% - 5px);"
+                    ),
+                    style = "display: flex; gap: 10px;"
+                  ),
+                  div(
+                    div(
+                      shiny.fluent::SpinButton.shinyInput(ns("plot_dpi"), min = 1, value = 100, step = 50, label = i18n$t("dpi")),
+                      style = "width: calc(50% - 5px);"
+                    ),
+                    style = "display: flex; gap: 10px;"
+                  ),
+                )
+              )
+            )
           )
         )
       ),
       div(
         id = ns("reduced_sidenav"),
         div(
-          create_hover_card(ui = shiny.fluent::IconButton.shinyInput(ns("execute_code"), iconProps = list(iconName = "Play")), text = i18n$t("run_code")),
+          create_hover_card(
+            ui = shinyjs::hidden(
+              div(
+                id = ns("reduced_sidenav_execute_code_button"),
+                shiny.fluent::IconButton.shinyInput(ns("execute_code"), iconProps = list(iconName = "Play"))
+              )
+            ),
+            text = i18n$t("run_code")
+          ),
           class = "reduced_sidenav_buttons"
         ),
         style = "display: none;"
@@ -199,7 +307,7 @@ mod_page_sidenav_ui <- function(id = character(), i18n = character()){
   else if (id == "datasets"){
     div(
       id = ns("sidenav"),
-      class = "sidenav",
+      class = "sidenav", style = reduced_sidenav_style,
       div(
         id = ns("large_sidenav")
       ),
@@ -207,64 +315,25 @@ mod_page_sidenav_ui <- function(id = character(), i18n = character()){
         id = ns("reduced_sidenav"),
         div(
           id = ns("all_elements_reduced_sidenav"),
-          create_hover_card(ui = shiny.fluent::IconButton.shinyInput(ns("create_element"), iconProps = list(iconName = "Add")), text = i18n$t("create_dataset")),
-          create_hover_card(ui = shiny.fluent::IconButton.shinyInput(ns("reload_elements_var"), iconProps = list(iconName = "SyncOccurence")), text = i18n$t("reload_list")),
-          create_hover_card(ui = shiny.fluent::IconButton.shinyInput(ns("import_element"), iconProps = list(iconName = "Upload")), text = i18n$t("import_dataset")),
+          element_management_buttons("dataset"),
           class = "reduced_sidenav_buttons"
         ),
         shinyjs::hidden(
           div(
             id = ns("summary_reduced_sidenav"),
-            div(
-              id = ns("edit_summary_div"),
-              create_hover_card(ui = shiny.fluent::IconButton.shinyInput(ns("edit_summary"), iconProps = list(iconName = "Edit")), text = i18n$t("edit_informations")),
-              class = "reduced_sidenav_buttons_11"
-            ),
-            shinyjs::hidden(
-              div(
-                id = ns("save_summary_div"),
-                create_hover_card(ui = shiny.fluent::IconButton.shinyInput(ns("save_summary"), iconProps = list(iconName = "Accept")), text = i18n$t("save")),
-                class = "reduced_sidenav_buttons"
-              )
-            ),
-            div(
-              create_hover_card(ui = shiny.fluent::IconButton.shinyInput(ns("delete_element"), iconProps = list(iconName = "Delete")), text = i18n$t("delete")),
-              class = "reduced_sidenav_buttons"
-            )
+            edit_summary_buttons()
           )
         ),
         shinyjs::hidden(
           div(
             id = ns("edit_code_reduced_sidenav"),
-            div(
-              div(
-                id = ns("run_code_div"),
-                create_hover_card(ui = shiny.fluent::IconButton.shinyInput(ns("run_code"), iconProps = list(iconName = "Play")), text = i18n$t("run_code")),
-                class = "reduced_sidenav_buttons",
-              ),
-              div(
-                id = ns("save_code_div"),
-                create_hover_card(ui = shiny.fluent::IconButton.shinyInput(ns("save_code"), iconProps = list(iconName = "Save")), text = i18n$t("save")),
-                class = "reduced_sidenav_buttons",
-              )
-            )
+            edit_code_buttons()
           )
         ),
         shinyjs::hidden(
           div(
             id = ns("share_reduced_sidenav"),
-            div(
-              create_hover_card(ui = shiny.fluent::IconButton.shinyInput(ns("export_element"), iconProps = list(iconName = "Download")), text = i18n$t("export_plugin")),
-              shinyjs::hidden(
-                div(
-                  id = ns("reload_git_repo_div"),
-                  create_hover_card(ui = shiny.fluent::IconButton.shinyInput(ns("reload_git_repo"), iconProps = list(iconName = "SyncOccurence")), text = i18n$t("reload_git_repo")),
-                  onclick = paste0("Shiny.setInputValue('", id, "-reload_git_repo', Math.random());"),
-                  class = "reduced_sidenav_buttons"
-                )
-              ),
-              class = "reduced_sidenav_buttons"
-            )
+            share_buttons("dataset")
           )
         )
       ),
@@ -285,64 +354,25 @@ mod_page_sidenav_ui <- function(id = character(), i18n = character()){
         id = ns("reduced_sidenav"),
         div(
           id = ns("all_elements_reduced_sidenav"),
-          create_hover_card(ui = shiny.fluent::IconButton.shinyInput(ns("create_element"), iconProps = list(iconName = "Add")), text = i18n$t("create_data_cleaning_script")),
-          create_hover_card(ui = shiny.fluent::IconButton.shinyInput(ns("reload_elements_var"), iconProps = list(iconName = "SyncOccurence")), text = i18n$t("reload_list")),
-          create_hover_card(ui = shiny.fluent::IconButton.shinyInput(ns("import_element"), iconProps = list(iconName = "Upload")), text = i18n$t("import_data_cleaning_script")),
+          element_management_buttons("data_cleaning_script"),
           class = "reduced_sidenav_buttons"
         ),
         shinyjs::hidden(
           div(
             id = ns("summary_reduced_sidenav"),
-            div(
-              id = ns("edit_summary_div"),
-              create_hover_card(ui = shiny.fluent::IconButton.shinyInput(ns("edit_summary"), iconProps = list(iconName = "Edit")), text = i18n$t("edit_informations")),
-              class = "reduced_sidenav_buttons_11"
-            ),
-            shinyjs::hidden(
-              div(
-                id = ns("save_summary_div"),
-                create_hover_card(ui = shiny.fluent::IconButton.shinyInput(ns("save_summary"), iconProps = list(iconName = "Accept")), text = i18n$t("save")),
-                class = "reduced_sidenav_buttons"
-              )
-            ),
-            div(
-              create_hover_card(ui = shiny.fluent::IconButton.shinyInput(ns("delete_element"), iconProps = list(iconName = "Delete")), text = i18n$t("delete")),
-              class = "reduced_sidenav_buttons"
-            )
+            edit_summary_buttons()
           )
         ),
         shinyjs::hidden(
           div(
             id = ns("edit_code_reduced_sidenav"),
-            div(
-              div(
-                id = ns("run_code_div"),
-                create_hover_card(ui = shiny.fluent::IconButton.shinyInput(ns("run_code"), iconProps = list(iconName = "Play")), text = i18n$t("run_code")),
-                class = "reduced_sidenav_buttons",
-              ),
-              div(
-                id = ns("save_code_div"),
-                create_hover_card(ui = shiny.fluent::IconButton.shinyInput(ns("save_code"), iconProps = list(iconName = "Save")), text = i18n$t("save")),
-                class = "reduced_sidenav_buttons",
-              )
-            )
+            edit_code_buttons()
           )
         ),
         shinyjs::hidden(
           div(
             id = ns("share_reduced_sidenav"),
-            div(
-              create_hover_card(ui = shiny.fluent::IconButton.shinyInput(ns("export_element"), iconProps = list(iconName = "Download")), text = i18n$t("export_data_cleaning_script")),
-              shinyjs::hidden(
-                div(
-                  id = ns("reload_git_repo_div"),
-                  create_hover_card(ui = shiny.fluent::IconButton.shinyInput(ns("reload_git_repo"), iconProps = list(iconName = "SyncOccurence")), text = i18n$t("reload_git_repo")),
-                  onclick = paste0("Shiny.setInputValue('", id, "-reload_git_repo', Math.random());"),
-                  class = "reduced_sidenav_buttons"
-                )
-              ),
-              class = "reduced_sidenav_buttons"
-            )
+            share_buttons("data_cleaning_script")
           )
         )
       )
@@ -460,31 +490,34 @@ mod_page_sidenav_ui <- function(id = character(), i18n = character()){
         shinyjs::hidden(
           div(
             id = ns("edit_code_large_sidenav"),
-            div(
-              class = "sidenav_top",
+            shinyjs::hidden(
               div(
-                create_hover_card(ui = shiny.fluent::IconButton.shinyInput(ns("edit_code_add_file"), iconProps = list(iconName = "Add")), text = i18n$t("add_file")),
-                class = "small_icon_button"
-              ),
-              div(
-                create_hover_card(ui = shiny.fluent::IconButton.shinyInput(ns("edit_code_add_folder"), iconProps = list(iconName = "FabricNewFolder")), text = i18n$t("add_folder")),
-                class = "small_icon_button"
-              ),
-              div(
-                create_hover_card(ui = shiny.fluent::IconButton.shinyInput(ns("save_file_code"), iconProps = list(iconName = "Save")), text = i18n$t("save_current_file")),
-                class = "small_icon_button"
-              ),
-              div(
-                create_hover_card(ui = shiny.fluent::IconButton.shinyInput(ns("select_concepts"), iconProps = list(iconName = "BulletedList")), text = i18n$t("select_concepts")),
-                class = "small_icon_button"
-              ),
-              div(
-                create_hover_card(ui = shiny.fluent::IconButton.shinyInput(ns("run_plugin_code"), iconProps = list(iconName = "Play")), text = i18n$t("run_plugin_code")),
-                class = "small_icon_button"
+                id = ns("edit_code_buttons"),
+                class = "sidenav_top",
+                div(
+                  create_hover_card(ui = shiny.fluent::IconButton.shinyInput(ns("edit_code_add_file"), iconProps = list(iconName = "Add")), text = i18n$t("add_file")),
+                  class = "small_icon_button"
+                ),
+                div(
+                  create_hover_card(ui = shiny.fluent::IconButton.shinyInput(ns("edit_code_add_folder"), iconProps = list(iconName = "FabricNewFolder")), text = i18n$t("add_folder")),
+                  class = "small_icon_button"
+                ),
+                div(
+                  create_hover_card(ui = shiny.fluent::IconButton.shinyInput(ns("save_file_code"), iconProps = list(iconName = "Save")), text = i18n$t("save_current_file")),
+                  class = "small_icon_button"
+                ),
+                div(
+                  create_hover_card(ui = shiny.fluent::IconButton.shinyInput(ns("select_concepts"), iconProps = list(iconName = "BulletedList")), text = i18n$t("select_concepts")),
+                  class = "small_icon_button"
+                ),
+                div(
+                  create_hover_card(ui = shiny.fluent::IconButton.shinyInput(ns("run_plugin_code"), iconProps = list(iconName = "Play")), text = i18n$t("run_plugin_code")),
+                  class = "small_icon_button"
+                )
               )
             ),
-            uiOutput(ns("edit_code_directory_browser")),
-            uiOutput(ns("edit_code_files_browser"))
+            shinyjs::hidden(div(id = ns("edit_code_directory_browser_div"), uiOutput(ns("edit_code_directory_browser")))),
+            shinyjs::hidden(div(id = ns("edit_code_files_browser_div"), uiOutput(ns("edit_code_files_browser"))))
           )
         )
       ),
@@ -492,40 +525,25 @@ mod_page_sidenav_ui <- function(id = character(), i18n = character()){
         id = ns("reduced_sidenav"),
         div(
           id = ns("all_elements_reduced_sidenav"),
-          create_hover_card(ui = shiny.fluent::IconButton.shinyInput(ns("create_element"), iconProps = list(iconName = "Add")), text = i18n$t("create_plugin")),
-          create_hover_card(ui = shiny.fluent::IconButton.shinyInput(ns("reload_elements_var"), iconProps = list(iconName = "SyncOccurence")), text = i18n$t("reload_list")),
-          create_hover_card(ui = shiny.fluent::IconButton.shinyInput(ns("import_element"), iconProps = list(iconName = "Upload")), text = i18n$t("import_plugin")),
+          element_management_buttons("plugin"),
           class = "reduced_sidenav_buttons"
         ),
         shinyjs::hidden(
           div(
             id = ns("summary_reduced_sidenav"),
-            div(
-              id = ns("edit_summary_div"),
-              create_hover_card(ui = shiny.fluent::IconButton.shinyInput(ns("edit_summary"), iconProps = list(iconName = "Edit")), text = i18n$t("edit_informations")),
-              class = "reduced_sidenav_buttons_11"
-            ),
-            shinyjs::hidden(
-              div(
-                id = ns("save_summary_div"),
-                create_hover_card(ui = shiny.fluent::IconButton.shinyInput(ns("save_summary"), iconProps = list(iconName = "Accept")), text = i18n$t("save")),
-                class = "reduced_sidenav_buttons"
-              )
-            ),
-            div(
-              create_hover_card(ui = shiny.fluent::IconButton.shinyInput(ns("delete_element"), iconProps = list(iconName = "Delete")), text = i18n$t("delete")),
-              class = "reduced_sidenav_buttons"
-            )
+            edit_summary_buttons()
           )
         ),
         shinyjs::hidden(
           div(
             id = ns("run_code_reduced_sidenav"),
             div(
-              div(
-                id = ns("edit_page_on_div"),
-                create_hover_card(ui = shiny.fluent::IconButton.shinyInput(ns("edit_page_on"), iconProps = list(iconName = "Edit")), text = i18n$t("edit_page")),
-                class = "reduced_sidenav_buttons_11"
+              shinyjs::hidden(
+                div(
+                  id = ns("edit_page_on_div"),
+                  create_hover_card(ui = shiny.fluent::IconButton.shinyInput(ns("edit_page_on"), iconProps = list(iconName = "Edit")), text = i18n$t("edit_page")),
+                  class = "reduced_sidenav_buttons_11"
+                )
               ),
               shinyjs::hidden(
                 div(
@@ -536,7 +554,15 @@ mod_page_sidenav_ui <- function(id = character(), i18n = character()){
               )
             ),
             div(
-              create_hover_card(ui = shiny.fluent::IconButton.shinyInput(ns("reload_plugin_code"), iconProps = list(iconName = "SyncOccurence")), text = i18n$t("reload_plugin_code")),
+              create_hover_card(
+                ui = shinyjs::hidden(
+                  div(
+                    id = ns("reload_plugin_code_button"),
+                    shiny.fluent::IconButton.shinyInput(ns("reload_plugin_code"), iconProps = list(iconName = "SyncOccurence"))
+                  )
+                ), 
+                text = i18n$t("reload_plugin_code")
+              ),
               class = "reduced_sidenav_buttons"
             )
           )
@@ -544,18 +570,7 @@ mod_page_sidenav_ui <- function(id = character(), i18n = character()){
         shinyjs::hidden(
           div(
             id = ns("share_reduced_sidenav"),
-            div(
-              create_hover_card(ui = shiny.fluent::IconButton.shinyInput(ns("export_element"), iconProps = list(iconName = "Download")), text = i18n$t("export_plugin")),
-              class = "reduced_sidenav_buttons"
-            ),
-            shinyjs::hidden(
-              div(
-                id = ns("reload_git_repo_div"),
-                create_hover_card(ui = shiny.fluent::IconButton.shinyInput(ns("reload_git_repo"), iconProps = list(iconName = "SyncOccurence")), text = i18n$t("reload_git_repo")),
-                onclick = paste0("Shiny.setInputValue('", id, "-reload_git_repo', Math.random());"),
-                class = "reduced_sidenav_buttons"
-              )
-            ),
+            share_buttons("plugin")
           )
         )
       ),
@@ -576,30 +591,13 @@ mod_page_sidenav_ui <- function(id = character(), i18n = character()){
         id = ns("reduced_sidenav"),
         div(
           id = ns("all_elements_reduced_sidenav"),
-          create_hover_card(ui = shiny.fluent::IconButton.shinyInput(ns("create_element"), iconProps = list(iconName = "Add")), text = i18n$t("create_project")),
-          create_hover_card(ui = shiny.fluent::IconButton.shinyInput(ns("reload_elements_var"), iconProps = list(iconName = "SyncOccurence")), text = i18n$t("reload_list")),
-          create_hover_card(ui = shiny.fluent::IconButton.shinyInput(ns("import_element"), iconProps = list(iconName = "Upload")), text = i18n$t("import_project")),
+          element_management_buttons("project"),
           class = "reduced_sidenav_buttons"
         ),
         shinyjs::hidden(
           div(
             id = ns("summary_reduced_sidenav"),
-            div(
-              id = ns("edit_summary_div"),
-              create_hover_card(ui = shiny.fluent::IconButton.shinyInput(ns("edit_summary"), iconProps = list(iconName = "Edit")), text = i18n$t("edit_informations")),
-              class = "reduced_sidenav_buttons_11"
-            ),
-            shinyjs::hidden(
-              div(
-                id = ns("save_summary_div"),
-                create_hover_card(ui = shiny.fluent::IconButton.shinyInput(ns("save_summary"), iconProps = list(iconName = "Accept")), text = i18n$t("save")),
-                class = "reduced_sidenav_buttons"
-              )
-            ),
-            div(
-              create_hover_card(ui = shiny.fluent::IconButton.shinyInput(ns("delete_element"), iconProps = list(iconName = "Delete")), text = i18n$t("delete")),
-              class = "reduced_sidenav_buttons"
-            )
+            edit_summary_buttons()
           )
         ),
         shinyjs::hidden(
@@ -618,18 +616,7 @@ mod_page_sidenav_ui <- function(id = character(), i18n = character()){
         shinyjs::hidden(
           div(
             id = ns("share_reduced_sidenav"),
-            div(
-              create_hover_card(ui = shiny.fluent::IconButton.shinyInput(ns("export_element"), iconProps = list(iconName = "Download")), text = i18n$t("export_plugin")),
-              shinyjs::hidden(
-                div(
-                  id = ns("reload_git_repo_div"),
-                  create_hover_card(ui = shiny.fluent::IconButton.shinyInput(ns("reload_git_repo"), iconProps = list(iconName = "SyncOccurence")), text = i18n$t("reload_git_repo")),
-                  onclick = paste0("Shiny.setInputValue('", id, "-reload_git_repo', Math.random());"),
-                  class = "reduced_sidenav_buttons"
-                )
-              ),
-              class = "reduced_sidenav_buttons"
-            )
+            share_buttons("project")
           )
         )
       )
@@ -746,23 +733,6 @@ mod_page_sidenav_ui <- function(id = character(), i18n = character()){
             class = "reduced_sidenav_buttons"
           )
         )
-        # shinyjs::hidden(
-        #   div(
-        #     id = ns("edit_code_reduced_sidenav"),
-        #     div(
-        #       div(
-        #         id = ns("run_code_div"),
-        #         create_hover_card(ui = shiny.fluent::IconButton.shinyInput(ns("run_code"), iconProps = list(iconName = "Play")), text = i18n$t("run_code")),
-        #         class = "reduced_sidenav_buttons",
-        #       ),
-        #       div(
-        #         id = ns("save_code_div"),
-        #         create_hover_card(ui = shiny.fluent::IconButton.shinyInput(ns("save_code"), iconProps = list(iconName = "Save")), text = i18n$t("save")),
-        #         class = "reduced_sidenav_buttons",
-        #       )
-        #     )
-        #   )
-        # )
       ),
       hide_sidenav
     ) -> result

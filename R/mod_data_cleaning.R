@@ -162,18 +162,29 @@ mod_data_cleaning_ui <- function(id, language, languages, i18n, code_hotkeys){
           div(
             id = ns("edit_code_div"),
             div(
-              shinyAce::aceEditor(
-                ns("data_cleaning_code"), value = "", mode = "r",
-                code_hotkeys = list("r", code_hotkeys),
-                autoScrollEditorIntoView = TRUE, height = "100%", debounce = 100, fontSize = 11, showPrintMargin = FALSE
-              ),
-              class = "element_ace_editor"
+              id = ns("edit_code_forbidden_access"),
+              shiny.fluent::MessageBar(i18n$t("unauthorized_access_area"), messageBarType = 5),
+              style = "display: inline-block; margin-top: 15px;"
             ),
-            div(
-              verbatimTextOutput(ns("code_result")),
-              class = "element_code_result"
+            shinyjs::hidden(
+              div(
+                id = ns("edit_code_content_div"),
+                div(
+                  shinyAce::aceEditor(
+                    ns("data_cleaning_code"), value = "", mode = "r",
+                    code_hotkeys = list("r", code_hotkeys),
+                    autoScrollEditorIntoView = TRUE, height = "100%", debounce = 100, fontSize = 11, showPrintMargin = FALSE
+                  ),
+                  class = "element_ace_editor"
+                ),
+                div(
+                  verbatimTextOutput(ns("code_result")),
+                  class = "element_code_result"
+                ),
+                style = "height: 100%; display: flex;"
+              )
             ),
-            style = "height: 100%; display: flex;"
+            style = "height: 100%;"
           )
         ),
         
@@ -221,6 +232,20 @@ mod_data_cleaning_server <- function(id, r, d, m, language, i18n, debug){
   
   moduleServer(id, function(input, output, session){
     ns <- session$ns
+    
+    # Current user accesses ----
+    
+    if ("data_cleaning_management" %in% r$user_accesses) sapply(c("create_element_button", "edit_summary_div", "delete_element_div"), shinyjs::show)
+    if ("data_cleaning_import" %in% r$user_accesses) shinyjs::show("import_element_button")
+    if ("data_cleaning_edit_code" %in% r$user_accesses){
+      shinyjs::hide("edit_code_forbidden_access")
+      sapply(c("edit_code_buttons", "edit_code_content_div"), shinyjs::show)
+    }
+    
+    if ("data_cleaning_share" %in% r$user_accesses){
+      sapply(c("share_content_div", "export_element_button"), shinyjs::show)
+      shinyjs::hide("share_forbidden_access")
+    }
     
     # |-------------------------------- -----
     

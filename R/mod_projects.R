@@ -163,8 +163,19 @@ mod_projects_ui <- function(id, language, languages, i18n){
           div(
             id = ns("dataset_div"),
             div(
-              div(shiny.fluent::Dropdown.shinyInput(ns("project_dataset"), label = i18n$t("dataset")), style = "width: 200px"),
-              class = "widget", style = "height: 50%; width: 50%; padding-top: 10px;"
+              tags$h1(i18n$t("dataset")),
+              div(
+                id = ns("dataset_forbidden_access"),
+                shiny.fluent::MessageBar(i18n$t("unauthorized_access_area"), messageBarType = 5),
+                style = "display: inline-block; margin-top: 5px;"
+              ),
+              shinyjs::hidden(
+                div(
+                  id = ns("project_dataset_div"),
+                  div(shiny.fluent::Dropdown.shinyInput(ns("project_dataset"), label = i18n$t("dataset")), style = "width: 200px")
+                )
+              ),
+              class = "widget", style = "height: 50%; width: 50%;"
             ),
             class = "projects_summary_container"
           )
@@ -174,7 +185,22 @@ mod_projects_ui <- function(id, language, languages, i18n){
         shinyjs::hidden(
           div(
             id = ns("data_cleaning_scripts_div"),
-            style = "height: 100%;"
+            div(
+              tags$h1(i18n$t("data_cleaning_scripts")),
+              div(
+                id = ns("data_cleaning_forbidden_access"),
+                shiny.fluent::MessageBar(i18n$t("unauthorized_access_area"), messageBarType = 5),
+                style = "display: inline-block; margin-top: 5px;"
+              ),
+              shinyjs::hidden(
+                div(
+                  id = ns("project_data_cleaning_div"),
+                  div()
+                )
+              ),
+              class = "widget", style = "height: 50%; width: 50%;"
+            ),
+            class = "projects_summary_container"
           )
         ),
         
@@ -185,14 +211,24 @@ mod_projects_ui <- function(id, language, languages, i18n){
             div(
               div(
                 h1(i18n$t("synchronize_with_git_repo")),
-                div(shiny.fluent::Dropdown.shinyInput(ns("git_repo"), label = i18n$t("git_repo")), style = "width: 200px;"),
-                div(uiOutput(ns("git_repo_element_ui")), style = "margin-top:10px;"),
                 div(
-                  uiOutput(ns("synchronize_git_buttons")),
-                  class = "projects_share_buttons"
+                  id = ns("share_forbidden_access"),
+                  shiny.fluent::MessageBar(i18n$t("unauthorized_access_area"), messageBarType = 5),
+                  style = "display: inline-block; margin-top: 5px;"
                 ),
-                # Button to download a project (sidenav button)
-                div(downloadButton(ns("export_element_download")), style = "visibility: hidden; position: absolute; right: 0; bottom: 0;"),
+                shinyjs::hidden(
+                  div(
+                    id = ns("share_content_div"),
+                    div(shiny.fluent::Dropdown.shinyInput(ns("git_repo"), label = i18n$t("git_repo")), style = "width: 200px;"),
+                    div(uiOutput(ns("git_repo_element_ui")), style = "margin-top:10px;"),
+                    div(
+                      uiOutput(ns("synchronize_git_buttons")),
+                      class = "projects_share_buttons"
+                    ),
+                    # Button to download a project (sidenav button)
+                    div(downloadButton(ns("export_element_download")), style = "visibility: hidden; position: absolute; right: 0; bottom: 0;")
+                  )
+                ),
                 class = "widget", style = "height: 50%; padding-top: 1px;"
               ),
               class = "projects_share_left",
@@ -242,6 +278,23 @@ mod_projects_server <- function(id, r, d, m, language, i18n, debug){
   moduleServer(id, function(input, output, session){
     
     ns <- session$ns
+    
+    # Current user accesses ----
+    
+    if ("projects_management" %in% r$user_accesses) sapply(c("create_element_button", "edit_summary_div", "delete_element_div"), shinyjs::show)
+    if ("projects_import" %in% r$user_accesses) shinyjs::show("import_element_button")
+    
+    if ("projects_share" %in% r$user_accesses){
+      sapply(c("share_content_div", "export_element_button"), shinyjs::show)
+      shinyjs::hide("share_forbidden_access")
+    }
+    
+    for (type in c("dataset", "data_cleaning")){
+      if (paste0("projects_", type) %in% r$user_accesses){
+        shinyjs::show(paste0("project_", type, "_div"))
+        shinyjs::hide(paste0(type, "_forbidden_access"))
+      }
+    }
     
     # --- --- --- --- ---
     # Load a project ----

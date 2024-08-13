@@ -104,21 +104,21 @@ mod_users_ui <- function(id, language, languages, i18n, users_accesses_toggles_o
                 style = "display: flex; margin-top: 5px;"
               )
             ),
-            div(
-              id = ns("add_user_icon"),
-              create_hover_card(ui = shiny.fluent::IconButton.shinyInput(ns("create_user"), iconProps = list(iconName = "Add")), text = i18n$t("create_user")),
-              class = "small_icon_button",
-              style = "margin-top: 5px;"
+            shinyjs::hidden(
+              div(
+                id = ns("add_user_icon"),
+                create_hover_card(ui = shiny.fluent::IconButton.shinyInput(ns("create_user"), iconProps = list(iconName = "Add")), text = i18n$t("create_user")),
+                class = "small_icon_button",
+                style = "margin-top: 5px;"
+              )
             ),
             style = "display: flex; justify-content: space-between;"
           ),
-          DT::DTOutput(ns("users_dt")),
-          shinyjs::hidden(
-            div(
-              id = ns("users_management_forbidden_access"),
-              shiny.fluent::MessageBar(i18n$t("unauthorized_access_area"), messageBarType = 5),
-              style = "display: inline-block;"
-            )
+          shinyjs::hidden(DT::DTOutput(ns("users_dt"))),
+          div(
+            id = ns("users_management_forbidden_access"),
+            shiny.fluent::MessageBar(i18n$t("unauthorized_access_area"), messageBarType = 5),
+            style = "display: inline-block; margin-top: 5px;"
           ),
           shinyjs::hidden(
             div(
@@ -151,21 +151,21 @@ mod_users_ui <- function(id, language, languages, i18n, users_accesses_toggles_o
                 style = "display: flex; margin-top: 5px;"
               )
             ),
-            div(
-              id = ns("add_user_status_icon"),
-              create_hover_card(ui = shiny.fluent::IconButton.shinyInput(ns("create_user_status"), iconProps = list(iconName = "Add")), text = i18n$t("create_user_status")),
-              class = "small_icon_button",
-              style = "margin-top: 5px;"
+            shinyjs::hidden(
+              div(
+                id = ns("add_user_status_icon"),
+                create_hover_card(ui = shiny.fluent::IconButton.shinyInput(ns("create_user_status"), iconProps = list(iconName = "Add")), text = i18n$t("create_user_status")),
+                class = "small_icon_button",
+                style = "margin-top: 5px;"
+              )
             ),
             style = "display: flex; justify-content: space-between;"
           ),
-          DT::DTOutput(ns("users_statuses_dt")),
-          shinyjs::hidden(
-            div(
-              id = ns("users_statuses_management_forbidden_access"),
-              shiny.fluent::MessageBar(i18n$t("unauthorized_access_area"), messageBarType = 5),
-              style = "display: inline-block;"
-            )
+          shinyjs::hidden(DT::DTOutput(ns("users_statuses_dt"))),
+          div(
+            id = ns("users_statuses_management_forbidden_access"),
+            shiny.fluent::MessageBar(i18n$t("unauthorized_access_area"), messageBarType = 5),
+            style = "display: inline-block; margin-top: 5px;"
           ),
           shinyjs::hidden(
             div(
@@ -195,21 +195,21 @@ mod_users_ui <- function(id, language, languages, i18n, users_accesses_toggles_o
                 style = "display: flex; margin-top: 5px;"
               )
             ),
-            div(
-              id = ns("add_user_access_icon"),
-              create_hover_card(ui = shiny.fluent::IconButton.shinyInput(ns("create_user_access"), iconProps = list(iconName = "Add")), text = i18n$t("create_user_access")),
-              class = "small_icon_button",
-              style = "margin-top: 5px;"
+            shinyjs::hidden(
+              div(
+                id = ns("add_user_access_icon"),
+                create_hover_card(ui = shiny.fluent::IconButton.shinyInput(ns("create_user_access"), iconProps = list(iconName = "Add")), text = i18n$t("create_user_access")),
+                class = "small_icon_button",
+                style = "margin-top: 5px;"
+              )
             ),
             style = "display: flex; justify-content: space-between;"
           ),
-          DT::DTOutput(ns("users_accesses_dt")),
-          shinyjs::hidden(
-            div(
-              id = ns("users_accesses_management_forbidden_access"),
-              shiny.fluent::MessageBar(i18n$t("unauthorized_access_area"), messageBarType = 5),
-              style = "display: inline-block;"
-            )
+          shinyjs::hidden(DT::DTOutput(ns("users_accesses_dt"))),
+          div(
+            id = ns("users_accesses_management_forbidden_access"),
+            shiny.fluent::MessageBar(i18n$t("unauthorized_access_area"), messageBarType = 5),
+            style = "display: inline-block; margin-top: 5px;"
           ),
           shinyjs::hidden(
             div(
@@ -289,9 +289,9 @@ mod_users_server <- function(id, r, d, m, language, i18n, debug, users_accesses_
     for (type in c("users", "users_accesses", "users_statuses")){
       single <- switch(type, "users" = "user", "users_accesses" = "user_access", "users_statuses" = "user_status")
       
-      if (paste0(type, "_management") %not_in% r$user_accesses){
-        sapply(c(paste0("add_", single, "_icon"), paste0("edit_", single, "_icons"), paste0(type, "_dt")), shinyjs::hide)
-        shinyjs::show(paste0(type, "_management_forbidden_access"))
+      if (paste0(type, "_management") %in% r$user_accesses){
+        sapply(c(paste0("add_", single, "_icon"), paste0(type, "_dt")), shinyjs::show)
+        shinyjs::hide(paste0(type, "_management_forbidden_access"))
       }
     }
     

@@ -86,85 +86,114 @@ linkr <- function(
   
   users_accesses_toggles_options <- tibble::tribble(
     ~name, ~toggles,
-    "general_settings", c(
-      "change_password_card",
-      "configure_python_card"),
-    "app_db", c(
-      "db_connection_infos_card",
-      "db_datatable_card",
-      "db_request_card",
-      "db_save_card",
-      "db_restore_card"),
-    "remote_git_repos", c(
-      "git_repos_see_all_data",
-      "git_add_repo_card", 
-      "git_repos_management_card",
-      "git_repo_options_card",
-      "git_edit_repo_card"),
     "users", c(
       "users_management",
       "users_statuses_management",
-      "users_accesses_management"),
-    "dev", c(
-      "dev_edit_r_code_card",
-      "dev_edit_python_code_card"),
-    "data_sources", c(
-      "data_sources_datatable_card"),
-    "datasets", c(
-      "datasets_see_all_data",
-      "datasets_all_datasets_card",
-      "datasets_datatable_card",
-      "datasets_edit_code_card",
-      "datasets_options_card",
-      "datasets_import_dataset_card",
-      "datasets_export_dataset_card"),
-    "studies", c(
-      "studies_see_all_data",
-      "all_studies_card",
-      "studies_datatable_card",
-      "studies_options_card",
-      "import_study_card",
-      "export_study_card"),
-    "subsets", c(
-      "subsets_datatable_card",
-      "subsets_edit_code_card",
-      "subsets_persons_card"),
-    "data", c(
-      "data_console"),
-    "vocabularies", c(
-      "vocabularies_concepts_card",
-      "vocabularies_mapping_card",
-      "vocabularies_evaluate_mapping",
-      "vocabularies_delete_mapping",
-      "vocabularies_all_vocabularies_card",
-      "vocabularies_datatable_card",
-      "vocabularies_vocabularies_tables_datatable_card",
-      "vocabularies_edit_code_card",
-      "vocabularies_options_card",
-      "vocabularies_import_vocabulary_card",
-      "vocabularies_export_vocabulary_card"),
-    "messages", c(
-      "study_messages_card"),
+      "users_accesses_management"
+    ),
+    "projects", c(
+      "projects_see_all_data",
+      "projects_management",
+      "projects_import",
+      "projects_dataset",
+      "projects_data_cleaning",
+      "projects_share"
+    ),
     "plugins", c(
       "plugins_see_all_data",
-      "all_plugins_card",
-      "plugins_datatable_card",
-      "plugins_options_card",
-      "plugins_edit_code_card",
-      "import_plugin_card",
-      "export_plugin_card"),
-    "scripts", c(
-      "dataset_scripts_card",
-      "all_scripts_card",
-      "scripts_datatable_card",
-      "scripts_edit_code_card",
-      "scripts_options_card",
-      "import_script_card",
-      "export_script_card"
+      "plugins_management",
+      "plugins_import",
+      "plugins_edit_code",
+      "plugins_share"
     ),
-    "log", c(
-      "all_users",
-      "only_me")
+    "datasets", c(
+      "datasets_see_all_data",
+      "datasets_management",
+      "datasets_import",
+      "datasets_edit_code",
+      "datasets_share"
+    ),
+    "vocabularies", c(
+      "vocabularies_management"
+    ),
+    "data_cleaning", c(
+      "data_cleaning_see_all_data",
+      "data_cleaning_management",
+      "data_cleaning_import",
+      "data_cleaning_edit_code",
+      "data_cleaning_share"
+    ),
+    "console", c(
+      "console_execute_code"
+    )
+    # "general_settings", c(
+    #   "change_password_card",
+    #   "configure_python_card"),
+    # "app_db", c(
+    #   "db_connection_infos_card",
+    #   "db_datatable_card",
+    #   "db_request_card",
+    #   "db_save_card",
+    #   "db_restore_card"),
+    # "remote_git_repos", c(
+    #   "git_repos_see_all_data",
+    #   "git_add_repo_card", 
+    #   "git_repos_management_card",
+    #   "git_repo_options_card",
+    #   "git_edit_repo_card"),
+    # "dev", c(
+    #   "dev_edit_r_code_card",
+    #   "dev_edit_python_code_card"),
+    # "data_sources", c(
+    #   "data_sources_datatable_card"),
+    # "datasets", c(
+    #   "datasets_see_all_data",
+    #   "datasets_all_datasets_card",
+    #   "datasets_datatable_card",
+    #   "datasets_edit_code_card",
+    #   "datasets_options_card",
+    #   "datasets_import_dataset_card",
+    #   "datasets_export_dataset_card"),
+    # "subsets", c(
+    #   "subsets_datatable_card",
+    #   "subsets_edit_code_card",
+    #   "subsets_persons_card"),
+    # "data", c(
+    #   "data_console"),
+    # "vocabularies", c(
+    #   "vocabularies_concepts_card",
+    #   "vocabularies_mapping_card",
+    #   "vocabularies_evaluate_mapping",
+    #   "vocabularies_delete_mapping",
+    #   "vocabularies_all_vocabularies_card",
+    #   "vocabularies_datatable_card",
+    #   "vocabularies_vocabularies_tables_datatable_card",
+    #   "vocabularies_edit_code_card",
+    #   "vocabularies_options_card",
+    #   "vocabularies_import_vocabulary_card",
+    #   "vocabularies_export_vocabulary_card"),
+    # "messages", c(
+    #   "study_messages_card"),
+    # "plugins", c(
+    #   "plugins_see_all_data",
+    #   "all_plugins_card",
+    #   "plugins_datatable_card",
+    #   "plugins_options_card",
+    #   "plugins_edit_code_card",
+    #   "import_plugin_card",
+    #   "export_plugin_card"),
+    # "scripts", c(
+    #   "dataset_scripts_card",
+    #   "all_scripts_card",
+    #   "scripts_datatable_card",
+    #   "scripts_edit_code_card",
+    #   "scripts_options_card",
+    #   "import_script_card",
+    #   "export_script_card"
+    # ),
+    # "log", c(
+    #   "all_users",
+    #   "only_me")
   )
   
   pages <- c(

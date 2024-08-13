@@ -757,8 +757,11 @@ reload_elements_var <- function(page_id, con, r, m, long_var_filtered){
   long_var <- paste0(id, "_long")
   wide_var <- paste0(id, "_wide")
   
+  # See all element s?
+  if (paste0(id, "_see_all_data") %in% r$user_accesses) sql_join <- "LEFT JOIN" else sql_join <- "INNER JOIN"
+  
   if (sql_table == "plugins"){
-    sql <- glue::glue_sql("WITH {paste0('selected_', id)} AS (
+    sql <- glue::glue_sql(paste0("WITH {paste0('selected_', id)} AS (
       SELECT DISTINCT d.id
       FROM {sql_table} d
       LEFT JOIN options AS r ON d.id = r.link_id AND r.category = {sql_category} AND r.name = 'users_allowed_read_group'
@@ -767,12 +770,12 @@ reload_elements_var <- function(page_id, con, r, m, long_var_filtered){
     )
     SELECT d.id, d.update_datetime, d.tab_type_id, o.name, o.value, o.value_num
       FROM {sql_table} d
-      INNER JOIN {paste0('selected_', id)} ON d.id = {paste0('selected_', id)}.id
-      LEFT JOIN options o ON o.category = {sql_category} AND d.id = o.link_id", .con = con)
+      ", sql_join, " {paste0('selected_', id)} ON d.id = {paste0('selected_', id)}.id
+      LEFT JOIN options o ON o.category = {sql_category} AND d.id = o.link_id"), .con = con)
   }
   
   else if (sql_table == "subsets"){
-    sql <- glue::glue_sql("WITH {paste0('selected_', id)} AS (
+    sql <- glue::glue_sql(paste0("WITH {paste0('selected_', id)} AS (
       SELECT DISTINCT d.id
       FROM {sql_table} d
       LEFT JOIN options AS r ON d.id = r.link_id AND r.category = {sql_category} AND r.name = 'users_allowed_read_group'
@@ -783,12 +786,12 @@ reload_elements_var <- function(page_id, con, r, m, long_var_filtered){
     )
     SELECT d.id, o.name, o.value, o.value_num
       FROM {sql_table} d
-      INNER JOIN {paste0('selected_', id)} ON d.id = {paste0('selected_', id)}.id
-      LEFT JOIN options o ON o.category = {sql_category} AND d.id = o.link_id", .con = con)
+      ", sql_join, " {paste0('selected_', id)} ON d.id = {paste0('selected_', id)}.id
+      LEFT JOIN options o ON o.category = {sql_category} AND d.id = o.link_id"), .con = con)
   }
   
   else {
-    sql <- glue::glue_sql("WITH {paste0('selected_', id)} AS (
+    sql <- glue::glue_sql(paste0("WITH {paste0('selected_', id)} AS (
       SELECT DISTINCT d.id
       FROM {sql_table} d
       LEFT JOIN options AS r ON d.id = r.link_id AND r.category = {sql_category} AND r.name = 'users_allowed_read_group'
@@ -797,8 +800,8 @@ reload_elements_var <- function(page_id, con, r, m, long_var_filtered){
     )
     SELECT d.id, d.update_datetime, o.name, o.value, o.value_num
       FROM {sql_table} d
-      INNER JOIN {paste0('selected_', id)} ON d.id = {paste0('selected_', id)}.id
-      LEFT JOIN options o ON o.category = {sql_category} AND d.id = o.link_id", .con = con)
+      ", sql_join, " {paste0('selected_', id)} ON d.id = {paste0('selected_', id)}.id
+      LEFT JOIN options o ON o.category = {sql_category} AND d.id = o.link_id"), .con = con)
   }
   
   r[[long_var]] <- DBI::dbGetQuery(con, sql) %>% tibble::as_tibble()

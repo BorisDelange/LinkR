@@ -97,7 +97,7 @@ import_dataset,Importer un set de données
 import_project,Importer un projet
 import_plugins,Importer des plugins
 export_plugin,Exporter un plugin
-export_proejct,Exporter un projet
+export_project,Exporter un projet
 export_plugins,Exporter des plugins
 export_selected_plugins,Exporter les plugins
 import_data_cleaning_script,Importer un script de data cleaning
@@ -769,72 +769,6 @@ whats_a_script,Qu'est ce qu'un script ?
 local_and_remote_plugins,Plugins locaux et distants
 local_and_remote_scripts,Scripts locaux et distants
 access_log,Accéder au log
-change_password_card_user_access_description,Changer le mot de passe du compte actuel
-configure_python_card_user_access_description,Configurer l'accès à Python
-db_connection_infos_card_user_access_description,Configurer les connexions à la base de données de l'application
-db_datatable_card_user_access_description,Accéder à la liste des tables de la BDD de l'application
-db_request_card_user_access_description,Requêter la BDD de l'application
-db_save_card_user_access_description,Exporter la BDD de l'application
-db_restore_card_user_access_description,Restaurer la BDD de l'application
-users_creation_card_user_access_description,Créer un utilisateur
-users_management_user_access_description,"Gérer les utilisateurs (ajouter, éditer et supprimer)"
-users_statuses_management_user_access_description,"Gérer les statuts des utilisateurs (ajouter, éditer et supprimer)"
-users_accesses_management_user_access_description,"Gérer les accès des utilisateurs (ajouter, éditer et supprimer)"
-users_management_card_user_access_description,Gérer les utilisateurs (éditer et supprimer)
-users_accesses_management_card_user_access_description,"Gérer les accès utilisateurs (ajouter, éditer et supprimer)"
-users_accesses_options_card_user_access_description,Configurer les accès utilisateurs
-users_statuses_management_card_user_access_description,"Gérer les statuts des utilisateurs (ajouter, éditer et supprimer)"
-dev_edit_r_code_card_user_access_description,Exécuter du code dans la console R sans restriction d'accès aux données
-dev_edit_python_code_card_user_access_description,Exécuter du code dans la console Python
-dev_edit_terminal_code_card_user_access_description,Exécuter du code dans le terminal
-dev_perf_monitoring_card_user_access_description,Accéder aux mesures des performances
-data_sources_datatable_card_user_access_description,"Gérer les sources de données (ajouter, éditer et supprimer)"
-datasets_see_all_data_user_access_description,"Accéder à tous les sets de données, même ceux pour lesquels l'utilisateur n'est pas dans les utilisateurs autorisés"
-datasets_datatable_card_user_access_description,"Gérer les sets de données (ajouter, éditer et supprimer)"
-datasets_options_card_user_access_description,Editer les options des sets de données
-datasets_edit_code_card_user_access_description,Editer le code des sets de données
-studies_see_all_data_user_access_description,"Accéder à toutes les études, même celles pour lesquelles l'utilisateur n'est pas dans les utilisateurs autorisés"
-studies_description_card_user_access_description,Accéder aux descriptions des études
-all_studies_card_user_access_description,Accéder à l'onglet 'Toutes les études'
-import_study_card_user_access_description,Importer des études
-export_study_card_user_access_description,Exporter des études
-studies_datatable_card_user_access_description,"Gérer les études (ajouter, éditer et supprimer)"
-studies_options_card_user_access_description,Editer les options des études
-subsets_datatable_card_user_access_description,"Gérer les subsets (ajouter, éditer et supprimer)"
-subsets_edit_code_card_user_access_description,Editer le code des subsets
-subsets_persons_card_user_access_description,Gérer les patients des subsets (ajouter et supprimer des patients d'un subset)
-vocabularies_datatable_card_user_access_description,"Gérer les terminologies (ajouter, éditer et supprimer)"
-vocabularies_vocabularies_tables_datatable_card_user_access_description,"Accéder aux tables des terminologies (depuis la page des paramètres)"
-vocabularies_edit_code_card_user_access_description,Editer le code des terminologies
-vocabularies_options_card_user_access_description,Editer les options des terminologies
-vocabularies_import_vocabulary_card_user_access_description,Importer une terminologie
-vocabularies_export_vocabulary_card_user_access_description,Exporter une terminologie
-vocabularies_concepts_card_user_access_description,Accéder aux concepts des terminologies (depuis l'onglet en haut de la page)
-vocabularies_mapping_card_user_access_description,Accéder aux alignements de concepts
-vocabularies_evaluate_mapping_user_access_description,Evaluer des alignements de concepts
-vocabularies_delete_mapping_user_access_description,Supprimer des alignements de concepts
-study_messages_card_user_access_description,Accéder aux conversations des études
-plugins_see_all_data_user_access_description,"Accéder à tous les plugins, même ceux pour lesquels l'utilisateur n'est pas dans les utilisateurs autorisés"
-all_plugins_card_user_access_description,Accéder à l'onglet 'Tous les plugins'
-plugins_datatable_card_user_access_description,"Gérer les plugins (ajouter, éditer et supprimer)"
-plugins_options_card_user_access_description,Editer les options des plugins
-plugins_edit_code_card_user_access_description,Editer le code des plugins
-import_plugin_card_user_access_description,Importer des plugins
-export_plugin_card_user_access_description,Exporter des plugins
-scripts_datatable_card_user_access_description,"Gérer les scripts (ajouter, éditer et supprimer)"
-all_scripts_card_user_access_description,Accéder à l'onglet 'Tous les scripts'
-dataset_scripts_card_user_access_description,Configurer les scripts des sets de données (quels scripts seront exécutés au chargement d'un dataset)
-scripts_edit_code_card_user_access_description,Editer le code des scripts
-scripts_options_card_user_access_description,Editer les options des scripts
-import_script_card_user_access_description,Importer des scripts
-export_script_card_user_access_description,Exporter des scripts
-all_users_user_access_description,Accéder au log de tous les utilisateurs
-only_me_user_access_description,Accéder au log de l'utilisateur connecté
-data_console_user_access_description,Accéder à la console depuis une étude
-datasets_import_dataset_card_user_access_description,Importer des sets de données
-datasets_export_dataset_card_user_access_description,Exporter des sets de données
-datasets_all_datasets_card_user_access_description,Tous les sets de données
-vocabularies_all_vocabularies_card_user_access_description,Accéder à l'onglet 'Toutes les terminologies'
 vocabulary_id_col,ID (vocabulary_id)
 vocabulary_id,ID de la terminologie
 vocabulary_id_1,ID terminologie 1
@@ -1290,3 +1224,29 @@ login,Identifiant de connexion
 create_user,Créer un nouvel utilisateur
 create_user_status,Créer un nouveau statut
 create_user_access,Créer un nouvel accès
+users_management_user_access_description,"Gérer les utilisateurs (ajouter, éditer et supprimer)"
+users_statuses_management_user_access_description,"Gérer les statuts des utilisateurs (ajouter, éditer et supprimer)"
+users_accesses_management_user_access_description,"Gérer les accès des utilisateurs (ajouter, éditer et supprimer)"
+projects_see_all_data_user_access_description,Accès à tous les projets
+projects_management_user_access_description,"Gérer les projets (ajouter, éditer et supprimer)"
+projects_import_user_access_description,Importer un projet
+projects_dataset_user_access_description,Modifier le set de données du projet
+projects_data_cleaning_user_access_description,Modifier les scripts de data cleaning du projet
+projects_share_user_access_description,Partager les projets (zip and git)
+plugins_see_all_data_user_access_description,Accès à tous les plugins
+plugins_management_user_access_description,"Gérer les plugins (ajouter, éditer et supprimer)"
+plugins_import_user_access_description,Importer un plugin
+plugins_edit_code_user_access_description,Editer et tester le code du plugin
+plugins_share_user_access_description,Partager les plugins (zip and git)
+datasets_see_all_data_user_access_description,Accès à tous les sets de données
+datasets_management_user_access_description,"Gérer les sets de données (ajouter, éditer et supprimer)"
+datasets_import_user_access_description,Importer un set de données
+datasets_edit_code_user_access_description,Editer et tester le code du set de données
+datasets_share_user_access_description,Partager les sets de données (zip and git)
+data_cleaning_see_all_data_user_access_description,Accès à tous les scripts de data cleaning
+data_cleaning_management_user_access_description,"Gérer les scripts de data cleaning (ajouter, éditer et supprimer)"
+data_cleaning_import_user_access_description,Importer un script de data cleaning
+data_cleaning_edit_code_user_access_description,Editer et tester le code du script de data cleaning
+data_cleaning_share_user_access_description,Partager les scripts de data cleaning (zip and git)
+vocabularies_management_user_access_description,"Gérer les terminologies (ajouter, éditer et supprimer)"
+console_execute_code_user_access_description,Exécuter du code dans la console
