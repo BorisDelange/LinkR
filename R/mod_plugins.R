@@ -282,7 +282,7 @@ mod_plugins_ui <- function(id, language, languages, i18n){
 }
 
 #' @noRd 
-mod_plugins_server <- function(id, r, d, m, language, i18n, debug){
+mod_plugins_server <- function(id, r, d, m, language, i18n, debug, user_accesses){
   
   # |-------------------------------- -----
   
@@ -291,7 +291,7 @@ mod_plugins_server <- function(id, r, d, m, language, i18n, debug){
   # Load widgets ----
   
   all_divs <- c("summary", "edit_code", "run_code", "share")
-  mod_widgets_server(id, r, d, m, language, i18n, all_divs, debug)
+  mod_widgets_server(id, r, d, m, language, i18n, all_divs, debug, user_accesses)
   
   # Load concepts backend ----
   
@@ -307,15 +307,15 @@ mod_plugins_server <- function(id, r, d, m, language, i18n, debug){
     
     # Current user accesses ----
     
-    if ("plugins_management" %in% r$user_accesses) sapply(c("create_element_button", "edit_summary_div", "delete_element_div"), shinyjs::show)
-    if ("plugins_import" %in% r$user_accesses) shinyjs::show("import_element_button")
+    if ("plugins_management" %in% user_accesses) sapply(c("create_element_button", "edit_summary_div", "delete_element_div"), shinyjs::show)
+    if ("plugins_import" %in% user_accesses) shinyjs::show("import_element_button")
     
-    if ("plugins_share" %in% r$user_accesses){
+    if ("plugins_share" %in% user_accesses){
       sapply(c("share_content_div", "export_element_button"), shinyjs::show)
       shinyjs::hide("share_forbidden_access")
     }
     
-    if ("plugins_edit_code" %in% r$user_accesses){
+    if ("plugins_edit_code" %in% user_accesses){
       sapply(c(
         "edit_code_tabs_div", "edit_code_editors_div", "run_code_content_div", "edit_page_on_div", "reload_plugin_code_button",
         "edit_code_buttons", "edit_code_directory_browser_div", "edit_code_files_browser_div"
@@ -346,6 +346,8 @@ mod_plugins_server <- function(id, r, d, m, language, i18n, debug){
     
     observeEvent(input$reload_code_files, {
       if (debug) cat(paste0("\n", now(), " - mod_plugins - observer input$reload_code_files"))
+      
+      req("plugins_edit_code" %in% user_accesses)
       
       plugin_folder <- paste0(r$app_folder, "/plugins/", input$selected_plugin_unique_id)
       shinyjs::runjs(paste0("Shiny.setInputValue('", id, "-selected_plugin_folder', '", plugin_folder, "');"))
@@ -497,6 +499,8 @@ mod_plugins_server <- function(id, r, d, m, language, i18n, debug){
     observeEvent(r$edit_plugin_code_reload_files_tab, {
       if (debug) cat(paste0("\n", now(), " - mod_plugins - observer r$edit_plugin_code_reload_files_tab"))
       
+      req("plugins_edit_code" %in% user_accesses)
+      
       tabs_ui <- tagList()
       
       edit_plugin_code_tabs <- r$edit_plugin_code_tabs %>% dplyr::mutate(filename = ifelse(nchar(filename) >= 23, paste0(substr(filename, 1, 20), "..."), filename))
@@ -565,6 +569,8 @@ mod_plugins_server <- function(id, r, d, m, language, i18n, debug){
     
     observeEvent(input$edit_code_selected_file, {
       if (debug) cat(paste0("\n", now(), " - mod_plugins - observer input$edit_code_selected_file"))
+      
+      req("plugins_edit_code" %in% user_accesses)
       
       file_id <- as.integer(sub(paste0(id, "-edit_code_file_div_"), "", input$edit_code_selected_file))
       file_row <- r$edit_plugin_code_files_list %>% dplyr::filter(id == file_id)
@@ -638,6 +644,8 @@ mod_plugins_server <- function(id, r, d, m, language, i18n, debug){
     
     observeEvent(input$edit_code_add_file, {
       if (debug) cat(paste0("\n", now(), " - mod_plugins - observer input$edit_code_add_file"))
+      
+      req("plugins_edit_code" %in% user_accesses)
       
       # List files to create new filename
       files_list <- list.files(path = input$selected_plugin_folder, pattern = "(?i)*.\\.(r|py|csv|css|js)$")
@@ -752,6 +760,8 @@ mod_plugins_server <- function(id, r, d, m, language, i18n, debug){
     observeEvent(input$save_file_code, {
       if (debug) cat(paste0("\n", now(), " - mod_plugins - observer input$save_file_code"))
       
+      req("plugins_edit_code" %in% user_accesses)
+      
       req(length(r$edit_plugin_code_selected_file) > 0)
       
       file <- r$edit_plugin_code_files_list %>% dplyr::filter(id == r$edit_plugin_code_selected_file)
@@ -856,6 +866,8 @@ mod_plugins_server <- function(id, r, d, m, language, i18n, debug){
     observeEvent(input$confirm_file_deletion, {
       if (debug) cat(paste0("\n", now(), " - mod_plugins - observer input$confirm_file_deletion"))
       
+      req("plugins_edit_code" %in% user_accesses)
+      
       file_id <- input$edit_code_delete_file
       filename <- r$edit_plugin_code_files_list %>% dplyr::filter(id == file_id) %>% dplyr::pull(filename)
       
@@ -928,6 +940,8 @@ mod_plugins_server <- function(id, r, d, m, language, i18n, debug){
     observeEvent(r$run_plugin_code, {
       if (debug) cat(paste0("\n", now(), " - mod_plugins - observer r$run_plugin_code"))
 
+      req("plugins_edit_code" %in% user_accesses)
+      
       # Switch to 'Test' tab
       shinyjs::runjs(paste0("
         Shiny.setInputValue('", id, "-current_tab_trigger', Math.random());
@@ -1064,6 +1078,8 @@ mod_plugins_server <- function(id, r, d, m, language, i18n, debug){
     
     observeEvent(input$edit_page_on, {
       if (debug) cat(paste0("\n", now(), " - mod_plugins - observer input$edit_page_on"))
+      
+      req("plugins_edit_code" %in% user_accesses)
       
       # Enable gridstack edition
       shinyjs::runjs("

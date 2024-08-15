@@ -1,6 +1,6 @@
 #' @noRd
 app_server <- function(pages, language, languages, i18n, app_folder, debug, log_file, local, users_accesses_toggles_options, db_col_types, dropdowns){
-  function(input, output, session ) {
+  function(input, output, session) {
     
     if (debug) cat(paste0("\n", now(), " - server - init"))
     
@@ -164,37 +164,11 @@ app_server <- function(pages, language, languages, i18n, app_folder, debug, log_
       }
     })
     
-    # Secure the app with shinymanager
-    
-    # if (debug) cat(paste0(c"\n", now(), " - server - shinyManager"))
-    
-    # res_auth <- shinymanager::secure_server(check_credentials = function(user, password) {
-    #   password <- rlang::hash(password)
-    #   
-    #   res <- DBI::dbGetQuery(r$db, paste0("SELECT * FROM users WHERE username = '", user, "' AND password = '", password, "' AND deleted IS FALSE"))
-    #   
-    #   if (nrow(res) > 0) list(result = TRUE, user_info = list(user = user, id = res$id))
-    #   else list(result = FALSE)
-    # })
-    # res_auth <- shinymanager::secure_server(check_credentials = shinymanager::check_credentials(credentials))
-    
     # Get user ID
     
-    # observeEvent(res_auth, {
-      # if (debug) cat(paste0("\n", now(), " - server - observer res_auth"))
-      # req(length(reactiveValuesToList(res_auth)$id) > 0)
-      # user_id <- as.integer(reactiveValuesToList(res_auth)$id)
-      user_id <- 1L
-      r$user_id <- user_id
-      m$user_id <- user_id
-      
-      # # add_log_entry(r = r, category = trad$session, name = trad$session_starts, value = "")
-      # id_row <- get_last_row(db_local_main, "log") + 1
-      # sql <- glue::glue_sql("INSERT INTO log(id, category, name, value, creator_id, datetime) SELECT {id_row}, {trad$session}, {trad$session_starts}, '', {user_id}, {now()}", .con = db_local_main)
-      # query <- DBI::dbSendStatement(db_local_main, sql)
-      # DBI::dbClearResult(query)
-    # })
-    # When r$user_id loaded, load user_accesses
+    user_id <- 1L
+    r$user_id <- user_id
+    m$user_id <- user_id
     
     observeEvent(r$user_id, {
       if (debug) cat(paste0("\n", now(), " - server - observer r$user_id"))
@@ -207,8 +181,6 @@ app_server <- function(pages, language, languages, i18n, app_folder, debug, log_
         
         sink(local_log_file, append = TRUE)
       }
-      
-      # req(r$user_id)
       
       onStop(function() {
         if (debug) cat(paste0("\n", now(), " - server - observer onStop"))
@@ -224,19 +196,6 @@ app_server <- function(pages, language, languages, i18n, app_folder, debug, log_
       #   # Close spark connections
       #   sparklyr::spark_disconnect_all()
       })
-      
-      # user_access_id <- r$users %>% dplyr::filter(id == r$user_id) %>% dplyr::pull(user_access_id)
-      
-      # Get user accesses
-      
-      user_access_id <- r$users %>% dplyr::filter(id == user_id) %>% dplyr::pull(user_access_id) 
-      
-      sql <- glue::glue_sql("SELECT * FROM options WHERE category = 'users_accesses' AND link_id = {user_access_id} AND value_num = 1", .con = r$db)
-      r$user_accesses <- DBI::dbGetQuery(r$db, sql) %>% dplyr::pull(name)
-      
-      # Show username on top of the page
-      # sql <- glue::glue_sql("SELECT CONCAT(firstname, ' ', lastname) AS name, CONCAT(SUBSTRING(firstname, 1, 1), SUBSTRING(lastname, 1, 1)) AS initials FROM users WHERE id = {r$user_id}", .con = r$db)
-      # r$user <- DBI::dbGetQuery(r$db, sql)
       
       # Clear temp dir
       if (debug) cat(paste0("\n", now(), " - server - clear temp_files"))
@@ -256,34 +215,36 @@ app_server <- function(pages, language, languages, i18n, app_folder, debug, log_
     if (debug) cat(paste0("\n", now(), " - server - shiny.router"))
     shiny.router::router_server()
     
-    # Keep trace of loaded observers (not to have multiple identical observers)
-    # r$loaded_observers <- ""
-    
     # Load pages ----
     
     r$loaded_pages <- list()
     
-    sapply(pages, function(page){
+    observeEvent(shiny.router::get_page(), {
       
-      if (page == "/") page <- "home"
+      if (debug) cat(paste0("\n", now(), " - server - observer shiny.router::get_page()"))
       
-      observeEvent(shiny.router::get_page(), {
-        if (shiny.router::get_page() == "/") current_page <- "home"
-        else if (shiny.router::get_page() == "data"){
-          if (length(shiny.router::get_query_param()$type) > 0) r$data_page <- shiny.router::get_query_param()$type
-          else r$data_page <- "patient_lvl"
-          current_page <- "data"
-        }
-        else current_page <- shiny.router::get_page()
-        
-        if (current_page == page & length(r$loaded_pages[[page]]) == 0) r$load_page <- page
-      })
+      if (shiny.router::get_page() == "/") current_page <- "home"
+      else if (shiny.router::get_page() == "data"){
+        if (length(shiny.router::get_query_param()$type) > 0) r$data_page <- shiny.router::get_query_param()$type
+        else r$data_page <- "patient_lvl"
+        current_page <- "data"
+      }
+      else current_page <- shiny.router::get_page()
+      
+      req(current_page %in% pages)
+      
+      if (length(r$loaded_pages[[current_page]]) == 0) r$load_page <- current_page
     })
     
     observeEvent(r$load_page, {
       if (debug) cat(paste0("\n", now(), " - server - observer r$load_page"))
       
       page <- r$load_page
+      
+      # Get user accesses
+      user_access_id <- r$users %>% dplyr::filter(id == user_id) %>% dplyr::pull(user_access_id) 
+      sql <- glue::glue_sql("SELECT * FROM options WHERE category = 'users_accesses' AND link_id = {user_access_id} AND value_num = 1", .con = r$db)
+      user_accesses <- DBI::dbGetQuery(r$db, sql) %>% dplyr::pull(name)
       
       # Data pages are loaded from mod_home (when a project is selected)
       if (page == "data"){
@@ -296,9 +257,9 @@ app_server <- function(pages, language, languages, i18n, app_folder, debug, log_
         r$load_project_trigger <- now()
       }
       else {
-        if (page == "users") args <- list(page, r, d, m, language, i18n, debug, users_accesses_toggles_options)
-        else if (page == "app_db") args <- list(page, r, d, m, language, i18n, db_col_types, app_folder, debug)
-        else args <- list(page, r, d, m, language, i18n, debug)
+        if (page == "users") args <- list(page, r, d, m, language, i18n, debug, users_accesses_toggles_options, user_accesses)
+        else if (page == "app_db") args <- list(page, r, d, m, language, i18n, db_col_types, app_folder, debug, user_accesses)
+        else args <- list(page, r, d, m, language, i18n, debug, user_accesses)
         do.call(paste0("mod_", page, "_server"), args)
         
         mod_page_sidenav_server(page, r, d, m, language, i18n, debug)

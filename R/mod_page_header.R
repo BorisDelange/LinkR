@@ -8,7 +8,7 @@
 #' @noRd 
 #'
 #' @importFrom shiny NS tagList
-mod_page_header_ui <- function(id = character(), i18n = character()){
+mod_page_header_ui <- function(id, i18n){
   
   ns <- NS(id)
   
@@ -59,13 +59,13 @@ mod_page_header_ui <- function(id = character(), i18n = character()){
           shiny.fluent::CommandBarItem("", "Contact", href = shiny.router::route_link("data?type=patient_lvl"), title = i18n$t("patient_lvl_data")),
           shiny.fluent::CommandBarItem("", "People", href = shiny.router::route_link("data?type=aggregated"), title = i18n$t("aggregated_data")),
           shiny.fluent::CommandBarItem("", "AllApps", href = shiny.router::route_link("concepts"), title = i18n$t("concepts")),
-          shiny.fluent::CommandBarItem("", "Code", href = shiny.router::route_link("project_console"), title = i18n$t("console")),
-          shiny.fluent::CommandBarItem("", "Chat", href = shiny.router::route_link("project_messages"), title = i18n$t("messages")),
+          # shiny.fluent::CommandBarItem("", "Code", href = shiny.router::route_link("project_console"), title = i18n$t("console")),
+          # shiny.fluent::CommandBarItem("", "Chat", href = shiny.router::route_link("project_messages"), title = i18n$t("messages")),
           shiny.fluent::CommandBarItem(
             "", "More",
             subMenuProps = list(items = list(
-              list(text = i18n$t("subsets"), iconProps = list(iconName = "People"), href = shiny.router::route_link("subsets")),
-              list(text = i18n$t("tasks"), iconProps = list(iconName = "CheckList"), href = shiny.router::route_link("tasks"))
+              list(text = i18n$t("subsets"), iconProps = list(iconName = "People"), href = shiny.router::route_link("subsets"))#,
+              # list(text = i18n$t("tasks"), iconProps = list(iconName = "CheckList"), href = shiny.router::route_link("tasks"))
             )),
             title = i18n$t("other_pages")
           )
@@ -125,7 +125,7 @@ mod_page_header_ui <- function(id = character(), i18n = character()){
 }
 
 #' @noRd 
-mod_page_header_server <- function(id = character(), r = shiny::reactiveValues(), d = shiny::reactiveValues(), m = shiny::reactiveValues(), language = "en", i18n = character(), debug = FALSE){
+mod_page_header_server <- function(id, r, d, m, language, i18n, debug){
   moduleServer(id, function(input, output, session){
     ns <- session$ns
     

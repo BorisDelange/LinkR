@@ -184,7 +184,7 @@ mod_vocabularies_ui <- function(id, language, languages, i18n, code_hotkeys, dro
 }
 
 #' @noRd 
-mod_vocabularies_server <- function(id = character(), r = shiny::reactiveValues(), d = shiny::reactiveValues(), m = shiny::reactiveValues(), language = "en", i18n = character(), debug = FALSE){
+mod_vocabularies_server <- function(id, r, d, m, language, i18n, debug, user_accesses){
   # |-------------------------------- -----
   
   if (debug) cat(paste0("\n", now(), " - mod_vocabularies - ", id, " - start"))
@@ -196,12 +196,17 @@ mod_vocabularies_server <- function(id = character(), r = shiny::reactiveValues(
   
   # all_divs <- c("summary", "concepts", "edit_code", "share")
   all_divs <- c("summary", "concepts")
-  mod_widgets_server(id, r, d, m, language, i18n, all_divs, debug)
+  mod_widgets_server(id, r, d, m, language, i18n, all_divs, debug, user_accesses)
   
   # Vocabularies module ----
   
   moduleServer(id, function(input, output, session){
     ns <- session$ns
+    
+    # Current user accesses ----
+    
+    if ("vocabularies_management" %in% user_accesses) shinyjs::show("create_element_button")
+    if ("vocabularies_import" %in% user_accesses) sapply(c("import_concepts_div_1", "import_concepts_div_2"), shinyjs::show)
     
     # |-------------------------------- -----
     
@@ -380,6 +385,8 @@ mod_vocabularies_server <- function(id = character(), r = shiny::reactiveValues(
     observeEvent(input$close_import_concepts_modal, {
       if (debug) cat(paste0("\n", now(), " - mod_vocabularies - observer input$close_import_concepts_modal"))
       
+      req("vocabularies_import" %in% user_accesses)
+      
       # Reset fields
       render_datatable(
         output = output, ns = ns, i18n = i18n, data = tibble::tibble(table_name = character(), n_rows = character(), message = character()),
@@ -404,6 +411,8 @@ mod_vocabularies_server <- function(id = character(), r = shiny::reactiveValues(
     
     observeEvent(input$select_files_input, {
       if (debug) cat(paste0("\n", now(), " - mod_vocabularies - observer input$select_files_input"))
+      
+      req("vocabularies_import" %in% user_accesses)
       
       req(length(input$select_files_input) > 0)
       
@@ -461,6 +470,8 @@ mod_vocabularies_server <- function(id = character(), r = shiny::reactiveValues(
     
     observeEvent(input$import_files, {
       if (debug) cat(paste0("\n", now(), " - mod_vocabularies - observer input$import_files"))
+      
+      req("vocabularies_import" %in% user_accesses)
       
       req(length(input$select_files_input) > 0)
       

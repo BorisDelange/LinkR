@@ -103,7 +103,7 @@ mod_select_concepts_ui <- function(id, language, languages, i18n){
 }
 
 #' @noRd 
-mod_select_concepts_server <- function(id, r, d, m, language, i18n, debug){
+mod_select_concepts_server <- function(id, r, d, m, language, i18n, debug, user_accesses){
   moduleServer(id, function(input, output, session){
     ns <- session$ns
     

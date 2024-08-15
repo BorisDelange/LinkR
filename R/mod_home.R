@@ -138,24 +138,15 @@ mod_home_ui <- function(id, language, languages, i18n){
         )
       )
     )
-    # style = "margin-top: 20px;",
-    # div(tags$a(i18n$t("projects"), href = shiny.router::route_link("projects"), class = "home_link"), style = "margin-bottom: 10px;"),
-    # uiOutput(ns("projects"))#,
-    # shiny.fluent::PrimaryButton.shinyInput(ns("show_all_projects"), i18n$t("show_all_projects"), href = shiny.router::route_link("projects"))
   )
 }
 
 #' @noRd 
-mod_home_server <- function(id, r, d, m, language, i18n, debug){
+mod_home_server <- function(id, r, d, m, language, i18n, debug, user_accesses){
   moduleServer(id, function(input, output, session){
     ns <- session$ns
     
-    if (debug) cat(paste0("\n", now(), " - mod_home - ", id, " - start"))
-    
-    # --- --- --- -
-    # Projects ----
-    # --- --- --- -
-
+    if (debug) cat(paste0("\n", now(), " - mod_home - start"))
     
   })
 }

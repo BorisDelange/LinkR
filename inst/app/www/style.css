@@ -1308,7 +1308,7 @@ td[data-type="factor"] input {
   height: calc(100% - 50px);
 }
 
-.app_db_connection_right, .app_db_backups_right, .app_db_backups_left {
+.app_db_connection_left, .app_db_backups_right, .app_db_backups_left {
   width: 50%;
   calc(100% - 16px)
 }

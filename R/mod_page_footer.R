@@ -1,5 +1,5 @@
 #' @noRd
-mod_page_footer_ui <- function(i18n = character()){
+mod_page_footer_ui <- function(i18n){
   div(
     class = "footer",
     div(

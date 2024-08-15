@@ -205,7 +205,7 @@ mod_data_ui <- function(id, language, languages, i18n){
 }
 
 #' @noRd 
-mod_data_server <- function(id, r, d, m, language, i18n, debug){
+mod_data_server <- function(id, r, d, m, language, i18n, debug, user_accesses){
   
   # |-------------------------------- -----
   
@@ -1435,7 +1435,7 @@ mod_data_server <- function(id, r, d, m, language, i18n, debug){
     observeEvent(input$reload_plugins_var, {
       if (debug) cat(paste0("\n", now(), " - mod_data - observer input$reload_plugins_var"))
       
-      reload_elements_var(page_id = id, con = r$db, r = r, m = m, long_var_filtered = "filtered_data_plugins_long")
+      reload_elements_var(page_id = id, con = r$db, r = r, m = m, long_var_filtered = "filtered_data_plugins_long", user_accesses)
       
       shinyjs::runjs(paste0("Shiny.setInputValue('", id, "-reload_plugins_list', Math.random());"))
     })

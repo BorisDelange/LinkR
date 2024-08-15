@@ -1,12 +1,12 @@
 #' @noRd 
-mod_tasks_ui <- function(id = character(), language = "en", languages = tibble::tibble(), i18n = character()){
+mod_tasks_ui <- function(id, language, languages, i18n){
   ns <- NS(id)
   
   div()
 }
 
 #' @noRd 
-mod_tasks_server <- function(id = character(), r = shiny::reactiveValues(), d = shiny::reactiveValues(), m = shiny::reactiveValues(), language = "en", i18n = character(), debug = FALSE){
+mod_tasks_server <- function(id, r, d, m, language, i18n, debug, user_accesses){
   moduleServer(id, function(input, output, session){
     ns <- session$ns
     

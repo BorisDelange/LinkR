@@ -239,7 +239,7 @@ mod_datasets_ui <- function(id, language, languages, i18n, code_hotkeys){
 }
 
 #' @noRd 
-mod_datasets_server <- function(id, r, d, m, language, i18n, debug){
+mod_datasets_server <- function(id, r, d, m, language, i18n, debug, user_accesses){
   
   # |-------------------------------- -----
   
@@ -248,7 +248,7 @@ mod_datasets_server <- function(id, r, d, m, language, i18n, debug){
   # Load widgets ----
   
   all_divs <- c("summary", "edit_code", "share")
-  mod_widgets_server(id, r, d, m, language, i18n, all_divs, debug)
+  mod_widgets_server(id, r, d, m, language, i18n, all_divs, debug, user_accesses)
   
   # Datasets module ----
   
@@ -257,14 +257,14 @@ mod_datasets_server <- function(id, r, d, m, language, i18n, debug){
     
     # Current user accesses ----
     
-    if ("datasets_management" %in% r$user_accesses) sapply(c("create_element_button", "edit_summary_div", "delete_element_div"), shinyjs::show)
-    if ("datasets_import" %in% r$user_accesses) shinyjs::show("import_element_button")
-    if ("datasets_edit_code" %in% r$user_accesses){
+    if ("datasets_management" %in% user_accesses) sapply(c("create_element_button", "edit_summary_div", "delete_element_div"), shinyjs::show)
+    if ("datasets_import" %in% user_accesses) shinyjs::show("import_element_button")
+    if ("datasets_edit_code" %in% user_accesses){
       shinyjs::hide("edit_code_forbidden_access")
       sapply(c("edit_code_buttons", "edit_code_content_div"), shinyjs::show)
     }
     
-    if ("datasets_share" %in% r$user_accesses){
+    if ("datasets_share" %in% user_accesses){
       sapply(c("share_content_div", "export_element_button"), shinyjs::show)
       shinyjs::hide("share_forbidden_access")
     }

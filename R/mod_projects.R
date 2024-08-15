@@ -262,7 +262,7 @@ mod_projects_ui <- function(id, language, languages, i18n){
 }
 
 #' @noRd 
-mod_projects_server <- function(id, r, d, m, language, i18n, debug){
+mod_projects_server <- function(id, r, d, m, language, i18n, debug, user_accesses){
   
   # |-------------------------------- -----
   
@@ -271,7 +271,7 @@ mod_projects_server <- function(id, r, d, m, language, i18n, debug){
   # Load widgets ----
   
   all_divs <- c("summary", "dataset", "data_cleaning_scripts", "share")
-  mod_widgets_server(id, r, d, m, language, i18n, all_divs, debug)
+  mod_widgets_server(id, r, d, m, language, i18n, all_divs, debug, user_accesses)
   
   # Projects module ----
   
@@ -281,16 +281,16 @@ mod_projects_server <- function(id, r, d, m, language, i18n, debug){
     
     # Current user accesses ----
     
-    if ("projects_management" %in% r$user_accesses) sapply(c("create_element_button", "edit_summary_div", "delete_element_div"), shinyjs::show)
-    if ("projects_import" %in% r$user_accesses) shinyjs::show("import_element_button")
+    if ("projects_management" %in% user_accesses) sapply(c("create_element_button", "edit_summary_div", "delete_element_div"), shinyjs::show)
+    if ("projects_import" %in% user_accesses) shinyjs::show("import_element_button")
     
-    if ("projects_share" %in% r$user_accesses){
+    if ("projects_share" %in% user_accesses){
       sapply(c("share_content_div", "export_element_button"), shinyjs::show)
       shinyjs::hide("share_forbidden_access")
     }
     
     for (type in c("dataset", "data_cleaning")){
-      if (paste0("projects_", type) %in% r$user_accesses){
+      if (paste0("projects_", type) %in% user_accesses){
         shinyjs::show(paste0("project_", type, "_div"))
         shinyjs::hide(paste0(type, "_forbidden_access"))
       }
@@ -331,6 +331,8 @@ mod_projects_server <- function(id, r, d, m, language, i18n, debug){
     observeEvent(input$save_dataset, {
       if (debug) cat(paste0("\n", now(), " - mod_projects - observer input$save_dataset"))
       
+      req("projects_dataset" %in% user_accesses)
+      
       sql <- glue::glue_sql("UPDATE studies SET dataset_id = {input$project_dataset} WHERE id = {input$selected_element}", .con = r$db)
       query <- DBI::dbSendStatement(r$db, sql)
       DBI::dbClearResult(query)
@@ -347,6 +349,8 @@ mod_projects_server <- function(id, r, d, m, language, i18n, debug){
     
     observeEvent(input$reload_dataset, {
       if (debug) cat(paste0("\n", now(), " - mod_projects - observer input$reload_dataset"))
+      
+      req("projects_dataset" %in% user_accesses)
       load_dataset(r, m, d, input$project_dataset, r$main_tables)
     })
     

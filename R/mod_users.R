@@ -280,7 +280,7 @@ mod_users_ui <- function(id, language, languages, i18n, users_accesses_toggles_o
 }
 
 #' @noRd 
-mod_users_server <- function(id, r, d, m, language, i18n, debug, users_accesses_toggles_options){
+mod_users_server <- function(id, r, d, m, language, i18n, debug, users_accesses_toggles_options, user_accesses){
   moduleServer(id, function(input, output, session){
     ns <- session$ns
     
@@ -289,7 +289,7 @@ mod_users_server <- function(id, r, d, m, language, i18n, debug, users_accesses_
     for (type in c("users", "users_accesses", "users_statuses")){
       single <- switch(type, "users" = "user", "users_accesses" = "user_access", "users_statuses" = "user_status")
       
-      if (paste0(type, "_management") %in% r$user_accesses){
+      if (paste0(type, "_management") %in% user_accesses){
         sapply(c(paste0("add_", single, "_icon"), paste0(type, "_dt")), shinyjs::show)
         shinyjs::hide(paste0(type, "_management_forbidden_access"))
       }
@@ -367,6 +367,8 @@ mod_users_server <- function(id, r, d, m, language, i18n, debug, users_accesses_
     observeEvent(input$add_user, {
       if (debug) cat(paste0("\n", now(), " - mod_users - observer input$add_user"))
       
+      req("users_management" %in% user_accesses)
+      
       # Check if textfields are not empty
       empty <- list()
       
@@ -437,6 +439,8 @@ mod_users_server <- function(id, r, d, m, language, i18n, debug, users_accesses_
     observeEvent(input$edit_user_trigger, {
       if (debug) cat(paste0("\n", now(), " - mod_users - observer input$edit_user_trigger"))
       
+      req("users_management" %in% user_accesses)
+      
       # Update fields
       user <- r$users %>% dplyr::filter(id == input$edit_user_id)
       
@@ -456,6 +460,8 @@ mod_users_server <- function(id, r, d, m, language, i18n, debug, users_accesses_
     
     observeEvent(input$save_user_updates, {
       if (debug) cat(paste0("\n", now(), " - mod_users - observer input$save_user_updates"))
+      
+      req("users_management" %in% user_accesses)
       
       # Check if textfields are not empty
       empty <- list()
@@ -549,6 +555,8 @@ mod_users_server <- function(id, r, d, m, language, i18n, debug, users_accesses_
     observeEvent(input$confirm_user_deletion, {
       if (debug) cat(paste0("\n", now(), " - mod_users - observer input$confirm_user_deletion"))
       
+      req("users_management" %in% user_accesses)
+      
       # Delete user from db
       sql <- glue::glue_sql("DELETE FROM users WHERE id = {input$edit_user_id}", .con = r$db)
       sql_send_statement(r$db, sql)
@@ -592,6 +600,8 @@ mod_users_server <- function(id, r, d, m, language, i18n, debug, users_accesses_
     
     observeEvent(input$add_user_status, {
       if (debug) cat(paste0("\n", now(), " - mod_users - observer input$add_user_status"))
+      
+      req("users_statuses_management" %in% user_accesses)
       add_user_attribute("user_status")
     })
     
@@ -613,6 +623,8 @@ mod_users_server <- function(id, r, d, m, language, i18n, debug, users_accesses_
     
     observeEvent(input$save_user_status_updates, {
       if (debug) cat(paste0("\n", now(), " - mod_users - observer input$save_user_status_updates"))
+      
+      req("users_statuses_management" %in% user_accesses)
       save_user_attribute_updates("user_status")
     })
     
@@ -643,6 +655,8 @@ mod_users_server <- function(id, r, d, m, language, i18n, debug, users_accesses_
     ## Deletion confirmed
     observeEvent(input$confirm_user_status_deletion, {
       if (debug) cat(paste0("\n", now(), " - mod_users - observer input$confirm_user_status_deletion"))
+      
+      req("users_statuses_management" %in% user_accesses)
       delete_user_attribute("user_status")
     })
     
@@ -676,6 +690,8 @@ mod_users_server <- function(id, r, d, m, language, i18n, debug, users_accesses_
     
     observeEvent(input$add_user_access, {
       if (debug) cat(paste0("\n", now(), " - mod_users - observer input$add_user_access"))
+      
+      req("users_accesses_management" %in% user_accesses)
       add_user_attribute("user_access")
     })
     
@@ -700,6 +716,8 @@ mod_users_server <- function(id, r, d, m, language, i18n, debug, users_accesses_
     
     observeEvent(input$save_user_access_updates, {
       if (debug) cat(paste0("\n", now(), " - mod_users - observer input$save_user_access_updates"))
+      
+      req("users_accesses_management" %in% user_accesses)
       save_user_attribute_updates("user_access")
     })
     
@@ -769,6 +787,8 @@ mod_users_server <- function(id, r, d, m, language, i18n, debug, users_accesses_
     ## Deletion confirmed
     observeEvent(input$confirm_user_access_deletion, {
       if (debug) cat(paste0("\n", now(), " - mod_users - observer input$confirm_user_access_deletion"))
+      
+      req("users_accesses_management" %in% user_accesses)
       delete_user_attribute("user_access")
     })
     

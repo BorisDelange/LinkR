@@ -6,14 +6,33 @@ mod_log_ui <- function(id, language, languages, i18n){
     id = ns("main"),
     class = "main",
     style = "padding: 10px;",
-    uiOutput(ns("log"))
+    div(
+      id = ns("user_log_forbidden_access"),
+      shiny.fluent::MessageBar(i18n$t("unauthorized_access_area"), messageBarType = 5),
+      style = "display: inline-block; margin-top: 5px;"
+    ),
+    shinyjs::hidden(
+      div(
+        id = ns("user_log_div"),
+        uiOutput(ns("log"))
+      )
+    )
   )
 }
     
 #' @noRd 
-mod_log_server <- function(id, r, d, m, language, i18n, debug){
+mod_log_server <- function(id, r, d, m, language, i18n, debug, user_accesses){
   moduleServer(id, function(input, output, session){
     ns <- session$ns
+    
+    # Current user accesses ----
+    
+    if ("log_user_log" %in% user_accesses){
+      shinyjs::hide("user_log_forbidden_access")
+      sapply(c("user_log_div", "user_log_buttons"), shinyjs::show)
+    }
+    
+    # User log ----
     
     log_file <- paste0(r$app_folder, "/log/", r$user_id, ".txt")
     
@@ -28,6 +47,8 @@ mod_log_server <- function(id, r, d, m, language, i18n, debug){
     
     observeEvent(input$refresh_log, {
       if (debug) cat(paste0("\n", now(), " - mod_log - observer input$refresh_log"))
+      
+      req("log_user_log" %in% user_accesses)
       
       log <-
         readLines(log_file, warn = FALSE) %>% 
@@ -48,6 +69,8 @@ mod_log_server <- function(id, r, d, m, language, i18n, debug){
     
     observeEvent(input$reset_log, {
       if (debug) cat(paste0("\n", now(), " - mod_log - observer input$reset_log"))
+      
+      req("log_user_log" %in% user_accesses)
       
       file.remove(log_file)
       file.create(log_file)

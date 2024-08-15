@@ -553,7 +553,7 @@ get_plugin_buttons <- function(plugin_type, i18n){
 }
 
 #' @noRd
-import_project <- function(r, m, csv_folder, update_plugins, project_id){
+import_project <- function(r, m, csv_folder, update_plugins, project_id, user_accesses){
   
   # Tables :
   # - tabs_groups
@@ -602,7 +602,7 @@ import_project <- function(r, m, csv_folder, update_plugins, project_id){
   ## plugins
   
   ### Reload r$plugins_wide & r$plugins_long
-  reload_elements_var(page_id = "plugins", con = r$db, r = r, m = m, long_var_filtered = "filtered_plugins_long")
+  reload_elements_var(page_id = "plugins", con = r$db, r = r, m = m, long_var_filtered = "filtered_plugins_long", user_accesses)
   
   data$plugins <- data$plugins %>% dplyr::mutate(new_id = id + last_row$plugins)
   
@@ -725,11 +725,11 @@ import_project <- function(r, m, csv_folder, update_plugins, project_id){
   }
   
   # Reload r$plugins_wide & r$plugins_long
-  if (update_plugins) reload_elements_var(page_id = "plugins", con = r$db, r = r, m = m, long_var_filtered = "filtered_plugins_long")
+  if (update_plugins) reload_elements_var(page_id = "plugins", con = r$db, r = r, m = m, long_var_filtered = "filtered_plugins_long", user_accesses)
 }
 
 #' @noRd
-reload_elements_var <- function(page_id, con, r, m, long_var_filtered){
+reload_elements_var <- function(page_id, con, r, m, long_var_filtered, user_accesses){
   
   if (page_id == "data") id <- "plugins"
   else id <- page_id
@@ -758,7 +758,7 @@ reload_elements_var <- function(page_id, con, r, m, long_var_filtered){
   wide_var <- paste0(id, "_wide")
   
   # See all element s?
-  if (paste0(id, "_see_all_data") %in% r$user_accesses) sql_join <- "LEFT JOIN" else sql_join <- "INNER JOIN"
+  if (paste0(id, "_see_all_data") %in% user_accesses) sql_join <- "LEFT JOIN" else sql_join <- "INNER JOIN"
   
   if (sql_table == "plugins"){
     sql <- glue::glue_sql(paste0("WITH {paste0('selected_', id)} AS (

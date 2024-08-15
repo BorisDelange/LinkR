@@ -92,7 +92,7 @@ mod_subsets_ui <- function(id, language, languages, i18n){
 }
     
 #' @noRd 
-mod_subsets_server <- function(id, r, d, m, language, i18n, debug){
+mod_subsets_server <- function(id, r, d, m, language, i18n, debug, user_accesses){
   
   # |-------------------------------- -----
   
@@ -101,7 +101,7 @@ mod_subsets_server <- function(id, r, d, m, language, i18n, debug){
   # Load widgets ----
   
   all_divs <- c("summary", "edit_code")
-  mod_widgets_server(id, r, d, m, language, i18n, all_divs, debug)
+  mod_widgets_server(id, r, d, m, language, i18n, all_divs, debug, user_accesses)
   
   # Subsets module ----
   

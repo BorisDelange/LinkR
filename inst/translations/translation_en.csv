@@ -1249,4 +1249,13 @@ data_cleaning_import_user_access_description,Import a data cleaning script
 data_cleaning_edit_code_user_access_description,Edit and test data cleaning script's code
 data_cleaning_share_user_access_description,Share data cleaning script (zip and git)
 vocabularies_management_user_access_description,"Manage vocabularies (add, edit and delete)"
+vocabularies_import_user_access_description,Import vocabularies and concepts
 console_execute_code_user_access_description,Execute code on console
+git_repos_management_user_access_description,"Manage git repos (add, edit and delete)"
+git_repos_remote_git_repo_management_user_access_description,"Modify the content of git repositories (edit readme, delete items)"
+git_repos_install_remote_git_element_user_access_description,Install items from a remote git repository
+app_db_connection_settings_user_access_description,Edit connection settings
+app_db_db_request_user_access_description,Request app database
+app_db_save_restore_user_access_description,Save and restore app database
+log_user_log_user_access_description,Show user log
+concepts_reload_dataset_concepts_user_access_description,Reload the count of concepts in the dataset

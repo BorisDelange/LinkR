@@ -31,47 +31,57 @@ mod_app_db_ui <- function(id, language, languages, i18n, code_hotkeys, db_col_ty
       div(
         div(
           h1(i18n$t("connection_settings")),
-          shiny.fluent::ChoiceGroup.shinyInput(ns("connection_type"), label = i18n$t("connection"), options = list(
-            list(key = "local", text = i18n$t("local")),
-            list(key = "remote", text = i18n$t("remote"))
-          ), className = "inline_choicegroup"),
+          div(
+            id = ns("connection_settings_forbidden_access"),
+            shiny.fluent::MessageBar(i18n$t("unauthorized_access_area"), messageBarType = 5),
+            style = "display: inline-block; margin-top: 5px;"
+          ),
           shinyjs::hidden(
             div(
-              id = ns("connection_infos_div"),
-              div(
-                shiny.fluent::Dropdown.shinyInput(ns("sql_lib"), label = i18n$t("sql_lib"),
-                  options = list(
-                    list(key = "postgres", text = "PostgreSQL"),
-                    list(key = "sqlite", text = "SQLite")
-                  ), value = "postgres"
-                ),
-                style = "width: 200px;"
-              ),
-              div(
-                div(shiny.fluent::TextField.shinyInput(ns("host"), label = i18n$t("host")), style = "width: 200px"),
-                div(shiny.fluent::TextField.shinyInput(ns("port"), label = i18n$t("port")), style = "width: 200px"),
-                style = "display: flex; gap: 10px;"
-              ),
-              div(
-                div(shiny.fluent::TextField.shinyInput(ns("user"), label = i18n$t("user")), style = "width: 200px"),
-                div(shiny.fluent::TextField.shinyInput(ns("password"), label = i18n$t("password"), type = "password", canRevealPassword = TRUE), style = "width: 200px"),
-                style = "display: flex; gap: 10px;"
-              ),
-              div(
-                div(shiny.fluent::TextField.shinyInput(ns("main_db_name"), label = i18n$t("main_db_name")), style = "width: 200px"),
-                div(uiOutput(ns("main_db_result")), style = "margin-top: 29px;"),
-                style = "display: flex; gap: 10px;"
-              ),
-              div(
-                div(shiny.fluent::TextField.shinyInput(ns("public_db_name"), label = i18n$t("public_db_name")), style = "width: 200px"),
-                div(uiOutput(ns("public_db_result")), style = "margin-top: 29px;"),
-                style = "display: flex; gap: 10px;"
+              id = ns("connection_settings_content_div"),
+              shiny.fluent::ChoiceGroup.shinyInput(ns("connection_type"), label = i18n$t("connection"), options = list(
+                list(key = "local", text = i18n$t("local")),
+                list(key = "remote", text = i18n$t("remote"))
+              ), className = "inline_choicegroup"),
+              shinyjs::hidden(
+                div(
+                  id = ns("connection_infos_div"),
+                  div(
+                    shiny.fluent::Dropdown.shinyInput(ns("sql_lib"), label = i18n$t("sql_lib"),
+                      options = list(
+                        list(key = "postgres", text = "PostgreSQL"),
+                        list(key = "sqlite", text = "SQLite")
+                      ), value = "postgres"
+                    ),
+                    style = "width: 200px;"
+                  ),
+                  div(
+                    div(shiny.fluent::TextField.shinyInput(ns("host"), label = i18n$t("host")), style = "width: 200px"),
+                    div(shiny.fluent::TextField.shinyInput(ns("port"), label = i18n$t("port")), style = "width: 200px"),
+                    style = "display: flex; gap: 10px;"
+                  ),
+                  div(
+                    div(shiny.fluent::TextField.shinyInput(ns("user"), label = i18n$t("user")), style = "width: 200px"),
+                    div(shiny.fluent::TextField.shinyInput(ns("password"), label = i18n$t("password"), type = "password", canRevealPassword = TRUE), style = "width: 200px"),
+                    style = "display: flex; gap: 10px;"
+                  ),
+                  div(
+                    div(shiny.fluent::TextField.shinyInput(ns("main_db_name"), label = i18n$t("main_db_name")), style = "width: 200px"),
+                    div(uiOutput(ns("main_db_result")), style = "margin-top: 29px;"),
+                    style = "display: flex; gap: 10px;"
+                  ),
+                  div(
+                    div(shiny.fluent::TextField.shinyInput(ns("public_db_name"), label = i18n$t("public_db_name")), style = "width: 200px"),
+                    div(uiOutput(ns("public_db_result")), style = "margin-top: 29px;"),
+                    style = "display: flex; gap: 10px;"
+                  )
+                )
               )
             )
           ),
           class = "widget", style = "min-height: 50%; padding-top: 1px; padding: 1px 15px 15px 15px;"
         ),
-        class = "app_db_connection_right"
+        class = "app_db_connection_left"
       ),
       class = "app_db_connection_container"
     ),
@@ -82,26 +92,37 @@ mod_app_db_ui <- function(id, language, languages, i18n, code_hotkeys, db_col_ty
       div(
         id = ns("request_db_div"),
         div(
+          id = ns("request_db_forbidden_access"),
+          shiny.fluent::MessageBar(i18n$t("unauthorized_access_area"), messageBarType = 5),
+          style = "display: inline-block; margin-top: 5px;"
+        ),
+        shinyjs::hidden(
           div(
-            shiny.fluent::ChoiceGroup.shinyInput(ns("run_sql_code_db"), label = i18n$t("database"), options = list(
-              list(key = "main", text = i18n$t("main_db")),
-              list(key = "public", text = i18n$t("public_db"))
-            ), value = "main", className = "inline_choicegroup"),
-            style = "margin-bottom: 10px;"
-          ),
-          shinyAce::aceEditor(
-            ns("sql_code"), value = "", mode = "sql",
-            code_hotkeys = list("r", code_hotkeys),
-            autoScrollEditorIntoView = TRUE, height = "100%", debounce = 100, fontSize = 11, showPrintMargin = FALSE
-          ),
-          style = "width: 50%; height: calc(100% - 70px);"
+            id = ns("request_db_content_div"),
+            div(
+              div(
+                shiny.fluent::ChoiceGroup.shinyInput(ns("run_sql_code_db"), label = i18n$t("database"), options = list(
+                  list(key = "main", text = i18n$t("main_db")),
+                  list(key = "public", text = i18n$t("public_db"))
+                ), value = "main", className = "inline_choicegroup"),
+                style = "margin-bottom: 10px;"
+              ),
+              shinyAce::aceEditor(
+                ns("sql_code"), value = "", mode = "sql",
+                code_hotkeys = list("r", code_hotkeys),
+                autoScrollEditorIntoView = TRUE, height = "100%", debounce = 100, fontSize = 11, showPrintMargin = FALSE
+              ),
+              style = "width: 50%; height: calc(100% - 70px);"
+            ),
+            div(
+              textOutput(ns("datetime_code_execution")),
+              verbatimTextOutput(ns("sql_result")),
+              class = "element_code_result"
+            ),
+            style = "height: 100%; display: flex;"
+          )
         ),
-        div(
-          textOutput(ns("datetime_code_execution")),
-          verbatimTextOutput(ns("sql_result")),
-          class = "element_code_result"
-        ),
-        style = "height: 100%; display: flex;"
+        style = "height: 100%;"
       )
     ),
     
@@ -113,76 +134,27 @@ mod_app_db_ui <- function(id, language, languages, i18n, code_hotkeys, db_col_ty
         div(
           div(
             tags$h1(i18n$t("export_db")),
-            div(uiOutput(ns("last_db_save")), style = "margin-top: 15px;"), br(),
             div(
-              div(
-                shiny.fluent::Dropdown.shinyInput(
-                  ns("main_tables_to_export"), label = i18n$t("main_tables_to_export"), multiSelect = TRUE,
-                  options = db_col_types %>% dplyr::filter(db == "main") %>% convert_tibble_to_list(key_col = "table", text_col = "table"),
-                  value = db_col_types %>% dplyr::filter(db == "main" & table != "log") %>% dplyr::pull(table)
-                ),
-                style = "width: 200px;"
-              ),
-              div(
-                create_hover_card(ui = shiny.fluent::IconButton.shinyInput(ns("export_db_check_all_main_tables"), iconProps = list(iconName = "CheckboxComposite")), text = i18n$t("select_all_tables")),
-                create_hover_card(ui = shiny.fluent::IconButton.shinyInput(ns("export_db_uncheck_all_main_tables"), iconProps = list(iconName = "Checkbox")), text = i18n$t("unselect_all_tables")),
-                style = "margin: 27px 0 0 5px; display: flex;"
-              ),
-              class = "small_icon_button",
-              style = "display: flex;"
+              id = ns("export_db_forbidden_access"),
+              shiny.fluent::MessageBar(i18n$t("unauthorized_access_area"), messageBarType = 5),
+              style = "display: inline-block; margin-top: 5px;"
             ),
-            div(
-              div(
-                shiny.fluent::Dropdown.shinyInput(
-                  ns("public_tables_to_export"), label = i18n$t("public_tables_to_export"), multiSelect = TRUE,
-                  options = db_col_types %>% dplyr::filter(db == "public") %>% convert_tibble_to_list(key_col = "table", text_col = "table"),
-                  value = db_col_types %>% 
-                    dplyr::filter(db == "public" & table %not_in% c(
-                      "concept", "concept_dataset", "concept_user", "domain", "concept_class", 
-                      "concept_relationship", "concept_relationship_user", "concept_relationship_evals",
-                      "relationship", "concept_synonym", "concept_ancestor", "drug_strength"
-                    )) %>% 
-                    dplyr::pull(table)
-                ),
-                style = "width: 200px;"
-              ),
-              div(
-                create_hover_card(ui = shiny.fluent::IconButton.shinyInput(ns("export_db_check_all_public_tables"), iconProps = list(iconName = "CheckboxComposite")), text = i18n$t("select_all_tables")),
-                create_hover_card(ui = shiny.fluent::IconButton.shinyInput(ns("export_db_uncheck_all_public_tables"), iconProps = list(iconName = "Checkbox")), text = i18n$t("unselect_all_tables")),
-                style = "margin: 27px 0 0 5px; display: flex;"
-              ),
-              class = "small_icon_button",
-              style = "display: flex;"
-            ),
-            div(style = "visibility:hidden;", downloadButton(ns("db_save"))),
-            shiny.fluent::PrimaryButton.shinyInput(ns("export_db"), i18n$t("export_db"), iconProps = list(iconName = "Download")),
-            class = "widget", style = "min-height: 50%; padding-top: 1px; padding: 1px 15px 15px 15px; overflow: auto;"
-          ),
-          class = "app_db_backups_left"
-        ),
-        div(
-          div(
-            tags$h1(i18n$t("restore_db")),
-            div(uiOutput(ns("last_db_restore")), style = "margin-top: 15px;"), br(),
-            div(
-              shiny.fluent::DefaultButton.shinyInput(ns("db_restore_browse"), i18n$t("choose_zip_file"), style = "width: 200px;"), br(),
-              uiOutput(ns("db_restore_loaded_file"), style = "margin-left: 10px; height: 24px; display: flex; align-items: center;"),
-              style = "display: flex;"
-            ), br(),
-            div(style = "display:none;", fileInput(ns("db_restore"), label = "", multiple = FALSE, accept = ".zip")),
             shinyjs::hidden(
               div(
-                id = ns("import_db_tables_div"),
+                id = ns("export_db_div"),
+                div(uiOutput(ns("last_db_save")), style = "margin-top: 15px;"), br(),
                 div(
                   div(
                     shiny.fluent::Dropdown.shinyInput(
-                      ns("main_tables_to_import"), label = i18n$t("main_tables_to_import"), multiSelect = TRUE
+                      ns("main_tables_to_export"), label = i18n$t("main_tables_to_export"), multiSelect = TRUE,
+                      options = db_col_types %>% dplyr::filter(db == "main") %>% convert_tibble_to_list(key_col = "table", text_col = "table"),
+                      value = db_col_types %>% dplyr::filter(db == "main" & table != "log") %>% dplyr::pull(table)
                     ),
                     style = "width: 200px;"
                   ),
                   div(
-                    create_hover_card(ui = shiny.fluent::IconButton.shinyInput(ns("import_db_check_all_main_tables"), iconProps = list(iconName = "CheckboxComposite")), text = i18n$t("select_all_tables")),
-                    create_hover_card(ui = shiny.fluent::IconButton.shinyInput(ns("import_db_uncheck_all_main_tables"), iconProps = list(iconName = "Checkbox")), text = i18n$t("unselect_all_tables")),
+                    create_hover_card(ui = shiny.fluent::IconButton.shinyInput(ns("export_db_check_all_main_tables"), iconProps = list(iconName = "CheckboxComposite")), text = i18n$t("select_all_tables")),
+                    create_hover_card(ui = shiny.fluent::IconButton.shinyInput(ns("export_db_uncheck_all_main_tables"), iconProps = list(iconName = "Checkbox")), text = i18n$t("unselect_all_tables")),
                     style = "margin: 27px 0 0 5px; display: flex;"
                   ),
                   class = "small_icon_button",
@@ -191,21 +163,90 @@ mod_app_db_ui <- function(id, language, languages, i18n, code_hotkeys, db_col_ty
                 div(
                   div(
                     shiny.fluent::Dropdown.shinyInput(
-                      ns("public_tables_to_import"), label = i18n$t("public_tables_to_import"), multiSelect = TRUE
+                      ns("public_tables_to_export"), label = i18n$t("public_tables_to_export"), multiSelect = TRUE,
+                      options = db_col_types %>% dplyr::filter(db == "public") %>% convert_tibble_to_list(key_col = "table", text_col = "table"),
+                      value = db_col_types %>% 
+                        dplyr::filter(db == "public" & table %not_in% c(
+                          "concept", "concept_dataset", "concept_user", "domain", "concept_class", 
+                          "concept_relationship", "concept_relationship_user", "concept_relationship_evals",
+                          "relationship", "concept_synonym", "concept_ancestor", "drug_strength"
+                        )) %>% 
+                        dplyr::pull(table)
                     ),
                     style = "width: 200px;"
                   ),
                   div(
-                    create_hover_card(ui = shiny.fluent::IconButton.shinyInput(ns("import_db_check_all_public_tables"), iconProps = list(iconName = "CheckboxComposite")), text = i18n$t("select_all_tables")),
-                    create_hover_card(ui = shiny.fluent::IconButton.shinyInput(ns("import_db_uncheck_all_public_tables"), iconProps = list(iconName = "Checkbox")), text = i18n$t("unselect_all_tables")),
+                    create_hover_card(ui = shiny.fluent::IconButton.shinyInput(ns("export_db_check_all_public_tables"), iconProps = list(iconName = "CheckboxComposite")), text = i18n$t("select_all_tables")),
+                    create_hover_card(ui = shiny.fluent::IconButton.shinyInput(ns("export_db_uncheck_all_public_tables"), iconProps = list(iconName = "Checkbox")), text = i18n$t("unselect_all_tables")),
                     style = "margin: 27px 0 0 5px; display: flex;"
                   ),
                   class = "small_icon_button",
-                  style = "display: flex; margin-bottom: 15px;"
-                )
+                  style = "display: flex;"
+                ),
+                div(style = "visibility:hidden;", downloadButton(ns("db_save"))),
+                shiny.fluent::PrimaryButton.shinyInput(ns("export_db"), i18n$t("export_db"), iconProps = list(iconName = "Download"))
               )
             ),
-            shiny.fluent::PrimaryButton.shinyInput(ns("import_db"), i18n$t("restore_db"), iconProps = list(iconName = "Upload")),
+            class = "widget", style = "min-height: 50%; padding-top: 1px; padding: 1px 15px 15px 15px; overflow: auto;"
+          ),
+          class = "app_db_backups_left"
+        ),
+        div(
+          div(
+            tags$h1(i18n$t("restore_db")),
+            div(
+              id = ns("restore_db_forbidden_access"),
+              shiny.fluent::MessageBar(i18n$t("unauthorized_access_area"), messageBarType = 5),
+              style = "display: inline-block; margin-top: 5px;"
+            ),
+            shinyjs::hidden(
+              div(
+                id = ns("restore_db_div"),
+                div(uiOutput(ns("last_db_restore")), style = "margin-top: 15px;"), br(),
+                div(
+                  shiny.fluent::DefaultButton.shinyInput(ns("db_restore_browse"), i18n$t("choose_zip_file"), style = "width: 200px;"), br(),
+                  uiOutput(ns("db_restore_loaded_file"), style = "margin-left: 10px; height: 24px; display: flex; align-items: center;"),
+                  style = "display: flex;"
+                ), br(),
+                div(style = "display:none;", fileInput(ns("db_restore"), label = "", multiple = FALSE, accept = ".zip")),
+                shinyjs::hidden(
+                  div(
+                    id = ns("import_db_tables_div"),
+                    div(
+                      div(
+                        shiny.fluent::Dropdown.shinyInput(
+                          ns("main_tables_to_import"), label = i18n$t("main_tables_to_import"), multiSelect = TRUE
+                        ),
+                        style = "width: 200px;"
+                      ),
+                      div(
+                        create_hover_card(ui = shiny.fluent::IconButton.shinyInput(ns("import_db_check_all_main_tables"), iconProps = list(iconName = "CheckboxComposite")), text = i18n$t("select_all_tables")),
+                        create_hover_card(ui = shiny.fluent::IconButton.shinyInput(ns("import_db_uncheck_all_main_tables"), iconProps = list(iconName = "Checkbox")), text = i18n$t("unselect_all_tables")),
+                        style = "margin: 27px 0 0 5px; display: flex;"
+                      ),
+                      class = "small_icon_button",
+                      style = "display: flex;"
+                    ),
+                    div(
+                      div(
+                        shiny.fluent::Dropdown.shinyInput(
+                          ns("public_tables_to_import"), label = i18n$t("public_tables_to_import"), multiSelect = TRUE
+                        ),
+                        style = "width: 200px;"
+                      ),
+                      div(
+                        create_hover_card(ui = shiny.fluent::IconButton.shinyInput(ns("import_db_check_all_public_tables"), iconProps = list(iconName = "CheckboxComposite")), text = i18n$t("select_all_tables")),
+                        create_hover_card(ui = shiny.fluent::IconButton.shinyInput(ns("import_db_uncheck_all_public_tables"), iconProps = list(iconName = "Checkbox")), text = i18n$t("unselect_all_tables")),
+                        style = "margin: 27px 0 0 5px; display: flex;"
+                      ),
+                      class = "small_icon_button",
+                      style = "display: flex; margin-bottom: 15px;"
+                    )
+                  )
+                ),
+                shiny.fluent::PrimaryButton.shinyInput(ns("import_db"), i18n$t("restore_db"), iconProps = list(iconName = "Upload")),
+              )
+            ),
             class = "widget", style = "min-height: 50%; padding-top: 1px; padding: 1px 15px 15px 15px; overflow: auto;"
           ),
           class = "app_db_backups_right"
@@ -218,9 +259,26 @@ mod_app_db_ui <- function(id, language, languages, i18n, code_hotkeys, db_col_ty
 }
 
 #' @noRd
-mod_app_db_server <- function(id, r, d, m, language, i18n, db_col_types, app_folder, debug){
+mod_app_db_server <- function(id, r, d, m, language, i18n, db_col_types, app_folder, debug, user_accesses){
   moduleServer(id, function(input, output, session){
     ns <- session$ns
+    
+    # Current user accesses ----
+    
+    if ("app_db_connection_settings" %in% user_accesses){
+      sapply(c("connection_settings_buttons", "connection_settings_content_div"), shinyjs::show)
+      shinyjs::hide("connection_settings_forbidden_access")
+    }
+    
+    if ("app_db_db_request" %in% user_accesses){
+      sapply(c("request_db_buttons", "request_db_content_div"), shinyjs::show)
+      shinyjs::hide("request_db_forbidden_access")
+    }
+    
+    if ("app_db_save_restore" %in% user_accesses){
+      sapply(c("export_db_div", "restore_db_div"), shinyjs::show)
+      sapply(c("export_db_forbidden_access", "restore_db_forbidden_access"), shinyjs::hide)
+    }
     
     all_divs <- c("connection_settings", "request_db", "backups")
     
@@ -248,12 +306,16 @@ mod_app_db_server <- function(id, r, d, m, language, i18n, db_col_types, app_fol
       shinyjs::addClass(class = "selected_pivot_item", selector = paste0("#", id, "-", current_tab))
     })
     
+    # |-------------------------------- -----
+    
     # App db settings ----
     
     ## Load saved settings ----
     
     observeEvent(r$local_db, {
       if (debug) cat(paste0("\n", now(), " - mod_app_db - observer r$local_db"))
+      
+      req("app_db_connection_settings" %in% user_accesses)
       
       # Get remote db informations
       db_info <- 
@@ -290,6 +352,8 @@ mod_app_db_server <- function(id, r, d, m, language, i18n, db_col_types, app_fol
     
     observeEvent(input$test_connection, {
       if (debug) cat(paste0("\n", now(), " - mod_app_db - observer input$test_connection"))
+      
+      req("app_db_connection_settings" %in% user_accesses)
       
       # Before testing connection, make sure fields are filled
       db_checks <- c("main_db_name" = FALSE, "public_db_name" = FALSE, "host" = FALSE, "port" = FALSE, "user" = FALSE, "password" = FALSE)
@@ -337,6 +401,8 @@ mod_app_db_server <- function(id, r, d, m, language, i18n, db_col_types, app_fol
     observeEvent(input$save_app_db_settings, {
       if (debug) cat(paste0("\n", now(), " - mod_app_db - observer input$save_app_db_settings"))
       
+      req("app_db_connection_settings" %in% user_accesses)
+      
       # If connection_type is local, save only connection_type but do not erase other informations (remote DB informations)
       # If connection_type is remote, save connection_type and other remote DB informations
       
@@ -369,6 +435,8 @@ mod_app_db_server <- function(id, r, d, m, language, i18n, db_col_types, app_fol
       shinyjs::delay(2000, show_message_bar(output,  "reload_app_to_take_into_account_changes", "warning", i18n = i18n, ns = ns))
     })
     
+    # |-------------------------------- -----
+    
     # Run SQL code ----
     
     observeEvent(input$run_code, {
@@ -396,6 +464,8 @@ mod_app_db_server <- function(id, r, d, m, language, i18n, db_col_types, app_fol
     observeEvent(input$run_code_trigger, {
       if (debug) cat(paste0("\n", now(), " - mod_app_db - observer input$run_code_trigger"))
       
+      req("app_db_db_request" %in% user_accesses)
+      
       # Capture console output of our code
 
       code <- r$sql_code  %>% stringr::str_replace_all("\r", "\n")
@@ -416,6 +486,8 @@ mod_app_db_server <- function(id, r, d, m, language, i18n, db_col_types, app_fol
       output$datetime_code_execution <- renderText(format_datetime(now(), language))
       output$sql_result <- renderText(captured_output)
     })
+    
+    # |-------------------------------- -----
     
     # Backups ----
     
@@ -451,6 +523,8 @@ mod_app_db_server <- function(id, r, d, m, language, i18n, db_col_types, app_fol
     observeEvent(input$export_db, {
       if (debug) cat(paste0("\n", now(), " - mod_app_db - observer input$export_db"))
       
+      req("app_db_save_restore" %in% user_accesses)
+      
       req(length(input$main_tables_to_export) > 0 | length(input$public_tables_to_export))
       
       last_save <- DBI::dbGetQuery(r$db, "SELECT * FROM options WHERE category = 'last_db_save' AND name = 'last_db_save'")
@@ -484,6 +558,8 @@ mod_app_db_server <- function(id, r, d, m, language, i18n, db_col_types, app_fol
       content = function(file){
         
         if (debug) cat(paste0("\n", now(), " - mod_app_db - output$db_save"))
+        
+        req("app_db_save_restore" %in% user_accesses)
         
         owd <- setwd(tempdir())
         on.exit(setwd(owd))
@@ -527,6 +603,8 @@ mod_app_db_server <- function(id, r, d, m, language, i18n, db_col_types, app_fol
     observeEvent(input$reload_last_db_save, {
       if (debug) cat(paste0("\n", now(), " - mod_app_db - observer input$reload_last_db_save"))
       
+      req("app_db_save_restore" %in% user_accesses)
+      
       last_save <- DBI::dbGetQuery(r$db, "SELECT * FROM options WHERE category = 'last_db_save' AND name = 'last_db_save'")
       
       if (nrow(last_save) > 0) last_save_datetime <- format_datetime(last_save %>% dplyr::pull(value), language = "fr", sec = FALSE)
@@ -552,6 +630,8 @@ mod_app_db_server <- function(id, r, d, m, language, i18n, db_col_types, app_fol
     observeEvent(input$reload_last_db_restore, {
       if (debug) cat(paste0("\n", now(), " - mod_app_db - observer input$reload_last_db_restore"))
       
+      req("app_db_save_restore" %in% user_accesses)
+      
       last_restore <- DBI::dbGetQuery(r$db, "SELECT * FROM options WHERE category = 'last_db_restore' AND name = 'last_db_restore'")
       
       if (nrow(last_restore) > 0) last_restore_datetime <- format_datetime(last_restore %>% dplyr::pull(value), language = "fr", sec = FALSE)
@@ -564,6 +644,8 @@ mod_app_db_server <- function(id, r, d, m, language, i18n, db_col_types, app_fol
     
     observeEvent(input$db_restore, {
       if (debug) cat(paste0("\n", now(), " - mod_app_db - input$db_restore"))
+      
+      req("app_db_save_restore" %in% user_accesses)
       
       req(input$db_restore$name)
       
@@ -621,6 +703,8 @@ mod_app_db_server <- function(id, r, d, m, language, i18n, db_col_types, app_fol
     
     observeEvent(input$import_db, {
       if (debug) cat(paste0("\n", now(), " - mod_app_db - input$import_db"))
+      
+      req("app_db_save_restore" %in% user_accesses)
       
       # If at least one file to import
       req(nrow(r$import_db_files) > 0)
@@ -758,6 +842,8 @@ mod_app_db_server <- function(id, r, d, m, language, i18n, db_col_types, app_fol
     
     observeEvent(input$reload_last_db_restore, {
       if (debug) cat(paste0("\n", now(), " - mod_app_db - observer input$reload_last_db_restore"))
+      
+      req("app_db_save_restore" %in% user_accesses)
       
       last_restore <- DBI::dbGetQuery(r$db, "SELECT * FROM options WHERE category = 'last_db_restore' AND name = 'last_db_restore'")
       

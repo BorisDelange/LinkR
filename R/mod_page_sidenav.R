@@ -1,5 +1,5 @@
 #' @noRd
-mod_page_sidenav_ui <- function(id = character(), i18n = character()){
+mod_page_sidenav_ui <- function(id, i18n){
   ns <- NS(id)
   result <- ""
   
@@ -121,21 +121,35 @@ mod_page_sidenav_ui <- function(id = character(), i18n = character()){
       ),
       div(
         id = ns("reduced_sidenav"),
-        div(
-          id = ns("connection_settings_reduced_sidenav"),
-          create_hover_card(ui = shiny.fluent::IconButton.shinyInput(ns("save_app_db_settings"), iconProps = list(iconName = "Save")), text = i18n$t("save_settings")),
-          shinyjs::hidden(
-            div(
-              id = ns("test_connection_div"),
-              create_hover_card(ui = shiny.fluent::IconButton.shinyInput(ns("test_connection"), iconProps = list(iconName = "Play")), text = i18n$t("test_connection"))
+        shinyjs::hidden(
+          div(
+            id = ns("connection_settings_reduced_sidenav"),
+            shinyjs::hidden(
+              div(
+                id = ns("connection_settings_buttons"),
+                create_hover_card(ui = shiny.fluent::IconButton.shinyInput(ns("save_app_db_settings"), iconProps = list(iconName = "Save")), text = i18n$t("save_settings")),
+                shinyjs::hidden(
+                  div(
+                    id = ns("test_connection_div"),
+                    create_hover_card(ui = shiny.fluent::IconButton.shinyInput(ns("test_connection"), iconProps = list(iconName = "Play")), text = i18n$t("test_connection"))
+                  )
+                ),
+                class = "reduced_sidenav_buttons"
+              )
             )
-          ),
-          class = "reduced_sidenav_buttons"
+          )
         ),
-        div(
-          id = ns("request_db_reduced_sidenav"),
-          create_hover_card(ui = shiny.fluent::IconButton.shinyInput(ns("run_code"), iconProps = list(iconName = "Play")), text = i18n$t("run_code")),
-          class = "reduced_sidenav_buttons"
+        shinyjs::hidden(
+          div(
+            id = ns("request_db_reduced_sidenav"),
+            shinyjs::hidden(
+              div(
+                id = ns("request_db_buttons"),
+                create_hover_card(ui = shiny.fluent::IconButton.shinyInput(ns("run_code"), iconProps = list(iconName = "Play")), text = i18n$t("run_code")),
+                class = "reduced_sidenav_buttons"
+              )
+            )
+          )
         )
       ),
       shinyjs::hidden(show_sidenav)
@@ -153,8 +167,16 @@ mod_page_sidenav_ui <- function(id = character(), i18n = character()){
       ),
       div(
         id = ns("reduced_sidenav"),
-        create_hover_card(ui = shiny.fluent::IconButton.shinyInput(ns("settings"), iconProps = list(iconName = "Settings")), text = i18n$t("settings")),
-        create_hover_card(ui = shiny.fluent::IconButton.shinyInput(ns("reload_concepts_count"), iconProps = list(iconName = "SyncOccurence")), text = i18n$t("reload_dataset_concepts")),
+        # create_hover_card(ui = shiny.fluent::IconButton.shinyInput(ns("settings"), iconProps = list(iconName = "Settings")), text = i18n$t("settings")),
+        create_hover_card(
+          ui = shinyjs::hidden(
+            div(
+              id = ns("reload_concepts_count_button"),
+              shiny.fluent::IconButton.shinyInput(ns("reload_concepts_count"), iconProps = list(iconName = "SyncOccurence"))
+            )
+          ),
+          text = i18n$t("reload_dataset_concepts")
+        ),
         class = "reduced_sidenav_buttons"
       ),
       shinyjs::hidden(show_sidenav)
@@ -402,7 +424,15 @@ mod_page_sidenav_ui <- function(id = character(), i18n = character()){
               create_hover_card(ui = shiny.fluent::IconButton.shinyInput(ns("show_map"), iconProps = list(iconName = "POI")), text = i18n$t("show_git_repos_map")),
             )
           ),
-          create_hover_card(ui = shiny.fluent::IconButton.shinyInput(ns("create_git_repo"), iconProps = list(iconName = "Add")), text = i18n$t("create_git_repo")),
+          create_hover_card(
+            ui = shinyjs::hidden(
+              div(
+                id = ns("create_git_repo_button"),
+                shiny.fluent::IconButton.shinyInput(ns("create_git_repo"), iconProps = list(iconName = "Add"))
+              )
+            ),
+            text = i18n$t("create_git_repo")
+          ),
           class = "reduced_sidenav_buttons"
         ),
         shinyjs::hidden(
@@ -450,14 +480,19 @@ mod_page_sidenav_ui <- function(id = character(), i18n = character()){
       ),
       div(
         id = ns("reduced_sidenav"),
-        div(
-          create_hover_card(ui = shiny.fluent::IconButton.shinyInput(ns("refresh_log"), iconProps = list(iconName = "Refresh")), text = i18n$t("refresh_log")),
-          class = "reduced_sidenav_buttons"
-        ),
-        div(
-          create_hover_card(ui = shiny.fluent::IconButton.shinyInput(ns("reset_log"), iconProps = list(iconName = "Delete")), text = i18n$t("reset_log")),
-          class = "reduced_sidenav_buttons"
-        ),
+        shinyjs::hidden(
+          div(
+            id = ns("user_log_buttons"),
+            div(
+              create_hover_card(ui = shiny.fluent::IconButton.shinyInput(ns("refresh_log"), iconProps = list(iconName = "Refresh")), text = i18n$t("refresh_log")),
+              class = "reduced_sidenav_buttons"
+            ),
+            div(
+              create_hover_card(ui = shiny.fluent::IconButton.shinyInput(ns("reset_log"), iconProps = list(iconName = "Delete")), text = i18n$t("reset_log")),
+              class = "reduced_sidenav_buttons"
+            )
+          )
+        )
       )
     ) -> result
   }
@@ -714,7 +749,7 @@ mod_page_sidenav_ui <- function(id = character(), i18n = character()){
   else if (id == "vocabularies"){
     div(
       id = ns("sidenav"),
-      class = "sidenav",
+      class = "sidenav", style = reduced_sidenav_style,
       div(
         id = ns("large_sidenav")
       ),
@@ -722,19 +757,43 @@ mod_page_sidenav_ui <- function(id = character(), i18n = character()){
         id = ns("reduced_sidenav"),
         div(
           id = ns("all_elements_reduced_sidenav"),
-          create_hover_card(ui = shiny.fluent::IconButton.shinyInput(ns("create_element"), iconProps = list(iconName = "Add")), text = i18n$t("create_vocabulary")),
-          create_hover_card(ui = shiny.fluent::IconButton.shinyInput(ns("import_concepts_1"), iconProps = list(iconName = "Upload")), text = i18n$t("import_concepts_or_vocabularies")),
+          create_hover_card(
+            ui = shinyjs::hidden(
+              div(
+                id = ns("create_element_button"),
+                shiny.fluent::IconButton.shinyInput(ns("create_element"), iconProps = list(iconName = "Add"))
+              )
+            ),
+            text = i18n$t("create_vocabulary")
+          ),
+          create_hover_card(
+            ui = shinyjs::hidden(
+              div(
+                id = ns("import_concepts_div_1"),
+                shiny.fluent::IconButton.shinyInput(ns("import_concepts_1"), iconProps = list(iconName = "Upload"))
+              )
+            ),
+            text = i18n$t("import_concepts_or_vocabularies")
+          ),
           class = "reduced_sidenav_buttons"
         ),
         shinyjs::hidden(
           div(
             id = ns("concepts_reduced_sidenav"),
-            create_hover_card(ui = shiny.fluent::IconButton.shinyInput(ns("import_concepts_2"), iconProps = list(iconName = "Upload")), text = i18n$t("import_concepts_or_vocabularies")),
+            create_hover_card(
+              ui = shinyjs::hidden(
+                div(
+                  id = ns("import_concepts_div_2"),
+                  shiny.fluent::IconButton.shinyInput(ns("import_concepts_2"), iconProps = list(iconName = "Upload"))
+                )
+              ),
+              text = i18n$t("import_concepts_or_vocabularies")
+            ),
             class = "reduced_sidenav_buttons"
           )
         )
       ),
-      hide_sidenav
+      shinyjs::hidden(show_sidenav)
     ) -> result
   }
   
@@ -742,7 +801,7 @@ mod_page_sidenav_ui <- function(id = character(), i18n = character()){
 }
 
 #' @noRd 
-mod_page_sidenav_server <- function(id = character(), r = shiny::reactiveValues(), d = shiny::reactiveValues(), m = shiny::reactiveValues(), language = "en", i18n = character(), debug = FALSE){
+mod_page_sidenav_server <- function(id, r, d, m, language, i18n, debug){
   moduleServer(id, function(input, output, session){
     ns <- session$ns
     

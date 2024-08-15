@@ -1,5 +1,5 @@
 #' @noRd 
-mod_console_ui <- function(id = character(), language = "en", languages = tibble::tibble(), i18n = character()){
+mod_console_ui <- function(id, language, languages, i18n){
   ns <- NS(id)
   
   code_hotkeys <- list(
@@ -44,13 +44,13 @@ mod_console_ui <- function(id = character(), language = "en", languages = tibble
 }
 
 #' @noRd 
-mod_console_server <- function(id = character(), r = shiny::reactiveValues(), d = shiny::reactiveValues(), m = shiny::reactiveValues(), language = "en", i18n = character(), debug = FALSE){
+mod_console_server <- function(id, r, d, m, language, i18n, debug, user_accesses){
   moduleServer(id, function(input, output, session){
     ns <- session$ns
     
     # Current user accesses ----
     
-    if ("console_execute_code" %in% r$user_accesses){
+    if ("console_execute_code" %in% user_accesses){
       sapply(c("console_sidenav_buttons", "reduced_sidenav_execute_code_button", "console_div"), shinyjs::show) 
       shinyjs::hide("console_forbidden_access")
     }
@@ -168,6 +168,8 @@ mod_console_server <- function(id = character(), r = shiny::reactiveValues(), d 
     
     observeEvent(r$console_code_trigger, {
       if (debug) cat(paste0("\n", now(), " - mod_console - observer r$console_code_trigger"))
+      
+      req("console_execute_code" %in% user_accesses)
       
       code <- gsub("\r", "\n", r$console_code)
       

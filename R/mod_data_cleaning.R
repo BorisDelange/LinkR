@@ -218,7 +218,7 @@ mod_data_cleaning_ui <- function(id, language, languages, i18n, code_hotkeys){
 }
 
 #' @noRd 
-mod_data_cleaning_server <- function(id, r, d, m, language, i18n, debug){
+mod_data_cleaning_server <- function(id, r, d, m, language, i18n, debug, user_accesses){
   # |-------------------------------- -----
   
   if (debug) cat(paste0("\n", now(), " - mod_data_cleaning - ", id, " - start"))
@@ -226,7 +226,7 @@ mod_data_cleaning_server <- function(id, r, d, m, language, i18n, debug){
   # Load widgets ----
   
   all_divs <- c("summary", "edit_code", "share")
-  mod_widgets_server(id, r, d, m, language, i18n, all_divs, debug)
+  mod_widgets_server(id, r, d, m, language, i18n, all_divs, debug, user_accesses)
   
   # Data cleaning scripts module ----
   
@@ -235,14 +235,14 @@ mod_data_cleaning_server <- function(id, r, d, m, language, i18n, debug){
     
     # Current user accesses ----
     
-    if ("data_cleaning_management" %in% r$user_accesses) sapply(c("create_element_button", "edit_summary_div", "delete_element_div"), shinyjs::show)
-    if ("data_cleaning_import" %in% r$user_accesses) shinyjs::show("import_element_button")
-    if ("data_cleaning_edit_code" %in% r$user_accesses){
+    if ("data_cleaning_management" %in% user_accesses) sapply(c("create_element_button", "edit_summary_div", "delete_element_div"), shinyjs::show)
+    if ("data_cleaning_import" %in% user_accesses) shinyjs::show("import_element_button")
+    if ("data_cleaning_edit_code" %in% user_accesses){
       shinyjs::hide("edit_code_forbidden_access")
       sapply(c("edit_code_buttons", "edit_code_content_div"), shinyjs::show)
     }
     
-    if ("data_cleaning_share" %in% r$user_accesses){
+    if ("data_cleaning_share" %in% user_accesses){
       sapply(c("share_content_div", "export_element_button"), shinyjs::show)
       shinyjs::hide("share_forbidden_access")
     }

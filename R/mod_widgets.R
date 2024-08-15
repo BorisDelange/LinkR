@@ -145,7 +145,7 @@ mod_widgets_ui <- function(id, language, languages, i18n){
 }
 
 #' @noRd 
-mod_widgets_server <- function(id, r, d, m, language, i18n, all_divs, debug){
+mod_widgets_server <- function(id, r, d, m, language, i18n, all_divs, debug, user_accesses){
   moduleServer(id, function(input, output, session){
     ns <- session$ns
     
@@ -238,7 +238,7 @@ mod_widgets_server <- function(id, r, d, m, language, i18n, all_divs, debug){
     observeEvent(input$reload_elements_var, {
       if (debug) cat(paste0("\n", now(), " - mod_widgets - (", id, ") - observer input$reload_elements_var"))
       
-      reload_elements_var(page_id = id, con = con, r = r, m = m, long_var_filtered = paste0("filtered_", id, "_long"))
+      reload_elements_var(page_id = id, con = con, r = r, m = m, long_var_filtered = paste0("filtered_", id, "_long"), user_accesses)
       
       shinyjs::runjs(paste0("Shiny.setInputValue('", id, "-reload_elements_list', Math.random());"))
     })
@@ -339,6 +339,8 @@ mod_widgets_server <- function(id, r, d, m, language, i18n, all_divs, debug){
     observeEvent(input$add_element, {
       
       if (debug) cat(paste0("\n", now(), " - mod_widgets - (", id, ") - observer input$add_element"))
+      
+      req(paste0(id, "_management") %in% user_accesses)
       
       element_name <- input$element_creation_name
       username <- r$users %>% dplyr::filter(id == r$user_id) %>% dplyr::pull(name)
@@ -577,6 +579,8 @@ mod_widgets_server <- function(id, r, d, m, language, i18n, all_divs, debug){
     observeEvent(input$import_element_upload, {
       if (debug) cat(paste0("\n", now(), " - mod_widgets - (", id, ") - observer input$import_plugins_button"))
     
+      req(paste0(id, "_import") %in% user_accesses)
+      
       tryCatch({
       
         # Extract ZIP file
@@ -749,7 +753,7 @@ mod_widgets_server <- function(id, r, d, m, language, i18n, all_divs, debug){
           update_plugins <- TRUE
           if (length(input$import_project_plugins) > 0) update_plugins <- input$import_project_plugins
           
-          import_project(r, m, csv_folder, update_plugins, project_id)
+          import_project(r, m, csv_folder, update_plugins, project_id, user_accesses)
         }
         
         # Reload elements var and widgets
@@ -955,6 +959,8 @@ mod_widgets_server <- function(id, r, d, m, language, i18n, all_divs, debug){
     
     observeEvent(input$edit_summary, {
       if (debug) cat(paste0("\n", now(), " - mod_widgets - (", id, ") - observer input$edit_summary"))
+      
+      req(paste0(id, "_management") %in% user_accesses)
       
       # Reload markdown
       element_long <- r[[long_var]] %>% dplyr::filter(id == input$selected_element)
@@ -1262,6 +1268,8 @@ mod_widgets_server <- function(id, r, d, m, language, i18n, all_divs, debug){
     observeEvent(input$confirm_element_deletion, {
       if (debug) cat(paste0("\n", now(), " - mod_widgets - (", id, ") - observer input$confirm_element_deletion"))
       
+      req(paste0(id, "_management") %in% user_accesses)
+      
       element_id <- input$selected_element
       
       # For plugins, get options id to delete corresponding code rows
@@ -1363,6 +1371,8 @@ mod_widgets_server <- function(id, r, d, m, language, i18n, all_divs, debug){
     observeEvent(input$reload_git_repo, {
       if (debug) cat(paste0("\n", now(), " - mod_widgets - (", id, ") - observer input$reload_git_repo"))
       
+      req(paste0(id, "_share") %in% user_accesses)
+      
       git_repo <- r$git_repos %>% dplyr::filter(id == input$git_repo)
       
       # Clone git repo if not already loaded
@@ -1401,6 +1411,8 @@ mod_widgets_server <- function(id, r, d, m, language, i18n, all_divs, debug){
     
     observeEvent(input$reload_git_element_ui, {
       if (debug) cat(paste0("\n", now(), " - mod_widgets - (", id, ") - observer input$reload_git_element_ui"))
+      
+      req(paste0(id, "_share") %in% user_accesses)
       
       element_long <- r[[long_var]] %>% dplyr::filter(id == input$selected_element)
       git_element_ui <- div(
@@ -1551,6 +1563,8 @@ mod_widgets_server <- function(id, r, d, m, language, i18n, all_divs, debug){
     # Update / delete git element confirmed
     observeEvent(input$update_git, {
       if (debug) cat(paste0("\n", now(), " - mod_widgets - (", id, ") - observer input$update_git"))
+      
+      req(paste0(id, "_share") %in% user_accesses)
       
       # Check if API key is empty
       api_key_empty <- TRUE
@@ -1708,7 +1722,9 @@ mod_widgets_server <- function(id, r, d, m, language, i18n, all_divs, debug){
 
       content = function(file){
         if (debug) cat(paste0("\n", now(), " - mod_widgets - (", id, ") - output$export_elements_download"))
-
+        
+        req(paste0(id, "_share") %in% user_accesses)
+        
         tryCatch({
           
           # Element dir

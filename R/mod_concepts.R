@@ -67,18 +67,22 @@ mod_concepts_ui <- function(id, language, languages, i18n, dropdowns){
 }
 
 #' @noRd 
-mod_concepts_server <- function(id, r, d, m, language, i18n, debug){
+mod_concepts_server <- function(id, r, d, m, language, i18n, debug, user_accesses){
   moduleServer(id, function(input, output, session){
     ns <- session$ns
     
     if (debug) cat(paste0("\n", now(), " - mod_concepts - start"))
     
+    # Current user accesses ----
+    
+    # if ("concepts_reload_dataset_concepts" %in% user_accesses) shinyjs::show("reload_concepts_count_button")
+    
     # Page settings ----
     
-    observeEvent(input$settings, {
-      if (debug) cat(paste0("\n", now(), " - mod_concepts - ", id, " - observer input$settings"))
-      
-    })
+    # observeEvent(input$settings, {
+    #   if (debug) cat(paste0("\n", now(), " - mod_concepts - ", id, " - observer input$settings"))
+    #   
+    # })
     
     # Reload vocabulary dropdown ----
     observeEvent(r$dataset_vocabularies, {
