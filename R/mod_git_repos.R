@@ -267,6 +267,23 @@ mod_git_repos_ui <- function(id = character(), language = "en", languages = tibb
       )
     ),
     
+    # Delete a git element modal ----
+    shinyjs::hidden(
+      div(
+        id = ns("delete_git_element_modal"),
+        div(
+          tags$h1(i18n$t("delete_git_element_title")), tags$p(i18n$t("delete_git_element_text")),
+          div(
+            shiny.fluent::DefaultButton.shinyInput(ns("close_git_element_deletion_modal"), i18n$t("dont_delete")),
+            div(shiny.fluent::PrimaryButton.shinyInput(ns("confirm_git_element_deletion"), i18n$t("delete")), class = "delete_button"),
+            class = "delete_modal_buttons"
+          ),
+          class = "delete_modal_content"
+        ),
+        class = "delete_modal"
+      )
+    ),
+    
     # Commit and push modal ----
     shinyjs::hidden(
       div(
@@ -502,7 +519,7 @@ mod_git_repos_server <- function(id, r, d, m, language, i18n, debug, user_access
         git_repo <- r$list_git_repo
         shinyjs::show("list_git_infos_buttons")
         output$list_git_infos_title <- renderUI(tags$h1(git_repo$name))
-        output$list_git_infos_content <- renderUI(get_git_infos(git_repo, "list"))
+        output$list_git_infos_content <- renderUI(get_git_infos(r, git_repo, "list"))
       })
       
       ## Click on the map ----
@@ -527,7 +544,7 @@ mod_git_repos_server <- function(id, r, d, m, language, i18n, debug, user_access
         if (nrow(git_repo) > 0){
           
           output$map_git_infos_title <- renderUI(tags$h1(git_repo$name))
-          output$map_git_infos_content <- renderUI(get_git_infos(git_repo, "map"))
+          output$map_git_infos_content <- renderUI(get_git_infos(r, git_repo, "map"))
         }
         else {
           
@@ -549,6 +566,46 @@ mod_git_repos_server <- function(id, r, d, m, language, i18n, debug, user_access
       # Git repos management ----
       
       ## Add a git repo ----
+      
+      ### Add from map
+      
+      observeEvent(input$add_to_saved_git_repos, {
+        if (debug) cat(paste0("\n", now(), " - mod_git_repos - observer input$add_to_saved_git_repos"))
+        
+        req(nrow(r$map_git_repo) > 0)
+        
+        # Disable add button
+        shiny.fluent::updateActionButton.shinyInput(session, "add_to_saved_git_repos", disabled = TRUE)
+        
+        git_repo <- r$map_git_repo
+        
+        if (paste0("name_", language) %in% colnames(git_repo)) name <- git_repo[[paste0("name_", language)]]
+        else name <- git_repo$name_en
+        
+        # Add new data to db
+        
+        git_repo_new_row <- get_last_row(r$db, "git_repos") + 1
+        
+        new_data <- git_repo %>% dplyr::transmute(
+          id = git_repo_new_row, unique_id,
+          name = !!name, api_key = NA_character_, repo_url_address, raw_files_url_address,
+          creator_id = r$user_id, datetime = now(), deleted = FALSE
+        )
+        DBI::dbAppendTable(r$db, "git_repos", new_data)
+        
+        new_options <-
+          tibble::tribble(
+            ~name, ~value, ~value_num,
+            "users_allowed_read_group", "everybody", 1,
+            "user_allowed_read", "", r$user_id,
+          ) %>%
+          dplyr::mutate(id = get_last_row(r$db, "options") + dplyr::row_number(), category = "git_repo", link_id = git_repo_new_row, .before = "name") %>%
+          dplyr::mutate(creator_id = r$user_id, datetime = now(), deleted = FALSE)
+        DBI::dbAppendTable(r$db, "options", new_options)
+        
+        # Reload list
+        shinyjs::runjs(paste0("Shiny.setInputValue('", id, "-reload_git_repos', Math.random());"))
+      })
       
       ### Open modal
       observeEvent(input$create_git_repo, {
@@ -1546,8 +1603,21 @@ mod_git_repos_server <- function(id, r, d, m, language, i18n, debug, user_access
       
       ## Delete element from git ----
       
+      ### Open modal
       observeEvent(input$delete_element_from_git, {
         if (debug) cat(paste0("\n", now(), " - mod_git_repos - observer input$delete_element_from_git"))
+        shinyjs::show("delete_git_element_modal")
+      })
+      
+      ### Close modal
+      observeEvent(input$close_git_element_deletion_modal, {
+        if (debug) cat(paste0("\n", now(), " - mod_git_repos - observer input$close_git_element_deletion_modal"))
+        shinyjs::hide("delete_git_element_modal")
+      })
+      
+      ### Deletion confirmed
+      observeEvent(input$confirm_git_element_deletion, {
+        if (debug) cat(paste0("\n", now(), " - mod_git_repos - observer input$confirm_git_element_deletion"))
         
         tryCatch({
           current_tab <- gsub(paste0(id, "-"), "", input$current_tab, fixed = FALSE)
@@ -1573,6 +1643,8 @@ mod_git_repos_server <- function(id, r, d, m, language, i18n, debug, user_access
           show_message_bar(output, "error_removing_git_element", "severeWarning", i18n = i18n, ns = ns)
           cat(paste0("\n", now(), " - mod_git_repos - error removing git element - error = ", toString(e)))
         })
+        
+        shinyjs::hide("delete_git_element_modal")
       })
       
       ## Commit and push with updates ----
@@ -1600,7 +1672,18 @@ mod_git_repos_server <- function(id, r, d, m, language, i18n, debug, user_access
     
     ## Module functions ----
     
-    get_git_infos <- function(git_repo, git_source){
+    get_git_infos <- function(r, git_repo, git_source){
+      
+      if (git_source == "map"){
+        
+        # Enable or disable add button
+        sql <- glue::glue_sql("SELECT id FROM git_repos WHERE unique_id = {git_repo$unique_id}", .con = r$db)
+        result <- DBI::dbGetQuery(r$db, sql)
+        if (nrow(result) == 0) disabled <- FALSE
+        else disabled <- TRUE
+        add_git_repo_button <- shiny.fluent::PrimaryButton.shinyInput(ns("add_to_saved_git_repos"), i18n$t("add_to_saved_git_repos"), iconProps = list(iconName = "Add"), disabled = disabled)
+      }
+      else add_git_repo_button <- div()
       
       tagList(
         div(
@@ -1610,9 +1693,10 @@ mod_git_repos_server <- function(id, r, d, m, language, i18n, debug, user_access
         ),
         div(
           id = ns(paste0("show_content_", git_source, "_div")),
-          shiny.fluent::PrimaryButton.shinyInput(ns(paste0("show_content_", git_source)), i18n$t("show_content")),
+          add_git_repo_button,
+          shiny.fluent::PrimaryButton.shinyInput(ns(paste0("show_content_", git_source)), i18n$t("show_content"), iconProps = list(iconName = "Play")),
           class = "git_repo_infos_modal_buttons",
-          style = "margin-left: 10px;"
+          style = "display: flex; gap: 5px;"
         )
       )
     }

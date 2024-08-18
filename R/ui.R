@@ -2,7 +2,8 @@
 #' @noRd
 app_ui <- function(pages, language, languages, i18n, users_accesses_toggles_options, db_col_types, dropdowns, debug) {
   
-  do.call(shiny.router::router_ui,
+  do.call(
+    shiny.router::router_ui,
     lapply(pages, function(page_url){
       if (debug) cat(paste0("\n", now(), " - ui - make_router - ", page_url))
       
@@ -21,9 +22,21 @@ app_ui <- function(pages, language, languages, i18n, users_accesses_toggles_opti
       else if (page == "app_db") args <- list(page, language, languages, i18n, code_hotkeys, db_col_types)
       else if (page %in% c("data_cleaning", "datasets")) args <- list(page, language, languages, i18n, code_hotkeys)
       else if (page == "vocabularies") args <- list(page, language, languages, i18n, code_hotkeys, dropdowns)
-      else if (page == "concepts")  args <- list(page, language, languages, i18n, dropdowns)
+      else if (page == "concepts") args <- list(page, language, languages, i18n, dropdowns)
       
-      shiny.router::route(page_url,
+      if (page == "login") shiny.router::route(
+        page_url,
+        div(
+          class = "page_container",
+          div(
+            mod_login_ui("login", i18n),
+            class = "main_container"
+          )
+        )
+      )
+      
+      else shiny.router::route(
+        page_url,
         div(
           class = "page_container",
           mod_page_header_ui(id = page, i18n = i18n),

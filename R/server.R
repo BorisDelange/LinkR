@@ -164,11 +164,9 @@ app_server <- function(pages, language, languages, i18n, app_folder, debug, log_
       }
     })
     
-    # Get user ID
+    # User is logged in
     
-    user_id <- 1L
-    r$user_id <- user_id
-    m$user_id <- user_id
+    # r$user_id <- 1
     
     observeEvent(r$user_id, {
       if (debug) cat(paste0("\n", now(), " - server - observer r$user_id"))
@@ -185,16 +183,8 @@ app_server <- function(pages, language, languages, i18n, app_folder, debug, log_
       onStop(function() {
         if (debug) cat(paste0("\n", now(), " - server - observer onStop"))
         
+        # Stop console redirection to log file
         while(sink.number() > 0) sink(NULL)
-        
-      #   add_log_entry(r = isolate(r), category = trad$session, name = trad$session_ends, value = "")
-      #   
-      #   # Close duckdb connections
-      #   DBI::dbDisconnect(isolate(r$db))
-      #   if (length(isolate(r$duckdb_drv)) > 0) sapply(isolate(r$duckdb_drv), duckdb::duckdb_shutdown)
-      #   
-      #   # Close spark connections
-      #   sparklyr::spark_disconnect_all()
       })
       
       # Clear temp dir
@@ -209,7 +199,7 @@ app_server <- function(pages, language, languages, i18n, app_folder, debug, log_
         unlink(sub_folder, recursive = TRUE, force = TRUE)
         if (!dir.exists(sub_folder)) dir.create(sub_folder)
       }
-    })
+    }, once = TRUE)
     
     # Route pages ----
     if (debug) cat(paste0("\n", now(), " - server - shiny.router"))
@@ -223,15 +213,16 @@ app_server <- function(pages, language, languages, i18n, app_folder, debug, log_
       
       if (debug) cat(paste0("\n", now(), " - server - observer shiny.router::get_page()"))
       
-      if (shiny.router::get_page() == "/") current_page <- "home"
-      else if (shiny.router::get_page() == "data"){
+      current_page <- shiny.router::get_page()
+      
+      req(current_page %in% pages)
+      
+      if (current_page == "/") current_page <- "home"
+      else if (current_page == "data"){
         if (length(shiny.router::get_query_param()$type) > 0) r$data_page <- shiny.router::get_query_param()$type
         else r$data_page <- "patient_lvl"
         current_page <- "data"
       }
-      else current_page <- shiny.router::get_page()
-      
-      req(current_page %in% pages)
       
       if (length(r$loaded_pages[[current_page]]) == 0) r$load_page <- current_page
     })
@@ -241,8 +232,20 @@ app_server <- function(pages, language, languages, i18n, app_folder, debug, log_
       
       page <- r$load_page
       
+      # Load login page
+      if (page == "login"){
+        mod_login_server("login", r, i18n, debug)
+        r$loaded_pages$login <- TRUE
+      }
+      
+      # User has to be logged in to load other pages. If user is not logged in, redirect to login page.
+      if (length(r$user_id) == 0) shiny.router::change_page("login")
+      req(length(r$user_id) > 0)
+      
+      req(page != "login")
+      
       # Get user accesses
-      user_access_id <- r$users %>% dplyr::filter(id == user_id) %>% dplyr::pull(user_access_id) 
+      user_access_id <- r$users %>% dplyr::filter(id == r$user_id) %>% dplyr::pull(user_access_id) 
       sql <- glue::glue_sql("SELECT * FROM options WHERE category = 'users_accesses' AND link_id = {user_access_id} AND value_num = 1", .con = r$db)
       user_accesses <- DBI::dbGetQuery(r$db, sql) %>% dplyr::pull(name)
       

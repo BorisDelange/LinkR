@@ -271,10 +271,10 @@ mod_users_ui <- function(id, language, languages, i18n, users_accesses_toggles_o
     # Delete a user status modal
     modals$delete_user_status_modal,
     
-    # Create a user access modal ----
+    # Create a user access modal
     modals$create_user_access_modal,
     
-    # Delete a user access modal ----
+    # Delete a user access modal
     modals$delete_user_access_modal,
   )
 }
@@ -870,7 +870,7 @@ mod_users_server <- function(id, r, d, m, language, i18n, debug, users_accesses_
       if (length(input[[paste0("edit_", type)]]) > 0) value <- input[[paste0("edit_", type)]]
       
       shiny.fluent::updateDropdown.shinyInput(session, paste0("edit_", type), options = dropdown_options, value = value)
-      shiny.fluent::updateDropdown.shinyInput(session, paste0("create_", type), options = dropdown_options)
+      shiny.fluent::updateDropdown.shinyInput(session, paste0("create_user_", type), options = dropdown_options)
       
       # Update DT
       

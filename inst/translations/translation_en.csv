@@ -1155,6 +1155,8 @@ delete_git_element_vocabulary_title,Delete git element
 delete_git_element_vocabulary_text,Delete this vocabulary from the git repository?
 delete_git_repo_title,Delete git repo
 delete_git_repo_text,"Delete this git repo? This removes the local link to this git repository, which can always be added again later."
+delete_git_element_title,Delete git element
+delete_git_element_text,Delete this element from remote git?
 dont_update,Don't update
 reload_dataset,Reload dataset
 reload_dataset_concepts,Reload dataset concepts
@@ -1259,3 +1261,6 @@ app_db_db_request_user_access_description,Request app database
 app_db_save_restore_user_access_description,Save and restore app database
 log_user_log_user_access_description,Show user log
 concepts_reload_dataset_concepts_user_access_description,Reload the count of concepts in the dataset
+submit_login,Login
+invalid_login_or_password,Invalid username or password
+add_to_saved_git_repos,Add to saved git repos

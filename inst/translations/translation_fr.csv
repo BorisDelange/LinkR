@@ -1153,6 +1153,8 @@ update_git_element_vocabulary_title,Mise à jour d'un élément du git
 update_git_element_vocabulary_text,Mettre à jour cette terminologie sur le git ? Ceci va supprimer et remplacer l'ancienne terminologie sur le dépôt git distant.
 delete_git_repo_title,Supprimer un dépôt git
 delete_git_repo_text,Supprimer ce dépôt git ? "Ceci supprime le lien local vers ce dépôt git, il pourra toujours être de nouveau ajouté plus tard."
+delete_git_element_title,Supprimer un élément du git
+delete_git_element_text,Supprimer cet élément du dépôt git ?
 delete_git_element_vocabulary_title,Supprimer un élément du git
 delete_git_element_vocabulary_text,Supprimer cette terminologie sur le git ?
 dont_update,Ne pas mettre à jour
@@ -1259,3 +1261,6 @@ app_db_db_request_user_access_description,Requêter la base de données de l'app
 app_db_save_restore_user_access_description,Sauvegarder et restaurer la base de données de l'application
 log_user_log_user_access_description,Afficher les logs de l'utilisateur
 concepts_reload_dataset_concepts_user_access_description,Recharger le décompte des concepts du set de données
+submit_login,Connexion
+invalid_login_or_password,Identifiant ou mot de passe invalide
+add_to_saved_git_repos,Ajouter aux dépôts sauvegardés
