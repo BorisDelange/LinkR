@@ -84,11 +84,11 @@ golem_add_external_resources <- function(){
     ")),
 
     # Script to make an input when a text is entered in the person ComboBox.shinyInput
-    tags$script("
-      $(document).on('keyup', '#data-person-input', function() {
-        Shiny.setInputValue('data-person_trigger', $(this).val());
-      });
-    "),
+    # tags$script("
+    #   $(document).on('keyup', '#data-person-input', function() {
+    #     Shiny.setInputValue('data-person_trigger', $(this).val());
+    #   });
+    # "),
 
     # Add fontawesome icons
     tags$link(rel = "stylesheet", href = "https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css"),

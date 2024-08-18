@@ -304,16 +304,19 @@ mod_page_sidenav_ui <- function(id, i18n){
             )
           )
         ), br(),
-        div(shiny.fluent::ComboBox.shinyInput(ns("subset"), label = i18n$t("subset")), style = "width: 200px"),
+        div(
+          selectizeInput(ns("subset"), i18n$t("subset"), choices = NULL, multiple = FALSE, selected = FALSE), 
+          style = "width: 200px;"
+        ),
         div(
           id = ns("person_dropdown_div"),
-          shiny.fluent::ComboBox.shinyInput(ns("person"), label = i18n$t("person"), allowFreeform = TRUE, autoComplete = TRUE), 
-          style = "width: 200px"
+          selectizeInput(ns("person"), i18n$t("person"), choices = NULL, multiple = FALSE), 
+          style = "width: 200px; margin-top: 10px;"
         ),
         div(
           id = ns("visit_detail_dropdown_div"),
-          shiny.fluent::ComboBox.shinyInput(ns("visit_detail"), label = i18n$t("visit_detail")),
-          style = "width: 200px"
+          selectizeInput(ns("visit_detail"), i18n$t("visit_detail"), choices = NULL, multiple = FALSE),
+          style = "width: 200px;  margin-top: 10px;"
         ),
         div(id = ns("person_info_div"), uiOutput(ns("person_info")), class = "person_info")
       ),

@@ -1264,3 +1264,4 @@ concepts_reload_dataset_concepts_user_access_description,Reload the count of con
 submit_login,Login
 invalid_login_or_password,Invalid username or password
 add_to_saved_git_repos,Add to saved git repos
+content_catalog,Content catalog

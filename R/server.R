@@ -166,7 +166,7 @@ app_server <- function(pages, language, languages, i18n, app_folder, debug, log_
     
     # User is logged in
     
-    # r$user_id <- 1
+    r$user_id <- 1
     
     observeEvent(r$user_id, {
       if (debug) cat(paste0("\n", now(), " - server - observer r$user_id"))
@@ -252,7 +252,7 @@ app_server <- function(pages, language, languages, i18n, app_folder, debug, log_
       # Data pages are loaded from mod_home (when a project is selected)
       if (page == "data"){
         
-        mod_data_server("data", r, d, m, language, i18n, debug)
+        mod_data_server("data", r, d, m, language, i18n, debug, user_accesses)
         mod_page_sidenav_server("data", r, d, m, language, i18n, debug)
         mod_page_header_server("data", r, d, m, language, i18n, debug)
         r$loaded_pages$data <- TRUE

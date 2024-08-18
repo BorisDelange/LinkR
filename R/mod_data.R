@@ -466,6 +466,7 @@ mod_data_server <- function(id, r, d, m, language, i18n, debug, user_accesses){
     observeEvent(m$selected_person, {
       if (debug) cat(paste0("\n", now(), " - mod_data - observer m$selected_person"))
       
+      req(FALSE)
       req(!is.na(m$selected_person))
       
       selected_person <- m$selected_person
@@ -502,14 +503,37 @@ mod_data_server <- function(id, r, d, m, language, i18n, debug, user_accesses){
         if (debug) cat(paste0("\n", now(), " - mod_data - observer m$subsets"))
         
         # Update subset dropdown
-        if (nrow(m$subsets) == 0) shiny.fluent::updateComboBox.shinyInput(session, "subset", options = list(), value = NULL, errorMessage = i18n$t("no_subset_available"))
-        if (nrow(m$subsets) > 0) shiny.fluent::updateComboBox.shinyInput(session, "subset", options = convert_tibble_to_list(m$subsets, key_col = "id", text_col = "name"), value = NULL)
+        if (nrow(m$subsets) == 0) updateSelectizeInput(
+            session, "subset", choices = NULL, server = TRUE, selected = FALSE,
+            options = list(
+              placeholder = i18n$t("no_subset_available"),
+              onInitialize = I("function() { this.setValue(''); }")
+            )
+          )
+        
+        if (nrow(m$subsets) > 0){
+          choices <- setNames(m$subsets$id, m$subsets$name)
+          updateSelectizeInput(
+            session, "subset", choices = choices, server = TRUE, selected = FALSE,
+            options = list(
+              placeholder = "",
+              onInitialize = I("function() { this.setValue(''); }")
+            )
+          )
+        }
         
         # Reset other dropdowns & uiOutput
-        sapply(c("person", "visit_detail"), function(name) {
-          shiny.fluent::updateComboBox.shinyInput(session, name, options = list(), value = NULL)
+        sapply(c("person", "visit_detail"), function(name){
           shinyjs::hide(paste0(name, "_div"))
+          updateSelectizeInput(
+            session, name, choices = NULL, server = TRUE, selected = FALSE,
+            options = list(
+              placeholder = "",
+              onInitialize = I("function() { this.setValue(''); }")
+            )
+          )
         })
+        
         output$person_info <- renderUI("")
         shinyjs::hide("person_info_div")
       })
@@ -517,13 +541,15 @@ mod_data_server <- function(id, r, d, m, language, i18n, debug, user_accesses){
       observeEvent(input$subset, {
         if (debug) cat(paste0("\n", now(), " - mod_data - observer input$subset"))
         
-        req(input$subset$key)
+        req(input$subset)
+        
+        selected_subset <- as.numeric(input$subset)
         
         # Prevent multiple changes of m$selected_subset
         # We have to keep multiple observers, cause we use input variable
-        if (is.na(m$selected_subset)) m$selected_subset <- input$subset$key
-        if (!is.na(m$selected_subset) & m$selected_subset != input$subset$key) m$selected_subset <- input$subset$key
-        
+        if (is.na(m$selected_subset)) m$selected_subset <- selected_subset
+        if (!is.na(m$selected_subset) & m$selected_subset != selected_subset) m$selected_subset <- selected_subset
+
         # Reset data var
         if (r$data_page == "patient_lvl"){
           sapply(person_tables, function(table) d$data_person[[table]] <- tibble::tibble())
@@ -531,23 +557,23 @@ mod_data_server <- function(id, r, d, m, language, i18n, debug, user_accesses){
         }
 
         # Select patients who belong to this subset
-        m$subset_persons <- DBI::dbGetQuery(m$db, glue::glue_sql("SELECT * FROM subset_persons WHERE subset_id = {m$selected_subset}", .con = m$db))
+        m$subset_persons <- DBI::dbGetQuery(m$db, glue::glue_sql("SELECT * FROM subset_persons WHERE subset_id = {selected_subset}", .con = m$db))
         
         # If this subset contains no patient, maybe the code has not been run yet
         if (nrow(m$subset_persons) == 0){
-          sql <- glue::glue_sql("SELECT code FROM code WHERE category = 'subset' AND link_id = {m$selected_subset}", .con = m$db)
-          
-          subset_code <- 
-            DBI::dbGetQuery(m$db, sql) %>% 
-            dplyr::pull() %>% 
+          sql <- glue::glue_sql("SELECT code FROM code WHERE category = 'subset' AND link_id = {selected_subset}", .con = m$db)
+
+          subset_code <-
+            DBI::dbGetQuery(m$db, sql) %>%
+            dplyr::pull() %>%
             stringr::str_replace_all("\r", "\n") %>%
             stringr::str_replace_all("%dataset_id%", as.character(r$selected_dataset)) %>%
-            stringr::str_replace_all("%subset_id%", as.character(m$selected_subset))
-          
-          tryCatch(eval(parse(text = subset_code)),
-            error = function(e) if (nchar(e[1]) > 0) cat(paste0("\n", now(), " - mod_data - error executing subset code - subset_id = ", m$selected_subset)))
+            stringr::str_replace_all("%subset_id%", as.character(selected_subset))
 
-          m$subset_persons <- DBI::dbGetQuery(m$db, glue::glue_sql("SELECT * FROM subset_persons WHERE subset_id = {m$selected_subset}", .con = m$db))
+          tryCatch(eval(parse(text = subset_code)),
+            error = function(e) if (nchar(e[1]) > 0) cat(paste0("\n", now(), " - mod_data - error executing subset code - subset_id = ", selected_subset)))
+
+          m$subset_persons <- DBI::dbGetQuery(m$db, glue::glue_sql("SELECT * FROM subset_persons WHERE subset_id = {selected_subset}", .con = m$db))
         }
 
         # Reset selected_person & selected_visit_detail
@@ -577,7 +603,12 @@ mod_data_server <- function(id, r, d, m, language, i18n, debug, user_accesses){
         if (nrow(persons) == 0){
           # Set selected_person to NA, not to display a chart when no person is selected
           m$selected_person <- NA_integer_
-          shiny.fluent::updateComboBox.shinyInput(session, "person", options = list(), value = NULL, errorMessage = i18n$t("no_person_in_subset")) 
+          updateSelectizeInput(
+            session, "person", choices = NULL, server = TRUE, 
+            options = list(
+              placeholder = i18n$t("no_person_in_subset"),
+              onInitialize = I("function() { this.setValue(''); }")
+          ))
         }
         
         if (nrow(persons) > 0){
@@ -585,76 +616,34 @@ mod_data_server <- function(id, r, d, m, language, i18n, debug, user_accesses){
           persons <- persons %>% dplyr::arrange(person_id)
           
           # Update persons dropdown
-          shiny.fluent::updateComboBox.shinyInput(session, "person", 
-            options = convert_tibble_to_list(data = persons %>% dplyr::slice_head(n = 100) %>% dplyr::mutate(name_display = paste0(person_id, " - ", gender_concept_name)),
-              key_col = "person_id", text_col = "name_display"), value = NULL)
+          choices <- setNames(persons$person_id, paste(persons$person_id, "-", persons$gender_concept_name))
+          updateSelectizeInput(
+            session, "person", choices = choices, server = TRUE, selected = FALSE,
+            options = list(
+              placeholder = "",
+              onInitialize = I("function() { this.setValue(''); }")
+            )
+          )
         }
         
         # Reset other dropdowns & uiOutput
-        shiny.fluent::updateComboBox.shinyInput(session, "visit_detail", options = list(), value = NULL)
+        updateSelectizeInput(
+          session, "visit_detail", choices = NULL, server = TRUE,
+          options = list(
+            placeholder = "",
+            onInitialize = I("function() { this.setValue(''); }")
+          )
+        )
         output$person_info <- renderUI("")
-        # sapply(c("visit_detail", "person_info"), function(name) shinyjs::hide(paste0(name, "_div")))
-        # shinyjs::show("person_div")
-      })
-    
-      # When a patient is searched
-      observeEvent(input$person_trigger, {
-        
-        if (debug) cat(paste0("\n", now(), " - mod_data - observer input$person_trigger"))
-        
-        input_value <- input$person_trigger
-        if (nchar(input_value) >= 2) {
-          filtered_person <- d$person
-          if ("tbl_lazy" %in% class(d$person)) filtered_person <- filtered_person %>%
-              dplyr::filter(dplyr::sql(paste0("CAST(person_id AS TEXT) LIKE '%", input_value, "%'")))
-          else filtered_person <- filtered_person %>%
-              dplyr::filter(stringr::str_detect(person_id, stringr::regex(input_value, ignore_case = TRUE)))
-          filtered_person <- filtered_person %>%
-            dplyr::collect() %>%
-            dplyr::slice_head(n = 100) %>%
-            dplyr::left_join(d$concept %>% dplyr::select(gender_concept_id = concept_id, gender_concept_name = concept_name), by = "gender_concept_id") %>%
-            dplyr::mutate(name_display = paste0(person_id, " - ", gender_concept_name))
-          
-          shiny.fluent::updateComboBox.shinyInput(session, "person", options = convert_tibble_to_list(filtered_person, key_col = "person_id", text_col = "name_display"))
-        } else {
-          shiny.fluent::updateComboBox.shinyInput(session, "person", 
-            options = convert_tibble_to_list(data = d$person %>% 
-              dplyr::arrange(person_id) %>%
-              dplyr::collect() %>%
-              dplyr::slice_head(n = 100) %>% 
-              dplyr::left_join(d$concept %>% dplyr::select(gender_concept_id = concept_id, gender_concept_name = concept_name), by = "gender_concept_id") %>%
-              dplyr::mutate(name_display = paste0(person_id, " - ", gender_concept_name)),
-            key_col = "person_id", text_col = "name_display"), value = NULL)
-        }
       })
       
       # When a patient is selected
       observeEvent(input$person, {
         if (debug) cat(paste0("\n", now(), " - mod_data - observer input$person"))
         
-        # Check if the entry exists
+        req(input$person)
         
-        req(input$person$text)
-        
-        if (length(input$person$key) == 0){
-          person_text <- input$person$text
-          person <- d$person %>%
-            dplyr::left_join(d$concept %>% dplyr::select(gender_concept_id = concept_id, gender_concept_name = concept_name), by = "gender_concept_id") %>%
-            dplyr::mutate(name_display = paste0(person_id, " - ", gender_concept_name)) %>%
-            dplyr::filter(name_display == person_text) %>% dplyr::collect()
-        }
-        if (length(input$person$key) > 0){
-          person_key <- input$person$key
-          person <- 
-            d$person %>%
-            dplyr::mutate_at("person_id", as.integer) %>%
-            dplyr::filter(person_id == person_key) %>% dplyr::collect() %>%
-            dplyr::left_join(d$concept %>% dplyr::select(gender_concept_id = concept_id, gender_concept_name = concept_name), by = "gender_concept_id") %>%
-            dplyr::mutate(name_display = paste0(person_id, " - ", gender_concept_name))
-        }
-        req(nrow(person) == 1)
-        
-        person_id <- person$person_id
+        person_id <- as.numeric(input$person)
         m$selected_person <- person_id
         
         # Reset variables
@@ -668,7 +657,13 @@ mod_data_server <- function(id, r, d, m, language, i18n, debug, user_accesses){
         if (d$visit_detail %>% dplyr::count() %>% dplyr::pull() == 0) no_stay_available <- TRUE
         if (d$visit_detail %>% dplyr::count() %>% dplyr::pull() > 0) if (d$visit_detail %>% dplyr::filter(person_id == !!person_id) %>% dplyr::count() %>% dplyr::pull() == 0) no_stay_available <- TRUE
         
-        if (no_stay_available) shiny.fluent::updateComboBox.shinyInput(session, "visit_detail", options = list(), value = NULL, errorMessage = i18n$t("no_stay_available"))
+        if (no_stay_available) updateSelectizeInput(
+          session, "visit_detail", choices = NULL, server = TRUE,
+          options = list(
+            placeholder = i18n$t("no_stay_available"),
+            onInitialize = I("function() { this.setValue(''); }")
+          )
+        )
         
         if (!no_stay_available){
           
@@ -677,7 +672,8 @@ mod_data_server <- function(id, r, d, m, language, i18n, debug, user_accesses){
           if ("parent_visit_detail_id" %in% colnames(visit_detail)) visit_detail <- visit_detail %>% dplyr::filter(is.na(parent_visit_detail_id))
           else if ("visit_detail_parent_id" %in% colnames(visit_detail)) visit_detail <- visit_detail %>% dplyr::filter(is.na(visit_detail_parent_id))
           
-          visit_detail <- visit_detail %>% 
+          visit_detail <-
+            visit_detail %>% 
             dplyr::collect() %>% 
             dplyr::left_join(
               d$concept %>% dplyr::select(visit_detail_concept_id = concept_id, visit_detail_concept_name = concept_name),
@@ -686,35 +682,73 @@ mod_data_server <- function(id, r, d, m, language, i18n, debug, user_accesses){
             dplyr::arrange(visit_detail_start_datetime)
           
           if ("visit_detail_concept_name" %in% colnames(visit_detail)){
-            if (tolower(language) == "fr") visit_details <- convert_tibble_to_list(data = visit_detail %>% dplyr::mutate(name_display = paste0(visit_detail_concept_name, " - ",
-              format(as.POSIXct(visit_detail_start_datetime), format = "%d-%m-%Y"), " ", tolower(i18n$t("to")), " ",  format(as.POSIXct(visit_detail_end_datetime), format = "%d-%m-%Y"))),
-               key_col = "visit_detail_id", text_col = "name_display")
-            else visit_details <- convert_tibble_to_list(data = visit_detail %>% dplyr::mutate(name_display = paste0(visit_detail_concept_name, " - ",
-              format(as.POSIXct(visit_detail_start_datetime), format = "%Y-%m-%d"), " ", tolower(i18n$t("to")), " ",  format(as.POSIXct(visit_detail_end_datetime), format = "%Y-%m-%d"))),
-              key_col = "visit_detail_id", text_col = "name_display")
+            
+            if (tolower(language) == "fr") visit_details <- 
+                visit_detail %>% 
+                dplyr::mutate(
+                  name_display = paste0(
+                    visit_detail_concept_name, " - ", format(as.POSIXct(visit_detail_start_datetime), format = "%d-%m-%Y"), " ", 
+                    tolower(i18n$t("to")), " ",  format(as.POSIXct(visit_detail_end_datetime), format = "%d-%m-%Y")
+                  )
+                )
+            
+            else visit_details <- 
+                visit_detail %>% 
+                dplyr::mutate(
+                  name_display = paste0(
+                    visit_detail_concept_name, " - ", format(as.POSIXct(visit_detail_start_datetime), format = "%Y-%m-%d"), " ",
+                    tolower(i18n$t("to")), " ",  format(as.POSIXct(visit_detail_end_datetime), format = "%Y-%m-%d")
+                  )
+                )
           }
           else {
-            if (tolower(language) == "fr") visit_details <- convert_tibble_to_list(data = visit_detail %>% dplyr::mutate(name_display = paste0(visit_detail_concept_id, " - ",
-              format(as.POSIXct(visit_detail_start_datetime), format = "%d-%m-%Y"), " ", tolower(i18n$t("to")), " ",  format(as.POSIXct(visit_detail_end_datetime), format = "%d-%m-%Y"))),
-              key_col = "visit_detail_id", text_col = "name_display")
-            else visit_details <- convert_tibble_to_list(data = visit_detail %>% dplyr::mutate(name_display = paste0(visit_detail_concept_id, " - ",
-              format(as.POSIXct(visit_detail_start_datetime), format = "%Y-%m-%d"), " ", tolower(i18n$t("to")), " ",  format(as.POSIXct(visit_detail_end_datetime), format = "%Y-%m-%d"))),
-              key_col = "visit_detail_id", text_col = "name_display")
+            
+            if (tolower(language) == "fr") visit_details <-
+                visit_detail %>% dplyr::mutate(
+                  name_display = paste0(
+                    visit_detail_concept_id, " - ", format(as.POSIXct(visit_detail_start_datetime), format = "%d-%m-%Y"), " ",
+                    tolower(i18n$t("to")), " ",  format(as.POSIXct(visit_detail_end_datetime), format = "%d-%m-%Y")
+                  )
+                )
+            
+            
+            else visit_details <- 
+                visit_detail %>% 
+                dplyr::mutate(
+                  name_display = paste0(
+                    visit_detail_concept_id, " - ", format(as.POSIXct(visit_detail_start_datetime), format = "%Y-%m-%d"), " ",
+                    tolower(i18n$t("to")), " ",  format(as.POSIXct(visit_detail_end_datetime), format = "%Y-%m-%d")
+                  )
+                )
           }
           
           # Load visit_details of the person & update dropdown
-          shiny.fluent::updateComboBox.shinyInput(session, "visit_detail", options = visit_details, value = NULL)
+          choices <- setNames(visit_details$visit_detail_id, visit_details$name_display)
+          updateSelectizeInput(
+            session, "visit_detail", choices = choices, server = TRUE, selected = FALSE,
+            options = list(
+              placeholder = "",
+              onInitialize = I("function() { this.setValue(''); }")
+            )
+          )
         }
         
         # Update person informations on sidenav
         style <- "display:inline-block; width:80px; font-weight:bold;"
-        output$person_info <- renderUI({
-          selected_person <- m$selected_person
+        
+        person <- 
+          d$person %>%
+          dplyr::mutate_at("person_id", as.integer) %>%
+          dplyr::filter(person_id == !!person_id) %>% 
+          dplyr::collect() %>%
+          dplyr::left_join(d$concept %>% dplyr::select(gender_concept_id = concept_id, gender_concept_name = concept_name), by = "gender_concept_id")
+        
+        output$person_info <- renderUI(
           tagList(
             span(i18n$t("person_id"), style = style), person$person_id, br(),
             span(i18n$t("gender"), style = style), person$gender_concept_name
           )
-        })
+        )
         
         sapply(c("visit_detail", "person_info"), function(name) shinyjs::show(paste0(name, "_div")))
         
@@ -737,7 +771,11 @@ mod_data_server <- function(id, r, d, m, language, i18n, debug, user_accesses){
       observeEvent(input$visit_detail, {
         if (debug) cat(paste0("\n", now(), " - mod_data - observer input$visit_detail"))
         
-        m$selected_visit_detail <- input$visit_detail$key
+        req(input$visit_detail)
+        
+        selected_visit_detail <- as.numeric(input$visit_detail)
+        m$selected_visit_detail <- selected_visit_detail
+        print(selected_visit_detail)
         
         # Update person informations on sidenav
         
@@ -751,7 +789,7 @@ mod_data_server <- function(id, r, d, m, language, i18n, debug, user_accesses){
           dplyr::collect() %>%
           dplyr::left_join(d$concept %>% dplyr::select(gender_concept_id = concept_id, gender_concept_name = concept_name), by = "gender_concept_id")
         
-        visit_detail_id <- input$visit_detail$key
+        visit_detail_id <- selected_visit_detail
         visit_detail <- 
           d$visit_detail %>% 
           dplyr::mutate_at("visit_detail_id", as.integer) %>%
@@ -773,7 +811,7 @@ mod_data_server <- function(id, r, d, m, language, i18n, debug, user_accesses){
           tagList(
             span(i18n$t("person_id"), style = style), m$selected_person, br(),
             span(i18n$t("gender"), style = style), person$gender_concept_name, br(), br(),
-            span(i18n$t("visit_detail_id"), style = style), m$selected_visit_detail, br(),
+            span(i18n$t("visit_detail_id"), style = style), selected_visit_detail, br(),
             span(i18n$t("age"), style = style), age_div, br(),
             span(i18n$t("hosp_unit"), style = style), visit_detail_concept_name, br(),
             span(i18n$t("from"), style = style), visit_detail$visit_detail_start_datetime %>% format_datetime(language), br(),
@@ -782,10 +820,10 @@ mod_data_server <- function(id, r, d, m, language, i18n, debug, user_accesses){
         
         sapply(visit_detail_tables, function(table) d$data_visit_detail[[table]] <- tibble::tibble())
         
-        if (length(m$selected_visit_detail) > 0){
-          selected_visit_detail <- m$selected_visit_detail
-          for(table in visit_detail_tables) if (d$data_person[[table]] %>% dplyr::count() %>% dplyr::pull() > 0) d$data_visit_detail[[table]] <- 
-              d$data_person[[table]] %>% dplyr::filter(visit_detail_id == selected_visit_detail)
+        for(table in visit_detail_tables){
+          if (d$data_person[[table]] %>% dplyr::count() %>% dplyr::pull() > 0){
+            d$data_visit_detail[[table]] <- d$data_person[[table]] %>% dplyr::filter(visit_detail_id == selected_visit_detail)
+          }
         }
       })
       
@@ -1408,6 +1446,9 @@ mod_data_server <- function(id, r, d, m, language, i18n, debug, user_accesses){
     # Open modal
     observeEvent(input$add_widget, {
       if (debug) cat(paste0("\n", now(), " - mod_data - observer input$add_widget"))
+      
+      req(!is.na(r[[paste0(r$data_page, "_selected_tab")]]))
+      
       shinyjs::show("add_widget_modal")
       
       # Reload plugins var

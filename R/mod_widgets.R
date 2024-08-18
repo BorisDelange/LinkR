@@ -340,7 +340,7 @@ mod_widgets_server <- function(id, r, d, m, language, i18n, all_divs, debug, use
       
       if (debug) cat(paste0("\n", now(), " - mod_widgets - (", id, ") - observer input$add_element"))
       
-      req(paste0(id, "_management") %in% user_accesses)
+      req(paste0(id, "_management") %in% user_accesses | id == "subsets")
       
       element_name <- input$element_creation_name
       username <- r$users %>% dplyr::filter(id == r$user_id) %>% dplyr::pull(name)
@@ -496,9 +496,18 @@ mod_widgets_server <- function(id, r, d, m, language, i18n, all_divs, debug, use
       ## Code table
       
       ### For plugins table, add 3 files (ui.R, server.R, translations.csv)
-      if (id == "plugins") new_code <- tibble::tibble(
-        id = get_last_row(con, "code") + 1:3, category = "plugin", link_id = new_options_ids, code = "",
-        creator_id = r$user_id, datetime = now(), deleted = FALSE)
+      if (id == "plugins"){
+        
+        default_ui <- ""
+        default_server <- ""
+        default_translations <- "base,en,fr\n"
+        code <- c(default_ui, default_server, default_translations)
+        
+        new_code <- tibble::tibble(
+          id = get_last_row(con, "code") + 1:3, category = "plugin", link_id = new_options_ids, code = code,
+          creator_id = r$user_id, datetime = now(), deleted = FALSE
+        )
+      }
       
       else {
         
@@ -1268,7 +1277,7 @@ mod_widgets_server <- function(id, r, d, m, language, i18n, all_divs, debug, use
     observeEvent(input$confirm_element_deletion, {
       if (debug) cat(paste0("\n", now(), " - mod_widgets - (", id, ") - observer input$confirm_element_deletion"))
       
-      req(paste0(id, "_management") %in% user_accesses)
+      req(paste0(id, "_management") %in% user_accesses | id == "subsets")
       
       element_id <- input$selected_element
       

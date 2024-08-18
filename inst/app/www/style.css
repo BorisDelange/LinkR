@@ -603,6 +603,21 @@ a.no-hover-effect:hover {
   height: 20px
 }
 
+.control-label {
+  font-weight: bold;
+  display: inline-block;
+  margin-bottom: 5px;
+}
+
+.selectize-input {
+  min-height: 24px;
+  padding: 2px 6px;
+}
+
+.selectize-dropdown-content .option {
+  line-height: 18px;
+  padding: 2px 6px;
+}
 /* ------------------- */
 /* TEXTFIELDS          */
 /* ------------------- */

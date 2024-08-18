@@ -20,7 +20,7 @@ mod_page_header_ui <- function(id, i18n){
         # Main pages
         shiny.fluent::CommandBarItem("", "CustomList", title = i18n$t("projects"), href = shiny.router::route_link("projects")),
         shiny.fluent::CommandBarItem("", "Code", title = i18n$t("console"), href = shiny.router::route_link("console")),
-        shiny.fluent::CommandBarItem("", "World", title = i18n$t("explore"), href = shiny.router::route_link("git_repos")),
+        shiny.fluent::CommandBarItem("", "World", title = i18n$t("content_catalog"), href = shiny.router::route_link("git_repos")),
         
         # Other pages
         shiny.fluent::CommandBarItem(
@@ -149,6 +149,7 @@ mod_page_header_server <- function(id, r, d, m, language, i18n, debug){
       })
     }
     else if (id == "project_messages") output$current_page <- renderUI(i18n$t("messages"))
+    else if (id == "git_repos") output$current_page <- renderUI(i18n$t("content_catalog"))
     else output$current_page <- renderUI(i18n$t(id))
     
     # Selected project
