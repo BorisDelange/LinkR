@@ -350,6 +350,7 @@ mod_projects_server <- function(id, r, d, m, language, i18n, debug, user_accesse
     observeEvent(input$reload_dataset, {
       if (debug) cat(paste0("\n", now(), " - mod_projects - observer input$reload_dataset"))
       
+      req(length(input$project_dataset) > 0)
       req("projects_dataset" %in% user_accesses)
       load_dataset(r, m, d, input$project_dataset, r$main_tables)
     })

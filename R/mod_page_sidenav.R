@@ -646,7 +646,7 @@ mod_page_sidenav_ui <- function(id, i18n){
               class = "reduced_sidenav_buttons"
             ),
             div(
-              create_hover_card(ui = shiny.fluent::IconButton.shinyInput(ns("reload_dataset"), iconProps = list(iconName = "SyncOccurence")), text = i18n$t("reload_dataset")),
+              create_hover_card(ui = shiny.fluent::IconButton.shinyInput(ns("reload_dataset"), iconProps = list(iconName = "Play")), text = i18n$t("reload_dataset")),
               class = "reduced_sidenav_buttons"
             )
           )

@@ -166,7 +166,7 @@ app_server <- function(pages, language, languages, i18n, app_folder, debug, log_
     
     # User is logged in
     
-    r$user_id <- 1
+    # r$user_id <- 1
     
     observeEvent(r$user_id, {
       if (debug) cat(paste0("\n", now(), " - server - observer r$user_id"))

@@ -278,8 +278,9 @@ mod_data_server <- function(id, r, d, m, language, i18n, debug, user_accesses){
       hidden_category <- categories[categories != displayed_category]
       
       # Show / hide sidenav dropdowns
-      if (displayed_category == "patient_lvl") sapply(c("person_dropdown_div", "visit_detail_dropdown_div"), shinyjs::show)
-      else sapply(c("person_dropdown_div", "visit_detail_dropdown_div"), shinyjs::hide)
+      divs <- c("person_dropdown_div", "visit_detail_dropdown_div", "person_info_div")
+      if (displayed_category == "patient_lvl") sapply(divs, shinyjs::show)
+      else sapply(divs, shinyjs::hide)
       
       # Show / hide study menu
       shinyjs::hide(paste0(hidden_category, "_study_menu"))
