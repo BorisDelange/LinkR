@@ -158,6 +158,9 @@ mod_widgets_server <- function(id, r, d, m, language, i18n, all_divs, debug, use
       req(shiny.router::get_page() == id)
       if (debug) cat(paste0("\n", now(), " - mod_widgets - (", id, ") - observer shiny.router::get_page()"))
       
+      # Reload elements list
+      shinyjs::runjs(paste0("Shiny.setInputValue('", id, "-reload_elements_var', Math.random());"))
+      
       # Prevent a bug with scroll into ace editor
       shinyjs::runjs("var event = new Event('resize'); window.dispatchEvent(event);")
     })

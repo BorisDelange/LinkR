@@ -328,6 +328,14 @@ mod_projects_server <- function(id, r, d, m, language, i18n, debug, user_accesse
     
     ## Save updates ----
     
+    observeEvent(input$project_dataset, {
+      if (debug) cat(paste0("\n", now(), " - mod_projects - observer input$save_dataset"))
+      req(length(input$project_dataset) > 0)
+      
+      # Save each time a dataset is selected
+      shinyjs::runjs(paste0("Shiny.setInputValue('", id, "-save_dataset', Math.random());"))
+    })
+    
     observeEvent(input$save_dataset, {
       if (debug) cat(paste0("\n", now(), " - mod_projects - observer input$save_dataset"))
       
@@ -342,7 +350,7 @@ mod_projects_server <- function(id, r, d, m, language, i18n, debug, user_accesse
         dplyr::mutate(dataset_id = dplyr::case_when(id == input$selected_element ~ input$project_dataset, TRUE ~ dataset_id))
       
       # Notify user
-      show_message_bar(output,  "modif_saved", "success", i18n = i18n, ns = ns)
+      # show_message_bar(output,  "modif_saved", "success", i18n = i18n, ns = ns)
     })
     
     ## Reload dataset ----
@@ -352,7 +360,7 @@ mod_projects_server <- function(id, r, d, m, language, i18n, debug, user_accesse
       
       req(length(input$project_dataset) > 0)
       req("projects_dataset" %in% user_accesses)
-      load_dataset(r, m, d, input$project_dataset, r$main_tables)
+      load_dataset(r, m, d, input$project_dataset, r$main_tables, m$selected_study)
     })
     
     # --- --- --- --- --- -

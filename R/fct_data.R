@@ -171,7 +171,7 @@ process_widget_code <- function(code, tab_id, widget_id, study_id, patient_id, p
 }
 
 #' @noRd
-load_dataset <- function(r, m, d, dataset_id, main_tables){
+load_dataset <- function(r, m, d, dataset_id, main_tables, selected_study){
   
   # Reset data vars
   sapply(main_tables, function(table) d[[table]] <- tibble::tibble())
@@ -201,6 +201,51 @@ load_dataset <- function(r, m, d, dataset_id, main_tables){
     stringr::str_replace_all("%dataset_folder%", dataset_folder)
   
   tryCatch(capture.output(eval(parse(text = dataset_code))), error = function(e) cat(paste0("\n", now(), " - mod_data - error loading dataset - dataset_id = ", dataset_id)))
+  
+  # Subsets depending on the selected study
+  sql <- glue::glue_sql("SELECT * FROM subsets WHERE study_id = {selected_study}", .con = m$db)
+  m$subsets <- DBI::dbGetQuery(m$db, sql)
+  subsets_ids <- m$subsets$id
+  
+  # If there are no subsets, create one default subset
+  if (nrow(m$subsets) == 0){
+    
+    new_subset_id <- get_last_row(m$db, "subsets") + 1
+    new_subset_name <- r$i18n$t("subset_all_patients")
+    username <- r$users %>% dplyr::filter(id == r$user_id) %>% dplyr::pull(name)
+    
+    new_data <- tibble::tibble(
+      id = new_subset_id, name = new_subset_name, description = NA_character_, study_id = selected_study,
+      creator_id = r$user_id, datetime = now(), deleted = FALSE)
+    
+    DBI::dbAppendTable(m$db, "subsets", new_data)
+    m$subsets <- new_data
+    
+    new_options <- create_options_tibble(
+      element_id = new_subset_id, element_name = new_subset_name, sql_category = "subset", user_id = r$user_id, username = username, 
+      languages = r$languages, last_options_id = get_last_row(m$db, "options"))
+    
+    DBI::dbAppendTable(m$db, "options", new_options)
+    
+    code <- paste0(
+      "add_patients_to_subset(\n",
+      "    patients = d$person %>% dplyr::pull(person_id),\n",
+      "    subset_id = %subset_id%,\n",
+      "    output = output, r = r, m = m, i18n = i18n, ns = ns\n",
+      ")"
+    )
+    new_code <- tibble::tibble(
+      id = get_last_row(m$db, "code") + 1, category = "subset", link_id = new_subset_id, code = code,
+      creator_id = r$user_id, datetime = now(), deleted = FALSE)
+    
+    DBI::dbAppendTable(m$db, "code", new_code)
+    
+    subsets_ids <- new_subset_id
+  }
+  
+  # Select patients belonging to subsets of this study
+  sql <- glue::glue_sql("SELECT * FROM subset_persons WHERE subset_id IN ({subsets_ids*})", .con = m$db)
+  m$subsets_persons <- DBI::dbGetQuery(m$db, sql)
 }
 
 #' @noRd

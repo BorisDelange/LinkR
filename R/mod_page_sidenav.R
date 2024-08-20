@@ -74,7 +74,7 @@ mod_page_sidenav_ui <- function(id, i18n){
         ),
         text = i18n$t("create_project")
       ),
-      create_hover_card(ui = div(shiny.fluent::IconButton.shinyInput(ns("reload_elements_var"), iconProps = list(iconName = "SyncOccurence"))), text = i18n$t("reload_list")),
+      # create_hover_card(ui = div(shiny.fluent::IconButton.shinyInput(ns("reload_elements_var"), iconProps = list(iconName = "SyncOccurence"))), text = i18n$t("reload_list")),
       create_hover_card(
         ui = shinyjs::hidden(
           div(
@@ -641,14 +641,14 @@ mod_page_sidenav_ui <- function(id, i18n){
         shinyjs::hidden(
           div(
             id = ns("dataset_reduced_sidenav"),
-            div(
-              create_hover_card(ui = shiny.fluent::IconButton.shinyInput(ns("save_dataset"), iconProps = list(iconName = "Save")), text = i18n$t("save")),
-              class = "reduced_sidenav_buttons"
-            ),
-            div(
-              create_hover_card(ui = shiny.fluent::IconButton.shinyInput(ns("reload_dataset"), iconProps = list(iconName = "Play")), text = i18n$t("reload_dataset")),
-              class = "reduced_sidenav_buttons"
-            )
+            # div(
+            #   create_hover_card(ui = shiny.fluent::IconButton.shinyInput(ns("save_dataset"), iconProps = list(iconName = "Save")), text = i18n$t("save")),
+            #   class = "reduced_sidenav_buttons"
+            # ),
+            # div(
+            #   create_hover_card(ui = shiny.fluent::IconButton.shinyInput(ns("reload_dataset"), iconProps = list(iconName = "Play")), text = i18n$t("reload_dataset")),
+            #   class = "reduced_sidenav_buttons"
+            # )
           )
         ),
         shinyjs::hidden(

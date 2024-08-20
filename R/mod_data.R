@@ -331,18 +331,10 @@ mod_data_server <- function(id, r, d, m, language, i18n, debug, user_accesses){
 
         req(!is.na(m$selected_study))
 
-        # Subsets depending on the selected study
-        sql <- glue::glue_sql("SELECT * FROM subsets WHERE study_id = {m$selected_study}", .con = m$db)
-        m$subsets <- DBI::dbGetQuery(m$db, sql)
-
         # Reset selected_subset, selected_person & selected_visit_detail
         m$selected_subset <- NA_integer_
         m$selected_person <- NA_integer_
         m$selected_visit_detail <- NA_integer_
-
-        # Select patients belonging to subsets of this study
-        sql <- glue::glue_sql("SELECT * FROM subset_persons WHERE subset_id IN ({m$subsets$id*})", .con = m$db)
-        m$subsets_persons <- DBI::dbGetQuery(m$db, sql)
 
         shinyjs::show("study_menu")
         
@@ -434,7 +426,7 @@ mod_data_server <- function(id, r, d, m, language, i18n, debug, user_accesses){
       
       shinyjs::delay(100, {
         dataset_id <- r$selected_dataset
-        load_dataset(r, m, d, dataset_id, main_tables)
+        load_dataset(r, m, d, dataset_id, main_tables, m$selected_study)
       })
       
       # Display project loading status
@@ -505,7 +497,7 @@ mod_data_server <- function(id, r, d, m, language, i18n, debug, user_accesses){
         
         # Update subset dropdown
         if (nrow(m$subsets) == 0) updateSelectizeInput(
-            session, "subset", choices = NULL, server = TRUE, selected = FALSE,
+            session, "subset", choices = NULL, server = TRUE,
             options = list(
               placeholder = i18n$t("no_subset_available"),
               onInitialize = I("function() { this.setValue(''); }")
@@ -527,7 +519,7 @@ mod_data_server <- function(id, r, d, m, language, i18n, debug, user_accesses){
         sapply(c("person", "visit_detail"), function(name){
           shinyjs::hide(paste0(name, "_div"))
           updateSelectizeInput(
-            session, name, choices = NULL, server = TRUE, selected = FALSE,
+            session, name, choices = NULL, server = TRUE,
             options = list(
               placeholder = "",
               onInitialize = I("function() { this.setValue(''); }")

@@ -135,7 +135,7 @@ mod_select_concepts_server <- function(id, r, d, m, language, i18n, debug, user_
     observeEvent(input$reload_vocabularies, {
       if (debug) cat(paste0("\n", now(), " - mod_select_concepts - (", id, ") - observer r$reload_vocabularies"))
       
-      req(r$dataset_vocabularies)
+      req(length(r$dataset_vocabularies) > 0)
       if (nrow(r$dataset_vocabularies) == 0) vocabulary_options = list()
       if (nrow(r$dataset_vocabularies) > 0) vocabulary_options <- convert_tibble_to_list(data = r$dataset_vocabularies, key_col = "vocabulary_id", text_col = "vocabulary_id", i18n = i18n)
 
