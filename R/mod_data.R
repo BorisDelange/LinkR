@@ -370,13 +370,17 @@ mod_data_server <- function(id, r, d, m, language, i18n, debug, user_accesses){
         # Load tabs
         r$data_reload_tabs <- paste0("ui_first_load_", now())
 
-        # Load data
+        # Load data & concepts
         sql <- glue::glue_sql("SELECT dataset_id FROM studies WHERE id = {m$selected_study}", .con = r$db)
         r$selected_dataset <- DBI::dbGetQuery(r$db, sql) %>% dplyr::pull(dataset_id)
-        shinyjs::runjs(paste0("Shiny.setInputValue('", id, "-load_dataset', Math.random());"))
+        
+        if (!is.na(r$selected_dataset)){
+          ## Load data
+          shinyjs::runjs(paste0("Shiny.setInputValue('", id, "-load_dataset', Math.random());"))
 
-        # Load concepts
-        load_dataset_concepts(r, d, m)
+          ## Load concepts
+          load_dataset_concepts(r, d, m)
+        }
       })
 
       # Display project loading status

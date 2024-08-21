@@ -252,7 +252,7 @@ load_dataset <- function(r, m, d, dataset_id, main_tables, selected_study){
 load_dataset_concepts <- function(r, d, m){
   
   req(!is.na(r$selected_dataset), r$selected_dataset != 0)
-    
+  
   # Create dataset folder if doesn't exist
   dataset_folder <- paste0(r$app_folder, "/datasets_files/", r$selected_dataset)
   if (!dir.exists(dataset_folder)) dir.create(dataset_folder)

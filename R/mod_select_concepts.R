@@ -138,7 +138,7 @@ mod_select_concepts_server <- function(id, r, d, m, language, i18n, debug, user_
       req(length(r$dataset_vocabularies) > 0)
       if (nrow(r$dataset_vocabularies) == 0) vocabulary_options = list()
       if (nrow(r$dataset_vocabularies) > 0) vocabulary_options <- convert_tibble_to_list(data = r$dataset_vocabularies, key_col = "vocabulary_id", text_col = "vocabulary_id", i18n = i18n)
-
+      
       shiny.fluent::updateComboBox.shinyInput(session, "vocabulary", options = vocabulary_options, value = NULL)
       
       # Initiate selected_concepts var
