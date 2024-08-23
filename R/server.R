@@ -50,7 +50,7 @@ app_server <- function(pages, language, languages, i18n, app_folder, debug, log_
     o <- reactiveValues()
     
     # App version ----
-    r$app_version <- "0.3.0.9014"
+    r$app_version <- "0.3.0.9015"
     
     # Databse col types ----
     
