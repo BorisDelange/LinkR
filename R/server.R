@@ -89,12 +89,6 @@ app_server <- function(pages, language, languages, i18n, app_folder, username, d
     
     db_local_main <- get_db(r = r, m = m, app_db_folder = app_db_folder, db_col_types = db_col_types)
     
-    # Connection with username
-    sql <- glue::glue_sql("SELECT id FROM users WHERE username = {username}", .con = local_db)
-    user_id <- DBI::dbGetQuery(local_db, sql)
-    if (nrow(user_id) > 0) r$user_id <- user_id %>% dplyr::pull()
-    else stop("Username not found in app database")
-    
     # Db col types
     r$db_col_types <- db_col_types
     
@@ -116,6 +110,12 @@ app_server <- function(pages, language, languages, i18n, app_folder, username, d
       
       # Add default values in database, if it is empty
       insert_default_data(output = output, r = r, m = m, i18n = i18n, language = language, db_col_types = db_col_types, users_accesses_toggles_options = users_accesses_toggles_options)
+      
+      # Connection with username
+      sql <- glue::glue_sql("SELECT id FROM users WHERE username = {username}", .con = local_db)
+      user_id <- DBI::dbGetQuery(local_db, sql)
+      if (nrow(user_id) > 0) r$user_id <- user_id %>% dplyr::pull()
+      else stop("Username not found in app database")
       
       # Load datasets
       sql <- glue::glue_sql("SELECT * FROM datasets", .con = r$db)
