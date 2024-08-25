@@ -1,5 +1,5 @@
 #' @noRd
-app_server <- function(pages, language, languages, i18n, app_folder, debug, log_file, local, users_accesses_toggles_options, db_col_types, dropdowns){
+app_server <- function(pages, language, languages, i18n, app_folder, username, debug, log_file, local, users_accesses_toggles_options, db_col_types, dropdowns){
   function(input, output, session) {
     
     if (debug) cat(paste0("\n", now(), " - server - init"))
@@ -50,7 +50,7 @@ app_server <- function(pages, language, languages, i18n, app_folder, debug, log_
     o <- reactiveValues()
     
     # App version ----
-    r$app_version <- "0.3.0.9015"
+    r$app_version <- "0.3.0.9016"
     
     # Databse col types ----
     
@@ -83,10 +83,17 @@ app_server <- function(pages, language, languages, i18n, app_folder, debug, log_
     # Connection to database ----
     # If connection informations have been given in linkr() function, use these informations
     if (debug) cat(paste0("\n", now(), " - server - app_db"))
-    r$local_db <- DBI::dbConnect(RSQLite::SQLite(), paste0(app_db_folder, "/linkr_main"))
+    local_db <- DBI::dbConnect(RSQLite::SQLite(), paste0(app_db_folder, "/linkr_main"))
+    r$local_db <- local_db
     m$local_db <- DBI::dbConnect(RSQLite::SQLite(), paste0(app_db_folder, "/linkr_public"))
     
     db_local_main <- get_db(r = r, m = m, app_db_folder = app_db_folder, db_col_types = db_col_types)
+    
+    # Connection with username
+    sql <- glue::glue_sql("SELECT id FROM users WHERE username = {username}", .con = local_db)
+    user_id <- DBI::dbGetQuery(local_db, sql)
+    if (nrow(user_id) > 0) r$user_id <- user_id %>% dplyr::pull()
+    else stop("Username not found in app database")
     
     # Db col types
     r$db_col_types <- db_col_types
@@ -166,8 +173,6 @@ app_server <- function(pages, language, languages, i18n, app_folder, debug, log_
     
     # User is logged in
     
-    # r$user_id <- 1
-    
     observeEvent(r$user_id, {
       if (debug) cat(paste0("\n", now(), " - server - observer r$user_id"))
       
@@ -231,18 +236,6 @@ app_server <- function(pages, language, languages, i18n, app_folder, debug, log_
       if (debug) cat(paste0("\n", now(), " - server - observer r$load_page"))
       
       page <- r$load_page
-      
-      # Load login page
-      if (page == "login"){
-        mod_login_server("login", r, i18n, debug)
-        r$loaded_pages$login <- TRUE
-      }
-      
-      # User has to be logged in to load other pages. If user is not logged in, redirect to login page.
-      if (length(r$user_id) == 0) shiny.router::change_page("login")
-      req(length(r$user_id) > 0)
-      
-      req(page != "login")
       
       # Get user accesses
       user_access_id <- r$users %>% dplyr::filter(id == r$user_id) %>% dplyr::pull(user_access_id) 

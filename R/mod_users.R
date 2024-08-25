@@ -242,7 +242,6 @@ mod_users_ui <- function(id, language, languages, i18n, users_accesses_toggles_o
           div(
             div(
               div(shiny.fluent::TextField.shinyInput(ns("create_user_username"), label = i18n$t("username")), style = "width: 200px;"),
-              div(shiny.fluent::TextField.shinyInput(ns("create_user_password"), label = i18n$t("password"), type = "password", canRevealPassword = TRUE), style = "width: 200px;"),
               div(
                 div(shiny.fluent::TextField.shinyInput(ns("create_user_firstname"), label = i18n$t("firstname")), style = "width: 200px;"),
                 div(shiny.fluent::TextField.shinyInput(ns("create_user_lastname"), label = i18n$t("lastname")), style = "width: 200px;"),
@@ -372,7 +371,7 @@ mod_users_server <- function(id, r, d, m, language, i18n, debug, users_accesses_
       # Check if textfields are not empty
       empty <- list()
       
-      for (field in c("username", "password", "firstname", "lastname")){
+      for (field in c("username", "firstname", "lastname")){
         empty[[field]] <- TRUE
         name <- input[[paste0("create_user_", field)]]
         if (length(name) > 0) if (!is.na(name) & name != "") empty[[field]] <- FALSE
@@ -380,7 +379,7 @@ mod_users_server <- function(id, r, d, m, language, i18n, debug, users_accesses_
         else shiny.fluent::updateTextField.shinyInput(session, paste0("create_user_", field), errorMessage = NULL)
       }
       
-      req(!empty$username, !empty$password, !empty$firstname, !empty$lastname)
+      req(!empty$username, !empty$firstname, !empty$lastname)
       
       # Check if username is not already used
       sql <- glue::glue_sql("SELECT id FROM users WHERE LOWER(username) = {tolower(input$create_user_username)}", .con = r$db)
@@ -412,18 +411,16 @@ mod_users_server <- function(id, r, d, m, language, i18n, debug, users_accesses_
       }
       
       # Add new data in db
-      # Hash password with bcrypt
-      encrypted_password <- bcrypt::hashpw(input$create_user_password)
       
       new_data <- tibble::tibble(
         id = get_last_row(r$db, "users") + 1, username = input$create_user_username,
-        firstname = input$create_user_firstname, lastname = input$create_user_lastname, password = encrypted_password,
+        firstname = input$create_user_firstname, lastname = input$create_user_lastname, password = "",
         user_access_id = input$create_user_user_access, user_status_id = input$create_user_user_status, datetime = now(), deleted = FALSE
       )
       DBI::dbAppendTable(r$db, "users", new_data)
       
       # Reload textfields
-      for (field in c("username", "password", "firstname", "lastname")) shiny.fluent::updateTextField.shinyInput(session, paste0("create_user_", field), value = "")
+      for (field in c("username", "firstname", "lastname")) shiny.fluent::updateTextField.shinyInput(session, paste0("create_user_", field), value = "")
       
       # Reload users var and DT
       shinyjs::runjs(paste0("Shiny.setInputValue('", id, "-reload_users', Math.random());"))

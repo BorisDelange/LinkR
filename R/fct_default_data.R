@@ -9,8 +9,8 @@ insert_default_data <- function(output, r, m, i18n, language, db_col_types, user
     if (nrow(DBI::dbGetQuery(r$db, "SELECT * FROM users")) == 0){
       DBI::dbAppendTable(r$db, "users", tibble::tribble(
         ~id, ~username, ~firstname, ~lastname, ~password, ~user_access_id, ~user_status_id, ~datetime, ~deleted,
-        1, "admin", "Jane", "Doe", bcrypt::hashpw("admin"), 1, 1, now(), FALSE,
-        2, "test", "John", "Doe", bcrypt::hashpw("test"), 2, 1, now(), FALSE))
+        1, "admin", "Jane", "Doe", "", 1, 1, now(), FALSE,
+        2, "test", "John", "Doe", "", 2, 1, now(), FALSE))
     }
     
     # Add default user access

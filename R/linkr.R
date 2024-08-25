@@ -7,6 +7,7 @@
 #' a 'linkr' folder will be created in the folder returned by path.expand("~").\cr
 #' @param language Default language to use in the App (character)
 #' @param app_folder Location of the application folder (character).
+#' @param username Username used for connection. Default username is "admin". (character)
 #' @param local Run the app in local mode, do not load files on the internet (logical)
 #' @param debug Debug mode : steps and errors will by displayed in the console (logical)
 #' @param log_file Create a log file to see app log directly in the app (logical)
@@ -22,6 +23,7 @@
 linkr <- function(
   language = "en",
   app_folder = character(),
+  username = "admin",
   local = FALSE,
   debug = FALSE,
   log_file = FALSE,
@@ -38,10 +40,15 @@ linkr <- function(
   # Used to restore database and import vocabularies
   # shiny.launch.browser to automatically open browser
   
-  if (debug) cat(paste0(now(), " - linkr - init - v0.3.0.9015"))
+  if (debug) cat(paste0(now(), " - linkr - init - v0.3.0.9016"))
   options(shiny.maxRequestSize = 4096*1024^2, shiny.launch.browser = TRUE, shiny.port = port)
   
-  if (!is.logical(debug) | !is.logical(local)) stop("debug or local are not logical")
+  if (!is.logical(debug)) stop("'debug' argument is not of logical type")
+  if (!is.logical(local)) stop("'local' argument is not of logical type")
+  
+  error_username <- TRUE
+  if (length(username) > 0) if (!is.na(username) & username != "") error_username <- FALSE
+  if (error_username) stop("'username' argument is invalid")
   
   # Create app folder if it doesn't exist
   if (debug) cat(paste0("\n", now(), " - linkr - app_folder"))
@@ -158,7 +165,7 @@ linkr <- function(
     "data_cleaning",
     "git_repos",
     "log",
-    "login",
+    # "login",
     "project_messages",
     "plugins",
     "projects",
@@ -252,7 +259,7 @@ linkr <- function(
   if (debug) cat(paste0("\n", now(), " - linkr - load UI & server"))
   shinyApp(
     ui = app_ui(pages, language, languages, i18n, users_accesses_toggles_options, db_col_types, dropdowns, debug),
-    server = app_server(pages, language, languages, i18n, app_folder, debug, log_file, local, users_accesses_toggles_options, db_col_types, dropdowns),
+    server = app_server(pages, language, languages, i18n, app_folder, username, debug, log_file, local, users_accesses_toggles_options, db_col_types, dropdowns),
     options = options
   )
 }
