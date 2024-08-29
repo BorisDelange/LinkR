@@ -1265,3 +1265,4 @@ submit_login,Connexion
 invalid_login_or_password,Identifiant ou mot de passe invalide
 add_to_saved_git_repos,Ajouter aux dépôts sauvegardés
 content_catalog,Catalogue de contenus
+copy_existing_plugin,Copier un plugin existant

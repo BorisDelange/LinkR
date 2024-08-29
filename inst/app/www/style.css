@@ -329,7 +329,7 @@ a.no-hover-effect:hover {
 
 .create_plugin_modal_content {
   width: 500px;
-  height: 130px;
+  padding-bottom: 50px;
 }
 
 .create_project_modal_content, .create_dataset_modal_content, .create_subset_modal_content, .create_vocabulary_modal_content,

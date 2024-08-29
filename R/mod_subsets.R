@@ -43,25 +43,21 @@ mod_subsets_ui <- function(id, language, languages, i18n){
             div(
               h1(i18n$t("informations")),
               uiOutput(ns("subset_summary")),
-              div(
-                div(shiny.fluent::PrimaryButton.shinyInput(ns("delete_element"), i18n$t("delete")), class = "delete_button"),
-                class = "create_element_modal_buttons"
-              ),
               class = "widget", style = "height: 50%;"
             ),
-            div(
-              h1("?"),
-              class = "widget", style = "height: 50%;"
-            ),
+            # div(
+            #   h1("?"),
+            #   class = "widget", style = "height: 50%;"
+            # ),
             class = "subsets_summary_left"
           ),
-          div(
-            div(
-              h1(i18n$t("description")),
-              class = "widget", style = "height: calc(100% - 25px); padding-top: 1px;"
-            ),
-            class = "subsets_summary_right"
-          ),
+          # div(
+          #   div(
+          #     h1(i18n$t("description")),
+          #     class = "widget", style = "height: calc(100% - 25px); padding-top: 1px;"
+          #   ),
+          #   class = "subsets_summary_right"
+          # ),
           class = "subsets_summary_container"
         ),
 
@@ -87,7 +83,31 @@ mod_subsets_ui <- function(id, language, languages, i18n){
 
         style = "height: 100%; display: flex; flex-direction: column;"
       )
-    )
+    ),
+    
+    # Create a subset modal ----
+    
+    shinyjs::hidden(
+      div(
+        id = ns("create_element_modal"),
+        div(
+          div(
+            tags$h1(i18n$t("create_subset")),
+            shiny.fluent::IconButton.shinyInput(ns("close_create_element_modal"), iconProps = list(iconName = "ChromeClose")),
+            class = "create_element_modal_head small_close_button"
+          ),
+          div(
+            div(shiny.fluent::TextField.shinyInput(ns("element_creation_name"), label = i18n$t("name")), style = "width: 200px;"),
+            div(
+              shiny.fluent::PrimaryButton.shinyInput(ns("add_element"), i18n$t("add")),
+              class = "create_element_modal_buttons"
+            ),
+          ),
+          class = "create_subset_modal_content"
+        ),
+        class = "create_element_modal"
+      )
+    ),
   )
 }
     
@@ -113,6 +133,8 @@ mod_subsets_server <- function(id, r, d, m, language, i18n, debug, user_accesses
     # --- --- --- --- - -
     # Subset summary ----
     # --- --- --- --- - -
+    
+    sapply(c("edit_summary_div", "delete_element_div"), shinyjs::show)
     
     # |-------------------------------- -----
     

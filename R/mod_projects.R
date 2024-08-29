@@ -241,6 +241,30 @@ mod_projects_ui <- function(id, language, languages, i18n){
       )
     ),
     
+    # Create a project modal ----
+    
+    shinyjs::hidden(
+      div(
+        id = ns("create_element_modal"),
+        div(
+          div(
+            tags$h1(i18n$t("create_project")),
+            shiny.fluent::IconButton.shinyInput(ns("close_create_element_modal"), iconProps = list(iconName = "ChromeClose")),
+            class = "create_element_modal_head small_close_button"
+          ),
+          div(
+            div(shiny.fluent::TextField.shinyInput(ns("element_creation_name"), label = i18n$t("name")), style = "width: 200px;"),
+            div(
+              shiny.fluent::PrimaryButton.shinyInput(ns("add_element"), i18n$t("add")),
+              class = "create_element_modal_buttons"
+            ),
+          ),
+          class = "create_project_modal_content"
+        ),
+        class = "create_element_modal"
+      )
+    ),
+    
     # Import project plugins modal ----
     
     shinyjs::hidden(
