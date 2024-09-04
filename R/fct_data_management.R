@@ -150,3 +150,22 @@ remove_patients_from_subset <- function(output, r = shiny::reactiveValues(), m =
   
   show_message_bar(output, "remove_persons_subset_success", "success", i18n = i18n, ns = ns)
 }
+
+#' @noRd
+join_concept <- function(df, concept_df, key, name, copy = TRUE) {
+  df %>%
+    dplyr::left_join(
+      concept_df %>%
+        dplyr::select(!!key := concept_id, !!name := concept_name),
+      by = key,
+      copy = copy
+    )
+}
+
+#' @noRd
+count_concept_rows <- function(df, group_col, name_col) {
+  df %>%
+    dplyr::group_by(dplyr::across(dplyr::all_of(c(group_col, name_col)))) %>%
+    dplyr::summarize(n = dplyr::n(), .groups = 'drop') %>%
+    dplyr::arrange(dplyr::desc(n))
+}
