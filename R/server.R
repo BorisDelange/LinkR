@@ -92,13 +92,6 @@ app_server <- function(pages, language, languages, i18n, app_folder, username, d
     # Db col types
     r$db_col_types <- db_col_types
     
-    # Close DB connection on exit
-    # And restore initial working directory
-    trad <- list()
-    trad$session <- switch(language, "fr" = "Session", "en" = "Session")
-    trad$session_starts <- switch(language, "fr" = "Début de la session", "en" = "Session starts")
-    trad$session_ends <- switch(language, "fr" = "Fin de la session", "en" = "Session ends")
-    
     # Add default values in database if database is empty
     # Load all data from database
     # Don't load concept, load it only when a vocabulary is selected
@@ -187,6 +180,9 @@ app_server <- function(pages, language, languages, i18n, app_folder, username, d
       
       onStop(function() {
         if (debug) cat(paste0("\n", now(), " - server - observer onStop"))
+        
+        # Close db connections
+        # if (length(d$con) > 0) if (DBI::dbIsValid(d$con)) DBI::dbDisconnect(d$con)
         
         # Stop console redirection to log file
         while(sink.number() > 0) sink(NULL)

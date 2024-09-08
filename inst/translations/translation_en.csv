@@ -929,6 +929,7 @@ dataset_invalid_data_source,Invalid value for 'source'
 dataset_error_with_db_connection,Failed to connect to database
 wrong_association_read_with_and_save_as,The association between 'read_with' and 'save_as' arguments is not valid
 error_loading_duckdb,Error loading data with duckdb
+error_loading_data,Error loading data
 error_loading_sparklyr,Error loading data with sparklyr
 language,Language
 programming_language,Language

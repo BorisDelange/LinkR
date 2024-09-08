@@ -1,76 +1,23 @@
 #' Import a dataset
 #' 
 #' @description Imports a dataset into the application using the OMOP Common Data Model.
-#' @param r A shiny::reactiveValues object used for communication between modules.
-#' @param d A shiny::reactiveValues object used for communication between modules.
-#' @param dataset_id The ID of the dataset, used to create a specific dataset folder in the application directories (integer).
-#' @param source The source of the data: either a database connection ("db") or disk ("disk") (character).
-#' @param data_folder The folder containing the data (character).
-#' @param con A DBI::dbConnect object representing the database connection.
-#' @param omop_version The OMOP version of the imported data; accepted values are "5.3", "5.4", and "6.0" (character).
-#' @param read_with The library used to read the data. Accepted values are: "none", "vroom", "duckdb", "spark", "arrow" (character).
-#' @param save_as Specifies whether the data should be saved in the app folder. Accepted values are: "none", "parquet", "csv" (character).
-#' @param rewrite If save_as is not "none", specifies whether the data files should be overwritten (logical).
+#' @param r A `shiny::reactiveValues` object used for communication between modules.
+#' @param d A `shiny::reactiveValues` object used for communication between modules.
+#' @param dataset_id The ID of the dataset, used to create a specific dataset folder in the application directories. Must be an integer.
+#' @param omop_version The OMOP version of the imported data. Accepted values are `"5.3"`, `"5.4"`, and `"6.0"`. Defaults to `"5.4"`.
+#' @param data_source The source of the data. Accepted values are `"db"` for a database connection or `"disk"` for disk storage. Defaults to `"disk"`.
+#' @param data_folder The folder containing the data. Must be a character string.
+#' @param con A `DBI::dbConnect` object representing the database connection, required if `data_source` is `"db"`.
+#' @param load_tables A character vector specifying which OMOP tables to load.
+#' @param ... Additional arguments to be passed to the `vroom` function (e.g., `delim`).
 #' @details 
-#' This function is used within a dataset code and is invoked each time a user selects a dataset.
-#'
-#' For \strong{each OMOP table} you wish to import, you must \strong{create a function} that, when called,
-#' loads the data from the specified table.
-#'
-#' Then, utilize the \strong{import_dataset} function to load data into the application.
-#'
-#' Data can be loaded from several sources, including:
-#' \itemize{
-#'   \item CSV files
-#'   \item Excel files
-#'   \item Parquet files
-#'   \item Local database connections
-#'   \item Remote database connections
-#' }
-#'
-#' Select the R library for \strong{reading the file} using the \strong{read_with} argument (options include vroom, duckdb, spark, or arrow).
-#' If read_with is set to "none", the data is loaded as is.
-#'
-#' Choose the \strong{format} for \strong{saving the data} after import using the save_as argument (options are csv or parquet).
-#'
-#' When loading data from a database, it's \strong{common to not save the data locally}, 
-#' in order to enhance application performance through \strong{partial data loading} (lazy data reading).
-#'
-#' If you wish to \strong{modify your data after loading}, saving it locally may be beneficial to preserve your changes.
-#' In such cases, we recommend using the \strong{parquet} storage format and loading the data with \strong{duckdb} for efficient lazy reading.
-#'
-#' The data you import must adhere to the \href{https://ohdsi.github.io/CommonDataModel/cdm60.html}{\strong{OMOP common data model}} format.
-#' For more information, refer to the help pages in the app.
-#' @examples
-#' \dontrun{
-#' }
 import_dataset <- function(
-  r = shiny::reactiveValues(), d = shiny::reactiveValues(), dataset_id = integer(), omop_version = "6.0",
-  data_source = "disk", data_folder = character(), con = DBI::dbConnect(duckdb::duckdb(), ":memory:"),
-  load_tables = character(), read_with = "none", save_as = "none", rewrite = FALSE
+  r, d, dataset_id = integer(), omop_version = "5.4", data_source = "disk", data_folder = character(), con, load_tables = character(), ...
 ){
   
   i18n <- r$i18n
   
   # Check arguments ----
-
-  # Check read_with
-  if (read_with %not_in% c("none", "vroom", "duckdb", "spark", "arrow")){
-    cat(paste0("\n", i18n$t("dataset_invalid_read_with")))
-    return(tibble::tibble())
-  }
-  
-  # Check save_as
-  if (save_as %not_in% c("none", "csv", "parquet")){
-    cat(paste0("\n", i18n$t("dataset_invalid_save_as")))
-    return(tibble::tibble())
-  }
-  
-  # Check rewrite
-  if (!is.logical(rewrite)){
-    cat(paste0("\n", i18n$t("dataset_invalid_rewrite")))
-    return(tibble::tibble())
-  }
 
   # Check dataset_id
   error_dataset_id <- TRUE
@@ -78,27 +25,16 @@ import_dataset <- function(
     tryCatch(dataset_id <- as.integer(dataset_id))
     error_dataset_id <- FALSE
   }
-  if (error_dataset_id){
-    cat(paste0("\n", i18n$t("invalid_dataset_id_value")))
-    return(tibble::tibble())
-  }
+  if (error_dataset_id) return(i18n$t("invalid_dataset_id_value"))
   
   # Check data_source
-  if (data_source %not_in% c("db", "disk")){
-    cat(paste0("\n", i18n$t("dataset_invalid_data_source")))
-    return(tibble::tibble())
-  }
+  if (data_source %not_in% c("db", "disk")) return(i18n$t("dataset_invalid_data_source"))
   
   # Check omop_version
-  if (omop_version %not_in% c("5.3", "5.4", "6.0")){
-    cat(paste0("\n", i18n$t("invalid_omop_version")))
-    return(tibble::tibble())
-  }
+  if (omop_version %not_in% c("5.3", "5.4", "6.0")) return(i18n$t("invalid_omop_version"))
   
-  if (data_source == "disk" & length(data_folder) == 0){
-    cat(paste0("\n", i18n$t("invalid_data_folder")))
-    return(tibble::tibble())
-  }
+  # Check data_folder
+  if (data_source == "disk" & length(data_folder) == 0) return(i18n$t("invalid_data_folder"))
   
   # Load data ----
   
@@ -130,6 +66,7 @@ import_dataset <- function(
     "dose_era" = "iiiinTT",
     "condition_era" = "iiiTTi"
   )
+  
   if (omop_version == "5.3"){
     col_types$person <- "iiiiiTiiiiiccicici"
     col_types$visit_detail <- "iiiDTDTiiiciciciiii"
@@ -139,6 +76,7 @@ import_dataset <- function(
     col_types$dose_era <- "iiiinDD"
     col_types$condition_era <- "iiiDDi"
   }
+  
   else if (omop_version == "5.4"){
     col_types$person <- "iiiiiTiiiiiccicici"
     col_types$observation <-  "iiiDTinciiiiiicicccii"
@@ -159,145 +97,80 @@ import_dataset <- function(
   data_app_folder <- paste0(r$app_folder, "/datasets_files/", dataset_id)
   if (!dir.exists(data_app_folder)) dir.create(data_app_folder)
   
-  ## Import data from app saved data ----
+  # Disconnect db
+  # if (length(d$con) > 0) if (DBI::dbIsValid(d$con)) DBI::dbDisconnect(d$con)
   
-  missing_files <- TRUE
+  ## Import data from disk files ----
   
-  if (save_as != "none" & !rewrite){
+  if (data_source == "disk"){
     
-    missing_files <- FALSE
+    # List files of provided folder
     
-    if (read_with == "duckdb"){
-      # duckdb_file <- paste0(data_app_folder, "/dataset.duckdb")
-      # if (file.exists(duckdb_file)) unlink(duckdb_file)
-      # duckdb_con <- DBI::dbConnect(duckdb::duckdb(), dbdir = duckdb_file)
-      duckdb_con <- DBI::dbConnect(duckdb::duckdb())
-      duckdb_tables <- DBI::dbListTables(duckdb_con)
-    }
+    file_names <- list.files(path = data_folder)
     
-    for (table in load_tables){
+    if (length(file_names) == 0) return(i18n$t("error_getting_files_from_data_folder"))
       
-      file_path <- paste0(data_app_folder, "/", table, ".", save_as)
+    tryCatch({
       
-      if (file.exists(file_path)){
+      connection_loaded <- FALSE
+      
+      for (file_name in file_names){
         
-        if (save_as == "parquet"){
+        table <- sub("\\.[^.]*$", "", file_name)
+        file_ext <- sub(".*\\.", "", tolower(file_name))
+        
+        # If no file_ext, consider it is a folder containing parquet files
+        if (file_ext == table) file_ext <- ""
+        
+        # Check if this is an OMOP table
+        
+        if (table %in% load_tables){
+        
+          if (file_ext %in% c("parquet", "")){
+            
+            # if duckdb not declared, create connection
+            if (!connection_loaded){
+              d$con <- DBI::dbConnect(duckdb::duckdb())
+              connection_loaded <- TRUE
+            }
+            # if (length(d$con) == 0) d$con <- DBI::dbConnect(duckdb::duckdb())
+            
+            duckdb::duckdb_unregister_arrow(d$con, table)
+            duckdb::duckdb_register_arrow(d$con, table, arrow::open_dataset(paste0(data_folder, "/", file_name)))
+            
+            d[[table]] <- dplyr::tbl(d$con, table)
+            
+            loaded_tables <- c(loaded_tables, table)
+          }
           
-          if (read_with == "duckdb"){
+          else if (file_ext == "csv"){
             
-            if (table %not_in% duckdb_tables) DBI::dbExecute(duckdb_con, paste0("CREATE TABLE ", table, " AS SELECT * FROM parquet_scan('", file_path, "');"))
-            
-            d[[table]] <- dplyr::tbl(duckdb_con, table)
+            d[[table]] <- vroom::vroom(paste0(data_folder, "/", file_name), col_types = col_types[[table]], progress = FALSE, ...)
             
             loaded_tables <- c(loaded_tables, table)
           }
         }
-        
-        else if (save_as == "csv"){
-          
-        }
       }
-      else missing_files <- TRUE
-    }
+    },
+    error = function(e) return(paste0(i18n$t("error_loading_data"), " - ", toString(e))))
   }
   
-  # If there are missing files, reload data from data source
-  if (missing_files){
+  ## Import data from database connection ----
+  
+  else if (data_source == "db"){
     
-    ## Import data from disk files ----
+    # Test connection
+    if (!DBI::dbIsValid(con)) return(i18n$t("dataset_error_with_db_connection"))
     
-    if (data_source == "disk"){
-      
-      # List files of provided folder
-      
-      file_names <- list.files(path = data_folder)
-      if (length(file_names) == 0){
-        cat(paste0("\n", i18n$t("error_getting_files_from_data_folder")))
-        return(tibble::tibble())
-      }
-      
-      ### read_with "duckdb" ----
-      
-      if (read_with == "duckdb"){
+    d$con <- con
+    
+    tables <- DBI::dbListTables(con)
+    
+    for (table in tables){
+      if (table %in% load_tables){
+        d[[table]] <- dplyr::tbl(con, table)
         
-        tryCatch({
-          
-          # Connection to duckdb database
-          # con <- DBI::dbConnect(duckdb::duckdb(), dbdir = paste0(data_app_folder, "/dataset.duckdb"))
-          con <- DBI::dbConnect(duckdb::duckdb())
-          
-          for (file_name in file_names){
-            
-            table <- sub("\\.[^.]*$", "", file_name)
-            file_ext <- sub(".*\\.", "", tolower(file_name))
-            
-            # If no file_ext, consider it is a folder containing parquet files
-            if (file_ext == table) file_ext <- ""
-            
-            # Check if this is an OMOP table
-            
-            if (table %in% load_tables & file_ext %in% c("parquet", "")){
-              
-              duckdb::duckdb_unregister_arrow(con, table)
-              duckdb::duckdb_register_arrow(con, table, arrow::open_dataset(paste0(data_folder, "/", file_name)))
-              
-              d[[table]] <- dplyr::tbl(con, table)
-              
-              loaded_tables <- c(loaded_tables, table)
-            }
-          }
-        },
-        error = function(e){
-          cat(paste0("\n", i18n$t("error_loading_duckdb"), " - ", toString(e)))
-          return(tibble::tibble())
-        })
-      }
-      
-      ### read_with "vroom" ----
-      
-      else if (read_with == "vroom"){
-        
-        tryCatch({
-          
-          for (file_name in file_names){
-            
-            table <- sub("\\.[^.]*$", "", file_name)
-            file_ext <- sub(".*\\.", "", tolower(file_name))
-            
-            # Check if this is an OMOP table
-            if (table %in% load_tables & file_ext == "csv"){
-              
-              d[[table]] <- vroom::vroom(paste0(data_folder, "/", file_name), col_types = col_types[[table]], progress = FALSE)
-              
-              loaded_tables <- c(loaded_tables, table)
-            }
-          }
-        },
-        error = function(e){
-          cat(paste0("\n", i18n$t("error_loading_csv_files"), " - ", toString(e)))
-          return(tibble::tibble())
-        })
-      }
-    }
-    
-    ## Import data from database connection ----
-    
-    else if (data_source == "db"){
-      
-      # Test connection
-      if (!DBI::dbIsValid(con)){
-        cat(paste0("\n", i18n$t("dataset_error_with_db_connection")))
-        return(tibble::tibble())
-      }
-      
-      tables <- DBI::dbListTables(con)
-      
-      for (table in tables){
-        if (table %in% load_tables){
-          d[[table]] <- dplyr::tbl(con, table)
-          
-          loaded_tables <- c(loaded_tables, table)
-        }
+        loaded_tables <- c(loaded_tables, table)
       }
     }
   }
@@ -367,35 +240,10 @@ import_dataset <- function(
       
       loaded_data <- loaded_data %>% dplyr::bind_rows(tibble::tibble(table = table, n_rows = d[[table]] %>% dplyr::count() %>% dplyr::pull()))
     },
-    error = function(e){
-      cat(paste0("\n", i18n$t("error_transforming_cols"), " table = ", table, " - ", toString(e)))
-      stop()
-    })
+    error = function(e) return(paste0(i18n$t("error_transforming_cols"), " - table = ", table, " - ", toString(e))))
   }
   
-  ## Transform cols ----
-  # ....
-  
-  # Save data ----
-  # If rewrite is true or if there are missing files
-  
-  if (save_as != "none" & (rewrite | missing_files)){
-    
-    for (table in loaded_tables){
-      
-      file_path <- paste0(data_app_folder, "/", table, ".", save_as)
-      
-      # Rewrite data only if data is missing or rewrite is true
-      
-      if (rewrite | !file.exists(file_path)){
-        
-        if (save_as == "parquet") arrow::write_parquet(d[[table]] %>% dplyr::collect(), file_path)
-        else if (save_as == "csv") write.csv(d[[table]] %>% dplyr::collect(), file_path, row.names = FALSE)
-      }
-    }
-  }
-  
-  return(loaded_data)
+  return(print(loaded_data, n = 100))
 }
 
 #' Import a vocabulary table

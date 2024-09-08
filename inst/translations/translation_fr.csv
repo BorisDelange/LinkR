@@ -928,6 +928,7 @@ dataset_invalid_data_source,Valeur non valid pour le paramètre 'source'
 dataset_error_with_db_connection,Erreur lors de la connexion à la base de données
 wrong_association_read_with_and_save_as,"L'association entre les paramètres 'read_with' et 'save_as' n'est pas valide"
 error_loading_duckdb,Erreur lors du chargement des données avec duckdb
+error_loading_data,Erreur lors du chargement des données
 error_loading_sparklyr,Erreur lors du chargement des données avec sparklyr
 language,Langue
 programming_language,Langage
