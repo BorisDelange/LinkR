@@ -67,7 +67,7 @@ linkr <- function(
   for (sub_dir in sub_dirs) if (!dir.exists(paste0(app_folder, "/", sub_dir))) dir.create(paste0(app_folder, "/", sub_dir))
   
   # Load translations
-  if (debug) cat(paste0("\n", now(), " - linkr - translation"))
+  if (debug) cat(paste0("\n", now(), " - linkr - translations"))
   
   languages <- c("en", "fr")
   if (language %not_in% languages){

@@ -1,1267 +1,325 @@
 base,fr
-home,Accueil
-my_studies,Mes études
-my_subsets,Mes subsets
-dataset,Set de données
-data,Données
-load_data,Charger des données
-data_model,Modèle de données
-tabs,Onglets
-whats_a_tab,Qu'est ce qu'un onglet ?
-add_tab,Ajouter un onglet
-add_tab_or_widget,Ajouter un onglet ou un widget
-edit_page,Editer la page
-exit_edit_page,Fermer l'édition de la page
-widgets,Widgets
-whats_a_widget,Qu'est ce qu'un widget ?
-add_a_widget,Ajouter un widget
-get_started,Mise en place
-patient_lvl_or_aggregated_data,Données individuelles ou agrégées
-tutorials,Tutoriels
-resources,Ressources
-dev,Dev
-individual,Individuelles
-patient_level_data,Données individuelles
-patient_lvl_data,Données individuelles
-aggregated_data,Données agrégées
-aggregated,Agrégées
-exclusion_reason,Motif de l'exclusion
-no_study_available,Pas d'étude disponible
-no_subset_available,Pas de subset disponible
-no_person_in_subset,Aucun patient dans le subset
-no_stay_available,Pas de séjour disponible
-years,ans
-months,mois
-age,Age
-gender,Sexe
-undefined,Non défini
-included,Inclus
-excluded,Exclus
-unit,Unité
-hosp_unit,Unité
-from,Du
-to,Au
-general_settings,Paramètres généraux
-settings,Paramètres
-app_database,BDD de l'application
-database,Base de données
-database_short,BDD
-app_version,Version de l'application
-connection,Connexion
-session,Session
-session_starts,Début de la session
-session_ends,Fin de la session
-test_connection,Tester la connexion
-users,Utilisateurs
-data_management,Gestion des données
-patient,Patient
-patients,Patients
-person,Patient
-persons,Patients
-stay,Séjour
-visit_detail,Séjour
-patient_status,Statut du patient
-r_console,Console R
-python_console,Console Python
-subset,Subset
-study,Etude
-run_code,Exécuter
-category,Catégorie
-categories,Catégories
-conversions,Conversions
-choose_a_damatart_left_side,Choisissez un set de données dans le menu déroulant à gauche de l'écran
-choose_a_study_left_side,Choisissez une étude dans le menu déroulant à gauche de l'écran
-choose_study_and_dataset_left_side,Choisissez un set de données et une étude dans le menu déroulant à gauche de l'écran
-save,Sauvegarder
-reload_cache,Recharger le cache
-in_progress,En cours de développement
-values,Valeurs
-numeric_values,Valeurs numériques
-rate,Débit
-amount,Quantité
-display_name,Nom d'affichage
-concept_id,ID du concept
-concept_id_1,ID du concept 1
-concept_id_2,ID du concept 2
-mapped_concept_id,ID du concept aligné
-reset,Remettre à zéro
-all_plugins,Tous les plugins
-all_scripts,Tous les scripts
-all_studies,Toutes les études
-create_plugin,Créer un plugin
-plugins_management,Gestion des plugins
-edit_plugin_code,Editer le code du plugin
-plugin_options,Options du plugin
-import_plugin,Importer un plugin
-import_dataset,Importer un set de données
-import_project,Importer un projet
-import_plugins,Importer des plugins
-export_plugin,Exporter un plugin
-export_project,Exporter un projet
-export_plugins,Exporter des plugins
-export_selected_plugins,Exporter les plugins
-import_data_cleaning_script,Importer un script de data cleaning
-import_scripts,Importer des scripts
-import_studies,Importer des études
-export_data_cleaning_script,Exporter un script de data cleaning
-export_scripts,Exporter des scripts
-export_studies,Exporter des études
-export_selected_scripts,Exporter les scripts
-export_plugins_remote_git,Exporter sur dépôt git distant
-import_and_export_plugins,Importer et exporter des plugins
-import_and_export_scripts,Importer et exporter des scripts
-on_remote_git_repo,Sur dépôt git distant
-remote_git_repo,Dépôt git distant
-remote_git_repos,Dépôts git distants
-git_repos,Dépôts git
-git_repo,Dépôt git
-local_plugins,Plugins locaux
-local_plugins_short,Locaux
-plugin,Plugin
-add,Ajouter
-add_widget,Ajouter le widget
-group_id,ID du groupe
-ui,UI
-server,Server
-editor,Editeur
-hide_editor,Masquer l'éditeur
-grant_access_to,Donner l'accès à
-everybody,Tout le monde
-everybody_who_has_access_to_dataset,Tout le monde ayant accès au set de données
-choose_users,Choisir les utilisateurs
-some_users,Certains utilisateurs
-choose_zip_file,Choisir un fichier ZIP
-zip,ZIP
-choose_csv_files,Choisir des fichiers CSV
-csv,CSV
-choose_files,Choisir des fichiers
-loaded_file,Fichier chargé
-loaded_files,Fichiers chargés
-plugins_patient_lvl,Plugins - Données individuelles
-plugins_aggregated,Plugins - Données agrégées
-scripts_management,Gestion des scripts
-create_script,Créer un script
-edit_script_code,Editer le code du script
-script_options,Options du script
-concept,Concept
-concepts,Concepts
-accesses_opts,Configurer les accès
-select_all,Tout sélectionner
-unselect_all,Tout déselectionner
-add_new_user,Ajouter un utilisateur
-users_mngmt,Gestion utilisateurs
-add_access,Ajouter un accès
-accesses_mngmt,Gestion accès
-add_status,Ajouter un statut
-add_user,Ajouter un utilisateur
-username,Identifiant
-firstname,Prénom
-lastname,Nom
-user_access,Accès utilisateur
-user_status,Statut de l'utilisateur
-statuses_mngmt,Gestion statuts
-name,Nom
-create_study,Créer une étude
-studies_management,Gestion des études
-import_study,Importer une étude
-export_study,Exporter une étude
-dataset_options,Options du set
-vocabulary_options,Options de la terminologie
-create_data_source,Créer une source de données
-data_sources_management,Gestion des sources de données
-concepts_mapping,Alignement de concepts
-mapping,Alignement de concepts
-vocabularies_management,Gestion des terminologies
-show_only_used_concepts,N'afficher que les concepts utilisés
-create_dataset,Créer un set de données
-create_data_cleaning_script,Créer un script de data cleaning
-create_vocabulary,Créer une terminologie
-datasets_management,Gestion des sets
-messages,Messages
-study_options,Options de l'étude
-overview,Présentation
-news,Actualités
-import_excel_file,Importer fichier Excel
-import_csv_file,Importer fichier CSV
-connect_to_database,Connexion à une base de données
-version,Version
-versions,Versions
-change_password,Changer son mot de passe
-new_passwords_are_not_the_same,Nouveaux mdp non identiques
-old_password,Ancien mot de passe
-new_password,Nouveau mot de passe
-invalid_old_password,Ancien mot de passe non valide
-password_changed,Mot de passe modifié avec succès
-id,ID
-description,Description
-short_description,Description courte
-creator,Créateur
-datetime,Date & heure
-deleted,Supprimé
-modified,Modifié
 action,Action
-script,Script
-dt_previous,Précédente
-dt_next,Suivante
-dt_search ,Rechercher : 
-dt_entries,Afficher _MENU_ lignes
-dt_empty,Pas de données disponibles
-no_data_available,Pas de données disponibles
-deleted_user,Utilisateur supprimé
-choose_dataset_scripts,Configurer le set de données
-unauthorized_access_page,Accès non autorisé à cette page
-unauthorized_access_area,Accès non autorisé à cette section
-change_password_card,Changer le mot de passe
-app_db,BDD de l'application
-app_db_long,Base de données de l'application
-connection_type,Type de connexion
-db_connection_infos_card,Configurer
-db_datatable_card,Tables
-db_request_card,Requêter
-db_save_long,Exporter la base de données
-db_save_card,Exporter la BDD
-db_save_and_restore_card,Exporter / restaurer
-db_export_and_restore,Exporter et restaurer la base de données
-database_structure,Structure de la base de données
-db_restore_long,Restaurer la base de données
-db_restore_card,Restaurer la BDD
-connection_infos,Informations de connexion
-connection_settings,Paramètres de connexion
-app_db_request,Requêter la BDD
-app_db_request_long,Requêter la base de données
-request,Requêter
-app_db_tables,Tables de la BDD
-app_db_tables_long,Tables de la base de données
-db_connexion_type,Type de connexion
-local,Locale
-local_plural,Locaux
-local_db_connection,Connexion locale
-distant,Distante
-remote,Distante
-remote_db_connection,Connexion distante
-dbname,Nom de la BDD
-main_db_name,Nom de la BDD principale
-main_db,BDD principale
-public_db_name,Nom de la BBD publique
-public_db,BDD publique
-host,Hôte
-port,Port
-user,Utilisateur
-password,Mot de passe
-export_db,Exporter la base de données
-import_db,Importer la base de données
-db_export_log,Exporter le log
-db_import_log,Importer le log
-restore_db,Restaurer la base de données
-table_name,Nom de la table
-row_number,Nombre de lignes
-last_db_save,Dernière sauvegarde
-current_db,Base de données utilisée
-last_db_restore,Dernière restauration
-users_delete,Suppression d'utilisateurs
-users_delete_subtext,Confirmer la suppression du ou des utilisateur(s) ?
-user_deleted,Utilisateur supprimé
-users_statuses_delete,Suppression de statuts
-users_statuses_delete_subtext,Confirmer la suppression du ou des statut(s) d'utilisateur(s) ?
-user_status_deleted,Statut supprimé
-users_accesses_delete,Suppression d'accès d'utilisateurs
-users_accesses_delete_subtext,Confirmer la suppression de l'accès ou des accès utilisateur(s) ?
-user_access_deleted,Accès supprimé
-users_delete_data,"Supprimer des utilisateurs, des accès ou des statuts"
-users_creation_card,Créer un utilisateur
-users_creation,Créer un utilisateur
-users_management_card,Gérer les utilisateurs
-users_management,Gestion des utilisateurs
-users_accesses,Accès utilisateurs
-users_accesses_creation_card,Créer un accès
-users_accesses_management_card,Gérer les accès
-users_accesses_management,Gérer les accès
-users_accesses_options_card,Configurer les accès
-users_statuses,Statuts des utilisateurs
-users_statuses_creation_card,Créer un statut
-users_statuses_management_card,Gérer les statuts
-users_statuses_management,Gérer les statuts
-r_console_edit_code_card,Accès à la console R
-data_sources,Sources de données
-data_sources_see_all_data,Accès à toutes les données
-data_sources_edit_data,Editer les sources de données
-data_sources_delete_data,Supprimer une source de données
-data_sources_creation_card,Créer une source de données
-data_sources_datatable_card,Gérer les sources de données
-datasets,Sets de données
-datasets_see_all_data,Accès à toutes les données
-datasets_edit_data,Editer un set de données
-datasets_delete_data,Supprimer un set de données
-datasets_creation_card,Créer un set de données
-datasets_datatable_card,Gérer les sets de données
-datasets_options_card,Editer les options des sets de données
-datasets_edit_code_card,Editer le code d'un set de données
-studies,Etudes
-studies_edit_data,Edit study data
-studies_see_all_data,Accès à toutes les données
-studies_delete_data,Supprimer une étude
-study_messages,Messages de l'étude
-study_messages_card,Accéder aux messages
-studies_creation_card,Créer une étude
-study_options_card,Gérer les options d'une étude
-studies_datatable_card,Gérer les études
-import_study_card,Importer une étude
-export_study_card,Exporter une étude
-subsets,Subsets
-subsets_see_all_data,Accès à toutes les données
-subsets_edit_data,Editer les subsets
-subsets_delete_data,Supprimer un subset
-subsets_creation_card,Créer un subset
-subsets_datatable_card,Gérer les subsets
-subsets_edit_code_card,Editer le code d'un subset
-plugins,Plugins
-patient_lvl_plugin,Plugin de données individuelles
-patient_lvl_plugins,Plugins de données individuelles
-aggregated_plugin,Plugin de données agrégées
-aggregated_plugins,Plugins de données agrégées
-patient_lvl_or_aggregated_plugin,Plugin de données individuelles ou agrégées
-patient_lvl_or_aggregated_plugins,Plugins de données individuelles ou agrégées
-all_plugins_card,Accéder au catalogue des plugins
-all_scripts_card,Tous les scripts
-all_datasets_card,Accéder à l'onglet 'Tous les sets'
-all_vocabularies_card,Toutes les terminologies
-plugins_see_all_data,Accéder à toutes les données
-plugins_edit_data,Editer un plugin
-plugins_delete_data,Supprimer un plugin
-plugins_creation_card,Créer un plugin
-plugins_datatable_card,Gérer les plugins
-plugins_options_card,Gérer les options d'un plugin
-plugins_edit_code_card,Editer le code d'un plugin
-import_plugin_card,Importer un plugin
-export_plugin_card,Exporter un plugin
-scripts,Scripts
-dataset_scripts_card,Configurer les scripts d'un dataset
-scripts_datatable_card,Gérer les scripts
-scripts_see_all_data,Accès à toutes les données
-scripts_creation_card,Créer un script
-scripts_edit_code_card,Editer le code d'un script
-scripts_options_card,Editer les options d'un script
-log,Log
-all_users,Accès au log de tous les utilisateurs
-only_me,Accès uniquement à son log
-available_scripts,Scripts disponibles
-selected_scripts,Scripts choisis
-provide_valid_name,Nom valide requis
-provide_valid_value,Valeur valide requise
-provide_valid_repo_url_address,Please provide a valid URL address
-provide_valid_raw_files_url_address,Please provide a valid URL address
-provide_valid_study_name,Nom valide requis
-provide_valid_subset_name,Nom valide requis
-provide_valid_script_name,Nom valide requis
-provide_valid_plugin_name,Nom valide requis
-provide_valid_username,Pseudo valide requis
-provide_valid_firstname,Prénom valide requis
-provide_valid_lastname,Nom valide requis
-provide_valid_user_access,Sélectionner un accès
-provide_valid_user_status,Sélectionner un statut
-provide_valid_main_db_name,Nom valide requis
-provide_valid_public_db_name,Nom valide requis
-provide_valid_description,Description valide requise
-provide_valid_data_source,Sélectionner une source de données
-provide_valid_user,Nom d'utilisateur valide requis
-provide_valid_host,Hôte valide requis
-provide_valid_port,Port valide requis (ex : 5432)
-provide_valid_password,Mot de passe valide requis
-provide_valid_object,Objet valide requis
-provide_valid_vocabulary_id,ID valide requis
-provide_valid_vocabulary_name,Nom valide requis
-provide_valid_api_key,Clef API valide requise
-provide_valid_commit_message,Commentaire valide requis
-insert_new_data,Ajout nouvelles données
-sql_query,Requête SQL
-subset_all_patients,Tous les patients
-subset_all_patients_long,Subset comprenant tous les patients
-subset_included_patients,Patients inclus
-subset_included_patients_long,Subset comprenant seulement les patients inclus
-subset_excluded_patients,Patients exclus
-subset_excluded_patients_long,Subset comprenant seulement les patients exclus
-name_already_used,Ce nom est déjà utilisé
-firstname_and_lastname_already_used,Cette identité est déjà utilisée
-vocabulary_id_already_used,Cet ID est déjà utilisé
-username_already_used,Ce pseudo est déjà utilisé
-dropdown_empty,Il manque au moins une valeur dans les menus déroulants
-data_source_added,Nouvelle source de données ajoutée
-dataset_added,Nouveau set de données ajouté
-data_cleaning_added,Nouveau script de data cleaning ajouté
-study_added,Nouvelle étude ajoutée
-subset_added,Nouveau subset ajouté
-script_added,Nouveau script ajouté
-script_updated,Script mis à jour
-script_imported,Script importé
-study_updated,Etude mise à jour
-study_imported,Etude importée
-dataset_updated,Set de données mis à jour
-dataset_imported,Set de données importé
-vocabulary_updated,Terminologie mise à jour
-vocabulary_imported,Terminologie importée
-vocabulary_added,Nouvelle terminologiee ajoutée
-user_added,Nouvel utilisateur ajouté
-user_access_added,Nouvel accès utilisateur ajouté
-user_status_added,Nouveau statut d'utilisateur ajouté
-git_repo_added,Nouveau dépôt git distant ajouté
-delete,Supprimer
-dont_delete,Annuler
-scripts_delete,Supprimer un script
-scripts_delete_subtext,Confirmez-vous la suppression de ce script ?
-import_dataset_success,Set de données chargé avec succès
-script_deleted,Script(s) supprimé(s)
-modif_saved,Modifications enregistrées
-console,Console
-table,Table
-output,Output
-script_description,Description du script
-run_scripts_success,Scripts exécutés avec succès
-fail_load_dataset,Erreur lors du chargement du set de données
-fail_load_vocabulary,Erreur lors du chargement de la terminologie
-fail_load_vocabulary_code,Erreur lors du chargement du code de la terminologie
-fail_load_scripts,Erreur lors de l'exécution des scripts
-invalid_col_names,Noms de colonnes non valides
-invalid_col_types,Types de colonnes non valides
-error_get_actual_primary_keys,Erreur lors du chargement des clés primaires de la terminologie
-type_must_be_integer,doit être de type integer
-type_must_be_character,doit être de type character
-type_must_be_numeric,doit être de type numeric
-type_must_be_date,doit être de type date
-type_must_be_datetime,doit être de type datetime
-omop_version_must_be_numeric,La version OMOP doit être de type numérique
-no_data_to_insert,Pas de nouvelles données à insérer
-no_data_to_insert_in_table,Pas de données à insérer dans la table
-column,Colonne
-columns,Colonnes
-columns_concepts,Colonnes des concepts
-columns_mapped_concepts,Colonnes des concepts alignés
-import_vocabulary_table_success,Table de terminologie ajoutée avec succès
-scripts_cache_memory,Mémoire cache
-edit_dataset_code,Editer le code du set
-edit_vocabulary_code,Editer le code de la terminologie
-data_source,Source de données
-data_source_id,ID de la source de données
-show_only_aggregated_data,N'autoriser l'accès qu'aux données agrégées
-people_picker,Choisir les utilisateurs
-matching_people,Personnes correspondantes
-num_rows,Lignes
-num_rows_with_mapping,Lignes avec concepts alignés
-num_rows_current_dataset,Lignes dans le set sélectionné
-num_datasets,Sets
-num_patients,Patients
-concepts_rows,Lignes
-persons_rows,Patients
-plugins_delete,Suppression de plugins
-plugins_delete_subtext,Confirmer la suppression du ou des plugin(s) ?
-mapping_delete,Suppression d'alignement de concepts
-mapping_delete_subtext,Confirmer la suppression de l'alignement ou des alignement(s) de concepts ?
-tab_type,Type d'onglet
-last_update,Dernière modification
-created_on,Créé le
-updated_on,Modifié le
-vocabulary_selected_concepts,Concepts sélectionnés
-replace_already_existing_plugins,Remplacer les plugins déjà existants
-replace_already_existing_scripts,Remplacer les scripts déjà existants
-replace_already_existing_studies,Remplacer les études déjà existantes
-replace_already_existing_datasets,Remplacer les sets de données déjà existants
-replace_already_existing_vocabularies,Remplacer les terminologies déjà existantes
-plugins_to_export,Plugins à exporter
-scripts_to_export,Scripts à exporter
-studies_to_export,Etudes à exporter
-datasets_to_export,Sets de données à exporter
-vocabularies_to_export,Terminologies à exporter
-tables_to_export,Tables à exporter
-image_url,URL de l'image
-no_results_found,Pas de résultats
-french,Français
-english,Anglais
-italian,Italien
-spasnish,Espagnol
-description_french,Française
-description_english,Anglaise
-author,Auteur
-authors,Auteurs
-author_s,Auteur(s)
-browse,Parcourir
-import_image,Importer une image
-resize_image,Redimensionner l'image
-back,Retour
-download,Télécharger
-load,Charger
-update,Mettre à jour
-download_plugin,Télécharger le plugin
-no_plugin_available,Pas de plugin disponible
-plugin_added,Nouveau plugin ajouté
-unauthorized_action,Action non autorisée
-plugins_deleted,Plugin(s) supprimé(s)
-mapping_deleted,Alignement(s) de concepts supprimé(s)
-update_plugin,Mettre à jour ce plugin
-update_plugins,Mettre à jour les plugins
-plugin_up_to_date,Plugin à jour
-local_plugin_newer,Le plugin local est plus récent
-error_install_remote_git_plugin,Erreur lors de l'installation d'un plugin depuis le git distant
-error_install_remote_git_data_cleaning,Erreur lors de l'installation d'un script de data cleaning depuis le git distant
-error_install_remote_git_project,Erreur lors de l'installation d'un project depuis le git distant
-error_install_remote_git_dataset,Erreur lors de l'installation d'un set de données depuis le git distant
-error_install_remote_git_vocabulary,Erreur lors de l'installation d'une terminologie depuis le git distant
-success_installing_remote_git_plugin,Plugin installé avec succès depuis le git distant
-choose_remote_git,Choisissez un dépôt de git distant
-success_importing_plugin,Plugin importé avec succès
-success_importing_script,Script importé avec succès
-success_importing_project,Projet importé avec succès
-error_importing_plugin,Erreur lors de l'importation du plugin
-error_importing_image,Erreur lors de l'importation de l'image
-error_importing_file,Erreur lors de l'importation du fichier
-error_importing_script,Erreur lors de l'importation du script de data cleaning
-error_importing_project,Erreur lors de l'importation du projet
-unique_id,ID unique
-type,Type
-refresh,Rafraîchir
-delete_selection,Supprimer la sélection
-imported_plugins,Plugins importés
-imported_scripts,Scripts importés
-imported_studies,Etudes importées
-imported_datasets,Sets de données importés
-image_imported,Image importée
-file_imported,Fichier importé
-never,Jamais
-same_level_current_tab,Même niveau que l'onglet actuel
-level_under,Niveau d'en-dessous
+add,Ajouter
 add_a_tab,Ajouter un onglet
-edit_a_tab,Editer un onglet
-invalid_dataset_id_value,La variable dataset_id doit être de type integer
-invalid_data_folder,L'argument data_folder doit être de type character
-error_getting_files_from_data_folder,Echec lors de la récupération des fichiers du dossier de données
-var_type_not_valid,La variable type n'est pas valide
-var_omop_table_not_valid,La variable omop_table n'est pas valide
-error_loading_csv,Erreur lors du chargement du fichier CSV
-error_loading_csv_files,Erreur lors du chargement des fichiers CSV
-error_transforming_tibble,Erreur dans la conversion de la variable au format tibble
-valid_col_names_are,Noms de colonnes non valides.
-error_saving_csv,Erreur dans l'enregistrement du fichier CSV
-error_saving_parquet,Erreur dans l'enregistrement du fichier Parquet
-package_arrow_not_installed,La librairie arrow n'est pas installée
-package_duckdb_not_installed,La librairie duckdb n'est pas installée
-package_sparklyr_not_installed,La librairie sparklyr n'est pas installée
-import_dataset_success_person,Variable person importée avec succès
-import_dataset_success_observation_period,Variable observation_period importée avec succès
-import_dataset_success_visit_occurrence,Variable visit_occurrence importée avec succès
-import_dataset_success_visit_detail,Variable visit_detail importée avec succès
-import_dataset_success_condition_occurrence,Variable condition_occurrence importée avec succès
-import_dataset_success_drug_exposure,Variable drug_exposure importée avec succès
-import_dataset_success_procedure_occurrence,Variable procedure_occurrence importée avec succès
-import_dataset_success_device_exposure,Variable device_exposure importée avec succès
-import_dataset_success_measurement,Variable measurement importée avec succès
-import_dataset_success_observation,Variable observation importée avec succès
-import_dataset_success_death,Variable death importée avec succès
-import_dataset_success_note,Variable note importée avec succès
-import_dataset_success_note_nlp,Variable note_nlp importée avec succès
-import_dataset_success_specimen,Variable specimen importée avec succès
-import_dataset_success_fact_relationship,Variable fact_relationship importée avec succès
-import_dataset_success_location,Variable location importée avec succès
-import_dataset_success_location_history,Variable location_history importée avec succès
-import_dataset_success_care_site,Variable care_site importée avec succès
-import_dataset_success_provider,Variable provider importée avec succès
-import_dataset_success_payer_plan_period,Variable payer_plan_period importée avec succès
-import_dataset_success_cost,Variable patients importée avec succès
-import_dataset_success_drug_era,Variable drug_era importée avec succès
-import_dataset_success_dose_era,Variable dose_era importée avec succès
-import_dataset_success_condition_era,Variable condition_era importée avec succès
-rows,Lignes
-code,Code
-fail_load_code,Erreur lors du chargement du code
-fail_execute_code,Erreur lors de l'éxécution du code
-fail_execute_dataset_code,Erreur lors de l'éxécution du code du set de données
-patient_lvl_tab_group,Données individuelles - groupe d'onglets
-aggregated_tab_group,Données agrégées - groupe d'onglets
-invalid_subset_id_value,Valeur de subset_id non valide
-invalid_patients_value,Valeur de patients non valide
-error_inserting_data,Erreur lors de l'insertion de données dans la BDD
-add_persons_to_subset,Ajouter des patients au subset
-add_persons_subset_success,Insertion de patients dans le subset avec succès
-remove_persons_subset_success,Suppression de patients du subset avec succès
-studies_delete,Suppression d'études
-studies_delete_subtext,Confirmer la suppression du ou des étude(s) ?
-studies_deleted,Etude(s) supprimée(s)
-subsets_delete,Suppression de subsets
-subsets_delete_subtext,Confirmer la suppression du ou des subset(s) ?
-subsets_deleted,Subset(s) supprimé(s)
-subset_persons_delete,Suppression de patients
-subset_persons_delete_subtext,Confirmer la suppression du ou des patient(s) ?
-subset_persons_deleted,Patient(s) supprimé(s)
-datasets_delete,Suppression de sets de données
-datasets_delete_subtext,Confirmer la suppression du ou des set(s) de données ?
-datasets_deleted,Set(s) de données supprimé(s)
-data_sources_delete,Suppression de sources de données
-data_sources_delete_subtext,Confirmer la suppression du ou des source(s) de données ?
-data_sources_deleted,Source(s) de données supprimée(s)
-vocabulary_delete,Suppression de terminologie
-vocabulary_delete_subtext,Confirmer la suppression de la ou des terminologie(s) ?
-vocabulary_deleted,Terminologie(s) supprimée(s)
-yes,Oui
-no,Non
-abbreviation,Abréviation
-name_abbreviation,Nom / Abréviation
-invalid_table_name,Nom de table non valide
-tables_allowed,Tables autorisées
-show_plots,Afficher les figures
-evaluate,Evaluer
-evaluate_and_edit,Evaluer & éditer
-edit,Modifier
-vocabulary_1,Terminologie 1
-vocabulary_2,Terminologie 2
-concept_1_is,Le concept 1
-to_concept_2,le concept 2
-concept_1_is_to_concept_2,Le concept 1 par rapport au concept 2
-equivalent_to,Est équivalent à
-included_in,Est inclus dans
-include,Inclut
-colour,Couleur
-load_some_patient_data_plugin,Charger des données avant d'exécuter le code du plugin
-patient_id,ID du patient
-person_id,ID du patient
-stay_id,ID du séjour
-visit_detail_id,ID du séjour
-evaluate_concept_mapping,Evaluer un alignement de concepts
-add_concept_mapping,Ajouter un alignement de concepts
-evaluate_and_delete_concepts_mappings,Evaluer et supprimer des alignements de concepts
-vocabularies_and_concepts,Terminologies & concepts
-whats_a_vocabulary,Qu'est-ce qu'une terminologie ?
-whats_a_concept_mapping,Qu'est ce qu'un alignement de concepts ?
-vocabularies_concepts_mapping,Alignement de concepts
-vocabulary_mapping_added,Nouvel alignement de concepts ajouté
-vocabulary_mapping_already_exists,Cet alignement de concepts existe déjà
-checked,Vérifié
-relation,Relation
-positive_evals,Evals positives
-negative_evals,Evals négatives
-plus_symbol,+
-minus_symbol,-
-error_connection_remote_git,Impossible de se connecter au git distant
-error_reading_xml_file,Erreur lors de la lecture du fichier XML
-user_evaluation_id,ID évaluation utilisateur
-only_aggregated_data_authorized,Seules les données agrégées sont autorisées pour ce set de données
-remove_tab,Supprimer l'onglet
-edit_tab,Editer l'onglet
-new_widget,Ajouter un widget
-tabs_delete,Suppression d'onglet
-tabs_delete_subtext,Confirmer la suppression de cet onglet ?
-tab_deleted,Onglet supprimé
-tab_added,Onglet ajouté
-widget_added,Widget ajouté
-delete_widget_title,Suppression de widget
-delete_widget_text,Confirmer la suppression de ce widget ?
-delete_tab_title,Suppression d'onglet
-delete_tab_text,Confirmer la suppression de cet onglet ?
-widget_deleted,Widget supprimé
-tab_contains_sub_tabs,Cet onglet contient des sous-onglets. Cliquer de nouveau sur le lien de l'onglet pour afficher les sous-onglets.
-add_tab_has_widgets,Impossible d'ajouter un onglet en-dessous de celui-ci parce qu'il contient au moins un widget. Supprimer ces widgets avant.
-widget_name,Nom du widget
-error_run_plugin_ui_code,Erreur à l'éxécution du code de l'interface utilisateur du plugin
-error_run_plugin_server_code,Erreur à l'éxécution du code serveur du plugin
-positive_evals_short,Eval. pos.
-negative_evals_short,Eval. nég.
-all_messages,Tous les messages
-new_conversation,Nouvelle conversation
-send,Envoyer
-preview,Aperçu
-today,Aujourd'hui
-rmarkdown,RMarkdown
-new_conversation_added,Nouvelle conversation ajoutée
-conversation_id,ID de la conversation
-conversation_name,Nom de la conversation
-object,Objet
-unread_messages,Messages non lus
-new_message,Nouveau message
-new_message_added,Nouveau message ajouté
-vocabulary_error_append_table,Erreur lors de l'ajout des nouveaux concepts dans la base de données
-error_multiple_primary_keys,Certaines clefs primaires sont dupliquées. Retirer les duplicats avant d'importer la table de terminologie.
-error_multiple_identical_values,Certaines valeurs sont dupliquées. Retirer les duplicats avant d'importer la table de terminologie.
-invalid_category,Catégorie non valide
-error_duplicate_mappings,Certains alignements de concepts sont dupliqués. Retirer les duplicats avant d'importer la terminologie.
-datatable_view,Tableau
-tree_view,Arbre
-fail_load_list_file,Erreur lors du chargement du fichier liste
-fail_save_list_file,Erreur lors l'enregistrement du fichier liste
-none_masc,Aucun
-none_fem,Aucune
-unroll_tree,Dérouler l'arbre
-merge_mapped_concepts,Fusionner les concepts alignés
-vocabulary_mapping_same_concepts,Un concept ne peut être aligné avec lui-même (hormis pour 'Correspond à')
-widget_creation,Ajouter un widget
-widget_creation_save,Ajouter le widget
-widget_settings,Paramétrer un widget
-widget_settings_save,Sauvegarder
-image,Image
-plugin_deleted,Plugin supprimé
-translations,Traductions
-error_creating_translations_file,Erreur de la création du fichier de traductions
-error_creating_new_translator,Erreur lors de la création de la variable de traduction
-delete_this_image,Supprimer cette image
-delete_this_file,Supprimer ce fichier
-import_file,Importer un fichier
-file,Fichier
-all_datasets,Tous les sets de données
-error_deleting_image,Erreur lors de la suppression de l'image
-image_deleted,Image supprimée
-file_delete,Supprimer un fichier
-file_delete_subtext,Confirmer la suppression de ce fichier ?
-plugin_image_delete,Supprimer une image
-plugin_image_delete_subtext,Confirmer la suppression de cette image ?
-plugin_script_delete,Supprimer un script
-plugin_script_delete_subtext,Confirmer la suppression de ce script ?
-script_image_delete,Supprimer une image
-script_image_delete_subtext,Confirmer la suppression de cette image ?
-study_image_delete,Supprimer une image
-study_image_delete_subtext,Confirmer la suppression de cette image ?
-no_available_plugin,Pas de plugin disponible
-activate_scripts_cache,Activer la mise en mémoire cache
-last_cache_load_datetime,Date du dernier chargement du cache
-deleted_script,Script supprimé
-scripts_loaded_successfully,Scripts chargés avec succès
-scripts_with_load_failure,Scripts avec échec de chargement
-create_subset,Créer un subset
-subset_management,Gestion du subset
-subsets_management,Gestion des subsets
-edit_subset_code,Editer le code du subset
-sql_lib,Librairie SQL
-deleted_data_source,Source de données supprimée
-perf_monitoring,Mesure des performances
-to_do_list,To do list
-elapsed_time,Temps écoulé (sec)
-task,Tâche
-datetime_start,Début
-datetime_stop,Fin
-fail_connect_remote_db,Echec lors de la connexion à la base de données distante
-success,Succès
-successfully_connected,Connecté avec succès
-db_restored_reload_app_to_take_into_account_changes,Base de données restaurée. Vous devez redémarrer la session pour prendre en compte les changements.
-modif_names_duplicates,"Certains noms sont utilisés plusieurs fois, retirez-les avant de sauvegarder"
-error_restoring_database,Erreur lors de la restauration de la base de données
-error_restoring_database_table,Erreur lors de la restauration d'une table de la base de données
-error_importing_default_database,Erreur lors de l'importation de la base de données par défaut
-database_restored,Base de données restaurée
-reload_log,Recharger le log
-value,Valeur
-subset_persons,Patients du subset
+add_a_widget,Ajouter un widget
+add_file,Créer un fichier
+add_folder,Créer un dossier
+add_to_saved_git_repos,Ajouter aux dépôts sauvegardés
 admin,Admin
 admin_access,Accès admin
-data_scientist,Data scientist
-clinician,Clinicien
-statistician,Statisticien
-mimic_iv_test_dataset,MIMIC-IV set de données test
-mortality_prediction,Prédiction de la mortalité
-fail_execute_subset_code,Echec lors de l'éxécution du code du subset
-error_adding_patients_to_subset,Erreur lors de l'ajout de patients au subset
-name_fr,Nom (FR)
-name_en,Nom (EN)
-category_fr,Catégorie (FR)
-category_en,Catégorie (EN)
-names_empty,Au moins un nom est vide, remplissez-le avant de sauvegarder
-error_removing_patients_from_subset,Erreur lors de la tentative de suppression de patients du subset
-help,Aide
-no_help_for_this_page,Pas d'aide pour cette page
-create_and_test_a_plugin,Créer et tester un plugin
-create_and_test_a_script,Créer et tester un script
-create_a_plugin,Créer un plugin
-whats_a_plugin,Qu'est ce qu'un plugin ?
-whats_a_script,Qu'est ce qu'un script ?
-local_and_remote_plugins,Plugins locaux et distants
-local_and_remote_scripts,Scripts locaux et distants
-access_log,Accéder au log
-vocabulary_id_col,ID (vocabulary_id)
-vocabulary_id,ID de la terminologie
-vocabulary_id_1,ID terminologie 1
-vocabulary_id_2,ID terminologie 2
-vocabulary_name_col,Nom (vocabulary_name)
-vocabulary_name,Nom de la terminologie
-vocabulary,Terminologie
-vocabularies,Terminologies
-vocabulary_concepts,Concepts de la terminologie
-vocabulary_table,Table de la terminologie
-vocabulary_tables,Tables de la terminologie
-vocabularies_tables,Tables des terminologies
-vocabulary_reference,Référence de la documentation de la terminologie
-vocabulary_version,Version de la terminologie
-vocabulary_concept_id,Concept ID de la terminologie
-display_order,Ordre d'affichage
-import_vocabulary,Importer une terminologie
-export_vocabulary,Exporter une terminologie
-export_concepts,Exporter des concepts
-import_concepts,Importer des concepts
-import_concepts_or_vocabularies,Importer des concepts ou des terminologies
-import,Importer
-export,Exporter
-imported_vocabularies,Terminologies importées
-imported_data,Données importées
-invalid_vocabulary_table,Nom de table de terminologie non valide
-vocabularies_table_delete,Suppression de lignes
-vocabularies_table_delete_subtext,Confirmer la suppression de la / des ligne(s) ?
-vocabulary_table_rows_deleted,Ligne(s) supprimée(s)
-vocab_tables_duplicates_cols,Certaines colonnes ont des valeurs dupliquées. Voir l'aide pour connaître les colonnes n'acceptant pas de valeurs dupliquées.
-vocab_tables_empty_cols,Certaines colonnes ont des valeurs nulles. Voir l'aide pour connaître les colonnes n'acceptant pas de valeurs nulles.
-vocabularies_datatable_show_row_details,Afficher les détails de la ligne sélectionnée
-vocabularies_datatable_show_mapped_concepts,Afficher les concepts alignés
-show_mapped_concepts,Afficher les concepts alignés
-show_only_dataset_vocabs,N'afficher que les terminologies utilisées dans le set de données sélectionné
-select_only_one_row_for_details,Sélectionner une seule ligne pour afficher les détails de la ligne sélectionnée
-load_concept_data_before,Charger la table CONCEPT avant
-load_concept_relationship_data_before,Charger la table CONCEPT_RELATIONSHIP avant
-error_importing_vocabulary,Erreur lors de l'importation du ou des terminologie(s)
-error_importing_concepts,Erreur lors de l'importation des concepts
-error_importing_dataset,Erreur lors de l'importation du set de données
+age,Age
+aggregated_data,Données agrégées
+aggregated_plugin,Plugin de données agrégées
 all_vocabularies,Toutes les terminologies
-success_importing_vocabulary,Terminologie(s) importée(s) avec succès
-success_importing_concepts,Concepts importés avec succès
-success_importing_dataset,Set(s) de données importé(s) avec succès
-study_description,Description de l'étude
-studies_description_card,Description de l'étude
-error_loading_plugins_xml_file,Erreur lors du téléchargement du fichier plugins.xml depuis le git distant
-error_loading_home_files,Erreur lors du téléchargement des fichiers de la page d'accueil
-summary,Sommaire
-omop_version,Version d'OMOP
-invalid_omop_version,"Version d'OMOP non valide. Versions valides : 5.3, 5.4 et 6.0."
-rows_inserted,Lignes ajoutées
-rows_inserted_in_table,lignes ajoutées dans la table
-concept_name,Nom du concept
-concept_name_1,Nom du concept 1
-concept_name_2,Nom du concept 2
-mapped_concept_name,Nom du concept aligné
-concept_display_name,Nom d'affichage du concept
-concept_display_name_1,Nom d'affichage du concept 1
-concept_display_name_2,Nom d'affichage du concept 2
-mapped_concept_display_name,Nom d'affichage du concept aligné
-domain_id,ID du domaine
-concept_class_id,ID de la classe du concept
-standard_concept,Concept standard
-concept_code,Code du concept
-valid_start_date,Date de début de validité
-valid_end_date,Date de fin de validité
-invalid_reason,Raison d'invalidité
-relationship_id,ID de la relation
-dataset_all_concepts_reload_cache,Recharger le cache
-dataset_all_concepts_reload_cache_subtext,Confirmer la recharge de la mémoire cache ?
-cache_reloaded,Cache rechargé
-delete_tab,Supprimer l'onglet
-value_as_number,Valeur numérique
-values_as_number,Valeurs numériques
-value_as_concept_id,Valeur en tant que concept
-values_as_concept_id,Valeurs en tant que concepts
-value_as_string,Valeur textuelle
-values_as_string,Valeurs textuelles
-quantity,Quantité
-quantities,Quantités
-title,Titre
-titles,Titres
-text,Texte
-texts,Textes
-proportion,Proportion
-no_data_to_show,Pas de donneés à afficher
-too_many_x_axis_values,Trop de données dans l'axe des x
-maps_to,Correspond à (non-std vers std)
-mapped_from,Correspond à (std vers non-std)
-is_a,Est inclus dans
-subsumes,Inclut
-error_calculating_num_rows_concepts_dataset,Erreur lors du calcul du nombre de lignes par concept dans le set de données
-show_only_not_mapped_concepts,Concepts non alignés uniquement
-vocabulary_show_only_not_evaluated_concepts,Alignements non évalués uniquement
-vocabulary_show_mapping_details,Afficher le détail de l'alignement sélectionné
-add_git_repo,Ajouter un dépôt git
-create_git_repo,Ajouter un dépôt git
-git_repos_management,Gestion des dépôts git
-git_repo_options,Options du dépôt git
-git_repos_see_all_data_user_access_description,Accès à tous les dépôts git
-git_add_repo_card_user_access_description,Ajouter un dépôt git
-git_repos_management_card_user_access_description,Gérer les dépôts git (éditer et supprimer)
-git_repo_options_card_user_access_description,Editer les options d'un dépôt git
-git_edit_repo_card_user_access_description,Modifier un dépôt git (commit et push)
-link,Lien
-url_address,Adresse URL
-repo_url_address,Adresse URL du dépôt git
-raw_files_url_address,Adresse URL des fichiers raw
-git_repos_delete,Suppression de dépôt git
-git_repos_delete_subtext,Confirmer la suppression du dépôt git ?
-git_repo_deleted,Dépôt git supprimé
-all_categories,Toutes les catégories
-show_data,Afficher les données
-hide_concepts_datatables,Masquer les tableaux
-study_delete_conversation_title,Supprimer une conversation
-study_delete_conversation_subtext,Confirmer la suppression de cette conversation ?
-study_delete_message_title,Supprimer un message
-study_delete_message_subtext,Confirmer la suppression de ce message ?
-deleted_message,Message supprimé
-fail_load_message,Erreur lors du chargement d'un message
-fail_load_message_show_raw_message,"Erreur lors du chargement du message, affichage du texte brut."
-main_tables_to_export,Tables de la BDD principale
-public_tables_to_export,Tables de la BDD publique
-main_tables_to_import,Tables de la BDD principale
-public_tables_to_import,Tables de la BDD publique
-error_downloading_tabs_and_cards_csv_file,Erreur lors du téléchargement du fichier tabs_and_cards.csv
-error_loading_tabs_and_cards_csv_file,Erreur lors du chargement du fichier tabs_and_cards.csv
-invalid_vocabulary_id_value,Valeur de vocabulary_id non valide
-invalid_concept_name_value,Valeur de concept_name non valide
-invalid_domain_id_value,Valeur de domain_id non valide
-invalid_concept_class_id_value,Valeur de concept_class_id non valide
-invalid_concept_code_value,Valeur de concept_code non valide
-vocabulary_concept_already_exists,Ce concept est déjà présent dans la base de données
-vocabulary_concept_added,Nouveau concept ajouté
-vocabulary_id_doesnt_exist,Ce vocabulary_id n'existe pas dans la base de données
-invalid_method_value,Valeur de method non valide
-invalid_concept_id_value,Valeur de concept_id non valide
-concept_not_found,Concept non trouvé
-error_loading_script_description,Erreur lors du chargement de la description du script
-error_loading_dataset_description,Erreur lors du chargement de la description du set de données
-error_loading_vocabulary_description,Erreur lors du chargement de la description de la terminologie
-access_to_data,Accéder aux données
-scripts_and_plugins,Scripts & plugins
-comment,Commentaire
-error_exporting_db,Erreur lors de l'export de la BDD
-imported_image_must_be_png_svg_or_jpg,"L'image importée doit être au format PNG, SVG ou JPG"
-exported_image_must_be_png_svg_or_jpg,"L'image exportée doit être au format PNG, SVG ou JPG"
-input_image_doesnt_exist,Le fichier de l'image n'existe pas
-error,Erreur
-show_imported_data,Afficher les données importées
-dataset_invalid_save_as,"Valeur non valide pour le paramètre 'save as'. Valeurs acceptées : 'none', 'csv' et 'parquet'."
-dataset_invalid_rewrite,Valeur non valide pour le paramètre 'rewrite'. Valeurs acceptées : TRUE ou FALSE.
-dataset_invalid_read_with,"Valeur non valide pour le paramètre 'read_with'. Valeurs acceptées : 'none', 'vroom', 'duckdb', 'spark'."
-dataset_invalid_data_source,Valeur non valid pour le paramètre 'source'
-dataset_error_with_db_connection,Erreur lors de la connexion à la base de données
-wrong_association_read_with_and_save_as,"L'association entre les paramètres 'read_with' et 'save_as' n'est pas valide"
-error_loading_duckdb,Erreur lors du chargement des données avec duckdb
-error_loading_sparklyr,Erreur lors du chargement des données avec sparklyr
-language,Langue
-programming_language,Langage
-with_map,Avec la carte
-with_url,Avec un lien
-show_description,Afficher la description
-selected_repo,Dépôt git sélectionné
-error_loading_git_readme,Erreur lors du chargement de la description du dépôt git
-error_loading_git_infos,Erreur lors du chargement des informations du dépôt git
 api_key,Clef API
-git_repo_already_in_db,Ce dépôt git a déjà été ajouté
-error_downloading_git_repos_csv,Erreur lors du téléchargement du fichier CSV des git distants
-error_loading_git_repos_csv,Erreur lors du chargement du fichier CSV des git distants
-error_loading_git_repo,Erreur lors du chargement du dépôt git
-error_loading_category_xml_file,Erreur lors du chargement du fichier XML de la catégorie sélectionnée
-edit_git_repo,Modifier un dépôt git
-add_files,Ajouter des fichiers
-commit_message,Message de commit
-commit_and_push,Commit & push
-edit_git_repo_delete_file,Supprimer un fichier
-edit_git_repo_delete_file_subtext,Confirmer la suppression de ce fichier ?
-file_deleted,Fichier supprimé
-error_deleting_file,Erreur lors de la suppression du fichier
-error_creating_xml_file,Erreur lors de la création du fichier XML
-success_update_remote_git_repo,Dépôt git distant mis à jour avec succès
-error_update_remote_git_repo,Erreur lors de la mise à jour du dépôt git distant
-error_downloading_remote_plugin_images,Erreur lors du téléchargement des images du plugin du dépôt git distant
-error_downloading_remote_script_images,Erreur lors du téléchargement des images du script du dépôt git distant
-error_downloading_remote_dataset_images,Erreur lors du téléchargement des images du set de données du dépôt git distant
-error_downloading_remote_vocabulary_images,Erreur lors du téléchargement des images de la terminologie du dépôt git distant
-import_datasets,Importer des sets
-export_datasets,Exporter des sets
-import_vocabularies,Importer des terminologies
-export_vocabularies,Exporter des terminologies
-images,Images
-show_all_relationships,Afficher toutes les associations
-no_tabs_to_display_click_add_tab,Ce projet ne contient pas d'onglets. Cliquez sur 'ajouter un onglet'.
-studies_dataset,Set de données
-files,Fichiers
-readme,Readme
-generate_readme,Générer le contenu du readme
-error_update_readme,Erreur lors de la modification du readme
-error_generate_readme,Erreur lors de la génération du readme
-add_all_vocabularies,Ajouter toutes les terminologies retrouvées dans les fichiers
-data_cleaning,Data cleaning
-data_cleaning_scripts,Scripts de data cleaning
-configure_python,Configurer Python
-python_path,Chemin d'accès à Python
-test_python_path,Tester
-failure,Echec
-app_data_structure,Structure des données
-import_export_datasets,Importer / exporter des sets
-display,Affichage
-editor_page,Page de l'éditeur
-plugin_choice,Plugin
-code_result,Résultat du code
-editor_and_result_side_by_side,Côte à côte
-imported_col,Colonne importée
-required_col,Colonne attendue
-script_name,Nom du script
-main_script,Script principal
-projects,Projets
-create_project,Créer un projet
-options,Options
-test_code,Test
-add_folder,Créer un dossier
-add_file,Créer un fichier
-save_current_file,Sauvegarder le fichier actuel
-run_plugin_code,Exécuter le plugin
-invalid_file_extension,Extension du fichier non valide
-invalid_filename,Nom du fichier non valide
-delete_file_title,Supprimer un fichier
-delete_file_text,Confirmer la suppression de ce fichier ?
-delete_plugin_title,Supprimer un plugin
-delete_plugin_text,Confirmer la suppression de ce plugin ?
-delete_plugin,Supprimer le plugin
-delete_vocabulary_title,Supprimer une terminologie
-delete_vocabulary_text,Confirmer la suppression de cette terminologie ?
-configure,Configurer
-develop,Développer
-discover,Découvrir
+app_db,BDD de l'application
+app_db_request,Requêter la BDD
 app_settings,Paramètres de l'application
-catalog,Catalogue
-explore,Explorer
-explore_data,Explorer les données
-configure_project,Configurer le projet
-tasks,Tâches
-report_results,Présenter les résultats
-delete_widget,Supprimer le widget
-choose_a_plugin,Choisir un plugin
-data_type,Type de données
-informations,Informations
-edit_informations,Editer les informations
-plugin_no_selected_project,Chargez un projet afin que le code du plugin fonctionne
-set_up_project,Paramétrer le projet
-load_project,Charger le projet
-project_added,Nouveau projet créé
-show_all_projects,Afficher tous les projects
-delete_project_title,Supprimer un projet
-delete_project_text,Confirmer la suppression de ce projet ?
-project_deleted,Projet supprimé
-share,Partage
-project_console,Console
-delete_dataset_title,Supprimer un set de données
-delete_dataset_text,Confirmer la suppression de ce set de données ?
-delete_data_cleaning_title,Supprimer un script de data cleaning
-delete_data_cleaning_text,Confirmer la suppression de ce script ?
-dataset_deleted,Set de données supprimé
-data_cleaning_script_deleted,Script de data cleaning supprimé
-delete_subset_title,Supprimer un subset
-delete_subset_text,Confirmer la suppression de ce subset ?
-subset_deleted,Subset supprimé
-refresh_log,Rafraîchir le log
-reset_log,Remettre le log à zéro
-figure,Figure
-shell,Shell
-r,R
-python,Python
-terminal,Terminal
-table_output,Table
-datatable_output,DataTable
-matplotlib,Matplotlib
-width,Largeur
-height,Hauteur
-dpi,DPI
-show_projects,Afficher les projets
-manage_datasets,Gérer les sets de données
-manage_vocabularies,Gérer les terminologies
-open_console,Ouvrir la console
-show_plugins,Afficher les plugins
-manage_data_cleaning_scripts,Gérer les scripts
-show_catalog,Afficher le catalogue
-open_help,Ouvrir l'aide
-open_settings,Ouvrir les paramètres
-projects_widget_text,"Les projets permettent de travailler de façon collaborative sur des données de santé au format OMOP, à l'aide d'une interface graphique modulable."
-console_widget_text,"Utilisez la console pour exécuter rapidement du code en R, Python ou avec des scripts shell."
-plugins_widget_text,"Les plugins sont des scripts R ou Python permettant d'ajouter des fonctionnalités à LinkR. Ils sont les briques élémentaires des projets, permettant de visualiser et d'analyser les données."
-data_cleaning_widget_text,"Organisez vos scripts de data cleaning, qui permettent d'améliorer la qualité des données que vous utiliserez dans vos projets."
-explore_widget_text,"Explorez le travail réalisé par la communauté, utilisez leur travail et partagez le votre !"
-help_widget_text,"Accédez à l'aide de LinkR en ligne."
-settings_widget_text,"Accédez aux paramètres de LinkR (utilisateurs, base de données etc)."
-datasets_widget_text,"Gérez ici vos sets de données, qui seront importés au sein de projets."
-vocabularies_widget_text,"Organisez et explorez les terminologies de concepts médicaux ici."
-synchronize_with_git_repo,Synchronisation git
-dont_import,Annuler
-import_plugin_title,Importer un plugin
-import_plugin_text,Ce plugin existe déjà. Confirmez-vous la suppression du plugin existant ?
-import_vocabulary_title,Importer une terminologie
-import_vocabulary_text,Cette terminologie existe déjà. Confirmez-vous la suppression de la terminologie existante ?
-import_dataset_title,Importer un set de données
-import_dataset_text,Ce set de données existe déjà. Confirmez-vous la suppression du set de données existant ?
-import_data_cleaning_title,Importer un script de data cleaning
-import_data_cleaning_text,Ce set de données existe déjà. Confirmez-vous la suppression du script existant ?
-import_project_title,Importer un projet
-import_project_text,Ce projet existe déjà. Confirmez-vous la suppression du projet existant ?
-import_subset_title,Importer un subset
-import_subset_text,Ce subset existe déjà. Confirmez-vous la suppression du subset existant ?
-import_git_repo_title,Importer un dépôt git
-import_git_repo_text,Ce dépôt git existe déjà. Confirmez-vous la suppression du dépôt git existant ?
-reload_plugin_code,Recharger le code du plugin
-select_concepts,Sélectionner des concepts
-confirm,Valider
-select_a_plugin,Sélectionner un plugin
-show_content,Afficher le contenu
-no_internet_access,Pas d'accès à internet
-show_git_repos_list,Afficher la liste (dépôts git sauvegardés localement)
-show_git_repos_map,Afficher la carte (catalogue de dépôts git)
-no_elements_to_display,Pas d'élément à afficher
-concept_table,Concepts
-concept_relationship_table,Alignements de concepts
-concept_synonym_table,Synonymes de concepts
-concept_ancestor_table,Hiérarchie des concepts
-drug_strength_table,Médicaments
-language_concept_id,ID du langage
-language_concept_name,Langage
-concept_synonym_name,Synonyme
-ancestor_concept_id,ID du concept parent
-ancestor_concept_name,Nom du concept parent
-descendant_concept_id,ID du concept fils
-descendant_concept_name,Nom du concept fils
-min_levels_of_separation,Nombre min de niveaux de séparation
-max_levels_of_separation,Nombre max de niveaux de séparation
-import_concepts_title,Importer des concepts ou des terminologies
-close,Fermer
-message,Message
-import_new_vocabularies,Importer les nouvelles terminologies
-import_new_vocabularies_info,"Si de nouvelles terminologies sont présentes dans les fichiers importés, elles seront ajoutées dans la base de données de l'application."
-plugin_doesnt_exist_in_git_repo,Ce plugin n'existe pas dans le dépôt git
-dataset_doesnt_exist_in_git_repo,Ce set de données n'existe pas dans le dépôt git
-data_cleaning_doesnt_exist_in_git_repo,Ce script de data cleaning n'existe pas dans le dépôt git
-project_doesnt_exist_in_git_repo,Ce projet n'existe pas dans le dépôt git
-plugin_doesnt_exist_locally,Ce plugin n'existe pas sur votre instance de LinkR
-dataset_doesnt_exist_locally,Ce set de données n'existe pas sur votre instance de LinkR
-data_cleaning_doesnt_exist_locally,Ce script de data cleaning n'existe pas sur votre instance de LinkR
-project_doesnt_exist_locally,Ce projet n'existe pas sur votre instance de LinkR
-study_doesnt_exist_locally,Ce projet n'existe pas sur votre instance de LinkR
-updated_x_ago,Auparavant
-days,Jours
-day,Jour
-hours,Heures
-hour,Heure
-update_git_element_dataset_title,Mise à jour d'un élément du git
-update_git_element_dataset_text,Mettre à jour ce set de données sur le git ? Ceci va supprimer et remplacer l'ancien set de données sur le dépôt git distant.
-delete_git_element_dataset_title,Supprimer un élément du git
-delete_git_element_dataset_text,Supprimer ce set de données sur le git ?
-update_git_element_plugin_title,Mise à jour d'un élément du git
-update_git_element_plugin_text,Mettre à jour ce plugin sur le git ? Ceci va supprimer et remplacer l'ancien plugin sur le dépôt git distant.
-delete_git_element_plugin_title,Supprimer un élément du git
-delete_git_element_plugin_text,Supprimer ce plugin sur le git ?
-update_git_element_data_cleaning_title,Mise à jour d'un élément du git
-update_git_element_data_cleaning_text,Mettre à jour ce script de data cleaning sur le git ? Ceci va supprimer et remplacer l'ancien script sur le dépôt git distant.
-delete_git_element_data_cleaning_title,Supprimer un élément du git
-delete_git_element_data_cleaning_text,Supprimer ce script de data cleaning sur le git ?
-update_git_element_project_title,Mise à jour d'un élément du git
-update_git_element_project_text,Mettre à jour ce projet sur le git ? Ceci va supprimer et remplacer l'ancien projet sur le dépôt git distant.
-delete_git_element_project_title,Supprimer un élément du git
-delete_git_element_project_text,Supprimer ce projet sur le git ?
-update_git_element_subset_title,Mise à jour d'un élément du git
-update_git_element_subset_text,Mettre à jour ce subset sur le git ? Ceci va supprimer et remplacer l'ancien subset sur le dépôt git distant.
-delete_git_element_subset_title,Supprimer un élément du git
-delete_git_element_subset_text,Supprimer ce subset sur le git ?
-update_git_element_vocabulary_title,Mise à jour d'un élément du git
-update_git_element_vocabulary_text,Mettre à jour cette terminologie sur le git ? Ceci va supprimer et remplacer l'ancienne terminologie sur le dépôt git distant.
-delete_git_repo_title,Supprimer un dépôt git
-delete_git_repo_text,Supprimer ce dépôt git ? "Ceci supprime le lien local vers ce dépôt git, il pourra toujours être de nouveau ajouté plus tard."
-delete_git_element_title,Supprimer un élément du git
-delete_git_element_text,Supprimer cet élément du dépôt git ?
-delete_git_element_vocabulary_title,Supprimer un élément du git
-delete_git_element_vocabulary_text,Supprimer cette terminologie sur le git ?
-dont_update,Ne pas mettre à jour
-reload_dataset,Recharger le set de données
-reload_dataset_concepts,Recharger les concepts du set de données
-reload_dataset_concepts_title,Recharger les concepts
-reload_dataset_concepts_text,Recharger le décompte des concepts du set de données actuel ? Cette opération peut prendre quelques minutes.
-reload,Recharger
-dont_reload,Annuler
-count_persons_rows,Patients
-count_concepts_rows,Lignes
-add_concept_input,Ajouter
-element_git_version_more_recent,Version sur le git plus récente
-element_local_version_more_recent,Version locale plus récente
-minutes,Minutes
-minute,Minute
+author_s,Auteur(s)
+authors,Auteurs
+backups,Sauvegardes
 cancel,Annuler
-error_downloading_plugin,Erreur lors du téléchargement du plugin
-error_downloading_project,Erreur lors du téléchargement du projet
-error_downloading_dataset,Erreur lors du téléchargement du set de données
-error_downloading_data_cleaning,Erreur lors du téléchargement du script de data cleaning
-element_git_and_local_versions_are_the_same,Mêmes versions en local et sur le git
-reload_git_repo,Recharger le git
-install,Installer
-install_project,Installer le projet
-install_study,Installer le projet
-install_plugin,Installer le plugin
-install_data_cleaning_script,Installer le script de data cleaning
-install_dataset,Installer le set de données
-local_version_up_to_date,Version locale à jour
-reload_list,Recharger la liste
-error_transforming_cols,Erreur lors de la transformation des colonnes
-give_access_to,Donner l'accès à
-plugin_for,Plugin pour
-edit_description,Modifier la description
-edit_readme,Modifier le readme
-save_description,Sauvegarder les modifications
-save_readme,Sauvegarder les modifications
 cancel_description_updates,Annuler les modifications
 cancel_readme_updates,Annuler les modifications
-backups,Sauvegardes
-save_settings,Sauvegarder les paramètres
-unselect_all_tables,Désélectionner toutes les tables
-select_all_tables,Sélectionner toutes les tables
-other_pages,Autres pages
-error_loading_db_file,Erreur lors du chargement de la sauvegarder de la base de données
-error_restoring_db_old_table_after_import_failure,Erreur lors de la restauration d'une ancienne table après échec de l'import d'une base de données
-update_project_plugins_title,Mise à jour des plugins
-update_project_plugins_text,Mettre à jour les plugins inclus dans le projet ? Ceci va supprimer et remplacer les plugins locaux non à jour.
-occurrences,Occurrences
-field_cant_be_empty,Ce champ ne doit pas être vide
-git_repo_url_address_already_used,Il y a déjà un dépôt git enregistré avec cette URL
-push_git_title,Mettre à jour le readme
-delete_element_from_remote_git,Supprimer l'élément du git
-error_removing_git_element,Erreur lors de la suppression de l'élément du git
-edit_user,Editer le profil de l'utilisateur
-delete_user,Supprimer l'utilisateur
-delete_user_status,Supprimer le statut
-delete_user_access,Supprimer l'accès
-delete_user_title,Supprimer un utilisateur
-delete_user_text,Confirmer la suppression de l'utilisateur ?
-delete_user_status_title,Supprimer un status
-delete_user_status_text,Confirmer la suppression de ce statut ?
-delete_user_access_title,Supprimer un accès
-delete_user_access_text,Confirmer la suppression de cet accès ?
 cancel_updates,Annuler les modifications
-save_updates,Sauvegarder les modifications
-login,Identifiant de connexion
-create_user,Créer un nouvel utilisateur
-create_user_status,Créer un nouveau statut
-create_user_access,Créer un nouvel accès
-users_management_user_access_description,"Gérer les utilisateurs (ajouter, éditer et supprimer)"
-users_statuses_management_user_access_description,"Gérer les statuts des utilisateurs (ajouter, éditer et supprimer)"
-users_accesses_management_user_access_description,"Gérer les accès des utilisateurs (ajouter, éditer et supprimer)"
-projects_see_all_data_user_access_description,Accès à tous les projets
-projects_management_user_access_description,"Gérer les projets (ajouter, éditer et supprimer)"
-projects_import_user_access_description,Importer un projet
-projects_dataset_user_access_description,Modifier le set de données du projet
-projects_data_cleaning_user_access_description,Modifier les scripts de data cleaning du projet
-projects_share_user_access_description,Partager les projets (zip and git)
-plugins_see_all_data_user_access_description,Accès à tous les plugins
-plugins_management_user_access_description,"Gérer les plugins (ajouter, éditer et supprimer)"
-plugins_import_user_access_description,Importer un plugin
-plugins_edit_code_user_access_description,Editer et tester le code du plugin
-plugins_share_user_access_description,Partager les plugins (zip and git)
-datasets_see_all_data_user_access_description,Accès à tous les sets de données
-datasets_management_user_access_description,"Gérer les sets de données (ajouter, éditer et supprimer)"
-datasets_import_user_access_description,Importer un set de données
-datasets_edit_code_user_access_description,Editer et tester le code du set de données
-datasets_share_user_access_description,Partager les sets de données (zip and git)
-data_cleaning_see_all_data_user_access_description,Accès à tous les scripts de data cleaning
-data_cleaning_management_user_access_description,"Gérer les scripts de data cleaning (ajouter, éditer et supprimer)"
-data_cleaning_import_user_access_description,Importer un script de data cleaning
-data_cleaning_edit_code_user_access_description,Editer et tester le code du script de data cleaning
-data_cleaning_share_user_access_description,Partager les scripts de data cleaning (zip and git)
-vocabularies_management_user_access_description,"Gérer les terminologies (ajouter, éditer et supprimer)"
-vocabularies_import_user_access_description,Importer des terminologies et des concepts
-console_execute_code_user_access_description,Exécuter du code dans la console
-git_repos_management_user_access_description,"Gérer les dépôts git (ajouter, éditer et supprimer)"
-git_repos_remote_git_repo_management_user_access_description,"Modifier le contenu des dépôts git (éditer le Readme, supprimer des éléments)"
-git_repos_install_remote_git_element_user_access_description,Installer des éléments d'un dépôt git distant
-app_db_connection_settings_user_access_description,Modifier les paramètres de connexion
-app_db_db_request_user_access_description,Requêter la base de données de l'application
-app_db_save_restore_user_access_description,Sauvegarder et restaurer la base de données de l'application
-log_user_log_user_access_description,Afficher les logs de l'utilisateur
-concepts_reload_dataset_concepts_user_access_description,Recharger le décompte des concepts du set de données
-submit_login,Connexion
-invalid_login_or_password,Identifiant ou mot de passe invalide
-add_to_saved_git_repos,Ajouter aux dépôts sauvegardés
+choose_files,Choisir des fichiers
+choose_zip_file,Choisir un fichier ZIP
+clinician,Clinicien
+close,Fermer
+code,Code
+column,Colonne
+columns,Colonnes
+commit_and_push,Commit & push
+commit_message,Message de commit
+concept_ancestor_table,Hiérarchie des concepts
+concept_class_id,ID de la classe du concept
+concept_code,Code du concept
+concept_id,ID du concept
+concept_name,Nom du concept
+concept_relationship_table,Alignements de concepts
+concept_synonym_table,Synonymes de concepts
+concept_table,Concepts
+concepts,Concepts
+confirm,Valider
+connection,Connexion
+connection_settings,Paramètres de connexion
+console,Console
+console_widget_text,"Utilisez la console pour exécuter rapidement du code en R, Python ou avec des scripts shell."
 content_catalog,Catalogue de contenus
+create_git_repo,Ajouter un dépôt git
+create_project,Créer un projet
+create_subset,Créer un subset
+create_user,Créer un nouvel utilisateur
+create_user_access,Créer un nouvel accès
+create_user_status,Créer un nouveau statut
+create_vocabulary,Créer une terminologie
+created_on,Créé le
+data_cleaning,Data cleaning
+data_cleaning_scripts,Scripts de data cleaning
+data_cleaning_widget_text,"Organisez vos scripts de data cleaning, qui permettent d'améliorer la qualité des données que vous utiliserez dans vos projets."
+data_scientist,Data scientist
+data_type,Type de données
+database,Base de données
+dataset,Set de données
+dataset_error_with_db_connection,Erreur lors de la connexion à la base de données
+dataset_invalid_data_source,Valeur non valid pour le paramètre 'source'
+dataset_invalid_read_with,"Valeur non valide pour le paramètre 'read_with'. Valeurs acceptées : 'none', 'vroom', 'duckdb', 'spark'."
+dataset_invalid_save_as,"Valeur non valide pour le paramètre 'save as'. Valeurs acceptées : 'none', 'csv' et 'parquet'."
+datasets,Sets de données
+datasets_widget_text,"Gérez ici vos sets de données, qui seront importés au sein de projets."
+datatable_output,DataTable
+day,Jour
+days,Jours
+delete,Supprimer
+delete_element_from_remote_git,Supprimer l'élément du git
+delete_file_text,Confirmer la suppression de ce fichier ?
+delete_file_title,Supprimer un fichier
+delete_git_element_text,Supprimer cet élément du dépôt git ?
+delete_git_element_title,Supprimer un élément du git
+delete_git_repo_text,"Supprimer ce dépôt git ? ""Ceci supprime le lien local vers ce dépôt git, il pourra toujours être de nouveau ajouté plus tard."""
+delete_git_repo_title,Supprimer un dépôt git
+delete_plugin_text,Confirmer la suppression de ce plugin ?
+delete_plugin_title,Supprimer un plugin
+delete_project_title,Supprimer un projet
+delete_project_text,Confirmer la suppression de ce projet ?
+delete_tab_text,Confirmer la suppression de cet onglet ?
+delete_tab_title,Suppression d'onglet
+delete_user,Supprimer l'utilisateur
+delete_user_access,Supprimer l'accès
+delete_user_status,Supprimer le statut
+delete_widget_text,Confirmer la suppression de ce widget ?
+delete_widget_title,Suppression de widget
+description,Description
+domain_id,ID du domaine
+dont_delete,Annuler
+dont_import,Annuler
+dont_reload,Annuler
+dont_update,Ne pas mettre à jour
+dpi,DPI
+drug_strength_table,Médicaments
+dt_empty,Pas de données disponibles
+dt_entries,Afficher _MENU_ lignes
+dt_next,Suivante
+dt_previous,Précédente
+dt_search,Rechercher :
+edit,Modifier
+edit_a_tab,Editer un onglet
+edit_description,Modifier la description
+edit_informations,Editer les informations
+edit_page,Editer la page
+edit_readme,Modifier le readme
+element_git_and_local_versions_are_the_same,Mêmes versions en local et sur le git
+element_git_version_more_recent,Version sur le git plus récente
+element_local_version_more_recent,Version locale plus récente
+english,Anglais
+error_getting_files_from_data_folder,Echec lors de la récupération des fichiers du dossier de données
+error_inserting_data,Erreur lors de l'insertion de données dans la BDD
+error_loading_category_xml_file,Erreur lors du chargement du fichier XML de la catégorie sélectionnée
+error_loading_csv_files,Erreur lors du chargement des fichiers CSV
+error_loading_duckdb,Erreur lors du chargement des données avec duckdb
+error_loading_git_infos,Erreur lors du chargement des informations du dépôt git
+error_loading_git_readme,Erreur lors du chargement de la description du dépôt git
+error_loading_git_repo,Erreur lors du chargement du dépôt git
+error_multiple_identical_values,Certaines valeurs sont dupliquées. Retirer les duplicats avant d'importer la table de terminologie.
+error_multiple_primary_keys,Certaines clefs primaires sont dupliquées. Retirer les duplicats avant d'importer la table de terminologie.
+error_transforming_cols,Erreur lors de la transformation des colonnes
+error_transforming_tibble,Erreur dans la conversion de la variable au format tibble
+everybody,Tout le monde
+explore,Explorer
+explore_widget_text,"Explorez le travail réalisé par la communauté, utilisez leur travail et partagez le votre !"
+export_db,Exporter la base de données
+field_cant_be_empty,Ce champ ne doit pas être vide
+figure,Figure
+firstname,Prénom
+firstname_and_lastname_already_used,Cette identité est déjà utilisée
+french,Français
+from,Du
+gender,Sexe
+generate_readme,Générer le contenu du readme
+git_repo,Dépôt git
+git_repo_url_address_already_used,Il y a déjà un dépôt git enregistré avec cette URL
+git_repos,Dépôts git
+give_access_to,Donner l'accès à
+height,Hauteur
+help,Aide
+help_widget_text,Accédez à l'aide de LinkR en ligne.
+home,Accueil
+hosp_unit,Unité
+host,Hôte
+hour,Heure
+hours,Heures
+id,ID
+import,Importer
+import_concepts_or_vocabularies,Importer des concepts ou des terminologies
+import_concepts_title,Importer des concepts ou des terminologies
+informations,Informations
+install,Installer
+invalid_col_names,Noms de colonnes non valides
+invalid_data_folder,L'argument data_folder doit être de type character
+invalid_dataset_id_value,La variable dataset_id doit être de type integer
+invalid_omop_version,"Version d'OMOP non valide. Versions valides : 5.3, 5.4 et 6.0."
+invalid_patients_value,Valeur de patients non valide
+invalid_subset_id_value,Valeur de subset_id non valide
+invalid_vocabulary_table,Nom de table de terminologie non valide
+italian,Italien
+language,Langue
+last_db_restore,Dernière restauration
+last_db_save,Dernière sauvegarde
+lastname,Nom
+level_under,Niveau d'en-dessous
+load_project,Charger le projet
+local,Locale
+local_version_up_to_date,Version locale à jour
+log,Log
+login,Identifiant de connexion
+main_db,BDD principale
+main_db_name,Nom de la BDD principale
+main_tables_to_export,Tables de la BDD principale
+main_tables_to_import,Tables de la BDD principale
+manage_data_cleaning_scripts,Gérer les scripts
+manage_datasets,Gérer les sets de données
+manage_vocabularies,Gérer les terminologies
+matplotlib,Matplotlib
+message,Message
+messages,Messages
+minute,Minute
+minutes,Minutes
+modif_saved,Modifications enregistrées
+months,mois
+name,Nom
+name_already_used,Ce nom est déjà utilisé
+no_data_to_insert,Pas de nouvelles données à insérer
+no_data_to_insert_in_table,Pas de données à insérer dans la table
+no_elements_to_display,Pas d'élément à afficher
+no_internet_access,Pas d'accès à internet
+no_person_in_subset,Aucun patient dans le subset
+no_results_found,Pas de résultats
+no_stay_available,Pas de séjour disponible
+no_subset_available,Pas de subset disponible
+no_tabs_to_display_click_add_tab,Ce projet ne contient pas d'onglets. Cliquez sur 'ajouter un onglet'.
+num_patients,Patients
+num_rows,Lignes
+occurrences,Occurrences
+omop_version,Version d'OMOP
+open_console,Ouvrir la console
+open_help,Ouvrir l'aide
+open_settings,Ouvrir les paramètres
+other_pages,Autres pages
+output,Output
+password,Mot de passe
+patient_level_data,Données individuelles
+patient_lvl_data,Données individuelles
+patient_lvl_or_aggregated_data,Données individuelles ou agrégées
+patient_lvl_or_aggregated_plugin,Plugin de données individuelles ou agrégées
+patient_lvl_plugin,Plugin de données individuelles
+person,Patient
+person_id,ID du patient
+plugin_deleted,Plugin supprimé
+plugin_for,Plugin pour
+plugins,Plugins
+plugins_widget_text,"Les plugins sont des scripts R ou Python permettant d'ajouter des fonctionnalités à LinkR. Ils sont les briques élémentaires des projets, permettant de visualiser et d'analyser les données."
+port,Port
+programming_language,Langage
+project_added,Nouveau projet créé
+project_deleted,Projet supprimé
+projects,Projets
+projects_widget_text,"Les projets permettent de travailler de façon collaborative sur des données de santé au format OMOP, à l'aide d'une interface graphique modulable."
+provide_valid_api_key,Clef API valide requise
+provide_valid_name,Nom valide requis
+provide_valid_value,Valeur valide requise
+public_db,BDD publique
+public_db_name,Nom de la BBD publique
+public_tables_to_export,Tables de la BDD publique
+public_tables_to_import,Tables de la BDD publique
+push_git_title,Mettre à jour le readme
+python,Python
+r,R
+raw_files_url_address,Adresse URL des fichiers raw
+refresh_log,Rafraîchir le log
+reload,Recharger
+reload_dataset,Recharger le set de données
+reload_dataset_concepts,Recharger les concepts du set de données
+reload_dataset_concepts_text,Recharger le décompte des concepts du set de données actuel ? Cette opération peut prendre quelques minutes.
+reload_dataset_concepts_title,Recharger les concepts
+reload_git_repo,Recharger le git
+reload_list,Recharger la liste
+reload_plugin_code,Recharger le code du plugin
+remote,Distante
+repo_url_address,Adresse URL du dépôt git
+reset_log,Remettre le log à zéro
+restore_db,Restaurer la base de données
+rmarkdown,RMarkdown
+rows_inserted,Lignes ajoutées
+rows_inserted_in_table,lignes ajoutées dans la table
+run_code,Exécuter
+run_plugin_code,Exécuter le plugin
+same_level_current_tab,Même niveau que l'onglet actuel
+save,Sauvegarder
+save_current_file,Sauvegarder le fichier actuel
+save_description,Sauvegarder les modifications
+save_readme,Sauvegarder les modifications
+save_settings,Sauvegarder les paramètres
+save_updates,Sauvegarder les modifications
+select_a_plugin,Sélectionner un plugin
+select_all_tables,Sélectionner toutes les tables
+select_concepts,Sélectionner des concepts
+set_up_project,Paramétrer le projet
+settings,Paramètres
+settings_widget_text,"Accédez aux paramètres de LinkR (utilisateurs, base de données etc)."
+share,Partage
+shell,Shell
+short_description,Description courte
+show_catalog,Afficher le catalogue
+show_content,Afficher le contenu
+show_git_repos_list,Afficher la liste (dépôts git sauvegardés localement)
+show_git_repos_map,Afficher la carte (catalogue de dépôts git)
+show_plugins,Afficher les plugins
+show_projects,Afficher les projets
+some_users,Certains utilisateurs
+spanish,Espagnol
+sql_lib,Librairie SQL
+standard_concept,Concept standard
+statistician,Statisticien
+subset,Subset
+subset_all_patients,Tous les patients
+subsets,Subsets
+success,Succès
+success_importing_concepts,Concepts importés avec succès
+summary,Sommaire
+synchronize_with_git_repo,Synchronisation git
+table,Table
+table_name,Nom de la table
+table_output,Table
+tasks,Tâches
+terminal,Terminal
+test_code,Test
+test_connection,Tester la connexion
+to,Au
+type_must_be_integer,doit être de type integer
+unauthorized_access_area,Accès non autorisé à cette section
+unselect_all_tables,Désélectionner toutes les tables
+update,Mettre à jour
+update_project_plugins_text,Mettre à jour les plugins inclus dans le projet ? Ceci va supprimer et remplacer les plugins locaux non à jour.
+update_project_plugins_title,Mise à jour des plugins
+updated_on,Modifié le
+updated_x_ago,Auparavant
+url_address,Adresse URL
+user,Utilisateur
+user_access,Accès utilisateur
+user_status,Statut de l'utilisateur
+username,Identifiant
+username_already_used,Ce pseudo est déjà utilisé
+users,Utilisateurs
+users_accesses,Accès utilisateurs
+users_statuses,Statuts des utilisateurs
+valid_col_names_are,Noms de colonnes non valides.
+value,Valeur
+visit_detail,Séjour
+visit_detail_id,ID du séjour
+vocabularies,Terminologies
+vocabularies_widget_text,Organisez et explorez les terminologies de concepts médicaux ici.
+vocabulary,Terminologie
+vocabulary_id,ID de la terminologie
+width,Largeur
+years,ans

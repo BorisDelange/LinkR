@@ -132,27 +132,6 @@ create_elements_ui <- function(page_id, elements, r, language, i18n){
       widget_buttons <- get_plugin_buttons(plugin_type, i18n)
     }
     
-    else if (id == "projects"){
-      widget_buttons <-
-        div(
-          div(
-            create_hover_card(
-              ui = shiny.fluent::IconButton.shinyInput(ns("project_settings"), iconProps = list(iconName = "Settings"), href = shiny.router::route_link("projects")),
-              text = i18n$t("set_up_project")),
-            class = "small_icon_button",
-            onclick = paste0(onclick, "
-              Shiny.setInputValue('", page_id, "-selected_element_type', 'project_options');
-              event.stopPropagation();
-            ")
-          ),
-          div(
-            create_hover_card(ui = shiny.fluent::IconButton.shinyInput(ns("load_project"), iconProps = list(iconName = "Play")), text = i18n$t("load_project")),
-            class = "small_icon_button"
-          ),
-          class = "project_widget_buttons"
-        )
-    }
-    
     elements_ui <- tagList(
       create_element_ui(page_id, single_id, element_name, users_ui, widget_buttons, onclick, short_description),
       elements_ui

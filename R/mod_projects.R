@@ -304,22 +304,10 @@ mod_projects_server <- function(id, r, d, m, language, i18n, debug, user_accesse
     observeEvent(shiny.router::get_page(), {
       
       # If data is not already loaded, load data
-      req(length(r$project_data_loaded) > 0)
-      req(!r$project_data_loaded)
       req(shiny.router::get_page() %in% c("subsets", "project_messages", "project_console", "tasks"))
       
       if (debug) cat(paste0("\n", now(), " - mod_projects - observer shiny.router::get_page()"))
       r$load_project_trigger <- now()
-    })
-    
-    observeEvent(r$load_project_trigger, {
-      if (debug) cat(paste0("\n", now(), " - mod_projects - observer r$load_project_trigger"))
-      
-      req(length(m$selected_study) > 0)
-      
-      shiny.router::change_page("data?type=patient_lvl")
-      r$project_data_loaded <- TRUE
-      shinyjs::delay(500, r$load_project_data_trigger <- now())
     })
     
     # --- --- --- --- -- -
