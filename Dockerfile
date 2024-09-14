@@ -28,4 +28,6 @@ RUN R -e "remotes::install_gitlab('interhop/linkr/linkr', host = 'framagit.org')
 
 COPY Rprofile.site /usr/lib/R/etc/
 
+# Run LinkR
 EXPOSE 3838
+CMD ["R", "-e", "options('shiny.port'=3838,shiny.host='0.0.0.0');linkr::linkr(language = 'fr', app_folder = '/root')"]
