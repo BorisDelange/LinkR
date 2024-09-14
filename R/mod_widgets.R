@@ -935,6 +935,11 @@ mod_widgets_server <- function(id, r, d, m, language, i18n, all_divs, debug, use
         # Change header
         sapply(c("command_bar_2_link", "command_bar_2_div"), shinyjs::show)
         
+        # Check if we load another project, or if it is the same
+        project_already_loaded <- FALSE
+        if (length(m$selected_study) > 0) if (m$selected_study == input$selected_element) project_already_loaded <- TRUE
+        req(!project_already_loaded)
+        
         # Change current project name
         m$selected_study <- input$selected_element
         
@@ -945,21 +950,13 @@ mod_widgets_server <- function(id, r, d, m, language, i18n, all_divs, debug, use
           value = element_wide$dataset_id
         )
         
-        # We can choose to load only project settings, and loda data after
-        r$project_data_loaded <- FALSE
-        
         # Load data page if not already loaded
-        # If not already loaded, project is loaded after data page server side is loaded
-        # Else, project is loaded directly
-        # Delay to change page before executing server
         
-        if (input$selected_element_type != "project_options"){
-          if (length(r$loaded_pages$data) == 0){
-            r$load_page <- "data"
-            r$data_page <- "patient_lvl"
-          }
-          else r$load_project_trigger <- now()
+        if (length(r$loaded_pages$data) == 0){
+          r$load_page <- "data"
+          r$data_page <- "patient_lvl"
         }
+        else r$load_project_trigger <- now()
       }
       
       # Load dataset ----

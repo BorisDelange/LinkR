@@ -304,23 +304,15 @@ mod_data_server <- function(id, r, d, m, language, i18n, debug, user_accesses){
     subset_tables <- c(person_tables, "person", "observation_period", "visit_occurrence", "visit_detail")
     main_tables <- c(subset_tables, "location", "care_site", "provider")
     
-    observeEvent(r$load_project_data_trigger, {
+    observeEvent(r$load_project_trigger, {
       
-      if (debug) cat(paste0("\n", now(), " - mod_data - observer r$load_project_data_trigger"))
+      if (debug) cat(paste0("\n", now(), " - mod_data - observer r$load_project_trigger"))
       
       # Hide all grids
       sapply(r$data_grids, shinyjs::hide)
       
       # Show selected project div
       shinyjs::show("selected_project_div")
-      
-      # Show loading status
-      # r$project_load_status_displayed <- TRUE
-      # r$project_load_status <- list()
-      # shinyjs::show("load_status_modal")
-
-      # Display project loading status
-      # if (r$project_load_status_displayed) r$project_load_status$init_vars_starttime <- now("%Y-%m-%d %H:%M:%OS3")
 
       shinyjs::delay(100, {
         
@@ -374,7 +366,10 @@ mod_data_server <- function(id, r, d, m, language, i18n, debug, user_accesses){
         sql <- glue::glue_sql("SELECT dataset_id FROM studies WHERE id = {m$selected_study}", .con = r$db)
         r$selected_dataset <- DBI::dbGetQuery(r$db, sql) %>% dplyr::pull(dataset_id)
         
-        if (!is.na(r$selected_dataset)){
+        # Reset d list if no selected dataset
+        if (is.na(r$selected_dataset)) sapply(main_tables, function(table) d[[table]] <- tibble::tibble())
+          
+        else {
           ## Load data
           shinyjs::runjs(paste0("Shiny.setInputValue('", id, "-load_dataset', Math.random());"))
 
@@ -382,9 +377,6 @@ mod_data_server <- function(id, r, d, m, language, i18n, debug, user_accesses){
           load_dataset_concepts(r, d, m)
         }
       })
-
-      # Display project loading status
-      # if (r$project_load_status_displayed) r$project_load_status$init_vars_endtime <- now("%Y-%m-%d %H:%M:%OS3")
     })
     
     # Show loading status ----

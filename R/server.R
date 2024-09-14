@@ -238,7 +238,7 @@ app_server <- function(pages, language, languages, i18n, app_folder, username, d
       sql <- glue::glue_sql("SELECT * FROM options WHERE category = 'users_accesses' AND link_id = {user_access_id} AND value_num = 1", .con = r$db)
       user_accesses <- DBI::dbGetQuery(r$db, sql) %>% dplyr::pull(name)
       
-      # Data pages are loaded from mod_home (when a project is selected)
+      # Data pages are loaded from mod_widgets (when a project is selected)
       if (page == "data"){
         
         mod_data_server("data", r, d, m, language, i18n, debug, user_accesses)
