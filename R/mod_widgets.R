@@ -115,6 +115,7 @@ mod_widgets_server <- function(id, r, d, m, language, i18n, all_divs, debug, use
     
     # Page change observer ----
     observeEvent(shiny.router::get_page(), {
+      
       req(shiny.router::get_page() == id)
       if (debug) cat(paste0("\n", now(), " - mod_widgets - (", id, ") - observer shiny.router::get_page()"))
       
@@ -854,6 +855,12 @@ mod_widgets_server <- function(id, r, d, m, language, i18n, all_divs, debug, use
       
       # Reload description UI ----
       shinyjs::runjs(paste0("Shiny.setInputValue('", id, "-reload_description_ui', Math.random());"))
+      
+      # Change border of selected project
+      if (id == "projects"){
+        sapply(r[[wide_var]]$id, function(i) shinyjs::removeClass(class = "selected_widget", selector = paste0("#", id, "-project_widget_", i)))
+        shinyjs::addClass(class = "selected_widget", selector = paste0("#", id, "-project_widget_", input$selected_element))
+      }
       
       # Update summary fields ----
       

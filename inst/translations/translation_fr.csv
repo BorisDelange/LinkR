@@ -10,11 +10,15 @@ admin,Admin
 admin_access,Accès admin
 age,Age
 aggregated_data,Données agrégées
+aggregated_data_explanation,Analysez les données sur un groupe de patients
 aggregated_plugin,Plugin de données agrégées
 all_vocabularies,Toutes les terminologies
 api_key,Clef API
 app_db,BDD de l'application
+app_db_connection_settings_user_access_description,Modifier les paramètres de connexion
+app_db_db_request_user_access_description,Requêter la base de données de l'application
 app_db_request,Requêter la BDD
+app_db_save_restore_user_access_description,Sauvegarder et restaurer la base de données de l'application
 app_settings,Paramètres de l'application
 author_s,Auteur(s)
 authors,Auteurs
@@ -35,19 +39,28 @@ commit_message,Message de commit
 concept_ancestor_table,Hiérarchie des concepts
 concept_class_id,ID de la classe du concept
 concept_code,Code du concept
+concept_display_name,Nom d'affichage du concept
 concept_id,ID du concept
 concept_name,Nom du concept
 concept_relationship_table,Alignements de concepts
 concept_synonym_table,Synonymes de concepts
 concept_table,Concepts
 concepts,Concepts
+concepts_reload_dataset_concepts_user_access_description,Recharger le décompte des concepts du set de données
 confirm,Valider
 connection,Connexion
 connection_settings,Paramètres de connexion
 console,Console
+console_execute_code_user_access_description,Exécuter du code dans la console
 console_widget_text,"Utilisez la console pour exécuter rapidement du code en R, Python ou avec des scripts shell."
 content_catalog,Catalogue de contenus
+copy_existing_plugin,Copier un plugin existant
+count_concepts_rows,Rows
+count_persons_rows,Patients
+create_data_cleaning,Créer un script de data cleaning
+create_dataset,Créer un set de données
 create_git_repo,Ajouter un dépôt git
+create_plugin,Créer un plugin
 create_project,Créer un projet
 create_subset,Créer un subset
 create_user,Créer un nouvel utilisateur
@@ -55,8 +68,14 @@ create_user_access,Créer un nouvel accès
 create_user_status,Créer un nouveau statut
 create_vocabulary,Créer une terminologie
 created_on,Créé le
+data,Données
 data_cleaning,Data cleaning
+data_cleaning_edit_code_user_access_description,Editer et tester le code du script de data cleaning
+data_cleaning_import_user_access_description,Importer un script de data cleaning
+data_cleaning_management_user_access_description,"Gérer les scripts de data cleaning (ajouter, éditer et supprimer)"
 data_cleaning_scripts,Scripts de data cleaning
+data_cleaning_see_all_data_user_access_description,Accès à tous les scripts de data cleaning
+data_cleaning_share_user_access_description,Partager les scripts de data cleaning (zip and git)
 data_cleaning_widget_text,"Organisez vos scripts de data cleaning, qui permettent d'améliorer la qualité des données que vous utiliserez dans vos projets."
 data_scientist,Data scientist
 data_type,Type de données
@@ -67,27 +86,56 @@ dataset_invalid_data_source,Valeur non valid pour le paramètre 'source'
 dataset_invalid_read_with,"Valeur non valide pour le paramètre 'read_with'. Valeurs acceptées : 'none', 'vroom', 'duckdb', 'spark'."
 dataset_invalid_save_as,"Valeur non valide pour le paramètre 'save as'. Valeurs acceptées : 'none', 'csv' et 'parquet'."
 datasets,Sets de données
+datasets_edit_code_user_access_description,Editer et tester le code du set de données
+datasets_import_user_access_description,Importer un set de données
+datasets_management_user_access_description,"Gérer les sets de données (ajouter, éditer et supprimer)"
+datasets_see_all_data_user_access_description,Accès à tous les sets de données
+datasets_share_user_access_description,Partager les sets de données (zip and git)
 datasets_widget_text,"Gérez ici vos sets de données, qui seront importés au sein de projets."
 datatable_output,DataTable
 day,Jour
 days,Jours
 delete,Supprimer
+delete_data_cleaning_text,Confirmer la suppression de ce script de data cleaning ?
+delete_data_cleaning_title,Supprimer un script de data cleaning
+delete_dataset_text,Confirmer la suppression de ce set de données ?
+delete_dataset_title,Supprimer un set de données
 delete_element_from_remote_git,Supprimer l'élément du git
 delete_file_text,Confirmer la suppression de ce fichier ?
 delete_file_title,Supprimer un fichier
+delete_git_element_data_cleaning_text,Supprimer ce script de data cleaning sur le git ?
+delete_git_element_data_cleaning_title,Supprimer un élément du git
+delete_git_element_dataset_text,Supprimer ce set de données sur le git ?
+delete_git_element_dataset_title,Supprimer un élément du git
+delete_git_element_plugin_text,Supprimer ce plugin sur le git ?
+delete_git_element_plugin_title,Supprimer un élément du git
+delete_git_element_project_text,Supprimer ce projet sur le git ?
+delete_git_element_project_title,Supprimer un élément du git
+delete_git_element_subset_text,Supprimer ce subset sur le git ?
+delete_git_element_subset_title,Supprimer un élément du git
 delete_git_element_text,Supprimer cet élément du dépôt git ?
 delete_git_element_title,Supprimer un élément du git
+delete_git_element_vocabulary_text,Supprimer cette terminologie sur le git ?
+delete_git_element_vocabulary_title,Supprimer un élément du git
 delete_git_repo_text,"Supprimer ce dépôt git ? ""Ceci supprime le lien local vers ce dépôt git, il pourra toujours être de nouveau ajouté plus tard."""
 delete_git_repo_title,Supprimer un dépôt git
 delete_plugin_text,Confirmer la suppression de ce plugin ?
 delete_plugin_title,Supprimer un plugin
-delete_project_title,Supprimer un projet
 delete_project_text,Confirmer la suppression de ce projet ?
+delete_project_title,Supprimer un projet
+delete_subset_text,Confirmer la suppression de ce subset ?
+delete_subset_title,Supprimer un subset
 delete_tab_text,Confirmer la suppression de cet onglet ?
 delete_tab_title,Suppression d'onglet
 delete_user,Supprimer l'utilisateur
 delete_user_access,Supprimer l'accès
+delete_user_access_text,Confirmer la suppression de cet accès ?
+delete_user_access_title,Supprimer un accès
 delete_user_status,Supprimer le statut
+delete_user_text,Confirmer la suppression de l'utilisateur ?
+delete_user_title,Supprimer un utilisateur
+delete_vocabulary_text,Confirmer la suppression de cette terminologie ?
+delete_vocabulary_title,Supprimer une terminologie
 delete_widget_text,Confirmer la suppression de ce widget ?
 delete_widget_title,Suppression de widget
 description,Description
@@ -128,7 +176,11 @@ error_transforming_tibble,Erreur dans la conversion de la variable au format tib
 everybody,Tout le monde
 explore,Explorer
 explore_widget_text,"Explorez le travail réalisé par la communauté, utilisez leur travail et partagez le votre !"
+export_data_cleaning_script,Export a data cleaning script
+export_dataset,Exporter un set de données
 export_db,Exporter la base de données
+export_plugin,Exporter un plugin
+export_project,Exporter un projet
 field_cant_be_empty,Ce champ ne doit pas être vide
 figure,Figure
 firstname,Prénom
@@ -140,6 +192,9 @@ generate_readme,Générer le contenu du readme
 git_repo,Dépôt git
 git_repo_url_address_already_used,Il y a déjà un dépôt git enregistré avec cette URL
 git_repos,Dépôts git
+git_repos_install_remote_git_element_user_access_description,Installer des éléments d'un dépôt git distant
+git_repos_management_user_access_description,"Gérer les dépôts git (ajouter, éditer et supprimer)"
+git_repos_remote_git_repo_management_user_access_description,"Modifier le contenu des dépôts git (éditer le Readme, supprimer des éléments)"
 give_access_to,Donner l'accès à
 height,Hauteur
 help,Aide
@@ -153,6 +208,22 @@ id,ID
 import,Importer
 import_concepts_or_vocabularies,Importer des concepts ou des terminologies
 import_concepts_title,Importer des concepts ou des terminologies
+import_data_cleaning_script,Importer un script de data cleaning
+import_data_cleaning_text,Ce script de data cleaning existe déjà. Confirmez-vous la suppression du script existant ?
+import_data_cleaning_title,Importer un script de data cleaning
+import_dataset,Importer un set de données
+import_dataset_text,Ce set de données existe déjà. Confirmez-vous la suppression du set de données existant ?
+import_dataset_title,Importer un set de données
+import_plugin,Importer un plugin
+import_plugin_text,Ce plugin existe déjà. Confirmez-vous la suppression du plugin existant ?
+import_plugin_title,Importer un plugin
+import_project,Importer un projet
+import_project_text,Ce projet existe déjà. Confirmez-vous la suppression du projet existant ?
+import_project_title,Importer un projet
+import_subset_text,Ce subset existe déjà. Confirmez-vous la suppression du subset existant ?
+import_subset_title,Importer un subset
+import_vocabulary_text,Cette terminologie existe déjà. Confirmez-vous la suppression de la terminologie existante ?
+import_vocabulary_title,Importer une terminologie
 informations,Informations
 install,Installer
 invalid_col_names,Noms de colonnes non valides
@@ -160,6 +231,7 @@ invalid_data_folder,L'argument data_folder doit être de type character
 invalid_dataset_id_value,La variable dataset_id doit être de type integer
 invalid_omop_version,"Version d'OMOP non valide. Versions valides : 5.3, 5.4 et 6.0."
 invalid_patients_value,Valeur de patients non valide
+invalid_reason,Raison d'invalidité
 invalid_subset_id_value,Valeur de subset_id non valide
 invalid_vocabulary_table,Nom de table de terminologie non valide
 italian,Italien
@@ -172,6 +244,7 @@ load_project,Charger le projet
 local,Locale
 local_version_up_to_date,Version locale à jour
 log,Log
+log_user_log_user_access_description,Afficher les logs de l'utilisateur
 login,Identifiant de connexion
 main_db,BDD principale
 main_db_name,Nom de la BDD principale
@@ -210,20 +283,33 @@ output,Output
 password,Mot de passe
 patient_level_data,Données individuelles
 patient_lvl_data,Données individuelles
+patient_lvl_data_explanation,Explorez les données patient par patient
 patient_lvl_or_aggregated_data,Données individuelles ou agrégées
 patient_lvl_or_aggregated_plugin,Plugin de données individuelles ou agrégées
 patient_lvl_plugin,Plugin de données individuelles
+patients,Patients
 person,Patient
 person_id,ID du patient
 plugin_deleted,Plugin supprimé
 plugin_for,Plugin pour
 plugins,Plugins
+plugins_edit_code_user_access_description,Editer et tester le code du plugin
+plugins_import_user_access_description,Importer un plugin
+plugins_management_user_access_description,"Gérer les plugins (ajouter, éditer et supprimer)"
+plugins_see_all_data_user_access_description,Accès à tous les plugins
+plugins_share_user_access_description,Partager les plugins (zip and git)
 plugins_widget_text,"Les plugins sont des scripts R ou Python permettant d'ajouter des fonctionnalités à LinkR. Ils sont les briques élémentaires des projets, permettant de visualiser et d'analyser les données."
 port,Port
 programming_language,Langage
 project_added,Nouveau projet créé
 project_deleted,Projet supprimé
 projects,Projets
+projects_data_cleaning_user_access_description,Modifier les scripts de data cleaning du projet
+projects_dataset_user_access_description,Modifier le set de données du projet
+projects_import_user_access_description,Importer un projet
+projects_management_user_access_description,"Gérer les projets (ajouter, éditer et supprimer)"
+projects_see_all_data_user_access_description,Accès à tous les projets
+projects_share_user_access_description,Partager les projets (zip and git)
 projects_widget_text,"Les projets permettent de travailler de façon collaborative sur des données de santé au format OMOP, à l'aide d'une interface graphique modulable."
 provide_valid_api_key,Clef API valide requise
 provide_valid_name,Nom valide requis
@@ -281,6 +367,7 @@ spanish,Espagnol
 sql_lib,Librairie SQL
 standard_concept,Concept standard
 statistician,Statisticien
+stays,Séjours
 subset,Subset
 subset_all_patients,Tous les patients
 subsets,Subsets
@@ -300,6 +387,18 @@ type_must_be_integer,doit être de type integer
 unauthorized_access_area,Accès non autorisé à cette section
 unselect_all_tables,Désélectionner toutes les tables
 update,Mettre à jour
+update_git_element_data_cleaning_text,Mettre à jour ce script de data cleaning sur le git ? Ceci va supprimer et remplacer l'ancien script sur le dépôt git distant.
+update_git_element_data_cleaning_title,Mise à jour d'un élément du git
+update_git_element_dataset_text,Mettre à jour ce set de données sur le git ? Ceci va supprimer et remplacer l'ancien set de données sur le dépôt git distant.
+update_git_element_dataset_title,Mise à jour d'un élément du git
+update_git_element_plugin_text,Mettre à jour ce plugin sur le git ? Ceci va supprimer et remplacer l'ancien plugin sur le dépôt git distant.
+update_git_element_plugin_title,Mise à jour d'un élément du git
+update_git_element_project_text,Mettre à jour ce projet sur le git ? Ceci va supprimer et remplacer l'ancien projet sur le dépôt git distant.
+update_git_element_project_title,Mise à jour d'un élément du git
+update_git_element_subset_text,Mettre à jour ce subset sur le git ? Ceci va supprimer et remplacer l'ancien subset sur le dépôt git distant.
+update_git_element_subset_title,Mise à jour d'un élément du git
+update_git_element_vocabulary_text,Mettre à jour cette terminologie sur le git ? Ceci va supprimer et remplacer l'ancienne terminologie sur le dépôt git distant.
+update_git_element_vocabulary_title,Mise à jour d'un élément du git
 update_project_plugins_text,Mettre à jour les plugins inclus dans le projet ? Ceci va supprimer et remplacer les plugins locaux non à jour.
 update_project_plugins_title,Mise à jour des plugins
 updated_on,Modifié le
@@ -312,14 +411,23 @@ username,Identifiant
 username_already_used,Ce pseudo est déjà utilisé
 users,Utilisateurs
 users_accesses,Accès utilisateurs
+users_accesses_management_user_access_description,"Gérer les accès des utilisateurs (ajouter, éditer et supprimer)"
+users_management_user_access_description,"Gérer les utilisateurs (ajouter, éditer et supprimer)"
 users_statuses,Statuts des utilisateurs
+users_statuses_management_user_access_description,"Gérer les statuts des utilisateurs (ajouter, éditer et supprimer)"
 valid_col_names_are,Noms de colonnes non valides.
+valid_end_date,Date de fin de validité
+valid_start_date,Date de début de validité
 value,Valeur
 visit_detail,Séjour
 visit_detail_id,ID du séjour
 vocabularies,Terminologies
+vocabularies_import_user_access_description,Importer des terminologies et des concepts
+vocabularies_management_user_access_description,"Gérer les terminologies (ajouter, éditer et supprimer)"
 vocabularies_widget_text,Organisez et explorez les terminologies de concepts médicaux ici.
 vocabulary,Terminologie
 vocabulary_id,ID de la terminologie
 width,Largeur
 years,ans
+delete_user_status_title,Supprimer un status
+delete_user_status_text,Confirmer la suppression de ce statut ?

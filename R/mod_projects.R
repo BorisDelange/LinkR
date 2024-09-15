@@ -23,7 +23,7 @@ mod_projects_ui <- function(id, language, languages, i18n){
           div(
             id = ns("project_pivot"),
             tags$button(id = ns("summary"), i18n$t("summary"), class = "pivot_item selected_pivot_item", onclick = pivot_item_js),
-            tags$button(id = ns("dataset"), i18n$t("dataset"), class = "pivot_item", onclick = pivot_item_js),
+            tags$button(id = ns("dataset"), i18n$t("data"), class = "pivot_item", onclick = pivot_item_js),
             tags$button(id = ns("data_cleaning_scripts"), i18n$t("data_cleaning"), class = "pivot_item", onclick = pivot_item_js),
             tags$button(id = ns("share"), i18n$t("share"), class = "pivot_item", onclick = pivot_item_js),
             class = "pivot"
@@ -116,7 +116,56 @@ mod_projects_ui <- function(id, language, languages, i18n){
                 h1(i18n$t("informations")),
                 uiOutput(ns("summary_informations_ui"))
               ),
-              class = "widget", style = "min-height: 50%;"
+              class = "widget", style = "height: 50%;"
+            ),
+            div(
+              h1(i18n$t("data")),
+              div(
+                div(
+                  div(
+                    tags$span(uiOutput(ns("num_patients")), style = "font-size: 4vh; color: #2874A6"),
+                    tags$span(i18n$t("patients"), style = "font-size: 2vh;"),
+                    onclick = paste0("
+                      Shiny.setInputValue('", id, "-current_tab', 'dataset');
+                      Shiny.setInputValue('", id, "-current_tab_trigger', Math.random());"
+                    ),
+                    class = "project_widget",
+                    style = "width: 50%; height: 50%; text-align: center; justify-content: center; overflow: auto;"
+                  ),
+                  div(
+                    tags$span(uiOutput(ns("num_stays")), style = "font-size: 4vh; color: #2874A6"),
+                    tags$span(i18n$t("stays"), style = "font-size: 2vh;"),
+                    onclick = paste0("
+                      Shiny.setInputValue('", id, "-current_tab', 'dataset');
+                      Shiny.setInputValue('", id, "-current_tab_trigger', Math.random());"
+                    ),
+                    class = "project_widget",
+                    style = "width: 50%; height: 50%; text-align: center; justify-content: center; overflow: auto;"
+                  ),
+                  style = "width: 50%; height: 100%; display: flex; align-items: center; flex-direction: column; justify-content: center;"
+                ),
+                div(
+                  div(
+                    div(shiny.fluent::Icon(iconName = "Contact"), style = "font-size: 4vh; height: 100%; display: flex; align-items: center; justify-content: center;"),
+                    tags$h1(i18n$t("patient_lvl_data")),
+                    tags$p(i18n$t("patient_lvl_data_explanation"), style = "color: grey;"),
+                    style = "width: 50%; height: 50%; text-align: center; overflow: hidden;",
+                    class = "project_widget",
+                    onclick = paste0("window.location.href='", shiny.router::route_link("data?type=patient_lvl"), "';")
+                  ),
+                  div(
+                    div(shiny.fluent::Icon(iconName = "People"), style = "font-size: 4vh; height: 100%; display: flex; align-items: center; justify-content: center;"),
+                    tags$h1(i18n$t("aggregated_data")),
+                    tags$p(i18n$t("aggregated_data_explanation"), style = "color: grey;"),
+                    style = "width: 50%; height: 50%; text-align: center; overflow: hidden;",
+                    class = "project_widget",
+                    onclick = paste0("window.location.href='", shiny.router::route_link("data?type=aggregated"), "';")
+                  ),
+                  style = "width: 50%; height: 100%; align-items: center; display: flex; flex-direction: column; justify-content: center;"
+                ),
+                style = "height: calc(100% - 45px); display: flex; gap: 10px;"
+              ),
+              class = "widget", style = "height: 50%;"
             ),
             class = "projects_summary_left"
           ),
@@ -326,12 +375,24 @@ mod_projects_server <- function(id, r, d, m, language, i18n, debug, user_accesse
     
     # We can load a project without loading data, and load data after
     observeEvent(shiny.router::get_page(), {
+      if (debug) cat(paste0("\n", now(), " - mod_projects - observer shiny.router::get_page()"))
       
       # If data is not already loaded, load data
       req(shiny.router::get_page() %in% c("subsets", "project_messages", "project_console", "tasks"))
       
       if (debug) cat(paste0("\n", now(), " - mod_projects - observer shiny.router::get_page()"))
       r$load_project_trigger <- now()
+    })
+    
+    # Reload data rows UI
+    observeEvent(d$person, {
+      if (debug) cat(paste0("\n", now(), " - mod_projects - observer d$person"))
+      output$num_patients <- renderUI(d$person %>% dplyr::count() %>% dplyr::pull())
+    })
+    
+    observeEvent(d$visit_occurrence, {
+      if (debug) cat(paste0("\n", now(), " - mod_projects - observer d$visit_occurrence"))
+      output$num_stays <- renderUI(d$visit_occurrence %>% dplyr::count() %>% dplyr::pull())
     })
     
     # --- --- --- --- -- -

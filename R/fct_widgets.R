@@ -71,10 +71,21 @@ create_element_files <- function(id, r, element_id, single_id, sql_category, ele
 }
 
 #' @noRd
-create_element_ui <- function(page_id, single_id, element_name, users_ui, widget_buttons, onclick, short_description){
+create_element_ui <- function(ns, page_id, element_id, single_id, element_name, users_ui, widget_buttons, onclick, short_description){
   
-  div(
-    onclick = paste0(onclick, "Shiny.setInputValue('", page_id, "-selected_element_type', '');"),
+  if (page_id == "projects") div_content <- 
+    div(
+      id = ns(paste0(single_id, "_widget_", element_id)),
+      class = paste0(single_id, "_widget"),
+      div(
+        tags$h1(element_name),
+        users_ui,
+        div(short_description)
+      ),
+      widget_buttons
+    )
+  
+  else div_content <- 
     div(
       class = paste0(single_id, "_widget"),
       div(
@@ -84,6 +95,12 @@ create_element_ui <- function(page_id, single_id, element_name, users_ui, widget
       ),
       widget_buttons
     )
+  
+  onclick <- paste0(onclick, "Shiny.setInputValue('", page_id, "-selected_element_type', '');")
+  
+  div(
+    onclick = onclick,
+    div_content
   )
 }
 
@@ -93,13 +110,14 @@ create_elements_ui <- function(page_id, elements, r, language, i18n){
   if (page_id == "data") id <- "plugins"
   else id <- page_id
   
-  single_id <- switch(id, 
-                      "data_cleaning" = "data_cleaning",
-                      "datasets" = "dataset",
-                      "projects" = "project",
-                      "plugins" = "plugin", 
-                      "subsets" = "subset",
-                      "vocabularies" = "vocabulary"
+  single_id <- switch(
+    id, 
+    "data_cleaning" = "data_cleaning",
+    "datasets" = "dataset",
+    "projects" = "project",
+    "plugins" = "plugin", 
+    "subsets" = "subset",
+    "vocabularies" = "vocabulary"
   )
   
   ns <- NS(id)
@@ -133,7 +151,7 @@ create_elements_ui <- function(page_id, elements, r, language, i18n){
     }
     
     elements_ui <- tagList(
-      create_element_ui(page_id, single_id, element_name, users_ui, widget_buttons, onclick, short_description),
+      create_element_ui(ns, page_id, i, single_id, element_name, users_ui, widget_buttons, onclick, short_description),
       elements_ui
     )
   }

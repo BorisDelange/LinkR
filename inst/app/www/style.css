@@ -191,7 +191,7 @@ a.no-hover-effect:hover {
 .main {
   flex-grow: 1;
   overflow-y: auto;
-  margin: 0px 10px 0px 18px;
+  padding: 0px 10px 0px 18px;
 }
 
 /* --------------- */
@@ -449,6 +449,17 @@ a.no-hover-effect:hover {
   justify-content: space-between;
   position: relative;
   cursor: pointer;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.project_widget:hover, .plugin_widget:hover, .dataset_widget:hover, .subset_widget:hover, .vocabulary_widget:hover, .data_cleaning_widget:hover {
+  transform: scale(1.02);
+  box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.3), 0 6px 20px 0 rgba(0, 0, 0, 0.25);
+}
+
+.selected_widget {
+  border: 2px solid rgba(0, 128, 0, 0.5);
+  box-shadow: 0 2px 4px 0 rgba(0, 128, 0, 0.3), 0 3px 10px 0 rgba(0, 128, 0, 0.25);
 }
 
 .selected_concepts_widget {
@@ -485,6 +496,7 @@ a.no-hover-effect:hover {
   margin: 10px;
   padding: 0px 10px 5px 10px;
   box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 3px 6px 0 rgba(0, 0, 0, 0.19);
+  overflow: auto;
 }
 
 .map_widget {

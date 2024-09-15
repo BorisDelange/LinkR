@@ -219,6 +219,7 @@ app_server <- function(pages, language, languages, i18n, app_folder, username, d
       req(current_page %in% pages)
       
       if (current_page == "/") current_page <- "home"
+      
       else if (current_page == "data"){
         if (length(shiny.router::get_query_param()$type) > 0) r$data_page <- shiny.router::get_query_param()$type
         else r$data_page <- "patient_lvl"
