@@ -1042,8 +1042,8 @@ mod_widgets_server <- function(id, r, d, m, language, i18n, all_divs, debug, use
         div(
           tags$table(
             tags$tr(tags$td(strong(i18n$t("name"))), tags$td(element_wide$name)),
-            tags$tr(tags$td(strong(i18n$t("created_on"))), tags$td(element_wide$creation_datetime)),
-            tags$tr(tags$td(strong(i18n$t("updated_on"))), tags$td(element_wide$update_datetime)),
+            tags$tr(tags$td(strong(i18n$t("created_on"))), tags$td(format_datetime(element_wide$creation_datetime, language = language, sec = FALSE))),
+            tags$tr(tags$td(strong(i18n$t("updated_on"))), tags$td(format_datetime(element_wide$update_datetime, language = language, sec = FALSE))),
             specific_row,
             tags$tr(tags$td(strong(i18n$t("author_s"))), tags$td(element_long %>% dplyr::filter(name == "author") %>% dplyr::pull(value))),
             tags$tr(tags$td(strong(i18n$t("short_description")), style = "min-width: 150px;"), tags$td(element_long %>% dplyr::filter(name == paste0("short_description_", language)) %>% dplyr::pull(value)))

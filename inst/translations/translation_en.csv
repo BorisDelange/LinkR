@@ -9,6 +9,8 @@ add_to_saved_git_repos,Add to saved git repos
 admin,Admin
 admin_access,Admin access
 age,Age
+age_at_first_hospit,Age at first hospitalization
+age_class,Age class
 aggregated_data,Aggregated data
 aggregated_data_explanation,Analyze data on a group of patients
 aggregated_plugin,Aggregated data plugin
@@ -27,6 +29,7 @@ cancel,Cancel
 cancel_description_updates,Cancel updates
 cancel_readme_updates,Cancel updates
 cancel_updates,Cancel updates
+care_sites,Care sites
 choose_files,Choose files
 choose_zip_file,Choose a ZIP file
 clinician,Clinician
@@ -141,6 +144,7 @@ delete_vocabulary_title,Delete a vocabulary
 delete_widget_text,Confirm deletion of this widget?
 delete_widget_title,Delete a widget
 description,Description
+details,Details
 domain_id,Domain ID
 dont_delete,Cancel
 dont_import,Cancel
@@ -378,6 +382,7 @@ success_importing_concepts,Concepts successfully imported
 summary,Summary
 synchronize_with_git_repo,Git synchronization
 table,Table
+tables,Tables
 table_name,Table name
 table_output,Table
 tasks,Tasks
@@ -430,4 +435,5 @@ vocabularies_widget_text,Organize and explore medical concept terminologies here
 vocabulary,Vocabulary
 vocabulary_id,Vocabulary ID
 width,Width
-years,years
+years,Years
+years_and_over,Years and over

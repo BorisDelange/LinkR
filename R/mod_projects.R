@@ -7,6 +7,52 @@ mod_projects_ui <- function(id, language, languages, i18n){
     Shiny.setInputValue('", id, "-current_tab_trigger', Math.random());"
   )
   
+  dataset_details <- function(tab){
+    
+    if (tab == "summary") base_onclick <- paste0(
+      "Shiny.setInputValue('", id, "-current_tab', 'dataset');",
+      "Shiny.setInputValue('", id, "-current_tab_trigger', Math.random());"
+    )
+    else base_onclick <- ""
+    
+    div(
+      div(
+        tags$span(uiOutput(ns(paste0(tab, "_num_care_sites"))), style = "font-size: 4vh; color: #2874A6"),
+        tags$span(i18n$t("care_sites"), style = "font-size: 2vh;"),
+        onclick = paste0(
+          base_onclick,
+          "Shiny.setInputValue('", id, "-dataset_details', 'care_sites');",
+          "Shiny.setInputValue('", id, "-dataset_details_trigger', Math.random());"
+        ),
+        class = "dataset_details_widget",
+        style = "width: 30%; height: 50%; max-height: 200px;"
+      ),
+      div(
+        tags$span(uiOutput(ns(paste0(tab, "_num_patients"))), style = "font-size: 4vh; color: #2874A6"),
+        tags$span(i18n$t("patients"), style = "font-size: 2vh;"),
+        onclick = paste0(
+          base_onclick,
+          "Shiny.setInputValue('", id, "-dataset_details', 'patients');",
+          "Shiny.setInputValue('", id, "-dataset_details_trigger', Math.random());"
+        ),
+        class = "dataset_details_widget",
+        style = "width: 30%; height: 50%; max-height: 200px;"
+      ),
+      div(
+        tags$span(uiOutput(ns(paste0(tab, "_num_stays"))), style = "font-size: 4vh; color: #2874A6"),
+        tags$span(i18n$t("stays"), style = "font-size: 2vh;"),
+        onclick = paste0(
+          base_onclick,
+          "Shiny.setInputValue('", id, "-dataset_details', 'stays');",
+          "Shiny.setInputValue('", id, "-dataset_details_trigger', Math.random());"
+        ),
+        class = "dataset_details_widget",
+        style = "width: 30%; height: 50%; max-height: 200px;"
+      ),
+      style = "display: flex; gap: 10px; align-items: center; height: calc(100% - 45px);"
+    )
+  }
+  
   div(class = "main",
     
     # Load widget UI ----
@@ -114,57 +160,32 @@ mod_projects_ui <- function(id, language, languages, i18n){
               div(
                 id = ns("summary_view_informations_div"),
                 h1(i18n$t("informations")),
-                uiOutput(ns("summary_informations_ui"))
-              ),
-              class = "widget", style = "height: 50%;"
-            ),
-            div(
-              h1(i18n$t("data")),
-              div(
-                div(
-                  div(
-                    tags$span(uiOutput(ns("num_patients")), style = "font-size: 4vh; color: #2874A6"),
-                    tags$span(i18n$t("patients"), style = "font-size: 2vh;"),
-                    onclick = paste0("
-                      Shiny.setInputValue('", id, "-current_tab', 'dataset');
-                      Shiny.setInputValue('", id, "-current_tab_trigger', Math.random());"
-                    ),
-                    class = "project_widget",
-                    style = "width: 50%; height: 50%; text-align: center; justify-content: center; overflow: auto;"
-                  ),
-                  div(
-                    tags$span(uiOutput(ns("num_stays")), style = "font-size: 4vh; color: #2874A6"),
-                    tags$span(i18n$t("stays"), style = "font-size: 2vh;"),
-                    onclick = paste0("
-                      Shiny.setInputValue('", id, "-current_tab', 'dataset');
-                      Shiny.setInputValue('", id, "-current_tab_trigger', Math.random());"
-                    ),
-                    class = "project_widget",
-                    style = "width: 50%; height: 50%; text-align: center; justify-content: center; overflow: auto;"
-                  ),
-                  style = "width: 50%; height: 100%; display: flex; align-items: center; flex-direction: column; justify-content: center;"
-                ),
+                uiOutput(ns("summary_informations_ui")),
                 div(
                   div(
                     div(shiny.fluent::Icon(iconName = "Contact"), style = "font-size: 4vh; height: 100%; display: flex; align-items: center; justify-content: center;"),
                     tags$h1(i18n$t("patient_lvl_data")),
                     tags$p(i18n$t("patient_lvl_data_explanation"), style = "color: grey;"),
-                    style = "width: 50%; height: 50%; text-align: center; overflow: hidden;",
-                    class = "project_widget",
+                    class = "data_page_widget",
                     onclick = paste0("window.location.href='", shiny.router::route_link("data?type=patient_lvl"), "';")
                   ),
                   div(
                     div(shiny.fluent::Icon(iconName = "People"), style = "font-size: 4vh; height: 100%; display: flex; align-items: center; justify-content: center;"),
                     tags$h1(i18n$t("aggregated_data")),
                     tags$p(i18n$t("aggregated_data_explanation"), style = "color: grey;"),
-                    style = "width: 50%; height: 50%; text-align: center; overflow: hidden;",
-                    class = "project_widget",
+                    class = "data_page_widget",
                     onclick = paste0("window.location.href='", shiny.router::route_link("data?type=aggregated"), "';")
                   ),
-                  style = "width: 50%; height: 100%; align-items: center; display: flex; flex-direction: column; justify-content: center;"
+                  class = "projects_summary_data_pages_widgets",
+                  style = "padding-top: 30px;"
                 ),
-                style = "height: calc(100% - 45px); display: flex; gap: 10px;"
+                style = "height: calc(100% - 10px);"
               ),
+              class = "widget", style = "height: 50%;"
+            ),
+            div(
+              h1(i18n$t("data")),
+              dataset_details("summary"),
               class = "widget", style = "height: 50%;"
             ),
             class = "projects_summary_left"
@@ -212,21 +233,58 @@ mod_projects_ui <- function(id, language, languages, i18n){
           div(
             id = ns("dataset_div"),
             div(
-              tags$h1(i18n$t("dataset")),
               div(
-                id = ns("dataset_forbidden_access"),
-                shiny.fluent::MessageBar(i18n$t("unauthorized_access_area"), messageBarType = 5),
-                style = "display: inline-block; margin-top: 5px;"
-              ),
-              shinyjs::hidden(
+                tags$h1(i18n$t("dataset")),
                 div(
-                  id = ns("project_dataset_div"),
-                  div(shiny.fluent::Dropdown.shinyInput(ns("project_dataset"), label = i18n$t("dataset")), style = "width: 200px")
-                )
+                  id = ns("dataset_forbidden_access"),
+                  shiny.fluent::MessageBar(i18n$t("unauthorized_access_area"), messageBarType = 5),
+                  style = "display: inline-block; margin-top: 5px;"
+                ),
+                shinyjs::hidden(
+                  div(
+                    id = ns("project_dataset_div"),
+                    div(shiny.fluent::Dropdown.shinyInput(ns("project_dataset"), label = i18n$t("dataset")), style = "width: 200px"),
+                    dataset_details("dataset"),
+                    style = "height: calc(100% - 45px);"
+                  )
+                ),
+                class = "widget", style = "height: 50%;"
               ),
-              class = "widget", style = "height: 50%; width: 50%;"
+              div(
+                tags$h1(i18n$t("tables")),
+                class = "widget", style = "height: 50%;"
+              ),
+              class = "projects_dataset_left"
             ),
-            class = "projects_summary_container"
+            div(
+              div(
+                tags$h1(i18n$t("details")),
+                shinyjs::hidden(
+                  div(
+                    id = ns("dataset_care_sites_details"),
+                    "Care sites"
+                  )
+                ),
+                shinyjs::hidden(
+                  div(
+                    id = ns("dataset_patients_details"),
+                    div(plotOutput(ns("dataset_patients_age_plot"), width = "80%", height = "300px"), class = "dataset_details_plot"),
+                    div(tableOutput(ns("dataset_patients_age_table")), class = "dataset_details_table", style = "margin-top: 50px;"),
+                    div(plotOutput(ns("dataset_patients_gender_plot"), width = "80%", height = "300px"), class = "dataset_details_plot", style = "margin-top: 50px;"),
+                    div(tableOutput(ns("dataset_patients_age_gender_table")), class = "dataset_details_table", style = "margin-top: 50px;")
+                  )
+                ),
+                shinyjs::hidden(
+                  div(
+                    id = ns("dataset_stays_details"),
+                    "Stays"
+                  )
+                ),
+                class = "widget", style = "height: calc(100% - 25px); overflow: auto;"
+              ),
+              class = "projects_dataset_right"
+            ),
+            class = "projects_dataset_container"
           )
         ),
         
@@ -385,14 +443,38 @@ mod_projects_server <- function(id, r, d, m, language, i18n, debug, user_accesse
     })
     
     # Reload data rows UI
+    observeEvent(d$care_site, {
+      if (debug) cat(paste0("\n", now(), " - mod_projects - observer d$person"))
+      
+      num_care_sites <- 0
+      
+      if (d$location %>% dplyr::count() %>% dplyr::pull() > 0 & d$care_site %>% dplyr::count() %>% dplyr::pull() > 0){
+        num_care_sites <-
+          d$location %>%
+          dplyr::inner_join(d$care_site, by = "location_id") %>%
+          dplyr::distinct(location_id) %>%
+          dplyr::count() %>%
+          dplyr::pull()
+      }
+      
+      output$summary_num_care_sites <- renderUI(num_care_sites)
+      output$dataset_num_care_sites <- renderUI(num_care_sites)
+    })
+    
     observeEvent(d$person, {
       if (debug) cat(paste0("\n", now(), " - mod_projects - observer d$person"))
-      output$num_patients <- renderUI(d$person %>% dplyr::count() %>% dplyr::pull())
+      
+      num_patients <- d$person %>% dplyr::count() %>% dplyr::pull()
+      output$summary_num_patients <- renderUI(num_patients)
+      output$dataset_num_patients <- renderUI(num_patients)
     })
     
     observeEvent(d$visit_occurrence, {
       if (debug) cat(paste0("\n", now(), " - mod_projects - observer d$visit_occurrence"))
-      output$num_stays <- renderUI(d$visit_occurrence %>% dplyr::count() %>% dplyr::pull())
+      
+      num_stays <- d$visit_occurrence %>% dplyr::count() %>% dplyr::pull()
+      output$summary_num_stays <- renderUI(num_stays)
+      output$dataset_num_stays <- renderUI(num_stays)
     })
     
     # --- --- --- --- -- -
@@ -407,6 +489,9 @@ mod_projects_server <- function(id, r, d, m, language, i18n, debug, user_accesse
       
       # Save each time a dataset is selected
       shinyjs::runjs(paste0("Shiny.setInputValue('", id, "-save_dataset', Math.random());"))
+      
+      # Reload dataset each time a dataset is selected
+      # shinyjs::runjs(paste0("Shiny.setInputValue('", id, "-reload_dataset', Math.random());"))
     })
     
     observeEvent(input$save_dataset, {
@@ -434,6 +519,165 @@ mod_projects_server <- function(id, r, d, m, language, i18n, debug, user_accesse
       req(length(input$project_dataset) > 0)
       req("projects_dataset" %in% user_accesses)
       load_dataset(r, m, d, input$project_dataset, r$main_tables, m$selected_study)
+    })
+    
+    ## Dataset details ----
+    
+    observeEvent(input$dataset_details_trigger, {
+      if (debug) cat(paste0("\n", now(), " - mod_projects - observer input$dataset_details_trigger"))
+      
+      categories <- c("care_sites", "patients", "stays")
+      sapply(categories[categories != input$dataset_details], function(category) shinyjs::hide(paste0("dataset_", category, "_details")))
+      shinyjs::show(paste0("dataset_", input$dataset_details, "_details"))
+      
+      if (input$dataset_details == "care_sites"){
+        
+      }
+      else if (input$dataset_details == "patients"){
+        
+        num_rows <- d$person %>% dplyr::count() %>% dplyr::pull()
+        
+        if (num_rows == 0){
+          
+        }
+        
+        req(num_rows > 0)
+        
+        age_data <-
+          d$visit_occurrence %>%
+          dplyr::left_join(
+            d$person %>% dplyr::select(person_id, birth_datetime),
+            by = "person_id"
+          ) %>%
+          dplyr::collect() %>%
+          dplyr::mutate(
+            age = round(as.numeric(difftime(visit_start_datetime, birth_datetime, units = "days")) / 365.25, 1)
+          )
+        
+        gender_data <-
+          d$person %>%
+          dplyr::collect() %>%
+          dplyr::select(person_id, gender_concept_id) %>%
+          dplyr::filter(gender_concept_id %in% c(8507, 8532)) %>%
+          dplyr::mutate(gender = dplyr::case_when(
+            gender_concept_id == 8507 ~ "Male",
+            gender_concept_id == 8532 ~ "Female"
+          ))
+        
+        age_gender_data <- age_data %>% dplyr::left_join(gender_data, by = "person_id")
+        
+        output$dataset_patients_age_plot <- renderPlot(
+          age_data %>%
+          ggplot2::ggplot(ggplot2::aes(x = age)) +
+          ggplot2::geom_histogram(bins = 50, color = "white", fill = "#2874A6") +
+          ggplot2::theme_minimal() +
+          ggplot2::labs(title = i18n$t("age_at_first_hospit"), x = i18n$t("age"), y = i18n$t("occurrences")) +
+          ggplot2::theme(
+            plot.title = ggplot2::element_text(hjust = 0.5, face = "bold")
+          )
+        )
+        
+        output$dataset_patients_age_table <- renderTable({
+          age_data %>%
+          dplyr::mutate(age_group = cut(
+            age,
+            breaks = c(0, 2, 10, 18, 25, seq(35, 75, by = 10), Inf),
+            labels = c(
+              paste0("0 - 2 ", tolower(i18n$t("years"))),
+              paste0("2 - 10 ", tolower(i18n$t("years"))),
+              paste0("10 - 18 ", tolower(i18n$t("years"))),
+              paste0("18 - 25 ", tolower(i18n$t("years"))),
+              paste0("25 - 35 ", tolower(i18n$t("years"))),
+              paste0("35 - 45 ", tolower(i18n$t("years"))),
+              paste0("45 - 55 ", tolower(i18n$t("years"))),
+              paste0("55 - 65 ", tolower(i18n$t("years"))),
+              paste0("65 - 75 ", tolower(i18n$t("years"))),
+              paste0("75 ", tolower(i18n$t("years_and_over")))
+            ),
+            right = FALSE
+          )) %>%
+          dplyr::group_by(age_group) %>%
+          dplyr::summarise(
+            !!i18n$t("num_patients") := dplyr::n(),
+            .groups = "drop"
+          ) %>%
+            dplyr::rename(!!i18n$t("age_class") := age_group)
+        }, sanitize.text.function = identity, rownames = FALSE)
+        
+        output$dataset_patients_gender_plot <- renderPlot(
+          gender_data %>%
+          dplyr::count(gender) %>%
+          dplyr::mutate(percentage = n / sum(n) * 100) %>%
+          dplyr::mutate(label = paste0(gender, "\n", round(percentage, 1), "%")) %>%
+          ggplot2::ggplot(ggplot2::aes(x = "", y = percentage, fill = gender)) +
+          ggplot2::geom_bar(width = 1, stat = "identity", color = "white") +
+          ggplot2::coord_polar("y", start = 0) +
+          ggplot2::theme_void() +
+          ggplot2::scale_fill_manual(values = c("Male" = "#1f77b4", "Female" = "#6baed6")) +
+          ggplot2::labs(fill = "Gender", title = "Gender distribution") +
+          ggplot2::theme(plot.title = ggplot2::element_text(hjust = 0.5, face = "bold"), legend.position = "none") +
+          ggplot2::geom_text(
+            ggplot2::aes(label = label),
+            position = ggplot2::position_stack(vjust = 0.5),
+            color = "white",
+            size = 5,
+            fontface = "bold"
+          )
+        )
+        
+        output$dataset_patients_age_gender_table <- renderTable({
+          age_stats <- age_gender_data %>%
+            dplyr::summarise(
+              `Nombre` = dplyr::n(),
+              `Min` = min(age, na.rm = TRUE),
+              `IQ 1` = quantile(age, 0.25, na.rm = TRUE),
+              `Moyenne` = mean(age, na.rm = TRUE),
+              `Écart-type` = sd(age, na.rm = TRUE),
+              `Médiane` = median(age, na.rm = TRUE),
+              `IQ 3` = quantile(age, 0.75, na.rm = TRUE),
+              `Max` = max(age, na.rm = TRUE)
+            )
+          
+          male_stats <- age_gender_data %>%
+            dplyr::filter(gender == "Male") %>%
+            dplyr::summarise(
+              `Nombre` = dplyr::n(),
+              `Min` = min(age, na.rm = TRUE),
+              `IQ 1` = quantile(age, 0.25, na.rm = TRUE),
+              `Moyenne` = mean(age, na.rm = TRUE),
+              `Écart-type` = sd(age, na.rm = TRUE),
+              `Médiane` = median(age, na.rm = TRUE),
+              `IQ 3` = quantile(age, 0.75, na.rm = TRUE),
+              `Max` = max(age, na.rm = TRUE)
+            )
+          
+          female_stats <- age_gender_data %>%
+            dplyr::filter(gender == "Female") %>%
+            dplyr::summarise(
+              `Nombre` = dplyr::n(),
+              `Min` = min(age, na.rm = TRUE),
+              `IQ 1` = quantile(age, 0.25, na.rm = TRUE),
+              `Moyenne` = mean(age, na.rm = TRUE),
+              `Écart-type` = sd(age, na.rm = TRUE),
+              `Médiane` = median(age, na.rm = TRUE),
+              `IQ 3` = quantile(age, 0.75, na.rm = TRUE),
+              `Max` = max(age, na.rm = TRUE)
+            )
+          
+          stats_table <- dplyr::bind_rows(
+            `Tous les patients` = age_stats,
+            `Hommes` = male_stats,
+            `Femmes` = female_stats,
+            .id = "Groupe"
+          )
+          
+          return(stats_table)
+        }, sanitize.text.function = identity, rownames = FALSE)
+        
+      }
+      else if (input$dataset_details == "stays"){
+        
+      }
     })
     
     # --- --- --- --- --- -

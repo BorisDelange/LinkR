@@ -9,6 +9,8 @@ add_to_saved_git_repos,Ajouter aux dépôts sauvegardés
 admin,Admin
 admin_access,Accès admin
 age,Age
+age_at_first_hospit,Age à la première hospitalisation
+age_class,Classe d'âge
 aggregated_data,Données agrégées
 aggregated_data_explanation,Analysez les données sur un groupe de patients
 aggregated_plugin,Plugin de données agrégées
@@ -27,6 +29,7 @@ cancel,Annuler
 cancel_description_updates,Annuler les modifications
 cancel_readme_updates,Annuler les modifications
 cancel_updates,Annuler les modifications
+care_sites,Etablissements de santé
 choose_files,Choisir des fichiers
 choose_zip_file,Choisir un fichier ZIP
 clinician,Clinicien
@@ -132,6 +135,8 @@ delete_user_access,Supprimer l'accès
 delete_user_access_text,Confirmer la suppression de cet accès ?
 delete_user_access_title,Supprimer un accès
 delete_user_status,Supprimer le statut
+delete_user_status_text,Confirmer la suppression de ce statut ?
+delete_user_status_title,Supprimer un status
 delete_user_text,Confirmer la suppression de l'utilisateur ?
 delete_user_title,Supprimer un utilisateur
 delete_vocabulary_text,Confirmer la suppression de cette terminologie ?
@@ -139,6 +144,7 @@ delete_vocabulary_title,Supprimer une terminologie
 delete_widget_text,Confirmer la suppression de ce widget ?
 delete_widget_title,Suppression de widget
 description,Description
+details,Détails
 domain_id,ID du domaine
 dont_delete,Annuler
 dont_import,Annuler
@@ -378,6 +384,7 @@ synchronize_with_git_repo,Synchronisation git
 table,Table
 table_name,Nom de la table
 table_output,Table
+tables,Tables
 tasks,Tâches
 terminal,Terminal
 test_code,Test
@@ -428,6 +435,5 @@ vocabularies_widget_text,Organisez et explorez les terminologies de concepts mé
 vocabulary,Terminologie
 vocabulary_id,ID de la terminologie
 width,Largeur
-years,ans
-delete_user_status_title,Supprimer un status
-delete_user_status_text,Confirmer la suppression de ce statut ?
+years,Ans
+years_and_over,Ans et plus
