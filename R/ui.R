@@ -68,10 +68,9 @@ app_ui <- function(pages, language, languages, i18n, users_accesses_toggles_opti
       
       # CSS files
       tags$link(rel = "stylesheet", href = "www/css/style.css", type = "text/css"),
-      tags$link(rel = "stylesheet", href = "www/css/fluent_style.css", type = "text/css"),
       
       # Add jquery
-      tags$link(rel = "stylesheet", href = "www/css/jquery-ui.css", type = "text/css"),
+      tags$link(rel = "stylesheet", href = "www/css/jquery-ui-1.12.1.css", type = "text/css"),
       tags$script(src = "www/js/jquery-ui-1.12.1.min.js"),
       
       # Add gridstacks.js
@@ -86,6 +85,12 @@ app_ui <- function(pages, language, languages, i18n, users_accesses_toggles_opti
       
       # Add fontawesome icons
       tags$link(rel = "stylesheet", href = "www/css/font-awesome-5.15.3-all.min.css", type = "text/css"),
+      
+      # Add fluent icons
+      tags$link(rel = "stylesheet", href = "www/css/fluent-icons.css"),
+      
+      # Add customised fluent UI
+      tags$link(rel = "stylesheet", href = "www/css/fluent-style.css", type = "text/css"),
       
       # Shinyjs is used to show and hide message bars
       shinyjs::useShinyjs(),
