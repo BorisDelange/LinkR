@@ -120,7 +120,7 @@ mod_page_header_ui <- function(id, i18n){
       div(
         class = "header_left_bar",
         div(
-          tags$img(src = "www/logo.png"),
+          tags$img(src = "www/images/logo.png"),
           class = "logo",
           onclick = paste0("window.location.href='", shiny.router::route_link("/"), "';")
         ),

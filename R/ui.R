@@ -51,45 +51,48 @@ app_ui <- function(pages, language, languages, i18n, users_accesses_toggles_opti
     })
   ) -> page
   
-  golem::add_resource_path("www", system.file("app/www", package = "linkr"))
+  # Make app/www accessible via /www URL
+  addResourcePath("www", system.file("www", package = "linkr"))
+  
+  # Make node_modules accessible via /node_modules URL
+  addResourcePath("node_modules", system.file("node_modules", package = "linkr"))
   
   tagList(
-    golem_add_external_resources(),
+    tags$head(
+      
+      # Title
+      tags$title("LinkR"),
+      
+      # Favicon
+      tags$link(rel = "shortcut icon", href = "www/images/favicon.png"),
+      
+      # CSS files
+      tags$link(rel = "stylesheet", href = "www/css/style.css", type = "text/css"),
+      tags$link(rel = "stylesheet", href = "www/css/fluent_style.css", type = "text/css"),
+      
+      # Add jquery
+      tags$link(rel = "stylesheet", href = "www/css/jquery-ui.css", type = "text/css"),
+      tags$script(src = "www/js/jquery-ui-1.12.1.min.js"),
+      
+      # Add gridstacks.js
+      tags$link(rel = "stylesheet", href = "node_modules/gridstack/dist/gridstack.min.css"),
+      tags$script(src = "node_modules/gridstack/dist/gridstack-all.js"),
+      
+      tags$script(HTML("
+        document.addEventListener('DOMContentLoaded', function() {
+          window.gridStackInstances = {};
+        });
+      ")),
+      
+      # Add fontawesome icons
+      tags$link(rel = "stylesheet", href = "www/css/font-awesome-5.15.3-all.min.css", type = "text/css"),
+      
+      # Shinyjs is used to show and hide message bars
+      shinyjs::useShinyjs(),
+      
+      # Shinybusy is used to add a busy bar on top of the page, when there are loading times
+      shinybusy::add_busy_bar(timeout = 1000, color = "#0D98FF", height = "3px")
+    ),
     shiny.fluent::fluentPage(page)
-  )
-}
-
-#' @noRd
-golem_add_external_resources <- function(){
-  
-  golem::add_resource_path("www", app_sys("app/www"))
- 
-  tags$head(
-    golem::favicon(ext = "png"),
-    golem::bundle_resources(path = app_sys("app/www"), app_title = "LinkR"),
-    tags$link(href = "style.css", rel = "stylesheet", type = "text/css"),
-    tags$link(href = "fluent_style.css", rel = "stylesheet", type = "text/css"),
-
-    # Add jquery
-    tags$link(rel = "stylesheet", href = "https://code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css"),
-    tags$script(src = "https://code.jquery.com/ui/1.12.1/jquery-ui.js"),
-
-    # Add gridstacks.js
-    tags$link(rel = "stylesheet", href = "https://cdnjs.cloudflare.com/ajax/libs/gridstack.js/10.1.0/gridstack.min.css"),
-
-    tags$script(HTML("
-      document.addEventListener('DOMContentLoaded', function() {
-        window.gridStackInstances = {};
-      });
-    ")),
-
-    # Add fontawesome icons
-    tags$link(rel = "stylesheet", href = "https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css"),
-
-    # Shinyjs is used to show and hide message bars
-    shinyjs::useShinyjs(),
-
-    # Shinybusy is used to add a busy bar on top of the page, when there are loading times
-    shinybusy::add_busy_bar(timeout = 1000, color = "#0D98FF", height = "3px")
   )
 }

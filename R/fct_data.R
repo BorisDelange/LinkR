@@ -5,18 +5,17 @@ create_gridstack_instance <- function(id, tab_id){
   shinyjs::delay(200, 
     shinyjs::runjs(paste0("
       if (!window.gridStackInstances['", tab_id, "']) {
-        import('https://esm.sh/gridstack').then((module) => {
-          const GridStack = module.GridStack;
-          window.gridStackInstances['", tab_id, "'] = GridStack.init({
-            cellHeight: 15,
-            scroll: false,
-            column: 12,
-            staticGrid: true,
-            float: false,
-            resizable: { handles: 'se, ne, nw, sw' },
-            margin: 10
-          }, '#", ns(paste0("gridstack_", tab_id)), "');
-        });
+        const grid = GridStack.init({
+          cellHeight: 15,
+          scroll: false,
+          column: 12,
+          staticGrid: true,
+          float: false,
+          resizable: { handles: 'se, ne, nw, sw' },
+          margin: 10
+        }, '#", ns(paste0("gridstack_", tab_id)), "');
+
+        window.gridStackInstances['", tab_id, "'] = grid;
       }
     "))
   )

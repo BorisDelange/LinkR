@@ -1,8 +1,29 @@
+/* -------------- */
+/* FONTS          */
+/* -------------- */
+
+@font-face {
+  font-family: 'Segoe UI';
+  src: url('../fonts/segoeui-regular.woff2') format('woff2'),
+       url('../fonts/segoeui-regular.woff') format('woff');
+  font-weight: normal;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: 'Segoe UI';
+  src: url('../fonts/segoeui-semibold.woff2') format('woff2'),
+       url('/fonts/segoeui-semibold.woff') format('woff');
+  font-weight: bold;
+  font-style: normal;
+}
+
 /* --------------- */
 /* GLOBAL          */
 /* --------------- */
 
-body, html {
+html, body {
+  font-family: 'Segoe UI', sans-serif;
   font-size: 12px;
   background-color: white;
   margin: 0;
@@ -476,13 +497,12 @@ a.no-hover-effect:hover {
   color: white;
   font-weight: 600;
   padding: 12px 8px;
-  text-align: center;
+  text-align: center !important;
   border-bottom: 2px solid #34495e;
 }
 
 .dataset_details_table td {
   padding: 10px 8px;
-  text-align: center;
   color: #2c3e50;
   border-bottom: 1px solid #ecf0f1;
 }
@@ -503,6 +523,10 @@ a.no-hover-effect:hover {
 .dataset_details_table td:last-child, 
 .dataset_details_table th:last-child {
   border-right: none;
+}
+
+.dataset_details_table td.numeric {
+  text-align: right;
 }
 
 .data_page_widget {

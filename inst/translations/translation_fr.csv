@@ -194,6 +194,7 @@ firstname_and_lastname_already_used,Cette identité est déjà utilisée
 french,Français
 from,Du
 gender,Sexe
+gender_distribution,Répartition par sexe
 generate_readme,Générer le contenu du readme
 git_repo,Dépôt git
 git_repo_url_address_already_used,Il y a déjà un dépôt git enregistré avec cette URL
@@ -437,3 +438,14 @@ vocabulary_id,ID de la terminologie
 width,Largeur
 years,Ans
 years_and_over,Ans et plus
+male,Homme
+female,Femme
+number,Nombre
+min,Min
+max,Max
+iq1,IQ1
+iq3,IQ3
+std,Ecart-type
+median,Médiane
+mean,Moyenne
+all_patients,Tous les patients

@@ -530,9 +530,14 @@ mod_projects_server <- function(id, r, d, m, language, i18n, debug, user_accesse
       sapply(categories[categories != input$dataset_details], function(category) shinyjs::hide(paste0("dataset_", category, "_details")))
       shinyjs::show(paste0("dataset_", input$dataset_details, "_details"))
       
+      # Care sites details ----
+      
       if (input$dataset_details == "care_sites"){
         
       }
+      
+      ### Patients details ----
+      
       else if (input$dataset_details == "patients"){
         
         num_rows <- d$person %>% dplyr::count() %>% dplyr::pull()
@@ -550,8 +555,14 @@ mod_projects_server <- function(id, r, d, m, language, i18n, debug, user_accesse
             by = "person_id"
           ) %>%
           dplyr::collect() %>%
+          dplyr::group_by(person_id) %>%
+          dplyr::summarise(
+            first_admission = min(visit_start_datetime, na.rm = TRUE),
+            birth_datetime = dplyr::first(birth_datetime),
+            .groups = "drop"
+          ) %>%
           dplyr::mutate(
-            age = round(as.numeric(difftime(visit_start_datetime, birth_datetime, units = "days")) / 365.25, 1)
+            age = round(as.numeric(difftime(first_admission, birth_datetime, units = "days")) / 365.25, 1)
           )
         
         gender_data <-
@@ -560,8 +571,8 @@ mod_projects_server <- function(id, r, d, m, language, i18n, debug, user_accesse
           dplyr::select(person_id, gender_concept_id) %>%
           dplyr::filter(gender_concept_id %in% c(8507, 8532)) %>%
           dplyr::mutate(gender = dplyr::case_when(
-            gender_concept_id == 8507 ~ "Male",
-            gender_concept_id == 8532 ~ "Female"
+            gender_concept_id == 8507 ~ i18n$t("male"),
+            gender_concept_id == 8532 ~ i18n$t("female")
           ))
         
         age_gender_data <- age_data %>% dplyr::left_join(gender_data, by = "person_id")
@@ -613,8 +624,8 @@ mod_projects_server <- function(id, r, d, m, language, i18n, debug, user_accesse
           ggplot2::geom_bar(width = 1, stat = "identity", color = "white") +
           ggplot2::coord_polar("y", start = 0) +
           ggplot2::theme_void() +
-          ggplot2::scale_fill_manual(values = c("Male" = "#1f77b4", "Female" = "#6baed6")) +
-          ggplot2::labs(fill = "Gender", title = "Gender distribution") +
+          ggplot2::scale_fill_manual(values = setNames(c("#1f77b4", "#6baed6"), c(i18n$t("female"), i18n$t("male")))) +
+          ggplot2::labs(fill = i18n$t("gender"), title = i18n$t("gender_distribution")) +
           ggplot2::theme(plot.title = ggplot2::element_text(hjust = 0.5, face = "bold"), legend.position = "none") +
           ggplot2::geom_text(
             ggplot2::aes(label = label),
@@ -625,56 +636,33 @@ mod_projects_server <- function(id, r, d, m, language, i18n, debug, user_accesse
           )
         )
         
+        calculate_stats <- function(data) {
+          data %>%
+            dplyr::summarise(
+              !!i18n$t("number") := dplyr::n(),
+              !!i18n$t("min") := min(age, na.rm = TRUE),
+              !!i18n$t("iq1") := quantile(age, 0.25, na.rm = TRUE),
+              !!i18n$t("mean") := mean(age, na.rm = TRUE),
+              !!i18n$t("std") := sd(age, na.rm = TRUE),
+              !!i18n$t("median") := median(age, na.rm = TRUE),
+              !!i18n$t("iq3") := quantile(age, 0.75, na.rm = TRUE),
+              !!i18n$t("max") := max(age, na.rm = TRUE)
+            )
+        }
+        
         output$dataset_patients_age_gender_table <- renderTable({
-          age_stats <- age_gender_data %>%
-            dplyr::summarise(
-              `Nombre` = dplyr::n(),
-              `Min` = min(age, na.rm = TRUE),
-              `IQ 1` = quantile(age, 0.25, na.rm = TRUE),
-              `Moyenne` = mean(age, na.rm = TRUE),
-              `Écart-type` = sd(age, na.rm = TRUE),
-              `Médiane` = median(age, na.rm = TRUE),
-              `IQ 3` = quantile(age, 0.75, na.rm = TRUE),
-              `Max` = max(age, na.rm = TRUE)
-            )
-          
-          male_stats <- age_gender_data %>%
-            dplyr::filter(gender == "Male") %>%
-            dplyr::summarise(
-              `Nombre` = dplyr::n(),
-              `Min` = min(age, na.rm = TRUE),
-              `IQ 1` = quantile(age, 0.25, na.rm = TRUE),
-              `Moyenne` = mean(age, na.rm = TRUE),
-              `Écart-type` = sd(age, na.rm = TRUE),
-              `Médiane` = median(age, na.rm = TRUE),
-              `IQ 3` = quantile(age, 0.75, na.rm = TRUE),
-              `Max` = max(age, na.rm = TRUE)
-            )
-          
-          female_stats <- age_gender_data %>%
-            dplyr::filter(gender == "Female") %>%
-            dplyr::summarise(
-              `Nombre` = dplyr::n(),
-              `Min` = min(age, na.rm = TRUE),
-              `IQ 1` = quantile(age, 0.25, na.rm = TRUE),
-              `Moyenne` = mean(age, na.rm = TRUE),
-              `Écart-type` = sd(age, na.rm = TRUE),
-              `Médiane` = median(age, na.rm = TRUE),
-              `IQ 3` = quantile(age, 0.75, na.rm = TRUE),
-              `Max` = max(age, na.rm = TRUE)
-            )
-          
-          stats_table <- dplyr::bind_rows(
-            `Tous les patients` = age_stats,
-            `Hommes` = male_stats,
-            `Femmes` = female_stats,
+          dplyr::bind_rows(
+            !!i18n$t("all_patients") := calculate_stats(age_gender_data),
+            !!i18n$t("male") := calculate_stats(age_gender_data %>% dplyr::filter(gender == i18n$t("male"))),
+            !!i18n$t("female") := calculate_stats(age_gender_data %>% dplyr::filter(gender == i18n$t("female"))),
             .id = "Groupe"
           )
-          
-          return(stats_table)
         }, sanitize.text.function = identity, rownames = FALSE)
         
       }
+      
+      ### Stays details ----
+      
       else if (input$dataset_details == "stays"){
         
       }
