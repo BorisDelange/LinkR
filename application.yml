@@ -17,12 +17,12 @@ proxy:
     port-range-start: 20000
   specs:
   - id: linkr
-    display-name: LinkR - v0.3.0.9017
+    display-name: LinkR - v0.3.0.9018
     description: A web app for visualization and analysis of healthcare data using OMOP CDM
     container-cmd: ["R", "-e", "options(shiny.port = 3838, shiny.host = '0.0.0.0'); linkr::linkr(language = 'fr', app_folder = '/linkr-files', username = 'admin')"]
-    container-image: linkr-v0.3.0.9017
+    container-image: linkr-v0.3.0.9018
     # Update container-volumes with the folder you want to share between the containers
-    container-volumes: ["/home/docker-containers-files/linkr-v0.3.0.9017:/linkr-files"]
+    container-volumes: ["/home/docker-containers-files/linkr-v0.3.0.9018:/linkr-files"]
     access-groups: admin
     max-instances: 2
 logging:
