@@ -65,6 +65,10 @@ a.no-hover-effect:hover {
   color: black;
 }
 
+.ui-resizable-e {
+  cursor: col-resize !important;
+}
+
 /* --------------- */
 /* HEADER          */
 /* --------------- */

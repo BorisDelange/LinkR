@@ -530,13 +530,13 @@ mod_projects_server <- function(id, r, d, m, language, i18n, debug, user_accesse
       sapply(categories[categories != input$dataset_details], function(category) shinyjs::hide(paste0("dataset_", category, "_details")))
       shinyjs::show(paste0("dataset_", input$dataset_details, "_details"))
       
-      # Care sites details ----
+      ### Care sites details ----
       
       if (input$dataset_details == "care_sites"){
         
       }
       
-      ### Patients details ----
+      ## Patients details ----
       
       else if (input$dataset_details == "patients"){
         
@@ -661,7 +661,7 @@ mod_projects_server <- function(id, r, d, m, language, i18n, debug, user_accesse
         
       }
       
-      ### Stays details ----
+      ## Stays details ----
       
       else if (input$dataset_details == "stays"){
         

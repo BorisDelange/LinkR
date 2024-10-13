@@ -7,6 +7,47 @@ mod_console_ui <- function(id, language, languages, i18n){
     run_all = list(win = "CTRL-SHIFT-ENTER", mac = "CTRL-SHIFT-ENTER|CMD-SHIFT-ENTER"),
     comment = list(win = "CTRL-SHIFT-C", mac = "CTRL-SHIFT-C|CMD-SHIFT-C")
   )
+  
+  visit_detail_tables <- c("condition_occurrence", "drug_exposure", "procedure_occurrence", "device_exposure", "measurement", "observation", "note", "note_nlp", "payer_plan_period", "cost")
+  person_tables <- c(visit_detail_tables, "specimen", "death", "drug_era", "dose_era", "condition_era")
+  subset_tables <- c(person_tables, "person", "observation_period", "visit_occurrence", "visit_detail")
+  main_tables <- c(subset_tables, "location", "care_site", "provider")
+  
+  auto_complete_list <- list(
+    dplyr = getNamespaceExports("dplyr"),
+    DBI = getNamespaceExports("DBI"),
+    ggplot2 = getNamespaceExports("ggplot2"),
+    glue = getNamespaceExports("glue"),
+    plotly = getNamespaceExports("plotly"),
+    readr = getNamespaceExports("readr"),
+    tidyr = getNamespaceExports("tidyr"),
+    vroom = getNamespaceExports("vroom"),
+    `OMOP data` = paste0("d$", c(
+      "person", "visit_occurrence", "visit_detail", "death",
+      "measurement", "observation", "procedure_occurrence", "condition_occurrence", "drug_exposure", "device_exposure",
+      "note", "note_nlp", "specimen", "location", "care_site", "provider", "drug_era", "dose_era",
+      "condition_era", "payer_plan_period", "cost", "observation_period",
+      "data_subset",
+      paste0("data_subset$", c(
+        "person", "visit_occurrence", "visit_detail", "death",
+        "measurement", "observation", "procedure_occurrence", "condition_occurrence", "drug_exposure", "device_exposure",
+        "note", "note_nlp", "specimen", "drug_era", "dose_era",
+        "condition_era", "payer_plan_period", "cost", "observation_period"
+      )),
+      "data_person",
+      paste0("data_person$", c(
+        "death", "measurement", "observation", "procedure_occurrence", "condition_occurrence", "drug_exposure", "device_exposure",
+        "note", "note_nlp", "specimen", "drug_era", "dose_era",
+        "condition_era", "payer_plan_period", "cost"
+      )),
+      "data_visit_detail",
+      paste0("data_visit_detail$", c(
+        "measurement", "observation", "procedure_occurrence", "condition_occurrence", "drug_exposure", "device_exposure",
+        "note", "note_nlp", "payer_plan_period", "cost"
+      ))
+    ))
+  )
+  
   div(
     div(
       id = ns("console_forbidden_access"),
@@ -20,10 +61,13 @@ mod_console_ui <- function(id, language, languages, i18n){
           shinyAce::aceEditor(
             ns("code"), value = "", mode = "r",
             code_hotkeys = list("r", code_hotkeys),
+            autoComplete = "live", autoCompleters = "static", autoCompleteList = auto_complete_list,
             autoScrollEditorIntoView = TRUE, height = "100%", debounce = 100, fontSize = 11, showPrintMargin = FALSE
           ),
-          style = "width: 50%; margin-top: 10px;"
+          class = "resizable-panel left-panel",
+          style = "width: 50%;"
         ),
+        div(class = "resizer"),
         div(
           id = ns("console_output"),
           textOutput(ns("datetime_code_execution")),
@@ -33,12 +77,14 @@ mod_console_ui <- function(id, language, languages, i18n){
           shinyjs::hidden(div(id = ns("table_output_div"), tableOutput(ns("table_output")), style = "padding-top: 10px;")),
           shinyjs::hidden(div(id = ns("datatable_output_div"), DT::DTOutput(ns("datatable_output")), style = "padding-top: 10px;")),
           shinyjs::hidden(imageOutput(ns("image_output"))),
-          style = "width: 50%; border: dashed grey 1px; margin: 10px 0px 0px 10px; padding: 10px; font-size: 12px; overflow-y: auto;"
+          class = "resizable-panel right-panel",
+          style = "width: 50%; padding: 10px; font-size: 12px; overflow-y: auto; box-sizing: border-box;"
         ),
+        class = "resizable_container",
         style = "height: 100%; display: flex;"
       )
     ),
-    style = "max-height:calc(100vh - 90px); width: 100%;",
+    style = "width: 100%; padding: 0;",
     class = "main"
   )
 }
@@ -55,7 +101,60 @@ mod_console_server <- function(id, r, d, m, language, i18n, debug, user_accesses
       shinyjs::hide("console_forbidden_access")
     }
     
-    r$load_console <- now()
+    # Auto completion starting at 3 characters
+    
+    shinyjs::runjs("
+      $(document).ready(function() {
+        // Initialize the Ace editor
+        var editor = ace.edit('console-code');
+
+        // Disable default live autocomplete
+        editor.setOptions({
+          enableLiveAutocompletion: false,
+          liveAutocompletionDelay: 500,
+          liveAutocompletionThreshold: 3
+        });
+
+        // Watch for changes in the editor
+        editor.getSession().on('change', function() {
+          var text = editor.getValue();  // Get the full text
+          var cursorPosition = editor.getCursorPosition();  // Get current cursor position
+          var session = editor.getSession();
+          var line = session.getLine(cursorPosition.row);  // Get the current line of the cursor
+          var mode = editor.getSession().getMode().$id; // Get the current mode (language)
+      
+          // Only activate autocompletion if the mode is R
+          if (mode !== 'ace/mode/r') {
+            editor.setOptions({ enableLiveAutocompletion: false });
+            return;  // Exit early if not in R mode
+          }
+          
+          // Get the word just before the cursor
+          var charBeforeCursor = text.slice(editor.session.doc.positionToIndex(cursorPosition) - 1, editor.session.doc.positionToIndex(cursorPosition));
+          
+          // Detect if the user has typed '::' for a package
+          var indexOfDoubleColon = line.lastIndexOf('::');
+          var charsAfterDoubleColon = cursorPosition.column - indexOfDoubleColon - 2;  // Characters typed after '::'
+          
+          var lastWord = line.split(/\\s+/).pop();  // Get the last word (or partial word)
+
+          // If 'd$' is typed (even inside parentheses), enable immediate autocompletion
+          if (lastWord.startsWith('d$')) {
+            editor.setOptions({ enableLiveAutocompletion: true });
+          }
+          // Disable autocompletion if fewer than 2 characters after '::'
+          else if (indexOfDoubleColon >= 0 && charsAfterDoubleColon < 2) {
+            editor.setOptions({ enableLiveAutocompletion: false });
+          }
+          // General rule: enable autocompletion after 3 characters
+          else if (lastWord.length >= 3) {
+            editor.setOptions({ enableLiveAutocompletion: true });
+          } else {
+            editor.setOptions({ enableLiveAutocompletion: false });
+          }
+        });
+      });
+    ")
     
     # Unlock reactivity
     observeEvent(shiny.router::get_page(), {

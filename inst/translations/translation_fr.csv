@@ -298,6 +298,7 @@ patients,Patients
 person,Patient
 person_id,ID du patient
 plugin_deleted,Plugin supprimé
+plugin_doesnt_exist_in_git_repo,Ce plugin n'existe pas dans ce dépôt git
 plugin_for,Plugin pour
 plugins,Plugins
 plugins_edit_code_user_access_description,Editer et tester le code du plugin
@@ -380,6 +381,7 @@ subset_all_patients,Tous les patients
 subsets,Subsets
 success,Succès
 success_importing_concepts,Concepts importés avec succès
+success_update_remote_git_repo,Mise à jour du dépôt git avec succès
 summary,Sommaire
 synchronize_with_git_repo,Synchronisation git
 table,Table

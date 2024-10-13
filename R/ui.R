@@ -83,6 +83,10 @@ app_ui <- function(pages, language, languages, i18n, users_accesses_toggles_opti
         });
       ")),
       
+      # Add resizePanels
+      tags$link(rel = "stylesheet", href = "www/css/resizePanels.css"),
+      tags$script(src = "www/js/resizePanels.js"),
+      
       # Add fontawesome icons
       tags$link(rel = "stylesheet", href = "www/css/font-awesome-5.15.3-all.min.css", type = "text/css"),
       
