@@ -78,9 +78,9 @@ mod_console_ui <- function(id, language, languages, i18n){
           shinyjs::hidden(div(id = ns("datatable_output_div"), DT::DTOutput(ns("datatable_output")), style = "padding-top: 10px;")),
           shinyjs::hidden(imageOutput(ns("image_output"))),
           class = "resizable-panel right-panel",
-          style = "width: 50%; padding: 10px; font-size: 12px; overflow-y: auto; box-sizing: border-box;"
+          style = "width: 50%; padding: 10px; font-size: 12px; overflow-y: auto;"
         ),
-        class = "resizable_container",
+        class = "resizable-container",
         style = "height: 100%; display: flex;"
       )
     ),

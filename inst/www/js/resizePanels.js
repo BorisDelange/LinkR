@@ -3,7 +3,7 @@
 document.addEventListener("DOMContentLoaded", function() {
   
     // Iterate over each container element to apply individual resize behavior
-    document.querySelectorAll('.resizable_container').forEach(function(container) {
+    document.querySelectorAll('.resizable-container').forEach(function(container) {
         var isResizing = false; // Flag to track if resizing is happening
         var lastDownX = 0;      // Variable to store the last X position of the mouse
         

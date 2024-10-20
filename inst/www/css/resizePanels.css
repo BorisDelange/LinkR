@@ -1,12 +1,12 @@
-.resizable_container {
+.resizable-container {
   display: flex;
   width: 100%;
   position: relative;
 }
 
-.resizable_panel {
+.resizable-panel {
   flex: 1;
-  min-width: 100px;
+  box-sizing: border-box;
 }
 
 .resizer {
