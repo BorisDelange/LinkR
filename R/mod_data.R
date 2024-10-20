@@ -764,7 +764,6 @@ mod_data_server <- function(id, r, d, m, language, i18n, debug, user_accesses){
         
         selected_visit_detail <- as.numeric(input$visit_detail)
         m$selected_visit_detail <- selected_visit_detail
-        print(selected_visit_detail)
         
         # Update person informations on sidenav
         
@@ -1859,8 +1858,6 @@ mod_data_server <- function(id, r, d, m, language, i18n, debug, user_accesses){
     }
     
     load_tab_ui <- function(category, tab_id, widget_id = NA_integer_, action){
-      
-      # if (r$project_load_status_displayed) r$project_load_status$widgets_ui_starttime <- now("%Y-%m-%d %H:%M:%OS3")
       
       selected_tab <- r[[paste0(category, "_selected_tab")]]
 

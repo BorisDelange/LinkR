@@ -312,6 +312,7 @@ programming_language,Language
 project_added,New project created
 project_deleted,Project deleted
 projects,Projects
+projects_console_access_user_access_description,Access the console from a project
 projects_data_cleaning_user_access_description,Set up projet's data cleaning scripts
 projects_dataset_user_access_description,Set up project's dataset
 projects_import_user_access_description,Import a project

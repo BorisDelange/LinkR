@@ -105,6 +105,7 @@ linkr <- function(
       "projects_see_all_data",
       "projects_management",
       "projects_import",
+      "projects_console_access",
       "projects_dataset",
       "projects_data_cleaning",
       "projects_share"
