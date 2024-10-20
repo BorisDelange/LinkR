@@ -61,7 +61,7 @@ mod_console_ui <- function(id, language, languages, i18n){
           shinyAce::aceEditor(
             ns("code"), value = "", mode = "r",
             code_hotkeys = list("r", code_hotkeys),
-            autoComplete = "live", autoCompleters = "static", autoCompleteList = auto_complete_list,
+            autoComplete = "live", autoCompleters = c("static", "text"), autoCompleteList = auto_complete_list,
             autoScrollEditorIntoView = TRUE, height = "100%", debounce = 100, fontSize = 11, showPrintMargin = FALSE
           ),
           class = "resizable-panel left-panel",
