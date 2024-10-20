@@ -177,6 +177,8 @@ error_loading_git_readme,Erreur lors du chargement de la description du dépôt 
 error_loading_git_repo,Erreur lors du chargement du dépôt git
 error_multiple_identical_values,Certaines valeurs sont dupliquées. Retirer les duplicats avant d'importer la table de terminologie.
 error_multiple_primary_keys,Certaines clefs primaires sont dupliquées. Retirer les duplicats avant d'importer la table de terminologie.
+error_run_plugin_ui_code,Erreur lors du chargement du code de l'UI du plugin
+error_run_plugin_server_code,Erreur lors du chargement du code server du plugin
 error_transforming_cols,Erreur lors de la transformation des colonnes
 error_transforming_tibble,Erreur dans la conversion de la variable au format tibble
 everybody,Tout le monde
