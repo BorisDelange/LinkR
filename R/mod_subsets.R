@@ -26,7 +26,7 @@ mod_subsets_ui <- function(id, language, languages, i18n){
       div(
         id = ns("one_element"),
         div(
-          uiOutput(ns("breadcrumb")),
+          div(uiOutput(ns("breadcrumb")), style = "flex: 1;"),
           div(
             id = ns("subset_pivot"),
             tags$button(id = ns("summary"), i18n$t("summary"), class = "pivot_item selected_pivot_item", onclick = pivot_item_js),

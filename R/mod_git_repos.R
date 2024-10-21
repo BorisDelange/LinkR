@@ -172,7 +172,7 @@ mod_git_repos_ui <- function(id = character(), language = "en", languages = tibb
       div(
         id = ns("one_git_repo"),
         div(
-          uiOutput(ns("breadcrumb")),
+          div(uiOutput(ns("breadcrumb")), style = "flex: 1;"),
           div(
             id = ns("plugin_pivot"),
             tags$button(id = ns("projects"), i18n$t("projects"), class = "pivot_item", onclick = pivot_item_js),

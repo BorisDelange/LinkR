@@ -19,7 +19,7 @@ mod_datasets_ui <- function(id, language, languages, i18n, code_hotkeys){
       div(
         id = ns("one_element"),
         div(
-          uiOutput(ns("breadcrumb")),
+          div(uiOutput(ns("breadcrumb")), style = "flex: 1;"),
           div(
             id = ns("dataset_pivot"),
             tags$button(id = ns("summary"), i18n$t("summary"), class = "pivot_item selected_pivot_item", onclick = pivot_item_js),
