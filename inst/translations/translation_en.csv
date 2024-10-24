@@ -398,6 +398,7 @@ test_connection,Test connection
 to,To
 type_must_be_integer,type must be integer
 unauthorized_access_area,Unauthorized access to this area
+ui_output,UI
 unselect_all_tables,Unselect all tables
 update,Update
 update_git_element_data_cleaning_text,Update git data cleaning script? This will erase and replace actual data cleaning script in the git repository.

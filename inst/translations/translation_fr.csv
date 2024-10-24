@@ -397,6 +397,7 @@ test_code,Test
 test_connection,Tester la connexion
 to,Au
 type_must_be_integer,doit être de type integer
+ui_output,UI
 unauthorized_access_area,Accès non autorisé à cette section
 unselect_all_tables,Désélectionner toutes les tables
 update,Mettre à jour

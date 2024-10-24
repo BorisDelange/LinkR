@@ -73,7 +73,8 @@ mod_console_ui <- function(id, language, languages, i18n){
           textOutput(ns("datetime_code_execution")),
           verbatimTextOutput(ns("code_output")),
           shinyjs::hidden(div(id = ns("plot_output_div"), plotOutput(ns("plot_output")), style = "padding-top: 10px;")),
-          shinyjs::hidden(uiOutput(ns("ui_output"))),
+          shinyjs::hidden(uiOutput(ns("rmarkdown_output"))),
+          shinyjs::hidden(uiOutput(ns("ui_output"), style = "padding-top: 10px;")),
           shinyjs::hidden(div(id = ns("table_output_div"), tableOutput(ns("table_output")), style = "padding-top: 10px;")),
           shinyjs::hidden(div(id = ns("datatable_output_div"), DT::DTOutput(ns("datatable_output")), style = "padding-top: 10px;")),
           shinyjs::hidden(imageOutput(ns("image_output"))),
@@ -177,6 +178,7 @@ mod_console_server <- function(id, r, d, m, language, i18n, debug, user_accesses
         output_options <- list(
           list(key = "console", text = i18n$t("console")),
           list(key = "figure", text = i18n$t("figure")),
+          list(key = "ui", text = i18n$t("ui_output")),
           list(key = "table", text = i18n$t("table_output")),
           list(key = "datatable", text = i18n$t("datatable_output")),
           list(key = "rmarkdown", text = i18n$t("rmarkdown"))
@@ -274,10 +276,11 @@ mod_console_server <- function(id, r, d, m, language, i18n, debug, user_accesses
       
       ## Run R code ----
       
-      sapply(c("code_output", "ui_output", "plot_output_div", "table_output_div", "datatable_output_div", "image_output"), shinyjs::hide)
+      sapply(c("code_output", "rmarkdown_output", "ui_output", "plot_output_div", "table_output_div", "datatable_output_div", "image_output"), shinyjs::hide)
       if (input$output == "console") shinyjs::show("code_output")
       else if (input$output == "figure") shinyjs::show("plot_output_div")
-      else if (input$output == "rmarkdown") shinyjs::show("ui_output")
+      else if (input$output == "rmarkdown") shinyjs::show("rmarkdown_output")
+      else if (input$output == "ui") shinyjs::show("ui_output")
       else if (input$output == "table") shinyjs::show("table_output_div")
       else if (input$output == "datatable") shinyjs::show("datatable_output_div")
       else if (input$output == "terminal") shinyjs::show("code_output")
@@ -309,11 +312,15 @@ mod_console_server <- function(id, r, d, m, language, i18n, debug, user_accesses
           )
         )
         
+        # UI
+        
+        else if (input$output == "ui") output$ui_output <- renderUI(tryCatch(eval(parse(text = code)), error = function(e) print(e), warning = function(w) print(w)))
+        
         # RMarkdown
         else if (input$output == "rmarkdown"){
           
           output_file <- create_rmarkdown_file(r, code)
-          output$ui_output <- renderUI(div(class = "markdown", withMathJax(includeMarkdown(output_file))))
+          output$rmarkdown_output <- renderUI(div(class = "markdown", withMathJax(includeMarkdown(output_file))))
         }
         
         # Table
