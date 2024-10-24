@@ -210,8 +210,11 @@ mod_widgets_server <- function(id, r, d, m, language, i18n, all_divs, debug, use
     observeEvent(input$reload_elements_list, {
       if (debug) cat(paste0("\n", now(), " - mod_widgets - (", id, ") - observer input$reload_elements_list"))
       
-      elements_ui <- create_elements_ui(page_id = id, elements = r[[long_var_filtered]], r = r, language = language, i18n = i18n)
-
+      if (length(input$selected_element) > 0) selected_element <- input$selected_element
+      else selected_element <- NA_integer_
+      
+      elements_ui <- create_elements_ui(page_id = id, elements = r[[long_var_filtered]], selected_element = selected_element, r = r, language = language, i18n = i18n)
+      
       output$elements <- renderUI(elements_ui)
       
       # For plugins page, reload copy plugin dropdown
@@ -856,11 +859,9 @@ mod_widgets_server <- function(id, r, d, m, language, i18n, all_divs, debug, use
       # Reload description UI ----
       shinyjs::runjs(paste0("Shiny.setInputValue('", id, "-reload_description_ui', Math.random());"))
       
-      # Change border of selected project
-      if (id == "projects"){
-        sapply(r[[wide_var]]$id, function(i) shinyjs::removeClass(class = "selected_widget", selector = paste0("#", id, "-project_widget_", i)))
-        shinyjs::addClass(class = "selected_widget", selector = paste0("#", id, "-project_widget_", input$selected_element))
-      }
+      # Change border of selected element
+      sapply(r[[wide_var]]$id, function(i) shinyjs::removeClass(class = "selected_widget", selector = paste0("#", id, "-", single_id, "_widget_", i)))
+      shinyjs::addClass(class = "selected_widget", selector = paste0("#", id, "-", single_id, "_widget_", input$selected_element))
       
       # Update summary fields ----
       

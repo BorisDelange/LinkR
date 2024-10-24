@@ -1512,7 +1512,7 @@ mod_data_server <- function(id, r, d, m, language, i18n, debug, user_accesses){
       
       users_ui <- create_authors_ui(row %>% dplyr::filter(name == "author") %>% dplyr::pull(value))
       plugin_buttons <- ""
-      element_ui <- create_element_ui(ns, id, input$selected_element, "plugin", plugin_name, users_ui, plugin_buttons, "", short_description)
+      element_ui <- create_element_ui(ns, id, input$selected_element, "plugin", plugin_name, users_ui, plugin_buttons, "", short_description, FALSE)
       
       output$selected_plugin <- renderUI(element_ui)
       
