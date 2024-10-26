@@ -333,7 +333,7 @@ mod_git_repos_server <- function(id, r, d, m, language, i18n, debug, user_access
     # Current user accesses ----
     
     if ("git_repos_management" %in% user_accesses) sapply(c("create_git_repo_button", "delete_git_repo_button", "edit_git_repo_button"), shinyjs::show)
-    if ("git_repos_remote_git_repo_management" %in% user_accesses) sapply(c("edit_readme_buttons"), shinyjs::show)
+    if ("git_repos_remote_git_repo_management" %in% user_accesses) sapply(c("edit_readme_buttons", "save_git_repo_button"), shinyjs::show)
     
     if (debug) cat(paste0("\n", now(), " - mod_git_repos - start"))
     

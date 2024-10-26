@@ -318,6 +318,7 @@ project_added,New project created
 project_deleted,Project deleted
 projects,Projects
 projects_console_access_user_access_description,Access the console from a project
+projects_content_management_user_access_description,"Manage projects content (add, edit and delete tabs and widgets)"
 projects_data_cleaning_user_access_description,Set up projet's data cleaning scripts
 projects_dataset_user_access_description,Set up project's dataset
 projects_import_user_access_description,Import a project
@@ -325,6 +326,7 @@ projects_management_user_access_description,"Manage projects (add, edit and dele
 projects_see_all_data_user_access_description,Access to all projects
 projects_share_user_access_description,Share projects (zip and git)
 projects_widget_text,Projects enable collaborative work on healthcare data in OMOP format using a customizable graphical interface.
+projects_widgets_settings_user_access_description,Save widgets settings (code and figure settings)
 provide_valid_api_key,Please provide a valid API key
 provide_valid_name,Please provide a valid name
 provide_valid_value,Please provide a valid value

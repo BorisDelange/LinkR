@@ -220,7 +220,12 @@ mod_data_server <- function(id, r, d, m, language, i18n, debug, user_accesses){
   # Data module ----
   
   moduleServer(id, function(input, output, session){
+    
     ns <- session$ns
+    
+    # Current user accesses ----
+    
+    if ("projects_content_management" %in% user_accesses) shinyjs::show("project_content_management")
     
     # |-------------------------------- -----
     

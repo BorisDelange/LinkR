@@ -281,26 +281,29 @@ mod_page_sidenav_ui <- function(id, language, i18n){
       class = "sidenav",
       div(
         id = ns("large_sidenav"),
-        div(
-          class = "sidenav_top",
+        shinyjs::hidden(
           div(
-            create_hover_card(ui = shiny.fluent::IconButton.shinyInput(ns("add_tab"), iconProps = list(iconName = "Boards")), text = i18n$t("add_a_tab")),
-            class = "small_icon_button"
-          ),
-          div(
-            create_hover_card(ui = shiny.fluent::IconButton.shinyInput(ns("add_widget"), iconProps = list(iconName = "RectangularClipping")), text = i18n$t("add_a_widget")),
-            class = "small_icon_button"
-          ),
-          div(
-            id = ns("edit_page_on_div"),
-            create_hover_card(ui = shiny.fluent::IconButton.shinyInput(ns("edit_page_on"), iconProps = list(iconName = "Edit")), text = i18n$t("edit_page")),
-            class = "small_icon_button",
-          ),
-          shinyjs::hidden(
+            id = ns("project_content_management"),
+            class = "sidenav_top",
             div(
-              id = ns("edit_page_off_div"),
-              shiny.fluent::IconButton.shinyInput(ns("edit_page_off"), iconProps = list(iconName = "Accept")),
+              create_hover_card(ui = shiny.fluent::IconButton.shinyInput(ns("add_tab"), iconProps = list(iconName = "Boards")), text = i18n$t("add_a_tab")),
+              class = "small_icon_button"
+            ),
+            div(
+              create_hover_card(ui = shiny.fluent::IconButton.shinyInput(ns("add_widget"), iconProps = list(iconName = "RectangularClipping")), text = i18n$t("add_a_widget")),
+              class = "small_icon_button"
+            ),
+            div(
+              id = ns("edit_page_on_div"),
+              create_hover_card(ui = shiny.fluent::IconButton.shinyInput(ns("edit_page_on"), iconProps = list(iconName = "Edit")), text = i18n$t("edit_page")),
               class = "small_icon_button",
+            ),
+            shinyjs::hidden(
+              div(
+                id = ns("edit_page_off_div"),
+                shiny.fluent::IconButton.shinyInput(ns("edit_page_off"), iconProps = list(iconName = "Accept")),
+                class = "small_icon_button",
+              )
             )
           )
         ), br(),
@@ -481,9 +484,12 @@ mod_page_sidenav_ui <- function(id, language, i18n){
         shinyjs::hidden(
           div(
             id = ns("one_repo_reduced_sidenav"),
-            div(
-              create_hover_card(ui = shiny.fluent::IconButton.shinyInput(ns("save_git_repo"), iconProps = list(iconName = "Save")), text = i18n$t("commit_and_push")),
-              class = "reduced_sidenav_buttons"
+            shinyjs::hidden(
+              div(
+                id = ns("save_git_repo_button"),
+                create_hover_card(ui = shiny.fluent::IconButton.shinyInput(ns("save_git_repo"), iconProps = list(iconName = "Save")), text = i18n$t("commit_and_push")),
+                class = "reduced_sidenav_buttons"
+              )
             )
             # div(
             #   id = ns("reload_git_repo_div"),
