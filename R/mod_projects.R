@@ -445,7 +445,7 @@ mod_projects_server <- function(id, r, d, m, language, i18n, debug, user_accesse
             
             data_page <- r$loading_options$load_data_page
             
-            if (data_page %in% c("patient_lvl", "aggregated")) shinyjs::delay(100, shiny.router::change_page(paste0("data?type=", data_page)))
+            if (data_page %in% c("patient_lvl", "aggregated")) shiny.router::change_page(paste0("data?type=", data_page))
             else cat(paste0("\n", now(), " - server - ", data_page, " is not a valid data_page"))
           }
         }

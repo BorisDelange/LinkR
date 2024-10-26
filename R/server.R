@@ -273,7 +273,7 @@ app_server <- function(
     # Go to a specific page if noticed in loading_options
     
     if (length(loading_options$page) > 0){
-      if (loading_options$page %in% pages) shinyjs::delay(100, shiny.router::change_page(loading_options$page))
+      if (loading_options$page %in% pages) shinyjs::delay(10, shiny.router::change_page(loading_options$page))
       else cat(paste0("\n", now(), " - server - ", loading_options$page, " is not a valid page"))
     }
   }
