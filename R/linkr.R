@@ -118,6 +118,7 @@ linkr <- function(
       "projects_console_access",
       "projects_dataset",
       "projects_data_cleaning",
+      "projects_subsets_management",
       "projects_share"
     ),
     "plugins", c(

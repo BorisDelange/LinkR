@@ -324,6 +324,7 @@ projects_import_user_access_description,Import a project
 projects_management_user_access_description,"Manage projects (add, edit and delete)"
 projects_see_all_data_user_access_description,Access to all projects
 projects_share_user_access_description,Share projects (zip and git)
+projects_subsets_management_user_access_description,"Manage subsets (add, edit and delete)"
 projects_widget_text,Projects enable collaborative work on healthcare data in OMOP format using a customizable graphical interface.
 projects_widgets_settings_user_access_description,Save widgets settings (code and figure settings)
 provide_valid_api_key,Please provide a valid API key

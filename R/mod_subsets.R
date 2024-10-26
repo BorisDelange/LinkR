@@ -126,7 +126,12 @@ mod_subsets_server <- function(id, r, d, m, language, i18n, debug, user_accesses
   # Subsets module ----
   
   moduleServer(id, function(input, output, session){
+    
     ns <- session$ns
+    
+    # Current user accesses ----
+    
+    if ("projects_subsets_management" %in% user_accesses) shinyjs::show("subset_buttons")
     
     # |-------------------------------- -----
     

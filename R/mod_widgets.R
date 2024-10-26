@@ -20,7 +20,10 @@ mod_widgets_ui <- function(id, language, languages, i18n){
       div(
         id = ns("all_elements"),
         shiny.fluent::Breadcrumb(items = list(list(key = "main", text = i18n$t(id))), maxDisplayedItems = 3),
-        div(shiny.fluent::SearchBox.shinyInput(ns("search_element")), style = "width:320px; margin:10px 0 0 10px;"),
+        div(
+          id = ns("search_element_div"),
+          shiny.fluent::SearchBox.shinyInput(ns("search_element")), style = "width:320px; margin:10px 0 0 10px;"
+        ),
         uiOutput(ns("elements")),
         div(style = "display:none;", fileInput(ns("import_element_upload"), label = "", multiple = FALSE, accept = ".zip"))
       ),
@@ -210,16 +213,23 @@ mod_widgets_server <- function(id, r, d, m, language, i18n, all_divs, debug, use
     observeEvent(input$reload_elements_list, {
       if (debug) cat(paste0("\n", now(), " - mod_widgets - (", id, ") - observer input$reload_elements_list"))
       
-      if (length(input$selected_element) > 0) selected_element <- input$selected_element
-      else selected_element <- NA_integer_
-      
-      elements_ui <- create_elements_ui(page_id = id, elements = r[[long_var_filtered]], selected_element = selected_element, r = r, language = language, i18n = i18n)
-      
-      output$elements <- renderUI(elements_ui)
-      
-      # For plugins page, reload copy plugin dropdown
-      if (id == "plugins") shiny.fluent::updateDropdown.shinyInput(session, "plugin_to_copy", options = convert_tibble_to_list(r$plugins_wide, key_col = "id", text_col = "name"))
-
+      if (id %in% user_accesses | (id == "subsets" & "projects_subsets_management" %in% user_accesses)){
+        
+        if (length(input$selected_element) > 0) selected_element <- input$selected_element
+        else selected_element <- NA_integer_
+        
+        elements_ui <- create_elements_ui(page_id = id, elements = r[[long_var_filtered]], selected_element = selected_element, r = r, language = language, i18n = i18n)
+        
+        output$elements <- renderUI(elements_ui)
+        
+        # For plugins page, reload copy plugin dropdown
+        if (id == "plugins") shiny.fluent::updateDropdown.shinyInput(session, "plugin_to_copy", options = convert_tibble_to_list(r$plugins_wide, key_col = "id", text_col = "name"))
+      }
+      else {
+        shinyjs::hide("search_element_div")
+        output$elements <- renderUI(div(shiny.fluent::MessageBar(i18n$t("unauthorized_access_area"), messageBarType = 5), style = "display: inline-block; margin-top: 5px;"))
+      }
+        
       # Unlock reactivity
       shinyjs::show("elements")
     })
@@ -310,7 +320,7 @@ mod_widgets_server <- function(id, r, d, m, language, i18n, all_divs, debug, use
       
       if (debug) cat(paste0("\n", now(), " - mod_widgets - (", id, ") - observer input$add_element"))
       
-      req(paste0(id, "_management") %in% user_accesses | id == "subsets")
+      req(paste0(id, "_management") %in% user_accesses | (id == "subsets" & "projects_subsets_management" %in% user_accesses))
       
       element_name <- input$element_creation_name
       username <- r$users %>% dplyr::filter(id == r$user_id) %>% dplyr::pull(name)
@@ -1007,7 +1017,7 @@ mod_widgets_server <- function(id, r, d, m, language, i18n, all_divs, debug, use
     observeEvent(input$edit_summary, {
       if (debug) cat(paste0("\n", now(), " - mod_widgets - (", id, ") - observer input$edit_summary"))
       
-      req(paste0(id, "_management") %in% user_accesses)
+      req(paste0(id, "_management") %in% user_accesses | (id == "subsets" & "projects_subsets_management" %in% user_accesses))
       
       # Reload markdown
       element_long <- r[[long_var]] %>% dplyr::filter(id == input$selected_element)
@@ -1315,7 +1325,7 @@ mod_widgets_server <- function(id, r, d, m, language, i18n, all_divs, debug, use
     observeEvent(input$confirm_element_deletion, {
       if (debug) cat(paste0("\n", now(), " - mod_widgets - (", id, ") - observer input$confirm_element_deletion"))
       
-      req(paste0(id, "_management") %in% user_accesses | id == "subsets")
+      req(paste0(id, "_management") %in% user_accesses | (id == "subsets" & "projects_subsets_management" %in% user_accesses))
       
       element_id <- input$selected_element
       

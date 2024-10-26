@@ -324,6 +324,7 @@ projects_import_user_access_description,Importer un projet
 projects_management_user_access_description,"Gérer les projets (ajouter, éditer et supprimer)"
 projects_see_all_data_user_access_description,Accès à tous les projets
 projects_share_user_access_description,Partager les projets (zip and git)
+projects_subsets_management_user_access_description,"Gérer les subsets (ajouter, éditer et supprimer)"
 projects_widget_text,"Les projets permettent de travailler de façon collaborative sur des données de santé au format OMOP, à l'aide d'une interface graphique modulable."
 projects_widgets_settings_user_access_description,Sauvegarder les paramètres des widgets (code et paramètres de la figure)
 provide_valid_api_key,Clef API valide requise

@@ -736,8 +736,13 @@ mod_page_sidenav_ui <- function(id, language, i18n){
         id = ns("reduced_sidenav"),
         div(
           id = ns("all_elements_reduced_sidenav"),
-          create_hover_card(ui = shiny.fluent::IconButton.shinyInput(ns("create_element"), iconProps = list(iconName = "Add")), text = i18n$t("create_subset")),
-          create_hover_card(ui = shiny.fluent::IconButton.shinyInput(ns("reload_elements_var"), iconProps = list(iconName = "SyncOccurence")), text = i18n$t("reload_list")),
+          shinyjs::hidden(
+            div(
+              id = ns("subset_buttons"),
+              create_hover_card(ui = shiny.fluent::IconButton.shinyInput(ns("create_element"), iconProps = list(iconName = "Add")), text = i18n$t("create_subset")),
+              create_hover_card(ui = shiny.fluent::IconButton.shinyInput(ns("reload_elements_var"), iconProps = list(iconName = "SyncOccurence")), text = i18n$t("reload_list"))
+            )
+          ),
           class = "reduced_sidenav_buttons"
         ),
         shinyjs::hidden(
