@@ -303,7 +303,6 @@ patients,Patients
 person,Patient
 person_id,Person ID
 plugin_deleted,Plugin deleted
-plugin_doesnt_exist_in_git_repo,This plugin doest not exist in this git repo
 plugin_for,Plugin for
 plugins,Plugins
 plugins_edit_code_user_access_description,Edit and test plugin's code
@@ -463,3 +462,17 @@ all_patients,All patients
 start_date,Start date
 end_date,End date
 add_persons_subset_success,Patients successfully added to subset
+add_concept_input,Action
+subset_added,New subset added
+tab_deleted,Tab removed
+widget_deleted,Widget removed
+plugin_no_selected_project,Load a project to get the plugin code working
+plugin_doesnt_exist_in_git_repo,This plugin does not exist in this git repository
+dataset_doesnt_exist_in_git_repo,This dataset does not exist in this git repository
+data_cleaning_doesnt_exist_in_git_repo,This data cleaning script does not exist in this git repository
+project_doesnt_exist_in_git_repo,This project does not exist in this git repository
+plugin_doesnt_exist_locally,This plugin does not exist in local LinkR instance
+dataset_doesnt_exist_locally,This dataset does not exist in local LinkR instance
+data_cleaning_doesnt_exist_locally,This data cleaning script does not exist in local LinkR instance
+project_doesnt_exist_locally,This project does not exist in local LinkR instance
+study_doesnt_exist_locally,This project does not exist in local LinkR instance
