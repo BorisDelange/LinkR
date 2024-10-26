@@ -33,9 +33,10 @@ linkr <- function(
 ) {
   
   # Loading options
-  # - loading_options$page: to load a specific page
-  # - loading_options$project_id: to load a project
-  # - loading_options$load_data_page: to load a data page ("patient_lvl" or "aggregated")
+  # - loading_options$page: load a specific page
+  # - loading_options$project_id: load a project
+  # - loading_options$load_data_page: load a data page ("patient_lvl" or "aggregated")
+  # - loading_options$subset_id: load a subset_id the first time a project is loaded
   
   # Check version of shiny.fluent (has to be inferior to 0.4.0)
   if (packageVersion("shiny.fluent") >= "0.4.0") stop("Invalid shiny.fluent version: version 0.3.0 is required. Install it with remotes::install_github('Appsilon/shiny.fluent', ref = 'dd1c956').")
