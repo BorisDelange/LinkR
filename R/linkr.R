@@ -12,6 +12,7 @@
 #' @param debug Debug mode : steps and errors will by displayed in the console (logical)
 #' @param log_file Create a log file to see app log directly in the app (logical)
 #' @param port Port used by shiny app (integer)
+#' @param loading_options List specifying the initial page, project, and subset to load at startup (a list with `page`, `project`, and `subset` keys)
 #' @examples 
 #' \dontrun{
 #' linkr(language = "en", debug = FALSE, local = FALSE)
@@ -27,8 +28,14 @@ linkr <- function(
   local = FALSE,
   debug = FALSE,
   log_file = FALSE,
-  port = 3838
+  port = 3838,
+  loading_options = list()
 ) {
+  
+  # Loading options
+  # - loading_options$page: to load a specific page
+  # - loading_options$project_id: to load a project
+  # - loading_options$load_data_page: to load a data page ("patient_lvl" or "aggregated")
   
   # Check version of shiny.fluent (has to be inferior to 0.4.0)
   if (packageVersion("shiny.fluent") >= "0.4.0") stop("Invalid shiny.fluent version: version 0.3.0 is required. Install it with remotes::install_github('Appsilon/shiny.fluent', ref = 'dd1c956').")
@@ -262,7 +269,7 @@ linkr <- function(
   if (debug) cat(paste0("\n", now(), " - linkr - load UI & server"))
   shinyApp(
     ui = app_ui(pages, language, languages, i18n, users_accesses_toggles_options, db_col_types, dropdowns, debug),
-    server = app_server(pages, language, languages, i18n, app_folder, username, debug, log_file, local, users_accesses_toggles_options, db_col_types, dropdowns),
+    server = app_server(pages, language, languages, i18n, app_folder, username, debug, log_file, local, users_accesses_toggles_options, db_col_types, dropdowns, loading_options),
     options = options
   )
 }

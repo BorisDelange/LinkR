@@ -526,9 +526,25 @@ mod_data_server <- function(id, r, d, m, language, i18n, debug, user_accesses){
           )
         
         if (nrow(m$subsets) > 0){
+          
+          # Load a specific subset_id if noticed in loading_options
+          if (length(r$loading_options$subset_id) > 0){
+            
+            subset_id <- r$loading_options$subset_id
+            
+            if (subset_id %in% m$subsets$id) selected <- subset_id
+            else {
+              selected <- FALSE
+              cat(paste0("\n", now(), " - mod_data - ", subset_id, " is not a valid subset ID"))
+            }
+            
+            r$loading_options$subset_id <- NULL
+          }
+          else selected <- FALSE
+          
           choices <- setNames(m$subsets$id, m$subsets$name)
           updateSelectizeInput(
-            session, "subset", choices = choices, server = TRUE, selected = FALSE,
+            session, "subset", choices = choices, server = TRUE, selected = selected,
             options = list(
               placeholder = "",
               onInitialize = I("function() { this.setValue(''); }")

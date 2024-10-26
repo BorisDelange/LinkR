@@ -428,6 +428,33 @@ mod_projects_server <- function(id, r, d, m, language, i18n, debug, user_accesse
     # Load a project ----
     # --- --- --- --- ---
     
+    # Load a specific project if noticed in loading_options
+    
+    observeEvent(r$projects_wide, {
+      if (debug) cat(paste0("\n", now(), " - mod_projects - observer r$projects_wide"))
+      
+      if (length(r$loading_options$project_id) > 0){
+        
+        project_id <- r$loading_options$project_id
+        
+        if (project_id %in% r$projects_wide$id){
+          shinyjs::runjs(paste0("Shiny.setInputValue('", id, "-selected_element', ", project_id, ");"))
+          shinyjs::runjs(paste0("Shiny.setInputValue('", id, "-selected_element_trigger', Math.random());"))
+          
+          if (length(r$loading_options$load_data_page) > 0){
+            
+            data_page <- r$loading_options$load_data_page
+            
+            if (data_page %in% c("patient_lvl", "aggregated")) shinyjs::delay(100, shiny.router::change_page(paste0("data?type=", data_page)))
+            else cat(paste0("\n", now(), " - server - ", data_page, " is not a valid data_page"))
+          }
+        }
+        else cat(paste0("\n", now(), " - mod_projects - ", project_id, " is not a valid project ID"))
+        
+        r$loading_options$project_id <- NULL
+      }
+    })
+    
     # We can load a project without loading data, and load data after
     observeEvent(shiny.router::get_page(), {
       if (debug) cat(paste0("\n", now(), " - mod_projects - observer shiny.router::get_page()"))

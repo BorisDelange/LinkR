@@ -781,6 +781,7 @@ button.ms-UpButton, button.ms-DownButton {
 
 .ace_editor {
   margin: 0;
+  overflow: auto !important;
 }
 
 .element_ace_editor {
