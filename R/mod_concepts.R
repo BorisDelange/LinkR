@@ -18,26 +18,17 @@ mod_concepts_ui <- function(id, language, languages, i18n, dropdowns){
             style = "display: flex; gap: 5px;"
           ),
           DT::DTOutput(ns("primary_concepts_dt")),
-          class = "widget", style = "height: 50%; overflow: auto; padding: 10px 15px;"
-        ),
-        div(
-          class = "widget", style = "height: 50%;"
+          class = "widget", style = "height: 100%; overflow: auto; padding: 10px 15px;"
         ),
         class = "concepts_left"
       ),
       div(
         div(
-          div(
-            uiOutput(ns("primary_concept_info")),
-            style = "width: 50%;"
-          ),
-          div(
-            plotOutput(ns("primary_concept_plot")),
-            style = "width: 50%;"
-          ),
+          uiOutput(ns("primary_concept_info")),
           class = "widget", style = "height: 50%; display: flex; overflow: auto; padding: 15px 10px 5px 10px;"
         ),
         div(
+          plotOutput(ns("primary_concept_plot")),
           class = "widget", style = "height: 50%;"
         ),
         class = "concepts_right"
