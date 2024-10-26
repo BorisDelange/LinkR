@@ -25,7 +25,6 @@ mod_projects_ui <- function(id, language, languages, i18n){
           "Shiny.setInputValue('", id, "-dataset_details_trigger', Math.random());"
         ),
         class = "dataset_details_widget",
-        style = "width: 30%; height: 50%; max-height: 200px;"
       ),
       div(
         tags$span(uiOutput(ns(paste0(tab, "_num_patients"))), style = "font-size: 4vh; color: #2874A6"),
@@ -36,7 +35,6 @@ mod_projects_ui <- function(id, language, languages, i18n){
           "Shiny.setInputValue('", id, "-dataset_details_trigger', Math.random());"
         ),
         class = "dataset_details_widget",
-        style = "width: 30%; height: 50%; max-height: 200px;"
       ),
       div(
         tags$span(uiOutput(ns(paste0(tab, "_num_stays"))), style = "font-size: 4vh; color: #2874A6"),
@@ -47,7 +45,6 @@ mod_projects_ui <- function(id, language, languages, i18n){
           "Shiny.setInputValue('", id, "-dataset_details_trigger', Math.random());"
         ),
         class = "dataset_details_widget",
-        style = "width: 30%; height: 50%; max-height: 200px;"
       ),
       style = "display: flex; gap: 10px; align-items: center; height: calc(100% - 45px);"
     )

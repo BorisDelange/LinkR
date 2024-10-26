@@ -490,6 +490,9 @@ a.no-hover-effect:hover {
   text-align: center;
   justify-content: center;
   overflow: auto;
+  width: 30%;
+  height: 50%;
+  max-height: 140px;
 }
 
 .dataset_details_plot, .dataset_details_table {
