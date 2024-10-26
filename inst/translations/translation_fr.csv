@@ -477,3 +477,4 @@ dataset_doesnt_exist_locally,Ce set de données n'existe pas sur votre instance 
 data_cleaning_doesnt_exist_locally,Ce script de data cleaning n'existe pas sur votre instance de LinkR
 project_doesnt_exist_locally,Ce projet n'existe pas sur votre instance de LinkR
 study_doesnt_exist_locally,Ce projet n'existe pas sur votre instance de LinkR
+subset_deleted,Subset supprimé
