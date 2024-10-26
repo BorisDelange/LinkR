@@ -209,6 +209,14 @@ a.no-hover-effect:hover {
   font-size: 11px;
 }
 
+.subset_date_pickers .ms-DatePicker-event--without-label {
+  display: none;
+}
+
+#data-subset_date_filters_button .ms-Button {
+  width: 100%;
+}
+
 /* --------------- */
 /* MAIN            */
 /* --------------- */
@@ -1428,7 +1436,7 @@ td[data-type="factor"] input {
 /* DATA PAGE       */
 /* --------------- */
 
-.person_info {
+.person_info, .subset_slider_input, .subset_info {
   border-top: solid 1px #ccc;
   margin-top: 10px;
   padding-top: 10px;

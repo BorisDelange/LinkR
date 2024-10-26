@@ -1,5 +1,5 @@
 #' @noRd
-mod_page_sidenav_ui <- function(id, i18n){
+mod_page_sidenav_ui <- function(id, language, i18n){
   ns <- NS(id)
   result <- ""
   
@@ -304,19 +304,59 @@ mod_page_sidenav_ui <- function(id, i18n){
             )
           )
         ), br(),
+        selectizeInput(ns("subset"), i18n$t("subset"), choices = NULL, multiple = FALSE, selected = FALSE),
         div(
-          selectizeInput(ns("subset"), i18n$t("subset"), choices = NULL, multiple = FALSE, selected = FALSE), 
-          style = "width: 200px;"
+          id = ns("subset_date_div"),
+          class = "subset_slider_input",
+          tags$strong(i18n$t("filter_subset_data")),
+          sliderInput(
+            ns("subset_date_slider"),
+            label = NULL,
+            ticks = FALSE,
+            min = as.Date("1970-01-01"),
+            max = Sys.Date(),
+            value = c(as.Date("1970-01-01"), Sys.Date()),
+            timeFormat = ifelse(language == "fr", "%d-%m-%Y", "%Y-%m-%d")
+          ),
+          div(
+            style = "margin-top: 15px; display: flex; gap: 5px;",
+            class = "subset_date_pickers",
+            shiny.fluent::DatePicker.shinyInput(
+              ns("subset_start_date"),
+              value = as.Date("1970-01-01"),
+              allowTextInput = TRUE,
+              minDate = htmlwidgets::JS(sprintf("new Date('%s')", "1970-01-01")),
+              maxDate = htmlwidgets::JS(sprintf("new Date('%s')", as.character(Sys.Date()))),
+              onSelectDate = htmlwidgets::JS("(date) => Shiny.setInputValue('data-subset_start_date', new Date(date.getTime() - (date.getTimezoneOffset() * 60000)).toISOString().split('T')[0])"),
+              formatDate = htmlwidgets::JS(paste0("(date) => date ? new Intl.DateTimeFormat('", language, "-", toupper(language), "').format(date) : ''"))
+            ),
+            span(tolower(i18n$t("to")), style = "margin: auto;"),
+            shiny.fluent::DatePicker.shinyInput(
+              ns("subset_end_date"),
+              value = Sys.Date(),
+              allowTextInput = TRUE,
+              minDate = htmlwidgets::JS(sprintf("new Date('%s')", "1970-01-01")),
+              maxDate = htmlwidgets::JS(sprintf("new Date('%s')", as.character(Sys.Date()))),
+              onSelectDate = htmlwidgets::JS("(date) => Shiny.setInputValue('data-subset_end_date', new Date(date.getTime() - (date.getTimezoneOffset() * 60000)).toISOString().split('T')[0])"),
+              formatDate = htmlwidgets::JS(paste0("(date) => date ? new Intl.DateTimeFormat('", language, "-", toupper(language), "').format(date) : ''"))
+            )
+          ),
+          div(
+            id = ns("subset_date_filters_button"),
+            style = "margin-top: 15px;",
+            shiny.fluent::PrimaryButton.shinyInput(ns("apply_subset_date_filters"), i18n$t("filter_data"), iconProps = list(iconName = "Play"))
+          )
         ),
+        div(id = ns("subset_info_div"), uiOutput(ns("subset_info")), class = "subset_info"),
         div(
           id = ns("person_dropdown_div"),
           selectizeInput(ns("person"), i18n$t("person"), choices = NULL, multiple = FALSE), 
-          style = "width: 200px; margin-top: 10px;"
+          style = "margin-top: 10px;"
         ),
         div(
           id = ns("visit_detail_dropdown_div"),
           selectizeInput(ns("visit_detail"), i18n$t("visit_detail"), choices = NULL, multiple = FALSE),
-          style = "width: 200px;  margin-top: 10px;"
+          style = "margin-top: 10px;"
         ),
         div(id = ns("person_info_div"), uiOutput(ns("person_info")), class = "person_info")
       ),

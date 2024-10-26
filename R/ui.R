@@ -41,7 +41,7 @@ app_ui <- function(pages, language, languages, i18n, users_accesses_toggles_opti
           class = "page_container",
           mod_page_header_ui(id = page, i18n = i18n),
           div(
-            mod_page_sidenav_ui(id = page, i18n = i18n),
+            mod_page_sidenav_ui(id = page, language = language, i18n = i18n),
             do.call(paste0("mod_", page, "_ui"), args),
             class = "main_container"
           ),

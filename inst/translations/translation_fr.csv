@@ -96,6 +96,7 @@ datasets_see_all_data_user_access_description,Accès à tous les sets de donnée
 datasets_share_user_access_description,Partager les sets de données (zip and git)
 datasets_widget_text,"Gérez ici vos sets de données, qui seront importés au sein de projets."
 datatable_output,DataTable
+date,Date
 day,Jour
 days,Jours
 delete,Supprimer
@@ -191,6 +192,8 @@ export_plugin,Exporter un plugin
 export_project,Exporter un projet
 field_cant_be_empty,Ce champ ne doit pas être vide
 figure,Figure
+filter_data,Filtrer les données
+filter_subset_data,Filter les données du subset
 firstname,Prénom
 firstname_and_lastname_already_used,Cette identité est déjà utilisée
 french,Français
@@ -455,3 +458,6 @@ std,Ecart-type
 median,Médiane
 mean,Moyenne
 all_patients,Tous les patients
+start_date,Date de début
+end_date,Date de fin
+add_persons_subset_success,Patients ajoutés au subset avec succès
