@@ -495,6 +495,15 @@ a.no-hover-effect:hover {
   max-height: 140px;
 }
 
+.dataset_details_widget_num {
+  font-size: 3.5vh;
+  color: #2874A6
+}
+
+.dataset_details_widget_text {
+  font-size: 1.8vh;
+}
+
 .dataset_details_plot, .dataset_details_table {
   display: flex;
   justify-content: center;

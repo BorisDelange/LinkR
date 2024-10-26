@@ -17,8 +17,8 @@ mod_projects_ui <- function(id, language, languages, i18n){
     
     div(
       div(
-        tags$span(uiOutput(ns(paste0(tab, "_num_care_sites"))), style = "font-size: 4vh; color: #2874A6"),
-        tags$span(i18n$t("care_sites"), style = "font-size: 2vh;"),
+        tags$span(uiOutput(ns(paste0(tab, "_num_care_sites"))), class = "dataset_details_widget_num"),
+        tags$span(i18n$t("care_sites"), class = "dataset_details_widget_text"),
         onclick = paste0(
           base_onclick,
           "Shiny.setInputValue('", id, "-dataset_details', 'care_sites');",
@@ -27,8 +27,8 @@ mod_projects_ui <- function(id, language, languages, i18n){
         class = "dataset_details_widget",
       ),
       div(
-        tags$span(uiOutput(ns(paste0(tab, "_num_patients"))), style = "font-size: 4vh; color: #2874A6"),
-        tags$span(i18n$t("patients"), style = "font-size: 2vh;"),
+        tags$span(uiOutput(ns(paste0(tab, "_num_patients"))), class = "dataset_details_widget_num"),
+        tags$span(i18n$t("patients"), class = "dataset_details_widget_text"),
         onclick = paste0(
           base_onclick,
           "Shiny.setInputValue('", id, "-dataset_details', 'patients');",
@@ -37,8 +37,8 @@ mod_projects_ui <- function(id, language, languages, i18n){
         class = "dataset_details_widget",
       ),
       div(
-        tags$span(uiOutput(ns(paste0(tab, "_num_stays"))), style = "font-size: 4vh; color: #2874A6"),
-        tags$span(i18n$t("stays"), style = "font-size: 2vh;"),
+        tags$span(uiOutput(ns(paste0(tab, "_num_stays"))), class = "dataset_details_widget_num"),
+        tags$span(i18n$t("stays"), class = "dataset_details_widget_text"),
         onclick = paste0(
           base_onclick,
           "Shiny.setInputValue('", id, "-dataset_details', 'stays');",
