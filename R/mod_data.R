@@ -309,8 +309,8 @@ mod_data_server <- function(id, r, d, m, language, i18n, debug, user_accesses){
     # --- --- --- --- --- --- --
     
     visit_detail_tables <- c("condition_occurrence", "drug_exposure", "procedure_occurrence", "device_exposure", "measurement", "observation", "note", "note_nlp", "payer_plan_period", "cost")
-    person_tables <- c(visit_detail_tables, "specimen", "death", "drug_era", "dose_era", "condition_era")
-    subset_tables <- c(person_tables, "person", "observation_period", "visit_occurrence", "visit_detail")
+    person_tables <- c(visit_detail_tables, "specimen", "death", "drug_era", "dose_era", "condition_era", "observation_period", "visit_occurrence", "visit_detail")
+    subset_tables <- c(person_tables, "person")
     main_tables <- c(subset_tables, "location", "care_site", "provider")
     
     observeEvent(r$load_project_trigger, {
@@ -726,9 +726,6 @@ mod_data_server <- function(id, r, d, m, language, i18n, debug, user_accesses){
         if (debug) cat(paste0("\n", now(), " - mod_data - observer input$apply_subset_date_filters"))
         
         req(!is.na(m$selected_subset))
-        
-        # visit_detail_tables <- c("note_nlp",)
-        # person_tables <- c(visit_detail_tables, "specimen", "death", "drug_era", "dose_era", "condition_era")
         
         start_date <- subset_dates()[1]
         end_date <- subset_dates()[2]

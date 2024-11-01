@@ -266,12 +266,49 @@ linkr <- function(
     12, "count_concepts_rows"
   )
   
+  # Ace editor auto completion
+  
+  auto_complete_list <- list(
+    dplyr = getNamespaceExports("dplyr"),
+    DBI = getNamespaceExports("DBI"),
+    ggplot2 = getNamespaceExports("ggplot2"),
+    glue = getNamespaceExports("glue"),
+    plotly = getNamespaceExports("plotly"),
+    readr = getNamespaceExports("readr"),
+    tidyr = getNamespaceExports("tidyr"),
+    vroom = getNamespaceExports("vroom"),
+    `OMOP data` = paste0("d$", c(
+      "person", "visit_occurrence", "visit_detail", "death",
+      "measurement", "observation", "procedure_occurrence", "condition_occurrence", "drug_exposure", "device_exposure",
+      "note", "note_nlp", "specimen", "location", "care_site", "provider", "drug_era", "dose_era",
+      "condition_era", "payer_plan_period", "cost", "observation_period",
+      "data_subset",
+      paste0("data_subset$", c(
+        "person", "visit_occurrence", "visit_detail", "death",
+        "measurement", "observation", "procedure_occurrence", "condition_occurrence", "drug_exposure", "device_exposure",
+        "note", "note_nlp", "specimen", "drug_era", "dose_era",
+        "condition_era", "payer_plan_period", "cost", "observation_period"
+      )),
+      "data_person",
+      paste0("data_person$", c(
+        "death", "measurement", "observation", "procedure_occurrence", "condition_occurrence", "drug_exposure", "device_exposure",
+        "note", "note_nlp", "specimen", "drug_era", "dose_era",
+        "condition_era", "payer_plan_period", "cost"
+      )),
+      "data_visit_detail",
+      paste0("data_visit_detail$", c(
+        "measurement", "observation", "procedure_occurrence", "condition_occurrence", "drug_exposure", "device_exposure",
+        "note", "note_nlp", "payer_plan_period", "cost"
+      ))
+    ))
+  )
+  
   # Load UI & server
   
   if (debug) cat(paste0("\n", now(), " - linkr - load UI & server"))
   shinyApp(
-    ui = app_ui(pages, language, languages, i18n, users_accesses_toggles_options, db_col_types, dropdowns, debug),
-    server = app_server(pages, language, languages, i18n, app_folder, username, debug, log_file, local, users_accesses_toggles_options, db_col_types, dropdowns, loading_options),
+    ui = app_ui(pages, language, languages, i18n, users_accesses_toggles_options, db_col_types, dropdowns, auto_complete_list, debug),
+    server = app_server(pages, language, languages, i18n, app_folder, username, debug, log_file, local, users_accesses_toggles_options, db_col_types, dropdowns, auto_complete_list, loading_options),
     options = options
   )
 }

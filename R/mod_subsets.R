@@ -1,17 +1,10 @@
 #' @noRd
-mod_subsets_ui <- function(id, language, languages, i18n){
+mod_subsets_ui <- function(id, language, languages, i18n, code_hotkeys, auto_complete_list){
   ns <- NS(id)
   
   pivot_item_js <- paste0("
     Shiny.setInputValue('", id, "-current_tab', this.id);
     Shiny.setInputValue('", id, "-current_tab_trigger', Math.random());"
-  )
-  
-  code_hotkeys <- list(
-    save = list(win = "CTRL-S", mac = "CTRL-S|CMD-S"),
-    run_selection = list(win = "CTRL-ENTER", mac = "CTRL-ENTER|CMD-ENTER"),
-    run_all = list(win = "CTRL-SHIFT-ENTER", mac = "CTRL-SHIFT-ENTER|CMD-SHIFT-ENTER"),
-    comment = list(win = "CTRL-SHIFT-C", mac = "CTRL-SHIFT-C|CMD-SHIFT-C")
   )
   
   div(class = "main",
@@ -69,6 +62,7 @@ mod_subsets_ui <- function(id, language, languages, i18n){
               shinyAce::aceEditor(
                 ns("subset_code"), value = "", mode = "r",
                 code_hotkeys = list("r", code_hotkeys),
+                autoComplete = "live", autoCompleters = c("static", "text"), autoCompleteList = auto_complete_list,
                 autoScrollEditorIntoView = TRUE, height = "100%", debounce = 100, fontSize = 11, showPrintMargin = FALSE
               ),
               class = "resizable-panel left-panel",

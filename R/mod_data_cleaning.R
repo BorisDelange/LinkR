@@ -1,5 +1,5 @@
 #' @noRd 
-mod_data_cleaning_ui <- function(id, language, languages, i18n, code_hotkeys){
+mod_data_cleaning_ui <- function(id, language, languages, i18n, code_hotkeys, auto_complete_list){
   ns <- NS(id)
   
   pivot_item_js <- paste0("
@@ -173,6 +173,7 @@ mod_data_cleaning_ui <- function(id, language, languages, i18n, code_hotkeys){
                   shinyAce::aceEditor(
                     ns("data_cleaning_code"), value = "", mode = "r",
                     code_hotkeys = list("r", code_hotkeys),
+                    autoComplete = "live", autoCompleters = c("static", "text"), autoCompleteList = auto_complete_list,
                     autoScrollEditorIntoView = TRUE, height = "100%", debounce = 100, fontSize = 11, showPrintMargin = FALSE
                   ),
                   class = "resizable-panel left-panel",

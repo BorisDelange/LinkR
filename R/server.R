@@ -1,7 +1,7 @@
 #' @noRd
 app_server <- function(
     pages, language, languages, i18n, app_folder, username, debug, log_file, local, 
-    users_accesses_toggles_options, db_col_types, dropdowns, loading_options
+    users_accesses_toggles_options, db_col_types, dropdowns, auto_complete_list, loading_options
   ){
   
   function(input, output, session) {

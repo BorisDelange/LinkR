@@ -1,12 +1,6 @@
 #' @noRd 
-mod_console_ui <- function(id, language, languages, i18n, auto_complete_list){
+mod_console_ui <- function(id, language, languages, i18n, code_hotkeys, auto_complete_list){
   ns <- NS(id)
-  
-  code_hotkeys <- list(
-    run_selection = list(win = "CTRL-ENTER", mac = "CTRL-ENTER|CMD-ENTER"),
-    run_all = list(win = "CTRL-SHIFT-ENTER", mac = "CTRL-SHIFT-ENTER|CMD-SHIFT-ENTER"),
-    comment = list(win = "CTRL-SHIFT-C", mac = "CTRL-SHIFT-C|CMD-SHIFT-C")
-  )
   
   visit_detail_tables <- c("condition_occurrence", "drug_exposure", "procedure_occurrence", "device_exposure", "measurement", "observation", "note", "note_nlp", "payer_plan_period", "cost")
   person_tables <- c(visit_detail_tables, "specimen", "death", "drug_era", "dose_era", "condition_era")

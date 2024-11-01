@@ -1,6 +1,8 @@
 #' @import shiny
 #' @noRd
-app_ui <- function(pages, language, languages, i18n, users_accesses_toggles_options, db_col_types, dropdowns, debug) {
+app_ui <- function(
+    pages, language, languages, i18n, users_accesses_toggles_options, 
+    db_col_types, dropdowns, auto_complete_list, debug) {
   
   do.call(
     shiny.router::router_ui,
@@ -20,7 +22,7 @@ app_ui <- function(pages, language, languages, i18n, users_accesses_toggles_opti
       
       if (page == "users") args <- list(page, language, languages, i18n, users_accesses_toggles_options)
       else if (page == "app_db") args <- list(page, language, languages, i18n, code_hotkeys, db_col_types)
-      else if (page %in% c("data_cleaning", "datasets")) args <- list(page, language, languages, i18n, code_hotkeys)
+      else if (page %in% c("console", "data_cleaning", "datasets", "subsets")) args <- list(page, language, languages, i18n, code_hotkeys, auto_complete_list)
       else if (page == "vocabularies") args <- list(page, language, languages, i18n, code_hotkeys, dropdowns)
       else if (page == "concepts") args <- list(page, language, languages, i18n, dropdowns)
       
