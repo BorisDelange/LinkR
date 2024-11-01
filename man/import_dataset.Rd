@@ -5,75 +5,39 @@
 \title{Import a dataset}
 \usage{
 import_dataset(
-  r = shiny::reactiveValues(),
-  d = shiny::reactiveValues(),
+  r,
+  d,
   dataset_id = integer(),
-  omop_version = "6.0",
+  omop_version = "5.4",
   data_source = "disk",
   data_folder = character(),
-  con = DBI::dbConnect(duckdb::duckdb(), ":memory:"),
+  con,
   load_tables = character(),
-  read_with = "none",
-  save_as = "none",
-  rewrite = FALSE
+  ...
 )
 }
 \arguments{
-\item{r}{A shiny::reactiveValues object used for communication between modules.}
+\item{r}{A `shiny::reactiveValues` object used for communication between modules.}
 
-\item{d}{A shiny::reactiveValues object used for communication between modules.}
+\item{d}{A `shiny::reactiveValues` object used for communication between modules.}
 
-\item{dataset_id}{The ID of the dataset, used to create a specific dataset folder in the application directories (integer).}
+\item{dataset_id}{The ID of the dataset, used to create a specific dataset folder in the application directories. Must be an integer.}
 
-\item{omop_version}{The OMOP version of the imported data; accepted values are "5.3", "5.4", and "6.0" (character).}
+\item{omop_version}{The OMOP version of the imported data. Accepted values are `"5.3"`, `"5.4"`, and `"6.0"`. Defaults to `"5.4"`.}
 
-\item{data_folder}{The folder containing the data (character).}
+\item{data_source}{The source of the data. Accepted values are `"db"` for a database connection or `"disk"` for disk storage. Defaults to `"disk"`.}
 
-\item{con}{A DBI::dbConnect object representing the database connection.}
+\item{data_folder}{The folder containing the data. Must be a character string.}
 
-\item{read_with}{The library used to read the data. Accepted values are: "none", "vroom", "duckdb", "spark", "arrow" (character).}
+\item{con}{A `DBI::dbConnect` object representing the database connection, required if `data_source` is `"db"`.}
 
-\item{save_as}{Specifies whether the data should be saved in the app folder. Accepted values are: "none", "parquet", "csv" (character).}
+\item{load_tables}{A character vector specifying which OMOP tables to load.}
 
-\item{rewrite}{If save_as is not "none", specifies whether the data files should be overwritten (logical).}
-
-\item{source}{The source of the data: either a database connection ("db") or disk ("disk") (character).}
+\item{...}{Additional arguments to be passed to the `vroom` function (e.g., `delim`).}
 }
 \description{
 Imports a dataset into the application using the OMOP Common Data Model.
 }
 \details{
-This function is used within a dataset code and is invoked each time a user selects a dataset.
-
-For \strong{each OMOP table} you wish to import, you must \strong{create a function} that, when called,
-loads the data from the specified table.
-
-Then, utilize the \strong{import_dataset} function to load data into the application.
-
-Data can be loaded from several sources, including:
-\itemize{
-  \item CSV files
-  \item Excel files
-  \item Parquet files
-  \item Local database connections
-  \item Remote database connections
-}
-
-Select the R library for \strong{reading the file} using the \strong{read_with} argument (options include vroom, duckdb, spark, or arrow).
-If read_with is set to "none", the data is loaded as is.
-
-Choose the \strong{format} for \strong{saving the data} after import using the save_as argument (options are csv or parquet).
-
-When loading data from a database, it's \strong{common to not save the data locally}, 
-in order to enhance application performance through \strong{partial data loading} (lazy data reading).
-
-If you wish to \strong{modify your data after loading}, saving it locally may be beneficial to preserve your changes.
-In such cases, we recommend using the \strong{parquet} storage format and loading the data with \strong{duckdb} for efficient lazy reading.
-
-The data you import must adhere to the \href{https://ohdsi.github.io/CommonDataModel/cdm60.html}{\strong{OMOP common data model}} format.
-For more information, refer to the help pages in the app.
-}
-\examples{
-\dontrun{
-}
+...
 }

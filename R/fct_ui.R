@@ -30,11 +30,7 @@ format_datetime <- function(datetime = character(), language = "en", sec = TRUE,
   datetime
 }
 
-#' Create a hover card
-#' 
-#' @description Displays a card when hovering an UI element
-#' @param ui UI element (character)
-#' @param text Text to display in the card (character)
+#' @noRd
 create_hover_card <- function(ui = character(), text = character()){
   escaped_text <- gsub("'", "\\\\'", text)
   escaped_text <- gsub('"', '\\\\"', escaped_text)
@@ -50,18 +46,7 @@ create_hover_card <- function(ui = character(), text = character()){
   )
 }
 
-#' Make a shiny.fluent card
-#' 
-#' @description Creates a shiny.fluent card. Code available in shiny.fluent github pages (Articles).
-#' @param title Title of the card (character)
-#' @param content Content of the card (character)
-#' @param size Size of a card (integer)
-#' @param style CSS code to custom the card (character)
-#' @return Shiny UI elements / HTML code
-#' @examples 
-#' \dontrun{
-#' make_card(title = "Introduction", content = "This is the text of my introduction card", size = 12)
-#' }
+#' @noRd
 make_card <- function(title = character(), content = character(), size = 12, style = "") {
   additional_style <- "padding:10px 20px 20px 20px;"
   if(length(title) > 0){
@@ -123,6 +108,7 @@ make_card <- function(title = character(), content = character(), size = 12, sty
 #'   editable_cols = editable_cols, sortable_cols = sortable_cols, centered_cols = centered_cols, column_widths = column_widths,
 #'   searchable_cols = searchable_cols, filter = TRUE, factorize_cols = factorize_cols, hidden_cols = hidden_cols)
 #' }
+#' @noRd
 render_datatable <- function(output, ns = character(), i18n = character(), data = tibble::tibble(),
   output_name = character(), col_names = character(), datatable_dom = "<'datatable_length'l><'top't><'bottom'p>", page_length = 10,
   editable_cols = character(), sortable_cols = character(), centered_cols = character(), searchable_cols = character(), filter = FALSE, 
@@ -277,20 +263,7 @@ render_datatable <- function(output, ns = character(), i18n = character(), data 
   output[[output_name]] <- DT::renderDT(data, server = TRUE)
 }
 
-#' Display a message bar
-#' 
-#' @description Displays a shiny.fluent message bar on the top of the page
-#' @details The different possible types are : c("info", "error", "blocked", "severeWarning", "success", "warning")
-#' @param output Shiny output variable
-#' @param message Message that will be displayed, after translation (character)
-#' @param type Type of message bar displayed (reference to Microsoft MessageBarType num) (character)
-#' @param i18n Translator object from shiny.i18n library
-#' @param time Time the message bar will by displayed, in ms (integer)
-#' @param ns Shiny namespace
-#' @examples 
-#' \dontrun{
-#' message_bar(output = output, message = "name_already_used", type = "severeWarning", i18n = i18n, time = 5000, ns = ns)
-#' }
+#' @noRd
 show_message_bar <- function(output, message = character(), type = "severeWarning", i18n = character(), time = 7000, ns = character()){
   type <- switch(type, "info" = 0, "error" = 1, "blocked" = 2, "severeWarning" = 3, "success" = 4, "warning" = 5)
   
