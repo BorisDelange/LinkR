@@ -175,13 +175,17 @@ mod_data_cleaning_ui <- function(id, language, languages, i18n, code_hotkeys){
                     code_hotkeys = list("r", code_hotkeys),
                     autoScrollEditorIntoView = TRUE, height = "100%", debounce = 100, fontSize = 11, showPrintMargin = FALSE
                   ),
-                  class = "element_ace_editor"
+                  class = "resizable-panel left-panel",
+                  style = "width: 50%;"
                 ),
+                div(class = "resizer"),
                 div(
                   verbatimTextOutput(ns("code_result")),
-                  class = "element_code_result"
+                  class = "resizable-panel right-panel",
+                  style = "width: 50%; padding: 0 10px; font-size: 12px; overflow-y: auto;"
                 ),
-                style = "height: 100%; display: flex;"
+                class = "resizable-container",
+                style = "height: calc(100% - 10px); display: flex; margin-top: 10px;"
               )
             ),
             style = "height: 100%;"

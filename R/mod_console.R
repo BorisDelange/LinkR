@@ -1,5 +1,5 @@
 #' @noRd 
-mod_console_ui <- function(id, language, languages, i18n){
+mod_console_ui <- function(id, language, languages, i18n, auto_complete_list){
   ns <- NS(id)
   
   code_hotkeys <- list(
@@ -12,41 +12,6 @@ mod_console_ui <- function(id, language, languages, i18n){
   person_tables <- c(visit_detail_tables, "specimen", "death", "drug_era", "dose_era", "condition_era")
   subset_tables <- c(person_tables, "person", "observation_period", "visit_occurrence", "visit_detail")
   main_tables <- c(subset_tables, "location", "care_site", "provider")
-  
-  auto_complete_list <- list(
-    dplyr = getNamespaceExports("dplyr"),
-    DBI = getNamespaceExports("DBI"),
-    ggplot2 = getNamespaceExports("ggplot2"),
-    glue = getNamespaceExports("glue"),
-    plotly = getNamespaceExports("plotly"),
-    readr = getNamespaceExports("readr"),
-    tidyr = getNamespaceExports("tidyr"),
-    vroom = getNamespaceExports("vroom"),
-    `OMOP data` = paste0("d$", c(
-      "person", "visit_occurrence", "visit_detail", "death",
-      "measurement", "observation", "procedure_occurrence", "condition_occurrence", "drug_exposure", "device_exposure",
-      "note", "note_nlp", "specimen", "location", "care_site", "provider", "drug_era", "dose_era",
-      "condition_era", "payer_plan_period", "cost", "observation_period",
-      "data_subset",
-      paste0("data_subset$", c(
-        "person", "visit_occurrence", "visit_detail", "death",
-        "measurement", "observation", "procedure_occurrence", "condition_occurrence", "drug_exposure", "device_exposure",
-        "note", "note_nlp", "specimen", "drug_era", "dose_era",
-        "condition_era", "payer_plan_period", "cost", "observation_period"
-      )),
-      "data_person",
-      paste0("data_person$", c(
-        "death", "measurement", "observation", "procedure_occurrence", "condition_occurrence", "drug_exposure", "device_exposure",
-        "note", "note_nlp", "specimen", "drug_era", "dose_era",
-        "condition_era", "payer_plan_period", "cost"
-      )),
-      "data_visit_detail",
-      paste0("data_visit_detail$", c(
-        "measurement", "observation", "procedure_occurrence", "condition_occurrence", "drug_exposure", "device_exposure",
-        "note", "note_nlp", "payer_plan_period", "cost"
-      ))
-    ))
-  )
   
   div(
     div(

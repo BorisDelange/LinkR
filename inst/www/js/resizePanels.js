@@ -19,6 +19,16 @@ document.addEventListener("DOMContentLoaded", function() {
             document.addEventListener('mousemove', resizePanels); // Attach the mousemove event handler
             document.addEventListener('mouseup', stopResizing);   // Attach the mouseup event handler to stop resizing
         });
+        
+        // Attach an event listener for double-click to reset panels to 50%
+        resizer.addEventListener('dblclick', function() {
+            leftPanel.style.flexBasis = '50%'; // Set left panel to 50%
+            rightPanel.style.flexBasis = '50%'; // Set right panel to 50%
+
+            // Correct a bug with ace editor
+            var event = new Event('resize');
+            window.dispatchEvent(event);
+        });
 
         // Function to handle the resizing logic when the mouse is moved
         function resizePanels(e) {
@@ -34,6 +44,10 @@ document.addEventListener("DOMContentLoaded", function() {
             rightPanel.style.flexBasis = (offsetRightPanel - deltaX) + 'px';
 
             lastDownX = e.clientX; // Update lastDownX to the current mouse position for the next calculation
+            
+            // Correct a bug with ace editor
+            var event = new Event('resize');
+            window.dispatchEvent(event);
         }
 
         // Function to stop resizing when the mouse button is released
