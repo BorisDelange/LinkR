@@ -10,7 +10,7 @@
 #' @param con A `DBI::dbConnect` object representing the database connection, required if `data_source` is `"db"`.
 #' @param load_tables A character vector specifying which OMOP tables to load.
 #' @param ... Additional arguments to be passed to the `vroom` function (e.g., `delim`).
-#' @details 
+#' @details ...
 import_dataset <- function(
   r, d, dataset_id = integer(), omop_version = "5.4", data_source = "disk", data_folder = character(), con, load_tables = character(), ...
 ){
@@ -246,23 +246,7 @@ import_dataset <- function(
   return(print(loaded_data, n = 100))
 }
 
-#' Import a vocabulary table
-#' 
-#' @description Import an OMOP vocabulary and save it in app database
-#' @param r A shiny::reactiveValues object, used to communicate between modules
-#' @param m A shiny::reactiveValues object, used to communicate between modules
-#' @param table_name Name of the vocabulary table we import (concept, concept_relationship or other) (character)
-#' @param data A tibble containing the data
-#' @details The function is used in a vocabulary code, it is launched only when you click on "Run code" on the vocabulary page.\cr\cr
-#' See \href{https://ohdsi.github.io/CommonDataModel/cdm60.html}{\strong{OMOP common data model}} for more information.
-#' @examples
-#' \dontrun{
-#' concept <- tibble::tibble(concept_id = 3027018, concept_name = "Heart rate", domain_id = "Measurement",
-#'   concept_class_id = "Clinical Observation", standard_concept = "S", concept_code = "8867-4",
-#'   valid_start_date = "1970-01-01", valid_end_date = "2099-12-31", invalid_reason = NA_character_)
-#'   
-#' import_vocabulary_table(r = r, m = m, table_name = "concept", data = concept)
-#' }
+#' @noRd
 import_vocabulary_table <- function(r = shiny::reactiveValues(), m = shiny::reactiveValues(), table_name = character(), data = tibble::tibble(), add_new_vocabularies = FALSE){
   
   i18n <- r$i18n

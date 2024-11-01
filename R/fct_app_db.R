@@ -167,15 +167,7 @@ get_db <- function(r, m, app_db_folder, db_col_types){
   return(db$local_main)
 }
 
-#' Get last row
-#'
-#' @description Get the last row ID of a table
-#' @param con DBI connection object to the database
-#' @param table Name of the table (character)
-#' @examples
-#' \dontrun{
-#' get_last_row(con = r$db, table = "plugins")
-#' }
+#' @noRd
 get_last_row <- function(con, table){
   glue::glue_sql("SELECT COALESCE(MAX(id), 0) FROM {`table`}", .con = con) -> sql
   DBI::dbGetQuery(con, sql) %>% dplyr::pull() %>% as.integer()
@@ -213,8 +205,7 @@ get_remote_db <- function(r, m, output, i18n, ns){
       result <- "success"
     }
     
-  }, error = function(e) if (nchar(e[1]) > 0) report_bug(r = r, output = output, error_message = "fail_connect_remote_db", 
-    error_name = "get_remote_db", category = "Error", error_report = toString(e), i18n = i18n, ns = ns))
+  }, error = function(e) if (nchar(e[1]) > 0) cat(paste0("\n", now(), " - get_remote_db - error = ", toString(e))))
   
   result
 }

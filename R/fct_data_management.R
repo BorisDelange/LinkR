@@ -86,14 +86,7 @@ remove_patients_from_subset <- function(output, r = shiny::reactiveValues(), m =
   }
   
   tryCatch(subset_id <- as.integer(subset_id), 
-    error = function(e){
-      if (nchar(e[1]) > 0) report_bug(r = r, output = output, error_message = "invalid_subset_id_value", 
-        error_name = paste0("remove_persons_from_subset - invalid_subset_id_value - id = ", subset_id), category = "Error", error_report = toString(e), i18n = i18n, ns = ns)
-      stop(i18n$t("invalid_subset_id_value"))},
-    warning = function(w) if (nchar(w[1]) > 0){
-      report_bug(r = r, output = output, error_message = "invalid_subset_id_value", 
-        error_name = paste0("remove_persons_from_subset - invalid_subset_id_value - id = ", subset_id), category = "Warning", error_report = toString(w), i18n = i18n, ns = ns)
-      stop(i18n$t("invalid_subset_id_value"))}
+    error = function(e) cat(paste0("\n", now(), " - remove_patients_from_subset - invalid_subset_id_value"))
   )
   
   if (is.na(subset_id)){
@@ -122,14 +115,7 @@ remove_patients_from_subset <- function(output, r = shiny::reactiveValues(), m =
   
   # Transform as tibble
   tryCatch(persons <- tibble::as_tibble(persons), 
-    error = function(e){
-      if (nchar(e[1]) > 0) report_bug(r = r, output = output, error_message = "error_transforming_tibble", 
-        error_name = paste0("remove_persons_from_subset - error_transforming_tibble - id = ", subset_id), category = "Error", error_report = toString(e), i18n = i18n, ns = ns)
-      stop(i18n$t("error_transforming_tibble"))},
-    warning = function(w) if (nchar(w[1]) > 0){
-      report_bug(r = r, output = output, error_message = "error_transforming_tibble", 
-        error_name = paste0("remove_persons_from_subset - error_transforming_tibble - id = ", subset_id), category = "Warning", error_report = toString(w), i18n = i18n, ns = ns)
-      stop(i18n$t("error_transforming_tibble"))}
+    error = function(e) cat(paste0("\n", now(), " - remove_patients_from_subset - error_transforming_tibble"))
   )
   
   tryCatch({ 
@@ -138,14 +124,7 @@ remove_patients_from_subset <- function(output, r = shiny::reactiveValues(), m =
     query <- DBI::dbSendStatement(m$db, sql)
     DBI::dbClearResult(query)
   }, 
-    error = function(e){
-      if (nchar(e[1]) > 0) report_bug(r = r, output = output, error_message = "error_removing_persons_from_subset", 
-        error_name = paste0("remove_persons_from_subset - error_removing_persons_from_subset - id = ", subset_id), category = "Error", error_report = toString(e), i18n = i18n, ns = ns)
-      stop(i18n$t("error_removing_persons_from_subset"))},
-    warning = function(w) if (nchar(w[1]) > 0){
-      report_bug(r = r, output = output, error_message = "error_removing_persons_from_subset", 
-        error_name = paste0("remove_persons_from_subset - error_removing_persons_from_subset - id = ", subset_id), category = "Warning", error_report = toString(w), i18n = i18n, ns = ns)
-      stop(i18n$t("error_removing_persons_from_subset"))}
+    error = function(e) cat(paste0("\n", now(), " - remove_patients_from_subset - error_removing_persons_from_subset"))
   )
   
   show_message_bar(output, "remove_persons_subset_success", "success", i18n = i18n, ns = ns)
