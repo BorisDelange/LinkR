@@ -1,8 +1,29 @@
+/* -------------- */
+/* FONTS          */
+/* -------------- */
+
+@font-face {
+  font-family: 'Segoe UI';
+  src: url('../fonts/segoeui-regular.woff2') format('woff2'),
+       url('../fonts/segoeui-regular.woff') format('woff');
+  font-weight: normal;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: 'Segoe UI';
+  src: url('../fonts/segoeui-semibold.woff2') format('woff2'),
+       url('/fonts/segoeui-semibold.woff') format('woff');
+  font-weight: bold;
+  font-style: normal;
+}
+
 /* --------------- */
 /* GLOBAL          */
 /* --------------- */
 
-body, html {
+html, body {
+  font-family: 'Segoe UI', sans-serif;
   font-size: 12px;
   background-color: white;
   margin: 0;
@@ -42,6 +63,10 @@ a.no-hover-effect {
 
 a.no-hover-effect:hover {
   color: black;
+}
+
+.ui-resizable-e {
+  cursor: col-resize !important;
 }
 
 /* --------------- */
@@ -184,6 +209,14 @@ a.no-hover-effect:hover {
   font-size: 11px;
 }
 
+.subset_date_pickers .ms-DatePicker-event--without-label {
+  display: none;
+}
+
+#data-subset_date_filters_button .ms-Button {
+  width: 100%;
+}
+
 /* --------------- */
 /* MAIN            */
 /* --------------- */
@@ -191,7 +224,7 @@ a.no-hover-effect:hover {
 .main {
   flex-grow: 1;
   overflow-y: auto;
-  margin: 0px 10px 0px 18px;
+  padding: 0px 10px 0px 18px;
 }
 
 /* --------------- */
@@ -329,7 +362,7 @@ a.no-hover-effect:hover {
 
 .create_plugin_modal_content {
   width: 500px;
-  height: 130px;
+  padding-bottom: 50px;
 }
 
 .create_project_modal_content, .create_dataset_modal_content, .create_subset_modal_content, .create_vocabulary_modal_content,
@@ -437,7 +470,8 @@ a.no-hover-effect:hover {
   margin-bottom: 0px;
 }
 
-.project_widget, .plugin_widget, .dataset_widget, .subset_widget, .vocabulary_widget, .data_cleaning_widget {
+.project_widget, .plugin_widget, .dataset_widget, .subset_widget, .vocabulary_widget, .data_cleaning_widget,
+.dataset_details_widget, .data_page_widget {
   width: 300px;
   height: 150px;
   box-shadow: 0 2px 4px 0 rgba(0, 0, 0, 0.2), 0 3px 10px 0 rgba(0, 0, 0, 0.19);
@@ -449,6 +483,94 @@ a.no-hover-effect:hover {
   justify-content: space-between;
   position: relative;
   cursor: pointer;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.dataset_details_widget {
+  text-align: center;
+  justify-content: center;
+  overflow: auto;
+  width: 30%;
+  height: 50%;
+  max-height: 140px;
+}
+
+.dataset_details_widget_num {
+  font-size: 3.5vh;
+  color: #2874A6
+}
+
+.dataset_details_widget_text {
+  font-size: 1.8vh;
+}
+
+.dataset_details_plot, .dataset_details_table {
+  display: flex;
+  justify-content: center;
+}
+
+.dataset_details_table table {
+  width: 100%;
+  border-collapse: collapse;
+  font-family: Arial, sans-serif;
+  font-size: 12px;
+}
+
+.dataset_details_table th {
+  background-color: #2c3e50;
+  color: white;
+  font-weight: 600;
+  padding: 12px 8px;
+  text-align: center !important;
+  border-bottom: 2px solid #34495e;
+}
+
+.dataset_details_table td {
+  padding: 10px 8px;
+  color: #2c3e50;
+  border-bottom: 1px solid #ecf0f1;
+}
+
+.dataset_details_table tr:nth-child(even) {
+  background-color: #ecf0f1;
+}
+
+.dataset_details_table tr:hover {
+  background-color: #d5dbdb;
+}
+
+.dataset_details_table td:first-child, 
+.dataset_details_table th:first-child {
+  border-left: none;
+}
+  
+.dataset_details_table td:last-child, 
+.dataset_details_table th:last-child {
+  border-right: none;
+}
+
+.dataset_details_table td.numeric {
+  text-align: right;
+}
+
+.data_page_widget {
+  text-align: center;
+  overflow: hidden;
+  padding: 10px;
+  width: 30%;
+  max-width: 240px;
+  max-height: 130px;
+}
+
+.project_widget:hover, .plugin_widget:hover, .dataset_widget:hover, .subset_widget:hover, .vocabulary_widget:hover, .data_cleaning_widget:hover,
+.dataset_details_widget:hover, .data_page_widget:hover {
+  transform: scale(1.02);
+  box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.3), 0 6px 20px 0 rgba(0, 0, 0, 0.25);
+}
+
+.selected_widget {
+  border: 2px solid rgba(0, 128, 0, 0.5);
+  box-shadow: 0 2px 4px 0 rgba(0, 128, 0, 0.3), 0 3px 10px 0 rgba(0, 128, 0, 0.25);
 }
 
 .selected_concepts_widget {
@@ -485,6 +607,7 @@ a.no-hover-effect:hover {
   margin: 10px;
   padding: 0px 10px 5px 10px;
   box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 3px 6px 0 rgba(0, 0, 0, 0.19);
+  overflow: auto;
 }
 
 .map_widget {
@@ -658,22 +781,9 @@ button.ms-UpButton, button.ms-DownButton {
 
 .ace_editor {
   margin: 0;
+  overflow: auto !important;
 }
 
-.element_ace_editor {
-  width: 50%;
-  height: calc(100% - 25px);
-  margin-top: 10px;
-}
-
-.element_code_result {
-  width: 50%;
-  border: dashed grey 1px;
-  margin: 10px 0 10px 10px;
-  padding: 10px;
-  font-size: 12px;
-  overflow-y: auto;
-}
 /* ------------------- */
 /* DATATABLES          */
 /* ------------------- */
@@ -1124,21 +1234,20 @@ td[data-type="factor"] input {
 /* PROJECTS PAGE          */
 /* ---------------------- */
 
-.projects_summary_container {
+.projects_summary_container, .projects_dataset_container {
   display: flex;
   justify-content: space-between;
   height: calc(100% - 50px);
 }
 
-.projects_summary_left {
+.projects_summary_left, .projects_dataset_left {
   display: flex;
   flex-direction: column;
   width: 50%;
 }
 
-.projects_summary_right {
+.projects_summary_right, .projects_dataset_right {
   width: 50%;
-  calc(100% - 16px)
 }
 
 /* --------------------- */
@@ -1286,6 +1395,13 @@ td[data-type="factor"] input {
   width: 50%;
 }
 
+.projects_summary_data_pages_widgets {
+  display: flex;
+  gap: 50px;
+  align-items: center;
+  justify-content: center;
+}
+
 .projects_summary_right, .projects_share_right {
   width: 50%;
   calc(100% - 16px)
@@ -1319,7 +1435,7 @@ td[data-type="factor"] input {
 /* DATA PAGE       */
 /* --------------- */
 
-.person_info {
+.person_info, .subset_slider_input, .subset_info {
   border-top: solid 1px #ccc;
   margin-top: 10px;
   padding-top: 10px;

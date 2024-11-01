@@ -71,12 +71,15 @@ create_element_files <- function(id, r, element_id, single_id, sql_category, ele
 }
 
 #' @noRd
-create_element_ui <- function(page_id, single_id, element_name, users_ui, widget_buttons, onclick, short_description){
+create_element_ui <- function(ns, page_id, element_id, single_id, element_name, users_ui, widget_buttons, onclick, short_description, is_selected_element){
   
-  div(
-    onclick = paste0(onclick, "Shiny.setInputValue('", page_id, "-selected_element_type', '');"),
+  css_class <- paste0(single_id, "_widget")
+  if (is_selected_element) css_class <- c("selected_widget", paste0(single_id, "_widget"))
+  
+  div_content <- 
     div(
-      class = paste0(single_id, "_widget"),
+      id = ns(paste0(single_id, "_widget_", element_id)),
+      class = css_class,
       div(
         tags$h1(element_name),
         users_ui,
@@ -84,22 +87,29 @@ create_element_ui <- function(page_id, single_id, element_name, users_ui, widget
       ),
       widget_buttons
     )
+  
+  onclick <- paste0(onclick, "Shiny.setInputValue('", page_id, "-selected_element_type', '');")
+  
+  div(
+    onclick = onclick,
+    div_content
   )
 }
 
 #' @noRd
-create_elements_ui <- function(page_id, elements, r, language, i18n){
+create_elements_ui <- function(page_id, elements, selected_element = NA_integer_, r, language, i18n){
   
   if (page_id == "data") id <- "plugins"
   else id <- page_id
   
-  single_id <- switch(id, 
-                      "data_cleaning" = "data_cleaning",
-                      "datasets" = "dataset",
-                      "projects" = "project",
-                      "plugins" = "plugin", 
-                      "subsets" = "subset",
-                      "vocabularies" = "vocabulary"
+  single_id <- switch(
+    id, 
+    "data_cleaning" = "data_cleaning",
+    "datasets" = "dataset",
+    "projects" = "project",
+    "plugins" = "plugin", 
+    "subsets" = "subset",
+    "vocabularies" = "vocabulary"
   )
   
   ns <- NS(id)
@@ -132,8 +142,12 @@ create_elements_ui <- function(page_id, elements, r, language, i18n){
       widget_buttons <- get_plugin_buttons(plugin_type, i18n)
     }
     
+    # Test if this element is the currently selected element, to add a green border
+    if (!is.na(selected_element) & selected_element == i) is_selected_element <- TRUE
+    else is_selected_element <- FALSE
+    
     elements_ui <- tagList(
-      create_element_ui(page_id, single_id, element_name, users_ui, widget_buttons, onclick, short_description),
+      create_element_ui(ns, page_id, i, single_id, element_name, users_ui, widget_buttons, onclick, short_description, is_selected_element),
       elements_ui
     )
   }

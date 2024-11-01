@@ -5,18 +5,17 @@ create_gridstack_instance <- function(id, tab_id){
   shinyjs::delay(200, 
     shinyjs::runjs(paste0("
       if (!window.gridStackInstances['", tab_id, "']) {
-        import('https://esm.sh/gridstack').then((module) => {
-          const GridStack = module.GridStack;
-          window.gridStackInstances['", tab_id, "'] = GridStack.init({
-            cellHeight: 15,
-            scroll: false,
-            column: 12,
-            staticGrid: true,
-            float: false,
-            resizable: { handles: 'se, ne, nw, sw' },
-            margin: 10
-          }, '#", ns(paste0("gridstack_", tab_id)), "');
-        });
+        const grid = GridStack.init({
+          cellHeight: 15,
+          scroll: false,
+          column: 12,
+          staticGrid: true,
+          float: false,
+          resizable: { handles: 'se, ne, nw, sw' },
+          margin: 10
+        }, '#", ns(paste0("gridstack_", tab_id)), "');
+
+        window.gridStackInstances['", tab_id, "'] = grid;
       }
     "))
   )
@@ -353,6 +352,7 @@ load_dataset_concepts <- function(r, d, m){
                   dplyr::summarize(count_persons_rows = as.numeric(dplyr::n_distinct(person_id)), count_concepts_rows = as.numeric(dplyr::n())) %>%
                   dplyr::ungroup() %>%
                   dplyr::rename(concept_id = paste0(main_cols[[table]], "_concept_id")) %>%
+                  dplyr::mutate_at("concept_id", as.integer) %>%
                   dplyr::collect()
               )
             
@@ -364,6 +364,7 @@ load_dataset_concepts <- function(r, d, m){
                   dplyr::summarize(count_persons_rows = as.numeric(dplyr::n_distinct(person_id)), count_concepts_rows = as.numeric(dplyr::n())) %>%
                   dplyr::ungroup() %>%
                   dplyr::rename(concept_id = paste0(main_cols[[table]], "_source_concept_id")) %>%
+                  dplyr::mutate_at("concept_id", as.integer) %>%
                   dplyr::collect()
               )
           }
@@ -383,6 +384,7 @@ load_dataset_concepts <- function(r, d, m){
                     dplyr::summarize(count_persons_rows = as.numeric(dplyr::n_distinct(person_id)), count_concepts_rows = as.numeric(dplyr::n())) %>%
                     dplyr::ungroup() %>%
                     dplyr::rename(concept_id = paste0(col, "_concept_id")) %>%
+                    dplyr::mutate_at("concept_id", as.integer) %>%
                     dplyr::collect()
                 )
             }
@@ -473,41 +475,10 @@ load_dataset_concepts <- function(r, d, m){
     d$concept <- concept
   }
   
-  # # Get user's modifications on items names & concept_display_names
-  # 
-  # sql <- glue::glue_sql(paste0(
-  #   "SELECT id, concept_id, concept_name, concept_display_name ",
-  #   "FROM concept_user ",
-  #   "WHERE user_id = {r$user_id}"), .con = m$db)
-  # dataset_user_concepts <- DBI::dbGetQuery(m$db, sql) %>% tibble::as_tibble()
-  # 
-  # # Merge tibbles
-  # if (nrow(dataset_user_concepts) > 0) d$concept <-
-  #   d$concept %>%
-  #   dplyr::left_join(
-  #     dataset_user_concepts %>% dplyr::select(concept_id_1 = concept_id, new_concept_name_1 = concept_name, new_concept_display_name_1 = concept_display_name),
-  #     by = "concept_id_1"
-  #   ) %>%
-  #   dplyr::mutate(
-  #     concept_name_1 = dplyr::case_when(!is.na(new_concept_name_1) ~ new_concept_name_1, TRUE ~ concept_name_1),
-  #     concept_display_name_1 = dplyr::case_when(!is.na(new_concept_display_name_1) ~ new_concept_display_name_1, TRUE ~ concept_display_name_1)
-  #   ) %>%
-  #   dplyr::left_join(
-  #     dataset_user_concepts %>% dplyr::select(concept_id_2 = concept_id, new_concept_name_2 = concept_name),
-  #     by = "concept_id_2"
-  #   ) %>%
-  #   dplyr::mutate(
-  #     concept_name_2 = dplyr::case_when(!is.na(new_concept_name_2) ~ new_concept_name_2, TRUE ~ concept_name_2)
-  #   ) %>%
-  #   dplyr::select(-new_concept_name_1, -new_concept_display_name_1, -new_concept_name_2)
-  
   r$dataset_vocabularies <-
     r$vocabularies_wide %>%
     dplyr::inner_join(d$concept %>% dplyr::distinct(vocabulary_id), by = "vocabulary_id") %>%
     dplyr::arrange(vocabulary_id)
-  
-  # Join d$person, d$visit_occurrence & d$visit_detail with d$concept
-  # r$merge_concepts_and_d_vars <- now()
   
   # Then load d$dataset_drug_strength
   # r$load_dataset_drug_strength <- now()

@@ -9,12 +9,18 @@ add_to_saved_git_repos,Add to saved git repos
 admin,Admin
 admin_access,Admin access
 age,Age
+age_at_first_hospit,Age at first hospitalization
+age_class,Age class
 aggregated_data,Aggregated data
+aggregated_data_explanation,Analyze data on a group of patients
 aggregated_plugin,Aggregated data plugin
 all_vocabularies,All vocabularies
 api_key,API key
 app_db,App database
+app_db_connection_settings_user_access_description,Edit connection settings
+app_db_db_request_user_access_description,Request app database
 app_db_request,Request database
+app_db_save_restore_user_access_description,Save and restore app database
 app_settings,Application settings
 author_s,Author(s)
 authors,Authors
@@ -23,6 +29,7 @@ cancel,Cancel
 cancel_description_updates,Cancel updates
 cancel_readme_updates,Cancel updates
 cancel_updates,Cancel updates
+care_sites,Care sites
 choose_files,Choose files
 choose_zip_file,Choose a ZIP file
 clinician,Clinician
@@ -35,19 +42,28 @@ commit_message,Commit message
 concept_ancestor_table,Concepts hierarchy
 concept_class_id,Concept class ID
 concept_code,Concept code
+concept_display_name,Concept display name
 concept_id,Concept ID
 concept_name,Concept name
 concept_relationship_table,Concepts mapping
 concept_synonym_table,Concepts synonyms
 concept_table,Concepts
 concepts,Concepts
+concepts_reload_dataset_concepts_user_access_description,Reload the count of concepts in the dataset
 confirm,Confirm
 connection,Connection
 connection_settings,Connection settings
 console,Console
+console_execute_code_user_access_description,Execute code on console
 console_widget_text,"Use the console to quickly execute code in R, Python, or shell scripts."
 content_catalog,Content catalog
+copy_existing_plugin,Copy existing plugin
+count_concepts_rows,Rows
+count_persons_rows,Patients
+create_data_cleaning,Create a data cleaning script
+create_dataset,Create a dataset
 create_git_repo,Add a git repository
+create_plugin,Create a plugin
 create_project,Create a project
 create_subset,Create a subset
 create_user,Create a new user
@@ -55,8 +71,14 @@ create_user_access,Create a new user access
 create_user_status,Create a new user status
 create_vocabulary,Create a vocabulary
 created_on,Created on
+data,Data
 data_cleaning,Data cleaning
+data_cleaning_edit_code_user_access_description,Edit and test data cleaning script's code
+data_cleaning_import_user_access_description,Import a data cleaning script
+data_cleaning_management_user_access_description,"Manage data cleaning scripts (add, edit and delete)"
 data_cleaning_scripts,Data cleaning scripts
+data_cleaning_see_all_data_user_access_description,Access to all data cleaning scripts
+data_cleaning_share_user_access_description,Share data cleaning script (zip and git)
 data_cleaning_widget_text,"Organize your data cleaning scripts, which improve the quality of the data you will use in your projects."
 data_scientist,Data scientist
 data_type,Data type
@@ -67,30 +89,63 @@ dataset_invalid_data_source,Invalid value for 'source'
 dataset_invalid_read_with,"Invalid value for 'read_with' argument. Accepted values are : 'none', 'vroom', 'duckdb', 'spark'."
 dataset_invalid_save_as,"Invalid value for 'save as' argument. Accepted values are: 'none', 'csv' et 'parquet'."
 datasets,Datasets
+datasets_edit_code_user_access_description,Edit and test dataset's code
+datasets_import_user_access_description,Import a dataset
+datasets_management_user_access_description,"Manage datasets (add, edit and delete)"
+datasets_see_all_data_user_access_description,Access to all datasets
+datasets_share_user_access_description,Share datasets (zip and git)
 datasets_widget_text,"Manage your datasets here, which will be imported into projects."
 datatable_output,DataTable
+date,Date
 day,Day
 days,Days
 delete,Delete
+delete_data_cleaning_text,Confirm deletion of this script?
+delete_data_cleaning_title,Delete a data cleaning script
+delete_dataset_text,Confirm deletion of this dataset?
+delete_dataset_title,Delete a dataset
 delete_element_from_remote_git,Delete element from git
 delete_file_text,Confirm deletion of this file?
 delete_file_title,Delete a file
+delete_git_element_data_cleaning_text,Delete this data cleaning script from the git repository?
+delete_git_element_data_cleaning_title,Delete git element
+delete_git_element_dataset_text,Delete this dataset from the git repository?
+delete_git_element_dataset_title,Delete git element
+delete_git_element_plugin_text,Delete this plugin from the git repository?
+delete_git_element_plugin_title,Delete git element
+delete_git_element_project_text,Delete this project from the git repository?
+delete_git_element_project_title,Delete git element
+delete_git_element_subset_text,Delete this subset from the git repository?
+delete_git_element_subset_title,Delete git element
 delete_git_element_text,Delete this element from remote git?
 delete_git_element_title,Delete git element
+delete_git_element_vocabulary_text,Delete this vocabulary from the git repository?
+delete_git_element_vocabulary_title,Delete git element
 delete_git_repo_text,"Delete this git repo? This removes the local link to this git repository, which can always be added again later."
 delete_git_repo_title,Delete git repo
 delete_plugin_text,Confirm deletion of this plugin?
 delete_plugin_title,Delete a plugin
-delete_project_title,Delete a project
 delete_project_text,Confirm deletion of this project?
+delete_project_title,Delete a project
+delete_subset_text,Confirm deletion of this subset?
+delete_subset_title,Delete a subset
 delete_tab_text,Confirm deletion of this tab?
 delete_tab_title,Delete a tab
 delete_user,Delete user
 delete_user_access,Delete user access
+delete_user_access_text,Confirm deletion of this user access?
+delete_user_access_title,Delete a user access
 delete_user_status,Delete user status
+delete_user_status_text,Confirm deletion of this user status?
+delete_user_status_title,Delete a user status
+delete_user_text,Confirm deletion of this user?
+delete_user_title,Delete a user
+delete_vocabulary_text,Confirm deletion of this vocabulary?
+delete_vocabulary_title,Delete a vocabulary
 delete_widget_text,Confirm deletion of this widget?
 delete_widget_title,Delete a widget
 description,Description
+details,Details
 domain_id,Domain ID
 dont_delete,Cancel
 dont_import,Cancel
@@ -123,23 +178,35 @@ error_loading_git_readme,Error loading git repo description
 error_loading_git_repo,Error loading git repo
 error_multiple_identical_values,Some values are duplicated. Remove duplicates before insert vocabulary table.
 error_multiple_primary_keys,Some primary keys are duplicated. Remove duplicates before insert vocabulary table.
+error_run_plugin_ui_code,Error running plugin's UI code
+error_run_plugin_server_code,Error running plugin's server code
 error_transforming_cols,Error transforming columns
 error_transforming_tibble,Error transforming data to tibble
 everybody,Everybody
 explore,Explore
 explore_widget_text,"Explore the work done by the community, use their work, and share yours!"
+export_data_cleaning_script,Export a data cleaning script
+export_dataset,Export a dataset
 export_db,Export database
+export_plugin,Export a plugin
+export_project,Export a project
 field_cant_be_empty,This field cannot be empty
 figure,Figure
+filter_data,Filter data
+filter_subset_data,Filter subset data
 firstname,First name
 firstname_and_lastname_already_used,This identity is already used
 french,French
 from,From
 gender,Gender
+gender_distribution,Gender distribution
 generate_readme,Generate readme content
 git_repo,Git repository
 git_repo_url_address_already_used,There is already a git repository registered with this URL
 git_repos,Git repositories
+git_repos_install_remote_git_element_user_access_description,Install items from a remote git repository
+git_repos_management_user_access_description,"Manage git repos (add, edit and delete)"
+git_repos_remote_git_repo_management_user_access_description,"Modify the content of git repositories (edit readme, delete items)"
 give_access_to,Give access to
 height,Height
 help,Help
@@ -153,6 +220,22 @@ id,ID
 import,Import
 import_concepts_or_vocabularies,Import concepts or vocabularies
 import_concepts_title,Import concepts or vocabularies
+import_data_cleaning_script,Import a data cleaning script
+import_data_cleaning_text,This script already exists. Are you sure you want to delete the existing script?
+import_data_cleaning_title,Import a data cleaning script
+import_dataset,Import a dataset
+import_dataset_text,This dataset already exists. Are you sure you want to delete the existing dataset?
+import_dataset_title,Import a dataset
+import_plugin,Import a plugin
+import_plugin_text,This plugin already exists. Are you sure you want to delete the existing plugin?
+import_plugin_title,Import a plugin
+import_project,Import a project
+import_project_text,This project already exists. Are you sure you want to delete the existing project?
+import_project_title,Import a project
+import_subset_text,This subset already exists. Are you sure you want to delete the existing subset?
+import_subset_title,Import a subset
+import_vocabulary_text,This vocabulary already exists. Are you sure you want to delete the existing vocabulary?
+import_vocabulary_title,Import a vocabulary
 informations,Informations
 install,Install
 invalid_col_names,Invalid column names
@@ -160,6 +243,7 @@ invalid_data_folder,Invalid data_folder argument
 invalid_dataset_id_value,Variable dataset_id must be of integer type
 invalid_omop_version,"Invalid OMOP version, valid versions are 5.3, 5.4 & 6.0.,"
 invalid_patients_value,Invalid patients value
+invalid_reason,Invalid reason
 invalid_subset_id_value,Invalid subset_id value
 invalid_vocabulary_table,Invalid vocabulary table
 italian,Italian
@@ -172,6 +256,7 @@ load_project,Load project
 local,Local
 local_version_up_to_date,Local version up to date
 log,Log
+log_user_log_user_access_description,Show user log
 login,Login
 main_db,Main database
 main_db_name,Main database name
@@ -210,21 +295,38 @@ output,Output
 password,Password
 patient_level_data,Patient-level data
 patient_lvl_data,Patient-level data
+patient_lvl_data_explanation,Explore patient-by-patient data
 patient_lvl_or_aggregated_data,Patient-level or aggregated data
 patient_lvl_or_aggregated_plugin,Patient-level or aggregated data plugin
 patient_lvl_plugin,Patient-level data plugin
+patients,Patients
 person,Patient
 person_id,Person ID
 plugin_deleted,Plugin deleted
 plugin_for,Plugin for
 plugins,Plugins
+plugins_edit_code_user_access_description,Edit and test plugin's code
+plugins_import_user_access_description,Import a plugin
+plugins_management_user_access_description,"Manage plugins (add, edit and delete)"
+plugins_see_all_data_user_access_description,Access to all plugins
+plugins_share_user_access_description,Share plugins (zip and git)
 plugins_widget_text,"Plugins are R or Python scripts that add features to LinkR. They are the building blocks of projects, enabling the visualization and analysis of data."
 port,Port
 programming_language,Language
-project_added,New project added
+project_added,New project created
 project_deleted,Project deleted
 projects,Projects
+projects_console_access_user_access_description,Access the console from a project
+projects_content_management_user_access_description,"Manage projects content (add, edit and delete tabs and widgets)"
+projects_data_cleaning_user_access_description,Set up projet's data cleaning scripts
+projects_dataset_user_access_description,Set up project's dataset
+projects_import_user_access_description,Import a project
+projects_management_user_access_description,"Manage projects (add, edit and delete)"
+projects_see_all_data_user_access_description,Access to all projects
+projects_share_user_access_description,Share projects (zip and git)
+projects_subsets_management_user_access_description,"Manage subsets (add, edit and delete)"
 projects_widget_text,Projects enable collaborative work on healthcare data in OMOP format using a customizable graphical interface.
+projects_widgets_settings_user_access_description,Save widgets settings (code and figure settings)
 provide_valid_api_key,Please provide a valid API key
 provide_valid_name,Please provide a valid name
 provide_valid_value,Please provide a valid value
@@ -281,14 +383,17 @@ spanish,Spanish
 sql_lib,SQL library
 standard_concept,Standard concept
 statistician,Statistician
+stays,Stays
 subset,Subset
 subset_all_patients,All patients
 subsets,Subsets
 success,Success
 success_importing_concepts,Concepts successfully imported
+success_update_remote_git_repo,Remote git successfully updated
 summary,Summary
 synchronize_with_git_repo,Git synchronization
 table,Table
+tables,Tables
 table_name,Table name
 table_output,Table
 tasks,Tasks
@@ -298,8 +403,21 @@ test_connection,Test connection
 to,To
 type_must_be_integer,type must be integer
 unauthorized_access_area,Unauthorized access to this area
+ui_output,UI
 unselect_all_tables,Unselect all tables
 update,Update
+update_git_element_data_cleaning_text,Update git data cleaning script? This will erase and replace actual data cleaning script in the git repository.
+update_git_element_data_cleaning_title,Update git element
+update_git_element_dataset_text,Update git dataset? This will erase and replace actual dataset in the git repository.
+update_git_element_dataset_title,Update git element
+update_git_element_plugin_text,Update git plugin? This will erase and replace actual plugin in the git repository.
+update_git_element_plugin_title,Update git element
+update_git_element_project_text,Update git project? This will erase and replace actual project in the git repository.
+update_git_element_project_title,Update git element
+update_git_element_subset_text,Update git subset? This will erase and replace actual subset in the git repository.
+update_git_element_subset_title,Update git element
+update_git_element_vocabulary_text,Update git vocabulary? This will erase and replace actual vocabulary in the git repository.
+update_git_element_vocabulary_title,Update git element
 update_project_plugins_text,Update plugins included in the project? This will erase old versions of local plugins which are not up to date.
 update_project_plugins_title,Update project plugins
 updated_on,Updated on
@@ -312,14 +430,51 @@ username,Username
 username_already_used,This username is already used
 users,Users
 users_accesses,Users accesses
+users_accesses_management_user_access_description,"Manage users accesses (add, edit and delete)"
+users_management_user_access_description,"Manage users (add, edit and delete)"
 users_statuses,Users statuses
+users_statuses_management_user_access_description,"Manage users statuses (add, edit and delete)"
 valid_col_names_are,Column names are not valid.
+valid_end_date,Valid end date
+valid_start_date,Valid start date
 value,Value
 visit_detail,Stay
 visit_detail_id,Visit detail ID
 vocabularies,Vocabularies
+vocabularies_import_user_access_description,Import vocabularies and concepts
+vocabularies_management_user_access_description,"Manage vocabularies (add, edit and delete)"
 vocabularies_widget_text,Organize and explore medical concept terminologies here.
 vocabulary,Vocabulary
 vocabulary_id,Vocabulary ID
 width,Width
-years,years
+years,Years
+years_and_over,Years and over
+male,Male
+female,Female
+number,Nombre
+min,Min
+max,Max
+iq1,IQ1
+iq3,IQ3
+std,Std
+median,Median
+mean,Mean
+all_patients,All patients
+start_date,Start date
+end_date,End date
+add_persons_subset_success,Patients successfully added to subset
+add_concept_input,Action
+subset_added,New subset added
+tab_deleted,Tab removed
+widget_deleted,Widget removed
+plugin_no_selected_project,Load a project to get the plugin code working
+plugin_doesnt_exist_in_git_repo,This plugin does not exist in this git repository
+dataset_doesnt_exist_in_git_repo,This dataset does not exist in this git repository
+data_cleaning_doesnt_exist_in_git_repo,This data cleaning script does not exist in this git repository
+project_doesnt_exist_in_git_repo,This project does not exist in this git repository
+plugin_doesnt_exist_locally,This plugin does not exist in local LinkR instance
+dataset_doesnt_exist_locally,This dataset does not exist in local LinkR instance
+data_cleaning_doesnt_exist_locally,This data cleaning script does not exist in local LinkR instance
+project_doesnt_exist_locally,This project does not exist in local LinkR instance
+study_doesnt_exist_locally,This project does not exist in local LinkR instance
+subset_deleted,Subset deleted

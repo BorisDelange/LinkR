@@ -20,13 +20,11 @@ mod_vocabularies_ui <- function(id, language, languages, i18n, code_hotkeys, dro
       div(
         id = ns("one_element"),
         div(
-          uiOutput(ns("breadcrumb")),
+          div(uiOutput(ns("breadcrumb")), style = "flex: 1;"),
           div(
             id = ns("vocabulary_pivot"),
             tags$button(id = ns("summary"), i18n$t("summary"), class = "pivot_item selected_pivot_item", onclick = pivot_item_js),
             tags$button(id = ns("concepts"), i18n$t("concepts"), class = "pivot_item", onclick = pivot_item_js),
-            # tags$button(id = ns("edit_code"), i18n$t("code"), class = "pivot_item", onclick = pivot_item_js),
-            # tags$button(id = ns("share"), i18n$t("share"), class = "pivot_item", onclick = pivot_item_js),
             class = "pivot"
           ),
           style = "display:flex; justify-content:space-between;"
@@ -39,23 +37,9 @@ mod_vocabularies_ui <- function(id, language, languages, i18n, code_hotkeys, dro
             div(
               h1(i18n$t("informations")),
               uiOutput(ns("vocabulary_summary")),
-              div(
-                div(shiny.fluent::PrimaryButton.shinyInput(ns("delete_element"), i18n$t("delete")), class = "delete_button"),
-                class = "create_element_modal_buttons"
-              ),
-              class = "widget", style = "height: 50%;"
-            ),
-            div(
               class = "widget", style = "height: 50%;"
             ),
             class = "vocabularies_summary_left"
-          ),
-          div(
-            div(
-              h1(i18n$t("description")),
-              class = "widget", style = "height: calc(100% - 25px); padding-top: 1px;"
-            ),
-            class = "vocabularies_summary_right"
           ),
           class = "vocabularies_summary_container"
         ),
@@ -146,6 +130,30 @@ mod_vocabularies_ui <- function(id, language, languages, i18n, code_hotkeys, dro
       )
     ),
     
+    # Create a vocabulary modal ----
+    
+    shinyjs::hidden(
+      div(
+        id = ns("create_element_modal"),
+        div(
+          div(
+            tags$h1(i18n$t("create_vocabulary")),
+            shiny.fluent::IconButton.shinyInput(ns("close_create_element_modal"), iconProps = list(iconName = "ChromeClose")),
+            class = "create_element_modal_head small_close_button"
+          ),
+          div(
+            div(shiny.fluent::TextField.shinyInput(ns("element_creation_name"), label = i18n$t("name")), style = "width: 200px;"),
+            div(
+              shiny.fluent::PrimaryButton.shinyInput(ns("add_element"), i18n$t("add")),
+              class = "create_element_modal_buttons"
+            ),
+          ),
+          class = "create_vocabulary_modal_content"
+        ),
+        class = "create_element_modal"
+      )
+    ),
+    
     # Import concepts modal ----
     
     shinyjs::hidden(
@@ -194,7 +202,6 @@ mod_vocabularies_server <- function(id, r, d, m, language, i18n, debug, user_acc
   
   # Load widgets ----
   
-  # all_divs <- c("summary", "concepts", "edit_code", "share")
   all_divs <- c("summary", "concepts")
   mod_widgets_server(id, r, d, m, language, i18n, all_divs, debug, user_accesses)
   
@@ -205,7 +212,7 @@ mod_vocabularies_server <- function(id, r, d, m, language, i18n, debug, user_acc
     
     # Current user accesses ----
     
-    if ("vocabularies_management" %in% user_accesses) shinyjs::show("create_element_button")
+    if ("vocabularies_management" %in% user_accesses) sapply(c("create_element_button", "edit_summary_div", "delete_element_div"), shinyjs::show)
     if ("vocabularies_import" %in% user_accesses) sapply(c("import_concepts_div_1", "import_concepts_div_2"), shinyjs::show)
     
     # |-------------------------------- -----

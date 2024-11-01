@@ -1,5 +1,9 @@
 #' @noRd
-app_server <- function(pages, language, languages, i18n, app_folder, username, debug, log_file, local, users_accesses_toggles_options, db_col_types, dropdowns){
+app_server <- function(
+    pages, language, languages, i18n, app_folder, username, debug, log_file, local, 
+    users_accesses_toggles_options, db_col_types, dropdowns, auto_complete_list, loading_options
+  ){
+  
   function(input, output, session) {
     
     if (debug) cat(paste0("\n", now(), " - server - init"))
@@ -50,7 +54,7 @@ app_server <- function(pages, language, languages, i18n, app_folder, username, d
     o <- reactiveValues()
     
     # App version ----
-    r$app_version <- "0.3.0.9016"
+    r$app_version <- "0.3.0.9019"
     
     # Databse col types ----
     
@@ -91,13 +95,6 @@ app_server <- function(pages, language, languages, i18n, app_folder, username, d
     
     # Db col types
     r$db_col_types <- db_col_types
-    
-    # Close DB connection on exit
-    # And restore initial working directory
-    trad <- list()
-    trad$session <- switch(language, "fr" = "Session", "en" = "Session")
-    trad$session_starts <- switch(language, "fr" = "Début de la session", "en" = "Session starts")
-    trad$session_ends <- switch(language, "fr" = "Fin de la session", "en" = "Session ends")
     
     # Add default values in database if database is empty
     # Load all data from database
@@ -188,6 +185,9 @@ app_server <- function(pages, language, languages, i18n, app_folder, username, d
       onStop(function() {
         if (debug) cat(paste0("\n", now(), " - server - observer onStop"))
         
+        # Close db connections
+        # if (length(d$con) > 0) if (DBI::dbIsValid(d$con)) DBI::dbDisconnect(d$con)
+        
         # Stop console redirection to log file
         while(sink.number() > 0) sink(NULL)
       })
@@ -223,6 +223,7 @@ app_server <- function(pages, language, languages, i18n, app_folder, username, d
       req(current_page %in% pages)
       
       if (current_page == "/") current_page <- "home"
+      
       else if (current_page == "data"){
         if (length(shiny.router::get_query_param()$type) > 0) r$data_page <- shiny.router::get_query_param()$type
         else r$data_page <- "patient_lvl"
@@ -264,5 +265,16 @@ app_server <- function(pages, language, languages, i18n, app_folder, username, d
         r$loaded_pages[[page]] <- TRUE
       }
     })
+    
+    # Loading options
+    
+    r$loading_options <- loading_options
+    
+    # Go to a specific page if noticed in loading_options
+    
+    if (length(loading_options$page) > 0){
+      if (loading_options$page %in% pages) shinyjs::delay(10, shiny.router::change_page(loading_options$page))
+      else cat(paste0("\n", now(), " - server - ", loading_options$page, " is not a valid page"))
+    }
   }
 }

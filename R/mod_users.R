@@ -942,7 +942,6 @@ mod_users_server <- function(id, r, d, m, language, i18n, debug, users_accesses_
         # Delete old rows
         sql <- glue::glue_sql("DELETE FROM options WHERE category = 'users_accesses' AND link_id = {input$edit_user_access_id}", .con = r$db)
         sql_send_statement(r$db, sql)
-        print(sql)
         
         # Add new ones
         new_data <- tibble::tibble(
@@ -994,7 +993,6 @@ mod_users_server <- function(id, r, d, m, language, i18n, debug, users_accesses_
         }
         
         new_data <- new_data %>% dplyr::mutate(id = get_last_row(r$db, "options") + 1 + dplyr::row_number(), .before = "category")
-        print(new_data)
         
         DBI::dbAppendTable(r$db, "options", new_data)
       }

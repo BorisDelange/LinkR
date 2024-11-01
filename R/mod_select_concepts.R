@@ -21,7 +21,7 @@ mod_select_concepts_ui <- function(id, language, languages, i18n){
                   div(shiny.fluent::ComboBox.shinyInput(ns("vocabulary"), label = i18n$t("vocabulary"), allowFreeform = FALSE, multiSelect = FALSE), style = "width: 200px;"),
                   div(
                     shiny.fluent::Dropdown.shinyInput(
-                      ns("vocabulary_dt_cols"), label = i18n$t("columns"),  multiSelect = FALSE,
+                      ns("vocabulary_dt_cols"), label = i18n$t("columns"), multiSelect = TRUE,
                       options = list(
                         list(key = 0, text = i18n$t("concept_id")),
                         list(key = 1, text = i18n$t("concept_name")),
@@ -50,7 +50,7 @@ mod_select_concepts_ui <- function(id, language, languages, i18n){
                 ),
                 DT::DTOutput(ns("vocabulary_concepts")),
                 class = "widget",
-                style = "height: auto; padding: 10px;"
+                style = "height: 50%; padding: 10px;"
               ),
               div(
                 div(
@@ -61,7 +61,7 @@ mod_select_concepts_ui <- function(id, language, languages, i18n){
                   class = "widget",
                   style = "width: 50%;"
                 ),
-                style = "display: flex; height: 100%;"
+                style = "display: flex; height: 50%;"
               ),
               style = "width: 100%; display:flex; flex-direction: column;"
             ),
@@ -180,7 +180,7 @@ mod_select_concepts_server <- function(id, r, d, m, language, i18n, debug, user_
         searchable_cols <- c("concept_id", "concept_name", "domain_id", "concept_class_id", "standard_concept", "concept_code", "concept_display_name")
         factorize_cols <- c("domain_id", "concept_class_id", "standard_concept")
         column_widths <- c(
-          "concept_name" = "300px", "domain_id" = "100px", "concept_class_id" = "100px", "concept_id" = "80px", "action" = "80px",
+          "domain_id" = "100px", "concept_class_id" = "100px", "concept_id" = "80px", "add_concept_input" = "80px",
           "concept_id" = "100px", "count_persons_rows" = "40px", "count_concepts_rows" = "40px"
         )
         sortable_cols <- c("concept_id", "concept_name", "domain_id", "vocabulary_id", "count_persons_rows", "count_concepts_rows")

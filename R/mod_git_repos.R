@@ -172,7 +172,7 @@ mod_git_repos_ui <- function(id = character(), language = "en", languages = tibb
       div(
         id = ns("one_git_repo"),
         div(
-          uiOutput(ns("breadcrumb")),
+          div(uiOutput(ns("breadcrumb")), style = "flex: 1;"),
           div(
             id = ns("plugin_pivot"),
             tags$button(id = ns("projects"), i18n$t("projects"), class = "pivot_item", onclick = pivot_item_js),
@@ -333,7 +333,7 @@ mod_git_repos_server <- function(id, r, d, m, language, i18n, debug, user_access
     # Current user accesses ----
     
     if ("git_repos_management" %in% user_accesses) sapply(c("create_git_repo_button", "delete_git_repo_button", "edit_git_repo_button"), shinyjs::show)
-    if ("git_repos_remote_git_repo_management" %in% user_accesses) sapply(c("edit_readme_buttons"), shinyjs::show)
+    if ("git_repos_remote_git_repo_management" %in% user_accesses) sapply(c("edit_readme_buttons", "save_git_repo_button"), shinyjs::show)
     
     if (debug) cat(paste0("\n", now(), " - mod_git_repos - start"))
     
@@ -1269,7 +1269,7 @@ mod_git_repos_server <- function(id, r, d, m, language, i18n, debug, user_access
             short_description <- row[[paste0("short_description_", language)]]
             
             elements_ui <- tagList(
-              create_element_ui(page_id = id, single_id, element_name, users_ui, widget_buttons, onclick, short_description),
+              create_element_ui(ns, page_id = id, unique(row$id), single_id, element_name, users_ui, widget_buttons, onclick, short_description, FALSE),
               elements_ui
             )
           }

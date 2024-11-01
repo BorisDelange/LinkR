@@ -12,6 +12,7 @@
 #' @param debug Debug mode : steps and errors will by displayed in the console (logical)
 #' @param log_file Create a log file to see app log directly in the app (logical)
 #' @param port Port used by shiny app (integer)
+#' @param loading_options List specifying the initial page, project, and subset to load at startup (a list with `page`, `project`, and `subset` keys)
 #' @examples 
 #' \dontrun{
 #' linkr(language = "en", debug = FALSE, local = FALSE)
@@ -27,8 +28,15 @@ linkr <- function(
   local = FALSE,
   debug = FALSE,
   log_file = FALSE,
-  port = 3838
+  port = 3838,
+  loading_options = list()
 ) {
+  
+  # Loading options
+  # - loading_options$page: load a specific page
+  # - loading_options$project_id: load a project
+  # - loading_options$load_data_page: load a data page ("patient_lvl" or "aggregated")
+  # - loading_options$subset_id: load a subset_id the first time a project is loaded
   
   # Check version of shiny.fluent (has to be inferior to 0.4.0)
   if (packageVersion("shiny.fluent") >= "0.4.0") stop("Invalid shiny.fluent version: version 0.3.0 is required. Install it with remotes::install_github('Appsilon/shiny.fluent', ref = 'dd1c956').")
@@ -40,7 +48,7 @@ linkr <- function(
   # Used to restore database and import vocabularies
   # shiny.launch.browser to automatically open browser
   
-  if (debug) cat(paste0(now(), " - linkr - init - v0.3.0.9016"))
+  if (debug) cat(paste0(now(), " - linkr - init - v0.3.0.9019"))
   options(shiny.maxRequestSize = 4096*1024^2, shiny.launch.browser = TRUE, shiny.port = port)
   
   if (!is.logical(debug)) stop("'debug' argument is not of logical type")
@@ -105,8 +113,12 @@ linkr <- function(
       "projects_see_all_data",
       "projects_management",
       "projects_import",
+      "projects_content_management",
+      'projects_widgets_settings',
+      "projects_console_access",
       "projects_dataset",
       "projects_data_cleaning",
+      "projects_subsets_management",
       "projects_share"
     ),
     "plugins", c(
@@ -254,12 +266,49 @@ linkr <- function(
     12, "count_concepts_rows"
   )
   
+  # Ace editor auto completion
+  
+  auto_complete_list <- list(
+    dplyr = getNamespaceExports("dplyr"),
+    DBI = getNamespaceExports("DBI"),
+    ggplot2 = getNamespaceExports("ggplot2"),
+    glue = getNamespaceExports("glue"),
+    plotly = getNamespaceExports("plotly"),
+    readr = getNamespaceExports("readr"),
+    tidyr = getNamespaceExports("tidyr"),
+    vroom = getNamespaceExports("vroom"),
+    `OMOP data` = paste0("d$", c(
+      "person", "visit_occurrence", "visit_detail", "death",
+      "measurement", "observation", "procedure_occurrence", "condition_occurrence", "drug_exposure", "device_exposure",
+      "note", "note_nlp", "specimen", "location", "care_site", "provider", "drug_era", "dose_era",
+      "condition_era", "payer_plan_period", "cost", "observation_period",
+      "data_subset",
+      paste0("data_subset$", c(
+        "person", "visit_occurrence", "visit_detail", "death",
+        "measurement", "observation", "procedure_occurrence", "condition_occurrence", "drug_exposure", "device_exposure",
+        "note", "note_nlp", "specimen", "drug_era", "dose_era",
+        "condition_era", "payer_plan_period", "cost", "observation_period"
+      )),
+      "data_person",
+      paste0("data_person$", c(
+        "death", "measurement", "observation", "procedure_occurrence", "condition_occurrence", "drug_exposure", "device_exposure",
+        "note", "note_nlp", "specimen", "drug_era", "dose_era",
+        "condition_era", "payer_plan_period", "cost"
+      )),
+      "data_visit_detail",
+      paste0("data_visit_detail$", c(
+        "measurement", "observation", "procedure_occurrence", "condition_occurrence", "drug_exposure", "device_exposure",
+        "note", "note_nlp", "payer_plan_period", "cost"
+      ))
+    ))
+  )
+  
   # Load UI & server
   
   if (debug) cat(paste0("\n", now(), " - linkr - load UI & server"))
   shinyApp(
-    ui = app_ui(pages, language, languages, i18n, users_accesses_toggles_options, db_col_types, dropdowns, debug),
-    server = app_server(pages, language, languages, i18n, app_folder, username, debug, log_file, local, users_accesses_toggles_options, db_col_types, dropdowns),
+    ui = app_ui(pages, language, languages, i18n, users_accesses_toggles_options, db_col_types, dropdowns, auto_complete_list, debug),
+    server = app_server(pages, language, languages, i18n, app_folder, username, debug, log_file, local, users_accesses_toggles_options, db_col_types, dropdowns, auto_complete_list, loading_options),
     options = options
   )
 }

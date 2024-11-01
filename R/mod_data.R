@@ -189,7 +189,7 @@ mod_data_ui <- function(id, language, languages, i18n){
   )
   
   div(
-    class = "main", style = "margin-left: 10px;",
+    class = "main",
     add_tab_modal,
     edit_tab_modal,
     delete_tab_modal,
@@ -220,7 +220,12 @@ mod_data_server <- function(id, r, d, m, language, i18n, debug, user_accesses){
   # Data module ----
   
   moduleServer(id, function(input, output, session){
+    
     ns <- session$ns
+    
+    # Current user accesses ----
+    
+    if ("projects_content_management" %in% user_accesses) shinyjs::show("project_content_management")
     
     # |-------------------------------- -----
     
@@ -282,6 +287,10 @@ mod_data_server <- function(id, r, d, m, language, i18n, debug, user_accesses){
       if (displayed_category == "patient_lvl") sapply(divs, shinyjs::show)
       else sapply(divs, shinyjs::hide)
       
+      divs <- c("subset_date_div", "subset_info_div")
+      if (displayed_category == "aggregated") sapply(divs, shinyjs::show)
+      else sapply(divs, shinyjs::hide)
+      
       # Show / hide study menu
       shinyjs::hide(paste0(hidden_category, "_study_menu"))
       shinyjs::delay(100, shinyjs::show(paste0(displayed_category, "_study_menu")))
@@ -300,8 +309,8 @@ mod_data_server <- function(id, r, d, m, language, i18n, debug, user_accesses){
     # --- --- --- --- --- --- --
     
     visit_detail_tables <- c("condition_occurrence", "drug_exposure", "procedure_occurrence", "device_exposure", "measurement", "observation", "note", "note_nlp", "payer_plan_period", "cost")
-    person_tables <- c(visit_detail_tables, "specimen", "death", "drug_era", "dose_era", "condition_era")
-    subset_tables <- c(person_tables, "person", "observation_period", "visit_occurrence", "visit_detail")
+    person_tables <- c(visit_detail_tables, "specimen", "death", "drug_era", "dose_era", "condition_era", "observation_period", "visit_occurrence", "visit_detail")
+    subset_tables <- c(person_tables, "person")
     main_tables <- c(subset_tables, "location", "care_site", "provider")
     
     observeEvent(r$load_project_trigger, {
@@ -417,16 +426,10 @@ mod_data_server <- function(id, r, d, m, language, i18n, debug, user_accesses){
     observeEvent(input$load_dataset, {
       if (debug) cat(paste0("\n", now(), " - mod_data - observer r$load_dataset"))
       
-      # Display project loading status
-      # if (r$project_load_status_displayed) r$project_load_status$dataset_starttime <- now("%Y-%m-%d %H:%M:%OS3")
-      
       shinyjs::delay(100, {
         dataset_id <- r$selected_dataset
         load_dataset(r, m, d, dataset_id, main_tables, m$selected_study)
       })
-      
-      # Display project loading status
-      # if (r$project_load_status_displayed) r$project_load_status$dataset_endtime <- now("%Y-%m-%d %H:%M:%OS3")
     })
     
     ## Subset ----
@@ -435,20 +438,42 @@ mod_data_server <- function(id, r, d, m, language, i18n, debug, user_accesses){
       
       req(!is.na(m$selected_subset))
       
-      for(table in subset_tables){
+      if (nrow(m$subset_persons) == 0) for(table in tables) d$data_subset[[table]] <- tibble::tibble()
+      
+      else {
         
-        # No person_id col in note_nlp table
-        if (table != "note_nlp"){
-          if (nrow(m$subset_persons) > 0){
-            if (d[[table]] %>% dplyr::count() %>% dplyr::pull() > 0){
-              person_ids <- m$subset_persons$person_id
-              d$data_subset[[table]] <- d[[table]] %>% dplyr::filter(person_id %in% person_ids)
+        person_ids <- m$subset_persons$person_id
+        
+        for(table in subset_tables){
+          
+          if (d[[table]] %>% dplyr::count() %>% dplyr::pull() > 0){
+            
+            if (table == "note_nlp"){
+              note_ids <- d$data_subset$note %>% dplyr::distinct(note_id) %>% dplyr::pull()
+              d$data_subset$note_nlp <- d$note_nlp %>% dplyr::filter(note_id %in% note_ids)
             }
-            else d$data_subset[[table]] <- tibble::tibble()
+            else d$data_subset[[table]] <- d[[table]] %>% dplyr::filter(person_id %in% person_ids)
           }
           else d$data_subset[[table]] <- tibble::tibble()
         }
       }
+      
+      # Reload subset informations UI
+      r$subset_updated_data <- Sys.time()
+      
+      # Update date sliderInput and DatePicker
+      
+      dates_range <-
+        d$data_subset$visit_occurrence %>%
+        dplyr::summarize(
+          min_date = min(visit_start_datetime, na.rm = TRUE),
+          max_date = max(visit_end_datetime, na.rm = TRUE)
+        ) %>%
+        dplyr::collect() %>%
+        dplyr::mutate_at(c("min_date", "max_date"), as.Date)
+      
+      subset_dates_range(c(dates_range$min_date, dates_range$max_date))
+      subset_dates(c(dates_range$min_date, dates_range$max_date))
     })
     
     ## Patient ----
@@ -501,9 +526,25 @@ mod_data_server <- function(id, r, d, m, language, i18n, debug, user_accesses){
           )
         
         if (nrow(m$subsets) > 0){
+          
+          # Load a specific subset_id if noticed in loading_options
+          if (length(r$loading_options$subset_id) > 0){
+            
+            subset_id <- r$loading_options$subset_id
+            
+            if (subset_id %in% m$subsets$id) selected <- subset_id
+            else {
+              selected <- FALSE
+              cat(paste0("\n", now(), " - mod_data - ", subset_id, " is not a valid subset ID"))
+            }
+            
+            r$loading_options$subset_id <- NULL
+          }
+          else selected <- FALSE
+          
           choices <- setNames(m$subsets$id, m$subsets$name)
           updateSelectizeInput(
-            session, "subset", choices = choices, server = TRUE, selected = FALSE,
+            session, "subset", choices = choices, server = TRUE, selected = selected,
             options = list(
               placeholder = "",
               onInitialize = I("function() { this.setValue(''); }")
@@ -568,6 +609,196 @@ mod_data_server <- function(id, r, d, m, language, i18n, debug, user_accesses){
         # Reset selected_person & selected_visit_detail
         m$selected_person <- NA_integer_
         m$selected_visit_detail <- NA_integer_
+      })
+      
+      ## Filter subset dates ----
+      
+      # Synchronize sliderInput and DatePicker
+      
+      subset_dates_range <- reactiveVal(c(as.Date("1970-01-01"), Sys.Date()))
+      subset_dates <- reactiveVal(c(as.Date("1970-01-01"), Sys.Date()))
+      debounced_subset_dates <- reactive(subset_dates()) %>% debounce(100)
+      
+      observeEvent(input$subset_date_slider, {
+        if (debug) cat(paste0("\n", now(), " - mod_data - observer input$subset_date_slider"))
+        
+        subset_dates(input$subset_date_slider)
+      })
+      
+      observeEvent(input$subset_start_date, {
+        if (debug) cat(paste0("\n", now(), " - mod_data - observer input$subset_start_date"))
+        
+        if (as.Date(input$subset_start_date) != subset_dates()[1]) subset_dates(c(as.Date(input$subset_start_date), subset_dates()[2]))
+      })
+      
+      observeEvent(input$subset_end_date, {
+        if (debug) cat(paste0("\n", now(), " - mod_data - observer input$subset_end_date"))
+        
+        if (as.Date(input$subset_end_date) != subset_dates()[2]) subset_dates(c(subset_dates()[1], as.Date(input$subset_end_date)))
+      })
+      
+      observeEvent(debounced_subset_dates(), {
+        if (debug) cat(paste0("\n", now(), " - mod_data - observer subset_dates()"))
+        
+        req(input$subset_date_slider, debounced_subset_dates(), subset_dates_range())
+        
+        start_date <- debounced_subset_dates()[1]
+        end_date <- debounced_subset_dates()[2]
+        min_date <- subset_dates_range()[1]
+        max_date <- subset_dates_range()[2]
+        min_date_js <- htmlwidgets::JS(sprintf("new Date('%s')", as.character(min_date)))
+        max_date_js <- htmlwidgets::JS(sprintf("new Date('%s')", as.character(max_date)))
+        
+        if (input$subset_date_slider[1] != start_date | input$subset_date_slider[2] != end_date){
+          if (start_date >= min_date & end_date <= max_date){
+            updateSliderInput(
+              session, "subset_date_slider",
+              min = min_date, max = max_date,
+              value = as.Date(debounced_subset_dates()),
+              timeFormat = ifelse(language == "fr", "%d-%m-%Y", "%Y-%m-%d")
+            )
+          }
+        }
+        
+        shiny.fluent::updateDatePicker.shinyInput(session, "subset_start_date", value = start_date, minDate = min_date_js, maxDate = max_date_js)
+        shiny.fluent::updateDatePicker.shinyInput(session, "subset_end_date", value = end_date, minDate = min_date_js, maxDate = max_date_js)
+        
+        shinyjs::delay(10, shinyjs::runjs("observeSubsetSliderChanges();"))
+      })
+      
+      # Adjust position of subset_date_slider
+      
+      shinyjs::runjs("
+        function adjustSliderLabels() {
+          const fromLabel = document.querySelector('#data-subset_date_div .irs-from');
+          const toLabel = document.querySelector('#data-subset_date_div .irs-to');
+          const singleLabel = document.querySelector('#data-subset_date_div .irs-single');
+          
+          if (fromLabel) {
+            const fromLeft = parseFloat(fromLabel.style.left);
+            if (fromLeft < 0) {
+              fromLabel.style.left = '0%';
+            }
+          }
+        
+          if (toLabel) {
+            const toLeft = parseFloat(toLabel.style.left);
+            if (toLeft > 72) {
+              toLabel.style.left = '72%';
+            }
+          }
+        
+          if (singleLabel) {
+            const singleLeft = parseFloat(singleLabel.style.left);
+            if (singleLeft < 0) {
+              singleLabel.style.left = '0%';
+            } else if (singleLeft > 32) {
+              singleLabel.style.left = '32%';
+            }
+          }
+        }
+        
+        window.observeSubsetSliderChanges = function() {
+          const fromLabel = document.querySelector('#data-subset_date_div .irs-from');
+          const toLabel = document.querySelector('#data-subset_date_div .irs-to');
+          const singleLabel = document.querySelector('#data-subset_date_div .irs-single');
+        
+          if (fromLabel && toLabel) {
+            const observer = new MutationObserver(adjustSliderLabels);
+        
+            observer.observe(fromLabel, { attributes: true, attributeFilter: ['style'] });
+            observer.observe(toLabel, { attributes: true, attributeFilter: ['style'] });
+        
+            if (singleLabel) {
+              observer.observe(singleLabel, { attributes: true, attributeFilter: ['style'] });
+            }
+          
+            adjustSliderLabels();
+          }
+        }
+        
+        observeSubsetSliderChanges();
+      ")
+      
+      # Filter d$data_subset with selected date range
+      
+      observeEvent(input$apply_subset_date_filters, {
+        if (debug) cat(paste0("\n", now(), " - mod_data - observer input$apply_subset_date_filters"))
+        
+        req(!is.na(m$selected_subset))
+        
+        start_date <- subset_dates()[1]
+        end_date <- subset_dates()[2]
+        
+        tables <- c(
+          "visit_occurrence", "visit_detail", "person", "observation_period",
+          "condition_occurrence", "drug_exposure", "procedure_occurrence", "device_exposure", "measurement", "observation", "note",
+          "payer_plan_period", "specimen", "death", "drug_era", "dose_era", "condition_era",
+          "note_nlp"
+        )
+        
+        r$subset_dates_range_person_ids <- c()
+        r$subset_dates_range_visit_occurrence_ids <- c()
+        
+        if (nrow(m$subset_persons) == 0) for(table in tables) d$data_subset[[table]] <- tibble::tibble()
+        
+        else {
+          
+          person_ids <- m$subset_persons$person_id
+          
+          for(table in tables){
+            
+            if (d[[table]] %>% dplyr::count() %>% dplyr::pull() > 0){
+              
+              if (table == "visit_occurrence"){
+                
+                # Filter on patients from selected subset and dates range
+                d$data_subset$visit_occurrence <- d$visit_occurrence %>% dplyr::filter(person_id %in% person_ids, visit_start_date >= start_date & visit_end_date <= end_date)
+                
+                r$subset_dates_range_person_ids <- d$data_subset$visit_occurrence %>% dplyr::distinct(person_id) %>% dplyr::pull()
+                r$subset_dates_range_visit_occurrence_ids <- d$data_subset$visit_occurrence %>% dplyr::distinct(visit_occurrence_id) %>% dplyr::pull()
+              }
+              
+              # Filter with person_id
+              else if (table %in% c(
+                "person", "observation_period", "payer_plan_period", "specimen", "death",
+                "drug_era", "dose_era", "condition_era"
+              )) d$data_subset[[table]] <- d[[table]] %>% dplyr::filter(person_id %in% r$subset_dates_range_person_ids)
+              
+              # Filter with visit_occurrence_id
+              else if (table %in% c(
+                "visit_detail", "condition_occurrence", "drug_exposure", "procedure_occurrence", "device_exposure", 
+                "measurement", "observation", "note"
+              )) d$data_subset[[table]] <- d[[table]] %>% dplyr::filter(visit_occurrence_id %in% r$subset_dates_range_visit_occurrence_ids)
+              
+              # Filter with note_id
+              else if (table == "note_nlp"){
+                note_ids <- d$data_subset$note %>% dplyr::distinct(note_id) %>% dplyr::pull()
+                d$data_subset$note_nlp <- d$note_nlp %>% dplyr::filter(note_id %in% note_ids)
+              }
+            }
+            else d$data_subset[[table]] <- tibble::tibble()
+          }
+        }
+        
+        # Reload subset informations UI
+        r$subset_updated_data <- Sys.time()
+      })
+      
+      ## Subset informations
+      
+      observeEvent(r$subset_updated_data, {
+        if (debug) cat(paste0("\n", now(), " - mod_data - observer r$subset_updated_data"))
+        
+        style <- "display:inline-block; width:100px; font-weight:bold;"
+        output$subset_info <- renderUI(
+          tagList(
+            span(i18n$t("start_date"), style = style), format_datetime(isolate(subset_dates()[1]), language = language, type = "date"), br(),
+            span(i18n$t("end_date"), style = style), format_datetime(isolate(subset_dates()[2]), language = language, type = "date"), br(), br(),
+            span(i18n$t("patients"), style = style), d$data_subset$person %>% dplyr::count() %>% dplyr::pull(), br(),
+            span(i18n$t("stays"), style = style), d$data_subset$visit_occurrence %>% dplyr::count() %>% dplyr::pull()
+          )
+        )
       })
     
       ## Patient ----
@@ -764,7 +995,6 @@ mod_data_server <- function(id, r, d, m, language, i18n, debug, user_accesses){
         
         selected_visit_detail <- as.numeric(input$visit_detail)
         m$selected_visit_detail <- selected_visit_detail
-        print(selected_visit_detail)
         
         # Update person informations on sidenav
         
@@ -1513,7 +1743,7 @@ mod_data_server <- function(id, r, d, m, language, i18n, debug, user_accesses){
       
       users_ui <- create_authors_ui(row %>% dplyr::filter(name == "author") %>% dplyr::pull(value))
       plugin_buttons <- ""
-      element_ui <- create_element_ui(id, "plugin", plugin_name, users_ui, plugin_buttons, "", short_description)
+      element_ui <- create_element_ui(ns, id, input$selected_element, "plugin", plugin_name, users_ui, plugin_buttons, "", short_description, FALSE)
       
       output$selected_plugin <- renderUI(element_ui)
       
@@ -1859,8 +2089,6 @@ mod_data_server <- function(id, r, d, m, language, i18n, debug, user_accesses){
     }
     
     load_tab_ui <- function(category, tab_id, widget_id = NA_integer_, action){
-      
-      # if (r$project_load_status_displayed) r$project_load_status$widgets_ui_starttime <- now("%Y-%m-%d %H:%M:%OS3")
       
       selected_tab <- r[[paste0(category, "_selected_tab")]]
 

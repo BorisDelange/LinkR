@@ -13,18 +13,6 @@ mod_widgets_ui <- function(id, language, languages, i18n){
     "vocabularies" = "vocabulary"
   )
   
-  add_element_inputs <- tagList()
-  
-  if (id == "plugins") add_element_inputs <- div(
-    shiny.fluent::Dropdown.shinyInput(ns("plugin_creation_type"), label = i18n$t("data_type"), multiSelect = TRUE,
-      options = list(
-        list(key = 1, text = i18n$t("patient_lvl_data")),
-        list(key = 2, text = i18n$t("aggregated_data"))
-      ), value = 1
-    ),
-    style = "width: 200px;"
-  )
-  
   tagList(
       
       # All elements ----
@@ -32,37 +20,12 @@ mod_widgets_ui <- function(id, language, languages, i18n){
       div(
         id = ns("all_elements"),
         shiny.fluent::Breadcrumb(items = list(list(key = "main", text = i18n$t(id))), maxDisplayedItems = 3),
-        div(shiny.fluent::SearchBox.shinyInput(ns("search_element")), style = "width:320px; margin:10px 0 0 10px;"),
+        div(
+          id = ns("search_element_div"),
+          shiny.fluent::SearchBox.shinyInput(ns("search_element")), style = "width:320px; margin:10px 0 0 10px;"
+        ),
         uiOutput(ns("elements")),
         div(style = "display:none;", fileInput(ns("import_element_upload"), label = "", multiple = FALSE, accept = ".zip"))
-      ),
-
-      # Create an element modal ----
-
-      shinyjs::hidden(
-        div(
-          id = ns("create_element_modal"),
-          div(
-            div(
-              tags$h1(i18n$t(paste0("create_", single_id))),
-              shiny.fluent::IconButton.shinyInput(ns("close_create_element_modal"), iconProps = list(iconName = "ChromeClose")),
-              class = "create_element_modal_head small_close_button"
-            ),
-            div(
-              div(
-                div(shiny.fluent::TextField.shinyInput(ns("element_creation_name"), label = i18n$t("name")), style = "width: 200px;"),
-                add_element_inputs,
-                style = "display: flex; gap: 20px;"
-              ),
-              div(
-                shiny.fluent::PrimaryButton.shinyInput(ns("add_element"), i18n$t("add")),
-                class = "create_element_modal_buttons"
-              ),
-            ),
-            class = paste0("create_", single_id, "_modal_content")
-          ),
-          class = "create_element_modal"
-        )
       ),
 
       # Delete an element modal ----
@@ -155,6 +118,7 @@ mod_widgets_server <- function(id, r, d, m, language, i18n, all_divs, debug, use
     
     # Page change observer ----
     observeEvent(shiny.router::get_page(), {
+      
       req(shiny.router::get_page() == id)
       if (debug) cat(paste0("\n", now(), " - mod_widgets - (", id, ") - observer shiny.router::get_page()"))
       
@@ -249,10 +213,23 @@ mod_widgets_server <- function(id, r, d, m, language, i18n, all_divs, debug, use
     observeEvent(input$reload_elements_list, {
       if (debug) cat(paste0("\n", now(), " - mod_widgets - (", id, ") - observer input$reload_elements_list"))
       
-      elements_ui <- create_elements_ui(page_id = id, elements = r[[long_var_filtered]], r = r, language = language, i18n = i18n)
-
-      output$elements <- renderUI(elements_ui)
-
+      if (id %in% user_accesses | (id == "subsets" & "projects_subsets_management" %in% user_accesses)){
+        
+        if (length(input$selected_element) > 0) selected_element <- input$selected_element
+        else selected_element <- NA_integer_
+        
+        elements_ui <- create_elements_ui(page_id = id, elements = r[[long_var_filtered]], selected_element = selected_element, r = r, language = language, i18n = i18n)
+        
+        output$elements <- renderUI(elements_ui)
+        
+        # For plugins page, reload copy plugin dropdown
+        if (id == "plugins") shiny.fluent::updateDropdown.shinyInput(session, "plugin_to_copy", options = convert_tibble_to_list(r$plugins_wide, key_col = "id", text_col = "name"))
+      }
+      else {
+        shinyjs::hide("search_element_div")
+        output$elements <- renderUI(div(shiny.fluent::MessageBar(i18n$t("unauthorized_access_area"), messageBarType = 5), style = "display: inline-block; margin-top: 5px;"))
+      }
+        
       # Unlock reactivity
       shinyjs::show("elements")
     })
@@ -343,7 +320,7 @@ mod_widgets_server <- function(id, r, d, m, language, i18n, all_divs, debug, use
       
       if (debug) cat(paste0("\n", now(), " - mod_widgets - (", id, ") - observer input$add_element"))
       
-      req(paste0(id, "_management") %in% user_accesses | id == "subsets")
+      req(paste0(id, "_management") %in% user_accesses | (id == "subsets" & "projects_subsets_management" %in% user_accesses))
       
       element_name <- input$element_creation_name
       username <- r$users %>% dplyr::filter(id == r$user_id) %>% dplyr::pull(name)
@@ -363,10 +340,32 @@ mod_widgets_server <- function(id, r, d, m, language, i18n, all_divs, debug, use
       if (name_already_used) shiny.fluent::updateTextField.shinyInput(session, "element_creation_name", errorMessage = i18n$t("name_already_used"))
       req(!name_already_used)
       
-      # Check if plugin_creation_type is not empty
+     # For plugins page...
       if (sql_table == "plugins"){
+        
+        # Check if plugin_creation_type is empty
         if (length(input$plugin_creation_type) == 0) shiny.fluent::updateDropdown.shinyInput(session, "plugin_creation_type", errorMessage = i18n$t("field_cant_be_empty"))
         req(length(input$plugin_creation_type) > 0)
+        
+        # Check if plugin_to_copy is empty, if plugin_copy_existing_plugin toggle is activated
+        
+        plugin_to_copy_options <- convert_tibble_to_list(r$plugins_wide, key_col = "id", text_col = "name")
+        
+        plugin_to_copy_check <- TRUE
+        copy_existing_plugin <- FALSE
+        
+        if (length(input$plugin_copy_existing_plugin) > 0){
+          if (input$plugin_copy_existing_plugin){
+            if (length(input$plugin_to_copy) == 0){
+              plugin_to_copy_check <- FALSE
+              shiny.fluent::updateDropdown.shinyInput(session, "plugin_to_copy", options = plugin_to_copy_options, errorMessage = i18n$t("field_cant_be_empty"))
+            }
+            else copy_existing_plugin <- TRUE
+          }
+        }
+        
+        req(plugin_to_copy_check)
+        
       }
 
       # Add element in db
@@ -472,15 +471,44 @@ mod_widgets_server <- function(id, r, d, m, language, i18n, all_divs, debug, use
       
       ### For plugins table, add a row for each file
       if (id == "plugins"){
-        new_options_ids <- max(new_options$id) + 1:3
-
-        new_options <- new_options %>%
-          dplyr::bind_rows(
-            tibble::tibble(
-              id = new_options_ids, category = "plugin_code", link_id = element_id, name = "filename",
-              value = c("ui.R", "server.R", "translations.csv"), value_num = NA_real_, creator_id = r$user_id, datetime = now(), deleted = FALSE
+        
+        copy_existing_plugin_options <- FALSE
+        
+        # Copy existing plugin
+        if (copy_existing_plugin){
+          
+          sql <- glue::glue_sql("SELECT * FROM options WHERE category = 'plugin_code' AND name = 'filename' AND link_id = {input$plugin_to_copy}", .con = r$db)
+          options_copy <- DBI::dbGetQuery(r$db, sql)
+          if (nrow(options_copy) > 0) copy_existing_plugin_options <- TRUE
+        }
+        
+        if (copy_existing_plugin_options){
+          
+          new_options_ids <- max(new_options$id) + 1:nrow(options_copy)
+          plugin_options_corresponding_ids <- options_copy %>% dplyr::transmute(id, new_id = new_options_ids)
+          
+          new_options <- new_options %>%
+            dplyr::bind_rows(
+              options_copy %>%
+                dplyr::left_join(plugin_options_corresponding_ids, by = "id") %>%
+                dplyr::select(-id) %>%
+                dplyr::relocate(new_id, .before = dplyr::everything()) %>%
+                dplyr::rename(id = new_id) %>%
+                dplyr::mutate(link_id = element_id)
             )
-          )
+        }
+        
+        else {
+          new_options_ids <- max(new_options$id) + 1:3
+          
+          new_options <- new_options %>%
+            dplyr::bind_rows(
+              tibble::tibble(
+                id = new_options_ids, category = "plugin_code", link_id = element_id, name = "filename",
+                value = c("ui.R", "server.R", "translations.csv"), value_num = NA_real_, creator_id = r$user_id, datetime = now(), deleted = FALSE
+              )
+            )
+        }
       }
       
       ### For datasets table, add a row for omop version
@@ -501,15 +529,30 @@ mod_widgets_server <- function(id, r, d, m, language, i18n, all_divs, debug, use
       ### For plugins table, add 3 files (ui.R, server.R, translations.csv)
       if (id == "plugins"){
         
-        default_ui <- ""
-        default_server <- ""
-        default_translations <- "base,en,fr\n"
-        code <- c(default_ui, default_server, default_translations)
+        # Copy existing plugin
+        if (copy_existing_plugin_options){
+          sql <- glue::glue_sql("SELECT * FROM code WHERE category = 'plugin' AND link_id IN ({options_copy$id*})", .con = r$db)
+          code_copy <- DBI::dbGetQuery(r$db, sql)
+          
+          new_code <- code_copy %>% 
+            dplyr::mutate(id = get_last_row(con, "code") + 1:nrow(code_copy)) %>%
+            dplyr::left_join(plugin_options_corresponding_ids %>% dplyr::rename(link_id = id), by = "link_id") %>%
+            dplyr::select(-link_id) %>%
+            dplyr::rename(link_id = new_id) %>%
+            dplyr::relocate(link_id, .before = "code")
+        }
         
-        new_code <- tibble::tibble(
-          id = get_last_row(con, "code") + 1:3, category = "plugin", link_id = new_options_ids, code = code,
-          creator_id = r$user_id, datetime = now(), deleted = FALSE
-        )
+        else {
+          default_ui <- ""
+          default_server <- ""
+          default_translations <- "base,en,fr\n"
+          code <- c(default_ui, default_server, default_translations)
+          
+          new_code <- tibble::tibble(
+            id = get_last_row(con, "code") + 1:3, category = "plugin", link_id = new_options_ids, code = code,
+            creator_id = r$user_id, datetime = now(), deleted = FALSE
+          )
+        }
       }
       
       else {
@@ -527,13 +570,11 @@ mod_widgets_server <- function(id, r, d, m, language, i18n, all_divs, debug, use
           "# See documentation here: https://linkr.interhop.org/en/docs/import_data/\n\n",
           "# 1) Import data from a folder\n\n",
           "# Specify a folder: all CSV and Parquet files will be automatically loaded.\n",
-          "# The library specified in the read_with argument will be used to load data.\n",
-          "# To save data in the app folder, specify a save_as argument with the desired format\n",
-          "# To delete and rewrite data each time the dataset is loaded, set rewrite to TRUE\n\n",
+          "# If you import CSV files, additional arguments for the vroom::vroom() function can be passed via the ... argument.\n",
+          "# For example, this can be useful to modify the delim argument.\n\n",
           "# import_dataset(\n",
           "#     r, d, dataset_id = %dataset_id%, omop_version = \"5.4\",\n",
           "#     data_source = \"disk\", data_folder = \"/my_data_folder\",\n",
-          "#     read_with = \"duckdb\", save_as = \"parquet\", rewrite = FALSE\n",
           "# )\n\n",
           "# 2) Import data from a database connection\n\n",
           "# con <- DBI::dbConnect(\n",
@@ -548,7 +589,6 @@ mod_widgets_server <- function(id, r, d, m, language, i18n, all_divs, debug, use
           "# import_dataset(\n",
           "#     r, d, dataset_id = %dataset_id%, omop_version = \"5.4\",\n",
           "#     data_source = \"db\", con = con,\n",
-          "#     read_with = \"duckdb\", save_as = \"parquet\", rewrite = FALSE\n",
           "# )\n\n",
           "# To import only specific tables, add load_tables argument:\n",
           "# load_tables = c(\"person\", \"visit_occurrence\", \"visit_detail\", \"measurement\")"
@@ -563,7 +603,11 @@ mod_widgets_server <- function(id, r, d, m, language, i18n, all_divs, debug, use
 
       # Reset fields
       shiny.fluent::updateTextField.shinyInput(session, "element_creation_name", value = "", errorMessage = NULL)
-      if (id == "plugins") shiny.fluent::updateDropdown.shinyInput(session, "plugin_creation_type", errorMessage = NULL, value = 1)
+      if (id == "plugins"){
+        shiny.fluent::updateDropdown.shinyInput(session, "plugin_creation_type", errorMessage = NULL, value = 1)
+        shiny.fluent::updateDropdown.shinyInput(session, "plugin_to_copy", options = plugin_to_copy_options, errorMessage = i18n$t("field_cant_be_empty"))
+        shiny.fluent::updateToggle.shinyInput(session, "plugin_copy_existing_plugin", value = FALSE)
+      }
       
       # Update elements widgets
       shinyjs::runjs(paste0("Shiny.setInputValue('", id, "-reload_elements_var', Math.random());"))
@@ -825,6 +869,10 @@ mod_widgets_server <- function(id, r, d, m, language, i18n, all_divs, debug, use
       # Reload description UI ----
       shinyjs::runjs(paste0("Shiny.setInputValue('", id, "-reload_description_ui', Math.random());"))
       
+      # Change border of selected element
+      sapply(r[[wide_var]]$id, function(i) shinyjs::removeClass(class = "selected_widget", selector = paste0("#", id, "-", single_id, "_widget_", i)))
+      shinyjs::addClass(class = "selected_widget", selector = paste0("#", id, "-", single_id, "_widget_", input$selected_element))
+      
       # Update summary fields ----
       
       shiny.fluent::updateDropdown.shinyInput(session, "language", value = language)
@@ -969,7 +1017,7 @@ mod_widgets_server <- function(id, r, d, m, language, i18n, all_divs, debug, use
     observeEvent(input$edit_summary, {
       if (debug) cat(paste0("\n", now(), " - mod_widgets - (", id, ") - observer input$edit_summary"))
       
-      req(paste0(id, "_management") %in% user_accesses)
+      req(paste0(id, "_management") %in% user_accesses | (id == "subsets" & "projects_subsets_management" %in% user_accesses))
       
       # Reload markdown
       element_long <- r[[long_var]] %>% dplyr::filter(id == input$selected_element)
@@ -1005,8 +1053,8 @@ mod_widgets_server <- function(id, r, d, m, language, i18n, all_divs, debug, use
         div(
           tags$table(
             tags$tr(tags$td(strong(i18n$t("name"))), tags$td(element_wide$name)),
-            tags$tr(tags$td(strong(i18n$t("created_on"))), tags$td(element_wide$creation_datetime)),
-            tags$tr(tags$td(strong(i18n$t("updated_on"))), tags$td(element_wide$update_datetime)),
+            tags$tr(tags$td(strong(i18n$t("created_on"))), tags$td(format_datetime(element_wide$creation_datetime, language = language, sec = FALSE))),
+            tags$tr(tags$td(strong(i18n$t("updated_on"))), tags$td(format_datetime(element_wide$update_datetime, language = language, sec = FALSE))),
             specific_row,
             tags$tr(tags$td(strong(i18n$t("author_s"))), tags$td(element_long %>% dplyr::filter(name == "author") %>% dplyr::pull(value))),
             tags$tr(tags$td(strong(i18n$t("short_description")), style = "min-width: 150px;"), tags$td(element_long %>% dplyr::filter(name == paste0("short_description_", language)) %>% dplyr::pull(value)))
@@ -1277,7 +1325,7 @@ mod_widgets_server <- function(id, r, d, m, language, i18n, all_divs, debug, use
     observeEvent(input$confirm_element_deletion, {
       if (debug) cat(paste0("\n", now(), " - mod_widgets - (", id, ") - observer input$confirm_element_deletion"))
       
-      req(paste0(id, "_management") %in% user_accesses | id == "subsets")
+      req(paste0(id, "_management") %in% user_accesses | (id == "subsets" & "projects_subsets_management" %in% user_accesses))
       
       element_id <- input$selected_element
       

@@ -1,5 +1,5 @@
 #' @noRd
-mod_page_sidenav_ui <- function(id, i18n){
+mod_page_sidenav_ui <- function(id, language, i18n){
   ns <- NS(id)
   result <- ""
   
@@ -281,42 +281,85 @@ mod_page_sidenav_ui <- function(id, i18n){
       class = "sidenav",
       div(
         id = ns("large_sidenav"),
-        div(
-          class = "sidenav_top",
+        shinyjs::hidden(
           div(
-            create_hover_card(ui = shiny.fluent::IconButton.shinyInput(ns("add_tab"), iconProps = list(iconName = "Boards")), text = i18n$t("add_a_tab")),
-            class = "small_icon_button"
-          ),
-          div(
-            create_hover_card(ui = shiny.fluent::IconButton.shinyInput(ns("add_widget"), iconProps = list(iconName = "RectangularClipping")), text = i18n$t("add_a_widget")),
-            class = "small_icon_button"
-          ),
-          div(
-            id = ns("edit_page_on_div"),
-            create_hover_card(ui = shiny.fluent::IconButton.shinyInput(ns("edit_page_on"), iconProps = list(iconName = "Edit")), text = i18n$t("edit_page")),
-            class = "small_icon_button",
-          ),
-          shinyjs::hidden(
+            id = ns("project_content_management"),
+            class = "sidenav_top",
             div(
-              id = ns("edit_page_off_div"),
-              shiny.fluent::IconButton.shinyInput(ns("edit_page_off"), iconProps = list(iconName = "Accept")),
+              create_hover_card(ui = shiny.fluent::IconButton.shinyInput(ns("add_tab"), iconProps = list(iconName = "Boards")), text = i18n$t("add_a_tab")),
+              class = "small_icon_button"
+            ),
+            div(
+              create_hover_card(ui = shiny.fluent::IconButton.shinyInput(ns("add_widget"), iconProps = list(iconName = "RectangularClipping")), text = i18n$t("add_a_widget")),
+              class = "small_icon_button"
+            ),
+            div(
+              id = ns("edit_page_on_div"),
+              create_hover_card(ui = shiny.fluent::IconButton.shinyInput(ns("edit_page_on"), iconProps = list(iconName = "Edit")), text = i18n$t("edit_page")),
               class = "small_icon_button",
+            ),
+            shinyjs::hidden(
+              div(
+                id = ns("edit_page_off_div"),
+                shiny.fluent::IconButton.shinyInput(ns("edit_page_off"), iconProps = list(iconName = "Accept")),
+                class = "small_icon_button",
+              )
             )
           )
         ), br(),
+        selectizeInput(ns("subset"), i18n$t("subset"), choices = NULL, multiple = FALSE, selected = FALSE),
         div(
-          selectizeInput(ns("subset"), i18n$t("subset"), choices = NULL, multiple = FALSE, selected = FALSE), 
-          style = "width: 200px;"
+          id = ns("subset_date_div"),
+          class = "subset_slider_input",
+          tags$strong(i18n$t("filter_subset_data")),
+          sliderInput(
+            ns("subset_date_slider"),
+            label = NULL,
+            ticks = FALSE,
+            min = as.Date("1970-01-01"),
+            max = Sys.Date(),
+            value = c(as.Date("1970-01-01"), Sys.Date()),
+            timeFormat = ifelse(language == "fr", "%d-%m-%Y", "%Y-%m-%d")
+          ),
+          div(
+            style = "margin-top: 15px; display: flex; gap: 5px;",
+            class = "subset_date_pickers",
+            shiny.fluent::DatePicker.shinyInput(
+              ns("subset_start_date"),
+              value = as.Date("1970-01-01"),
+              allowTextInput = TRUE,
+              minDate = htmlwidgets::JS(sprintf("new Date('%s')", "1970-01-01")),
+              maxDate = htmlwidgets::JS(sprintf("new Date('%s')", as.character(Sys.Date()))),
+              onSelectDate = htmlwidgets::JS("(date) => Shiny.setInputValue('data-subset_start_date', new Date(date.getTime() - (date.getTimezoneOffset() * 60000)).toISOString().split('T')[0])"),
+              formatDate = htmlwidgets::JS(paste0("(date) => date ? new Intl.DateTimeFormat('", language, "-", toupper(language), "').format(date) : ''"))
+            ),
+            span(tolower(i18n$t("to")), style = "margin: auto;"),
+            shiny.fluent::DatePicker.shinyInput(
+              ns("subset_end_date"),
+              value = Sys.Date(),
+              allowTextInput = TRUE,
+              minDate = htmlwidgets::JS(sprintf("new Date('%s')", "1970-01-01")),
+              maxDate = htmlwidgets::JS(sprintf("new Date('%s')", as.character(Sys.Date()))),
+              onSelectDate = htmlwidgets::JS("(date) => Shiny.setInputValue('data-subset_end_date', new Date(date.getTime() - (date.getTimezoneOffset() * 60000)).toISOString().split('T')[0])"),
+              formatDate = htmlwidgets::JS(paste0("(date) => date ? new Intl.DateTimeFormat('", language, "-", toupper(language), "').format(date) : ''"))
+            )
+          ),
+          div(
+            id = ns("subset_date_filters_button"),
+            style = "margin-top: 15px;",
+            shiny.fluent::PrimaryButton.shinyInput(ns("apply_subset_date_filters"), i18n$t("filter_data"), iconProps = list(iconName = "Play"))
+          )
         ),
+        div(id = ns("subset_info_div"), uiOutput(ns("subset_info")), class = "subset_info"),
         div(
           id = ns("person_dropdown_div"),
           selectizeInput(ns("person"), i18n$t("person"), choices = NULL, multiple = FALSE), 
-          style = "width: 200px; margin-top: 10px;"
+          style = "margin-top: 10px;"
         ),
         div(
           id = ns("visit_detail_dropdown_div"),
           selectizeInput(ns("visit_detail"), i18n$t("visit_detail"), choices = NULL, multiple = FALSE),
-          style = "width: 200px;  margin-top: 10px;"
+          style = "margin-top: 10px;"
         ),
         div(id = ns("person_info_div"), uiOutput(ns("person_info")), class = "person_info")
       ),
@@ -441,9 +484,12 @@ mod_page_sidenav_ui <- function(id, i18n){
         shinyjs::hidden(
           div(
             id = ns("one_repo_reduced_sidenav"),
-            div(
-              create_hover_card(ui = shiny.fluent::IconButton.shinyInput(ns("save_git_repo"), iconProps = list(iconName = "Save")), text = i18n$t("commit_and_push")),
-              class = "reduced_sidenav_buttons"
+            shinyjs::hidden(
+              div(
+                id = ns("save_git_repo_button"),
+                create_hover_card(ui = shiny.fluent::IconButton.shinyInput(ns("save_git_repo"), iconProps = list(iconName = "Save")), text = i18n$t("commit_and_push")),
+                class = "reduced_sidenav_buttons"
+              )
             )
             # div(
             #   id = ns("reload_git_repo_div"),
@@ -690,9 +736,20 @@ mod_page_sidenav_ui <- function(id, i18n){
         id = ns("reduced_sidenav"),
         div(
           id = ns("all_elements_reduced_sidenav"),
-          create_hover_card(ui = shiny.fluent::IconButton.shinyInput(ns("create_element"), iconProps = list(iconName = "Add")), text = i18n$t("create_subset")),
-          create_hover_card(ui = shiny.fluent::IconButton.shinyInput(ns("reload_elements_var"), iconProps = list(iconName = "SyncOccurence")), text = i18n$t("reload_list")),
+          shinyjs::hidden(
+            div(
+              id = ns("subset_buttons"),
+              create_hover_card(ui = shiny.fluent::IconButton.shinyInput(ns("create_element"), iconProps = list(iconName = "Add")), text = i18n$t("create_subset")),
+              create_hover_card(ui = shiny.fluent::IconButton.shinyInput(ns("reload_elements_var"), iconProps = list(iconName = "SyncOccurence")), text = i18n$t("reload_list"))
+            )
+          ),
           class = "reduced_sidenav_buttons"
+        ),
+        shinyjs::hidden(
+          div(
+            id = ns("summary_reduced_sidenav"),
+            edit_summary_buttons()
+          )
         ),
         shinyjs::hidden(
           div(
@@ -779,6 +836,12 @@ mod_page_sidenav_ui <- function(id, i18n){
             text = i18n$t("import_concepts_or_vocabularies")
           ),
           class = "reduced_sidenav_buttons"
+        ),
+        shinyjs::hidden(
+          div(
+            id = ns("summary_reduced_sidenav"),
+            edit_summary_buttons()
+          )
         ),
         shinyjs::hidden(
           div(

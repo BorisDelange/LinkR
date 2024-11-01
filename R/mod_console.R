@@ -1,12 +1,12 @@
 #' @noRd 
-mod_console_ui <- function(id, language, languages, i18n){
+mod_console_ui <- function(id, language, languages, i18n, code_hotkeys, auto_complete_list){
   ns <- NS(id)
   
-  code_hotkeys <- list(
-    run_selection = list(win = "CTRL-ENTER", mac = "CTRL-ENTER|CMD-ENTER"),
-    run_all = list(win = "CTRL-SHIFT-ENTER", mac = "CTRL-SHIFT-ENTER|CMD-SHIFT-ENTER"),
-    comment = list(win = "CTRL-SHIFT-C", mac = "CTRL-SHIFT-C|CMD-SHIFT-C")
-  )
+  visit_detail_tables <- c("condition_occurrence", "drug_exposure", "procedure_occurrence", "device_exposure", "measurement", "observation", "note", "note_nlp", "payer_plan_period", "cost")
+  person_tables <- c(visit_detail_tables, "specimen", "death", "drug_era", "dose_era", "condition_era")
+  subset_tables <- c(person_tables, "person", "observation_period", "visit_occurrence", "visit_detail")
+  main_tables <- c(subset_tables, "location", "care_site", "provider")
+  
   div(
     div(
       id = ns("console_forbidden_access"),
@@ -20,25 +20,31 @@ mod_console_ui <- function(id, language, languages, i18n){
           shinyAce::aceEditor(
             ns("code"), value = "", mode = "r",
             code_hotkeys = list("r", code_hotkeys),
+            autoComplete = "live", autoCompleters = c("static", "text"), autoCompleteList = auto_complete_list,
             autoScrollEditorIntoView = TRUE, height = "100%", debounce = 100, fontSize = 11, showPrintMargin = FALSE
           ),
-          style = "width: 50%; margin-top: 10px;"
+          class = "resizable-panel left-panel",
+          style = "width: 50%;"
         ),
+        div(class = "resizer"),
         div(
           id = ns("console_output"),
           textOutput(ns("datetime_code_execution")),
           verbatimTextOutput(ns("code_output")),
           shinyjs::hidden(div(id = ns("plot_output_div"), plotOutput(ns("plot_output")), style = "padding-top: 10px;")),
-          shinyjs::hidden(uiOutput(ns("ui_output"))),
+          shinyjs::hidden(uiOutput(ns("rmarkdown_output"))),
+          shinyjs::hidden(uiOutput(ns("ui_output"), style = "padding-top: 10px;")),
           shinyjs::hidden(div(id = ns("table_output_div"), tableOutput(ns("table_output")), style = "padding-top: 10px;")),
           shinyjs::hidden(div(id = ns("datatable_output_div"), DT::DTOutput(ns("datatable_output")), style = "padding-top: 10px;")),
           shinyjs::hidden(imageOutput(ns("image_output"))),
-          style = "width: 50%; border: dashed grey 1px; margin: 10px 0px 0px 10px; padding: 10px; font-size: 12px; overflow-y: auto;"
+          class = "resizable-panel right-panel",
+          style = "width: 50%; padding: 10px; font-size: 12px; overflow-y: auto;"
         ),
+        class = "resizable-container",
         style = "height: 100%; display: flex;"
       )
     ),
-    style = "max-height:calc(100vh - 90px); width: 100%;",
+    style = "width: 100%; padding: 0;",
     class = "main"
   )
 }
@@ -55,7 +61,60 @@ mod_console_server <- function(id, r, d, m, language, i18n, debug, user_accesses
       shinyjs::hide("console_forbidden_access")
     }
     
-    r$load_console <- now()
+    # Auto completion starting at 3 characters
+    
+    shinyjs::runjs("
+      $(document).ready(function() {
+        // Initialize the Ace editor
+        var editor = ace.edit('console-code');
+
+        // Disable default live autocomplete
+        editor.setOptions({
+          enableLiveAutocompletion: false,
+          liveAutocompletionDelay: 500,
+          liveAutocompletionThreshold: 3
+        });
+
+        // Watch for changes in the editor
+        editor.getSession().on('change', function() {
+          var text = editor.getValue();  // Get the full text
+          var cursorPosition = editor.getCursorPosition();  // Get current cursor position
+          var session = editor.getSession();
+          var line = session.getLine(cursorPosition.row);  // Get the current line of the cursor
+          var mode = editor.getSession().getMode().$id; // Get the current mode (language)
+      
+          // Only activate autocompletion if the mode is R
+          if (mode !== 'ace/mode/r') {
+            editor.setOptions({ enableLiveAutocompletion: false });
+            return;  // Exit early if not in R mode
+          }
+          
+          // Get the word just before the cursor
+          var charBeforeCursor = text.slice(editor.session.doc.positionToIndex(cursorPosition) - 1, editor.session.doc.positionToIndex(cursorPosition));
+          
+          // Detect if the user has typed '::' for a package
+          var indexOfDoubleColon = line.lastIndexOf('::');
+          var charsAfterDoubleColon = cursorPosition.column - indexOfDoubleColon - 2;  // Characters typed after '::'
+          
+          var lastWord = line.split(/\\s+/).pop();  // Get the last word (or partial word)
+
+          // If 'd$' is typed (even inside parentheses), enable immediate autocompletion
+          if (lastWord.startsWith('d$')) {
+            editor.setOptions({ enableLiveAutocompletion: true });
+          }
+          // Disable autocompletion if fewer than 2 characters after '::'
+          else if (indexOfDoubleColon >= 0 && charsAfterDoubleColon < 2) {
+            editor.setOptions({ enableLiveAutocompletion: false });
+          }
+          // General rule: enable autocompletion after 3 characters
+          else if (lastWord.length >= 3) {
+            editor.setOptions({ enableLiveAutocompletion: true });
+          } else {
+            editor.setOptions({ enableLiveAutocompletion: false });
+          }
+        });
+      });
+    ")
     
     # Unlock reactivity
     observeEvent(shiny.router::get_page(), {
@@ -78,6 +137,7 @@ mod_console_server <- function(id, r, d, m, language, i18n, debug, user_accesses
         output_options <- list(
           list(key = "console", text = i18n$t("console")),
           list(key = "figure", text = i18n$t("figure")),
+          list(key = "ui", text = i18n$t("ui_output")),
           list(key = "table", text = i18n$t("table_output")),
           list(key = "datatable", text = i18n$t("datatable_output")),
           list(key = "rmarkdown", text = i18n$t("rmarkdown"))
@@ -175,10 +235,11 @@ mod_console_server <- function(id, r, d, m, language, i18n, debug, user_accesses
       
       ## Run R code ----
       
-      sapply(c("code_output", "ui_output", "plot_output_div", "table_output_div", "datatable_output_div", "image_output"), shinyjs::hide)
+      sapply(c("code_output", "rmarkdown_output", "ui_output", "plot_output_div", "table_output_div", "datatable_output_div", "image_output"), shinyjs::hide)
       if (input$output == "console") shinyjs::show("code_output")
       else if (input$output == "figure") shinyjs::show("plot_output_div")
-      else if (input$output == "rmarkdown") shinyjs::show("ui_output")
+      else if (input$output == "rmarkdown") shinyjs::show("rmarkdown_output")
+      else if (input$output == "ui") shinyjs::show("ui_output")
       else if (input$output == "table") shinyjs::show("table_output_div")
       else if (input$output == "datatable") shinyjs::show("datatable_output_div")
       else if (input$output == "terminal") shinyjs::show("code_output")
@@ -210,11 +271,15 @@ mod_console_server <- function(id, r, d, m, language, i18n, debug, user_accesses
           )
         )
         
+        # UI
+        
+        else if (input$output == "ui") output$ui_output <- renderUI(tryCatch(eval(parse(text = code)), error = function(e) print(e), warning = function(w) print(w)))
+        
         # RMarkdown
         else if (input$output == "rmarkdown"){
           
           output_file <- create_rmarkdown_file(r, code)
-          output$ui_output <- renderUI(div(class = "markdown", withMathJax(includeMarkdown(output_file))))
+          output$rmarkdown_output <- renderUI(div(class = "markdown", withMathJax(includeMarkdown(output_file))))
         }
         
         # Table

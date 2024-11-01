@@ -23,7 +23,7 @@ mod_plugins_ui <- function(id, language, languages, i18n){
       div(
         id = ns("one_element"),
         div(
-          uiOutput(ns("breadcrumb")),
+          div(uiOutput(ns("breadcrumb")), style = "flex: 1;"),
           div(
             id = ns("plugin_pivot"),
             tags$button(id = ns("summary"), i18n$t("summary"), class = "pivot_item selected_pivot_item", onclick = pivot_item_js),
@@ -239,6 +239,48 @@ mod_plugins_ui <- function(id, language, languages, i18n){
       )
     ),
     
+    # Create a plugin modal ----
+    
+    shinyjs::hidden(
+      div(
+        id = ns("create_element_modal"),
+        div(
+          div(
+            tags$h1(i18n$t("create_plugin")),
+            shiny.fluent::IconButton.shinyInput(ns("close_create_element_modal"), iconProps = list(iconName = "ChromeClose")),
+            class = "create_element_modal_head small_close_button"
+          ),
+          div(
+            div(
+              div(shiny.fluent::TextField.shinyInput(ns("element_creation_name"), label = i18n$t("name")), style = "width: 200px;"),
+              div(
+                shiny.fluent::Dropdown.shinyInput(
+                  ns("plugin_creation_type"), label = i18n$t("data_type"), multiSelect = TRUE,
+                  options = list(
+                    list(key = 1, text = i18n$t("patient_lvl_data")),
+                    list(key = 2, text = i18n$t("aggregated_data"))
+                  ), value = 1
+                ),
+                style = "width: 200px;"
+              ),
+              style = "display: flex; gap: 20px;"
+            ),
+            div(
+              div(shiny.fluent::Toggle.shinyInput(ns("plugin_copy_existing_plugin"), label = i18n$t("copy_existing_plugin")), style = "width: 200px; margin-top: 20px;"),
+              div(id = ns("plugin_to_copy_div"), shiny.fluent::Dropdown.shinyInput(ns("plugin_to_copy")), style = "width: 200px; margin-top: 18px;"),
+              style = "display: flex; gap: 20px;"
+            ),
+            div(
+              shiny.fluent::PrimaryButton.shinyInput(ns("add_element"), i18n$t("add")),
+              class = "create_element_modal_buttons"
+            ),
+          ),
+          class = "create_plugin_modal_content"
+        ),
+        class = "create_element_modal"
+      )
+    ),
+    
     # Delete a plugin modal ----
     
     shinyjs::hidden(
@@ -330,6 +372,19 @@ mod_plugins_server <- function(id, r, d, m, language, i18n, debug, user_accesses
     # --- --- --- --- - -
     
     # |-------------------------------- -----
+    
+    # --- --- --- --- -- -
+    # Create a plugin ----
+    # --- --- --- --- -- -
+    
+    # Show / hide plugin_to_copy dropdown
+    
+    observeEvent(input$plugin_copy_existing_plugin, {
+      if (debug) cat(paste0("\n", now(), " - mod_plugins - observer input$plugin_copy_existing_plugin"))
+      
+      if (input$plugin_copy_existing_plugin) shinyjs::show("plugin_to_copy_div")
+      else shinyjs::hide("plugin_to_copy_div")
+    })
     
     # --- --- --- --- --- -
     # Edit plugin code ----

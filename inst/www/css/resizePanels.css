@@ -1,0 +1,23 @@
+.resizable-container {
+  display: flex;
+  width: 100%;
+  position: relative;
+}
+
+.resizable-panel {
+  flex: 1;
+  box-sizing: border-box;
+}
+
+.resizer {
+  width: 5px;
+  cursor: col-resize;
+  background-color: #ccc;
+  height: 100%;
+  position: relative;
+  z-index: 1;
+}
+
+.resizer:hover {
+  background-color: #999 !important;
+}

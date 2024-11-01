@@ -1,5 +1,5 @@
 #' @noRd 
-mod_data_cleaning_ui <- function(id, language, languages, i18n, code_hotkeys){
+mod_data_cleaning_ui <- function(id, language, languages, i18n, code_hotkeys, auto_complete_list){
   ns <- NS(id)
   
   pivot_item_js <- paste0("
@@ -19,7 +19,7 @@ mod_data_cleaning_ui <- function(id, language, languages, i18n, code_hotkeys){
       div(
         id = ns("one_element"),
         div(
-          uiOutput(ns("breadcrumb")),
+          div(uiOutput(ns("breadcrumb")), style = "flex: 1;"),
           div(
             id = ns("data_cleaning_pivot"),
             tags$button(id = ns("summary"), i18n$t("summary"), class = "pivot_item selected_pivot_item", onclick = pivot_item_js),
@@ -173,15 +173,20 @@ mod_data_cleaning_ui <- function(id, language, languages, i18n, code_hotkeys){
                   shinyAce::aceEditor(
                     ns("data_cleaning_code"), value = "", mode = "r",
                     code_hotkeys = list("r", code_hotkeys),
+                    autoComplete = "live", autoCompleters = c("static", "text"), autoCompleteList = auto_complete_list,
                     autoScrollEditorIntoView = TRUE, height = "100%", debounce = 100, fontSize = 11, showPrintMargin = FALSE
                   ),
-                  class = "element_ace_editor"
+                  class = "resizable-panel left-panel",
+                  style = "width: 50%;"
                 ),
+                div(class = "resizer"),
                 div(
                   verbatimTextOutput(ns("code_result")),
-                  class = "element_code_result"
+                  class = "resizable-panel right-panel",
+                  style = "width: 50%; padding: 0 10px; font-size: 12px; overflow-y: auto;"
                 ),
-                style = "height: 100%; display: flex;"
+                class = "resizable-container",
+                style = "height: calc(100% - 10px); display: flex; margin-top: 10px;"
               )
             ),
             style = "height: 100%;"
@@ -212,6 +217,30 @@ mod_data_cleaning_ui <- function(id, language, languages, i18n, code_hotkeys){
         ),
         
         style = "height: 100%; display: flex; flex-direction: column;"
+      )
+    ),
+    
+    # Create a data cleaning script modal ----
+    
+    shinyjs::hidden(
+      div(
+        id = ns("create_element_modal"),
+        div(
+          div(
+            tags$h1(i18n$t("create_data_cleaning")),
+            shiny.fluent::IconButton.shinyInput(ns("close_create_element_modal"), iconProps = list(iconName = "ChromeClose")),
+            class = "create_element_modal_head small_close_button"
+          ),
+          div(
+            div(shiny.fluent::TextField.shinyInput(ns("element_creation_name"), label = i18n$t("name")), style = "width: 200px;"),
+            div(
+              shiny.fluent::PrimaryButton.shinyInput(ns("add_element"), i18n$t("add")),
+              class = "create_element_modal_buttons"
+            ),
+          ),
+          class = "create_data_cleaning_modal_content"
+        ),
+        class = "create_element_modal"
       )
     )
   )
