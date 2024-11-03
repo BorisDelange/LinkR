@@ -569,8 +569,7 @@ a.no-hover-effect:hover {
 }
 
 .selected_widget {
-  border: 2px solid rgba(0, 128, 0, 0.5);
-  box-shadow: 0 2px 4px 0 rgba(0, 128, 0, 0.3), 0 3px 10px 0 rgba(0, 128, 0, 0.25);
+  border: 3px solid #0084D7;
 }
 
 .selected_concepts_widget {
