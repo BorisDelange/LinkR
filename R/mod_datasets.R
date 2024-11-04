@@ -192,6 +192,7 @@ mod_datasets_ui <- function(id, language, languages, i18n, code_hotkeys, auto_co
                 ),
                 div(class = "resizer"),
                 div(
+                  id = ns("code_result_div"),
                   verbatimTextOutput(ns("code_result")),
                   class = "resizable-panel right-panel",
                   style = "width: 50%; padding: 0 10px; font-size: 12px; overflow-y: auto;"
@@ -268,7 +269,7 @@ mod_datasets_ui <- function(id, language, languages, i18n, code_hotkeys, auto_co
 }
 
 #' @noRd 
-mod_datasets_server <- function(id, r, d, m, language, i18n, debug, user_accesses){
+mod_datasets_server <- function(id, r, d, m, language, i18n, debug, user_accesses, user_settings){
   
   # |-------------------------------- -----
   
@@ -277,7 +278,7 @@ mod_datasets_server <- function(id, r, d, m, language, i18n, debug, user_accesse
   # Load widgets ----
   
   all_divs <- c("summary", "edit_code", "share")
-  mod_widgets_server(id, r, d, m, language, i18n, all_divs, debug, user_accesses)
+  mod_widgets_server(id, r, d, m, language, i18n, all_divs, debug, user_accesses, user_settings)
   
   # Datasets module ----
   

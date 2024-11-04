@@ -478,3 +478,7 @@ data_cleaning_doesnt_exist_locally,Ce script de data cleaning n'existe pas sur v
 project_doesnt_exist_locally,Ce projet n'existe pas sur votre instance de LinkR
 study_doesnt_exist_locally,Ce projet n'existe pas sur votre instance de LinkR
 subset_deleted,Subset supprimé
+user_settings,Réglages de l'utilisateur
+code_editor,Editeur de code
+ace_theme,Thème de l'éditeur
+ace_font_size,Taille de la police de l'éditeur

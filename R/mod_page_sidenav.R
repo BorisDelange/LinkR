@@ -788,6 +788,27 @@ mod_page_sidenav_ui <- function(id, language, i18n){
     ) -> result
   }
   
+  # User settings ----
+  
+  else if (id == "user_settings") {
+    div(
+      id = ns("sidenav"),
+      class = "sidenav", style = reduced_sidenav_style,
+      div(
+        id = ns("large_sidenav")
+      ),
+      div(
+        id = ns("reduced_sidenav"),
+        div(
+          id = ns("save_settings_div"),
+          create_hover_card(ui = shiny.fluent::IconButton.shinyInput(ns("save_settings"), iconProps = list(iconName = "Save")), text = i18n$t("save")),
+          class = "reduced_sidenav_buttons",
+        )
+      ),
+      shinyjs::hidden(show_sidenav)
+    ) -> result
+  }
+  
   # Users ----
   
   else if (id == "users") {

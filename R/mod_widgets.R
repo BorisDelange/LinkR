@@ -108,7 +108,7 @@ mod_widgets_ui <- function(id, language, languages, i18n){
 }
 
 #' @noRd 
-mod_widgets_server <- function(id, r, d, m, language, i18n, all_divs, debug, user_accesses){
+mod_widgets_server <- function(id, r, d, m, language, i18n, all_divs, debug, user_accesses, user_settings){
   moduleServer(id, function(input, output, session){
     ns <- session$ns
     
@@ -171,6 +171,16 @@ mod_widgets_server <- function(id, r, d, m, language, i18n, all_divs, debug, use
     if (id == "plugins"){
       r$edit_plugin_code_files_list <- tibble::tibble(id = integer(), plugin_id = integer(), filename = character())
       r$edit_plugin_code_editors <- tibble::tibble(id = integer(), plugin_id = integer(), filename = character())
+    }
+    
+    # Apply user settings ----
+    
+    if (id %in% c("data_cleaning", "datasets", "subsets")){
+      shinyAce::updateAceEditor(session, paste0(single_id, "_code"), theme = user_settings$ace_theme, fontSize = user_settings$ace_font_size)
+      
+      text_output_theme <- gsub("_", "-", user_settings$ace_theme)
+      if (text_output_theme == "terminal") text_output_theme <- paste0(text_output_theme, "-theme")
+      shinyjs::addClass("code_result_div", paste0("ace-", text_output_theme))
     }
     
     # Search an element ----

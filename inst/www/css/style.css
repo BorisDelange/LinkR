@@ -1249,6 +1249,16 @@ td[data-type="factor"] input {
   width: 50%;
 }
 
+/* --------------------------- */
+/* USER SETTINGS PAGE          */
+/* --------------------------- */
+
+.user_settings_container {
+  display: flex;
+  justify-content: space-between;
+  height: calc(100% - 50px);
+}
+
 /* --------------------- */
 /* SUBSETS PAGE          */
 /* --------------------- */

@@ -38,7 +38,7 @@ mod_console_ui <- function(id, language, languages, i18n, code_hotkeys, auto_com
           shinyjs::hidden(div(id = ns("datatable_output_div"), DT::DTOutput(ns("datatable_output")), style = "padding-top: 10px;")),
           shinyjs::hidden(imageOutput(ns("image_output"))),
           class = "resizable-panel right-panel",
-          style = "width: 50%; padding: 10px; font-size: 12px; overflow-y: auto;"
+          style = "width: 50%; padding: 0 15px; font-size: 12px; overflow-y: auto;"
         ),
         class = "resizable-container",
         style = "height: 100%; display: flex;"
@@ -50,7 +50,7 @@ mod_console_ui <- function(id, language, languages, i18n, code_hotkeys, auto_com
 }
 
 #' @noRd 
-mod_console_server <- function(id, r, d, m, language, i18n, debug, user_accesses){
+mod_console_server <- function(id, r, d, m, language, i18n, debug, user_accesses, user_settings){
   moduleServer(id, function(input, output, session){
     ns <- session$ns
     
@@ -60,6 +60,14 @@ mod_console_server <- function(id, r, d, m, language, i18n, debug, user_accesses
       sapply(c("console_sidenav_buttons", "reduced_sidenav_execute_code_button", "console_div"), shinyjs::show) 
       shinyjs::hide("console_forbidden_access")
     }
+    
+    # Apply user settings ----
+    
+    shinyAce::updateAceEditor(session, "code", theme = user_settings$ace_theme, fontSize = user_settings$ace_font_size)
+    
+    text_output_theme <- gsub("_", "-", user_settings$ace_theme)
+    if (text_output_theme == "terminal") text_output_theme <- paste0(text_output_theme, "-theme")
+    shinyjs::addClass("console_output", paste0("ace-", text_output_theme))
     
     # Auto completion starting at 3 characters
     
@@ -172,7 +180,7 @@ mod_console_server <- function(id, r, d, m, language, i18n, debug, user_accesses
       shinyAce::updateAceEditor(session, "code", mode = ace_mode)
     })
     
-    # Show / hide plot size buttons ----
+    # Output dropdown ----
     observeEvent(input$output, {
       if (debug) cat(paste0("\n", now(), " - mod_console - observer input$output"))
       
@@ -180,6 +188,10 @@ mod_console_server <- function(id, r, d, m, language, i18n, debug, user_accesses
         shinyjs::show("plot_size_div")
       }
       else shinyjs::hide("plot_size_div")
+      
+      # Output style
+      if (input$output %in% c("console", "terminal")) shinyjs::addClass("console_output", paste0("ace-", text_output_theme))
+      else shinyjs::removeClass("console_output", paste0("ace-", text_output_theme))
     })
     
     # Comment code ----

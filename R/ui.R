@@ -22,7 +22,7 @@ app_ui <- function(
       
       if (page == "users") args <- list(page, language, languages, i18n, users_accesses_toggles_options)
       else if (page == "app_db") args <- list(page, language, languages, i18n, code_hotkeys, db_col_types)
-      else if (page %in% c("console", "data_cleaning", "datasets", "subsets")) args <- list(page, language, languages, i18n, code_hotkeys, auto_complete_list)
+      else if (page %in% c("console", "data_cleaning", "datasets", "subsets", "user_settings")) args <- list(page, language, languages, i18n, code_hotkeys, auto_complete_list)
       else if (page == "vocabularies") args <- list(page, language, languages, i18n, code_hotkeys, dropdowns)
       else if (page == "concepts") args <- list(page, language, languages, i18n, dropdowns)
       

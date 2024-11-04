@@ -177,13 +177,13 @@ linkr <- function(
     "data_cleaning",
     "git_repos",
     "log",
-    # "login",
     "project_messages",
     "plugins",
     "projects",
     "project_console",
     "subsets",
     "tasks",
+    "user_settings",
     "users",
     "vocabularies"
   )

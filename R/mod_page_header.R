@@ -94,25 +94,9 @@ mod_page_header_ui <- function(id, i18n){
     )
   )
   
-  settings_div <- div(
-    shiny.fluent::CommandBar(
-      items = list(
-        shiny.fluent::CommandBarItem(
-          "", "Settings",
-          subMenuProps = list(items = list(
-            list(text = i18n$t("users"), iconProps = list(iconName = "Contact"), href = shiny.router::route_link("users")),
-            list(text = i18n$t("app_db"), iconProps = list(iconName = "OfflineStorage"), href = shiny.router::route_link("app_db")),
-            list(text = i18n$t("log"), iconProps = list(iconName = "KnowledgeArticle"), href = shiny.router::route_link("log"))
-          )),
-          title = i18n$t("app_settings")
-        )
-      )
-    ),
-    class = "header_command_bar"
-  )
-  
-  if (id %in% c("app_db", "home", "console", "datasets", "data_cleaning", "git_repos",
-    "log", "plugins", "projects", "users", "vocabularies")) command_bar_2 <- shinyjs::hidden(command_bar_2)
+  if (id %in% c(
+    "app_db", "home", "console", "datasets", "data_cleaning", "git_repos",
+    "log", "plugins", "projects", "user_settings", "users", "vocabularies")) command_bar_2 <- shinyjs::hidden(command_bar_2)
   
   tagList(
     div(
@@ -133,10 +117,23 @@ mod_page_header_ui <- function(id, i18n){
         )
       ),
       div(class = "header_right_bar",
-        #   uiOutput(ns("user")),
-        #   div(uiOutput(ns("username")), style = "font-weight:bold; padding: 12px 10px 0px 0px;"),
-        # )
-        settings_div
+        div(
+          shiny.fluent::CommandBar(
+            items = list(
+              shiny.fluent::CommandBarItem(
+                "", "Settings",
+                subMenuProps = list(items = list(
+                  list(text = i18n$t("user_settings"), iconProps = list(iconName = "Settings"), href = shiny.router::route_link("user_settings")),
+                  list(text = i18n$t("users"), iconProps = list(iconName = "Contact"), href = shiny.router::route_link("users")),
+                  list(text = i18n$t("app_db"), iconProps = list(iconName = "OfflineStorage"), href = shiny.router::route_link("app_db")),
+                  list(text = i18n$t("log"), iconProps = list(iconName = "KnowledgeArticle"), href = shiny.router::route_link("log"))
+                )),
+                title = i18n$t("app_settings")
+              )
+            )
+          ),
+          class = "header_command_bar"
+        )
       )
     )
   )

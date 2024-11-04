@@ -324,7 +324,7 @@ mod_plugins_ui <- function(id, language, languages, i18n){
 }
 
 #' @noRd 
-mod_plugins_server <- function(id, r, d, m, language, i18n, debug, user_accesses){
+mod_plugins_server <- function(id, r, d, m, language, i18n, debug, user_accesses, user_settings){
   
   # |-------------------------------- -----
   
@@ -333,7 +333,7 @@ mod_plugins_server <- function(id, r, d, m, language, i18n, debug, user_accesses
   # Load widgets ----
   
   all_divs <- c("summary", "edit_code", "run_code", "share")
-  mod_widgets_server(id, r, d, m, language, i18n, all_divs, debug, user_accesses)
+  mod_widgets_server(id, r, d, m, language, i18n, all_divs, debug, user_accesses, user_settings)
   
   # Load concepts backend ----
   
@@ -443,7 +443,8 @@ mod_plugins_server <- function(id, r, d, m, language, i18n, debug, user_accesses
             shinyAce::aceEditor(
               ns(paste0("edit_code_editor_", file_id)), value = file_code, mode = ace_mode,
               hotkeys = code_hotkeys,
-              autoScrollEditorIntoView = TRUE, height = "100%", debounce = 100, fontSize = 11, showPrintMargin = FALSE
+              theme = user_settings$ace_theme, fontSize = user_settings$ace_font_size,
+              autoScrollEditorIntoView = TRUE, height = "100%", debounce = 100, showPrintMargin = FALSE
             ),
             style = "width: 100%; height: 100%; display: flex; flex-direction: column;"
           )
@@ -663,7 +664,8 @@ mod_plugins_server <- function(id, r, d, m, language, i18n, debug, user_accesses
           shinyAce::aceEditor(
             ns(paste0("edit_code_editor_", file_id)), value = file_code, mode = ace_mode,
             hotkeys = code_hotkeys,
-            autoScrollEditorIntoView = TRUE, height = "100%", debounce = 100, fontSize = 11, showPrintMargin = FALSE
+            theme = user_settings$ace_theme, fontSize = user_settings$ace_font_size,
+            autoScrollEditorIntoView = TRUE, height = "100%", debounce = 100, showPrintMargin = FALSE
           ),
           style = "width: 100%; height: 100%; display: flex; flex-direction: column;"
         ))
@@ -749,7 +751,8 @@ mod_plugins_server <- function(id, r, d, m, language, i18n, debug, user_accesses
           shinyAce::aceEditor(
             ns(paste0("edit_code_editor_", options_new_row_id)), value = "", mode = "r",
             hotkeys = code_hotkeys,
-            autoScrollEditorIntoView = TRUE, height = "100%", debounce = 100, fontSize = 11, showPrintMargin = FALSE
+            theme = user_settings$ace_theme, fontSize = user_settings$ace_font_size,
+            autoScrollEditorIntoView = TRUE, height = "100%", debounce = 100, showPrintMargin = FALSE
           ),
           style = "width: 100%; height: 100%; display: flex; flex-direction: column;"
         ))

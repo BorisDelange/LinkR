@@ -181,6 +181,7 @@ mod_data_cleaning_ui <- function(id, language, languages, i18n, code_hotkeys, au
                 ),
                 div(class = "resizer"),
                 div(
+                  id = ns("code_result_div"),
                   verbatimTextOutput(ns("code_result")),
                   class = "resizable-panel right-panel",
                   style = "width: 50%; padding: 0 10px; font-size: 12px; overflow-y: auto;"
@@ -247,7 +248,7 @@ mod_data_cleaning_ui <- function(id, language, languages, i18n, code_hotkeys, au
 }
 
 #' @noRd 
-mod_data_cleaning_server <- function(id, r, d, m, language, i18n, debug, user_accesses){
+mod_data_cleaning_server <- function(id, r, d, m, language, i18n, debug, user_accesses, user_settings){
   # |-------------------------------- -----
   
   if (debug) cat(paste0("\n", now(), " - mod_data_cleaning - ", id, " - start"))
@@ -255,7 +256,7 @@ mod_data_cleaning_server <- function(id, r, d, m, language, i18n, debug, user_ac
   # Load widgets ----
   
   all_divs <- c("summary", "edit_code", "share")
-  mod_widgets_server(id, r, d, m, language, i18n, all_divs, debug, user_accesses)
+  mod_widgets_server(id, r, d, m, language, i18n, all_divs, debug, user_accesses, user_settings)
   
   # Data cleaning scripts module ----
   

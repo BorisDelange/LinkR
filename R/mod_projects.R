@@ -390,7 +390,7 @@ mod_projects_ui <- function(id, language, languages, i18n){
 }
 
 #' @noRd 
-mod_projects_server <- function(id, r, d, m, language, i18n, debug, user_accesses){
+mod_projects_server <- function(id, r, d, m, language, i18n, debug, user_accesses, user_settings){
   
   # |-------------------------------- -----
   
@@ -399,7 +399,7 @@ mod_projects_server <- function(id, r, d, m, language, i18n, debug, user_accesse
   # Load widgets ----
   
   all_divs <- c("summary", "dataset", "data_cleaning_scripts", "share")
-  mod_widgets_server(id, r, d, m, language, i18n, all_divs, debug, user_accesses)
+  mod_widgets_server(id, r, d, m, language, i18n, all_divs, debug, user_accesses, user_settings)
   
   # Projects module ----
   
