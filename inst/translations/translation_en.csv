@@ -486,7 +486,6 @@ tab,Tab
 widget,Widget
 validate_updates,Validate updates
 create_a_tab_before_adding_a_widget,Create a tab to be able to add a widget
-subset_deleted,Subset deleted
 file_deleted,File deleted
 widget_added,Widget added
 tab_added,Tab added
