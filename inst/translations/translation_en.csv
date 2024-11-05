@@ -485,3 +485,4 @@ ace_font_size,Editor font size
 tab,Tab
 widget,Widget
 validate_updates,Validate updates
+create_a_tab_before_adding_a_widget,Create a tab to be able to add a widget

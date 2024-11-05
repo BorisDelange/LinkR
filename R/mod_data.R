@@ -480,7 +480,6 @@ mod_data_server <- function(id, r, d, m, language, i18n, debug, user_accesses){
     observeEvent(m$selected_person, {
       if (debug) cat(paste0("\n", now(), " - mod_data - observer m$selected_person"))
       
-      req(FALSE)
       req(!is.na(m$selected_person))
       
       selected_person <- m$selected_person
@@ -1665,6 +1664,8 @@ mod_data_server <- function(id, r, d, m, language, i18n, debug, user_accesses){
     # Open modal
     observeEvent(input$add_widget, {
       if (debug) cat(paste0("\n", now(), " - mod_data - observer input$add_widget"))
+      
+      if (is.na(r[[paste0(r$data_page, "_selected_tab")]])) show_message_bar(output, message = "create_a_tab_before_adding_a_widget", type = "warning", i18n = i18n, ns = ns)
       
       req(!is.na(r[[paste0(r$data_page, "_selected_tab")]]))
       

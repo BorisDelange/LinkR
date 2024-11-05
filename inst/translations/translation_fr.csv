@@ -485,3 +485,4 @@ ace_font_size,Taille de la police de l'éditeur
 tab,Onglet
 widget,Widget
 validate_updates,Valider les modifications
+create_a_tab_before_adding_a_widget,Créez un onglet pour pouvoir ajouter un widget
