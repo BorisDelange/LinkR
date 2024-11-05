@@ -4,29 +4,45 @@ create_gridstack_instance <- function(id, tab_id){
   
   shinyjs::delay(200, 
     shinyjs::runjs(paste0("
-      if (!window.gridStackInstances['", tab_id, "']) {
-        const grid = GridStack.init({
-          cellHeight: 15,
-          scroll: false,
-          column: 12,
-          staticGrid: true,
-          float: false,
-          resizable: { handles: 'se, ne, nw, sw' },
-          margin: 10
-        }, '#", ns(paste0("gridstack_", tab_id)), "');
-
-        window.gridStackInstances['", tab_id, "'] = grid;
+      function initializeGridStack() {
+        
+        const totalHeight = window.innerHeight - 120;
+        const numRows = 40;
+        const cellHeight = totalHeight / numRows;
+        
+        if (!window.gridStackInstances['", tab_id, "']) {
+          const grid = GridStack.init({
+            cellHeight: cellHeight + 'px',
+            maxRow: 40,
+            scroll: false,
+            column: 12,
+            staticGrid: true,
+            float: false,
+            resizable: { handles: 'se, ne, nw, sw' },
+            margin: 10
+          }, '#", ns(paste0("gridstack_", tab_id)), "');
+  
+          window.gridStackInstances['", tab_id, "'] = grid;
+        } else {
+          window.gridStackInstances['", tab_id, "'].cellHeight(cellHeight);
+        }
       }
+      
+      initializeGridStack();
+  
+      window.addEventListener('resize', function() {
+        initializeGridStack();
+      });
     "))
   )
 }
 
 #' @noRd
-create_widget <- function(id, widget_id, ui_code, w = 6, h = 25, x = 0, y = 0){
+create_widget <- function(id, widget_id, ui_code, w = 6, h = 20, x = 0, y = 0){
   ns <- NS(id)
   
   if (is.na(w) | w == 0) w <- 6
-  if (is.na(h) | h == 0) h <- 25
+  if (is.na(h) | h == 0) h <- 20
   if (is.na(x)) x <- 0
   if (is.na(y)) y <- 0
   
