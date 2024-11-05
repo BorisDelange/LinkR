@@ -486,3 +486,7 @@ tab,Onglet
 widget,Widget
 validate_updates,Valider les modifications
 create_a_tab_before_adding_a_widget,Créez un onglet pour pouvoir ajouter un widget
+subset_deleted,Subset supprimé
+file_deleted,Fichier supprimé
+widget_added,Widget ajouté
+tab_added,Onglet ajouté
