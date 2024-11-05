@@ -482,3 +482,6 @@ user_settings,Réglages de l'utilisateur
 code_editor,Editeur de code
 ace_theme,Thème de l'éditeur
 ace_font_size,Taille de la police de l'éditeur
+tab,Onglet
+widget,Widget
+validate_updates,Valider les modifications

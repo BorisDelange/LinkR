@@ -284,30 +284,32 @@ mod_page_sidenav_ui <- function(id, language, i18n){
         shinyjs::hidden(
           div(
             id = ns("project_content_management"),
-            class = "sidenav_top",
             div(
-              create_hover_card(ui = shiny.fluent::IconButton.shinyInput(ns("add_tab"), iconProps = list(iconName = "Boards")), text = i18n$t("add_a_tab")),
-              class = "small_icon_button"
+              div(shiny.fluent::PrimaryButton.shinyInput(ns("add_tab"), i18n$t("tab"), iconProps = list(iconName = "Add"), style = "width: 100%;"),  style = "width: 50%;"),
+              div(shiny.fluent::PrimaryButton.shinyInput(ns("add_widget"), i18n$t("widget"), iconProps = list(iconName = "Add"), style = "width: 100%;"),  style = "width: 50%;"),
+              style = "display: flex; gap: 10px;"
             ),
             div(
-              create_hover_card(ui = shiny.fluent::IconButton.shinyInput(ns("add_widget"), iconProps = list(iconName = "RectangularClipping")), text = i18n$t("add_a_widget")),
-              class = "small_icon_button"
-            ),
-            div(
-              id = ns("edit_page_on_div"),
-              create_hover_card(ui = shiny.fluent::IconButton.shinyInput(ns("edit_page_on"), iconProps = list(iconName = "Edit")), text = i18n$t("edit_page")),
-              class = "small_icon_button",
-            ),
-            shinyjs::hidden(
               div(
-                id = ns("edit_page_off_div"),
-                shiny.fluent::IconButton.shinyInput(ns("edit_page_off"), iconProps = list(iconName = "Accept")),
-                class = "small_icon_button",
+                id = ns("edit_page_on_div"),
+                create_hover_card(ui = shiny.fluent::DefaultButton.shinyInput(ns("edit_page_on"), i18n$t("edit_page"), iconProps = list(iconName = "Edit"), style = "width: 100%;"), text = i18n$t("edit_page")),
+                style = "width: 100%; margin-top: 5px;"
+              ),
+              shinyjs::hidden(
+                div(
+                  id = ns("edit_page_off_div"),
+                  shiny.fluent::DefaultButton.shinyInput(ns("edit_page_off"), i18n$t("validate_updates"), iconProps = list(iconName = "Accept"), style = "width: 100%;"),
+                  class = "small_icon_button",
+                  style = "width: 100%; margin-top: 5px;"
+                )
               )
             )
           )
         ), br(),
-        selectizeInput(ns("subset"), i18n$t("subset"), choices = NULL, multiple = FALSE, selected = FALSE),
+        div(
+          selectizeInput(ns("subset"), i18n$t("subset"), choices = NULL, multiple = FALSE, selected = FALSE),
+          style = "border-top: solid 1px #ccc; padding-top: 10px;"
+        ),
         div(
           id = ns("subset_date_div"),
           class = "subset_slider_input",

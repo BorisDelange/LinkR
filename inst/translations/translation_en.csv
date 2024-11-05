@@ -482,3 +482,6 @@ user_settings,User settings
 code_editor,Code editor
 ace_theme,Editor theme
 ace_font_size,Editor font size
+tab,Tab
+widget,Widget
+validate_updates,Validate updates
