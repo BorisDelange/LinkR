@@ -559,7 +559,7 @@ mod_plugins_server <- function(id, r, d, m, language, i18n, debug, user_accesses
       
       tabs_ui <- tagList()
       
-      edit_plugin_code_tabs <- r$edit_plugin_code_tabs %>% dplyr::mutate(filename = ifelse(nchar(filename) >= 23, paste0(substr(filename, 1, 20), "..."), filename))
+      edit_plugin_code_tabs <- r$edit_plugin_code_tabs %>% dplyr::mutate(filename_short = ifelse(nchar(filename) >= 23, paste0(substr(filename, 1, 20), "..."), filename))
       
       if (nrow(edit_plugin_code_tabs) > 0){
         for (i in 1:nrow(edit_plugin_code_tabs)){
@@ -577,21 +577,25 @@ mod_plugins_server <- function(id, r, d, m, language, i18n, debug, user_accesses
             }
           }
           
-          tabs_ui <- tagList(tabs_ui, div(
-            id = ns(paste0("edit_code_tab_", file$id)),
-            class = tab_class,
-            onclick = paste0("Shiny.setInputValue('", id, "-edit_code_selected_tab', this.id, {priority: 'event'})"),
-            file$filename,
-            div(
-              id = ns(paste0("edit_code_clode_tab_", file$id)),
-              class = "close-tab",
-              onclick = paste0(
-                "Shiny.setInputValue('", id, "-edit_code_close_selected_tab', ", file$id, ", {priority: 'event'});",
-                "Shiny.setInputValue('", id, "-edit_code_close_selected_tab_trigger', Math.random(), {priority: 'event'});",
-                "event.stopPropagation();"
+          tabs_ui <- tagList(tabs_ui, 
+            create_hover_card(
+              ui = div(
+                id = ns(paste0("edit_code_tab_", file$id)),
+                class = tab_class,
+                onclick = paste0("Shiny.setInputValue('", id, "-edit_code_selected_tab', this.id, {priority: 'event'})"),
+                file$filename_short,
+                div(
+                  id = ns(paste0("edit_code_clode_tab_", file$id)),
+                  class = "close-tab",
+                  onclick = paste0(
+                    "Shiny.setInputValue('", id, "-edit_code_close_selected_tab', ", file$id, ", {priority: 'event'});",
+                    "Shiny.setInputValue('", id, "-edit_code_close_selected_tab_trigger', Math.random(), {priority: 'event'});",
+                    "event.stopPropagation();"
+                  ),
+                  shiny.fluent::FontIcon(iconName = "ChromeClose")
+                )
               ),
-              shiny.fluent::FontIcon(iconName = "ChromeClose")
-            )
+              text = file$filename
           ))
         }
       }
