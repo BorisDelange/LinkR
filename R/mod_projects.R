@@ -268,13 +268,14 @@ mod_projects_ui <- function(id, language, languages, i18n){
                     div(plotOutput(ns("dataset_patients_age_plot"), width = "80%", height = "300px"), class = "dataset_details_plot"),
                     div(tableOutput(ns("dataset_patients_age_table")), class = "dataset_details_table", style = "margin-top: 50px;"),
                     div(plotOutput(ns("dataset_patients_gender_plot"), width = "80%", height = "300px"), class = "dataset_details_plot", style = "margin-top: 50px;"),
-                    div(tableOutput(ns("dataset_patients_age_gender_table")), class = "dataset_details_table", style = "margin-top: 50px;")
+                    div(tableOutput(ns("dataset_patients_age_gender_table")), class = "dataset_details_table", style = "margin: 50px 0 20px 0;")
                   )
                 ),
                 shinyjs::hidden(
                   div(
                     id = ns("dataset_stays_details"),
-                    "Stays"
+                    div(plotOutput(ns("dataset_admissions_plot"), width = "80%", height = "300px"), class = "dataset_details_plot"),
+                    div(tableOutput(ns("dataset_care_sites_table")), class = "dataset_details_table", style = "margin: 50px 0 20px 0;")
                   )
                 ),
                 class = "widget", style = "height: calc(100% - 25px); overflow: auto;"
@@ -603,13 +604,14 @@ mod_projects_server <- function(id, r, d, m, language, i18n, debug, user_accesse
         
         output$dataset_patients_age_plot <- renderPlot(
           age_data %>%
-          ggplot2::ggplot(ggplot2::aes(x = age)) +
-          ggplot2::geom_histogram(bins = 50, color = "white", fill = "#2874A6") +
-          ggplot2::theme_minimal() +
-          ggplot2::labs(title = i18n$t("age_at_first_hospit"), x = i18n$t("age"), y = i18n$t("occurrences")) +
-          ggplot2::theme(
-            plot.title = ggplot2::element_text(hjust = 0.5, face = "bold")
-          )
+            ggplot2::ggplot(ggplot2::aes(x = age)) +
+            ggplot2::geom_histogram(bins = 40, color = "white", fill = "#2874A6") +
+            ggplot2::theme_minimal() +
+            ggplot2::labs(title = i18n$t("age_at_first_hospit"), x = i18n$t("age"), y = i18n$t("occurrences")) +
+            ggplot2::scale_x_continuous(breaks = seq(0, max(age_data$age, na.rm = TRUE), by = 10), limits = c(0, max(age_data$age, na.rm = TRUE))) +
+            ggplot2::theme(
+              plot.title = ggplot2::element_text(hjust = 0.5, face = "bold")
+            )
         )
         
         output$dataset_patients_age_table <- renderTable({
@@ -689,6 +691,48 @@ mod_projects_server <- function(id, r, d, m, language, i18n, debug, user_accesse
       
       else if (input$dataset_details == "stays"){
         
+        admissions_data <- d$visit_occurrence %>%
+          dplyr::select(visit_start_date) %>%
+          dplyr::collect() %>%
+          dplyr::mutate(visit_start_date = as.Date(visit_start_date)) %>%
+          dplyr::mutate(month = lubridate::floor_date(visit_start_date, "month")) %>%
+          dplyr::group_by(month) %>%
+          dplyr::summarize(admissions_count = dplyr::n()) %>%
+          dplyr::ungroup()
+        
+        filtered_admissions_data <- admissions_data %>%
+          dplyr::arrange(desc(month)) %>%
+          dplyr::slice(1:30) %>%
+          dplyr::arrange(month)
+        
+        output$dataset_admissions_plot <- renderPlot(
+          ggplot2::ggplot(filtered_admissions_data, ggplot2::aes(x = month, y = admissions_count)) +
+            ggplot2::geom_col(fill = "#2874A6", alpha = 0.7) +
+            ggplot2::scale_x_date(breaks = scales::breaks_pretty(n = 10), date_labels = "%b %Y") +
+            ggplot2::theme_minimal() +
+            ggplot2::labs(
+              x = "Date",
+              y = "Number of admissions",
+              title = "Number of admissions over time"
+            ) +
+            ggplot2::theme(
+              plot.title = ggplot2::element_text(hjust = 0.5, face = "bold")
+            )
+        )
+        
+        care_site_visits <-
+          d$visit_detail %>%
+          dplyr::left_join(d$care_site, by = "care_site_id") %>%
+          dplyr::group_by(care_site_name) %>%
+          dplyr::summarise(num = as.integer(dplyr::n())) %>%
+          dplyr::ungroup() %>%
+          dplyr::collect() %>%
+          dplyr::arrange(desc(num)) %>%
+          dplyr::slice_head(n = 20)
+        
+        colnames(care_site_visits) <- c(i18n$t("hospital_unit_name"), i18n$t("admissions_number"))
+        
+        output$dataset_care_sites_table <- renderTable(care_site_visits)
       }
     })
     

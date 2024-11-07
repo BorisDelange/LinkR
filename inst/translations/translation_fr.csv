@@ -492,3 +492,5 @@ tab_added,Onglet ajouté
 cant_add_widget_in_full_screen_mode,Impossible d'ajouter un widget en mode plein écran
 duration,Durée
 concept_not_loaded,Concept non chargé
+hospital_unit_name,Nom du service
+admissions_number,Nombre d'admissions
