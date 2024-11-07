@@ -384,6 +384,7 @@ mod_data_server <- function(id, r, d, m, language, i18n, debug, user_accesses){
           
           m$subsets <- tibble::tibble()
           m$subset_persons <- tibble::tibble()
+          r$dataset_vocabularies <- tibble::tibble()
         }
           
         else {
