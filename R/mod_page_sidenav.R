@@ -348,17 +348,22 @@ mod_page_sidenav_ui <- function(id, language, i18n){
           ),
           shinyjs::hidden(
             div(
-              id = ns("patient_switching_buttons"),
-              div(
-                shiny.fluent::IconButton.shinyInput(ns("previous_patient"), iconProps = list(iconName = "ChevronLeft")),
-                class = "patient_lvl_small_icon_button"
-              ),
-              uiOutput(ns("person_switch_nums")),
-              div(
-                shiny.fluent::IconButton.shinyInput(ns("next_patient"), iconProps = list(iconName = "ChevronRight")),
-                class = "patient_lvl_small_icon_button"
-              ),
-              style = "display: flex; position: absolute; top: 0; right: 0; color: #808080;"
+              id = ns("patient_switching_buttons_div"),
+              shinyjs::hidden(
+                div(
+                  id = ns("patient_switching_buttons"),
+                  div(
+                    shiny.fluent::IconButton.shinyInput(ns("previous_patient"), iconProps = list(iconName = "ChevronLeft")),
+                    class = "patient_lvl_small_icon_button"
+                  ),
+                  uiOutput(ns("person_switch_nums")),
+                  div(
+                    shiny.fluent::IconButton.shinyInput(ns("next_patient"), iconProps = list(iconName = "ChevronRight")),
+                    class = "patient_lvl_small_icon_button"
+                  ),
+                  style = "display: flex; position: absolute; top: 0; right: 0; color: #808080;"
+                )
+              )
             )
           )
         ),

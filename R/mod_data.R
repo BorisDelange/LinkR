@@ -265,7 +265,7 @@ mod_data_server <- function(id, r, d, m, language, i18n, debug, user_accesses){
       hidden_category <- categories[categories != displayed_category]
       
       # Show / hide sidenav dropdowns
-      divs <- c("person_dropdown_div", "visit_detail_dropdown_div", "person_info_div")
+      divs <- c("person_dropdown_div", "visit_detail_dropdown_div", "person_info_div", "patient_switching_buttons_div")
       if (displayed_category == "patient_lvl") sapply(divs, shinyjs::show)
       else sapply(divs, shinyjs::hide)
       
@@ -358,7 +358,33 @@ mod_data_server <- function(id, r, d, m, language, i18n, debug, user_accesses){
         r$selected_dataset <- DBI::dbGetQuery(r$db, sql) %>% dplyr::pull(dataset_id)
         
         # Reset d list if no selected dataset
-        if (is.na(r$selected_dataset)) sapply(main_tables, function(table) d[[table]] <- tibble::tibble())
+        # Reset dropdowns and hive divs
+        if (is.na(r$selected_dataset)){
+          
+          sapply(main_tables, function(table) d[[table]] <- tibble::tibble())
+          
+          updateSelectizeInput(
+            session, "subset", choices = NULL, server = TRUE,
+            options = list(
+              placeholder = i18n$t("no_subset_available"),
+              onInitialize = I("function() { this.setValue(''); }")
+            )
+          )
+          
+          updateSelectizeInput(session, "person", choices = NULL, server = TRUE)
+          updateSelectizeInput(session, "visit_detail", choices = NULL, server = TRUE)
+          
+          output$person_info <- renderUI("")
+          output$subset_info <- renderUI("")
+          
+          sapply(c("patient_switching_buttons"), shinyjs::hide)
+          m$selected_subset <- NA_integer_
+          m$selected_person <- NA_integer_
+          m$selected_visit_detail <- NA_integer_
+          
+          m$subsets <- tibble::tibble()
+          m$subset_persons <- tibble::tibble()
+        }
           
         else {
           ## Load data
@@ -505,7 +531,7 @@ mod_data_server <- function(id, r, d, m, language, i18n, debug, user_accesses){
         
         # Reset other dropdowns & uiOutput
         sapply(c("person", "visit_detail"), function(name){
-          shinyjs::hide(paste0(name, "_div"))
+          # shinyjs::hide(paste0(name, "_div"))
           updateSelectizeInput(
             session, name, choices = NULL, server = TRUE,
             options = list(
@@ -758,6 +784,9 @@ mod_data_server <- function(id, r, d, m, language, i18n, debug, user_accesses){
       observeEvent(m$subset_persons, {
         if (debug) cat(paste0("\n", now(), " - mod_data - observer m$subset_persons"))
         
+        # Hide patients switching buttons
+        shinyjs::hide("patient_switching_buttons")
+        
         persons <- tibble::tibble()
         
         if (nrow(m$subset_persons) > 0 & d$person %>% dplyr::count() %>% dplyr::pull() > 0){
@@ -773,40 +802,37 @@ mod_data_server <- function(id, r, d, m, language, i18n, debug, user_accesses){
             dplyr::left_join(d$concept %>% dplyr::select(gender_concept_id = concept_id, gender_concept_name = concept_name), by = "gender_concept_id")
           
           r$subset_merged_patients <- persons
-        }
-        
-        # Hide patients switching buttons
-        shinyjs::hide("patient_switching_buttons")
-        
-        num_patients <- nrow(r$subset_merged_patients)
-        
-        if (num_patients == 0){
-          # Set selected_person to NA, not to display a chart when no person is selected
-          m$selected_person <- NA_integer_
-          updateSelectizeInput(
-            session, "person", choices = NULL, server = TRUE, 
-            options = list(
-              placeholder = i18n$t("no_person_in_subset"),
-              onInitialize = I("function() { this.setValue(''); }")
-          ))
+       
+          num_patients <- nrow(r$subset_merged_patients)
           
-          output$person_switch_nums <- renderUI("")
-        }
-        
-        if (num_patients > 0){
+          if (num_patients == 0){
+            # Set selected_person to NA, not to display a chart when no person is selected
+            m$selected_person <- NA_integer_
+            updateSelectizeInput(
+              session, "person", choices = NULL, server = TRUE, 
+              options = list(
+                placeholder = i18n$t("no_person_in_subset"),
+                onInitialize = I("function() { this.setValue(''); }")
+            ))
+            
+            output$person_switch_nums <- renderUI("")
+          }
           
-          # Update persons dropdown
-          choices <- setNames(persons$person_id, paste(persons$person_id, "-", persons$gender_concept_name))
-          updateSelectizeInput(
-            session, "person", choices = choices, server = TRUE, selected = FALSE,
-            options = list(
-              placeholder = "",
-              onInitialize = I("function() { this.setValue(''); }")
+          if (num_patients > 0){
+            
+            # Update persons dropdown
+            choices <- setNames(persons$person_id, paste(persons$person_id, "-", persons$gender_concept_name))
+            updateSelectizeInput(
+              session, "person", choices = choices, server = TRUE, selected = FALSE,
+              options = list(
+                placeholder = "",
+                onInitialize = I("function() { this.setValue(''); }")
+              )
             )
-          )
-          
-          output$person_switch_nums <- renderUI(div("1 / ", num_patients))
-          r$num_selected_patient <- 1
+            
+            output$person_switch_nums <- renderUI(div("1 / ", num_patients))
+            r$num_selected_patient <- 1
+          }
         }
         
         # Reset other dropdowns & uiOutput
