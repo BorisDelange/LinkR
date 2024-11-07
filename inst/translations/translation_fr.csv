@@ -490,3 +490,5 @@ file_deleted,Fichier supprimé
 widget_added,Widget ajouté
 tab_added,Onglet ajouté
 cant_add_widget_in_full_screen_mode,Impossible d'ajouter un widget en mode plein écran
+duration,Durée
+concept_not_loaded,Concept non chargé

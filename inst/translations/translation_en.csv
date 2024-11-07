@@ -490,3 +490,5 @@ file_deleted,File deleted
 widget_added,Widget added
 tab_added,Tab added
 cant_add_widget_in_full_screen_mode,Unable to add a widget in full-screen mode
+duration,Duration
+concept_not_loaded,Concept not loaded

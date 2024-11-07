@@ -858,8 +858,9 @@ mod_data_server <- function(id, r, d, m, language, i18n, debug, user_accesses){
                 visit_detail %>% 
                 dplyr::mutate(
                   name_display = paste0(
-                    visit_detail_concept_name, " - ", format(as.POSIXct(visit_detail_start_datetime), format = "%d-%m-%Y"), " ", 
-                    tolower(i18n$t("to")), " ",  format(as.POSIXct(visit_detail_end_datetime), format = "%d-%m-%Y")
+                    format(as.POSIXct(visit_detail_start_datetime), format = "%d-%m-%Y"), " ", 
+                    tolower(i18n$t("to")), " ",  format(as.POSIXct(visit_detail_end_datetime), format = "%d-%m-%Y"),
+                    " - ", visit_detail_concept_name
                   )
                 )
             
@@ -867,8 +868,9 @@ mod_data_server <- function(id, r, d, m, language, i18n, debug, user_accesses){
                 visit_detail %>% 
                 dplyr::mutate(
                   name_display = paste0(
-                    visit_detail_concept_name, " - ", format(as.POSIXct(visit_detail_start_datetime), format = "%Y-%m-%d"), " ",
-                    tolower(i18n$t("to")), " ",  format(as.POSIXct(visit_detail_end_datetime), format = "%Y-%m-%d")
+                    format(as.POSIXct(visit_detail_start_datetime), format = "%Y-%m-%d"), " ",
+                    tolower(i18n$t("to")), " ",  format(as.POSIXct(visit_detail_end_datetime), format = "%Y-%m-%d"),
+                    " - ", visit_detail_concept_nam
                   )
                 )
           }
@@ -877,8 +879,9 @@ mod_data_server <- function(id, r, d, m, language, i18n, debug, user_accesses){
             if (tolower(language) == "fr") visit_details <-
                 visit_detail %>% dplyr::mutate(
                   name_display = paste0(
-                    visit_detail_concept_id, " - ", format(as.POSIXct(visit_detail_start_datetime), format = "%d-%m-%Y"), " ",
-                    tolower(i18n$t("to")), " ",  format(as.POSIXct(visit_detail_end_datetime), format = "%d-%m-%Y")
+                    format(as.POSIXct(visit_detail_start_datetime), format = "%d-%m-%Y"), " ",
+                    tolower(i18n$t("to")), " ",  format(as.POSIXct(visit_detail_end_datetime), format = "%d-%m-%Y"),
+                    " - ", visit_detail_concept_id
                   )
                 )
             
@@ -887,8 +890,9 @@ mod_data_server <- function(id, r, d, m, language, i18n, debug, user_accesses){
                 visit_detail %>% 
                 dplyr::mutate(
                   name_display = paste0(
-                    visit_detail_concept_id, " - ", format(as.POSIXct(visit_detail_start_datetime), format = "%Y-%m-%d"), " ",
-                    tolower(i18n$t("to")), " ",  format(as.POSIXct(visit_detail_end_datetime), format = "%Y-%m-%d")
+                    format(as.POSIXct(visit_detail_start_datetime), format = "%Y-%m-%d"), " ",
+                    tolower(i18n$t("to")), " ",  format(as.POSIXct(visit_detail_end_datetime), format = "%Y-%m-%d"),
+                    " - ", visit_detail_concept_id
                   )
                 )
           }
@@ -977,15 +981,28 @@ mod_data_server <- function(id, r, d, m, language, i18n, debug, user_accesses){
         if ("visit_detail_concept_name" %in% names(visit_detail)) visit_detail_concept_name <- visit_detail %>% dplyr::pull(visit_detail_concept_name)
         else visit_detail_concept_name <- visit_detail %>% dplyr::pull(visit_detail_concept_id)
         
+        max_length <- 26
+        if (is.na(visit_detail_concept_name)) visit_detail_concept_name <- i18n$t("concept_not_loaded")
+        if (nchar(visit_detail_concept_name) > max_length){
+          visit_detail_concept_name_short <- paste0(substr(visit_detail_concept_name, 1, max_length - 3), "...")
+          visit_detail_div <- div(create_hover_card(ui = tags$span(visit_detail_concept_name_short), text = visit_detail_concept_name), style = "display: inline-block;")
+        }
+        else visit_detail_div <- tags$span(visit_detail_concept_name)
+        
+        los <- as.integer(difftime(visit_detail$visit_detail_end_datetime, visit_detail$visit_detail_start_datetime, units = "days"))
+        days_trad <- ifelse(los == 1, i18n$t("day"), i18n$t("days"))
+        
         output$person_info <- renderUI({
           tagList(
-            span(i18n$t("person_id"), style = style), m$selected_person, br(),
-            span(i18n$t("gender"), style = style), person$gender_concept_name, br(), br(),
-            span(i18n$t("visit_detail_id"), style = style), selected_visit_detail, br(),
-            span(i18n$t("age"), style = style), age_div, br(),
-            span(i18n$t("hosp_unit"), style = style), visit_detail_concept_name, br(),
-            span(i18n$t("from"), style = style), visit_detail$visit_detail_start_datetime %>% format_datetime(language), br(),
-            span(i18n$t("to"), style = style), visit_detail$visit_detail_end_datetime %>% format_datetime(language))
+            span(i18n$t("person_id"), style = style), tags$span(m$selected_person), br(),
+            span(i18n$t("gender"), style = style), tags$span(person$gender_concept_name), br(), br(),
+            span(i18n$t("visit_detail_id"), style = style), tags$span(selected_visit_detail), br(),
+            span(i18n$t("age"), style = style), tags$span(age_div), br(),
+            span(i18n$t("hosp_unit"), style = style), visit_detail_div, br(),
+            span(i18n$t("from"), style = style), tags$span(visit_detail$visit_detail_start_datetime %>% format_datetime(language, sec = FALSE)), br(),
+            span(i18n$t("to"), style = style), tags$span(visit_detail$visit_detail_end_datetime %>% format_datetime(language, sec = FALSE)), br(),
+            span(i18n$t("duration"), style = style), tags$span(los, " ", tolower(days_trad))
+          )
         })
         
         sapply(visit_detail_tables, function(table) d$data_visit_detail[[table]] <- tibble::tibble())
