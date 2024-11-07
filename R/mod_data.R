@@ -768,10 +768,19 @@ mod_data_server <- function(id, r, d, m, language, i18n, debug, user_accesses){
             dplyr::mutate_at("person_id", as.integer) %>%
             dplyr::filter(person_id %in% person_ids) %>% 
             dplyr::collect() %>%
+            dplyr::arrange(person_id) %>%
+            dplyr::mutate(n = dplyr::row_number()) %>%
             dplyr::left_join(d$concept %>% dplyr::select(gender_concept_id = concept_id, gender_concept_name = concept_name), by = "gender_concept_id")
+          
+          r$subset_merged_patients <- persons
         }
         
-        if (nrow(persons) == 0){
+        # Hide patients switching buttons
+        shinyjs::hide("patient_switching_buttons")
+        
+        num_patients <- nrow(r$subset_merged_patients)
+        
+        if (num_patients == 0){
           # Set selected_person to NA, not to display a chart when no person is selected
           m$selected_person <- NA_integer_
           updateSelectizeInput(
@@ -780,11 +789,11 @@ mod_data_server <- function(id, r, d, m, language, i18n, debug, user_accesses){
               placeholder = i18n$t("no_person_in_subset"),
               onInitialize = I("function() { this.setValue(''); }")
           ))
+          
+          output$person_switch_nums <- renderUI("")
         }
         
-        if (nrow(persons) > 0){
-          # Order persons by person_id
-          persons <- persons %>% dplyr::arrange(person_id)
+        if (num_patients > 0){
           
           # Update persons dropdown
           choices <- setNames(persons$person_id, paste(persons$person_id, "-", persons$gender_concept_name))
@@ -795,6 +804,9 @@ mod_data_server <- function(id, r, d, m, language, i18n, debug, user_accesses){
               onInitialize = I("function() { this.setValue(''); }")
             )
           )
+          
+          output$person_switch_nums <- renderUI(div("1 / ", num_patients))
+          r$num_selected_patient <- 1
         }
         
         # Reset other dropdowns & uiOutput
@@ -816,6 +828,13 @@ mod_data_server <- function(id, r, d, m, language, i18n, debug, user_accesses){
         
         person_id <- as.numeric(input$person)
         m$selected_person <- person_id
+        
+        # Update switch buttons
+        shinyjs::show("patient_switching_buttons")
+        num_patient <- r$subset_merged_patients %>% dplyr::filter(person_id == !!person_id) %>% dplyr::pull(n)
+        r$num_selected_patient <- num_patient
+        num_patients <- max(r$subset_merged_patients$n)
+        output$person_switch_nums <- renderUI(div(num_patient, " / ", num_patients))
         
         # Reset variables
         sapply(person_tables, function(table) d$data_person[[table]] <- tibble::tibble())
@@ -1012,6 +1031,20 @@ mod_data_server <- function(id, r, d, m, language, i18n, debug, user_accesses){
             d$data_visit_detail[[table]] <- d$data_person[[table]] %>% dplyr::filter(visit_detail_id == selected_visit_detail)
           }
         }
+      })
+      
+      ## Patients switching ----
+      
+      observeEvent(input$next_patient, {
+        if (debug) cat(paste0("\n", now(), " - mod_data - observer input$next_patient"))
+        
+        num_selected_patient <- r$num_selected_patient + 1
+        if (num_selected_patient > max(r$subset_merged_patients$n)) num_selected_patient <- r$num_selected_patient
+        r$num_selected_patient <- num_selected_patient
+        
+        person_id <- r$subset_merged_patients %>% dplyr::filter(n == num_selected_patient) %>% dplyr::pull(person_id)
+        
+        updateSelectizeInput(session, "person", selected = person_id)
       })
       
       # |-------------------------------- -----

@@ -693,7 +693,12 @@ a.no-hover-effect:hover {
 
 .small_icon_button .ms-Button-icon {
   font-size: 12px;
-  color: black;;
+  color: black;
+}
+
+.patient_lvl_small_icon_button .ms-Button-icon {
+  font-size: 10px;
+  color: #808080;
 }
 
 .widget_icon .ms-Button-icon {
@@ -706,12 +711,18 @@ a.no-hover-effect:hover {
   height: 24px
 }
 
+.patient_lvl_small_icon_button .ms-Button {
+  width: 18px;
+  height: 18px
+}
+
 .small_icon_button_dt .ms-Button{
   width: 24px;
   height: 18px
 }
 
-.small_icon_button .ms-Button:hover .ms-Button-icon, .widget_icon .ms-Button:hover .ms-Button-icon {
+.small_icon_button .ms-Button:hover .ms-Button-icon, .widget_icon .ms-Button:hover .ms-Button-icon,
+.patient_lvl_small_icon_button .ms-Button:hover {
   color: #61AEF9;
 }
 

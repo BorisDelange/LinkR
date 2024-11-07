@@ -340,9 +340,27 @@ mod_page_sidenav_ui <- function(id, language, i18n){
         ),
         div(id = ns("subset_info_div"), uiOutput(ns("subset_info")), class = "subset_info"),
         div(
-          id = ns("person_dropdown_div"),
-          selectizeInput(ns("person"), i18n$t("person"), choices = NULL, multiple = FALSE), 
-          style = "margin-top: 10px;"
+          style = "position: relative;",
+          div(
+            id = ns("person_dropdown_div"),
+            selectizeInput(ns("person"), i18n$t("person"), choices = NULL, multiple = FALSE), 
+            style = "margin-top: 10px;"
+          ),
+          shinyjs::hidden(
+            div(
+              id = ns("patient_switching_buttons"),
+              div(
+                shiny.fluent::IconButton.shinyInput(ns("previous_patient"), iconProps = list(iconName = "ChevronLeft")),
+                class = "patient_lvl_small_icon_button"
+              ),
+              uiOutput(ns("person_switch_nums")),
+              div(
+                shiny.fluent::IconButton.shinyInput(ns("next_patient"), iconProps = list(iconName = "ChevronRight")),
+                class = "patient_lvl_small_icon_button"
+              ),
+              style = "display: flex; position: absolute; top: 0; right: 0; color: #808080;"
+            )
+          )
         ),
         div(
           id = ns("visit_detail_dropdown_div"),
