@@ -489,3 +489,4 @@ create_a_tab_before_adding_a_widget,Créez un onglet pour pouvoir ajouter un wid
 file_deleted,Fichier supprimé
 widget_added,Widget ajouté
 tab_added,Onglet ajouté
+cant_add_widget_in_full_screen_mode,Impossible d'ajouter un widget en mode plein écran

@@ -1630,6 +1630,9 @@ mod_data_server <- function(id, r, d, m, language, i18n, debug, user_accesses){
       
       req(!is.na(r[[paste0(r$data_page, "_selected_tab")]]))
       
+      if (r[[paste0(r$data_page, "_selected_tab")]] %in% r$data_tabs_full_screen$tab_id) show_message_bar(output, message = "cant_add_widget_in_full_screen_mode", type = "warning", i18n = i18n, ns = ns)
+      req(r[[paste0(r$data_page, "_selected_tab")]] %not_in% r$data_tabs_full_screen$tab_id)
+      
       shinyjs::show("add_widget_modal")
       
       # Reload plugins var
