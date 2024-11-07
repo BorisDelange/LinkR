@@ -2,18 +2,18 @@
 create_gridstack_instance <- function(id, tab_id){
   ns <- NS(id)
   
-  shinyjs::delay(200, 
+  shinyjs::delay(200,
     shinyjs::runjs(paste0("
       function initializeGridStack() {
-        
+
         const totalHeight = window.innerHeight - 120;
         const numRows = 40;
         const cellHeight = totalHeight / numRows;
-        
+
         if (!window.gridStackInstances['", tab_id, "']) {
           const grid = GridStack.init({
             cellHeight: cellHeight + 'px',
-            maxRow: 40,
+            //maxRow: 40,
             scroll: false,
             column: 12,
             staticGrid: true,
@@ -21,15 +21,15 @@ create_gridstack_instance <- function(id, tab_id){
             resizable: { handles: 'se, ne, nw, sw' },
             margin: 10
           }, '#", ns(paste0("gridstack_", tab_id)), "');
-  
+
           window.gridStackInstances['", tab_id, "'] = grid;
         } else {
           window.gridStackInstances['", tab_id, "'].cellHeight(cellHeight);
         }
       }
-      
+
       initializeGridStack();
-  
+
       window.addEventListener('resize', function() {
         initializeGridStack();
       });
