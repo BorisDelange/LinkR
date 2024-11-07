@@ -1830,6 +1830,118 @@ mod_data_server <- function(id, r, d, m, language, i18n, debug, user_accesses){
     
     # ...
     
+    # --- --- --- --- --- --- --
+    # Widget in full screen ----
+    # --- --- --- --- --- --- --
+    
+    r$data_tabs_full_screen <- tibble::tibble(widget_id = integer(), tab_id = integer(), x = integer(), y = integer(), w = integer(), h = integer())
+    
+    observeEvent(input$widget_full_screen_trigger, {
+      if (debug) cat(paste0("\n", now(), " - mod_data - observer input$widget_full_screen_trigger"))
+      
+      widget_id <- input$widget_full_screen_id
+      tab_id <- r$data_widgets %>% dplyr::filter(id == widget_id) %>% dplyr::pull(tab_id)
+      other_widgets <- r$data_widgets %>% dplyr::filter(tab_id == !!tab_id & id != widget_id) %>% dplyr::pull(id)
+      
+      if (tab_id %in% r$data_tabs_full_screen$tab_id){
+        
+        shiny.fluent::updateIconButton.shinyInput(session, paste0(id, "_widget_full_screen_", widget_id), iconProps = list(iconName = "FullScreen"))
+        
+        # Reset with last coordinates
+        
+        coords <- r$data_tabs_full_screen %>% dplyr::filter(widget_id == !!widget_id)
+        
+        shinyjs::runjs(paste0(
+          "let grid = GridStack.init();",
+          "let widget = document.getElementById('", id, "-data_gridstack_item_", widget_id, "');",
+          "grid.update(widget, { x: ", coords$x, ", y: ", coords$y, ", w: ", coords$w, ", h: ", coords$h, " });"
+        ))
+        
+        # Show all other widgets
+        
+        sapply(other_widgets, function(widget_id) shinyjs::delay(300, shinyjs::show(paste0("data_gridstack_item_", widget_id))))
+        
+        # Enable gridstack edition for this tab
+        
+        shinyjs::runjs(paste0("
+          const grid = window.gridStackInstances['", tab_id, "'];
+          grid.setStatic(false);  
+        "))
+        
+        r$data_tabs_full_screen <- r$data_tabs_full_screen %>% dplyr::filter(tab_id != !!tab_id)
+      }
+      else {
+        
+        shiny.fluent::updateIconButton.shinyInput(session, paste0(id, "_widget_full_screen_", widget_id), iconProps = list(iconName = "BackToWindow"))
+        
+        # Get and save current coordinates
+        
+        shinyjs::runjs(paste0(
+          "var widget = document.getElementById('", id, "-data_gridstack_item_", widget_id, "');",
+          "if (widget) {",
+          "  var widgetPosition = {",
+          "    id: ", widget_id, ",",
+          "    tab_id: ", tab_id, ",",
+          "    w: widget.getAttribute('gs-w'),",
+          "    h: widget.getAttribute('gs-h'),",
+          "    x: widget.getAttribute('gs-x'),",
+          "    y: widget.getAttribute('gs-y')",
+          "  }",
+          "};",
+          "Shiny.setInputValue('", id, "-full_screen_widget_position', widgetPosition);",
+          "Shiny.setInputValue('", id, "-full_screen_widget_position_trigger', Math.random());"
+        ))
+        
+        # Hide all others widgets
+        
+        sapply(other_widgets, function(widget_id) shinyjs::hide(paste0("data_gridstack_item_", widget_id)))
+        
+        # Resize current widget to full screen
+        
+        # Adding a temporary invisible widget to the grid before resizing the target widget.
+        # This helps to "wake up" the gridstack instance, ensuring that layout recalculations
+        # are triggered correctly for the target widget. The temporary widget is immediately 
+        # removed after resizing to avoid any visible impact on the grid layout.
+        
+        shinyjs::runjs(paste0(
+          "const grid = window.gridStackInstances['", tab_id, "'];",
+          "if (grid) {",
+          "  let tempWidget = document.createElement('div');",
+          "  tempWidget.className = 'grid-stack-item';",
+          "  tempWidget.style.display = 'none';",
+          "  grid.addWidget(tempWidget, { x: 0, y: 0, w: 1, h: 1 });",
+          "  let widget = document.getElementById('", id, "-data_gridstack_item_", widget_id, "');",
+          "  grid.update(widget, { x: 0, y: 0, w: 12, h: 40 });",
+          "  grid.removeWidget(tempWidget);",
+          "}"
+        ))
+        
+        # Disable gridstack edition for this tab
+        
+        shinyjs::runjs(paste0("
+          const grid = window.gridStackInstances['", tab_id, "'];
+          grid.setStatic(true);  
+        "))
+      }
+    })
+    
+    observeEvent(input$full_screen_widget_position_trigger, {
+      if (debug) cat(paste0("\n", now(), " - mod_data - observer input$full_screen_widget_position_trigger"))
+      
+      widget <- input$full_screen_widget_position
+      
+      r$data_tabs_full_screen <- r$data_tabs_full_screen <- r$data_tabs_full_screen %>% dplyr::bind_rows(
+        tibble::tibble(
+          widget_id = as.integer(widget$id),
+          tab_id = as.integer(widget$tab_id),
+          x = as.integer(widget$x),
+          y = as.integer(widget$y),
+          w = as.integer(widget$w),
+          h = as.integer(widget$h)
+        )
+      )
+    })
+    
     # --- --- --- --- -- -
     # Delete a widget ----
     # --- --- --- --- -- -
@@ -1905,11 +2017,17 @@ mod_data_server <- function(id, r, d, m, language, i18n, debug, user_accesses){
       
       if (r$data_edit_page_activated){
         
-        # Enable gridstack edition
-        sapply(gsub("gridstack_", "", r$data_grids, fixed = FALSE), function(tab_id) shinyjs::runjs(paste0("
-          const grid = window.gridStackInstances['", tab_id, "'];
-          grid.setStatic(false);
-        ")))
+        # Enable gridstack edition if we are not in full screen mode
+        sapply(gsub("gridstack_", "", r$data_grids, fixed = FALSE), function(tab_id){
+          if (length(tab_id) > 0){
+            if (tab_id %not_in% r$data_tabs_full_screen$tab_id){
+              shinyjs::runjs(paste0("
+                const grid = window.gridStackInstances['", tab_id, "'];
+                grid.setStatic(false);
+              "))
+            }
+          }
+        })
         
         # Show edit tab buttons
         distinct_tabs <- r$data_menu_tabs %>% dplyr::pull(id)
@@ -1949,10 +2067,14 @@ mod_data_server <- function(id, r, d, m, language, i18n, debug, user_accesses){
         }
         
         # Disable gridstack edition
-        sapply(gsub("gridstack_", "", r$data_grids, fixed = FALSE), function(tab_id) shinyjs::runjs(paste0("
-          const grid = window.gridStackInstances['", tab_id, "'];
-          grid.setStatic(true);
-        ")))
+        sapply(gsub("gridstack_", "", r$data_grids, fixed = FALSE), function(tab_id){
+          if (length(tab_id) > 0){
+            shinyjs::runjs(paste0("
+              const grid = window.gridStackInstances['", tab_id, "'];
+              grid.setStatic(true);
+            "))
+          }
+        })
         
         # Show edit tab buttons
         distinct_tabs <- r$data_menu_tabs %>% dplyr::pull(id)
@@ -1980,6 +2102,10 @@ mod_data_server <- function(id, r, d, m, language, i18n, debug, user_accesses){
       if (debug) cat(paste0("\n", now(), " - mod_data - observer input$widget_position_trigger"))
       
       widget <- input$widget_position
+      
+      # Don't save if we are in full screen mode
+      tab_id <- r$data_widgets %>% dplyr::filter(id == widget$id) %>% dplyr::pull(tab_id)
+      req(tab_id %not_in% r$data_tabs_full_screen$tab_id)
       
       widget_position <- ""
       for (pos in c("w", "h", "x", "y")){

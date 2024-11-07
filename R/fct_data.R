@@ -68,17 +68,31 @@ get_widget_edit_buttons <- function(id, widget_id, show_edit_buttons = FALSE){
     id = ns(paste0(id, "_widget_settings_buttons_", widget_id)),
     div(
       div(
+        shiny.fluent::IconButton.shinyInput(
+          ns(paste0(id, "_widget_full_screen_", widget_id)), iconProps = list(iconName = "FullScreen"),
+          onClick = htmlwidgets::JS(paste0(
+            "item => {",
+              "Shiny.setInputValue('", id, "-widget_full_screen_trigger', Math.random());",
+              "Shiny.setInputValue('", id, "-widget_full_screen_id', ", widget_id, ");",
+            "}"
+          ))
+        ),
+        class = "small_icon_button"
+      ),
+      div(
         shiny.fluent::IconButton.shinyInput(ns(paste0(id, "_widget_settings_", widget_id)), iconProps = list(iconName = "Settings")),
         class = "small_icon_button"
       ),
       div(
-        shiny.fluent::IconButton.shinyInput(ns(paste0(id, "_widget_remove_", widget_id)), iconProps = list(iconName = "Delete"),
-          onClick = htmlwidgets::JS(paste0(
-            "item => {",
-              "Shiny.setInputValue('", id, "-remove_widget_trigger', Math.random());",
-              "Shiny.setInputValue('", id, "-remove_widget_id', ", widget_id, ");",
-            "}"
-          ))),
+        shiny.fluent::IconButton.shinyInput(
+          ns(paste0(id, "_widget_remove_", widget_id)), iconProps = list(iconName = "Delete"),
+            onClick = htmlwidgets::JS(paste0(
+              "item => {",
+                "Shiny.setInputValue('", id, "-remove_widget_trigger', Math.random());",
+                "Shiny.setInputValue('", id, "-remove_widget_id', ", widget_id, ");",
+              "}"
+            ))
+          ),
         class = "small_icon_button"
       ),
       style = "display: flex; gap: 2px;"
