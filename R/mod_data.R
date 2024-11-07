@@ -1842,6 +1842,7 @@ mod_data_server <- function(id, r, d, m, language, i18n, debug, user_accesses){
       widget_id <- input$widget_full_screen_id
       tab_id <- r$data_widgets %>% dplyr::filter(id == widget_id) %>% dplyr::pull(tab_id)
       other_widgets <- r$data_widgets %>% dplyr::filter(tab_id == !!tab_id & id != widget_id) %>% dplyr::pull(id)
+      all_widgets <- r$data_widgets %>% dplyr::filter(tab_id == !!tab_id) %>% dplyr::pull(id)
       
       if (tab_id %in% r$data_tabs_full_screen$tab_id){
         
@@ -1849,17 +1850,19 @@ mod_data_server <- function(id, r, d, m, language, i18n, debug, user_accesses){
         
         # Reset with last coordinates
         
-        coords <- r$data_tabs_full_screen %>% dplyr::filter(widget_id == !!widget_id)
-        
-        shinyjs::runjs(paste0(
-          "let grid = GridStack.init();",
-          "let widget = document.getElementById('", id, "-data_gridstack_item_", widget_id, "');",
-          "grid.update(widget, { x: ", coords$x, ", y: ", coords$y, ", w: ", coords$w, ", h: ", coords$h, " });"
-        ))
+        sapply(all_widgets, function(widget_id){
+          coords <- r$data_tabs_full_screen %>% dplyr::filter(widget_id == !!widget_id)
+          
+          shinyjs::runjs(paste0(
+            "let grid = GridStack.init();",
+            "let widget = document.getElementById('", id, "-data_gridstack_item_", widget_id, "');",
+            "grid.update(widget, { x: ", coords$x, ", y: ", coords$y, ", w: ", coords$w, ", h: ", coords$h, " });"
+          ))
+        })
         
         # Show all other widgets
         
-        sapply(other_widgets, function(widget_id) shinyjs::delay(300, shinyjs::show(paste0("data_gridstack_item_", widget_id))))
+        sapply(other_widgets, function(widget_id) shinyjs::delay(100, shinyjs::show(paste0("data_gridstack_item_", widget_id))))
         
         # Enable gridstack edition for this tab
         
@@ -1867,6 +1870,18 @@ mod_data_server <- function(id, r, d, m, language, i18n, debug, user_accesses){
           const grid = window.gridStackInstances['", tab_id, "'];
           grid.setStatic(false);  
         "))
+        
+        # Add and remove an invisible widget to restart gridstack resizing
+        shinyjs::runjs(paste0(
+          "const grid = window.gridStackInstances['", tab_id, "'];",
+          "if (grid) {",
+          "  let tempWidget = document.createElement('div');",
+          "  tempWidget.className = 'grid-stack-item';",
+          "  tempWidget.style.display = 'none';",
+          "  grid.addWidget(tempWidget, { x: 0, y: 0, w: 1, h: 1 });",
+          "  grid.removeWidget(tempWidget);",
+          "}"
+        ))
         
         r$data_tabs_full_screen <- r$data_tabs_full_screen %>% dplyr::filter(tab_id != !!tab_id)
       }
@@ -1876,21 +1891,23 @@ mod_data_server <- function(id, r, d, m, language, i18n, debug, user_accesses){
         
         # Get and save current coordinates
         
-        shinyjs::runjs(paste0(
-          "var widget = document.getElementById('", id, "-data_gridstack_item_", widget_id, "');",
-          "if (widget) {",
-          "  var widgetPosition = {",
-          "    id: ", widget_id, ",",
-          "    tab_id: ", tab_id, ",",
-          "    w: widget.getAttribute('gs-w'),",
-          "    h: widget.getAttribute('gs-h'),",
-          "    x: widget.getAttribute('gs-x'),",
-          "    y: widget.getAttribute('gs-y')",
-          "  }",
-          "};",
-          "Shiny.setInputValue('", id, "-full_screen_widget_position', widgetPosition);",
-          "Shiny.setInputValue('", id, "-full_screen_widget_position_trigger', Math.random());"
-        ))
+        sapply(all_widgets, function(widget_id){
+          shinyjs::runjs(paste0(
+            "var widget = document.getElementById('", id, "-data_gridstack_item_", widget_id, "');",
+            "if (widget) {",
+            "  var widgetPosition = {",
+            "    id: ", widget_id, ",",
+            "    tab_id: ", tab_id, ",",
+            "    w: widget.getAttribute('gs-w'),",
+            "    h: widget.getAttribute('gs-h'),",
+            "    x: widget.getAttribute('gs-x'),",
+            "    y: widget.getAttribute('gs-y')",
+            "  }",
+            "};",
+            "Shiny.setInputValue('", id, "-full_screen_widget_position', widgetPosition);",
+            "Shiny.setInputValue('", id, "-full_screen_widget_position_trigger', Math.random());"
+          ))
+        })
         
         # Hide all others widgets
         
