@@ -1888,84 +1888,87 @@ mod_data_server <- function(id, r, d, m, language, i18n, debug, user_accesses){
     
     r$data_edit_page_activated <- FALSE
     
-    observeEvent(input$edit_page_on, {
-      if (debug) cat(paste0("\n", now(), " - mod_data - observer input$edit_page_on"))
+    observeEvent(input$edit_page, {
+      if (debug) cat(paste0("\n", now(), " - mod_data - observer input$edit_page"))
       
-      # Enable gridstack edition
-      sapply(gsub("gridstack_", "", r$data_grids, fixed = FALSE), function(tab_id) shinyjs::runjs(paste0("
-        const grid = window.gridStackInstances['", tab_id, "'];
-        grid.setStatic(false);
-      ")))
-      
-      # Show edit tab buttons
-      distinct_tabs <- r$data_menu_tabs %>% dplyr::pull(id)
-      sapply(distinct_tabs, function(tab_id) shinyjs::show(paste0("edit_tab_", tab_id, "_container")))
-      
-      # Show edit and delete widget buttons
-      sapply(r$data_widgets$id, function(widget_id) shinyjs::show(paste0("data_widget_settings_buttons_", widget_id)))
-      
-      # Show quit edit page button
-      shinyjs::hide("edit_page_on_div")
-      shinyjs::show("edit_page_off_div")
-      
-      # Hide resize button when sidenav is displayed or not
-      r$data_edit_page_activated <- TRUE
+      if (r$data_edit_page_activated) r$data_edit_page_activated <- FALSE
+      else r$data_edit_page_activated <- TRUE
     })
     
-    observeEvent(input$edit_page_off, {
-      if (debug) cat(paste0("\n", now(), " - mod_data - observer input$edit_page_off"))
+    observeEvent(r$data_edit_page_activated, {
+      if (debug) cat(paste0("\n", now(), " - mod_data - observer r$data_edit_page_activated"))
       
-      # Save each widget position
-      data_widgets <- r$data_widgets %>% dplyr::filter(tab_id == r[[paste0(r$data_page, "_selected_tab")]])
-      
-      if (nrow(data_widgets) > 0){
-        for (i in 1:nrow(data_widgets)){
-          
-          data_widget <- data_widgets[i, ]
-          
-          shinyjs::runjs(paste0(
-            "var widget = document.getElementById('", id, "-data_gridstack_item_", data_widget$id, "');",
-            "if (widget) {",
-            "  var widgetPosition = {",
-            "    id: ", data_widget$id, ",",
-            "    w: widget.getAttribute('gs-w'),",
-            "    h: widget.getAttribute('gs-h'),",
-            "    x: widget.getAttribute('gs-x'),",
-            "    y: widget.getAttribute('gs-y')",
-            "  }",
-            "};",
-            "Shiny.setInputValue('", id, "-widget_position', widgetPosition);",
-            "Shiny.setInputValue('", id, "-widget_position_trigger', Math.random());"
-          ))
-        }
+      if (r$data_edit_page_activated){
+        
+        # Enable gridstack edition
+        sapply(gsub("gridstack_", "", r$data_grids, fixed = FALSE), function(tab_id) shinyjs::runjs(paste0("
+          const grid = window.gridStackInstances['", tab_id, "'];
+          grid.setStatic(false);
+        ")))
+        
+        # Show edit tab buttons
+        distinct_tabs <- r$data_menu_tabs %>% dplyr::pull(id)
+        sapply(distinct_tabs, function(tab_id) shinyjs::show(paste0("edit_tab_", tab_id, "_container")))
+        
+        # Show edit and delete widget buttons
+        sapply(r$data_widgets$id, function(widget_id) shinyjs::show(paste0("data_widget_settings_buttons_", widget_id)))
+        
+        # Update edit page button
+        shiny.fluent::updateDefaultButton.shinyInput(session, "edit_page", text = i18n$t("validate_updates"), iconProps = list(iconName = "Accept"))
       }
-      
-      # Disable gridstack edition
-      sapply(gsub("gridstack_", "", r$data_grids, fixed = FALSE), function(tab_id) shinyjs::runjs(paste0("
-        const grid = window.gridStackInstances['", tab_id, "'];
-        grid.setStatic(true);
-      ")))
-      
-      # Show edit tab buttons
-      distinct_tabs <- r$data_menu_tabs %>% dplyr::pull(id)
-      sapply(distinct_tabs, function(tab_id) shinyjs::hide(paste0("edit_tab_", tab_id, "_container")))
-      
-      # Hide edit and delete widget buttons
-      sapply(r$data_widgets$id, function(widget_id) shinyjs::hide(paste0("data_widget_settings_buttons_", widget_id)))
-      
-      # Show edit page button
-      shinyjs::hide("edit_page_off_div")
-      shinyjs::delay(50, shinyjs::show("edit_page_on_div"))
-      
-      # Hide resize button when sidenav is displayed or not
-      r$data_edit_page_activated <- FALSE
-      
-      # Prevent a bug with scroll into ace editor
-      shinyjs::runjs("var event = new Event('resize'); window.dispatchEvent(event);")
-      
-      # Reload update_datetime
-      sql_update_datetime(r, m)
-    })
+      else {
+        
+        # Save each widget position
+        data_widgets <- r$data_widgets %>% dplyr::filter(tab_id == r[[paste0(r$data_page, "_selected_tab")]])
+        
+        if (nrow(data_widgets) > 0){
+          for (i in 1:nrow(data_widgets)){
+            
+            data_widget <- data_widgets[i, ]
+            
+            shinyjs::runjs(paste0(
+              "var widget = document.getElementById('", id, "-data_gridstack_item_", data_widget$id, "');",
+              "if (widget) {",
+              "  var widgetPosition = {",
+              "    id: ", data_widget$id, ",",
+              "    w: widget.getAttribute('gs-w'),",
+              "    h: widget.getAttribute('gs-h'),",
+              "    x: widget.getAttribute('gs-x'),",
+              "    y: widget.getAttribute('gs-y')",
+              "  }",
+              "};",
+              "Shiny.setInputValue('", id, "-widget_position', widgetPosition);",
+              "Shiny.setInputValue('", id, "-widget_position_trigger', Math.random());"
+            ))
+          }
+        }
+        
+        # Disable gridstack edition
+        sapply(gsub("gridstack_", "", r$data_grids, fixed = FALSE), function(tab_id) shinyjs::runjs(paste0("
+          const grid = window.gridStackInstances['", tab_id, "'];
+          grid.setStatic(true);
+        ")))
+        
+        # Show edit tab buttons
+        distinct_tabs <- r$data_menu_tabs %>% dplyr::pull(id)
+        sapply(distinct_tabs, function(tab_id) shinyjs::hide(paste0("edit_tab_", tab_id, "_container")))
+        
+        # Hide edit and delete widget buttons
+        sapply(r$data_widgets$id, function(widget_id) shinyjs::hide(paste0("data_widget_settings_buttons_", widget_id)))
+        
+        # Update edit page button
+        shiny.fluent::updateDefaultButton.shinyInput(session, "edit_page", text = i18n$t("edit_page"), iconProps = list(iconName = "Edit"))
+        
+        # Hide resize button when sidenav is displayed or not
+        r$data_edit_page_activated <- FALSE
+        
+        # Prevent a bug with scroll into ace editor
+        shinyjs::runjs("var event = new Event('resize'); window.dispatchEvent(event);")
+        
+        # Reload update_datetime
+        sql_update_datetime(r, m)
+      }
+    }, ignoreInit = TRUE)
     
     # Save each widget position
     observeEvent(input$widget_position_trigger, {

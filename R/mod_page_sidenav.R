@@ -289,21 +289,7 @@ mod_page_sidenav_ui <- function(id, language, i18n){
               div(shiny.fluent::PrimaryButton.shinyInput(ns("add_widget"), i18n$t("widget"), iconProps = list(iconName = "Add"), style = "width: 100%;"),  style = "width: 50%;"),
               style = "display: flex; gap: 10px;"
             ),
-            div(
-              div(
-                id = ns("edit_page_on_div"),
-                create_hover_card(ui = shiny.fluent::DefaultButton.shinyInput(ns("edit_page_on"), i18n$t("edit_page"), iconProps = list(iconName = "Edit"), style = "width: 100%;"), text = i18n$t("edit_page")),
-                style = "width: 100%; margin-top: 5px;"
-              ),
-              shinyjs::hidden(
-                div(
-                  id = ns("edit_page_off_div"),
-                  shiny.fluent::DefaultButton.shinyInput(ns("edit_page_off"), i18n$t("validate_updates"), iconProps = list(iconName = "Accept"), style = "width: 100%;"),
-                  class = "small_icon_button",
-                  style = "width: 100%; margin-top: 5px;"
-                )
-              )
-            )
+            shiny.fluent::DefaultButton.shinyInput(ns("edit_page"), i18n$t("edit_page"), iconProps = list(iconName = "Edit"), style = "width: 100%; margin-top: 5px;")
           )
         ), br(),
         div(
