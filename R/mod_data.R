@@ -1834,6 +1834,11 @@ mod_data_server <- function(id, r, d, m, language, i18n, debug, user_accesses){
     # Delete a widget ----
     # --- --- --- --- -- -
     
+    observeEvent(input$remove_widget_trigger, {
+      if (debug) cat(paste0("\n", now(), " - mod_data - observer input$remove_widget_trigger"))
+      shinyjs::show("delete_widget_modal")
+    })
+    
     observeEvent(input$close_widget_deletion_modal, {
       if (debug) cat(paste0("\n", now(), " - mod_data - observer input$close_file_deletion_modal"))
       shinyjs::hide("delete_widget_modal")
@@ -1845,7 +1850,7 @@ mod_data_server <- function(id, r, d, m, language, i18n, debug, user_accesses){
       category <- r$data_page
       
       tab_id <- r[[paste0(category, "_selected_tab")]]
-      widget_id <- r$data_selected_widget
+      widget_id <- input$remove_widget_id
       
       # Update session max widget_id
       r$session_max_widget <- max(r$session_max_widget, widget_id)
@@ -2277,20 +2282,6 @@ mod_data_server <- function(id, r, d, m, language, i18n, debug, user_accesses){
                 show_message_bar(output,  "error_run_plugin_server_code", "severeWarning", i18n = i18n, ns = ns)
                 cat(paste0("\n", now(), " - mod_data - error loading server code - widget_id = ", widget_id, " - ", toString(e)))
               })
-            
-            # Observer for widget deletion
-            observeEvent(input[[paste0("data_widget_remove_", widget_id)]], {
-              if (debug) cat(paste0("\n", now(), " - mod_data - observer input$..remove_widget.."))
-              r$data_selected_widget <- widget_id
-              shinyjs::show("delete_widget_modal")
-            })
-            
-            # Observer for widget settings
-            observeEvent(input[[paste0("data_widget_settings_", widget_id)]], {
-              if (debug) cat(paste0("\n", now(), " - mod_data - observer input$..widget_settings.."))
-              r$data_widget_settings_trigger <- now()
-              r$data_widget_settings <- widget_id
-            })
           }
         })
         
