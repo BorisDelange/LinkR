@@ -36,13 +36,13 @@ create_hover_card <- function(ui = character(), text = character()){
   escaped_text <- gsub('"', '\\\\"', escaped_text)
   
   shiny.fluent::HoverCard(
-  type = "PlainCard",
-  plainCardProps = htmlwidgets::JS(paste0("{
-    onRenderPlainCard: (a, b, c) => '", escaped_text, "',
-    style: { padding: '5px', fontSize: '12px'}
-    }")
-  ),
-  ui
+    type = "PlainCard",
+    plainCardProps = htmlwidgets::JS(paste0("{
+      onRenderPlainCard: (a, b, c) => '", escaped_text, "',
+      style: { padding: '5px', fontSize: '12px'}
+      }")
+    ),
+    ui
   )
 }
 
