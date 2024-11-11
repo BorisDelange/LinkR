@@ -47,7 +47,7 @@ app_ui <- function(
             do.call(paste0("mod_", page, "_ui"), args),
             class = "main_container"
           ),
-          mod_page_footer_ui(i18n = i18n)
+          mod_page_footer_ui(i18n = i18n, language = language)
         )
       )
     })

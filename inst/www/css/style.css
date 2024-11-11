@@ -48,13 +48,17 @@ h2, h3, h4, h5, h6 {
   font-size: 16px;  
 }
 
-/*a, a:visited {
-  color:#000000;
+.footer a {
+    color: black;
 }
 
-a:hover {
-  color: #129AFD;
-}*/
+.footer a:visited {
+    color: black;
+}
+
+.footer a:hover {
+    color: rgb(0, 120, 212);
+}
 
 a.no-hover-effect {
   color: black;
