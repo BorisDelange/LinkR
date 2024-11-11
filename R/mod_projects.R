@@ -257,6 +257,7 @@ mod_projects_ui <- function(id, language, languages, i18n){
               ),
               div(
                 tags$h1(i18n$t("tables")),
+                div(tableOutput(ns("dataset_tables")), class = "dataset_details_table", style = "margin-bottom: 20px;"),
                 class = "widget", style = "height: 50%;"
               ),
               class = "projects_dataset_left"
@@ -266,7 +267,8 @@ mod_projects_ui <- function(id, language, languages, i18n){
                 tags$h1(i18n$t("details")),
                 shinyjs::hidden(
                   div(
-                    id = ns("dataset_care_sites_details")
+                    id = ns("dataset_care_sites_details"),
+                    div(tableOutput(ns("dataset_care_sites_locations_table")), class = "dataset_details_table", style = "margin-bottom: 20px;")
                   )
                 ),
                 shinyjs::hidden(
@@ -499,6 +501,42 @@ mod_projects_server <- function(id, r, d, m, language, i18n, debug, user_accesse
       num_patients <- d$person %>% dplyr::count() %>% dplyr::pull()
       output$summary_num_patients <- renderUI(num_patients)
       output$dataset_num_patients <- renderUI(num_patients)
+      
+      # Update tables rows count
+      
+      req(m$omop_version)
+
+      omop_tables <- c(
+        "condition_occurrence", "drug_exposure", "procedure_occurrence", "device_exposure", "measurement", "observation", "note", "note_nlp", "payer_plan_period", "cost",
+        "specimen", "drug_era", "dose_era", "condition_era", "observation_period", "visit_occurrence", "visit_detail",
+        "person", "location", "care_site", "provider"
+      )
+
+      if (m$omop_version %in% c("5.3", "5.4")) omop_tables <- c(omop_tables, "death")
+
+      tables_count <- tibble::tibble(table = character(), num_pat = integer(), num_rows = integer())
+
+      for (table in omop_tables){
+        
+        num_rows <- d[[table]] %>% dplyr::count() %>% dplyr::pull()
+        num_pat <- 0
+        
+        if (num_rows > 0) if ("person_id" %in% colnames(d[[table]])) num_pat <- d[[table]] %>% dplyr::distinct(person_id) %>% dplyr::count() %>% dplyr::pull()
+
+        tables_count <- tables_count %>% dplyr::bind_rows(
+          tibble::tibble(table = table, num_pat = as.integer(num_pat), num_rows = as.integer(num_rows))
+        )
+
+        output$dataset_tables <- renderTable(
+          tables_count %>% 
+            dplyr::arrange(dplyr::desc(num_rows)) %>%
+            dplyr::rename(
+              !!i18n$t("table") := table,
+              !!i18n$t("num_patients") := num_pat,
+              !!i18n$t("num_rows") := num_rows
+            )
+        )
+      }
     })
     
     observeEvent(d$visit_occurrence, {
@@ -535,9 +573,6 @@ mod_projects_server <- function(id, r, d, m, language, i18n, debug, user_accesse
       r$projects_wide <- 
         r$projects_wide %>% 
         dplyr::mutate(dataset_id = dplyr::case_when(id == input$selected_element ~ input$project_dataset, TRUE ~ dataset_id))
-      
-      # Notify user
-      # show_message_bar(output,  "modif_saved", "success", i18n = i18n, ns = ns)
     })
     
     ## Reload dataset ----
@@ -562,12 +597,32 @@ mod_projects_server <- function(id, r, d, m, language, i18n, debug, user_accesse
       
       categories <- c("care_sites", "patients", "stays")
       sapply(categories[categories != input$dataset_details], function(category) shinyjs::hide(paste0("dataset_", category, "_details")))
-      shinyjs::show(paste0("dataset_", input$dataset_details, "_details"))
       
       ### Care sites details ----
       
       if (input$dataset_details == "care_sites"){
         
+        num_care_sites <- 0
+        
+        if (d$location %>% dplyr::count() %>% dplyr::pull() > 0 & d$care_site %>% dplyr::count() %>% dplyr::pull() > 0){
+          care_sites <-
+            d$location %>%
+            dplyr::inner_join(d$care_site, by = "location_id")
+          
+          num_care_sites <- care_sites %>% dplyr::distinct(location_id) %>% dplyr::count() %>% dplyr::pull()
+        }
+        
+        if (num_care_sites == 0){
+          
+        }
+        
+        req(num_care_sites > 0)
+        
+        output$dataset_care_sites_locations_table <- renderTable(
+          care_sites %>%
+            dplyr::distinct(location_source_value) %>%
+            dplyr::rename(!!i18n$t("care_site") := location_source_value)
+        )
       }
       
       ## Patients details ----
@@ -743,6 +798,8 @@ mod_projects_server <- function(id, r, d, m, language, i18n, debug, user_accesse
         
         output$dataset_care_sites_table <- renderTable(care_site_visits)
       }
+      
+      shinyjs::show(paste0("dataset_", input$dataset_details, "_details"))
     })
     
     # --- --- --- --- --- -
