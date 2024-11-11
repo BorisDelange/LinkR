@@ -465,8 +465,16 @@ mod_data_server <- function(id, r, d, m, language, i18n, debug, user_accesses){
       
       for(table in person_tables){
         if (d$data_subset[[table]] %>% dplyr::count() %>% dplyr::pull() > 0){
-          d$data_person[[table]] <- d$data_subset[[table]] %>% dplyr::filter(person_id == selected_person)
-        } 
+          
+          if (table == "note_nlp"){
+            if (d$data_person$note %>% dplyr::count() %>% dplyr::pull() > 0){
+              note_ids <- d$data_person$note %>% dplyr::distinct(note_id) %>% dplyr::pull()
+              d$data_person$note_nlp <- d$data_subset$note_nlp %>% dplyr::filter(note_id %in% note_ids)
+            }
+          }
+          else d$data_person[[table]] <- d$data_subset[[table]] %>% dplyr::filter(person_id == selected_person)
+        }
+        else d$data_subset[[table]] <- tibble::tibble()
       }
     })
     
@@ -480,8 +488,16 @@ mod_data_server <- function(id, r, d, m, language, i18n, debug, user_accesses){
       
       for(table in visit_detail_tables){
         if (d$data_person[[table]] %>% dplyr::count() %>% dplyr::pull() > 0){
-          d$data_visit_detail[[table]] <- d$data_person[[table]] %>% dplyr::filter(visit_detail_id == selected_visit_detail)
+          
+          if (table == "note_nlp"){
+            if (d$data_visit_detail$note %>% dplyr::count() %>% dplyr::pull() > 0){
+              note_ids <- d$data_visit_detail$note %>% dplyr::distinct(note_id) %>% dplyr::pull()
+              d$data_visit_detail$note_nlp <- d$data_person$note_nlp %>% dplyr::filter(note_id %in% note_ids)
+            }
+          }
+          else d$data_visit_detail[[table]] <- d$data_person[[table]] %>% dplyr::filter(visit_detail_id == selected_visit_detail)
         }
+        else d$data_visit_detail[[table]] <- tibble::tibble()
       }
     })
     
