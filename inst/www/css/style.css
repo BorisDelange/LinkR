@@ -48,18 +48,6 @@ h2, h3, h4, h5, h6 {
   font-size: 16px;  
 }
 
-.footer a {
-    color: black;
-}
-
-.footer a:visited {
-    color: black;
-}
-
-.footer a:hover {
-    color: rgb(0, 120, 212);
-}
-
 a.no-hover-effect {
   color: black;
   text-decoration: none;
@@ -245,7 +233,19 @@ a.no-hover-effect:hover {
   justify-content: space-between;
   align-items: center;
   font-size: 12px;
-  padding: 10px 20px 10px 15px;
+  padding: 5px 15px;
+}
+
+.footer a {
+    color: black;
+}
+
+.footer a:visited {
+    color: black;
+}
+
+.footer a:hover {
+    color: rgb(0, 120, 212);
 }
 
 /* --------------- */
