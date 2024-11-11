@@ -240,7 +240,15 @@ mod_projects_ui <- function(id, language, languages, i18n){
                 shinyjs::hidden(
                   div(
                     id = ns("project_dataset_div"),
-                    div(shiny.fluent::Dropdown.shinyInput(ns("project_dataset"), label = i18n$t("dataset")), style = "width: 200px"),
+                    div(
+                      div(shiny.fluent::Dropdown.shinyInput(ns("project_dataset"), label = i18n$t("dataset")), style = "width: 200px"),
+                      div(
+                        shiny.fluent::IconButton.shinyInput(ns("reload_dataset"), iconProps = list(iconName = "Play")),
+                        class = "small_icon_button",
+                        style = "margin-top: 26px;"
+                      ),
+                      style = "display: flex; gap: 5px;"
+                    ),
                     dataset_details("dataset"),
                     style = "height: calc(100% - 45px);"
                   )
@@ -258,8 +266,7 @@ mod_projects_ui <- function(id, language, languages, i18n){
                 tags$h1(i18n$t("details")),
                 shinyjs::hidden(
                   div(
-                    id = ns("dataset_care_sites_details"),
-                    "Care sites"
+                    id = ns("dataset_care_sites_details")
                   )
                 ),
                 shinyjs::hidden(
@@ -514,9 +521,6 @@ mod_projects_server <- function(id, r, d, m, language, i18n, debug, user_accesse
       
       # Save each time a dataset is selected
       shinyjs::runjs(paste0("Shiny.setInputValue('", id, "-save_dataset', Math.random());"))
-      
-      # Reload dataset each time a dataset is selected
-      # shinyjs::runjs(paste0("Shiny.setInputValue('", id, "-reload_dataset', Math.random());"))
     })
     
     observeEvent(input$save_dataset, {
@@ -543,6 +547,11 @@ mod_projects_server <- function(id, r, d, m, language, i18n, debug, user_accesse
       
       req(length(input$project_dataset) > 0)
       req("projects_dataset" %in% user_accesses)
+      
+      # Hide dataset details
+      sapply(c("dataset_care_sites_details", "dataset_patients_details", "dataset_stays_details"), shinyjs::hide)
+      
+      # Load dataset
       load_dataset(r, m, d, input$project_dataset, r$main_tables, m$selected_study)
     })
     
