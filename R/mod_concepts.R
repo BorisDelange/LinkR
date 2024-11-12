@@ -29,7 +29,7 @@ mod_concepts_ui <- function(id, language, languages, i18n, dropdowns){
           class = "widget", style = "height: 50%; display: flex; overflow: auto; padding: 15px 10px 5px 10px;"
         ),
         div(
-          plotOutput(ns("primary_concept_plot"), height = "100%"),
+          plotOutput(ns("primary_concept_plot"), height = "calc(100% - 10px)"),
           class = "widget", style = "height: 50%; padding: 10px;"
         ),
         class = "concepts_right"
@@ -116,7 +116,7 @@ mod_concepts_server <- function(id, r, d, m, language, i18n, debug, user_accesse
       
       # Reset UI
       output$primary_concept_info <- renderUI("")
-      output$primary_concept_plot <- renderPlot(ggplot2::ggplot + ggplot2::theme_void())
+      output$primary_concept_plot <- renderPlot(ggplot2::ggplot() + ggplot2::theme_void())
     })
     
     # Reload concepts datatable ----
