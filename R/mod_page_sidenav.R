@@ -915,22 +915,26 @@ mod_page_sidenav_server <- function(id, r, d, m, language, i18n, debug){
       var reduced_sidenav = document.getElementById('", id, "-reduced_sidenav');
     ")
     js_show_sidenav <- paste0("
-      sidenav.style.width = '220px';
-      sidenav.style.minWidth = '220px';
-      sidenav.style.padding = '10px 10px 0px 10px';
-      button.classList.add('button_hide_sidenav');
-      button.classList.remove('button_show_sidenav');
-      reduced_sidenav.style.display = 'none';
-      setTimeout(() => large_sidenav.style.display = 'block', 300);
+      if (sidenav && button && large_sidenav && reduced_sidenav) { 
+        sidenav.style.width = '220px';
+        sidenav.style.minWidth = '220px';
+        sidenav.style.padding = '10px 10px 0px 10px';
+        button.classList.add('button_hide_sidenav');
+        button.classList.remove('button_show_sidenav');
+        reduced_sidenav.style.display = 'none';
+        setTimeout(() => large_sidenav.style.display = 'block', 300);
+      }
     ")
     js_hide_sidenav <- paste0("
-      sidenav.style.width = '40px';
-      sidenav.style.minWidth = '40px';
-      sidenav.style.padding = 0;
-      button.classList.remove('button_hide_sidenav');
-      button.classList.add('button_show_sidenav');
-      large_sidenav.style.display = 'none';
-      setTimeout(() => reduced_sidenav.style.display = 'block', 300);
+      if (sidenav && button && large_sidenav && reduced_sidenav) { 
+        sidenav.style.width = '40px';
+        sidenav.style.minWidth = '40px';
+        sidenav.style.padding = 0;
+        button.classList.remove('button_hide_sidenav');
+        button.classList.add('button_show_sidenav');
+        large_sidenav.style.display = 'none';
+        setTimeout(() => reduced_sidenav.style.display = 'block', 300);
+      }
     ")
     
     # Prevent display bug

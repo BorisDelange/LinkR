@@ -78,9 +78,7 @@ mod_console_server <- function(id, r, d, m, language, i18n, debug, user_accesses
 
         // Disable default live autocomplete
         editor.setOptions({
-          enableLiveAutocompletion: false,
-          liveAutocompletionDelay: 500,
-          liveAutocompletionThreshold: 3
+          enableLiveAutocompletion: false
         });
 
         // Watch for changes in the editor

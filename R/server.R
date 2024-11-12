@@ -256,12 +256,12 @@ app_server <- function(
       
       # Data pages are loaded from mod_widgets (when a project is selected)
       if (page == "data"){
-        
+
         mod_data_server("data", r, d, m, language, i18n, debug, user_accesses)
         mod_page_sidenav_server("data", r, d, m, language, i18n, debug)
         mod_page_header_server("data", r, d, m, language, i18n, debug)
         r$loaded_pages$data <- TRUE
-        
+
         r$load_project_trigger <- now()
       }
       else {
@@ -270,10 +270,10 @@ app_server <- function(
         else if (page %in% c("console", "data_cleaning", "datasets", "plugins", "projects", "subsets", "user_settings", "vocabularies")) args <- list(page, r, d, m, language, i18n, debug, user_accesses, user_settings)
         else args <- list(page, r, d, m, language, i18n, debug, user_accesses)
         do.call(paste0("mod_", page, "_server"), args)
-        
+
         mod_page_sidenav_server(page, r, d, m, language, i18n, debug)
         mod_page_header_server(page, r, d, m, language, i18n, debug)
-        
+
         r$loaded_pages[[page]] <- TRUE
       }
     })
