@@ -131,14 +131,21 @@ remove_patients_from_subset <- function(output, r = shiny::reactiveValues(), m =
 }
 
 #' @noRd
-join_concept <- function(df, concept_df, key, name, copy = TRUE) {
-  df %>%
-    dplyr::left_join(
-      concept_df %>%
-        dplyr::select(!!key := concept_id, !!name := concept_name),
-      by = key,
-      copy = copy
-    )
+join_concepts <- function(df, concept_df, cols) {
+  for (col in cols) {
+    key <- paste0(col, "_concept_id")
+    name <- paste0(col, "_concept_name")
+    
+    df <- df %>%
+      dplyr::left_join(
+        concept_df %>%
+          dplyr::select(!!key := concept_id, !!name := concept_name),
+        by = key,
+        copy = TRUE
+      )
+  }
+  
+  return(df)
 }
 
 #' @noRd
