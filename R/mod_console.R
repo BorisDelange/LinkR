@@ -308,6 +308,7 @@ mod_console_server <- function(id, r, d, m, language, i18n, debug, user_accesses
               compact = TRUE, hover = TRUE,
               pageLength = 25
             ),
+            selection = "single",
             
             # CSS for datatable
             callback = htmlwidgets::JS(
