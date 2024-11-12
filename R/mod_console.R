@@ -38,7 +38,7 @@ mod_console_ui <- function(id, language, languages, i18n, code_hotkeys, auto_com
           shinyjs::hidden(div(id = ns("datatable_output_div"), DT::DTOutput(ns("datatable_output")), style = "padding-top: 10px;")),
           shinyjs::hidden(imageOutput(ns("image_output"))),
           class = "resizable-panel right-panel",
-          style = "width: 50%; padding: 0 15px; font-size: 12px; overflow-y: auto;"
+          style = "width: 50%; padding: 5px 15px; font-size: 12px; overflow-y: auto;"
         ),
         class = "resizable-container",
         style = "height: 100%; display: flex;"
@@ -189,6 +189,16 @@ mod_console_server <- function(id, r, d, m, language, i18n, debug, user_accesses
       }
       else shinyjs::hide("plot_size_div")
       
+      sapply(c("code_output", "rmarkdown_output", "ui_output", "plot_output_div", "table_output_div", "datatable_output_div", "image_output"), shinyjs::hide)
+      if (input$output == "console") shinyjs::show("code_output")
+      else if (input$output == "figure") shinyjs::show("plot_output_div")
+      else if (input$output == "rmarkdown") shinyjs::show("rmarkdown_output")
+      else if (input$output == "ui") shinyjs::show("ui_output")
+      else if (input$output == "table") shinyjs::show("table_output_div")
+      else if (input$output == "datatable") shinyjs::show("datatable_output_div")
+      else if (input$output == "terminal") shinyjs::show("code_output")
+      else if (input$output == "matplotlib") shinyjs::show("image_output")
+      
       # Output style
       if (input$output %in% c("console", "terminal")) shinyjs::addClass("console_output", paste0("ace-", text_output_theme))
       else shinyjs::removeClass("console_output", paste0("ace-", text_output_theme))
@@ -247,16 +257,6 @@ mod_console_server <- function(id, r, d, m, language, i18n, debug, user_accesses
       
       ## Run R code ----
       
-      sapply(c("code_output", "rmarkdown_output", "ui_output", "plot_output_div", "table_output_div", "datatable_output_div", "image_output"), shinyjs::hide)
-      if (input$output == "console") shinyjs::show("code_output")
-      else if (input$output == "figure") shinyjs::show("plot_output_div")
-      else if (input$output == "rmarkdown") shinyjs::show("rmarkdown_output")
-      else if (input$output == "ui") shinyjs::show("ui_output")
-      else if (input$output == "table") shinyjs::show("table_output_div")
-      else if (input$output == "datatable") shinyjs::show("datatable_output_div")
-      else if (input$output == "terminal") shinyjs::show("code_output")
-      else if (input$output == "matplotlib") shinyjs::show("image_output")
-      
       if (input$programming_language == "r"){
         
         # Console output
@@ -298,7 +298,30 @@ mod_console_server <- function(id, r, d, m, language, i18n, debug, user_accesses
         else if (input$output == "table") output$table_output <- renderTable(tryCatch(eval(parse(text = code)), error = function(e) print(e), warning = function(w) print(w)))
         
         # DataTable
-        else if (input$output == "datatable") output$datatable_output <- DT::renderDT(tryCatch(eval(parse(text = code)), error = function(e) print(e), warning = function(w) print(w)))
+        else if (input$output == "datatable") output$datatable_output <- DT::renderDT(
+          DT::datatable(
+            tryCatch(eval(parse(text = code)), error = function(e) print(e), warning = function(w) print(w)),
+            
+            rownames = FALSE,
+            options = list(
+              dom = "<'datatable_length'l><'top't><'bottom'p>",
+              compact = TRUE, hover = TRUE,
+              pageLength = 25
+            ),
+            
+            # CSS for datatable
+            callback = htmlwidgets::JS(
+              "table.on('draw.dt', function() {",
+              "  $('.dataTable tbody tr td').css({",
+              "    'height': '12px',",
+              "    'padding': '2px 5px'",
+              "  });",
+              "  $('.dataTable thead tr td div .form-control').css('font-size', '12px');",
+              "  $('.dataTable thead tr td').css('padding', '5px');",
+              "});"
+            )
+          )
+        )
       }
       
       # Run Python code ----
