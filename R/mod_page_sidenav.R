@@ -175,7 +175,7 @@ mod_page_sidenav_ui <- function(id, language, i18n){
               shiny.fluent::IconButton.shinyInput(ns("reload_concepts_count"), iconProps = list(iconName = "SyncOccurence"))
             )
           ),
-          text = i18n$t("reload_dataset_concepts")
+          text = i18n$t("reload_concepts_count")
         ),
         class = "reduced_sidenav_buttons"
       ),

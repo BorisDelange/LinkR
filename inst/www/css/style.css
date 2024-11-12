@@ -253,7 +253,7 @@ a.no-hover-effect:hover {
 /* --------------- */
 
 .delete_modal, .create_element_modal, .import_modal, .load_status_modal, .select_concepts_modal, .select_a_plugin_modal,
-.import_concepts_modal, .update_or_delete_git_element_modal, .reload_dataset_concepts_modal, .create_git_repo_modal,
+.import_concepts_modal, .update_or_delete_git_element_modal, .reload_concepts_count_modal, .create_git_repo_modal,
 .push_git_modal {
   display: flex;
   align-items: center;
@@ -269,7 +269,7 @@ a.no-hover-effect:hover {
 
 .delete_modal_content, .create_tab_modal_content, .import_modal_content, .create_widget_modal_content, .load_status_modal_content, .create_plugin_modal_content, .create_project_modal_content, .create_dataset_modal_content, .create_subset_modal_content,
 .create_vocabulary_modal_content, .create_data_cleaning_modal_content, .select_concepts_modal_content, .select_a_plugin_modal_content,
-.import_concepts_modal_content, .update_or_delete_git_element_modal_content, .reload_dataset_concepts_modal_content,
+.import_concepts_modal_content, .update_or_delete_git_element_modal_content, .reload_concepts_count_modal_content,
 .create_git_repo_modal_content, .push_git_modal_content, .create_user_modal_content, .create_user_status_modal_content,
 .create_user_access_modal_content {
   background: #fff;
@@ -293,7 +293,7 @@ a.no-hover-effect:hover {
 }
 
 .delete_modal_content h1, .create_element_modal h1, .import_modal_content h1, .load_status_modal h1, .select_concepts_modal h1, .select_a_plugin_modal h1, .import_concepts_modal_content h1, .update_or_delete_git_element_modal_content h1, .create_user_modal_content h1, 
-.reload_dataset_concepts_modal_content h1, .create_git_repo_modal h1, .push_git_modal_content h1, .create_user_status_modal_content h1,
+.reload_concepts_count_modal_content h1, .create_git_repo_modal h1, .push_git_modal_content h1, .create_user_status_modal_content h1,
 .create_user_access_modal_content h1 {
   font-size: 14px;
 }
@@ -303,7 +303,7 @@ a.no-hover-effect:hover {
 }
 
 .delete_modal_buttons, .import_modal_buttons, .create_element_modal_buttons, .select_concepts_modal_buttons, .import_concepts_modal_buttons,
-.datasets_share_buttons, .update_or_delete_git_element_modal_buttons, .reload_dataset_concepts_modal_buttons, .git_element_details_git_buttons,
+.datasets_share_buttons, .update_or_delete_git_element_modal_buttons, .reload_concepts_count_modal_buttons, .git_element_details_git_buttons,
 .export_db_buttons, .import_db_buttons, .data_cleaning_share_buttons, .projects_share_buttons, .create_git_repo_modal_buttons,
 .git_repo_infos_modal_buttons, .push_git_modal_buttons {
   position: absolute;
@@ -332,7 +332,7 @@ a.no-hover-effect:hover {
   width: 60%;
   height: 320px;
 }
-.reload_dataset_concepts_modal_content {
+.reload_concepts_count_modal_content {
   width: 400px;
   height: 150px;
 }

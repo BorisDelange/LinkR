@@ -54,6 +54,23 @@ mod_concepts_ui <- function(id, language, languages, i18n, dropdowns){
         ),
         class = "concepts_settings_modal"
       )
+    ),
+    
+    # Reload dataset concepts count modal ----
+    shinyjs::hidden(
+      div(
+        id = ns("reload_concepts_count_modal"),
+        div(
+          tags$h1(i18n$t("reload_concepts_count_title")), tags$p(i18n$t("reload_concepts_count_text")),
+          div(
+            shiny.fluent::DefaultButton.shinyInput(ns("close_reload_concepts_count_modal"), i18n$t("dont_reload")),
+            div(shiny.fluent::PrimaryButton.shinyInput(ns("confirm_reload_concepts_count"), i18n$t("reload"))),
+            class = "reload_concepts_count_modal_buttons"
+          ),
+          class = "reload_concepts_count_modal_content"
+        ),
+        class = "reload_concepts_count_modal"
+      )
     )
   )
 }
@@ -67,18 +84,18 @@ mod_concepts_server <- function(id, r, d, m, language, i18n, debug, user_accesse
     
     # Current user accesses ----
     
-    # if ("concepts_reload_dataset_concepts" %in% user_accesses) shinyjs::show("reload_concepts_count_button")
-    
-    # Page settings ----
-    
-    # observeEvent(input$settings, {
-    #   if (debug) cat(paste0("\n", now(), " - mod_concepts - ", id, " - observer input$settings"))
-    #   
-    # })
+    if ("concepts_reload_dataset_concepts" %in% user_accesses) shinyjs::show("reload_concepts_count_button")
     
     # Reload vocabulary dropdown ----
+    
     observeEvent(r$dataset_vocabularies, {
       if (debug) cat(paste0("\n", now(), " - mod_concepts - ", id, " - observer r$dataset_vocabularies"))
+
+      shinyjs::runjs(paste0("Shiny.setInputValue('", id, "-reload_vocabulary_dropdown', Math.random());"))
+    })
+    
+    observeEvent(input$reload_vocabulary_dropdown, {
+      if (debug) cat(paste0("\n", now(), " - mod_concepts - ", id, " - observer input$reload_vocabulary_dropdown"))
       
       if (nrow(r$dataset_vocabularies) > 0){
         # Reload vocabulary dropdown
@@ -216,6 +233,36 @@ mod_concepts_server <- function(id, r, d, m, language, i18n, debug, user_accesse
       else plot <- ggplot2::ggplot() + ggplot2::theme_void()
       
       output$primary_concept_plot <- renderPlot(plot)
+    })
+    
+    # Reload dataset concepts count ----
+    
+    observeEvent(input$reload_concepts_count, {
+      if (debug) cat(paste0("\n", now(), " - mod_select_concepts - (", id, ") - observer input$reload_concepts_count"))
+      shinyjs::show("reload_concepts_count_modal")
+    })
+
+    observeEvent(input$close_reload_concepts_count_modal, {
+      if (debug) cat(paste0("\n", now(), " - mod_select_concepts - (", id, ") - observer input$close_reload_concepts_count_modal"))
+      shinyjs::hide("reload_concepts_count_modal")
+    })
+
+    observeEvent(input$confirm_reload_concepts_count, {
+      if (debug) cat(paste0("\n", now(), " - mod_select_concepts - (", id, ") - observer input$confirm_reload_concepts_count"))
+      
+      # Remove concept file
+      dataset_folder <- paste0(r$app_folder, "/datasets_files/", r$selected_dataset)
+      concept_filename <- paste0(dataset_folder, "/concept.csv")
+      if (file.exists(concept_filename)) unlink(concept_filename)
+
+      # Reload concepts count
+      load_dataset_concepts(r, d, m)
+      
+      # Reset fields
+      shinyjs::runjs(paste0("Shiny.setInputValue('", id, "-reload_vocabulary_dropdown', Math.random());"))
+      shinyjs::runjs(paste0("Shiny.setInputValue('", id, "-reload_concepts_dt', Math.random())"))
+
+      shinyjs::hide("reload_concepts_count_modal")
     })
   })
 }

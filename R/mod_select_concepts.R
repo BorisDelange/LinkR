@@ -38,14 +38,6 @@ mod_select_concepts_ui <- function(id, language, languages, i18n){
                     ), 
                     style = "width: 200px;"
                   ),
-                  div(
-                    create_hover_card(
-                      ui = shiny.fluent::IconButton.shinyInput(ns("reload_dataset_concepts"), iconProps = list(iconName ="SyncOccurence")), 
-                      text = i18n$t("reload_dataset_concepts")
-                    ),
-                    style = "margin-top: 27px;",
-                    class = "small_icon_button"
-                  ),
                   style = "display: flex; gap: 10px;"
                 ),
                 DT::DTOutput(ns("vocabulary_concepts")),
@@ -79,24 +71,6 @@ mod_select_concepts_ui <- function(id, language, languages, i18n){
           class = "select_concepts_modal_content"
         ),
         class = "select_concepts_modal"
-      )
-    ),
-    
-    # Reload dataset concepts modal ----
-    
-    shinyjs::hidden(
-      div(
-        id = ns("reload_dataset_concepts_modal"),
-        div(
-          tags$h1(i18n$t("reload_dataset_concepts_title")), tags$p(i18n$t("reload_dataset_concepts_text")),
-          div(
-            shiny.fluent::DefaultButton.shinyInput(ns("close_reload_dataset_concepts_modal"), i18n$t("dont_reload")),
-            div(shiny.fluent::PrimaryButton.shinyInput(ns("confirm_reload_dataset_concepts"), i18n$t("reload"))),
-            class = "reload_dataset_concepts_modal_buttons"
-          ),
-          class = "reload_dataset_concepts_modal_content"
-        ),
-        class = "reload_dataset_concepts_modal"
       )
     )
   )
@@ -343,41 +317,6 @@ mod_select_concepts_server <- function(id, r, d, m, language, i18n, debug, user_
       ))
       output$selected_concepts <- renderUI(selected_concepts_ui)
       output$selected_concepts_list <- renderUI(selected_concepts_list_ui)
-    })
-    
-    # Reload dataset concepts ----
-    observeEvent(input$reload_dataset_concepts, {
-      if (debug) cat(paste0("\n", now(), " - mod_select_concepts - (", id, ") - observer input$reload_dataset_concepts"))
-      shinyjs::show("reload_dataset_concepts_modal")
-    })
-    
-    observeEvent(input$close_reload_dataset_concepts_modal, {
-      if (debug) cat(paste0("\n", now(), " - mod_select_concepts - (", id, ") - observer input$close_reload_dataset_concepts_modal"))
-      shinyjs::hide("reload_dataset_concepts_modal")
-    })
-    
-    observeEvent(input$confirm_reload_dataset_concepts, {
-      if (debug) cat(paste0("\n", now(), " - mod_select_concepts - (", id, ") - observer input$confirm_reload_dataset_concepts"))
-      
-      # Remove concept file
-      dataset_folder <- paste0(r$app_folder, "/datasets_files/", r$selected_dataset)
-      concept_filename <- paste0(dataset_folder, "/concept.csv")
-      if (file.exists(concept_filename)) unlink(concept_filename)
-      
-      # Reset fields
-      shinyjs::hide("vocabulary_concepts")
-      r[[paste0(id, "_selected_concepts")]] <- tibble::tibble(
-        concept_id = integer(), concept_name = character(), domain_id = character(), vocabulary_id = character(),
-        mapped_to_concept_id = integer(), merge_mapped_concepts = logical()
-      )
-      shinyjs::runjs(paste0("Shiny.setInputValue('", id, "-update_selected_concepts_list', Math.random())"))
-      
-      # Reload concepts count
-      load_dataset_concepts(r, d, m)
-      
-      shinyjs::runjs(paste0("Shiny.setInputValue('", id, "-reload_vocabularies', Math.random())"))
-      
-      shinyjs::hide("reload_dataset_concepts_modal")
     })
   })
 }

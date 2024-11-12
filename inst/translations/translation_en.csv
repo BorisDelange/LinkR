@@ -341,9 +341,9 @@ raw_files_url_address,Raw files URL address
 refresh_log,Refresh log
 reload,Reload
 reload_dataset,Reload dataset
-reload_dataset_concepts,Reload dataset concepts
-reload_dataset_concepts_text,Reload count of current dataset concepts? This operation may take a few minutes.
-reload_dataset_concepts_title,Reload concepts
+reload_concepts_count,Reload dataset concepts count
+reload_concepts_count_text,Reload count of current dataset concepts? This operation may take a few minutes.
+reload_concepts_count_title,Reload concepts
 reload_git_repo,Reload git
 reload_list,Reload list
 reload_plugin_code,Reload plugin code
