@@ -455,18 +455,6 @@ load_dataset_concepts <- function(r, d, m){
         concept %>%
         dplyr::mutate(
           add_concept_input = as.character(
-            # div(
-            #   shiny.fluent::IconButton.shinyInput(
-            #     "%ns%-concept_info_%concept_id%", iconProps = list(iconName = "Info"),
-            #     onClick = paste0("Shiny.setInputValue('%ns%-concept_selected', %concept_id%)")
-            #   ),
-            #   shiny.fluent::IconButton.shinyInput(
-            #     "%ns%-add_concept_%concept_id%", iconProps = list(iconName = "Add"),
-            #     onClick = paste0("Shiny.setInputValue('%ns%-concept_selected', %concept_id%)")
-            #   ),
-            #   class = "small_icon_button",
-            #   style = "display: flex; justify-content:center;"
-            # )
             div(
               shiny::actionButton(
                 "%ns%-show_concept_%concept_id%", "", icon = icon("info"),
@@ -517,5 +505,26 @@ load_dataset_concepts <- function(r, d, m){
     dplyr::arrange(vocabulary_id)
   
   # Then load d$dataset_drug_strength
-  # r$load_dataset_drug_strength <- now()
+  
+  # Load csv file if it exists
+  drug_strength_filename <- paste0(dataset_folder, "/drug_strength.csv")
+  
+  if (file.exists(drug_strength_filename)) d$drug_strength <- vroom::vroom(drug_strength_filename, col_types = "iinininiiDDc", progress = FALSE)
+  
+  if (!file.exists(drug_strength_filename)){
+    
+    concept_ids <-
+      d$concept %>%
+      dplyr::filter(domain_id == "Drug") %>%
+      dplyr::pull(concept_id)
+    
+    sql <- glue::glue_sql("SELECT * FROM drug_strength WHERE drug_concept_id IN ({concept_ids*})", .con = m$db)
+    drug_strength <- DBI::dbGetQuery(m$db, sql)
+    
+    # Save data as csv
+    readr::write_csv(drug_strength, drug_strength_filename, progress = FALSE)
+    
+    # Update d var
+    d$drug_strength <- drug_strength
+  }
 }
