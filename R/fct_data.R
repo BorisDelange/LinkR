@@ -519,7 +519,7 @@ load_dataset_concepts <- function(r, d, m){
       dplyr::pull(concept_id)
     
     sql <- glue::glue_sql("SELECT * FROM drug_strength WHERE drug_concept_id IN ({concept_ids*})", .con = m$db)
-    drug_strength <- DBI::dbGetQuery(m$db, sql)
+    drug_strength <- DBI::dbGetQuery(m$db, sql) %>% dplyr::select(-id) %>% tibble::as_tibble()
     
     # Save data as csv
     readr::write_csv(drug_strength, drug_strength_filename, progress = FALSE)
