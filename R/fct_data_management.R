@@ -143,7 +143,8 @@ join_concepts <- function(df, concept_df, cols) {
           dplyr::select(!!key := concept_id, !!name := concept_name),
         by = key,
         copy = TRUE
-      )
+      ) %>%
+      dplyr::relocate(!!name, .after = !!key)
   }
   
   return(df)
