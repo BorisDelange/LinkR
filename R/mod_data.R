@@ -1879,6 +1879,9 @@ mod_data_server <- function(id, r, d, m, language, i18n, debug, user_accesses){
         DBI::dbAppendTable(m$db, "widgets_concepts", new_data)
         r$data_widgets_concepts <- r$data_widgets_concepts %>% dplyr::bind_rows(new_data)
         
+        # Reset add concept buttons
+        sapply(r[[paste0(id, "_selected_concepts")]]$concept_id, function(concept_id) shinyjs::runjs(paste0("$('#", id, "-add_concept_", concept_id, " i').removeClass('fa-minus').addClass('fa-plus');")))
+        
         # Reset selected concepts
         r[[paste0(id, "_selected_concepts")]] <- tibble::tibble(
           concept_id = integer(), concept_name = character(), domain_id = character(), vocabulary_id = character(),
