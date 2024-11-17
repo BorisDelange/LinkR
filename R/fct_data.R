@@ -457,14 +457,6 @@ load_dataset_concepts <- function(r, d, m){
           add_concept_input = as.character(
             div(
               shiny::actionButton(
-                "%ns%-show_concept_%concept_id%", "", icon = icon("info"),
-                onclick = paste0(
-                  "Shiny.setInputValue('%ns%-show_concept_trigger', Math.random());",
-                  "Shiny.setInputValue('%ns%-concept_selected', %concept_id%);"
-                ),
-                style = "width: 22px;"
-              ),
-              shiny::actionButton(
                 "%ns%-add_concept_%concept_id%", "", icon = icon("plus"),
                 onclick = paste0(
                   "Shiny.setInputValue('%ns%-add_concept_trigger', Math.random());",
@@ -472,8 +464,7 @@ load_dataset_concepts <- function(r, d, m){
                 ),
                 style = "width: 22px;"
               ),
-              class = "small_icon_button",
-              style = "display: flex; gap: 5px; justify-content:center;"
+              class = "small_icon_button"
             )
           )
         )

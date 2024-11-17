@@ -155,7 +155,7 @@ mod_select_concepts_server <- function(id, r, d, m, language, i18n, debug, user_
         # Render datatable
         render_datatable(
           output = output, ns = ns, i18n = i18n, data = widget_vocabulary_concepts,
-          output_name = "vocabulary_concepts", col_names =  col_names, page_length = 20,
+          output_name = "vocabulary_concepts", col_names =  col_names, page_length = 20, datatable_dom = "<'top't><'bottom'p>",
           editable_cols = editable_cols, sortable_cols = sortable_cols, centered_cols = centered_cols, column_widths = column_widths,
           searchable_cols = searchable_cols, filter = TRUE, hidden_col = hidden_cols, factorize_cols = factorize_cols, selection = "none"
         )
