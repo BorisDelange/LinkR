@@ -802,51 +802,13 @@ button.ms-UpButton, button.ms-DownButton {
 /* DATATABLES          */
 /* ------------------- */
 
-/*
-.form-control {
-  font-size: 12px;
-}
-*/
-/* Search column in datatable, with type is factor */
-/*
-td[data-type="factor"] input {
-  width: 200px !important;
-}
-
-.datatable_link {
-  font-weight: bold;
-  color: #0078D4;
-  text-decoration: none;
-}
-
-.datatable_link:hover {
-  text-decoration: underline;
-  color: #0062AD;
-}
-
-.datatable_link:visited {
-  color: #0078D4;
-}
-
-.vocabulary_table table tbody td {
-  height:15px;
-  white-space: nowrap;
-}
-
-.vocabulary_table table tbody td div{
-  height:18px;
-  word-wrap:break-word;
-  position:relative;
-  top:-4px;
-}*/
-
 .dataTable tbody tr td {
-    padding: 2px 5px;
-    font-size: 12px;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    max-width: 0;   
+  padding: 2px 5px;
+  font-size: 12px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 0;   
 }
 
 .dataTable tbody tr td input {
