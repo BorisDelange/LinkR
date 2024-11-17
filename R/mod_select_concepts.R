@@ -18,7 +18,7 @@ mod_select_concepts_ui <- function(id, language, languages, i18n){
             div(
               div(
                 div(
-                  div(shiny.fluent::ComboBox.shinyInput(ns("vocabulary"), label = i18n$t("vocabulary"), allowFreeform = FALSE, multiSelect = FALSE), style = "width: 200px;"),
+                  div(shiny.fluent::Dropdown.shinyInput(ns("vocabulary"), label = i18n$t("vocabulary"), allowFreeform = FALSE, multiSelect = FALSE), style = "width: 200px;"),
                   div(
                     shiny.fluent::Dropdown.shinyInput(
                       ns("vocabulary_dt_cols"), label = i18n$t("columns"), multiSelect = TRUE,
@@ -101,9 +101,15 @@ mod_select_concepts_server <- function(id, r, d, m, language, i18n, debug, user_
       
       req(length(r$dataset_vocabularies) > 0)
       if (nrow(r$dataset_vocabularies) == 0) vocabulary_options = list()
-      if (nrow(r$dataset_vocabularies) > 0) vocabulary_options <- convert_tibble_to_list(data = r$dataset_vocabularies, key_col = "vocabulary_id", text_col = "vocabulary_id", i18n = i18n)
+      if (nrow(r$dataset_vocabularies) > 0) vocabulary_options <-
+        r$dataset_vocabularies %>% 
+        dplyr::select(vocabulary_id) %>%
+        dplyr::mutate(text = vocabulary_id) %>%
+        dplyr::bind_rows(tibble::tibble(vocabulary_id = "all_vocabularies", text = i18n$t("all_vocabularies"))) %>%
+        dplyr::arrange(vocabulary_id != "all_vocabularies", vocabulary_id) %>%
+        convert_tibble_to_list(key_col = "vocabulary_id", text_col = "text")
       
-      shiny.fluent::updateComboBox.shinyInput(session, "vocabulary", options = vocabulary_options, value = NULL)
+      shiny.fluent::updateDropdown.shinyInput(session, "vocabulary", options = vocabulary_options, value = NULL)
       
       # Initiate selected_concepts var
       r[[paste0(id, "_selected_concepts")]] <- tibble::tibble(
@@ -120,13 +126,13 @@ mod_select_concepts_server <- function(id, r, d, m, language, i18n, debug, user_
       req(length(d$concept) > 0, nrow(d$concept) > 0)
       
       shinyjs::show("vocabulary_concepts")
-
-      vocabulary_id <- input$vocabulary$key
-      req(length(vocabulary_id) > 0)
+      req(length(input$vocabulary) > 0)
+      
+      if (input$vocabulary == "all_vocabularies") data <- d$concept
+      else data <- d$concept %>% dplyr::filter(vocabulary_id == input$vocabulary)
 
       widget_vocabulary_concepts <- 
-        d$concept %>%
-        dplyr::filter(vocabulary_id == !!vocabulary_id) %>%
+        data %>%
         dplyr::select(
           concept_id, concept_name, domain_id, vocabulary_id, concept_class_id, standard_concept, concept_code,
           count_persons_rows, count_concepts_rows, add_concept_input
@@ -141,8 +147,8 @@ mod_select_concepts_server <- function(id, r, d, m, language, i18n, debug, user_
       if (length(r[[paste0(id, "_vocabulary_concepts_proxy")]]) == 0){
         
         editable_cols <- c("concept_name")
-        searchable_cols <- c("concept_id", "concept_name", "domain_id", "concept_class_id", "standard_concept", "concept_code", "concept_display_name")
-        factorize_cols <- c("domain_id", "concept_class_id", "standard_concept")
+        searchable_cols <- c("concept_id", "concept_name", "domain_id", "vocabulary_id", "concept_class_id", "standard_concept", "concept_code", "concept_display_name")
+        factorize_cols <- c("domain_id", "concept_class_id", "standard_concept", "vocabulary_id")
         column_widths <- c(
           "domain_id" = "100px", "concept_class_id" = "100px", "concept_id" = "80px", "add_concept_input" = "80px",
           "concept_id" = "100px", "count_persons_rows" = "40px", "count_concepts_rows" = "40px"
@@ -163,7 +169,7 @@ mod_select_concepts_server <- function(id, r, d, m, language, i18n, debug, user_
         # Create a proxy for datatatable
         r[[paste0(id, "_vocabulary_concepts_proxy")]] <- DT::dataTableProxy("vocabulary_concepts", deferUntilFlush = FALSE)
         
-        shinyjs::delay(50, r[[paste0(id, "_vocabulary_concepts_proxy")]] %>% DT::hideCols(c(3, 4, 5)))
+        shinyjs::delay(50, r[[paste0(id, "_vocabulary_concepts_proxy")]] %>% DT::hideCols(c(3, 4, 5, 6)))
       }
       else DT::replaceData(r[[paste0(id, "_vocabulary_concepts_proxy")]], r[[paste0(id, "_vocabulary_concepts")]], resetPaging = FALSE, rownames = FALSE)
     })
