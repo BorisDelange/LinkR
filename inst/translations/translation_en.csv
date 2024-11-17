@@ -40,7 +40,7 @@ columns,Columns
 commit_and_push,Commit & push
 commit_message,Commit message
 concept_ancestor_table,Concepts hierarchy
-concept_class_id,Concept class ID
+concept_class_id,Concept class
 concept_code,Concept code
 concept_display_name,Concept display name
 concept_id,Concept ID
@@ -146,7 +146,7 @@ delete_widget_text,Confirm deletion of this widget?
 delete_widget_title,Delete a widget
 description,Description
 details,Details
-domain_id,Domain ID
+domain_id,Domain
 dont_delete,Cancel
 dont_import,Cancel
 dont_reload,Don't load
@@ -445,7 +445,7 @@ vocabularies_import_user_access_description,Import vocabularies and concepts
 vocabularies_management_user_access_description,"Manage vocabularies (add, edit and delete)"
 vocabularies_widget_text,Organize and explore medical concept terminologies here.
 vocabulary,Vocabulary
-vocabulary_id,Vocabulary ID
+vocabulary_id,Vocabulary
 width,Width
 years,Years
 years_and_over,Years and over
