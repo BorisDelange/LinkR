@@ -168,7 +168,7 @@ element_git_and_local_versions_are_the_same,Mêmes versions en local et sur le g
 element_git_version_more_recent,Version sur le git plus récente
 element_local_version_more_recent,Version locale plus récente
 english,Anglais
-error_getting_files_from_data_folder,Echec lors de la récupération des fichiers du dossier de données
+folder_doesnt_contain_any_file,Le dossier fourni ne contient pas de fichier
 error_inserting_data,Erreur lors de l'insertion de données dans la BDD
 error_loading_category_xml_file,Erreur lors du chargement du fichier XML de la catégorie sélectionnée
 error_loading_csv_files,Erreur lors du chargement des fichiers CSV
@@ -494,3 +494,4 @@ duration,Durée
 concept_not_loaded,Concept non chargé
 hospital_unit_name,Nom du service
 admissions_number,Nombre d'admissions
+folder_doesnt_exist,Le dossier renseigné n'existe pas

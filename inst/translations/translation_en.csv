@@ -168,7 +168,7 @@ element_git_and_local_versions_are_the_same,Local and remote git versions are th
 element_git_version_more_recent,Remote git version is newer
 element_local_version_more_recent,Local version is newer
 english,English
-error_getting_files_from_data_folder,Error getting files from data folder
+folder_doesnt_contain_any_file,The provided folder doesn't contain any file
 error_inserting_data,Error inserting data in database
 error_loading_category_xml_file,Error loading selected repo category XML file
 error_loading_csv_files,Error loading CSV files
@@ -494,3 +494,4 @@ duration,Duration
 concept_not_loaded,Concept not loaded
 hospital_unit_name,Hospital unit name
 admissions_number,Admissions number
+folder_doesnt_exist,Provided folder doesn't exist

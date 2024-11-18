@@ -106,9 +106,11 @@ import_dataset <- function(
     
     # List files of provided folder
     
+    if (!dir.exists(data_folder)) return(i18n$t("folder_doesnt_exist"))
+    
     file_names <- list.files(path = data_folder)
     
-    if (length(file_names) == 0) return(i18n$t("error_getting_files_from_data_folder"))
+    if (length(file_names) == 0) return(i18n$t("folder_doesnt_contain_any_file"))
       
     tryCatch({
       
