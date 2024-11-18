@@ -937,6 +937,7 @@ button.ms-UpButton, button.ms-DownButton {
   padding: 3px 2px 3px 10px;
   background-color: #ddd;
   margin-right: 2px;
+  width: 120px;
   cursor: pointer;
   display: flex;
   justify-content: space-between;

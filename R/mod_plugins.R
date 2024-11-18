@@ -559,11 +559,11 @@ mod_plugins_server <- function(id, r, d, m, language, i18n, debug, user_accesses
       
       tabs_ui <- tagList()
       
-      edit_plugin_code_tabs <- r$edit_plugin_code_tabs %>% dplyr::mutate(filename_short = ifelse(nchar(filename) >= 23, paste0(substr(filename, 1, 20), "..."), filename))
+      r$edit_plugin_code_tabs
       
-      if (nrow(edit_plugin_code_tabs) > 0){
-        for (i in 1:nrow(edit_plugin_code_tabs)){
-          file <- edit_plugin_code_tabs[i, ]
+      if (nrow(r$edit_plugin_code_tabs) > 0){
+        for (i in 1:nrow(r$edit_plugin_code_tabs)){
+          file <- r$edit_plugin_code_tabs[i, ]
           
           tab_class <- "tab"
           if (r$edit_plugin_code_open_new_tab != "none"){
@@ -582,7 +582,7 @@ mod_plugins_server <- function(id, r, d, m, language, i18n, debug, user_accesses
               id = ns(paste0("edit_code_tab_", file$id)),
               class = tab_class,
               onclick = paste0("Shiny.setInputValue('", id, "-edit_code_selected_tab', this.id, {priority: 'event'})"),
-              file$filename_short,
+              div(file$filename, style = "overflow: hidden; white-space: nowrap; text-overflow: ellipsis;"),
               div(
                 id = ns(paste0("edit_code_clode_tab_", file$id)),
                 class = "close-tab",
