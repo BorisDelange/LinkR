@@ -1068,8 +1068,8 @@ mod_plugins_server <- function(id, r, d, m, language, i18n, debug, user_accesses
       if (length(m$selected_study) > 0) study_id <- m$selected_study
       if (length(m$selected_person) > 0) patient_id <- m$selected_person
 
-      code$ui <- process_widget_code(code$ui, 1, widget_id, study_id, patient_id, input$selected_plugin_folder)
-      code$server <- process_widget_code(code$server, 1, widget_id, study_id, patient_id, input$selected_plugin_folder)
+      code$ui <- process_widget_code(code$ui, r$run_plugin_tab_id, widget_id, study_id, patient_id, input$selected_plugin_folder)
+      code$server <- process_widget_code(code$server, r$run_plugin_tab_id, widget_id, study_id, patient_id, input$selected_plugin_folder)
 
       code$ui <- tryCatch(
         eval(parse(text = code$ui)),
