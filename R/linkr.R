@@ -137,7 +137,8 @@ linkr <- function(
     ),
     "vocabularies", c(
       "vocabularies_management",
-      "vocabularies_import"
+      "vocabularies_import",
+      "concepts_reload_dataset_concepts"
     ),
     "data_cleaning", c(
       "data_cleaning_see_all_data",
@@ -161,9 +162,6 @@ linkr <- function(
     ),
     "log", c(
       "log_user_log"
-    ),
-    "concepts", c(
-      "concepts_reload_dataset_concepts"
     )
   )
   
@@ -177,13 +175,13 @@ linkr <- function(
     "data_cleaning",
     "git_repos",
     "log",
-    # "login",
     "project_messages",
     "plugins",
     "projects",
     "project_console",
     "subsets",
     "tasks",
+    "user_settings",
     "users",
     "vocabularies"
   )

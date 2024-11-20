@@ -324,7 +324,7 @@ mod_plugins_ui <- function(id, language, languages, i18n){
 }
 
 #' @noRd 
-mod_plugins_server <- function(id, r, d, m, language, i18n, debug, user_accesses){
+mod_plugins_server <- function(id, r, d, m, language, i18n, debug, user_accesses, user_settings){
   
   # |-------------------------------- -----
   
@@ -333,7 +333,7 @@ mod_plugins_server <- function(id, r, d, m, language, i18n, debug, user_accesses
   # Load widgets ----
   
   all_divs <- c("summary", "edit_code", "run_code", "share")
-  mod_widgets_server(id, r, d, m, language, i18n, all_divs, debug, user_accesses)
+  mod_widgets_server(id, r, d, m, language, i18n, all_divs, debug, user_accesses, user_settings)
   
   # Load concepts backend ----
   
@@ -443,7 +443,8 @@ mod_plugins_server <- function(id, r, d, m, language, i18n, debug, user_accesses
             shinyAce::aceEditor(
               ns(paste0("edit_code_editor_", file_id)), value = file_code, mode = ace_mode,
               hotkeys = code_hotkeys,
-              autoScrollEditorIntoView = TRUE, height = "100%", debounce = 100, fontSize = 11, showPrintMargin = FALSE
+              theme = user_settings$ace_theme, fontSize = user_settings$ace_font_size,
+              autoScrollEditorIntoView = TRUE, height = "100%", debounce = 100, showPrintMargin = FALSE
             ),
             style = "width: 100%; height: 100%; display: flex; flex-direction: column;"
           )
@@ -558,11 +559,11 @@ mod_plugins_server <- function(id, r, d, m, language, i18n, debug, user_accesses
       
       tabs_ui <- tagList()
       
-      edit_plugin_code_tabs <- r$edit_plugin_code_tabs %>% dplyr::mutate(filename = ifelse(nchar(filename) >= 23, paste0(substr(filename, 1, 20), "..."), filename))
+      r$edit_plugin_code_tabs
       
-      if (nrow(edit_plugin_code_tabs) > 0){
-        for (i in 1:nrow(edit_plugin_code_tabs)){
-          file <- edit_plugin_code_tabs[i, ]
+      if (nrow(r$edit_plugin_code_tabs) > 0){
+        for (i in 1:nrow(r$edit_plugin_code_tabs)){
+          file <- r$edit_plugin_code_tabs[i, ]
           
           tab_class <- "tab"
           if (r$edit_plugin_code_open_new_tab != "none"){
@@ -576,22 +577,25 @@ mod_plugins_server <- function(id, r, d, m, language, i18n, debug, user_accesses
             }
           }
           
-          tabs_ui <- tagList(tabs_ui, div(
-            id = ns(paste0("edit_code_tab_", file$id)),
-            class = tab_class,
-            onclick = paste0("Shiny.setInputValue('", id, "-edit_code_selected_tab', this.id, {priority: 'event'})"),
-            file$filename,
+          tabs_ui <- tagList(tabs_ui, 
             div(
-              id = ns(paste0("edit_code_clode_tab_", file$id)),
-              class = "close-tab",
-              onclick = paste0(
-                "Shiny.setInputValue('", id, "-edit_code_close_selected_tab', ", file$id, ", {priority: 'event'});",
-                "Shiny.setInputValue('", id, "-edit_code_close_selected_tab_trigger', Math.random(), {priority: 'event'});",
-                "event.stopPropagation();"
+              id = ns(paste0("edit_code_tab_", file$id)),
+              class = tab_class,
+              onclick = paste0("Shiny.setInputValue('", id, "-edit_code_selected_tab', this.id, {priority: 'event'})"),
+              div(file$filename, style = "overflow: hidden; white-space: nowrap; text-overflow: ellipsis;"),
+              div(
+                id = ns(paste0("edit_code_clode_tab_", file$id)),
+                class = "close-tab",
+                onclick = paste0(
+                  "Shiny.setInputValue('", id, "-edit_code_close_selected_tab', ", file$id, ", {priority: 'event'});",
+                  "Shiny.setInputValue('", id, "-edit_code_close_selected_tab_trigger', Math.random(), {priority: 'event'});",
+                  "event.stopPropagation();"
+                ),
+                shiny.fluent::FontIcon(iconName = "ChromeClose")
               ),
-              shiny.fluent::FontIcon(iconName = "ChromeClose")
+              title = file$filename
             )
-          ))
+          )
         }
       }
       
@@ -663,7 +667,8 @@ mod_plugins_server <- function(id, r, d, m, language, i18n, debug, user_accesses
           shinyAce::aceEditor(
             ns(paste0("edit_code_editor_", file_id)), value = file_code, mode = ace_mode,
             hotkeys = code_hotkeys,
-            autoScrollEditorIntoView = TRUE, height = "100%", debounce = 100, fontSize = 11, showPrintMargin = FALSE
+            theme = user_settings$ace_theme, fontSize = user_settings$ace_font_size,
+            autoScrollEditorIntoView = TRUE, height = "100%", debounce = 100, showPrintMargin = FALSE
           ),
           style = "width: 100%; height: 100%; display: flex; flex-direction: column;"
         ))
@@ -749,7 +754,8 @@ mod_plugins_server <- function(id, r, d, m, language, i18n, debug, user_accesses
           shinyAce::aceEditor(
             ns(paste0("edit_code_editor_", options_new_row_id)), value = "", mode = "r",
             hotkeys = code_hotkeys,
-            autoScrollEditorIntoView = TRUE, height = "100%", debounce = 100, fontSize = 11, showPrintMargin = FALSE
+            theme = user_settings$ace_theme, fontSize = user_settings$ace_font_size,
+            autoScrollEditorIntoView = TRUE, height = "100%", debounce = 100, showPrintMargin = FALSE
           ),
           style = "width: 100%; height: 100%; display: flex; flex-direction: column;"
         ))
@@ -1062,8 +1068,8 @@ mod_plugins_server <- function(id, r, d, m, language, i18n, debug, user_accesses
       if (length(m$selected_study) > 0) study_id <- m$selected_study
       if (length(m$selected_person) > 0) patient_id <- m$selected_person
 
-      code$ui <- process_widget_code(code$ui, 1, widget_id, study_id, patient_id, input$selected_plugin_folder)
-      code$server <- process_widget_code(code$server, 1, widget_id, study_id, patient_id, input$selected_plugin_folder)
+      code$ui <- process_widget_code(code$ui, r$run_plugin_tab_id, widget_id, study_id, patient_id, input$selected_plugin_folder)
+      code$server <- process_widget_code(code$server, r$run_plugin_tab_id, widget_id, study_id, patient_id, input$selected_plugin_folder)
 
       code$ui <- tryCatch(
         eval(parse(text = code$ui)),

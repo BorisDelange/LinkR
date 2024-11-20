@@ -192,7 +192,7 @@ mod_vocabularies_ui <- function(id, language, languages, i18n, code_hotkeys, dro
 }
 
 #' @noRd 
-mod_vocabularies_server <- function(id, r, d, m, language, i18n, debug, user_accesses){
+mod_vocabularies_server <- function(id, r, d, m, language, i18n, debug, user_accesses, user_settings){
   # |-------------------------------- -----
   
   if (debug) cat(paste0("\n", now(), " - mod_vocabularies - ", id, " - start"))
@@ -203,7 +203,7 @@ mod_vocabularies_server <- function(id, r, d, m, language, i18n, debug, user_acc
   # Load widgets ----
   
   all_divs <- c("summary", "concepts")
-  mod_widgets_server(id, r, d, m, language, i18n, all_divs, debug, user_accesses)
+  mod_widgets_server(id, r, d, m, language, i18n, all_divs, debug, user_accesses, user_settings)
   
   # Vocabularies module ----
   

@@ -7,16 +7,20 @@
 linkr(
   language = "en",
   app_folder = character(),
+  username = "admin",
   local = FALSE,
   debug = FALSE,
   log_file = FALSE,
-  port = 3838
+  port = 3838,
+  loading_options = list()
 )
 }
 \arguments{
 \item{language}{Default language to use in the App (character)}
 
 \item{app_folder}{Location of the application folder (character).}
+
+\item{username}{Username used for connection. Default username is "admin". (character)}
 
 \item{local}{Run the app in local mode, do not load files on the internet (logical)}
 
@@ -25,6 +29,8 @@ linkr(
 \item{log_file}{Create a log file to see app log directly in the app (logical)}
 
 \item{port}{Port used by shiny app (integer)}
+
+\item{loading_options}{List specifying the initial page, project, and subset to load at startup (a list with `page`, `project`, and `subset` keys)}
 }
 \description{
 Runs the LinkR Shiny Application.\cr

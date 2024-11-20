@@ -2,31 +2,47 @@
 create_gridstack_instance <- function(id, tab_id){
   ns <- NS(id)
   
-  shinyjs::delay(200, 
+  shinyjs::delay(200,
     shinyjs::runjs(paste0("
-      if (!window.gridStackInstances['", tab_id, "']) {
-        const grid = GridStack.init({
-          cellHeight: 15,
-          scroll: false,
-          column: 12,
-          staticGrid: true,
-          float: false,
-          resizable: { handles: 'se, ne, nw, sw' },
-          margin: 10
-        }, '#", ns(paste0("gridstack_", tab_id)), "');
+      function initializeGridStack() {
 
-        window.gridStackInstances['", tab_id, "'] = grid;
+        const totalHeight = window.innerHeight - 120;
+        const numRows = 40;
+        const cellHeight = totalHeight / numRows;
+
+        if (!window.gridStackInstances['", tab_id, "']) {
+          const grid = GridStack.init({
+            cellHeight: cellHeight + 'px',
+            //maxRow: 40,
+            scroll: false,
+            column: 12,
+            staticGrid: true,
+            float: false,
+            resizable: { handles: 'se, ne, nw, sw' },
+            margin: 10
+          }, '#", ns(paste0("gridstack_", tab_id)), "');
+
+          window.gridStackInstances['", tab_id, "'] = grid;
+        } else {
+          window.gridStackInstances['", tab_id, "'].cellHeight(cellHeight);
+        }
       }
+
+      initializeGridStack();
+
+      window.addEventListener('resize', function() {
+        initializeGridStack();
+      });
     "))
   )
 }
 
 #' @noRd
-create_widget <- function(id, widget_id, ui_code, w = 6, h = 25, x = 0, y = 0){
+create_widget <- function(id, widget_id, ui_code, w = 6, h = 20, x = 0, y = 0){
   ns <- NS(id)
   
   if (is.na(w) | w == 0) w <- 6
-  if (is.na(h) | h == 0) h <- 25
+  if (is.na(h) | h == 0) h <- 20
   if (is.na(x)) x <- 0
   if (is.na(y)) y <- 0
   
@@ -52,11 +68,31 @@ get_widget_edit_buttons <- function(id, widget_id, show_edit_buttons = FALSE){
     id = ns(paste0(id, "_widget_settings_buttons_", widget_id)),
     div(
       div(
+        shiny.fluent::IconButton.shinyInput(
+          ns(paste0(id, "_widget_full_screen_", widget_id)), iconProps = list(iconName = "FullScreen"),
+          onClick = htmlwidgets::JS(paste0(
+            "item => {",
+              "Shiny.setInputValue('", id, "-widget_full_screen_trigger', Math.random());",
+              "Shiny.setInputValue('", id, "-widget_full_screen_id', ", widget_id, ");",
+            "}"
+          ))
+        ),
+        class = "small_icon_button"
+      ),
+      div(
         shiny.fluent::IconButton.shinyInput(ns(paste0(id, "_widget_settings_", widget_id)), iconProps = list(iconName = "Settings")),
         class = "small_icon_button"
       ),
       div(
-        shiny.fluent::IconButton.shinyInput(ns(paste0(id, "_widget_remove_", widget_id)), iconProps = list(iconName = "Delete")),
+        shiny.fluent::IconButton.shinyInput(
+          ns(paste0(id, "_widget_remove_", widget_id)), iconProps = list(iconName = "Delete"),
+            onClick = htmlwidgets::JS(paste0(
+              "item => {",
+                "Shiny.setInputValue('", id, "-remove_widget_trigger', Math.random());",
+                "Shiny.setInputValue('", id, "-remove_widget_id', ", widget_id, ");",
+              "}"
+            ))
+          ),
         class = "small_icon_button"
       ),
       style = "display: flex; gap: 2px;"
@@ -419,27 +455,7 @@ load_dataset_concepts <- function(r, d, m){
         concept %>%
         dplyr::mutate(
           add_concept_input = as.character(
-            # div(
-            #   shiny.fluent::IconButton.shinyInput(
-            #     "%ns%-concept_info_%concept_id%", iconProps = list(iconName = "Info"),
-            #     onClick = paste0("Shiny.setInputValue('%ns%-concept_selected', %concept_id%)")
-            #   ),
-            #   shiny.fluent::IconButton.shinyInput(
-            #     "%ns%-add_concept_%concept_id%", iconProps = list(iconName = "Add"),
-            #     onClick = paste0("Shiny.setInputValue('%ns%-concept_selected', %concept_id%)")
-            #   ),
-            #   class = "small_icon_button",
-            #   style = "display: flex; justify-content:center;"
-            # )
             div(
-              shiny::actionButton(
-                "%ns%-show_concept_%concept_id%", "", icon = icon("info"),
-                onclick = paste0(
-                  "Shiny.setInputValue('%ns%-show_concept_trigger', Math.random());",
-                  "Shiny.setInputValue('%ns%-concept_selected', %concept_id%);"
-                ),
-                style = "width: 22px;"
-              ),
               shiny::actionButton(
                 "%ns%-add_concept_%concept_id%", "", icon = icon("plus"),
                 onclick = paste0(
@@ -448,8 +464,7 @@ load_dataset_concepts <- function(r, d, m){
                 ),
                 style = "width: 22px;"
               ),
-              class = "small_icon_button",
-              style = "display: flex; gap: 5px; justify-content:center;"
+              class = "small_icon_button"
             )
           )
         )
@@ -481,5 +496,26 @@ load_dataset_concepts <- function(r, d, m){
     dplyr::arrange(vocabulary_id)
   
   # Then load d$dataset_drug_strength
-  # r$load_dataset_drug_strength <- now()
+  
+  # Load csv file if it exists
+  drug_strength_filename <- paste0(dataset_folder, "/drug_strength.csv")
+  
+  if (file.exists(drug_strength_filename)) d$drug_strength <- vroom::vroom(drug_strength_filename, col_types = "iinininiiDDc", progress = FALSE)
+  
+  if (!file.exists(drug_strength_filename)){
+    
+    concept_ids <-
+      d$concept %>%
+      dplyr::filter(domain_id == "Drug") %>%
+      dplyr::pull(concept_id)
+    
+    sql <- glue::glue_sql("SELECT * FROM drug_strength WHERE drug_concept_id IN ({concept_ids*})", .con = m$db)
+    drug_strength <- DBI::dbGetQuery(m$db, sql) %>% dplyr::select(-id) %>% tibble::as_tibble()
+    
+    # Save data as csv
+    readr::write_csv(drug_strength, drug_strength_filename, progress = FALSE)
+    
+    # Update d var
+    d$drug_strength <- drug_strength
+  }
 }

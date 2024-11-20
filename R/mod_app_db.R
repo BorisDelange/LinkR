@@ -100,26 +100,34 @@ mod_app_db_ui <- function(id, language, languages, i18n, code_hotkeys, db_col_ty
           div(
             id = ns("request_db_content_div"),
             div(
-              div(
-                shiny.fluent::ChoiceGroup.shinyInput(ns("run_sql_code_db"), label = i18n$t("database"), options = list(
-                  list(key = "main", text = i18n$t("main_db")),
-                  list(key = "public", text = i18n$t("public_db"))
-                ), value = "main", className = "inline_choicegroup"),
-                style = "margin-bottom: 10px;"
-              ),
-              shinyAce::aceEditor(
-                ns("sql_code"), value = "", mode = "sql",
-                code_hotkeys = list("r", code_hotkeys),
-                autoScrollEditorIntoView = TRUE, height = "100%", debounce = 100, fontSize = 11, showPrintMargin = FALSE
-              ),
-              style = "width: 50%; height: calc(100% - 70px);"
+              shiny.fluent::ChoiceGroup.shinyInput(ns("run_sql_code_db"), label = i18n$t("database"), options = list(
+                list(key = "main", text = i18n$t("main_db")),
+                list(key = "public", text = i18n$t("public_db"))
+              ), value = "main", className = "inline_choicegroup"),
+              style = "margin-bottom: 10px;"
             ),
             div(
-              textOutput(ns("datetime_code_execution")),
-              verbatimTextOutput(ns("sql_result")),
-              class = "element_code_result"
+              div(
+                shinyAce::aceEditor(
+                  ns("sql_code"), value = "", mode = "sql",
+                  code_hotkeys = list("r", code_hotkeys),
+                  autoScrollEditorIntoView = TRUE, height = "100%", debounce = 100, fontSize = 11, showPrintMargin = FALSE
+                ),
+                class = "resizable-panel left-panel",
+                style = "width: 50%; height: 100%"
+              ),
+              div(class = "resizer"),
+              div(
+                id = ns("code_result_div"),
+                textOutput(ns("datetime_code_execution")),
+                verbatimTextOutput(ns("sql_result")),
+                class = "resizable-panel right-panel",
+                style = "width: 50%; padding: 0 10px; font-size: 12px; overflow-y: auto;"
+              ),
+              class = "resizable-container",
+              style = "height: 100%; display: flex;"
             ),
-            style = "height: 100%; display: flex;"
+            style = "height: calc(100% - 70px);"
           )
         ),
         style = "height: 100%;"
@@ -259,7 +267,7 @@ mod_app_db_ui <- function(id, language, languages, i18n, code_hotkeys, db_col_ty
 }
 
 #' @noRd
-mod_app_db_server <- function(id, r, d, m, language, i18n, db_col_types, app_folder, debug, user_accesses){
+mod_app_db_server <- function(id, r, d, m, language, i18n, db_col_types, app_folder, debug, user_accesses, user_settings){
   moduleServer(id, function(input, output, session){
     ns <- session$ns
     
@@ -305,6 +313,14 @@ mod_app_db_server <- function(id, r, d, m, language, i18n, db_col_types, app_fol
       sapply(all_divs, function(button_id) shinyjs::removeClass(class = "selected_pivot_item", selector = paste0("#", id, "-", button_id)))
       shinyjs::addClass(class = "selected_pivot_item", selector = paste0("#", id, "-", current_tab))
     })
+    
+    # User settings
+    
+    shinyAce::updateAceEditor(session, "sql_code", theme = user_settings$ace_theme, fontSize = user_settings$ace_font_size)
+    
+    text_output_theme <- gsub("_", "-", user_settings$ace_theme)
+    if (text_output_theme == "terminal") text_output_theme <- paste0(text_output_theme, "-theme")
+    shinyjs::addClass("code_result_div", paste0("ace-", text_output_theme))
     
     # |-------------------------------- -----
     

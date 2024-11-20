@@ -101,12 +101,12 @@ button.ms-Toggle-background {
   line-height: 1;
 }
 
-.ms-Dropdown-container .ms-Dropdown, .ms-ComboBox-container .ms-ComboBox, .spinButtonWrapper-100, .spinButtonWrapper-189 {
+.ms-Dropdown-container .ms-Dropdown, .ms-ComboBox-container .ms-ComboBox, [class^="spinButtonWrapper-"] {
   height: 25px;
   line-height: 25px;
 }
 
-.arrowButtonsContainer-102 .ms-Button {
+[class^="arrowButtonsContainer-"] .ms-Button {
   height: 12px;
   margin: 0;
 }

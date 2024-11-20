@@ -4,20 +4,6 @@ mod_data_ui <- function(id, language, languages, i18n){
   result <- ""
   language <- "EN"
   
-  # Load status modal ----
-  
-  load_status_modal <- shinyjs::hidden(
-    div(
-      id = ns("load_status_modal"),
-      div(
-        h1("Loading project"),
-        uiOutput(ns("load_status")),
-        class = "load_status_modal_content"
-      ),
-      class = "load_status_modal"
-    )
-  )
-  
   # Add a tab modal ----
   
   add_tab_modal <- shinyjs::hidden(
@@ -197,7 +183,6 @@ mod_data_ui <- function(id, language, languages, i18n){
     delete_wigdet_modal,
     select_a_plugin_modal,
     select_concepts_modal,
-    load_status_modal,
     study_divs,
     shinyjs::hidden(shiny.fluent::PrimaryButton.shinyInput(ns("react_activation"))),
     div(id = ns("study_widgets"))
@@ -246,9 +231,6 @@ mod_data_server <- function(id, r, d, m, language, i18n, debug, user_accesses){
     # Tabs server code already loaded
     r$widgets_server_code_loaded <- character()
     
-    # Project loading status
-    # r$project_load_status_displayed <- FALSE
-    
     r$patient_lvl_no_tabs_to_display <- TRUE
     r$aggregated_no_tabs_to_display <- TRUE
     
@@ -283,7 +265,7 @@ mod_data_server <- function(id, r, d, m, language, i18n, debug, user_accesses){
       hidden_category <- categories[categories != displayed_category]
       
       # Show / hide sidenav dropdowns
-      divs <- c("person_dropdown_div", "visit_detail_dropdown_div", "person_info_div")
+      divs <- c("person_dropdown_div", "visit_detail_dropdown_div", "person_info_div", "patient_switching_buttons_div")
       if (displayed_category == "patient_lvl") sapply(divs, shinyjs::show)
       else sapply(divs, shinyjs::hide)
       
@@ -376,7 +358,34 @@ mod_data_server <- function(id, r, d, m, language, i18n, debug, user_accesses){
         r$selected_dataset <- DBI::dbGetQuery(r$db, sql) %>% dplyr::pull(dataset_id)
         
         # Reset d list if no selected dataset
-        if (is.na(r$selected_dataset)) sapply(main_tables, function(table) d[[table]] <- tibble::tibble())
+        # Reset dropdowns and hive divs
+        if (is.na(r$selected_dataset)){
+          
+          sapply(main_tables, function(table) d[[table]] <- tibble::tibble())
+          
+          updateSelectizeInput(
+            session, "subset", choices = NULL, server = TRUE,
+            options = list(
+              placeholder = i18n$t("no_subset_available"),
+              onInitialize = I("function() { this.setValue(''); }")
+            )
+          )
+          
+          updateSelectizeInput(session, "person", choices = NULL, server = TRUE)
+          updateSelectizeInput(session, "visit_detail", choices = NULL, server = TRUE)
+          
+          output$person_info <- renderUI("")
+          output$subset_info <- renderUI("")
+          
+          sapply(c("patient_switching_buttons"), shinyjs::hide)
+          m$selected_subset <- NA_integer_
+          m$selected_person <- NA_integer_
+          m$selected_visit_detail <- NA_integer_
+          
+          m$subsets <- tibble::tibble()
+          m$subset_persons <- tibble::tibble()
+          r$dataset_vocabularies <- tibble::tibble()
+        }
           
         else {
           ## Load data
@@ -386,36 +395,6 @@ mod_data_server <- function(id, r, d, m, language, i18n, debug, user_accesses){
           load_dataset_concepts(r, d, m)
         }
       })
-    })
-    
-    # Show loading status ----
-    observeEvent(r$project_load_status, {
-      if (debug) cat(paste0("\n", now(), " - mod_data - observer r$project_load_status"))
-      
-      category <- r$data_page
-      
-      statuses_ui <- tagList()
-
-      for (status in c("init_vars", "dataset", "menu", "widgets_ui", "widgets_server", "concepts")){
-
-        if (length(r$project_load_status[[paste0(status, "_endtime")]]) > 0) status_ui <-
-          paste0(round(as.numeric(as.POSIXct(r$project_load_status[[paste0(status, "_endtime")]]) - as.POSIXct(r$project_load_status[[paste0(status, "_starttime")]])), 3), " s")
-        else status_ui <- "..."
-
-        statuses_ui <-
-          tagList(
-            statuses_ui, br(),
-            "- ", strong(paste0("Loading ", status)), " - ",
-            status_ui
-          )
-      }
-
-      output$load_status <- renderUI(div(statuses_ui))
-
-      # if (length(r$project_load_status$dataset_endtime) > 0) shinyjs::delay(500, shinyjs::hide("load_status_modal"))
-      shinyjs::delay(500, shinyjs::hide("load_status_modal"))
-
-      # if (r$data_ui_loaded & r$data_server_loaded) shinyjs::hide("load_status_modal")
     })
     
     # --- --- --- --
@@ -480,15 +459,22 @@ mod_data_server <- function(id, r, d, m, language, i18n, debug, user_accesses){
     observeEvent(m$selected_person, {
       if (debug) cat(paste0("\n", now(), " - mod_data - observer m$selected_person"))
       
-      req(FALSE)
       req(!is.na(m$selected_person))
       
       selected_person <- m$selected_person
       
       for(table in person_tables){
         if (d$data_subset[[table]] %>% dplyr::count() %>% dplyr::pull() > 0){
-          d$data_person[[table]] <- d$data_subset[[table]] %>% dplyr::filter(person_id == selected_person)
-        } 
+          
+          if (table == "note_nlp"){
+            if (d$data_person$note %>% dplyr::count() %>% dplyr::pull() > 0){
+              note_ids <- d$data_person$note %>% dplyr::distinct(note_id) %>% dplyr::pull()
+              d$data_person$note_nlp <- d$data_subset$note_nlp %>% dplyr::filter(note_id %in% note_ids)
+            }
+          }
+          else d$data_person[[table]] <- d$data_subset[[table]] %>% dplyr::filter(person_id == selected_person)
+        }
+        else d$data_subset[[table]] <- tibble::tibble()
       }
     })
     
@@ -502,8 +488,16 @@ mod_data_server <- function(id, r, d, m, language, i18n, debug, user_accesses){
       
       for(table in visit_detail_tables){
         if (d$data_person[[table]] %>% dplyr::count() %>% dplyr::pull() > 0){
-          d$data_visit_detail[[table]] <- d$data_person[[table]] %>% dplyr::filter(visit_detail_id == selected_visit_detail)
+          
+          if (table == "note_nlp"){
+            if (d$data_visit_detail$note %>% dplyr::count() %>% dplyr::pull() > 0){
+              note_ids <- d$data_visit_detail$note %>% dplyr::distinct(note_id) %>% dplyr::pull()
+              d$data_visit_detail$note_nlp <- d$data_person$note_nlp %>% dplyr::filter(note_id %in% note_ids)
+            }
+          }
+          else d$data_visit_detail[[table]] <- d$data_person[[table]] %>% dplyr::filter(visit_detail_id == selected_visit_detail)
         }
+        else d$data_visit_detail[[table]] <- tibble::tibble()
       }
     })
     
@@ -554,7 +548,7 @@ mod_data_server <- function(id, r, d, m, language, i18n, debug, user_accesses){
         
         # Reset other dropdowns & uiOutput
         sapply(c("person", "visit_detail"), function(name){
-          shinyjs::hide(paste0(name, "_div"))
+          # shinyjs::hide(paste0(name, "_div"))
           updateSelectizeInput(
             session, name, choices = NULL, server = TRUE,
             options = list(
@@ -807,6 +801,9 @@ mod_data_server <- function(id, r, d, m, language, i18n, debug, user_accesses){
       observeEvent(m$subset_persons, {
         if (debug) cat(paste0("\n", now(), " - mod_data - observer m$subset_persons"))
         
+        # Hide patients switching buttons
+        shinyjs::hide("patient_switching_buttons")
+        
         persons <- tibble::tibble()
         
         if (nrow(m$subset_persons) > 0 & d$person %>% dplyr::count() %>% dplyr::pull() > 0){
@@ -817,33 +814,42 @@ mod_data_server <- function(id, r, d, m, language, i18n, debug, user_accesses){
             dplyr::mutate_at("person_id", as.integer) %>%
             dplyr::filter(person_id %in% person_ids) %>% 
             dplyr::collect() %>%
+            dplyr::arrange(person_id) %>%
+            dplyr::mutate(n = dplyr::row_number()) %>%
             dplyr::left_join(d$concept %>% dplyr::select(gender_concept_id = concept_id, gender_concept_name = concept_name), by = "gender_concept_id")
-        }
-        
-        if (nrow(persons) == 0){
-          # Set selected_person to NA, not to display a chart when no person is selected
-          m$selected_person <- NA_integer_
-          updateSelectizeInput(
-            session, "person", choices = NULL, server = TRUE, 
-            options = list(
-              placeholder = i18n$t("no_person_in_subset"),
-              onInitialize = I("function() { this.setValue(''); }")
-          ))
-        }
-        
-        if (nrow(persons) > 0){
-          # Order persons by person_id
-          persons <- persons %>% dplyr::arrange(person_id)
           
-          # Update persons dropdown
-          choices <- setNames(persons$person_id, paste(persons$person_id, "-", persons$gender_concept_name))
-          updateSelectizeInput(
-            session, "person", choices = choices, server = TRUE, selected = FALSE,
-            options = list(
-              placeholder = "",
-              onInitialize = I("function() { this.setValue(''); }")
+          r$subset_merged_patients <- persons
+       
+          num_patients <- nrow(r$subset_merged_patients)
+          
+          if (num_patients == 0){
+            # Set selected_person to NA, not to display a chart when no person is selected
+            m$selected_person <- NA_integer_
+            updateSelectizeInput(
+              session, "person", choices = NULL, server = TRUE, 
+              options = list(
+                placeholder = i18n$t("no_person_in_subset"),
+                onInitialize = I("function() { this.setValue(''); }")
+            ))
+            
+            output$person_switch_nums <- renderUI("")
+          }
+          
+          if (num_patients > 0){
+            
+            # Update persons dropdown
+            choices <- setNames(persons$person_id, paste(persons$person_id, "-", persons$gender_concept_name))
+            updateSelectizeInput(
+              session, "person", choices = choices, server = TRUE, selected = FALSE,
+              options = list(
+                placeholder = "",
+                onInitialize = I("function() { this.setValue(''); }")
+              )
             )
-          )
+            
+            output$person_switch_nums <- renderUI(div("1 / ", num_patients))
+            r$num_selected_patient <- 1
+          }
         }
         
         # Reset other dropdowns & uiOutput
@@ -865,6 +871,13 @@ mod_data_server <- function(id, r, d, m, language, i18n, debug, user_accesses){
         
         person_id <- as.numeric(input$person)
         m$selected_person <- person_id
+        
+        # Update switch buttons
+        shinyjs::show("patient_switching_buttons")
+        num_patient <- r$subset_merged_patients %>% dplyr::filter(person_id == !!person_id) %>% dplyr::pull(n)
+        r$num_selected_patient <- num_patient
+        num_patients <- max(r$subset_merged_patients$n)
+        output$person_switch_nums <- renderUI(div(num_patient, " / ", num_patients))
         
         # Reset variables
         sapply(person_tables, function(table) d$data_person[[table]] <- tibble::tibble())
@@ -907,8 +920,9 @@ mod_data_server <- function(id, r, d, m, language, i18n, debug, user_accesses){
                 visit_detail %>% 
                 dplyr::mutate(
                   name_display = paste0(
-                    visit_detail_concept_name, " - ", format(as.POSIXct(visit_detail_start_datetime), format = "%d-%m-%Y"), " ", 
-                    tolower(i18n$t("to")), " ",  format(as.POSIXct(visit_detail_end_datetime), format = "%d-%m-%Y")
+                    format(as.POSIXct(visit_detail_start_datetime), format = "%d-%m-%Y"), " ", 
+                    tolower(i18n$t("to")), " ",  format(as.POSIXct(visit_detail_end_datetime), format = "%d-%m-%Y"),
+                    " - ", visit_detail_concept_name
                   )
                 )
             
@@ -916,8 +930,9 @@ mod_data_server <- function(id, r, d, m, language, i18n, debug, user_accesses){
                 visit_detail %>% 
                 dplyr::mutate(
                   name_display = paste0(
-                    visit_detail_concept_name, " - ", format(as.POSIXct(visit_detail_start_datetime), format = "%Y-%m-%d"), " ",
-                    tolower(i18n$t("to")), " ",  format(as.POSIXct(visit_detail_end_datetime), format = "%Y-%m-%d")
+                    format(as.POSIXct(visit_detail_start_datetime), format = "%Y-%m-%d"), " ",
+                    tolower(i18n$t("to")), " ",  format(as.POSIXct(visit_detail_end_datetime), format = "%Y-%m-%d"),
+                    " - ", visit_detail_concept_nam
                   )
                 )
           }
@@ -926,8 +941,9 @@ mod_data_server <- function(id, r, d, m, language, i18n, debug, user_accesses){
             if (tolower(language) == "fr") visit_details <-
                 visit_detail %>% dplyr::mutate(
                   name_display = paste0(
-                    visit_detail_concept_id, " - ", format(as.POSIXct(visit_detail_start_datetime), format = "%d-%m-%Y"), " ",
-                    tolower(i18n$t("to")), " ",  format(as.POSIXct(visit_detail_end_datetime), format = "%d-%m-%Y")
+                    format(as.POSIXct(visit_detail_start_datetime), format = "%d-%m-%Y"), " ",
+                    tolower(i18n$t("to")), " ",  format(as.POSIXct(visit_detail_end_datetime), format = "%d-%m-%Y"),
+                    " - ", visit_detail_concept_id
                   )
                 )
             
@@ -936,8 +952,9 @@ mod_data_server <- function(id, r, d, m, language, i18n, debug, user_accesses){
                 visit_detail %>% 
                 dplyr::mutate(
                   name_display = paste0(
-                    visit_detail_concept_id, " - ", format(as.POSIXct(visit_detail_start_datetime), format = "%Y-%m-%d"), " ",
-                    tolower(i18n$t("to")), " ",  format(as.POSIXct(visit_detail_end_datetime), format = "%Y-%m-%d")
+                    format(as.POSIXct(visit_detail_start_datetime), format = "%Y-%m-%d"), " ",
+                    tolower(i18n$t("to")), " ",  format(as.POSIXct(visit_detail_end_datetime), format = "%Y-%m-%d"),
+                    " - ", visit_detail_concept_id
                   )
                 )
           }
@@ -1026,15 +1043,28 @@ mod_data_server <- function(id, r, d, m, language, i18n, debug, user_accesses){
         if ("visit_detail_concept_name" %in% names(visit_detail)) visit_detail_concept_name <- visit_detail %>% dplyr::pull(visit_detail_concept_name)
         else visit_detail_concept_name <- visit_detail %>% dplyr::pull(visit_detail_concept_id)
         
+        max_length <- 26
+        if (is.na(visit_detail_concept_name)) visit_detail_concept_name <- i18n$t("concept_not_loaded")
+        if (nchar(visit_detail_concept_name) > max_length){
+          visit_detail_concept_name_short <- paste0(substr(visit_detail_concept_name, 1, max_length - 3), "...")
+          visit_detail_div <- div(create_hover_card(ui = tags$span(visit_detail_concept_name_short), text = visit_detail_concept_name), style = "display: inline-block;")
+        }
+        else visit_detail_div <- tags$span(visit_detail_concept_name)
+        
+        los <- as.integer(difftime(visit_detail$visit_detail_end_datetime, visit_detail$visit_detail_start_datetime, units = "days"))
+        days_trad <- ifelse(los == 1, i18n$t("day"), i18n$t("days"))
+        
         output$person_info <- renderUI({
           tagList(
-            span(i18n$t("person_id"), style = style), m$selected_person, br(),
-            span(i18n$t("gender"), style = style), person$gender_concept_name, br(), br(),
-            span(i18n$t("visit_detail_id"), style = style), selected_visit_detail, br(),
-            span(i18n$t("age"), style = style), age_div, br(),
-            span(i18n$t("hosp_unit"), style = style), visit_detail_concept_name, br(),
-            span(i18n$t("from"), style = style), visit_detail$visit_detail_start_datetime %>% format_datetime(language), br(),
-            span(i18n$t("to"), style = style), visit_detail$visit_detail_end_datetime %>% format_datetime(language))
+            span(i18n$t("person_id"), style = style), tags$span(m$selected_person), br(),
+            span(i18n$t("gender"), style = style), tags$span(person$gender_concept_name), br(), br(),
+            span(i18n$t("visit_detail_id"), style = style), tags$span(selected_visit_detail), br(),
+            span(i18n$t("age"), style = style), tags$span(age_div), br(),
+            span(i18n$t("hosp_unit"), style = style), visit_detail_div, br(),
+            span(i18n$t("from"), style = style), tags$span(visit_detail$visit_detail_start_datetime %>% format_datetime(language, sec = FALSE)), br(),
+            span(i18n$t("to"), style = style), tags$span(visit_detail$visit_detail_end_datetime %>% format_datetime(language, sec = FALSE)), br(),
+            span(i18n$t("duration"), style = style), tags$span(los, " ", tolower(days_trad))
+          )
         })
         
         sapply(visit_detail_tables, function(table) d$data_visit_detail[[table]] <- tibble::tibble())
@@ -1044,6 +1074,20 @@ mod_data_server <- function(id, r, d, m, language, i18n, debug, user_accesses){
             d$data_visit_detail[[table]] <- d$data_person[[table]] %>% dplyr::filter(visit_detail_id == selected_visit_detail)
           }
         }
+      })
+      
+      ## Patients switching ----
+      
+      observeEvent(input$next_patient, {
+        if (debug) cat(paste0("\n", now(), " - mod_data - observer input$next_patient"))
+        
+        num_selected_patient <- r$num_selected_patient + 1
+        if (num_selected_patient > max(r$subset_merged_patients$n)) num_selected_patient <- r$num_selected_patient
+        r$num_selected_patient <- num_selected_patient
+        
+        person_id <- r$subset_merged_patients %>% dplyr::filter(n == num_selected_patient) %>% dplyr::pull(person_id)
+        
+        updateSelectizeInput(session, "person", selected = person_id)
       })
       
       # |-------------------------------- -----
@@ -1108,7 +1152,7 @@ mod_data_server <- function(id, r, d, m, language, i18n, debug, user_accesses){
           ) %>%
           dplyr::ungroup()
 
-        # Reload menu
+        # Reload menu 
         r$data_reload_menu <- now()
         
         # Load widgets
@@ -1121,8 +1165,6 @@ mod_data_server <- function(id, r, d, m, language, i18n, debug, user_accesses){
       
       observeEvent(r$data_reload_menu, {
         if (debug) cat(paste0("\n", now(), " - mod_data - r$data_reload_menu"))
-        
-        # if (r$project_load_status_displayed) r$project_load_status$menu_starttime <- now("%Y-%m-%d %H:%M:%OS3")
         
         sapply(categories, function(category){
           
@@ -1307,8 +1349,6 @@ mod_data_server <- function(id, r, d, m, language, i18n, debug, user_accesses){
           shinyjs::show(paste0(displayed_category, "_study_menu"))
           shinyjs::hide(paste0(hidden_category, "_study_menu"))
         })
-        
-        # if (r$project_load_status_displayed) r$project_load_status$menu_endtime <- now("%Y-%m-%d %H:%M:%OS3")
       })
       
       # --- --- --- --- --
@@ -1605,6 +1645,18 @@ mod_data_server <- function(id, r, d, m, language, i18n, debug, user_accesses){
       tab_id <- input$edit_tab_id
       tab <- r$data_menu_tabs %>% dplyr::filter(id == tab_id)
       
+      # Remove all widgets from gridstack
+      data_widgets <- r$data_widgets %>% dplyr::filter(tab_id == !!tab_id)
+      for (widget_id in data_widgets$id){
+        shinyjs::runjs(paste0("
+          var grid = window.gridStackInstances['", tab_id, "'];
+          var current_widget = grid.el.querySelector('#", ns(paste0("data_gridstack_item_", widget_id)), "');
+          if (current_widget) grid.removeWidget(current_widget);"))
+      }
+      
+      # Delete tab
+      shinyjs::hide(paste0("gridstack_", tab_id))
+      
       # Delete tab from db
       sql <- glue::glue_sql("DELETE FROM tabs WHERE id = {tab_id}", .con = r$db)
       query <- DBI::dbSendStatement(r$db, sql)
@@ -1634,16 +1686,17 @@ mod_data_server <- function(id, r, d, m, language, i18n, debug, user_accesses){
       # Change selected tab to first tab
       # Choose a tab from the same level, or level up if there's not any tab at the same level
       
-      first_tab <- r$data_menu_tabs %>% dplyr::filter(category == r$data_page, level == tab$level)
+      first_tab <- r$data_menu_tabs %>% dplyr::filter(category == r$data_page, level == tab$level, id != tab_id)
       
       if (nrow(first_tab) == 0){
-        first_tab <- r$data_menu_tabs %>% dplyr::filter(category == r$data_page, level == tab$level - 1)
-        if (nrow(first_tab) == 0){
-          first_tab <- 0
+        selected_tab <- r$data_menu_tabs %>% dplyr::filter(category == r$data_page, level == tab$level - 1)
+        if (nrow(selected_tab) == 0){
+          selected_tab <- 0
         }
       }
+      else selected_tab <- first_tab %>% dplyr::slice(1) %>% dplyr::pull(id)
       
-      r[[paste0(category, "_selected_tab")]] <- first_tab %>% dplyr::slice(1) %>% dplyr::pull(id)
+      r[[paste0(category, "_selected_tab")]] <- selected_tab
       
       # Reload study menu
       r$data_reload_tabs <- now()
@@ -1666,7 +1719,12 @@ mod_data_server <- function(id, r, d, m, language, i18n, debug, user_accesses){
     observeEvent(input$add_widget, {
       if (debug) cat(paste0("\n", now(), " - mod_data - observer input$add_widget"))
       
+      if (is.na(r[[paste0(r$data_page, "_selected_tab")]])) show_message_bar(output, message = "create_a_tab_before_adding_a_widget", type = "warning", i18n = i18n, ns = ns)
+      
       req(!is.na(r[[paste0(r$data_page, "_selected_tab")]]))
+      
+      if (r[[paste0(r$data_page, "_selected_tab")]] %in% r$data_tabs_full_screen$tab_id) show_message_bar(output, message = "cant_add_widget_in_full_screen_mode", type = "warning", i18n = i18n, ns = ns)
+      req(r[[paste0(r$data_page, "_selected_tab")]] %not_in% r$data_tabs_full_screen$tab_id)
       
       shinyjs::show("add_widget_modal")
       
@@ -1821,6 +1879,9 @@ mod_data_server <- function(id, r, d, m, language, i18n, debug, user_accesses){
         DBI::dbAppendTable(m$db, "widgets_concepts", new_data)
         r$data_widgets_concepts <- r$data_widgets_concepts %>% dplyr::bind_rows(new_data)
         
+        # Reset add concept buttons
+        sapply(r[[paste0(id, "_selected_concepts")]]$concept_id, function(concept_id) shinyjs::runjs(paste0("$('#", id, "-add_concept_", concept_id, " i').removeClass('fa-minus').addClass('fa-plus');")))
+        
         # Reset selected concepts
         r[[paste0(id, "_selected_concepts")]] <- tibble::tibble(
           concept_id = integer(), concept_name = character(), domain_id = character(), vocabulary_id = character(),
@@ -1868,9 +1929,143 @@ mod_data_server <- function(id, r, d, m, language, i18n, debug, user_accesses){
     
     # ...
     
+    # --- --- --- --- --- --- --
+    # Widget in full screen ----
+    # --- --- --- --- --- --- --
+    
+    r$data_tabs_full_screen <- tibble::tibble(widget_id = integer(), tab_id = integer(), x = integer(), y = integer(), w = integer(), h = integer())
+    
+    observeEvent(input$widget_full_screen_trigger, {
+      if (debug) cat(paste0("\n", now(), " - mod_data - observer input$widget_full_screen_trigger"))
+      
+      widget_id <- input$widget_full_screen_id
+      tab_id <- r$data_widgets %>% dplyr::filter(id == widget_id) %>% dplyr::pull(tab_id)
+      other_widgets <- r$data_widgets %>% dplyr::filter(tab_id == !!tab_id & id != widget_id) %>% dplyr::pull(id)
+      all_widgets <- r$data_widgets %>% dplyr::filter(tab_id == !!tab_id) %>% dplyr::pull(id)
+      
+      if (tab_id %in% r$data_tabs_full_screen$tab_id){
+        
+        shiny.fluent::updateIconButton.shinyInput(session, paste0(id, "_widget_full_screen_", widget_id), iconProps = list(iconName = "FullScreen"))
+        
+        # Reset with last coordinates
+        
+        sapply(all_widgets, function(widget_id){
+          coords <- r$data_tabs_full_screen %>% dplyr::filter(widget_id == !!widget_id)
+          
+          shinyjs::runjs(paste0(
+            "let grid = GridStack.init();",
+            "let widget = document.getElementById('", id, "-data_gridstack_item_", widget_id, "');",
+            "grid.update(widget, { x: ", coords$x, ", y: ", coords$y, ", w: ", coords$w, ", h: ", coords$h, " });"
+          ))
+        })
+        
+        # Show all other widgets
+        
+        sapply(other_widgets, function(widget_id) shinyjs::delay(100, shinyjs::show(paste0("data_gridstack_item_", widget_id))))
+        
+        # Enable gridstack edition for this tab
+        
+        shinyjs::runjs(paste0("
+          const grid = window.gridStackInstances['", tab_id, "'];
+          grid.setStatic(false);  
+        "))
+        
+        # Add and remove an invisible widget to restart gridstack resizing
+        shinyjs::runjs(paste0(
+          "const grid = window.gridStackInstances['", tab_id, "'];",
+          "if (grid) {",
+          "  let tempWidget = document.createElement('div');",
+          "  tempWidget.className = 'grid-stack-item';",
+          "  tempWidget.style.display = 'none';",
+          "  grid.addWidget(tempWidget, { x: 0, y: 0, w: 1, h: 1 });",
+          "  grid.removeWidget(tempWidget);",
+          "}"
+        ))
+        
+        r$data_tabs_full_screen <- r$data_tabs_full_screen %>% dplyr::filter(tab_id != !!tab_id)
+      }
+      else {
+        
+        shiny.fluent::updateIconButton.shinyInput(session, paste0(id, "_widget_full_screen_", widget_id), iconProps = list(iconName = "BackToWindow"))
+        
+        # Get and save current coordinates
+        
+        sapply(all_widgets, function(widget_id){
+          shinyjs::runjs(paste0(
+            "var widget = document.getElementById('", id, "-data_gridstack_item_", widget_id, "');",
+            "if (widget) {",
+            "  var widgetPosition = {",
+            "    id: ", widget_id, ",",
+            "    tab_id: ", tab_id, ",",
+            "    w: widget.getAttribute('gs-w'),",
+            "    h: widget.getAttribute('gs-h'),",
+            "    x: widget.getAttribute('gs-x'),",
+            "    y: widget.getAttribute('gs-y')",
+            "  }",
+            "};",
+            "Shiny.setInputValue('", id, "-full_screen_widget_position', widgetPosition);",
+            "Shiny.setInputValue('", id, "-full_screen_widget_position_trigger', Math.random());"
+          ))
+        })
+        
+        # Hide all others widgets
+        
+        sapply(other_widgets, function(widget_id) shinyjs::hide(paste0("data_gridstack_item_", widget_id)))
+        
+        # Resize current widget to full screen
+        
+        # Adding a temporary invisible widget to the grid before resizing the target widget.
+        # This helps to "wake up" the gridstack instance, ensuring that layout recalculations
+        # are triggered correctly for the target widget. The temporary widget is immediately 
+        # removed after resizing to avoid any visible impact on the grid layout.
+        
+        shinyjs::runjs(paste0(
+          "const grid = window.gridStackInstances['", tab_id, "'];",
+          "if (grid) {",
+          "  let tempWidget = document.createElement('div');",
+          "  tempWidget.className = 'grid-stack-item';",
+          "  tempWidget.style.display = 'none';",
+          "  grid.addWidget(tempWidget, { x: 0, y: 0, w: 1, h: 1 });",
+          "  let widget = document.getElementById('", id, "-data_gridstack_item_", widget_id, "');",
+          "  grid.update(widget, { x: 0, y: 0, w: 12, h: 40 });",
+          "  grid.removeWidget(tempWidget);",
+          "}"
+        ))
+        
+        # Disable gridstack edition for this tab
+        
+        shinyjs::runjs(paste0("
+          const grid = window.gridStackInstances['", tab_id, "'];
+          grid.setStatic(true);  
+        "))
+      }
+    })
+    
+    observeEvent(input$full_screen_widget_position_trigger, {
+      if (debug) cat(paste0("\n", now(), " - mod_data - observer input$full_screen_widget_position_trigger"))
+      
+      widget <- input$full_screen_widget_position
+      
+      r$data_tabs_full_screen <- r$data_tabs_full_screen <- r$data_tabs_full_screen %>% dplyr::bind_rows(
+        tibble::tibble(
+          widget_id = as.integer(widget$id),
+          tab_id = as.integer(widget$tab_id),
+          x = as.integer(widget$x),
+          y = as.integer(widget$y),
+          w = as.integer(widget$w),
+          h = as.integer(widget$h)
+        )
+      )
+    })
+    
     # --- --- --- --- -- -
     # Delete a widget ----
     # --- --- --- --- -- -
+    
+    observeEvent(input$remove_widget_trigger, {
+      if (debug) cat(paste0("\n", now(), " - mod_data - observer input$remove_widget_trigger"))
+      shinyjs::show("delete_widget_modal")
+    })
     
     observeEvent(input$close_widget_deletion_modal, {
       if (debug) cat(paste0("\n", now(), " - mod_data - observer input$close_file_deletion_modal"))
@@ -1883,7 +2078,7 @@ mod_data_server <- function(id, r, d, m, language, i18n, debug, user_accesses){
       category <- r$data_page
       
       tab_id <- r[[paste0(category, "_selected_tab")]]
-      widget_id <- r$data_selected_widget
+      widget_id <- input$remove_widget_id
       
       # Update session max widget_id
       r$session_max_widget <- max(r$session_max_widget, widget_id)
@@ -1926,90 +2121,107 @@ mod_data_server <- function(id, r, d, m, language, i18n, debug, user_accesses){
     
     r$data_edit_page_activated <- FALSE
     
-    observeEvent(input$edit_page_on, {
-      if (debug) cat(paste0("\n", now(), " - mod_data - observer input$edit_page_on"))
+    observeEvent(input$edit_page, {
+      if (debug) cat(paste0("\n", now(), " - mod_data - observer input$edit_page"))
       
-      # Enable gridstack edition
-      sapply(gsub("gridstack_", "", r$data_grids, fixed = FALSE), function(tab_id) shinyjs::runjs(paste0("
-        const grid = window.gridStackInstances['", tab_id, "'];
-        grid.setStatic(false);
-      ")))
-      
-      # Show edit tab buttons
-      distinct_tabs <- r$data_menu_tabs %>% dplyr::pull(id)
-      sapply(distinct_tabs, function(tab_id) shinyjs::show(paste0("edit_tab_", tab_id, "_container")))
-      
-      # Show edit and delete widget buttons
-      sapply(r$data_widgets$id, function(widget_id) shinyjs::show(paste0("data_widget_settings_buttons_", widget_id)))
-      
-      # Show quit edit page button
-      shinyjs::hide("edit_page_on_div")
-      shinyjs::show("edit_page_off_div")
-      
-      # Hide resize button when sidenav is displayed or not
-      r$data_edit_page_activated <- TRUE
+      if (r$data_edit_page_activated) r$data_edit_page_activated <- FALSE
+      else r$data_edit_page_activated <- TRUE
     })
     
-    observeEvent(input$edit_page_off, {
-      if (debug) cat(paste0("\n", now(), " - mod_data - observer input$edit_page_off"))
+    observeEvent(r$data_edit_page_activated, {
+      if (debug) cat(paste0("\n", now(), " - mod_data - observer r$data_edit_page_activated"))
       
-      # Save each widget position
-      data_widgets <- r$data_widgets %>% dplyr::filter(tab_id == r[[paste0(r$data_page, "_selected_tab")]])
-      
-      if (nrow(data_widgets) > 0){
-        for (i in 1:nrow(data_widgets)){
-          
-          data_widget <- data_widgets[i, ]
-          
-          shinyjs::runjs(paste0(
-            "var widget = document.getElementById('", id, "-data_gridstack_item_", data_widget$id, "');",
-            "if (widget) {",
-            "  var widgetPosition = {",
-            "    id: ", data_widget$id, ",",
-            "    w: widget.getAttribute('gs-w'),",
-            "    h: widget.getAttribute('gs-h'),",
-            "    x: widget.getAttribute('gs-x'),",
-            "    y: widget.getAttribute('gs-y')",
-            "  }",
-            "};",
-            "Shiny.setInputValue('", id, "-widget_position', widgetPosition);",
-            "Shiny.setInputValue('", id, "-widget_position_trigger', Math.random());"
-          ))
-        }
+      if (r$data_edit_page_activated){
+        
+        # Enable gridstack edition if we are not in full screen mode
+        sapply(gsub("gridstack_", "", r$data_grids, fixed = FALSE), function(tab_id){
+          if (length(tab_id) > 0){
+            if (tab_id %not_in% r$data_tabs_full_screen$tab_id){
+              shinyjs::runjs(paste0("
+                const grid = window.gridStackInstances['", tab_id, "'];
+                grid.setStatic(false);
+              "))
+            }
+          }
+        })
+        
+        # Show edit tab buttons
+        distinct_tabs <- r$data_menu_tabs %>% dplyr::pull(id)
+        sapply(distinct_tabs, function(tab_id) shinyjs::show(paste0("edit_tab_", tab_id, "_container")))
+        
+        # Show edit and delete widget buttons
+        sapply(r$data_widgets$id, function(widget_id) shinyjs::show(paste0("data_widget_settings_buttons_", widget_id)))
+        
+        # Update edit page button
+        shiny.fluent::updateDefaultButton.shinyInput(session, "edit_page", text = i18n$t("validate_updates"), iconProps = list(iconName = "Accept"))
       }
-      
-      # Disable gridstack edition
-      sapply(gsub("gridstack_", "", r$data_grids, fixed = FALSE), function(tab_id) shinyjs::runjs(paste0("
-        const grid = window.gridStackInstances['", tab_id, "'];
-        grid.setStatic(true);
-      ")))
-      
-      # Show edit tab buttons
-      distinct_tabs <- r$data_menu_tabs %>% dplyr::pull(id)
-      sapply(distinct_tabs, function(tab_id) shinyjs::hide(paste0("edit_tab_", tab_id, "_container")))
-      
-      # Hide edit and delete widget buttons
-      sapply(r$data_widgets$id, function(widget_id) shinyjs::hide(paste0("data_widget_settings_buttons_", widget_id)))
-      
-      # Show edit page button
-      shinyjs::hide("edit_page_off_div")
-      shinyjs::delay(50, shinyjs::show("edit_page_on_div"))
-      
-      # Hide resize button when sidenav is displayed or not
-      r$data_edit_page_activated <- FALSE
-      
-      # Prevent a bug with scroll into ace editor
-      shinyjs::runjs("var event = new Event('resize'); window.dispatchEvent(event);")
-      
-      # Reload update_datetime
-      sql_update_datetime(r, m)
-    })
+      else {
+        
+        # Save each widget position
+        data_widgets <- r$data_widgets %>% dplyr::filter(tab_id == r[[paste0(r$data_page, "_selected_tab")]])
+        
+        if (nrow(data_widgets) > 0){
+          for (i in 1:nrow(data_widgets)){
+            
+            data_widget <- data_widgets[i, ]
+            
+            shinyjs::runjs(paste0(
+              "var widget = document.getElementById('", id, "-data_gridstack_item_", data_widget$id, "');",
+              "if (widget) {",
+              "  var widgetPosition = {",
+              "    id: ", data_widget$id, ",",
+              "    w: widget.getAttribute('gs-w'),",
+              "    h: widget.getAttribute('gs-h'),",
+              "    x: widget.getAttribute('gs-x'),",
+              "    y: widget.getAttribute('gs-y')",
+              "  }",
+              "};",
+              "Shiny.setInputValue('", id, "-widget_position', widgetPosition);",
+              "Shiny.setInputValue('", id, "-widget_position_trigger', Math.random());"
+            ))
+          }
+        }
+        
+        # Disable gridstack edition
+        sapply(gsub("gridstack_", "", r$data_grids, fixed = FALSE), function(tab_id){
+          if (length(tab_id) > 0){
+            shinyjs::runjs(paste0("
+              const grid = window.gridStackInstances['", tab_id, "'];
+              grid.setStatic(true);
+            "))
+          }
+        })
+        
+        # Show edit tab buttons
+        distinct_tabs <- r$data_menu_tabs %>% dplyr::pull(id)
+        sapply(distinct_tabs, function(tab_id) shinyjs::hide(paste0("edit_tab_", tab_id, "_container")))
+        
+        # Hide edit and delete widget buttons
+        sapply(r$data_widgets$id, function(widget_id) shinyjs::hide(paste0("data_widget_settings_buttons_", widget_id)))
+        
+        # Update edit page button
+        shiny.fluent::updateDefaultButton.shinyInput(session, "edit_page", text = i18n$t("edit_page"), iconProps = list(iconName = "Edit"))
+        
+        # Hide resize button when sidenav is displayed or not
+        r$data_edit_page_activated <- FALSE
+        
+        # Prevent a bug with scroll into ace editor
+        shinyjs::runjs("var event = new Event('resize'); window.dispatchEvent(event);")
+        
+        # Reload update_datetime
+        sql_update_datetime(r, m)
+      }
+    }, ignoreInit = TRUE)
     
     # Save each widget position
     observeEvent(input$widget_position_trigger, {
       if (debug) cat(paste0("\n", now(), " - mod_data - observer input$widget_position_trigger"))
       
       widget <- input$widget_position
+      
+      # Don't save if we are in full screen mode
+      tab_id <- r$data_widgets %>% dplyr::filter(id == widget$id) %>% dplyr::pull(tab_id)
+      req(tab_id %not_in% r$data_tabs_full_screen$tab_id)
       
       widget_position <- ""
       for (pos in c("w", "h", "x", "y")){
@@ -2205,13 +2417,9 @@ mod_data_server <- function(id, r, d, m, language, i18n, debug, user_accesses){
           output[[paste0("edit_buttons_", widget_id)]] <- renderUI(get_widget_edit_buttons(id, widget_id, show_edit_buttons = r$data_edit_page_activated))
         })
       }
-      
-      # if (r$project_load_status_displayed) r$project_load_status$widgets_ui_endtime <- now("%Y-%m-%d %H:%M:%OS3")
     }
     
     load_tab_server <- function(tab_id, widget_id = NA_integer_, action = "reload"){
-      
-      # if (r$project_load_status_displayed) r$project_load_status$widgets_server_starttime <- now("%Y-%m-%d %H:%M:%OS3")
       
       shinyjs::delay(100, {
         # Get tabs and widgets
@@ -2310,36 +2518,17 @@ mod_data_server <- function(id, r, d, m, language, i18n, debug, user_accesses){
             for (var in variables_to_keep) new_env_vars[[var]] <- eval(parse(text = var))
             
             new_env <- rlang::new_environment(data = new_env_vars, parent = pryr::where("r"))
-            tryCatch({
-                eval(parse(text = server_code), envir = new_env)
-                r$project_load_status$widgets_server_endtime <- now("%Y-%m-%d %H:%M:%OS3")
-              },
+            tryCatch(eval(parse(text = server_code), envir = new_env),
               error = function(e){
                 r$widget_server_last_error <- e
                 show_message_bar(output,  "error_run_plugin_server_code", "severeWarning", i18n = i18n, ns = ns)
                 cat(paste0("\n", now(), " - mod_data - error loading server code - widget_id = ", widget_id, " - ", toString(e)))
               })
-            
-            # Observer for widget deletion
-            observeEvent(input[[paste0("data_widget_remove_", widget_id)]], {
-              if (debug) cat(paste0("\n", now(), " - mod_data - observer input$..remove_widget.."))
-              r$data_selected_widget <- widget_id
-              shinyjs::show("delete_widget_modal")
-            })
-            
-            # Observer for widget settings
-            observeEvent(input[[paste0("data_widget_settings_", widget_id)]], {
-              if (debug) cat(paste0("\n", now(), " - mod_data - observer input$..widget_settings.."))
-              r$data_widget_settings_trigger <- now()
-              r$data_widget_settings <- widget_id
-            })
           }
         })
         
         r$data_server_loaded <- TRUE
       })
-      
-      # if (r$project_load_status_displayed) r$project_load_status$widgets_server_endtime <- now("%Y-%m-%d %H:%M:%OS3")
     }
     
     sql_update_datetime <- function(r, m){

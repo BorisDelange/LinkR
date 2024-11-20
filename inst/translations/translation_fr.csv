@@ -40,7 +40,7 @@ columns,Colonnes
 commit_and_push,Commit & push
 commit_message,Message de commit
 concept_ancestor_table,Hiérarchie des concepts
-concept_class_id,ID de la classe du concept
+concept_class_id,Classe du concept
 concept_code,Code du concept
 concept_display_name,Nom d'affichage du concept
 concept_id,ID du concept
@@ -146,7 +146,7 @@ delete_widget_text,Confirmer la suppression de ce widget ?
 delete_widget_title,Suppression de widget
 description,Description
 details,Détails
-domain_id,ID du domaine
+domain_id,Domaine
 dont_delete,Annuler
 dont_import,Annuler
 dont_reload,Annuler
@@ -168,7 +168,7 @@ element_git_and_local_versions_are_the_same,Mêmes versions en local et sur le g
 element_git_version_more_recent,Version sur le git plus récente
 element_local_version_more_recent,Version locale plus récente
 english,Anglais
-error_getting_files_from_data_folder,Echec lors de la récupération des fichiers du dossier de données
+folder_doesnt_contain_any_file,Le dossier fourni ne contient pas de fichier
 error_inserting_data,Erreur lors de l'insertion de données dans la BDD
 error_loading_category_xml_file,Erreur lors du chargement du fichier XML de la catégorie sélectionnée
 error_loading_csv_files,Erreur lors du chargement des fichiers CSV
@@ -341,9 +341,9 @@ raw_files_url_address,Adresse URL des fichiers raw
 refresh_log,Rafraîchir le log
 reload,Recharger
 reload_dataset,Recharger le set de données
-reload_dataset_concepts,Recharger les concepts du set de données
-reload_dataset_concepts_text,Recharger le décompte des concepts du set de données actuel ? Cette opération peut prendre quelques minutes.
-reload_dataset_concepts_title,Recharger les concepts
+reload_concepts_count,Recharger le décompte des concepts du set de données
+reload_concepts_count_text,Recharger le décompte des concepts du set de données actuel ? Cette opération peut prendre quelques minutes.
+reload_concepts_count_title,Recharger les concepts
 reload_git_repo,Recharger le git
 reload_list,Recharger la liste
 reload_plugin_code,Recharger le code du plugin
@@ -445,7 +445,7 @@ vocabularies_import_user_access_description,Importer des terminologies et des co
 vocabularies_management_user_access_description,"Gérer les terminologies (ajouter, éditer et supprimer)"
 vocabularies_widget_text,Organisez et explorez les terminologies de concepts médicaux ici.
 vocabulary,Terminologie
-vocabulary_id,ID de la terminologie
+vocabulary_id,Terminologie
 width,Largeur
 years,Ans
 years_and_over,Ans et plus
@@ -478,3 +478,20 @@ data_cleaning_doesnt_exist_locally,Ce script de data cleaning n'existe pas sur v
 project_doesnt_exist_locally,Ce projet n'existe pas sur votre instance de LinkR
 study_doesnt_exist_locally,Ce projet n'existe pas sur votre instance de LinkR
 subset_deleted,Subset supprimé
+user_settings,Réglages de l'utilisateur
+code_editor,Editeur de code
+ace_theme,Thème de l'éditeur
+ace_font_size,Taille de la police de l'éditeur
+tab,Onglet
+widget,Widget
+validate_updates,Valider les modifications
+create_a_tab_before_adding_a_widget,Créez un onglet pour pouvoir ajouter un widget
+file_deleted,Fichier supprimé
+widget_added,Widget ajouté
+tab_added,Onglet ajouté
+cant_add_widget_in_full_screen_mode,Impossible d'ajouter un widget en mode plein écran
+duration,Durée
+concept_not_loaded,Concept non chargé
+hospital_unit_name,Nom du service
+admissions_number,Nombre d'admissions
+folder_doesnt_exist,Le dossier renseigné n'existe pas

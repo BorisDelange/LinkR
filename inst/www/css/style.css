@@ -48,14 +48,6 @@ h2, h3, h4, h5, h6 {
   font-size: 16px;  
 }
 
-/*a, a:visited {
-  color:#000000;
-}
-
-a:hover {
-  color: #129AFD;
-}*/
-
 a.no-hover-effect {
   color: black;
   text-decoration: none;
@@ -241,7 +233,19 @@ a.no-hover-effect:hover {
   justify-content: space-between;
   align-items: center;
   font-size: 12px;
-  padding: 10px 20px 10px 15px;
+  padding: 5px 15px;
+}
+
+.footer a {
+    color: black;
+}
+
+.footer a:visited {
+    color: black;
+}
+
+.footer a:hover {
+    color: rgb(0, 120, 212);
 }
 
 /* --------------- */
@@ -249,7 +253,7 @@ a.no-hover-effect:hover {
 /* --------------- */
 
 .delete_modal, .create_element_modal, .import_modal, .load_status_modal, .select_concepts_modal, .select_a_plugin_modal,
-.import_concepts_modal, .update_or_delete_git_element_modal, .reload_dataset_concepts_modal, .create_git_repo_modal,
+.import_concepts_modal, .update_or_delete_git_element_modal, .reload_concepts_count_modal, .create_git_repo_modal,
 .push_git_modal {
   display: flex;
   align-items: center;
@@ -265,7 +269,7 @@ a.no-hover-effect:hover {
 
 .delete_modal_content, .create_tab_modal_content, .import_modal_content, .create_widget_modal_content, .load_status_modal_content, .create_plugin_modal_content, .create_project_modal_content, .create_dataset_modal_content, .create_subset_modal_content,
 .create_vocabulary_modal_content, .create_data_cleaning_modal_content, .select_concepts_modal_content, .select_a_plugin_modal_content,
-.import_concepts_modal_content, .update_or_delete_git_element_modal_content, .reload_dataset_concepts_modal_content,
+.import_concepts_modal_content, .update_or_delete_git_element_modal_content, .reload_concepts_count_modal_content,
 .create_git_repo_modal_content, .push_git_modal_content, .create_user_modal_content, .create_user_status_modal_content,
 .create_user_access_modal_content {
   background: #fff;
@@ -289,7 +293,7 @@ a.no-hover-effect:hover {
 }
 
 .delete_modal_content h1, .create_element_modal h1, .import_modal_content h1, .load_status_modal h1, .select_concepts_modal h1, .select_a_plugin_modal h1, .import_concepts_modal_content h1, .update_or_delete_git_element_modal_content h1, .create_user_modal_content h1, 
-.reload_dataset_concepts_modal_content h1, .create_git_repo_modal h1, .push_git_modal_content h1, .create_user_status_modal_content h1,
+.reload_concepts_count_modal_content h1, .create_git_repo_modal h1, .push_git_modal_content h1, .create_user_status_modal_content h1,
 .create_user_access_modal_content h1 {
   font-size: 14px;
 }
@@ -299,7 +303,7 @@ a.no-hover-effect:hover {
 }
 
 .delete_modal_buttons, .import_modal_buttons, .create_element_modal_buttons, .select_concepts_modal_buttons, .import_concepts_modal_buttons,
-.datasets_share_buttons, .update_or_delete_git_element_modal_buttons, .reload_dataset_concepts_modal_buttons, .git_element_details_git_buttons,
+.datasets_share_buttons, .update_or_delete_git_element_modal_buttons, .reload_concepts_count_modal_buttons, .git_element_details_git_buttons,
 .export_db_buttons, .import_db_buttons, .data_cleaning_share_buttons, .projects_share_buttons, .create_git_repo_modal_buttons,
 .git_repo_infos_modal_buttons, .push_git_modal_buttons {
   position: absolute;
@@ -328,7 +332,7 @@ a.no-hover-effect:hover {
   width: 60%;
   height: 320px;
 }
-.reload_dataset_concepts_modal_content {
+.reload_concepts_count_modal_content {
   width: 400px;
   height: 150px;
 }
@@ -569,8 +573,7 @@ a.no-hover-effect:hover {
 }
 
 .selected_widget {
-  border: 2px solid rgba(0, 128, 0, 0.5);
-  box-shadow: 0 2px 4px 0 rgba(0, 128, 0, 0.3), 0 3px 10px 0 rgba(0, 128, 0, 0.25);
+  border: 3px solid #0084D7;
 }
 
 .selected_concepts_widget {
@@ -694,7 +697,12 @@ a.no-hover-effect:hover {
 
 .small_icon_button .ms-Button-icon {
   font-size: 12px;
-  color: black;;
+  color: black;
+}
+
+.patient_lvl_small_icon_button .ms-Button-icon {
+  font-size: 10px;
+  color: #808080;
 }
 
 .widget_icon .ms-Button-icon {
@@ -707,12 +715,18 @@ a.no-hover-effect:hover {
   height: 24px
 }
 
+.patient_lvl_small_icon_button .ms-Button {
+  width: 18px;
+  height: 18px
+}
+
 .small_icon_button_dt .ms-Button{
   width: 24px;
   height: 18px
 }
 
-.small_icon_button .ms-Button:hover .ms-Button-icon, .widget_icon .ms-Button:hover .ms-Button-icon {
+.small_icon_button .ms-Button:hover .ms-Button-icon, .widget_icon .ms-Button:hover .ms-Button-icon,
+.patient_lvl_small_icon_button .ms-Button:hover {
   color: #61AEF9;
 }
 
@@ -788,51 +802,13 @@ button.ms-UpButton, button.ms-DownButton {
 /* DATATABLES          */
 /* ------------------- */
 
-/*
-.form-control {
-  font-size: 12px;
-}
-*/
-/* Search column in datatable, with type is factor */
-/*
-td[data-type="factor"] input {
-  width: 200px !important;
-}
-
-.datatable_link {
-  font-weight: bold;
-  color: #0078D4;
-  text-decoration: none;
-}
-
-.datatable_link:hover {
-  text-decoration: underline;
-  color: #0062AD;
-}
-
-.datatable_link:visited {
-  color: #0078D4;
-}
-
-.vocabulary_table table tbody td {
-  height:15px;
-  white-space: nowrap;
-}
-
-.vocabulary_table table tbody td div{
-  height:18px;
-  word-wrap:break-word;
-  position:relative;
-  top:-4px;
-}*/
-
 .dataTable tbody tr td {
-    padding: 2px 5px;
-    font-size: 12px;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    max-width: 0;   
+  padding: 2px 5px;
+  font-size: 12px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 0;   
 }
 
 .dataTable tbody tr td input {
@@ -955,12 +931,15 @@ td[data-type="factor"] input {
   padding: 10px 0 5px 0;
   font-size: 12px;
   overflow-x: auto;
+  scrollbar-width: thin;
 }
 
 .tab {
   padding: 3px 2px 3px 10px;
   background-color: #ddd;
   margin-right: 2px;
+  flex: 0 0 120px;
+  max-width: 120px;
   cursor: pointer;
   display: flex;
   justify-content: space-between;
@@ -1248,6 +1227,16 @@ td[data-type="factor"] input {
 
 .projects_summary_right, .projects_dataset_right {
   width: 50%;
+}
+
+/* --------------------------- */
+/* USER SETTINGS PAGE          */
+/* --------------------------- */
+
+.user_settings_container {
+  display: flex;
+  justify-content: space-between;
+  height: calc(100% - 50px);
 }
 
 /* --------------------- */

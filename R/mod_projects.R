@@ -240,7 +240,15 @@ mod_projects_ui <- function(id, language, languages, i18n){
                 shinyjs::hidden(
                   div(
                     id = ns("project_dataset_div"),
-                    div(shiny.fluent::Dropdown.shinyInput(ns("project_dataset"), label = i18n$t("dataset")), style = "width: 200px"),
+                    div(
+                      div(shiny.fluent::Dropdown.shinyInput(ns("project_dataset"), label = i18n$t("dataset")), style = "width: 200px"),
+                      div(
+                        shiny.fluent::IconButton.shinyInput(ns("reload_dataset"), iconProps = list(iconName = "Play")),
+                        class = "small_icon_button",
+                        style = "margin-top: 26px;"
+                      ),
+                      style = "display: flex; gap: 5px;"
+                    ),
                     dataset_details("dataset"),
                     style = "height: calc(100% - 45px);"
                   )
@@ -249,6 +257,7 @@ mod_projects_ui <- function(id, language, languages, i18n){
               ),
               div(
                 tags$h1(i18n$t("tables")),
+                div(tableOutput(ns("dataset_tables")), class = "dataset_details_table", style = "margin-bottom: 20px;"),
                 class = "widget", style = "height: 50%;"
               ),
               class = "projects_dataset_left"
@@ -259,7 +268,7 @@ mod_projects_ui <- function(id, language, languages, i18n){
                 shinyjs::hidden(
                   div(
                     id = ns("dataset_care_sites_details"),
-                    "Care sites"
+                    div(tableOutput(ns("dataset_care_sites_locations_table")), class = "dataset_details_table", style = "margin-bottom: 20px;")
                   )
                 ),
                 shinyjs::hidden(
@@ -268,13 +277,14 @@ mod_projects_ui <- function(id, language, languages, i18n){
                     div(plotOutput(ns("dataset_patients_age_plot"), width = "80%", height = "300px"), class = "dataset_details_plot"),
                     div(tableOutput(ns("dataset_patients_age_table")), class = "dataset_details_table", style = "margin-top: 50px;"),
                     div(plotOutput(ns("dataset_patients_gender_plot"), width = "80%", height = "300px"), class = "dataset_details_plot", style = "margin-top: 50px;"),
-                    div(tableOutput(ns("dataset_patients_age_gender_table")), class = "dataset_details_table", style = "margin-top: 50px;")
+                    div(tableOutput(ns("dataset_patients_age_gender_table")), class = "dataset_details_table", style = "margin: 50px 0 20px 0;")
                   )
                 ),
                 shinyjs::hidden(
                   div(
                     id = ns("dataset_stays_details"),
-                    "Stays"
+                    div(plotOutput(ns("dataset_admissions_plot"), width = "80%", height = "300px"), class = "dataset_details_plot"),
+                    div(tableOutput(ns("dataset_care_sites_table")), class = "dataset_details_table", style = "margin: 50px 0 20px 0;")
                   )
                 ),
                 class = "widget", style = "height: calc(100% - 25px); overflow: auto;"
@@ -390,7 +400,7 @@ mod_projects_ui <- function(id, language, languages, i18n){
 }
 
 #' @noRd 
-mod_projects_server <- function(id, r, d, m, language, i18n, debug, user_accesses){
+mod_projects_server <- function(id, r, d, m, language, i18n, debug, user_accesses, user_settings){
   
   # |-------------------------------- -----
   
@@ -399,7 +409,7 @@ mod_projects_server <- function(id, r, d, m, language, i18n, debug, user_accesse
   # Load widgets ----
   
   all_divs <- c("summary", "dataset", "data_cleaning_scripts", "share")
-  mod_widgets_server(id, r, d, m, language, i18n, all_divs, debug, user_accesses)
+  mod_widgets_server(id, r, d, m, language, i18n, all_divs, debug, user_accesses, user_settings)
   
   # Projects module ----
   
@@ -491,6 +501,42 @@ mod_projects_server <- function(id, r, d, m, language, i18n, debug, user_accesse
       num_patients <- d$person %>% dplyr::count() %>% dplyr::pull()
       output$summary_num_patients <- renderUI(num_patients)
       output$dataset_num_patients <- renderUI(num_patients)
+      
+      # Update tables rows count
+      
+      req(m$omop_version)
+
+      omop_tables <- c(
+        "condition_occurrence", "drug_exposure", "procedure_occurrence", "device_exposure", "measurement", "observation", "note", "note_nlp", "payer_plan_period", "cost",
+        "specimen", "drug_era", "dose_era", "condition_era", "observation_period", "visit_occurrence", "visit_detail",
+        "person", "location", "care_site", "provider"
+      )
+
+      if (m$omop_version %in% c("5.3", "5.4")) omop_tables <- c(omop_tables, "death")
+
+      tables_count <- tibble::tibble(table = character(), num_pat = integer(), num_rows = integer())
+
+      for (table in omop_tables){
+        
+        num_rows <- d[[table]] %>% dplyr::count() %>% dplyr::pull()
+        num_pat <- 0
+        
+        if (num_rows > 0) if ("person_id" %in% colnames(d[[table]])) num_pat <- d[[table]] %>% dplyr::distinct(person_id) %>% dplyr::count() %>% dplyr::pull()
+
+        tables_count <- tables_count %>% dplyr::bind_rows(
+          tibble::tibble(table = table, num_pat = as.integer(num_pat), num_rows = as.integer(num_rows))
+        )
+
+        output$dataset_tables <- renderTable(
+          tables_count %>% 
+            dplyr::arrange(dplyr::desc(num_rows)) %>%
+            dplyr::rename(
+              !!i18n$t("table") := table,
+              !!i18n$t("num_patients") := num_pat,
+              !!i18n$t("num_rows") := num_rows
+            )
+        )
+      }
     })
     
     observeEvent(d$visit_occurrence, {
@@ -513,9 +559,6 @@ mod_projects_server <- function(id, r, d, m, language, i18n, debug, user_accesse
       
       # Save each time a dataset is selected
       shinyjs::runjs(paste0("Shiny.setInputValue('", id, "-save_dataset', Math.random());"))
-      
-      # Reload dataset each time a dataset is selected
-      # shinyjs::runjs(paste0("Shiny.setInputValue('", id, "-reload_dataset', Math.random());"))
     })
     
     observeEvent(input$save_dataset, {
@@ -530,9 +573,6 @@ mod_projects_server <- function(id, r, d, m, language, i18n, debug, user_accesse
       r$projects_wide <- 
         r$projects_wide %>% 
         dplyr::mutate(dataset_id = dplyr::case_when(id == input$selected_element ~ input$project_dataset, TRUE ~ dataset_id))
-      
-      # Notify user
-      # show_message_bar(output,  "modif_saved", "success", i18n = i18n, ns = ns)
     })
     
     ## Reload dataset ----
@@ -542,6 +582,11 @@ mod_projects_server <- function(id, r, d, m, language, i18n, debug, user_accesse
       
       req(length(input$project_dataset) > 0)
       req("projects_dataset" %in% user_accesses)
+      
+      # Hide dataset details
+      sapply(c("dataset_care_sites_details", "dataset_patients_details", "dataset_stays_details"), shinyjs::hide)
+      
+      # Load dataset
       load_dataset(r, m, d, input$project_dataset, r$main_tables, m$selected_study)
     })
     
@@ -552,12 +597,32 @@ mod_projects_server <- function(id, r, d, m, language, i18n, debug, user_accesse
       
       categories <- c("care_sites", "patients", "stays")
       sapply(categories[categories != input$dataset_details], function(category) shinyjs::hide(paste0("dataset_", category, "_details")))
-      shinyjs::show(paste0("dataset_", input$dataset_details, "_details"))
       
       ### Care sites details ----
       
       if (input$dataset_details == "care_sites"){
         
+        num_care_sites <- 0
+        
+        if (d$location %>% dplyr::count() %>% dplyr::pull() > 0 & d$care_site %>% dplyr::count() %>% dplyr::pull() > 0){
+          care_sites <-
+            d$location %>%
+            dplyr::inner_join(d$care_site, by = "location_id")
+          
+          num_care_sites <- care_sites %>% dplyr::distinct(location_id) %>% dplyr::count() %>% dplyr::pull()
+        }
+        
+        if (num_care_sites == 0){
+          
+        }
+        
+        req(num_care_sites > 0)
+        
+        output$dataset_care_sites_locations_table <- renderTable(
+          care_sites %>%
+            dplyr::distinct(location_source_value) %>%
+            dplyr::rename(!!i18n$t("care_site") := location_source_value)
+        )
       }
       
       ## Patients details ----
@@ -603,13 +668,14 @@ mod_projects_server <- function(id, r, d, m, language, i18n, debug, user_accesse
         
         output$dataset_patients_age_plot <- renderPlot(
           age_data %>%
-          ggplot2::ggplot(ggplot2::aes(x = age)) +
-          ggplot2::geom_histogram(bins = 50, color = "white", fill = "#2874A6") +
-          ggplot2::theme_minimal() +
-          ggplot2::labs(title = i18n$t("age_at_first_hospit"), x = i18n$t("age"), y = i18n$t("occurrences")) +
-          ggplot2::theme(
-            plot.title = ggplot2::element_text(hjust = 0.5, face = "bold")
-          )
+            ggplot2::ggplot(ggplot2::aes(x = age)) +
+            ggplot2::geom_histogram(bins = 40, color = "white", fill = "#2874A6") +
+            ggplot2::theme_minimal() +
+            ggplot2::labs(title = i18n$t("age_at_first_hospit"), x = i18n$t("age"), y = i18n$t("occurrences")) +
+            ggplot2::scale_x_continuous(breaks = seq(0, max(age_data$age, na.rm = TRUE), by = 10), limits = c(0, max(age_data$age, na.rm = TRUE))) +
+            ggplot2::theme(
+              plot.title = ggplot2::element_text(hjust = 0.5, face = "bold")
+            )
         )
         
         output$dataset_patients_age_table <- renderTable({
@@ -689,7 +755,51 @@ mod_projects_server <- function(id, r, d, m, language, i18n, debug, user_accesse
       
       else if (input$dataset_details == "stays"){
         
+        admissions_data <- d$visit_occurrence %>%
+          dplyr::select(visit_start_date) %>%
+          dplyr::collect() %>%
+          dplyr::mutate(visit_start_date = as.Date(visit_start_date)) %>%
+          dplyr::mutate(month = lubridate::floor_date(visit_start_date, "month")) %>%
+          dplyr::group_by(month) %>%
+          dplyr::summarize(admissions_count = dplyr::n()) %>%
+          dplyr::ungroup()
+        
+        filtered_admissions_data <- admissions_data %>%
+          dplyr::arrange(desc(month)) %>%
+          dplyr::slice(1:30) %>%
+          dplyr::arrange(month)
+        
+        output$dataset_admissions_plot <- renderPlot(
+          ggplot2::ggplot(filtered_admissions_data, ggplot2::aes(x = month, y = admissions_count)) +
+            ggplot2::geom_col(fill = "#2874A6", alpha = 0.7) +
+            ggplot2::scale_x_date(breaks = scales::breaks_pretty(n = 10), date_labels = "%b %Y") +
+            ggplot2::theme_minimal() +
+            ggplot2::labs(
+              x = "Date",
+              y = "Number of admissions",
+              title = "Number of admissions over time"
+            ) +
+            ggplot2::theme(
+              plot.title = ggplot2::element_text(hjust = 0.5, face = "bold")
+            )
+        )
+        
+        care_site_visits <-
+          d$visit_detail %>%
+          dplyr::left_join(d$care_site, by = "care_site_id") %>%
+          dplyr::group_by(care_site_name) %>%
+          dplyr::summarise(num = as.integer(dplyr::n())) %>%
+          dplyr::ungroup() %>%
+          dplyr::collect() %>%
+          dplyr::arrange(desc(num)) %>%
+          dplyr::slice_head(n = 20)
+        
+        colnames(care_site_visits) <- c(i18n$t("hospital_unit_name"), i18n$t("admissions_number"))
+        
+        output$dataset_care_sites_table <- renderTable(care_site_visits)
       }
+      
+      shinyjs::show(paste0("dataset_", input$dataset_details, "_details"))
     })
     
     # --- --- --- --- --- -

@@ -243,25 +243,37 @@ app_server <- function(
       sql <- glue::glue_sql("SELECT * FROM options WHERE category = 'users_accesses' AND link_id = {user_access_id} AND value_num = 1", .con = r$db)
       user_accesses <- DBI::dbGetQuery(r$db, sql) %>% dplyr::pull(name)
       
+      # Get user settings
+      sql <- glue::glue_sql("SELECT name, value, value_num FROM options WHERE category = 'user_settings' AND link_id = {r$user_id}", .con = r$db)
+      user_settings_db <- DBI::dbGetQuery(r$db, sql)
+      user_settings <- list()
+      
+      user_settings$ace_theme <- user_settings_db %>% dplyr::filter(name == "ace_theme") %>% dplyr::pull(value)
+      if (length(user_settings$ace_theme) == 0) user_settings$ace_theme <- "textmate"
+      
+      user_settings$ace_font_size <- user_settings_db %>% dplyr::filter(name == "ace_font_size") %>% dplyr::pull(value_num)
+      if (length(user_settings$ace_font_size) == 0) user_settings$ace_font_size <- 11
+      
       # Data pages are loaded from mod_widgets (when a project is selected)
       if (page == "data"){
-        
+
         mod_data_server("data", r, d, m, language, i18n, debug, user_accesses)
         mod_page_sidenav_server("data", r, d, m, language, i18n, debug)
         mod_page_header_server("data", r, d, m, language, i18n, debug)
         r$loaded_pages$data <- TRUE
-        
+
         r$load_project_trigger <- now()
       }
       else {
         if (page == "users") args <- list(page, r, d, m, language, i18n, debug, users_accesses_toggles_options, user_accesses)
-        else if (page == "app_db") args <- list(page, r, d, m, language, i18n, db_col_types, app_folder, debug, user_accesses)
+        else if (page == "app_db") args <- list(page, r, d, m, language, i18n, db_col_types, app_folder, debug, user_accesses, user_settings)
+        else if (page %in% c("console", "data_cleaning", "datasets", "plugins", "projects", "subsets", "user_settings", "vocabularies")) args <- list(page, r, d, m, language, i18n, debug, user_accesses, user_settings)
         else args <- list(page, r, d, m, language, i18n, debug, user_accesses)
         do.call(paste0("mod_", page, "_server"), args)
-        
+
         mod_page_sidenav_server(page, r, d, m, language, i18n, debug)
         mod_page_header_server(page, r, d, m, language, i18n, debug)
-        
+
         r$loaded_pages[[page]] <- TRUE
       }
     })

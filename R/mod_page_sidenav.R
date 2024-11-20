@@ -175,7 +175,7 @@ mod_page_sidenav_ui <- function(id, language, i18n){
               shiny.fluent::IconButton.shinyInput(ns("reload_concepts_count"), iconProps = list(iconName = "SyncOccurence"))
             )
           ),
-          text = i18n$t("reload_dataset_concepts")
+          text = i18n$t("reload_concepts_count")
         ),
         class = "reduced_sidenav_buttons"
       ),
@@ -284,30 +284,18 @@ mod_page_sidenav_ui <- function(id, language, i18n){
         shinyjs::hidden(
           div(
             id = ns("project_content_management"),
-            class = "sidenav_top",
             div(
-              create_hover_card(ui = shiny.fluent::IconButton.shinyInput(ns("add_tab"), iconProps = list(iconName = "Boards")), text = i18n$t("add_a_tab")),
-              class = "small_icon_button"
+              div(shiny.fluent::PrimaryButton.shinyInput(ns("add_tab"), i18n$t("tab"), iconProps = list(iconName = "Add"), style = "width: 100%;"),  style = "width: 50%;"),
+              div(shiny.fluent::PrimaryButton.shinyInput(ns("add_widget"), i18n$t("widget"), iconProps = list(iconName = "Add"), style = "width: 100%;"),  style = "width: 50%;"),
+              style = "display: flex; gap: 10px;"
             ),
-            div(
-              create_hover_card(ui = shiny.fluent::IconButton.shinyInput(ns("add_widget"), iconProps = list(iconName = "RectangularClipping")), text = i18n$t("add_a_widget")),
-              class = "small_icon_button"
-            ),
-            div(
-              id = ns("edit_page_on_div"),
-              create_hover_card(ui = shiny.fluent::IconButton.shinyInput(ns("edit_page_on"), iconProps = list(iconName = "Edit")), text = i18n$t("edit_page")),
-              class = "small_icon_button",
-            ),
-            shinyjs::hidden(
-              div(
-                id = ns("edit_page_off_div"),
-                shiny.fluent::IconButton.shinyInput(ns("edit_page_off"), iconProps = list(iconName = "Accept")),
-                class = "small_icon_button",
-              )
-            )
+            shiny.fluent::DefaultButton.shinyInput(ns("edit_page"), i18n$t("edit_page"), iconProps = list(iconName = "Edit"), style = "width: 100%; margin-top: 5px;")
           )
         ), br(),
-        selectizeInput(ns("subset"), i18n$t("subset"), choices = NULL, multiple = FALSE, selected = FALSE),
+        div(
+          selectizeInput(ns("subset"), i18n$t("subset"), choices = NULL, multiple = FALSE, selected = FALSE),
+          style = "border-top: solid 1px #ccc; padding-top: 10px;"
+        ),
         div(
           id = ns("subset_date_div"),
           class = "subset_slider_input",
@@ -352,9 +340,32 @@ mod_page_sidenav_ui <- function(id, language, i18n){
         ),
         div(id = ns("subset_info_div"), uiOutput(ns("subset_info")), class = "subset_info"),
         div(
-          id = ns("person_dropdown_div"),
-          selectizeInput(ns("person"), i18n$t("person"), choices = NULL, multiple = FALSE), 
-          style = "margin-top: 10px;"
+          style = "position: relative;",
+          div(
+            id = ns("person_dropdown_div"),
+            selectizeInput(ns("person"), i18n$t("person"), choices = NULL, multiple = FALSE), 
+            style = "margin-top: 10px;"
+          ),
+          shinyjs::hidden(
+            div(
+              id = ns("patient_switching_buttons_div"),
+              shinyjs::hidden(
+                div(
+                  id = ns("patient_switching_buttons"),
+                  div(
+                    shiny.fluent::IconButton.shinyInput(ns("previous_patient"), iconProps = list(iconName = "ChevronLeft")),
+                    class = "patient_lvl_small_icon_button"
+                  ),
+                  uiOutput(ns("person_switch_nums")),
+                  div(
+                    shiny.fluent::IconButton.shinyInput(ns("next_patient"), iconProps = list(iconName = "ChevronRight")),
+                    class = "patient_lvl_small_icon_button"
+                  ),
+                  style = "display: flex; position: absolute; top: 0; right: 0; color: #808080;"
+                )
+              )
+            )
+          )
         ),
         div(
           id = ns("visit_detail_dropdown_div"),
@@ -788,6 +799,27 @@ mod_page_sidenav_ui <- function(id, language, i18n){
     ) -> result
   }
   
+  # User settings ----
+  
+  else if (id == "user_settings") {
+    div(
+      id = ns("sidenav"),
+      class = "sidenav", style = reduced_sidenav_style,
+      div(
+        id = ns("large_sidenav")
+      ),
+      div(
+        id = ns("reduced_sidenav"),
+        div(
+          id = ns("save_settings_div"),
+          create_hover_card(ui = shiny.fluent::IconButton.shinyInput(ns("save_settings"), iconProps = list(iconName = "Save")), text = i18n$t("save")),
+          class = "reduced_sidenav_buttons",
+        )
+      ),
+      shinyjs::hidden(show_sidenav)
+    ) -> result
+  }
+  
   # Users ----
   
   else if (id == "users") {
@@ -883,22 +915,26 @@ mod_page_sidenav_server <- function(id, r, d, m, language, i18n, debug){
       var reduced_sidenav = document.getElementById('", id, "-reduced_sidenav');
     ")
     js_show_sidenav <- paste0("
-      sidenav.style.width = '220px';
-      sidenav.style.minWidth = '220px';
-      sidenav.style.padding = '10px 10px 0px 10px';
-      button.classList.add('button_hide_sidenav');
-      button.classList.remove('button_show_sidenav');
-      reduced_sidenav.style.display = 'none';
-      setTimeout(() => large_sidenav.style.display = 'block', 300);
+      if (sidenav && button && large_sidenav && reduced_sidenav) { 
+        sidenav.style.width = '220px';
+        sidenav.style.minWidth = '220px';
+        sidenav.style.padding = '10px 10px 0px 10px';
+        button.classList.add('button_hide_sidenav');
+        button.classList.remove('button_show_sidenav');
+        reduced_sidenav.style.display = 'none';
+        setTimeout(() => large_sidenav.style.display = 'block', 300);
+      }
     ")
     js_hide_sidenav <- paste0("
-      sidenav.style.width = '40px';
-      sidenav.style.minWidth = '40px';
-      sidenav.style.padding = 0;
-      button.classList.remove('button_hide_sidenav');
-      button.classList.add('button_show_sidenav');
-      large_sidenav.style.display = 'none';
-      setTimeout(() => reduced_sidenav.style.display = 'block', 300);
+      if (sidenav && button && large_sidenav && reduced_sidenav) { 
+        sidenav.style.width = '40px';
+        sidenav.style.minWidth = '40px';
+        sidenav.style.padding = 0;
+        button.classList.remove('button_hide_sidenav');
+        button.classList.add('button_show_sidenav');
+        large_sidenav.style.display = 'none';
+        setTimeout(() => reduced_sidenav.style.display = 'block', 300);
+      }
     ")
     
     # Prevent display bug

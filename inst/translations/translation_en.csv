@@ -40,7 +40,7 @@ columns,Columns
 commit_and_push,Commit & push
 commit_message,Commit message
 concept_ancestor_table,Concepts hierarchy
-concept_class_id,Concept class ID
+concept_class_id,Concept class
 concept_code,Concept code
 concept_display_name,Concept display name
 concept_id,Concept ID
@@ -146,7 +146,7 @@ delete_widget_text,Confirm deletion of this widget?
 delete_widget_title,Delete a widget
 description,Description
 details,Details
-domain_id,Domain ID
+domain_id,Domain
 dont_delete,Cancel
 dont_import,Cancel
 dont_reload,Don't load
@@ -168,7 +168,7 @@ element_git_and_local_versions_are_the_same,Local and remote git versions are th
 element_git_version_more_recent,Remote git version is newer
 element_local_version_more_recent,Local version is newer
 english,English
-error_getting_files_from_data_folder,Error getting files from data folder
+folder_doesnt_contain_any_file,The provided folder doesn't contain any file
 error_inserting_data,Error inserting data in database
 error_loading_category_xml_file,Error loading selected repo category XML file
 error_loading_csv_files,Error loading CSV files
@@ -341,9 +341,9 @@ raw_files_url_address,Raw files URL address
 refresh_log,Refresh log
 reload,Reload
 reload_dataset,Reload dataset
-reload_dataset_concepts,Reload dataset concepts
-reload_dataset_concepts_text,Reload count of current dataset concepts? This operation may take a few minutes.
-reload_dataset_concepts_title,Reload concepts
+reload_concepts_count,Reload dataset concepts count
+reload_concepts_count_text,Reload count of current dataset concepts? This operation may take a few minutes.
+reload_concepts_count_title,Reload concepts
 reload_git_repo,Reload git
 reload_list,Reload list
 reload_plugin_code,Reload plugin code
@@ -445,7 +445,7 @@ vocabularies_import_user_access_description,Import vocabularies and concepts
 vocabularies_management_user_access_description,"Manage vocabularies (add, edit and delete)"
 vocabularies_widget_text,Organize and explore medical concept terminologies here.
 vocabulary,Vocabulary
-vocabulary_id,Vocabulary ID
+vocabulary_id,Vocabulary
 width,Width
 years,Years
 years_and_over,Years and over
@@ -478,3 +478,20 @@ data_cleaning_doesnt_exist_locally,This data cleaning script does not exist in l
 project_doesnt_exist_locally,This project does not exist in local LinkR instance
 study_doesnt_exist_locally,This project does not exist in local LinkR instance
 subset_deleted,Subset deleted
+user_settings,User settings
+code_editor,Code editor
+ace_theme,Editor theme
+ace_font_size,Editor font size
+tab,Tab
+widget,Widget
+validate_updates,Validate updates
+create_a_tab_before_adding_a_widget,Create a tab to be able to add a widget
+file_deleted,File deleted
+widget_added,Widget added
+tab_added,Tab added
+cant_add_widget_in_full_screen_mode,Unable to add a widget in full-screen mode
+duration,Duration
+concept_not_loaded,Concept not loaded
+hospital_unit_name,Hospital unit name
+admissions_number,Admissions number
+folder_doesnt_exist,Provided folder doesn't exist
