@@ -1405,6 +1405,9 @@ mod_data_server <- function(id, r, d, m, language, i18n, debug, user_accesses){
         
         # Reload responsive
         gridstack_id <- paste0("gridstack_", r[[paste0(category, "_selected_tab")]])
+        
+        # Reload window size (correct bug with some plugins display)
+        shinyjs::runjs("var event = new Event('resize'); window.dispatchEvent(event);")
       })
     
     # Tab selected from the menu
