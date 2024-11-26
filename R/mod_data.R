@@ -1090,6 +1090,18 @@ mod_data_server <- function(id, r, d, m, language, i18n, debug, user_accesses){
         updateSelectizeInput(session, "person", selected = person_id)
       })
       
+      observeEvent(input$previous_patient, {
+        if (debug) cat(paste0("\n", now(), " - mod_data - observer input$previous_patient"))
+        
+        num_selected_patient <- r$num_selected_patient - 1
+        if (num_selected_patient < min(r$subset_merged_patients$n)) num_selected_patient <- r$num_selected_patient
+        r$num_selected_patient <- num_selected_patient
+        
+        person_id <- r$subset_merged_patients %>% dplyr::filter(n == num_selected_patient) %>% dplyr::pull(person_id)
+        
+        updateSelectizeInput(session, "person", selected = person_id)
+      })
+      
       # |-------------------------------- -----
       
       # --- --- -- -
