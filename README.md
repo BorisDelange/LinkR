@@ -1,7 +1,7 @@
 
 <!-- README.md is generated from README.Rmd. Please edit that file -->
 
-# LinkR <a href="https://framagit.org/interhop/linkr/linkr"><img src="https://framagit.org/interhop/linkr/linkr/-/raw/master/man/figures/hex.png" align="right" width = "123" height="140" /></a>
+# LinkR <a href="https://linkr.interhop.org/"><img src="inst/www/images/hex.png" align="right" width = "123" height="140" /></a>
 
 <img src = "https://img.shields.io/badge/lifecycle-experimental-orange.svg" alt = "Lifecycle experimental" style = "margin-right:2px;"/>
 <img src = "https://img.shields.io/badge/License-GPLv3-blue.svg" alt = "License: GPL v3" style = "margin-right:2px;"/>
@@ -21,45 +21,59 @@ common data model
 The application is for:
 
 - **healthcare professionals**, an intuitive interface allows healthcare
-  professionals to analyze data and conduct studies without advanced
-  programming knowledge
+  professionals to analyze data and conduct research projects without
+  advanced programming knowledge
 - **data scientists and statisticians**, LinkR provides access to a full
   R and Python environment, allowing data scientists and statisticians
   to exploit all the features of advanced data analysis
-- **healthcare students**, integrated tutorials in the application
-  provide healthcare students with an opportunity to learn and practice
-  data analysis in the healthcare field
 
 Thus, LinkR facilitates **collaborative work**.
 
 ## Quick overview
 
-Use an intuitive **graphical interface** to **visualize aggregated
-patient data**. **Generate** and, if required, **modify** the
-corresponding R **code** directly from the figures you create.
+Below are some of the key features that make LinkR a **powerful tool**
+for **healthcare data analysis**.
 
-<img src="man/figures/ggplot2_plugin.gif" /><br /><br />
+#### Organize your data yourself
 
-**Explore data** on a **patient-by-patient** basis. As you switch
-between patients, the figures **dynamically update** to reflect each
-patient’s specific data.
+Easily create a **custom patient record** tailored to the specific needs
+of your research project.<br /> As you switch between patients, the
+figures **dynamically update** to reflect each patient’s specific data.
 
-<img src="man/figures/dygraphs_plugin.gif" /><br /><br />
+<br /> <a href="inst/www/images/patient_level_data.gif">
+<img src="inst/www/images/patient_level_data.gif" style="border: solid 1px #ccc; border-radius: 10px; padding: 10px;" alt="Patient-level data page example"/>
+</a> <br /><br />
 
-**Enhance team collaboration** with our integrated messaging system.
-Exchange messages with team members for mutual assistance and
-streamlined communication.
+#### Create interactive dashboards
 
-<img src="man/figures/messages.gif" />
+Create **customized dashboards** to easily explore your data.<br /> Use
+an intuitive **graphical interface** to **visualize aggregated patient
+data**.<br /> **Generate** and, if required, **modify** the
+corresponding R or Python **code** directly from the figures you create.
 
-## Sharing and Open Science
+<br /> <a href="inst/www/images/patient_level_data.gif">
+<img src="inst/www/images/aggregated_data.gif" style="border: solid 1px #ccc; border-radius: 10px; padding: 10px;" alt="Aggregated data page example"/>
+</a> <br /><br />
+
+#### An intuitive graphical interface
+
+Organize your projects into tabs. Decide which data to display and in
+what format.
+
+*“I’d like to display respiratory rate and saturation as a timeline”*
+
+<br /> <a href="inst/www/images/create_tab_and_widget.gif">
+<img src="inst/www/images/patient_level_data.gif" style="border: solid 1px #ccc; border-radius: 10px; padding: 10px;" alt="An example of how yo create tabs and widgets"/>
+</a> <br /><br />
+
+## Sharing and open science
 
 LinkR is an **open source** application.
 
 It contributes to **open science** by allowing the sharing of:
 
-- *studies*: import and export your studies in one click, reproduce
-  studies with your own data
+- *projects*: import and export your projects in one click, reproduce
+  projects with your own data
 - *scripts*: share interoperable scripts, thanks to the use of the
   common OMOP data model
 - *plugins*: help improve the application by creating plugins and
@@ -79,6 +93,15 @@ You can install the development version from Framagit, with:
 remotes::install_gitlab("interhop/linkr/linkr", host = "framagit.org")
 ```
 
+**IMPORTANT**: The application requires version 0.3.0 of shiny.fluent.
+By default, version 0.4.0 is installed, which has unresolved bugs.
+
+You can install version 0.3.0 with:
+
+``` r
+remotes::install_github('Appsilon/shiny.fluent', ref = 'dd1c956')
+```
+
 ## Launch the app
 
 To launch the Shiny app, run:
@@ -87,42 +110,36 @@ To launch the Shiny app, run:
 linkr::linkr(language = "en")
 ```
 
-You can use the following arguments in the linkr function :
-
-- *language*: choose in which the application will be launched ; “en”
-  and “fr” are available
-- *app_folder*: by default, application files are saved in the home
-  folder (`path.expand("~")` to know which folder it is). You can change
-  this folder by specifying the target folder in this argument.
-- *local*: TRUE or FALSE to allow the app to access the internet
-- *show_home_page*: TRUE or FALSE to show home pages (Overview, News,
-  Tutorials… pages)
-
 See `?linkr::linkr` for more informations.
 
-The first load may take a few minutes to create the application database
-and download the default data.
-
-Use “admin” as **ID & password** for your first connection.
+Visit
+<a href="https://linkr.interhop.org/en/docs/installation/" target="_blank">our
+website</a> for further details.
 
 ## Contributions
 
-LinkR **needs help** to evolve! You can contribute by creating plugins,
-or by helping to improve the application’s code.
+LinkR thrives on community support to grow and improve! You can
+contribute by developing plugins, enhancing the application’s codebase,
+or reporting bugs to help us maintain and refine the application.
 
-## Report a bug
+**Tackle open issues**: Join us in addressing challenges by visiting our
+<a href="https://framagit.org/interhop/linkr/linkr/-/issues" target="_blank">issue
+tracker</a>.
 
-<a href = "https://framagit.org/interhop/linkr/linkr/-/issues" target = "_blank">Go
-here</a> to report a bug.
+**Report bugs**: If you encounter a bug, please let us know by creating
+a detailed report on the
+<a href="https://framagit.org/interhop/linkr/linkr/-/issues" target="_blank">issue
+tracker</a>.
 
 ## Support us
 
-LinkR is supported by the **Interhop** association, promoting
-open-source and interoperability in healthcare.
+LinkR is supported by the **Interhop association**, which advocates for
+**open-source solutions** and **interoperability** in healthcare.
 
-You can
-**<a href = "https://interhop.org/en/dons/" target = "_blank">make a
-donation here</a>**.
+You can help advance open science in healthcare by contributing to
+LinkR’s development. Consider
+<a href="https://interhop.org/en/dons/" target="_blank">making a
+donation</a> to support our mission.
 
 ## Contact
 
