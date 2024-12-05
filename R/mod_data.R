@@ -932,7 +932,7 @@ mod_data_server <- function(id, r, d, m, language, i18n, debug, user_accesses){
                   name_display = paste0(
                     format(as.POSIXct(visit_detail_start_datetime), format = "%Y-%m-%d"), " ",
                     tolower(i18n$t("to")), " ",  format(as.POSIXct(visit_detail_end_datetime), format = "%Y-%m-%d"),
-                    " - ", visit_detail_concept_nam
+                    " - ", visit_detail_concept_name
                   )
                 )
           }
