@@ -837,10 +837,25 @@ mod_data_server <- function(id, r, d, m, language, i18n, debug, user_accesses){
           
           if (num_patients > 0){
             
+            # Load a specific person_id if noticed in loading_options
+            if (length(r$loading_options$person_id) > 0){
+              
+              person_id <- r$loading_options$person_id
+              
+              if (person_id %in% persons$person_id) selected <- person_id
+              else {
+                selected <- FALSE
+                cat(paste0("\n", now(), " - mod_data - ", person_id, " is not a valid patient ID"))
+              }
+              
+              r$loading_options$person_id <- NULL
+            }
+            else selected <- FALSE
+            
             # Update persons dropdown
             choices <- setNames(persons$person_id, paste(persons$person_id, "-", persons$gender_concept_name))
             updateSelectizeInput(
-              session, "person", choices = choices, server = TRUE, selected = FALSE,
+              session, "person", choices = choices, server = TRUE, selected = selected,
               options = list(
                 placeholder = "",
                 onInitialize = I("function() { this.setValue(''); }")
