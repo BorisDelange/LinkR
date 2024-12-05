@@ -932,7 +932,7 @@ mod_data_server <- function(id, r, d, m, language, i18n, debug, user_accesses){
                   name_display = paste0(
                     format(as.POSIXct(visit_detail_start_datetime), format = "%Y-%m-%d"), " ",
                     tolower(i18n$t("to")), " ",  format(as.POSIXct(visit_detail_end_datetime), format = "%Y-%m-%d"),
-                    " - ", visit_detail_concept_nam
+                    " - ", visit_detail_concept_name
                   )
                 )
           }
@@ -1083,6 +1083,18 @@ mod_data_server <- function(id, r, d, m, language, i18n, debug, user_accesses){
         
         num_selected_patient <- r$num_selected_patient + 1
         if (num_selected_patient > max(r$subset_merged_patients$n)) num_selected_patient <- r$num_selected_patient
+        r$num_selected_patient <- num_selected_patient
+        
+        person_id <- r$subset_merged_patients %>% dplyr::filter(n == num_selected_patient) %>% dplyr::pull(person_id)
+        
+        updateSelectizeInput(session, "person", selected = person_id)
+      })
+      
+      observeEvent(input$previous_patient, {
+        if (debug) cat(paste0("\n", now(), " - mod_data - observer input$previous_patient"))
+        
+        num_selected_patient <- r$num_selected_patient - 1
+        if (num_selected_patient < min(r$subset_merged_patients$n)) num_selected_patient <- r$num_selected_patient
         r$num_selected_patient <- num_selected_patient
         
         person_id <- r$subset_merged_patients %>% dplyr::filter(n == num_selected_patient) %>% dplyr::pull(person_id)
@@ -1405,6 +1417,9 @@ mod_data_server <- function(id, r, d, m, language, i18n, debug, user_accesses){
         
         # Reload responsive
         gridstack_id <- paste0("gridstack_", r[[paste0(category, "_selected_tab")]])
+        
+        # Reload window size (correct bug with some plugins display)
+        shinyjs::runjs("var event = new Event('resize'); window.dispatchEvent(event);")
       })
     
     # Tab selected from the menu
