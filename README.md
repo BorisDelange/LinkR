@@ -51,7 +51,7 @@ an intuitive **graphical interface** to **visualize aggregated patient
 data**.<br /> **Generate** and, if required, **modify** the
 corresponding R or Python **code** directly from the figures you create.
 
-<br /> <a href="inst/www/images/patient_level_data.gif">
+<br /> <a href="inst/www/images/aggregated_data.gif">
 <img src="inst/www/images/aggregated_data.gif" style="border: solid 1px #ccc; border-radius: 10px; padding: 10px;" alt="Aggregated data page example"/>
 </a> <br /><br />
 
@@ -63,7 +63,7 @@ what format.
 *“I’d like to display respiratory rate and saturation as a timeline”*
 
 <br /> <a href="inst/www/images/create_tab_and_widget.gif">
-<img src="inst/www/images/patient_level_data.gif" style="border: solid 1px #ccc; border-radius: 10px; padding: 10px;" alt="An example of how yo create tabs and widgets"/>
+<img src="inst/www/images/create_tab_and_widget.gif" style="border: solid 1px #ccc; border-radius: 10px; padding: 10px;" alt="An example of how yo create tabs and widgets"/>
 </a> <br /><br />
 
 ## Sharing and open science
