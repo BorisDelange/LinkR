@@ -1,0 +1,17 @@
+stages:
+  - build
+
+variables:
+  DOCKER_IMAGE: borisdelange/linkr
+  DOCKER_TAG: ${CI_COMMIT_TAG#v}
+
+build_and_push:
+  stage: build
+  only:
+    - tags
+  script:
+    - echo "Building Docker image $DOCKER_IMAGE:$DOCKER_TAG"
+    - docker login -u "$DOCKERHUB_USER" -p "$DOCKERHUB_PASSWORD"
+    - docker build -t $DOCKER_IMAGE:$DOCKER_TAG .
+    - docker push $DOCKER_IMAGE:$DOCKER_TAG
+    - echo "Docker image $DOCKER_IMAGE:$DOCKER_TAG pushed successfully"
