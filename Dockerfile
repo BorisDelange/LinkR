@@ -26,8 +26,13 @@ RUN R -e "remotes::install_github('Appsilon/shiny.fluent', ref = 'dd1c956')"
 # Install LinkR
 RUN R -e "remotes::install_gitlab('interhop/linkr/linkr', host = 'framagit.org')"
 
-COPY Rprofile.site /usr/lib/R/etc/
+# Expose port 3838 for the Shiny application
+EXPOSE 3838
 
 # Run LinkR
-EXPOSE 3838
-CMD ["R", "-e", "linkr::linkr(language = 'fr', app_folder = '/root')"]
+# The `options` function sets the host and port configurations for the Shiny application:
+# - `shiny.host = '0.0.0.0'`: Allows the application to listen on all network interfaces, 
+#   making it accessible externally. This is necessary for Docker to expose the application.
+# - `shiny.port = 3838`: Specifies the port on which the Shiny application will run inside the container.
+#   This port must match the one exposed in the Dockerfile and mapped on the host during deployment.
+CMD ["R", "-e", "options(shiny.host = '0.0.0.0', shiny.port = 3838); linkr::linkr(language = 'fr', app_folder = '/root', debug = TRUE)"]
