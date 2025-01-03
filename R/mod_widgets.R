@@ -1050,7 +1050,7 @@ mod_widgets_server <- function(id, r, d, m, language, i18n, all_divs, debug, use
       specific_row <- tagList()
       if (id == "plugins"){
         if(element_wide$tab_type_id == 1) tab_type <- i18n$t("patient_lvl_data")
-        else if (element_wide$tab_type_id == 1) tab_type <- i18n$t("aggregated_data")
+        else if (element_wide$tab_type_id == 2) tab_type <- i18n$t("aggregated_data")
         else if (element_wide$tab_type_id %in% c(12, 21)) tab_type <- i18n$t("patient_lvl_or_aggregated_data")
         specific_row <- tags$tr(tags$td(strong(i18n$t("plugin_for"))), tags$td(tab_type))
       }
