@@ -72,7 +72,7 @@ mod_page_sidenav_ui <- function(id, language, i18n){
             shiny.fluent::IconButton.shinyInput(ns("create_element"), iconProps = list(iconName = "Add"))
           )
         ),
-        text = i18n$t("create_project")
+        text = i18n$t(paste0("create_", type))
       ),
       # create_hover_card(ui = div(shiny.fluent::IconButton.shinyInput(ns("reload_elements_var"), iconProps = list(iconName = "SyncOccurence"))), text = i18n$t("reload_list")),
       create_hover_card(

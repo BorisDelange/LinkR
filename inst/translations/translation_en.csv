@@ -495,3 +495,5 @@ concept_not_loaded,Concept not loaded
 hospital_unit_name,Hospital unit name
 admissions_number,Admissions number
 folder_doesnt_exist,Provided folder doesn't exist
+install_study,Install project
+error_loading_data,Error loading data

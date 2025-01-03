@@ -495,3 +495,5 @@ concept_not_loaded,Concept non chargé
 hospital_unit_name,Nom du service
 admissions_number,Nombre d'admissions
 folder_doesnt_exist,Le dossier renseigné n'existe pas
+install_study,Installer le projet
+error_loading_data,Erreur lors du chargement des données
