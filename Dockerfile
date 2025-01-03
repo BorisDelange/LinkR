@@ -9,6 +9,13 @@ RUN python3 -m venv /opt/venv
 RUN /opt/venv/bin/pip install --upgrade pip
 RUN /opt/venv/bin/pip install numpy pandas matplotlib seaborn scipy scikit-learn imblearn xgboost pyarrow
 
+# The `options` function sets the host and port configurations for the Shiny application:
+# - `shiny.port = 3838`: Specifies the port on which the Shiny application will run inside the container.
+#   This port must match the one exposed in the Dockerfile and mapped on the host during deployment.
+# - `shiny.host = '0.0.0.0'`: Allows the application to listen on all network interfaces, 
+#   making it accessible externally. This is necessary for Docker to expose the application.
+RUN echo "\noptions(shiny.port=3838, shiny.host='0.0.0.0')" >> /usr/local/lib/R/etc/Rprofile.site
+
 # Install other R packages
 RUN R -e "install.packages(c(\
   'dygraphs',\
@@ -30,9 +37,4 @@ RUN R -e "remotes::install_gitlab('interhop/linkr/linkr', host = 'framagit.org')
 EXPOSE 3838
 
 # Run LinkR
-# The `options` function sets the host and port configurations for the Shiny application:
-# - `shiny.host = '0.0.0.0'`: Allows the application to listen on all network interfaces, 
-#   making it accessible externally. This is necessary for Docker to expose the application.
-# - `shiny.port = 3838`: Specifies the port on which the Shiny application will run inside the container.
-#   This port must match the one exposed in the Dockerfile and mapped on the host during deployment.
-CMD ["R", "-e", "options(shiny.host = '0.0.0.0', shiny.port = 3838); linkr::linkr(language = 'fr', app_folder = '/root', debug = TRUE)"]
+CMD ["R", "-e", "linkr::linkr(language = 'fr', app_folder = '/root', debug = TRUE)"]
