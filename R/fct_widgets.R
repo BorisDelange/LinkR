@@ -89,8 +89,17 @@ create_element_ui <- function(ns, page_id, element_id, single_id, element_name, 
   max_length <- 100
   if (nchar(short_description) > max_length) {
     short_description_limited <- paste0(substr(short_description, 1, max_length - 3), "...")
+    short_description_limited <- create_hover_card(ui = short_description_limited, text = short_description)
   } else {
     short_description_limited <- short_description
+  }
+  
+  max_length <- 22
+  if (nchar(element_name) > max_length) {
+    element_name_limited <- paste0(substr(element_name, 1, max_length - 3), "...")
+    element_name_limited <- create_hover_card(ui = element_name_limited, text = element_name)
+  } else {
+    element_name_limited <- element_name
   }
   
   div_content <- 
@@ -103,13 +112,13 @@ create_element_ui <- function(ns, page_id, element_id, single_id, element_name, 
       ),
       div(
         class = "element_widget_content",
-        tags$h1(element_name),
+        tags$h1(element_name_limited),
         div(
           class = "element_widget_description",
           short_description_limited
         )
-      ),
-      widget_buttons
+      )#,
+      # widget_buttons
     )
   
   onclick <- paste0(onclick, "Shiny.setInputValue('", page_id, "-selected_element_type', '');")
@@ -121,10 +130,7 @@ create_element_ui <- function(ns, page_id, element_id, single_id, element_name, 
 }
 
 #' @noRd
-create_elements_ui <- function(page_id, elements, selected_element = NA_integer_, r, language, i18n){
-  
-  if (page_id == "data") id <- "plugins"
-  else id <- page_id
+create_elements_ui <- function(page_id, id, elements, selected_element = NA_integer_, r, language, i18n){
   
   single_id <- switch(
     id, 
@@ -136,7 +142,7 @@ create_elements_ui <- function(page_id, elements, selected_element = NA_integer_
     "vocabularies" = "vocabulary"
   )
   
-  ns <- NS(id)
+  ns <- NS(page_id)
   
   elements_ui <- tagList()
   
@@ -154,7 +160,12 @@ create_elements_ui <- function(page_id, elements, selected_element = NA_integer_
     
     widget_buttons <- tagList()
     short_description <- ""
-    onclick <- paste0("
+    
+    if (page_id == "home") onclick <- paste0("
+      Shiny.setInputValue('", page_id, "-selected_", single_id, "', ", row$id, ");
+      Shiny.setInputValue('", page_id, "-selected_", single_id, "_trigger', Math.random());
+    ")
+    else onclick <- paste0("
       Shiny.setInputValue('", page_id, "-selected_element', ", row$id, ");
       Shiny.setInputValue('", page_id, "-selected_element_trigger', Math.random());
     ")
@@ -620,7 +631,7 @@ import_project <- function(r, m, csv_folder, update_plugins, project_id, user_ac
   ## plugins
   
   ### Reload r$plugins_wide & r$plugins_long
-  reload_elements_var(page_id = "plugins", con = r$db, r = r, m = m, long_var_filtered = "filtered_plugins_long", user_accesses)
+  reload_elements_var(page_id = "plugins", id = "plugins", con = r$db, r = r, m = m, long_var_filtered = "filtered_plugins_long", user_accesses)
   
   data$plugins <- data$plugins %>% dplyr::mutate(new_id = id + last_row$plugins)
   
@@ -743,14 +754,11 @@ import_project <- function(r, m, csv_folder, update_plugins, project_id, user_ac
   }
   
   # Reload r$plugins_wide & r$plugins_long
-  if (update_plugins) reload_elements_var(page_id = "plugins", con = r$db, r = r, m = m, long_var_filtered = "filtered_plugins_long", user_accesses)
+  if (update_plugins) reload_elements_var(page_id = "plugins", id = "plugins", con = r$db, r = r, m = m, long_var_filtered = "filtered_plugins_long", user_accesses)
 }
 
 #' @noRd
-reload_elements_var <- function(page_id, con, r, m, long_var_filtered, user_accesses){
-  
-  if (page_id == "data") id <- "plugins"
-  else id <- page_id
+reload_elements_var <- function(page_id, id, con, r, m, long_var_filtered, user_accesses){
   
   sql_category <- switch(
     id,
@@ -777,7 +785,7 @@ reload_elements_var <- function(page_id, con, r, m, long_var_filtered, user_acce
   
   # See all element s?
   if (paste0(id, "_see_all_data") %in% user_accesses) sql_join <- "LEFT JOIN" else sql_join <- "INNER JOIN"
-  
+  print(sql_table)
   if (sql_table == "plugins"){
     sql <- glue::glue_sql(paste0("WITH {paste0('selected_', id)} AS (
       SELECT DISTINCT d.id
@@ -793,6 +801,7 @@ reload_elements_var <- function(page_id, con, r, m, long_var_filtered, user_acce
   }
   
   else if (sql_table == "subsets"){
+    req(length(m$selected_study) > 0)
     sql <- glue::glue_sql(paste0("WITH {paste0('selected_', id)} AS (
       SELECT DISTINCT d.id
       FROM {sql_table} d

@@ -1200,7 +1200,8 @@ mod_git_repos_server <- function(id, r, d, m, language, i18n, debug, user_access
         current_tab <- gsub(paste0(id, "-"), "", input$current_tab, fixed = FALSE)
         # req(current_tab != "summary")
         
-        single_id <- switch(current_tab, 
+        single_id <- switch(
+          current_tab, 
           "data_cleaning_scripts" = "data_cleaning_script", 
           "datasets" = "dataset",
           "projects" = "project", 
@@ -1597,7 +1598,7 @@ mod_git_repos_server <- function(id, r, d, m, language, i18n, debug, user_access
           
           # Reload elements var
           if (current_tab == "data_cleaning_script") page_id <- "data_cleaning" else page_id <- current_tab
-          reload_elements_var(page_id = page_id, con = r$db, r = r, m = m, long_var_filtered = paste0("filtered_", page_id, "_long"), user_accesses)
+          reload_elements_var(page_id = page_id, id = id, con = r$db, r = r, m = m, long_var_filtered = paste0("filtered_", page_id, "_long"), user_accesses)
         },
         error = function(e){
           show_message_bar(output, paste0("error_install_remote_git_", current_tab_single), "warning", i18n = i18n, ns = ns)

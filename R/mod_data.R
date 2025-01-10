@@ -96,9 +96,9 @@ mod_data_ui <- function(id, language, languages, i18n){
         ),
         div(
           div(
-            div(shiny.fluent::TextField.shinyInput(ns("widget_creation_name"), label = i18n$t("name")), style = "width: 320px; height: 70px; margin-left: 10px;"),
+            div(shiny.fluent::TextField.shinyInput(ns("widget_creation_name"), label = i18n$t("name")), style = "width: 280px; height: 80px;"),
             div(
-              uiOutput(ns("selected_plugin"), style = "height: 100%;"),
+              uiOutput(ns("selected_plugin"), style = "margin-top: 20px;"),
               onclick = paste0("Shiny.setInputValue('", id, "-open_select_a_plugin_modal', Math.random());")
             )
           ),
@@ -106,7 +106,7 @@ mod_data_ui <- function(id, language, languages, i18n){
             class = "selected_concepts_widget",
             uiOutput(ns("selected_concepts"), class = "selected_concepts_ui"),
             onclick = paste0("Shiny.setInputValue('", id, "-open_select_concepts_modal', Math.random());"),
-            style = "display: inherit; margin: 10px 0; overflow: auto;"
+            style = "display: inherit; margin-top: 20px; overflow: auto;"
           ),
           class = "create_element_modal_body",
           style = "display: flex; gap: 10px; padding-right: 10px; height: calc(100% - 70px);"
@@ -150,8 +150,8 @@ mod_data_ui <- function(id, language, languages, i18n){
           shiny.fluent::IconButton.shinyInput(ns("close_select_a_plugin_modal"), iconProps = list(iconName = "ChromeClose")),
           class = "select_a_plugin_modal_head small_close_button"
         ),
-        div(shiny.fluent::SearchBox.shinyInput(ns("search_plugin")), style = "width:320px; margin:10px 0 0 10px;"),
-        uiOutput(ns("plugins_widgets")),
+        div(shiny.fluent::SearchBox.shinyInput(ns("search_plugin")), style = "width:280px;"),
+        div(uiOutput(ns("plugins_widgets")), style = "margin-top: 15px;"),
         class = "select_a_plugin_modal_content"
       ),
       class = "select_a_plugin_modal"
@@ -235,8 +235,15 @@ mod_data_server <- function(id, r, d, m, language, i18n, debug, user_accesses){
     r$aggregated_no_tabs_to_display <- TRUE
     
     default_selected_plugin_ui <- div(
-      div(i18n$t("select_a_plugin"), class = "default_content_widget"),
-      class = "plugin_widget"
+      class = "element_widget plugin_widget",
+      div(
+        class = "element_widget_icon plugin_widget_icon",
+        tags$i(class = "fas fa-puzzle-piece")
+      ),
+      div(
+        class = "element_widget_content",
+        tags$span(i18n$t("select_a_plugin"), style = "color: #a3a5a6;font-size: 18px;")
+      )
     )
     update_selected_concepts_css <- paste0(
       "$('#", id, "-selected_concepts').css('height', '100%');",
@@ -1783,7 +1790,7 @@ mod_data_server <- function(id, r, d, m, language, i18n, debug, user_accesses){
     observeEvent(input$reload_plugins_var, {
       if (debug) cat(paste0("\n", now(), " - mod_data - observer input$reload_plugins_var"))
       
-      reload_elements_var(page_id = id, con = r$db, r = r, m = m, long_var_filtered = "filtered_data_plugins_long", user_accesses)
+      reload_elements_var(page_id = id, id = "plugins", con = r$db, r = r, m = m, long_var_filtered = "filtered_data_plugins_long", user_accesses)
       
       shinyjs::runjs(paste0("Shiny.setInputValue('", id, "-reload_plugins_list', Math.random());"))
     })
@@ -1791,7 +1798,7 @@ mod_data_server <- function(id, r, d, m, language, i18n, debug, user_accesses){
     observeEvent(input$reload_plugins_list, {
       if (debug) cat(paste0("\n", now(), " - mod_data - observer input$reload_plugins_list"))
       
-      elements_ui <- create_elements_ui(page_id = id, elements = r$filtered_data_plugins_long, r = r, language = language, i18n = i18n)
+      elements_ui <- create_elements_ui(page_id = id, id = "plugins", elements = r$filtered_data_plugins_long, r = r, language = language, i18n = i18n)
       
       output$plugins_widgets <- renderUI(elements_ui)
     })
@@ -1828,6 +1835,7 @@ mod_data_server <- function(id, r, d, m, language, i18n, debug, user_accesses){
       plugin_type <- row %>% dplyr::slice(1) %>% dplyr::pull(tab_type_id)
       plugin_name <- row %>% dplyr::filter(name == paste0("name_", language)) %>% dplyr::pull(value)
       short_description <- row %>% dplyr::filter(name == paste0("short_description_", language)) %>% dplyr::pull(value)
+      if (length(short_description) == 0) short_description <- ""
       
       users_ui <- create_authors_ui(row %>% dplyr::filter(name == "author") %>% dplyr::pull(value))
       plugin_buttons <- ""
@@ -1857,8 +1865,15 @@ mod_data_server <- function(id, r, d, m, language, i18n, debug, user_accesses){
       # Check if a plugin is selected
       if (length(input$selected_element) == 0) output$selected_plugin <- renderUI(
         div(
-          div(i18n$t("select_a_plugin"), class = "default_content_widget", style = "font-weight: 600; color: #B83137"),
-          class = "plugin_widget"
+          class = "element_widget plugin_widget",
+          div(
+            class = "element_widget_icon plugin_widget_icon",
+            tags$i(class = "fas fa-puzzle-piece")
+          ),
+          div(
+            class = "element_widget_content",
+            tags$h1(i18n$t("select_a_plugin"), style = "font-weight: 600; color: #B83137")
+          )
         )
       )
       req(length(input$selected_element) > 0)

@@ -4,7 +4,8 @@ mod_widgets_ui <- function(id, language, languages, i18n){
   
   # Initiate vars ----
   
-  single_id <- switch(id, 
+  single_id <- switch(
+    id, 
     "data_cleaning" = "data_cleaning", 
     "datasets" = "dataset",
     "projects" = "project", 
@@ -22,7 +23,7 @@ mod_widgets_ui <- function(id, language, languages, i18n){
         shiny.fluent::Breadcrumb(items = list(list(key = "main", text = i18n$t(id))), maxDisplayedItems = 3),
         div(
           id = ns("search_element_div"),
-          shiny.fluent::SearchBox.shinyInput(ns("search_element")), style = "width:280px; margin:10px 0 0 10px;"
+          shiny.fluent::SearchBox.shinyInput(ns("search_element")), style = "width:280px; margin:10px 0 15px 10px;"
         ),
         div(uiOutput(ns("elements")), style = "margin: 10px 0 0 10px;"),
         div(style = "display:none;", fileInput(ns("import_element_upload"), label = "", multiple = FALSE, accept = ".zip"))
@@ -131,7 +132,8 @@ mod_widgets_server <- function(id, r, d, m, language, i18n, all_divs, debug, use
     
     # Initiate vars ----
     
-    single_id <- switch(id, 
+    single_id <- switch(
+      id, 
       "data_cleaning" = "data_cleaning",
       "datasets" = "dataset",
       "projects" = "project",
@@ -140,7 +142,8 @@ mod_widgets_server <- function(id, r, d, m, language, i18n, all_divs, debug, use
       "vocabularies" = "vocabulary"
     )
     
-    sql_table <- switch(id, 
+    sql_table <- switch(
+      id, 
       "data_cleaning" = "scripts",
       "datasets" = "datasets",
       "projects" = "studies",
@@ -150,7 +153,8 @@ mod_widgets_server <- function(id, r, d, m, language, i18n, all_divs, debug, use
     )
     
     # For retro-compatibility : studies -> projects
-    sql_category <- switch(id, 
+    sql_category <- switch(
+      id, 
       "data_cleaning" = "data_cleaning",
       "datasets" = "dataset",
       "projects" = "study",
@@ -215,7 +219,7 @@ mod_widgets_server <- function(id, r, d, m, language, i18n, all_divs, debug, use
     observeEvent(input$reload_elements_var, {
       if (debug) cat(paste0("\n", now(), " - mod_widgets - (", id, ") - observer input$reload_elements_var"))
       
-      reload_elements_var(page_id = id, con = con, r = r, m = m, long_var_filtered = paste0("filtered_", id, "_long"), user_accesses)
+      reload_elements_var(page_id = id, id = id, con = con, r = r, m = m, long_var_filtered = paste0("filtered_", id, "_long"), user_accesses)
       
       shinyjs::runjs(paste0("Shiny.setInputValue('", id, "-reload_elements_list', Math.random());"))
     })
@@ -228,7 +232,7 @@ mod_widgets_server <- function(id, r, d, m, language, i18n, all_divs, debug, use
         if (length(input$selected_element) > 0) selected_element <- input$selected_element
         else selected_element <- NA_integer_
         
-        elements_ui <- create_elements_ui(page_id = id, elements = r[[long_var_filtered]], selected_element = selected_element, r = r, language = language, i18n = i18n)
+        elements_ui <- create_elements_ui(page_id = id, id = id, elements = r[[long_var_filtered]], selected_element = selected_element, r = r, language = language, i18n = i18n)
         
         output$elements <- renderUI(elements_ui)
         
@@ -881,9 +885,9 @@ mod_widgets_server <- function(id, r, d, m, language, i18n, all_divs, debug, use
       
       # Change border of selected element
       sapply(r[[wide_var]]$id, function(i) shinyjs::removeClass(class = paste0("selected_", single_id, "_widget"), selector = paste0("#", id, "-", single_id, "_widget_", i)))
-      sapply(r[[wide_var]]$id, function(i) shinyjs::removeClass(class = paste0("selected_", single_id, "_widget"), selector = paste0("#", id, "-home_", single_id, "_widget_", i)))
+      sapply(r[[wide_var]]$id, function(i) shinyjs::removeClass(class = paste0("selected_", single_id, "_widget"), selector = paste0("#home-", single_id, "_widget_", i)))
       shinyjs::addClass(class = paste0("selected_", single_id, "_widget"), selector = paste0("#", id, "-", single_id, "_widget_", input$selected_element))
-      shinyjs::addClass(class = paste0("selected_", single_id, "_widget"), selector = paste0("#", id, "-home_", single_id, "_widget_", input$selected_element))
+      shinyjs::addClass(class = paste0("selected_", single_id, "_widget"), selector = paste0("#home-", single_id, "_widget_", input$selected_element))
       
       # Update summary fields ----
       
