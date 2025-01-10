@@ -73,17 +73,41 @@ create_element_files <- function(id, r, element_id, single_id, sql_category, ele
 #' @noRd
 create_element_ui <- function(ns, page_id, element_id, single_id, element_name, users_ui, widget_buttons, onclick, short_description, is_selected_element){
   
-  css_class <- paste0(single_id, "_widget")
-  if (is_selected_element) css_class <- c("selected_widget", paste0(single_id, "_widget"))
+  selected_element_css <- ""
+  if (is_selected_element) selected_element_css <- paste0("selected_", single_id, "_widget")
+  
+  element_icon <- switch(
+    single_id,
+    "project" = "fa-folder-open",
+    "dataset" = "fa-database",
+    "data_cleaning" = "fa-broom",
+    "plugin" = "fa-puzzle-piece",
+    "subset" = "fa-layer-group",
+    "vocabulary" = 
+  )
+  
+  max_length <- 100
+  if (nchar(short_description) > max_length) {
+    short_description_limited <- paste0(substr(short_description, 1, max_length - 3), "...")
+  } else {
+    short_description_limited <- short_description
+  }
   
   div_content <- 
     div(
       id = ns(paste0(single_id, "_widget_", element_id)),
-      class = css_class,
+      class = paste0(selected_element_css, " element_widget ", single_id, "_widget"),
       div(
+        class = paste0("element_widget_icon ", single_id, "_widget_icon"),
+        tags$i(class = paste0("fas ", element_icon))
+      ),
+      div(
+        class = "element_widget_content",
         tags$h1(element_name),
-        users_ui,
-        div(short_description)
+        div(
+          class = "element_widget_description",
+          short_description_limited
+        )
       ),
       widget_buttons
     )
@@ -136,6 +160,7 @@ create_elements_ui <- function(page_id, elements, selected_element = NA_integer_
     ")
     
     if (id %in% c("data_cleaning", "datasets", "plugins", "projects")) short_description <- row %>% dplyr::filter(name == paste0("short_description_", language)) %>% dplyr::pull(value)
+    if (length(short_description) == 0) short_description <- ""
     
     if (id == "plugins"){
       plugin_type <- row %>% dplyr::slice(1) %>% dplyr::pull(tab_type_id)

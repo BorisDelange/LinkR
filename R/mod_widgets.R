@@ -22,9 +22,9 @@ mod_widgets_ui <- function(id, language, languages, i18n){
         shiny.fluent::Breadcrumb(items = list(list(key = "main", text = i18n$t(id))), maxDisplayedItems = 3),
         div(
           id = ns("search_element_div"),
-          shiny.fluent::SearchBox.shinyInput(ns("search_element")), style = "width:320px; margin:10px 0 0 10px;"
+          shiny.fluent::SearchBox.shinyInput(ns("search_element")), style = "width:280px; margin:10px 0 0 10px;"
         ),
-        uiOutput(ns("elements")),
+        div(uiOutput(ns("elements")), style = "margin: 10px 0 0 10px;"),
         div(style = "display:none;", fileInput(ns("import_element_upload"), label = "", multiple = FALSE, accept = ".zip"))
       ),
 
@@ -880,8 +880,10 @@ mod_widgets_server <- function(id, r, d, m, language, i18n, all_divs, debug, use
       shinyjs::runjs(paste0("Shiny.setInputValue('", id, "-reload_description_ui', Math.random());"))
       
       # Change border of selected element
-      sapply(r[[wide_var]]$id, function(i) shinyjs::removeClass(class = "selected_widget", selector = paste0("#", id, "-", single_id, "_widget_", i)))
-      shinyjs::addClass(class = "selected_widget", selector = paste0("#", id, "-", single_id, "_widget_", input$selected_element))
+      sapply(r[[wide_var]]$id, function(i) shinyjs::removeClass(class = paste0("selected_", single_id, "_widget"), selector = paste0("#", id, "-", single_id, "_widget_", i)))
+      sapply(r[[wide_var]]$id, function(i) shinyjs::removeClass(class = paste0("selected_", single_id, "_widget"), selector = paste0("#", id, "-home_", single_id, "_widget_", i)))
+      shinyjs::addClass(class = paste0("selected_", single_id, "_widget"), selector = paste0("#", id, "-", single_id, "_widget_", input$selected_element))
+      shinyjs::addClass(class = paste0("selected_", single_id, "_widget"), selector = paste0("#", id, "-home_", single_id, "_widget_", input$selected_element))
       
       # Update summary fields ----
       

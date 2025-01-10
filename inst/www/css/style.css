@@ -449,6 +449,132 @@ a.no-hover-effect:hover {
 /* WIDGETS          */
 /* ---------------- */
 
+.element_widget {
+  width: 280px;
+  height: 90px;
+  padding: 0;
+  margin: 10px 8px 10px 0;
+  background: white;
+  border-radius: 12px;
+  border: 1px solid #e5e7eb;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+  display: flex;
+  align-items: stretch;
+  gap: 0;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.element_widget:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+}
+
+.project_widget:hover {
+  border-color: #047857;
+}
+
+.dataset_widget:hover {
+  border-color: #0369a1;
+}
+
+.data_cleaning_widget:hover {
+  border-color: #be123c;
+}
+
+.plugin_widget:hover {
+  border-color: #6d28d9;
+}
+
+.subset_widget:hover {
+  border-color: #6d28d9;
+}
+
+.selected_project_widget {
+  border: solid 2px #047857;
+}
+
+.selected_dataset_widget {
+  border: solid 2px #0369a1;
+}
+
+.selected_data_cleaning_widget {
+  border: solid 2px #be123c;
+}
+
+.selected_plugin_widget {
+  border: solid 2px #6d28d9;
+}
+
+.selected_subset_widget {
+  border: solid 2px #6d28d9;
+}
+
+.element_widget_icon {
+  padding: 0;
+  border-radius: 12px 0 0 12px;
+  font-size: 20px;
+  width: 60px;
+  height: auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  background: #ede9fe;
+}
+
+.project_widget_icon {
+  color: #047857;
+  background: #ecfdf5;
+}
+
+.dataset_widget_icon {
+  color: #0369a1;
+  background: #e0f2fe;
+}
+
+.data_cleaning_widget_icon {
+  color: #be123c;
+  background: #fff1f2;
+}
+
+.plugin_widget_icon {
+  color: #6d28d9;
+  background: #ede9fe;
+}
+
+.psubset_widget_icon {
+  color: #6d28d9;
+  background: #ede9fe;
+}
+
+.element_widget_content {
+  flex: 1;
+  padding: 1.2rem;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.element_widget h1 {
+  margin: 0 0 5px 0;
+  font-size: 16px;
+  font-weight: 600;
+  color: #111827;
+}
+
+.element_widget_description {
+  font-size: 12px;
+  color: #6b7280;
+  line-height: 1.4;
+}
+
+.widget_buttons {
+  position: absolute;
+  bottom: 5px;
+  right: 5px;
+}
+
 .plugin_code_widget, .grid-stack-item-content {
   box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 3px 6px 0 rgba(0, 0, 0, 0.19);
   overflow: hidden;
@@ -466,7 +592,7 @@ a.no-hover-effect:hover {
   box-sizing: border-box;
 }
 
-.project_widget h1, .plugin_widget h1, .dataset_widget h1, .subset_widget h1, .vocabulary_widget h1,
+/*.project_widget h1, .plugin_widget h1, .dataset_widget h1, .subset_widget h1, .vocabulary_widget h1,
 .data_cleaning_widget h1{
   font-weight: bold;
   font-size: 14px;
@@ -488,6 +614,7 @@ a.no-hover-effect:hover {
   cursor: pointer;
   transition: transform 0.3s ease, box-shadow 0.3s ease;
 }
+*/
 
 .dataset_details_widget {
   text-align: center;
@@ -565,15 +692,13 @@ a.no-hover-effect:hover {
   max-height: 130px;
 }
 
+/*
 .project_widget:hover, .plugin_widget:hover, .dataset_widget:hover, .subset_widget:hover, .vocabulary_widget:hover, .data_cleaning_widget:hover,
 .dataset_details_widget:hover, .data_page_widget:hover {
   transform: scale(1.02);
   box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.3), 0 6px 20px 0 rgba(0, 0, 0, 0.25);
 }
-
-.selected_widget {
-  border: 3px solid #0084D7;
-}
+*/
 
 .selected_concepts_widget {
   width: 100%;
@@ -1096,15 +1221,16 @@ button.ms-UpButton, button.ms-DownButton {
   flex: 0 0 280px;
   background: white;
   border-radius: 12px;
-  padding: 1.5rem;
+  padding: 0;
   transition: all 0.3s ease;
   border: 1px solid #e5e7eb;
   box-shadow: 0 1px 3px rgba(0,0,0,0.1);
   text-decoration: none;
   color: #1f2937;
   display: flex;
-  align-items: flex-start;
-  gap: 1rem;
+  align-items: stretch;
+  gap: 0;
+  height: 90px;
 }
 
 .home-widget:nth-child(4n+1) .home-widget-icon { background: #ede9fe; color: #6d28d9; }
@@ -1123,15 +1249,20 @@ button.ms-UpButton, button.ms-DownButton {
 .home-widget:nth-child(4n+4):hover { border-color: #be123c; }
 
 .home-widget-icon {
-  padding: 14px;
-  border-radius: 12px;
+  padding: 0;
+  border-radius: 12px 0 0 12px;
   font-size: 20px;
-  width: 40px;
-  height: 40px;
+  width: 60px;
+  height: auto;
   display: flex;
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
+}
+
+.home-widget-content {
+  padding: 12px;
+  flex: 1;
 }
 
 .home-widget-content h3 {
