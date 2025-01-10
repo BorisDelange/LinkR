@@ -355,7 +355,7 @@ rmarkdown,RMarkdown
 rows_inserted,Rows inserted
 rows_inserted_in_table,rows inserted in table
 run_code,Run code
-run_plugin_code,Exécuter le code du plugin
+run_plugin_code,Run plugin code
 same_level_current_tab,Same level of current tab
 save,Save
 save_current_file,Save current file
