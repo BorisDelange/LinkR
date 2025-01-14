@@ -794,20 +794,7 @@ mod_plugins_server <- function(id, r, d, m, language, i18n, debug, user_accesses
       observeEvent(input[[paste0(editor_id, "_comment")]], {
         if (debug) cat(paste0("\n", now(), " - mod_plugins - observer input$edit_code_editor..comment"))
         
-        lines <- strsplit(input[[editor_id]], "\n")[[1]]
-        req(length(lines) > 0)
-        
-        start_row <- input[[paste0(editor_id, "_comment")]]$range$start$row + 1
-        end_row <- input[[paste0(editor_id, "_comment")]]$range$end$row + 1
-        
-        for (i in start_row:end_row) if (startsWith(lines[i], "# ")) lines[i] <- substr(lines[i], 3, nchar(lines[i])) else lines[i] <- paste0("# ", lines[i])
-        
-        shinyAce::updateAceEditor(session, editor_id, value = paste0(lines, collapse = "\n"))
-        
-        shinyjs::runjs(paste0("
-      var editor = ace.edit('", id, "-", editor_id, "');
-      editor.moveCursorTo(", input[[paste0(editor_id, "_comment")]]$range$end$row, ", ", input[[paste0(editor_id, "_comment")]]$range$end$column, ");
-      editor.focus();"))
+        toggle_comments(id = id, input_id = editor_id, code = input[[editor_id]], selection = input[[paste0(editor_id, "_comment")]]$range, session = session)
       })
       
       observeEvent(input[[paste0(editor_id, "_save")]], {

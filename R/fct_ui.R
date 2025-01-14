@@ -283,3 +283,52 @@ show_message_bar <- function(output, message = character(), type = "severeWarnin
   shinyjs::delay(50, shinyjs::show("message_bar"))
   shinyjs::delay(time, shinyjs::hide("message_bar"))
 }
+
+#' @noRd
+toggle_comments <- function(id, input_id, code, selection, session) {
+  
+  lines <- strsplit(code, "\n")[[1]]
+  req(length(lines) > 0)
+  start_row <- selection$start$row + 1
+  end_row <- selection$end$row + 1
+  
+  selected_lines <- lines[start_row:end_row]
+  
+  # Filter out empty lines for analysis
+  non_empty_lines <- selected_lines[nchar(trimws(selected_lines)) > 0]
+  if (length(non_empty_lines) == 0) return()
+  
+  # Check if a line is commented
+  is_commented <- function(line) {
+    trimmed_line <- trimws(line, "left")
+    return(startsWith(trimmed_line, "#"))
+  }
+  
+  # If all non-empty lines are commented, uncomment everything
+  all_commented <- all(sapply(non_empty_lines, is_commented))
+  
+  # Process each line
+  for (i in start_row:end_row) {
+    line <- lines[i]
+    if (nchar(trimws(line)) == 0) next
+
+    if (all_commented) lines[i] <- sub("^(\\s*)#\\s*", "\\1", line)
+    else lines[i] <- sub("^(\\s*)", "\\1# ", line)
+  }
+  
+  # Update editor
+  shinyAce::updateAceEditor(session, input_id, value = paste0(lines, collapse = "\n"))
+  
+  # Restore cursor position
+  shinyjs::runjs(sprintf(
+    "var editor = ace.edit('%s-%s');
+    editor.selection.setRange({
+      start: {row: %d, column: %d},
+      end: {row: %d, column: %d}
+    });
+    editor.focus();",
+    id, input_id, 
+    selection$start$row, selection$start$column,
+    selection$end$row, selection$end$column
+  ))
+}

@@ -164,21 +164,7 @@ mod_subsets_server <- function(id, r, d, m, language, i18n, debug, user_accesses
     observeEvent(input$subset_code_comment, {
       if (debug) cat(paste0("\n", now(), " - mod_subsets - observer input$subset_code_comment"))
       
-      lines <- strsplit(input$subset_code, "\n")[[1]]
-      req(length(lines) > 0)
-      
-      start_row <- input$subset_code_comment$range$start$row + 1
-      end_row <- input$subset_code_comment$range$end$row + 1
-      
-      for (i in start_row:end_row) if (startsWith(lines[i], "# ")) lines[i] <- substr(lines[i], 3, nchar(lines[i])) else lines[i] <- paste0("# ", lines[i])
-      
-      shinyAce::updateAceEditor(session, "subset_code", value = paste0(lines, collapse = "\n"))
-      
-      shinyjs::runjs(sprintf("
-        var editor = ace.edit('%s-subset_code');
-        editor.moveCursorTo(%d, %d);
-        editor.focus();
-      ", id, input$subset_code_comment$range$end$row, input$subset_code_comment$range$end$column))
+      toggle_comments(id = id, input_id = "subset_code", code = input$subset_code, selection = input$subset_code_comment$range, session = session)
     })
     
     # Run code ----
