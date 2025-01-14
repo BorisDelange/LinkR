@@ -89,8 +89,9 @@ app_ui <- function(
       tags$link(rel = "stylesheet", href = "www/css/resizePanels.css"),
       tags$script(src = "www/js/resizePanels.js"),
       
-      # Add sortable.js
+      # Add sortable.js and sortableTabs.js
       tags$script(src = "www/js/sortable.min.js"),
+      tags$script(src = "www/js/sortableTabs.js"),
       
       # Add fontawesome icons
       tags$link(rel = "stylesheet", href = "www/css/font-awesome-5.15.3-all.min.css", type = "text/css"),

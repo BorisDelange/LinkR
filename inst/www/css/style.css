@@ -1251,6 +1251,27 @@ button.ms-UpButton, button.ms-DownButton {
   font-weight: bold;
 }
 
+.close-tab {
+  padding: 4px;
+  border-radius: 4px;
+  margin-left: 4px;
+}
+
+.close-tab:hover {
+  background-color: #e0e0e0;
+}
+
+.close-tab .fa-times {
+  color: #666;
+  font-size: 12px;
+  line-height: 10px;
+  display: block;
+}
+
+.close-tab:hover .fa-times {
+  color: #333;
+}
+
 /* --------------------- */
 /* ALL PAGES             */
 /* --------------------- */

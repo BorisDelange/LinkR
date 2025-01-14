@@ -180,7 +180,7 @@ mod_plugins_ui <- function(id, language, languages, i18n){
             shiny.fluent::MessageBar(i18n$t("unauthorized_access_area"), messageBarType = 5),
             style = "display: inline-block; margin-top: 15px;"
           ),
-          shinyjs::hidden(div(id = ns("edit_code_tabs_div"), uiOutput(ns("edit_code_tabs")))),
+          shinyjs::hidden(div(id = ns("edit_code_tabs_div"), uiOutput(ns("edit_code_tabs_ui")))),
           shinyjs::hidden(div(id = ns("edit_code_editors_div"), style = "height: calc(100% - 45px);")),
           style = "height: 100%;"
         ),
@@ -572,47 +572,83 @@ mod_plugins_server <- function(id, r, d, m, language, i18n, debug, user_accesses
       
       plugin_code_tabs <- r$edit_plugin_code_tabs %>% dplyr::filter(plugin_id == input$selected_element) %>% dplyr::arrange(position)
       
-      if (nrow(plugin_code_tabs) > 0){
-        for (i in 1:nrow(plugin_code_tabs)){
+      tabs_container <- div(
+        id = ns("edit_code_tabs"),
+        class = "tabs",
+        `data-id-prefix` = paste0(ns("edit_code_tab_")),
+        `data-input-id` = ns("edit_code_tab_positions"),
+        `data-draggable-class` = "tab"
+      )
+      
+      if (nrow(plugin_code_tabs) > 0) {
+        tabs_list <- lapply(1:nrow(plugin_code_tabs), function(i) {
           file <- plugin_code_tabs[i, ]
           
           tab_class <- "tab"
-          if (r$edit_plugin_code_open_new_tab != "none"){
+          if (r$edit_plugin_code_open_new_tab != "none") {
             if (r$edit_plugin_code_open_new_tab == "ui" & file$filename == "ui.R") tab_class <- "tab active"
             else if (r$edit_plugin_code_open_new_tab == "new_tab" & i == nrow(plugin_code_tabs)) tab_class <- "tab active"
           }
           else {
-            if (length(input$edit_code_selected_file) > 0){
+            if (length(input$edit_code_selected_file) > 0) {
               new_plugin_id <- as.integer(sub(paste0(id, "-edit_code_file_div_"), "", input$edit_code_selected_file))
               if (file$id == new_plugin_id) tab_class <- "tab active"
             }
           }
           
-          tabs_ui <- tagList(tabs_ui, 
+          div(
+            id = ns(paste0("edit_code_tab_", file$id)),
+            class = tab_class,
+            onclick = paste0("Shiny.setInputValue('", id, "-edit_code_selected_tab', this.id, {priority: 'event'})"),
             div(
-              id = ns(paste0("edit_code_tab_", file$id)),
-              class = tab_class,
-              onclick = paste0("Shiny.setInputValue('", id, "-edit_code_selected_tab', this.id, {priority: 'event'})"),
-              div(file$filename, style = "overflow: hidden; white-space: nowrap; text-overflow: ellipsis;"),
-              div(
-                id = ns(paste0("edit_code_clode_tab_", file$id)),
-                class = "close-tab",
-                onclick = paste0(
-                  "Shiny.setInputValue('", id, "-edit_code_close_selected_tab', ", file$id, ", {priority: 'event'});",
-                  "Shiny.setInputValue('", id, "-edit_code_close_selected_tab_trigger', Math.random(), {priority: 'event'});",
-                  "event.stopPropagation();"
-                ),
-                shiny.fluent::FontIcon(iconName = "ChromeClose")
+              file$filename, 
+              style = "overflow: hidden; white-space: nowrap; text-overflow: ellipsis;"
+            ),
+            div(
+              id = ns(paste0("edit_code_close_tab_", file$id)),
+              class = "close-tab",
+              onclick = paste0(
+                "Shiny.setInputValue('", id, "-edit_code_close_selected_tab', ", file$id, ", {priority: 'event'});",
+                "Shiny.setInputValue('", id, "-edit_code_close_selected_tab_trigger', Math.random(), {priority: 'event'});",
+                "event.stopPropagation();"
               ),
-              title = file$filename
-            )
+              tags$i(class = "fa fa-times")
+            ),
+            title = file$filename
           )
-        }
+        })
+        
+        tabs_container$children <- tabs_list
       }
       
-      tabs_ui <- div(id = ns("edit_code_tabs"), class = "tabs", tabs_ui)
+      output$edit_code_tabs_ui <- renderUI(tabs_container)
       
-      output$edit_code_tabs <- renderUI(tabs_ui)
+      shinyjs::delay(500, shinyjs::runjs(sprintf("initSortableTabs('%s')", ns("edit_code_tabs"))))
+    })
+    
+    observeEvent(input$edit_code_tab_positions, {
+      if (debug) cat(paste0("\n", now(), " - mod_plugins - observer input$edit_code_tab_positions"))
+      
+      positions <- input$edit_code_tab_positions
+      
+      ids <- positions[seq(1, length(positions), 2)]
+      pos <- positions[seq(2, length(positions), 2)]
+      
+      pos_df <- data.frame(
+        id = ids,
+        position = pos
+      )
+      
+      for (i in 1:nrow(pos_df)) {
+        r$edit_plugin_code_tabs <- r$edit_plugin_code_tabs %>%
+          dplyr::mutate(
+            position = ifelse(
+              id == pos_df$id[i] & plugin_id == input$selected_element,
+              pos_df$position[i],
+              position
+            )
+          )
+      }
     })
     
     ## Change file tab ----
