@@ -348,7 +348,7 @@ mod_plugins_server <- function(id, r, d, m, language, i18n, debug, user_accesses
     ns <- session$ns
     
     # Initiate vars
-    r$edit_plugin_code_tabs <- tibble::tibble(id = integer(), plugin_id = integer(), filename = character())
+    r$edit_plugin_code_tabs <- tibble::tibble(id = integer(), plugin_id = integer(), filename = character(), position = integer())
     
     # Current user accesses ----
     
@@ -427,10 +427,9 @@ mod_plugins_server <- function(id, r, d, m, language, i18n, debug, user_accesses
               plugin_id == input$selected_element,
               filename %in% c("server.R", "ui.R", "translations.csv")
             ) %>%
-            dplyr::mutate(temp_id = dplyr::case_when(filename == "ui.R" ~ 1, filename == "server.R" ~ 2, filename == "translations.csv" ~ 3)) %>%
-            dplyr::arrange(temp_id) %>%
-            dplyr::select(-temp_id) %>%
-            dplyr::select(id, plugin_id, filename)
+            dplyr::mutate(position = dplyr::case_when(filename == "ui.R" ~ 1, filename == "server.R" ~ 2, filename == "translations.csv" ~ 3)) %>%
+            dplyr::arrange(position) %>%
+            dplyr::select(id, plugin_id, filename, position)
           )
       }
       r$edit_plugin_code_reload_files_tab <- now()
@@ -571,7 +570,7 @@ mod_plugins_server <- function(id, r, d, m, language, i18n, debug, user_accesses
       
       tabs_ui <- tagList()
       
-      plugin_code_tabs <- r$edit_plugin_code_tabs %>% dplyr::filter(plugin_id == input$selected_element)
+      plugin_code_tabs <- r$edit_plugin_code_tabs %>% dplyr::filter(plugin_id == input$selected_element) %>% dplyr::arrange(position)
       
       if (nrow(plugin_code_tabs) > 0){
         for (i in 1:nrow(plugin_code_tabs)){
@@ -644,7 +643,10 @@ mod_plugins_server <- function(id, r, d, m, language, i18n, debug, user_accesses
       req("plugins_edit_code" %in% user_accesses)
       
       file_id <- as.integer(sub(paste0(id, "-edit_code_file_div_"), "", input$edit_code_selected_file))
-      file_row <- r$edit_plugin_code_files_list %>% dplyr::filter(id == file_id)
+      file_row <- 
+        r$edit_plugin_code_files_list %>% 
+        dplyr::filter(id == file_id) %>%
+        dplyr::mutate(position = max(r$edit_plugin_code_tabs %>% dplyr::filter(plugin_id == input$selected_element) %>% dplyr::pull(position)) + 1)
       file_ext <- sub(".*\\.", "", tolower(file_row$filename))
       ace_mode <- switch(file_ext, "r" = "r", "py" = "python", "")
       
@@ -784,7 +786,11 @@ mod_plugins_server <- function(id, r, d, m, language, i18n, debug, user_accesses
 
       r$edit_plugin_code_selected_file <- options_new_row_id
 
-      file_row <- r$edit_plugin_code_files_list %>% dplyr::filter(id == options_new_row_id)
+      file_row <- 
+        r$edit_plugin_code_files_list %>% 
+        dplyr::filter(id == options_new_row_id) %>%
+        dplyr::mutate(position = max(r$edit_plugin_code_tabs %>% dplyr::filter(plugin_id == input$selected_element) %>% dplyr::pull(position)) + 1)
+      
       r$edit_plugin_code_tabs <- r$edit_plugin_code_tabs %>% dplyr::bind_rows(file_row)
       r$edit_plugin_code_reload_files_tab <- now()
       r$edit_plugin_code_open_new_tab <- "new_tab"
