@@ -707,7 +707,7 @@ mod_plugins_server <- function(id, r, d, m, language, i18n, debug, user_accesses
       last_file_id <-
         r$edit_plugin_code_tabs %>%
         dplyr::filter(plugin_id == input$selected_element) %>%
-        dplyr::slice(nrow(r$edit_plugin_code_tabs)) %>%
+        dplyr::slice(nrow(r$edit_plugin_code_tabs %>% dplyr::filter(plugin_id == input$selected_element))) %>%
         dplyr::pull(id)
       r$edit_plugin_code_selected_file <- last_file_id
       r$edit_plugin_code_open_new_tab <- "new_tab"
