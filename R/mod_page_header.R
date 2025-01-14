@@ -8,7 +8,7 @@
 #' @noRd 
 #'
 #' @importFrom shiny NS tagList
-mod_page_header_ui <- function(id, i18n){
+mod_page_header_ui <- function(id, language, i18n){
   
   ns <- NS(id)
   
@@ -116,10 +116,12 @@ mod_page_header_ui <- function(id, i18n){
           style = "display:flex;"
         )
       ),
-      div(class = "header_right_bar",
+      div(
+        class = "header_right_bar",
         div(
           shiny.fluent::CommandBar(
             items = list(
+              shiny.fluent::CommandBarItem("", "Help", onClick = htmlwidgets::JS(paste0("item => { Shiny.setInputValue('", id, "-open_help_modal', Math.random()); }")), title = i18n$t("help")),
               shiny.fluent::CommandBarItem(
                 "", "Settings",
                 subMenuProps = list(items = list(
@@ -133,6 +135,21 @@ mod_page_header_ui <- function(id, i18n){
             )
           ),
           class = "header_command_bar"
+        )
+      ),
+      shinyjs::hidden(
+        div(
+          id = ns("help_modal"),
+          div(
+            div(
+              tags$h1(i18n$t("help")),
+              shiny.fluent::IconButton.shinyInput(ns("close_help_modal"), iconProps = list(iconName = "ChromeClose")),
+              class = "help_modal_head small_close_button"
+            ),
+            htmlTemplate(system.file("html_pages", paste0(language, "_help.html"), package = "linkr")),
+            class = "help_modal_content"
+          ),
+          class = "help_modal"
         )
       )
     )
@@ -183,5 +200,15 @@ mod_page_header_server <- function(id, r, d, m, language, i18n, debug){
         output$selected_project <- renderUI(create_hover_card(ui = project_name_short, text = project_name))
       })
     }
+    
+    observeEvent(input$open_help_modal, {
+      if (debug) cat(paste0("\n", now(), " - mod_page_header (", id, ") - observer input$open_help_modal"))
+      shinyjs::show("help_modal")
+    })
+    
+    observeEvent(input$close_help_modal, {
+      if (debug) cat(paste0("\n", now(), " - mod_page_header (", id, ") - observer input$close_help_modal"))
+      shinyjs::hide("help_modal")
+    })
   })
 }
