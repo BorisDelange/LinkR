@@ -347,6 +347,9 @@ mod_plugins_server <- function(id, r, d, m, language, i18n, debug, user_accesses
     
     ns <- session$ns
     
+    # Initiate vars
+    r$edit_plugin_code_tabs <- tibble::tibble(id = integer(), plugin_id = integer(), filename = character())
+    
     # Current user accesses ----
     
     if ("plugins_management" %in% user_accesses) sapply(c("create_element_button", "edit_summary_div", "delete_element_div"), shinyjs::show)
@@ -414,13 +417,22 @@ mod_plugins_server <- function(id, r, d, m, language, i18n, debug, user_accesses
       r$edit_plugin_code_reload_files_browser <- now()
       
       # Initiate plugin tabs
-      r$edit_plugin_code_tabs <- 
-        r$edit_plugin_code_files_list %>%
-        dplyr::filter(plugin_id == input$selected_element, filename %in% c("server.R", "ui.R", "translations.csv")) %>%
-        dplyr::mutate(temp_id = dplyr::case_when(filename == "ui.R" ~ 1, filename == "server.R" ~ 2, filename == "translations.csv" ~ 3)) %>%
-        dplyr::arrange(temp_id) %>%
-        dplyr::select(-temp_id) %>%
-        dplyr::select(id, filename)
+      if (nrow(r$edit_plugin_code_tabs %>% dplyr::filter(plugin_id == input$selected_element)) == 0){
+        r$edit_plugin_code_tabs <-
+          r$edit_plugin_code_tabs %>%
+          dplyr::bind_rows(
+            r$edit_plugin_code_files_list %>%
+            dplyr::filter(
+              id %not_in% r$edit_plugin_code_tabs$id,
+              plugin_id == input$selected_element,
+              filename %in% c("server.R", "ui.R", "translations.csv")
+            ) %>%
+            dplyr::mutate(temp_id = dplyr::case_when(filename == "ui.R" ~ 1, filename == "server.R" ~ 2, filename == "translations.csv" ~ 3)) %>%
+            dplyr::arrange(temp_id) %>%
+            dplyr::select(-temp_id) %>%
+            dplyr::select(id, plugin_id, filename)
+          )
+      }
       r$edit_plugin_code_reload_files_tab <- now()
       
       # Open server.R, ui.R & translations.csv tabs
@@ -559,16 +571,16 @@ mod_plugins_server <- function(id, r, d, m, language, i18n, debug, user_accesses
       
       tabs_ui <- tagList()
       
-      r$edit_plugin_code_tabs
+      plugin_code_tabs <- r$edit_plugin_code_tabs %>% dplyr::filter(plugin_id == input$selected_element)
       
-      if (nrow(r$edit_plugin_code_tabs) > 0){
-        for (i in 1:nrow(r$edit_plugin_code_tabs)){
-          file <- r$edit_plugin_code_tabs[i, ]
+      if (nrow(plugin_code_tabs) > 0){
+        for (i in 1:nrow(plugin_code_tabs)){
+          file <- plugin_code_tabs[i, ]
           
           tab_class <- "tab"
           if (r$edit_plugin_code_open_new_tab != "none"){
             if (r$edit_plugin_code_open_new_tab == "ui" & file$filename == "ui.R") tab_class <- "tab active"
-            else if (r$edit_plugin_code_open_new_tab == "new_tab" & i == nrow(r$edit_plugin_code_tabs)) tab_class <- "tab active"
+            else if (r$edit_plugin_code_open_new_tab == "new_tab" & i == nrow(plugin_code_tabs)) tab_class <- "tab active"
           }
           else {
             if (length(input$edit_code_selected_file) > 0){
@@ -691,8 +703,12 @@ mod_plugins_server <- function(id, r, d, m, language, i18n, debug, user_accesses
       
       r$edit_plugin_code_tabs <- r$edit_plugin_code_tabs %>% dplyr::filter(id %not_in% file_id)
       
-      # Show editor of last file
-      last_file_id <- r$edit_plugin_code_tabs %>% dplyr::slice(nrow(r$edit_plugin_code_tabs)) %>% dplyr::pull(id)
+      # Show editor of last file}
+      last_file_id <-
+        r$edit_plugin_code_tabs %>%
+        dplyr::filter(plugin_id == input$selected_element) %>%
+        dplyr::slice(nrow(r$edit_plugin_code_tabs)) %>%
+        dplyr::pull(id)
       r$edit_plugin_code_selected_file <- last_file_id
       r$edit_plugin_code_open_new_tab <- "new_tab"
       if (length(last_file_id) > 0) shinyjs::delay(50, shinyjs::show(paste0("edit_code_editor_div_", last_file_id)))
