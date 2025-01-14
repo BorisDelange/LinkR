@@ -7,16 +7,24 @@ mod_home_ui <- function(id, language, languages, i18n){
   div(
     class = "main",
     div(
-      tags$h1(i18n$t("projects"), style = "font-size: 14px; margin-bottom: 0;"),
-      uiOutput(ns("projects")),
-      style = "margin-bottom: 25px;"
-    ),
-    div(
-      tags$h1(i18n$t("datasets"), style = "font-size: 14px; margin-bottom: 0;"),
-      uiOutput(ns("datasets")),
-      style = "margin-bottom: 25px;"
-    ),
-    htmlTemplate(system.file("html_pages", paste0(language, "_home.html"), package = "linkr"))
+      class = "home-container",
+      div(
+        class = "home-section",
+        tags$h1(tags$a(href = shiny.router::route_link("projects"), i18n$t("projects")), class = "home-section-title"),
+        uiOutput(ns("projects"))
+      ),
+      div(
+        class = "home-section",
+        tags$h1(tags$a(href = shiny.router::route_link("datasets"), i18n$t("datasets")), class = "home-section-title"),
+        uiOutput(ns("datasets"))
+      ),
+      div(
+        class = "home-section",
+        tags$h1(tags$a(href = shiny.router::route_link("plugins"), i18n$t("plugins")), class = "home-section-title"),
+        uiOutput(ns("plugins"))
+      ),
+      htmlTemplate(system.file("html_pages", paste0(language, "_home.html"), package = "linkr"))
+    )
   )
 }
 
@@ -27,7 +35,7 @@ mod_home_server <- function(id, r, d, m, language, i18n, debug, user_accesses){
     
     if (debug) cat(paste0("\n", now(), " - mod_home - start"))
     
-    sapply(c("projects", "datasets"), function(page){
+    sapply(c("projects", "datasets", "plugins"), function(page){
       
       single_id <- switch(
         page, 
@@ -54,5 +62,11 @@ mod_home_server <- function(id, r, d, m, language, i18n, debug, user_accesses){
         shinyjs::delay(500, shinyjs::runjs(paste0("Shiny.setInputValue('", page, "-selected_element_trigger', Math.random());")))
       })
     })
+    
+    shinyjs::delay(10, shinyjs::runjs("
+      document.querySelectorAll('.home-section').forEach(section => {
+        updateNavButtons(section);
+      });
+    "))
   })
 }

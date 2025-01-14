@@ -157,7 +157,6 @@ mod_user_settings_server <- function(id, r, d, m, language, i18n, debug, user_ac
     
     # Load settings ----
     
-    print(user_settings)
     shiny.fluent::updateDropdown.shinyInput(session, "ace_theme", value = user_settings$ace_theme)
     shiny.fluent::updateSpinButton.shinyInput(session, "ace_font_size", value = user_settings$ace_font_size)
     

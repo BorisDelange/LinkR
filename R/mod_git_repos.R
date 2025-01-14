@@ -1589,7 +1589,6 @@ mod_git_repos_server <- function(id, r, d, m, language, i18n, debug, user_access
             csv_folder <- paste0(local_element_folder, "/app_db")
             update_plugins <- TRUE
             if (length(input$import_project_plugins) > 0) update_plugins <- input$import_project_plugins
-            print(update_plugins)
             import_project(r, m, csv_folder, update_plugins, element_id, user_accesses)
           }
 

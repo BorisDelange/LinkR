@@ -254,7 +254,7 @@ a.no-hover-effect:hover {
 
 .delete_modal, .create_element_modal, .import_modal, .load_status_modal, .select_concepts_modal, .select_a_plugin_modal,
 .import_concepts_modal, .update_or_delete_git_element_modal, .reload_concepts_count_modal, .create_git_repo_modal,
-.push_git_modal {
+.push_git_modal, .help_modal {
   display: flex;
   align-items: center;
   justify-content: center;
@@ -271,10 +271,25 @@ a.no-hover-effect:hover {
 .create_vocabulary_modal_content, .create_data_cleaning_modal_content, .select_concepts_modal_content, .select_a_plugin_modal_content,
 .import_concepts_modal_content, .update_or_delete_git_element_modal_content, .reload_concepts_count_modal_content,
 .create_git_repo_modal_content, .push_git_modal_content, .create_user_modal_content, .create_user_status_modal_content,
-.create_user_access_modal_content {
+.create_user_access_modal_content, .help_modal_content {
   background: #fff;
-  padding: 5px 10px 10px 15px;
+  padding: 5px;
   position: relative;
+  overflow: auto;
+  border-radius: 5px;
+  padding-left: 15px;
+}
+
+.help_modal_content {
+  width: 75%;
+  height: 380px;
+}
+
+.help-widgets-container {
+  display: flex;
+  gap: 20px;
+  flex-wrap: wrap;
+  padding: 10px 0;
 }
 
 .delete_modal_content, .import_modal_content {
@@ -294,7 +309,7 @@ a.no-hover-effect:hover {
 
 .delete_modal_content h1, .create_element_modal h1, .import_modal_content h1, .load_status_modal h1, .select_concepts_modal h1, .select_a_plugin_modal h1, .import_concepts_modal_content h1, .update_or_delete_git_element_modal_content h1, .create_user_modal_content h1, 
 .reload_concepts_count_modal_content h1, .create_git_repo_modal h1, .push_git_modal_content h1, .create_user_status_modal_content h1,
-.create_user_access_modal_content h1 {
+.create_user_access_modal_content h1, .help_modal_content h1 {
   font-size: 14px;
 }
 
@@ -305,7 +320,7 @@ a.no-hover-effect:hover {
 .delete_modal_buttons, .import_modal_buttons, .create_element_modal_buttons, .select_concepts_modal_buttons, .import_concepts_modal_buttons,
 .datasets_share_buttons, .update_or_delete_git_element_modal_buttons, .reload_concepts_count_modal_buttons, .git_element_details_git_buttons,
 .export_db_buttons, .import_db_buttons, .data_cleaning_share_buttons, .projects_share_buttons, .create_git_repo_modal_buttons,
-.git_repo_infos_modal_buttons, .push_git_modal_buttons {
+.git_repo_infos_modal_buttons, .push_git_modal_buttons, .help_modal {
   position: absolute;
   right: 8px;
   bottom: 8px;
@@ -348,7 +363,8 @@ a.no-hover-effect:hover {
   padding-bottom: 50px;
 }
 
-.create_element_modal_head, .select_concepts_modal_head, .select_a_plugin_modal_head, .import_concepts_modal_head, .create_git_repo_modal_head {
+.create_element_modal_head, .select_concepts_modal_head, .select_a_plugin_modal_head, .import_concepts_modal_head,
+.create_git_repo_modal_head, .help_modal_head {
   display: flex;
   justify-content: space-between;
 }
@@ -453,7 +469,6 @@ a.no-hover-effect:hover {
   width: 280px;
   height: 90px;
   padding: 0;
-  margin: 10px 8px 10px 0;
   background: white;
   border-radius: 12px;
   border: 1px solid #e5e7eb;
@@ -470,24 +485,48 @@ a.no-hover-effect:hover {
   box-shadow: 0 4px 12px rgba(0,0,0,0.1);
 }
 
-.dataset_widget:hover {
+.dataset_widget:hover, .green-widget:hover {
   border-color: #047857;
 }
 
-.project_widget:hover {
+.project_widget:hover, .blue-widget:hover {
   border-color: #0369a1;
 }
 
-.data_cleaning_widget:hover {
+.data_cleaning_widget:hover, .red-widget:hover {
   border-color: #be123c;
 }
 
-.plugin_widget:hover {
+.plugin_widget:hover, .purple-widget:hover {
   border-color: #6d28d9;
 }
 
-.subset_widget:hover {
+.subset_widget:hover, .orange-widget:hover {
   border-color: #d97706;
+}
+
+.pink-widget:hover {
+  border-color: #db2777;
+}
+
+.yellow-widget:hover {
+  border-color: #ca8a04;
+}
+
+.cyan-widget:hover {
+  border-color: #0891b2;
+}
+
+.teal-widget:hover {
+  border-color: #0d9488;
+}
+
+.gray-widget:hover {
+  border-color: #4b5563;
+}
+
+.rose-widget:hover {
+  border-color: #e11d48;
 }
 
 .selected_dataset_widget {
@@ -510,6 +549,30 @@ a.no-hover-effect:hover {
   border: solid 2px #d97706;
 }
 
+.selected_pink-widget {
+  border: solid 2px #db2777;
+}
+
+.selected_yellow-widget {
+  border: solid 2px #ca8a04;
+}
+
+.selected_cyan-widget {
+  border: solid 2px #0891b2;
+}
+
+.selected_teal-widget {
+  border: solid 2px #0d9488;
+}
+
+.selected_gray-widget {
+  border: solid 2px #4b5563;
+}
+
+.selected_rose-widget {
+  border: solid 2px #e11d48;
+}
+
 .element_widget_icon {
   padding: 0;
   border-radius: 12px 0 0 12px;
@@ -523,29 +586,59 @@ a.no-hover-effect:hover {
   background: #ede9fe;
 }
 
-.dataset_widget_icon {
+.dataset_widget_icon, .green-widget-icon {
   color: #047857;
   background: #ecfdf5;
 }
 
-.project_widget_icon {
+.project_widget_icon, .blue-widget-icon {
   color: #0369a1;
   background: #e0f2fe;
 }
 
-.data_cleaning_widget_icon {
+.data_cleaning_widget_icon, .red-widget-icon {
   color: #be123c;
   background: #fff1f2;
 }
 
-.plugin_widget_icon {
+.plugin_widget_icon, .purple-widget-icon {
   color: #6d28d9;
   background: #ede9fe;
 }
 
-.subset_widget_icon {
+.subset_widget_icon, .orange-widget-icon {
   color: #d97706;
   background: #fef3c7;
+}
+
+.pink-widget-icon {
+  color: #db2777;
+  background: #fce7f3;
+}
+
+.yellow-widget-icon {
+  color: #ca8a04;
+  background: #fef9c3;
+}
+
+.cyan-widget-icon {
+  color: #0891b2;
+  background: #cffafe;
+}
+
+.teal-widget-icon {
+  color: #0d9488;
+  background: #ccfbf1;
+}
+
+.gray-widget-icon {
+  color: #4b5563;
+  background: #f3f4f6;
+}
+
+.rose-widget-icon {
+  color: #e11d48;
+  background: #ffe4e6;
 }
 
 .element_widget_content {
@@ -682,14 +775,6 @@ a.no-hover-effect:hover {
   max-width: 240px;
   max-height: 130px;
 }
-
-/*
-.project_widget:hover, .plugin_widget:hover, .dataset_widget:hover, .subset_widget:hover, .vocabulary_widget:hover, .data_cleaning_widget:hover,
-.dataset_details_widget:hover, .data_page_widget:hover {
-  transform: scale(1.02);
-  box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.3), 0 6px 20px 0 rgba(0, 0, 0, 0.25);
-}
-*/
 
 .selected_concepts_widget {
   width: 100%;
@@ -1175,7 +1260,7 @@ button.ms-UpButton, button.ms-DownButton {
   display: flex;
   flex-wrap: wrap;
   justify-content: flex-start;
-  gap: 10px;
+  gap: 1.5rem;
 }
 
 /* --------------------- */
@@ -1187,13 +1272,26 @@ button.ms-UpButton, button.ms-DownButton {
 }
 
 .home-section {
-  position: relative;
-  margin-bottom: 2rem;
+  margin-top: 1rem;
 }
 
 .home-section-title {
   font-size: 14px;
   margin-bottom: 0;
+  font-weight: 600;
+}
+
+.home-section-title a {
+  color: black;
+  text-decoration: none;
+}
+
+.home-section-title a:visited {
+  color: black;
+}
+
+.home-section-title a:hover {
+  color: rgb(0, 120, 212);
 }
 
 .home-widget-container {
@@ -1210,7 +1308,7 @@ button.ms-UpButton, button.ms-DownButton {
   display: none;
 }
 
-.home-widget {
+.help-widget, .help-widget {
   flex: 0 0 280px;
   background: white;
   border-radius: 12px;
@@ -1226,22 +1324,12 @@ button.ms-UpButton, button.ms-DownButton {
   height: 90px;
 }
 
-.home-widget:nth-child(4n+1) .home-widget-icon { background: #ede9fe; color: #6d28d9; }
-.home-widget:nth-child(4n+2) .home-widget-icon { background: #e0f2fe; color: #0369a1; }
-.home-widget:nth-child(4n+3) .home-widget-icon { background: #ecfdf5; color: #047857; }
-.home-widget:nth-child(4n+4) .home-widget-icon { background: #fff1f2; color: #be123c; }
-
-.home-widget:hover {
+.help-widget:hover {
   transform: translateY(-2px);
   box-shadow: 0 4px 12px rgba(0,0,0,0.1);
 }
 
-.home-widget:nth-child(4n+1):hover { border-color: #6d28d9; }
-.home-widget:nth-child(4n+2):hover { border-color: #0369a1; }
-.home-widget:nth-child(4n+3):hover { border-color: #047857; }
-.home-widget:nth-child(4n+4):hover { border-color: #be123c; }
-
-.home-widget-icon {
+.help-widget-icon {
   padding: 0;
   border-radius: 12px 0 0 12px;
   font-size: 20px;
@@ -1253,19 +1341,19 @@ button.ms-UpButton, button.ms-DownButton {
   flex-shrink: 0;
 }
 
-.home-widget-content {
+.help-widget-content {
   padding: 12px;
   flex: 1;
 }
 
-.home-widget-content h3 {
+.help-widget-content h3 {
   margin: 0 0 10px 0;
   font-size: 16px;
   font-weight: 600;
   color: #111827;
 }
 
-.home-widget-content p {
+.help-widget-content p {
   margin: 0;
   font-size: 12px;
   color: #6b7280;
@@ -1327,7 +1415,7 @@ button.ms-UpButton, button.ms-DownButton {
 
 .plugins_summary_right, .plugins_share_right {
   width: 50%;
-  calc(100% - 16px)
+  height: calc(100% - 16px)
 }
 
 .prog_label {
@@ -1380,7 +1468,7 @@ button.ms-UpButton, button.ms-DownButton {
 
 .git_repos_right {
   width: 50%;
-  calc(100% - 16px)
+  height: calc(100% - 16px)
 }
 
 .git_repos_summary_container {
@@ -1452,7 +1540,7 @@ button.ms-UpButton, button.ms-DownButton {
 
 .subsets_summary_right {
   width: 50%;
-  calc(100% - 16px)
+  height: calc(100% - 16px)
 }
 
 
@@ -1474,7 +1562,7 @@ button.ms-UpButton, button.ms-DownButton {
 
 .datasets_summary_right, .datasets_share_right {
   width: 50%;
-  calc(100% - 16px)
+  height: calc(100% - 16px)
 }
 
 /* -------------------------- */
@@ -1495,7 +1583,7 @@ button.ms-UpButton, button.ms-DownButton {
 
 .data_cleaning_summary_right, .data_cleaning_share_right {
   width: 50%;
-  calc(100% - 16px)
+  height: calc(100% - 16px)
 }
 
 /* ---------------------- */
@@ -1538,7 +1626,7 @@ button.ms-UpButton, button.ms-DownButton {
 
 .vocabularies_summary_right {
   width: 50%;
-  calc(100% - 16px)
+  height: calc(100% - 16px)
 }
 
 /* ------------------- */
@@ -1560,7 +1648,7 @@ button.ms-UpButton, button.ms-DownButton {
 
 .users_right {
   width: 50%;
-  calc(100% - 16px)
+  cheight: alc(100% - 16px)
 }
 
 /* ------------------- */
@@ -1588,7 +1676,7 @@ button.ms-UpButton, button.ms-DownButton {
 
 .projects_summary_right, .projects_share_right {
   width: 50%;
-  calc(100% - 16px)
+  height: calc(100% - 16px)
 }
 
 .project_widget_buttons {
@@ -1638,5 +1726,5 @@ button.ms-UpButton, button.ms-DownButton {
 
 .app_db_connection_left, .app_db_backups_right, .app_db_backups_left {
   width: 50%;
-  calc(100% - 16px)
+  height: calc(100% - 16px)
 }

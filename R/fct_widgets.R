@@ -188,7 +188,13 @@ create_elements_ui <- function(page_id, id, elements, selected_element = NA_inte
     )
   }
   
-  div(elements_ui, class = paste0(id, "_container"))
+  if (page_id == "home") div(
+    class = "home-widget-container",
+    tags$button(class = "home-nav-button prev", onclick = "scrollContainer(this, 'left')", tags$i(class = "fas fa-chevron-left")),
+    tags$button(class = "home-nav-button next", onclick = "scrollContainer(this, 'right')", tags$i(class = "fas fa-chevron-right")),
+    elements_ui
+  )
+  else div(elements_ui, class = paste0(id, "_container"))
 }
 
 #' @noRd
@@ -785,7 +791,7 @@ reload_elements_var <- function(page_id, id, con, r, m, long_var_filtered, user_
   
   # See all element s?
   if (paste0(id, "_see_all_data") %in% user_accesses) sql_join <- "LEFT JOIN" else sql_join <- "INNER JOIN"
-  print(sql_table)
+  
   if (sql_table == "plugins"){
     sql <- glue::glue_sql(paste0("WITH {paste0('selected_', id)} AS (
       SELECT DISTINCT d.id
