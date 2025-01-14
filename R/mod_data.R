@@ -1307,51 +1307,52 @@ mod_data_server <- function(id, r, d, m, language, i18n, debug, user_accesses){
               
               if (nb_levels == 1) is_current_item <- TRUE else is_current_item <- FALSE
               
-              first_list_element <- list(key = "main", text = shiny.fluent::FontIcon(iconName = "Home"), href = paste0("#!/data?type=", category), isCurrentItem = FALSE,
-                onClick = htmlwidgets::JS(paste0("item => {",
-                  "Shiny.setInputValue('", id, "-study_go_to_tab', ", study_first_tab_id, ");",
-                  "Shiny.setInputValue('", id, "-study_go_to_tab_trigger', Math.random());",
-                  "}"
-                )))
+              # first_list_element <- list(key = "main", text = shiny.fluent::FontIcon(iconName = "Home"), href = paste0("#!/data?type=", category), isCurrentItem = FALSE,
+              #   onClick = htmlwidgets::JS(paste0("item => {",
+              #     "Shiny.setInputValue('", id, "-study_go_to_tab', ", study_first_tab_id, ");",
+              #     "Shiny.setInputValue('", id, "-study_go_to_tab_trigger', Math.random());",
+              #     "}"
+              #   )))
+              # 
+              # breadcrumb_list <- list(first_list_element)
+              # 
+              # if (nb_levels >= 2){
+              #   
+              #   for (j in 1:nrow(tabs_tree)){
+              #     
+              #     row <- tabs_tree[j, ]
+              #     
+              #     if (row$level == nb_levels - 1) breadcrumb_list <- rlist::list.append(breadcrumb_list, list(key = "main", text = row$name, isCurrentItem = TRUE))
+              #     else {
+              #       breadcrumb_list <- rlist::list.append(breadcrumb_list, list(
+              #         key = "main", text = row$name,
+              #         onClick = htmlwidgets::JS(paste0(
+              #           "item => {",
+              #           "Shiny.setInputValue('", id, "-study_go_to_tab', ", row$id, ");",
+              #           "Shiny.setInputValue('", id, "-study_go_to_tab_trigger', Math.random());",
+              #           "}"
+              #         ))
+              #       ))
+              #     }
+              #   }
+              # }
+              # 
+              # breadcrumb <- div(
+              #   id = ns(paste0(category, "_study_breadcrumb_", tab_group_id, "_", tab_sub_group)),
+              #   shiny.fluent::Breadcrumb(items = breadcrumb_list, maxDisplayedItems = 5),
+              #   style = "margin-left: 10px;"
+              # )
+              # 
+              # if (is.na(r[[paste0(category, "_selected_tab")]]) & i > 1) breadcrumb <- shinyjs::hidden(breadcrumb)
+              # if (!is.na(r[[paste0(category, "_selected_tab")]]) & r[[paste0(category, "_selected_tab")]] %not_in% tabs$id) breadcrumb <- shinyjs::hidden(breadcrumb)
               
-              breadcrumb_list <- list(first_list_element)
-              
-              if (nb_levels >= 2){
-                
-                for (j in 1:nrow(tabs_tree)){
-                  
-                  row <- tabs_tree[j, ]
-                  
-                  if (row$level == nb_levels - 1) breadcrumb_list <- rlist::list.append(breadcrumb_list, list(key = "main", text = row$name, isCurrentItem = TRUE))
-                  else {
-                    breadcrumb_list <- rlist::list.append(breadcrumb_list, list(
-                      key = "main", text = row$name,
-                      onClick = htmlwidgets::JS(paste0(
-                        "item => {",
-                        "Shiny.setInputValue('", id, "-study_go_to_tab', ", row$id, ");",
-                        "Shiny.setInputValue('", id, "-study_go_to_tab_trigger', Math.random());",
-                        "}"
-                      ))
-                    ))
-                  }
-                }
-              }
-              
-              breadcrumb <- div(
-                id = ns(paste0(category, "_study_breadcrumb_", tab_group_id, "_", tab_sub_group)),
-                shiny.fluent::Breadcrumb(items = breadcrumb_list, maxDisplayedItems = 5),
-                style = "margin-left: 10px;"
-              )
-              
-              if (is.na(r[[paste0(category, "_selected_tab")]]) & i > 1) breadcrumb <- shinyjs::hidden(breadcrumb)
-              if (!is.na(r[[paste0(category, "_selected_tab")]]) & r[[paste0(category, "_selected_tab")]] %not_in% tabs$id) breadcrumb <- shinyjs::hidden(breadcrumb)
-              
-              breadcrumbs <- tagList(breadcrumbs, breadcrumb)
+              # breadcrumbs <- tagList(breadcrumbs, breadcrumb)
               
               i <- 2L
             }
             
-            study_menu_ui <- tagList(div(breadcrumbs), div(pivots))
+            # study_menu_ui <- tagList(div(breadcrumbs), div(pivots))
+            study_menu_ui <- tagList(div(), div(pivots))
           }
           
           if (nrow(all_tabs) == 0){
