@@ -360,7 +360,6 @@ a.no-hover-effect:hover {
 .select_concepts_modal_content {
   width: 80%;
   height: 80%;
-  padding-bottom: 50px;
 }
 
 .create_element_modal_head, .select_concepts_modal_head, .select_a_plugin_modal_head, .import_concepts_modal_head,
@@ -1128,6 +1127,19 @@ button.ms-UpButton, button.ms-DownButton {
   background-color: #f0f0f0; 
 }
 
+.file-item-icons .small_icon_button .ms-Button {
+  width: 20px;
+  height: 20px;
+}
+
+.file-item .ms-TextField-field {
+  padding: 0 4px;
+}
+
+.small_icon_button .ms-Button-icon[data-icon-name="Clear"] {
+  font-size: 10px;
+}
+
 .tabs {
   display: flex;
   padding: 10px 0 5px 0;
@@ -1458,7 +1470,6 @@ button.ms-UpButton, button.ms-DownButton {
 }
 
 .fa-folder, .fa-file {
-  margin-right: 5px;
   width: 15px;
   color:#505050;
 }

@@ -218,7 +218,7 @@ mod_projects_ui <- function(id, language, languages, i18n){
                 style = "display: flex; justify-content: space-between;"
               ),
               uiOutput(ns("description_ui")),
-              class = "widget", style = "height: calc(100% - 25px); padding-top: 1px; overflow: auto;"
+              class = "widget", style = "height: calc(100% - 10px); padding-top: 1px; overflow: auto;"
             ),
             class = "projects_summary_right"
           ),

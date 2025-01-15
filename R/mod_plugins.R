@@ -492,8 +492,8 @@ mod_plugins_server <- function(id, r, d, m, language, i18n, debug, user_accesses
       edit_plugin_code_files_list <- 
         r$edit_plugin_code_files_list %>%
         dplyr::filter(plugin_id == input$selected_element) %>%
-        dplyr::mutate(filename = factor(filename, levels = c(filenames_order, setdiff(unique(filename), filenames_order)))) %>%
         dplyr::arrange(filename) %>%
+        dplyr::mutate(filename = factor(filename, levels = c(filenames_order, setdiff(unique(filename), filenames_order)))) %>%
         dplyr::mutate_at("filename", as.character) %>%
         dplyr::mutate(short_filename = ifelse(nchar(filename) >= 23, paste0(substr(filename, 1, 20), "..."), filename))
       
@@ -516,6 +516,17 @@ mod_plugins_server <- function(id, r, d, m, language, i18n, debug, user_accesses
                 )
               )
             ),
+            shinyjs::hidden(
+              div(
+                id = ns(paste0("edit_code_cancel_rename_button_div_", file$id)),
+                shiny.fluent::IconButton.shinyInput(paste0("edit_code_cancel_rename_button_", file$id), iconProps = list(iconName = "Clear")), 
+                class = "small_icon_button",
+                onclick = paste0(
+                  "Shiny.setInputValue('", id, "-edit_code_cancel_rename', ", file$id, ", {priority: 'event'});",
+                  "Shiny.setInputValue('", id, "-edit_code_cancel_rename_trigger', Math.random(), {priority: 'event'});"
+                )
+              )
+            ),
             div(
               id = ns(paste0("edit_code_edit_filename_button_div_", file$id)),
               shiny.fluent::IconButton.shinyInput(paste0("edit_code_edit_filename_button_", file$id), iconProps = list(iconName = "Edit")), 
@@ -526,6 +537,7 @@ mod_plugins_server <- function(id, r, d, m, language, i18n, debug, user_accesses
               )
             ),
             div(
+              id = ns(paste0("edit_code_delete_file_button_div_", file$id)),
               shiny.fluent::IconButton.shinyInput(paste0("edit_code_delete_file_button_", file$id), iconProps = list(iconName = "Delete")), 
               class = "small_icon_button",
               onclick = paste0(
@@ -546,12 +558,32 @@ mod_plugins_server <- function(id, r, d, m, language, i18n, debug, user_accesses
                 shinyjs::hidden(
                   div(
                     id = ns(paste0("edit_code_edit_filename_textfield_div_", file$id)), 
-                    shiny.fluent::TextField.shinyInput(ns(paste0("edit_code_edit_filename_textfield_", file$id)), value = file$filename), 
+                    shiny.fluent::TextField.shinyInput(
+                      ns(paste0("edit_code_edit_filename_textfield_", file$id)),
+                      value = file$filename,
+                      onKeyPress = htmlwidgets::JS(sprintf(
+                        "function(event) {
+                          if (event.key === 'Enter') {
+                            event.preventDefault();
+                            Shiny.setInputValue('%s-edit_code_save_filename', %s, {priority: 'event'});
+                            Shiny.setInputValue('%s-edit_code_save_filename_trigger', Math.random(), {priority: 'event'});
+                          }
+                        }", 
+                        id, file$id, id
+                      ))
+                    ), 
                     class = "small_textfield",
                     onclick = "event.stopPropagation();"
                   )
                 ),
-                create_hover_card(ui = div(id = ns(paste0("edit_code_filename_div_", file$id)), file$short_filename), text = file$filename)
+                create_hover_card(
+                  ui = div(
+                    style = "padding-left: 5px;",
+                    id = ns(paste0("edit_code_filename_div_", file$id)),
+                    file$short_filename
+                  ),
+                  text = file$filename
+                )
               ),
               icons_div,
               onClick = htmlwidgets::JS(paste0("Shiny.setInputValue('", id, "-edit_code_selected_file', ", file$id, ", {priority: 'event'});"))
@@ -660,12 +692,12 @@ mod_plugins_server <- function(id, r, d, m, language, i18n, debug, user_accesses
     observeEvent(input$edit_code_selected_tab, {
       if (debug) cat(paste0("\n", now(), " - mod_plugins - observer input$edit_code_selected_tab"))
       
-      selected_file_id <- sub(paste0(id, "-edit_code_tab_"), "", input$edit_code_selected_tab)
+      selected_file_id <- input$edit_code_selected_tab
       shinyjs::runjs(paste0("Shiny.setInputValue('", id, "-edit_code_selected_file', ", selected_file_id, ");"))
       
       # Set current file tab active
       shinyjs::removeClass(selector = paste0("#", id, "-edit_code_tabs .tab"), class = "active")
-      shinyjs::addClass(selector = paste0("#", input$edit_code_selected_tab), class = "active")
+      shinyjs::addClass(selector = paste0("#", id, "-edit_code_tab_", selected_file_id), class = "active")
       
       # Show current file editor
       shinyjs::delay(50, shinyjs::show(paste0("edit_code_editor_div_", selected_file_id)))
@@ -693,7 +725,7 @@ mod_plugins_server <- function(id, r, d, m, language, i18n, debug, user_accesses
       # Open a new tab ?
       if (file_id %not_in% r$edit_plugin_code_tabs$id) r$edit_plugin_code_tabs <- r$edit_plugin_code_tabs %>% dplyr::bind_rows(file_row)
       
-      r$edit_plugin_code_reload_files_tab <- now()
+      r$edit_plugin_code_reload_files_tab <- now(format = "%Y-%m-%d %H:%M:%OS3")
       
       # Hide all editors
       sapply(paste0("edit_code_editor_div_", r$edit_plugin_code_editors$id), shinyjs::hide)
@@ -748,7 +780,7 @@ mod_plugins_server <- function(id, r, d, m, language, i18n, debug, user_accesses
       shinyjs::runjs(paste0("Shiny.setInputValue('", id, "-edit_code_selected_file', ", first_file_id, ");"))
       if (length(first_file_id) > 0) shinyjs::delay(50, shinyjs::show(paste0("edit_code_editor_div_", first_file_id)))
       
-      r$edit_plugin_code_reload_files_tab <- now()
+      r$edit_plugin_code_reload_files_tab <- now(format = "%Y-%m-%d %H:%M:%OS3")
     })
     
     ## Create a file ----
@@ -793,7 +825,7 @@ mod_plugins_server <- function(id, r, d, m, language, i18n, debug, user_accesses
       # Update files browser
       r$edit_plugin_code_files_list <- r$edit_plugin_code_files_list %>% dplyr::bind_rows(tibble::tibble(id = options_new_row_id, plugin_id = input$selected_element, filename = new_filename))
       
-      r$edit_plugin_code_reload_files_browser <- now()
+      r$edit_plugin_code_reload_files_browser <- now(format = "%Y-%m-%d %H:%M:%OS3")
       
       # Hide all editors
       sapply(paste0("edit_code_editor_div_", r$edit_plugin_code_editors$id), shinyjs::hide)
@@ -825,7 +857,6 @@ mod_plugins_server <- function(id, r, d, m, language, i18n, debug, user_accesses
         dplyr::mutate(position = max(r$edit_plugin_code_tabs %>% dplyr::filter(plugin_id == input$selected_element) %>% dplyr::pull(position)) + 1)
       
       r$edit_plugin_code_tabs <- r$edit_plugin_code_tabs %>% dplyr::bind_rows(file_row)
-      r$edit_plugin_code_reload_files_tab <- now()
     })
     
     ## Editor hotkeys ----
@@ -893,9 +924,46 @@ mod_plugins_server <- function(id, r, d, m, language, i18n, debug, user_accesses
       if (debug) cat(paste0("\n", now(), " - mod_plugins - observer input$edit_code_edit_filename_trigger"))
       
       file_id <- input$edit_code_edit_filename
+      file_name <- r$edit_plugin_code_files_list %>% dplyr::filter(id == file_id) %>% dplyr::pull(filename)
+      shiny.fluent::updateTextField.shinyInput(session, paste0("edit_code_edit_filename_textfield_", file_id), value = file_name)
       
-      shinyjs::delay(50, sapply(c(paste0("edit_code_edit_filename_textfield_div_", file_id), paste0("edit_code_save_filename_button_div_", file_id)), shinyjs::show))
-      sapply(c(paste0("edit_code_filename_div_", file_id), paste0("edit_code_edit_filename_button_div_", file_id)), shinyjs::hide)
+      shinyjs::delay(50, 
+        sapply(c(
+          paste0("edit_code_edit_filename_textfield_div_", file_id),
+          paste0("edit_code_save_filename_button_div_", file_id),
+          paste0("edit_code_cancel_rename_button_div_", file_id)),
+          shinyjs::show
+        )
+      )
+      sapply(c(
+        paste0("edit_code_filename_div_", file_id),
+        paste0("edit_code_delete_file_button_div_", file_id),
+        paste0("edit_code_edit_filename_button_div_", file_id)),
+        shinyjs::hide
+      )
+    })
+    
+    # Cancel rename
+    
+    observeEvent(input$edit_code_cancel_rename_trigger, {
+      if (debug) cat(paste0("\n", now(), " - mod_plugins - observer input$edit_code_cancel_rename_trigger"))
+      
+      file_id <- input$edit_code_edit_filename
+      
+      shinyjs::delay(50, 
+        sapply(c(
+          paste0("edit_code_edit_filename_textfield_div_", file_id),
+          paste0("edit_code_save_filename_button_div_", file_id),
+          paste0("edit_code_cancel_rename_button_div_", file_id)),
+          shinyjs::hide
+        )
+      )
+      sapply(c(
+        paste0("edit_code_filename_div_", file_id),
+        paste0("edit_code_delete_file_button_div_", file_id),
+        paste0("edit_code_edit_filename_button_div_", file_id)),
+        shinyjs::show
+      )
     })
     
     # Save new name
@@ -945,7 +1013,7 @@ mod_plugins_server <- function(id, r, d, m, language, i18n, debug, user_accesses
       
       # Update files browser
       r$edit_plugin_code_files_list <- r$edit_plugin_code_files_list %>% dplyr::mutate(filename = dplyr::case_when(id == file_id ~ new_name, TRUE ~ filename))
-      shinyjs::runjs(paste0("document.getElementById('", id, "-edit_code_filename_div_", file_id, "').childNodes[0].nodeValue = '", new_name, "';"))
+      r$edit_plugin_code_reload_files_browser <- now(format = "%Y-%m-%d %H:%M:%OS3")
       
       show_message_bar(output,  "modif_saved", "success", i18n = i18n, ns = ns)
       
@@ -985,13 +1053,13 @@ mod_plugins_server <- function(id, r, d, m, language, i18n, debug, user_accesses
       
       # Reload files browser
       r$edit_plugin_code_files_list <- r$edit_plugin_code_files_list %>% dplyr::filter(id != file_id)
-      r$edit_plugin_code_reload_files_browser <- now()
+      r$edit_plugin_code_reload_files_browser <- now(format = "%Y-%m-%d %H:%M:%OS3")
       
       # Reload tabs if file is opened
       reload_tabs <- FALSE
       if (file_id %in% r$edit_plugin_code_tabs$id) reload_tabs <- TRUE
       r$edit_plugin_code_tabs <- r$edit_plugin_code_tabs %>% dplyr::filter(id != file_id)
-      if (reload_tabs) r$edit_plugin_code_reload_files_tab <- now()
+      if (reload_tabs) r$edit_plugin_code_reload_files_tab <- now(format = "%Y-%m-%d %H:%M:%OS3")
       
       # Hide all editors
       sapply(paste0("edit_code_editor_div_", r$edit_plugin_code_editors$id), shinyjs::hide)

@@ -20,7 +20,7 @@ is_integer_or_integer64 <- function(x) {
 }
 
 #' @noRd
-now <- function(format = "%Y-%m-%d %H:%M:%OS3"){
+now <- function(format = "%Y-%m-%d %H:%M:%S"){
   format(Sys.time(), format)
 }
 

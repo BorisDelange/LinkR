@@ -43,16 +43,16 @@ mod_select_concepts_ui <- function(id, language, languages, i18n){
                 br(),
                 DT::DTOutput(ns("vocabulary_concepts")),
                 class = "widget",
-                style = "padding: 10px; height: calc(100% - 40px);"
+                style = "padding: 10px; height: calc(100% - 50px);"
               ),
               style = "width: 100%;"
             ),
             div(
               uiOutput(ns("selected_concepts_list")),
-              style = "width: 500px; overflow-y: auto; padding-top: 10px;",
+              style = "width: 500px; overflow-y: auto; padding-top: 10px; height: calc(100% - 45px);",
               class = "widget"
             ),
-            style = "display: flex; height: calc(100% - 30px);"
+            style = "display: flex; height: calc(100% - 65px);"
           ),
           div(
             shiny.fluent::PrimaryButton.shinyInput(ns("close_select_concepts_modal_2"), i18n$t("confirm")),
@@ -161,7 +161,7 @@ mod_select_concepts_server <- function(id, r, d, m, language, i18n, debug, user_
         # Render datatable
         render_datatable(
           output = output, ns = ns, i18n = i18n, data = widget_vocabulary_concepts,
-          output_name = "vocabulary_concepts", col_names =  col_names, page_length = 20, datatable_dom = "<'top't><'bottom'p>",
+          output_name = "vocabulary_concepts", col_names =  col_names, page_length = 18, datatable_dom = "<'top't><'bottom'p>",
           editable_cols = editable_cols, sortable_cols = sortable_cols, centered_cols = centered_cols, column_widths = column_widths,
           searchable_cols = searchable_cols, filter = TRUE, hidden_col = hidden_cols, factorize_cols = factorize_cols, selection = "none"
         )
