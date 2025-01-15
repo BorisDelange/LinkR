@@ -1259,7 +1259,7 @@ mod_git_repos_server <- function(id, r, d, m, language, i18n, debug, user_access
             
             if (current_tab == "plugins"){
               plugin_type <- row %>% dplyr::slice(1) %>% dplyr::pull(type)
-              widget_buttons <- get_plugin_buttons(plugin_type, i18n)
+              widget_buttons <- get_plugin_buttons(id, "tab_type", plugin_type, row$id, i18n)
             }
             
             onclick <- paste0("

@@ -499,7 +499,6 @@ install_study,Install project
 error_loading_data,Error loading data
 create_data_cleaning_script,Create a script for data cleaning
 plugin_added,New plugin added
-create_data_cleaning_script,Create a script for data cleaning
 error_update_remote_git_repo,Error updating remote git repo
 invalid_filename,Invalid file name
 invalid_file_extension,Invalid file extension

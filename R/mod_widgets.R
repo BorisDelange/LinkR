@@ -299,7 +299,7 @@ mod_widgets_server <- function(id, r, d, m, language, i18n, all_divs, debug, use
       
       divs <- c(paste0(all_divs, "_reduced_sidenav"), paste0(all_divs, "_large_sidenav"))
       
-      sapply(c("one_element", divs), shinyjs::hide)
+      sapply(c("show_hide_sidenav", "one_element", divs), shinyjs::hide)
       sapply(c("all_elements", "all_elements_reduced_sidenav"), shinyjs::show)
       
       shinyjs::runjs(paste0("Shiny.setInputValue('", id, "-show_hide_sidenav', 'hide');"))

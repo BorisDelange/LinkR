@@ -86,7 +86,7 @@ create_element_ui <- function(ns, page_id, element_id, single_id, element_name, 
     "vocabulary" = 
   )
   
-  max_length <- 100
+  max_length <- 75
   if (nchar(short_description) > max_length) {
     short_description_limited <- paste0(substr(short_description, 1, max_length - 3), "...")
     short_description_limited <- create_hover_card(ui = short_description_limited, text = short_description)
@@ -94,7 +94,7 @@ create_element_ui <- function(ns, page_id, element_id, single_id, element_name, 
     short_description_limited <- short_description
   }
   
-  max_length <- 22
+  max_length <- 25
   if (nchar(element_name) > max_length) {
     element_name_limited <- paste0(substr(element_name, 1, max_length - 3), "...")
     element_name_limited <- create_hover_card(ui = element_name_limited, text = element_name)
@@ -117,8 +117,8 @@ create_element_ui <- function(ns, page_id, element_id, single_id, element_name, 
           class = "element_widget_description",
           short_description_limited
         )
-      )#,
-      # widget_buttons
+      ),
+      widget_buttons
     )
   
   onclick <- paste0(onclick, "Shiny.setInputValue('", page_id, "-selected_element_type', '');")
@@ -153,9 +153,6 @@ create_elements_ui <- function(page_id, id, elements, selected_element = NA_inte
     
     element_name <- row %>% dplyr::filter(name == paste0("name_", language)) %>% dplyr::pull(value)
     
-    max_length <- 45
-    if (nchar(element_name) > max_length) element_name <- paste0(substr(element_name, 1, max_length - 3), "...")
-    
     # For plugins widgets, we add some content on the bottom
     
     widget_buttons <- tagList()
@@ -175,7 +172,9 @@ create_elements_ui <- function(page_id, id, elements, selected_element = NA_inte
     
     if (id == "plugins"){
       plugin_type <- row %>% dplyr::slice(1) %>% dplyr::pull(tab_type_id)
-      widget_buttons <- get_plugin_buttons(plugin_type, i18n)
+      if (page_id == "data") buttons <- c("tab_type", "info")
+      else buttons <- "tab_type"
+      widget_buttons <- get_plugin_buttons(page_id, buttons, plugin_type, row$id, i18n)
     }
     
     # Test if this element is the currently selected element, to add a green border
@@ -555,36 +554,59 @@ delete_project <- function(r, m, project_id){
 }
 
 #' @noRd
-get_plugin_buttons <- function(plugin_type, i18n){
+get_plugin_buttons <- function(id, buttons, plugin_type, plugin_id, i18n){
   
-  if (plugin_type == 1) {
-    plugin_type_icon <- div(shiny.fluent::FontIcon(iconName = "Contact"), class = "small_icon_button")
-    plugin_type_text <- i18n$t("patient_lvl_plugin")
-  }
-  else if (plugin_type == 2) {
-    plugin_type_icon <- div(shiny.fluent::FontIcon(iconName = "Group"), class = "small_icon_button")
-    plugin_type_text <- i18n$t("aggregated_plugin")
-  }
-  else if (plugin_type %in% c(12, 21)){
-    plugin_type_icon <- div(
-      div(shiny.fluent::FontIcon(iconName = "Contact"), class = "small_icon_button"),
-      div(shiny.fluent::FontIcon(iconName = "Group"), class = "small_icon_button"),
-      style = "display: flex; gap: 5px;"
+  buttons_ui <- tagList()
+  
+  if ("tab_type" %in% buttons){
+    if (plugin_type == 1) {
+      plugin_type_icon <- div(shiny.fluent::FontIcon(iconName = "Contact"), class = "small_icon_button")
+      plugin_type_text <- i18n$t("patient_lvl_plugin")
+    }
+    else if (plugin_type == 2) {
+      plugin_type_icon <- div(shiny.fluent::FontIcon(iconName = "Group"), class = "small_icon_button")
+      plugin_type_text <- i18n$t("aggregated_plugin")
+    }
+    else if (plugin_type %in% c(12, 21)){
+      plugin_type_icon <- div(
+        div(shiny.fluent::FontIcon(iconName = "Contact"), class = "small_icon_button"),
+        div(shiny.fluent::FontIcon(iconName = "Group"), class = "small_icon_button"),
+        style = "display: flex; gap: 5px;"
+      )
+      plugin_type_text <- i18n$t("patient_lvl_or_aggregated_plugin")
+    }
+    
+    plugin_type_icon <- create_hover_card(ui = plugin_type_icon, text = plugin_type_text)
+  
+    buttons_ui <- tagList(
+      buttons_ui,
+      div(
+        plugin_type_icon,
+        class = "plugin_widget_bottom_button"
+      )
     )
-    plugin_type_text <- i18n$t("patient_lvl_or_aggregated_plugin")
   }
   
-  plugin_type_icon <- create_hover_card(ui = plugin_type_icon, text = plugin_type_text)
+  if ("info" %in% buttons){
+    buttons_ui <- tagList(
+      buttons_ui,
+      div(
+        class = "plugin_widget_top_button",
+        tags$a(
+          href = "#",
+          onclick = paste0("
+            event.preventDefault();
+            event.stopPropagation();
+            Shiny.setInputValue('", id, "-show_plugin_description_trigger', Math.random());
+            Shiny.setInputValue('", id, "-show_plugin_description', ", plugin_id, ");
+          "),
+          tags$i(class = "fa-solid fa-circle-info")
+        )
+      )
+    )
+  }
   
-  div(
-    div(
-      # div("R", class = "prog_label r_label"),
-      # div("Python", class = "prog_label python_label"),
-      # class = "plugin_widget_labels"
-    ),
-    plugin_type_icon,
-    class = "plugin_widget_bottom"
-  )
+  buttons_ui
 }
 
 #' @noRd

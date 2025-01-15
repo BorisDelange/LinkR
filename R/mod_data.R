@@ -158,6 +158,24 @@ mod_data_ui <- function(id, language, languages, i18n){
     )
   )
   
+  # Plugin description modal ----
+  
+  plugin_description_modal <- shinyjs::hidden(
+    div(
+      id = ns("plugin_description_modal"),
+      div(
+        div(
+          uiOutput(ns("plugin_description_title")),
+          shiny.fluent::IconButton.shinyInput(ns("close_plugin_description_modal"), iconProps = list(iconName = "ChromeClose")),
+          class = "plugin_description_modal_head small_close_button"
+        ),
+        uiOutput(ns("plugin_description")),
+        class = "plugin_description_modal_content"
+      ),
+      class = "plugin_description_modal"
+    )
+  )
+  
   # Select concepts modal ----
   
   select_concepts_modal <- mod_select_concepts_ui(id, language, languages, i18n)
@@ -182,6 +200,7 @@ mod_data_ui <- function(id, language, languages, i18n){
     add_widget_modal,
     delete_wigdet_modal,
     select_a_plugin_modal,
+    plugin_description_modal,
     select_concepts_modal,
     study_divs,
     shinyjs::hidden(shiny.fluent::PrimaryButton.shinyInput(ns("react_activation"))),
@@ -1781,11 +1800,13 @@ mod_data_server <- function(id, r, d, m, language, i18n, debug, user_accesses){
     observeEvent(input$open_select_a_plugin_modal, {
       if (debug) cat(paste0("\n", now(), " - mod_data - observer input$open_select_a_plugin_modal"))
       shinyjs::show("select_a_plugin_modal")
+      shinyjs::hide("add_widget_modal")
     })
     
     observeEvent(input$close_select_a_plugin_modal, {
       if (debug) cat(paste0("\n", now(), " - mod_data - observer input$close_select_a_plugin_modal"))
       shinyjs::hide("select_a_plugin_modal")
+      shinyjs::show("add_widget_modal")
     })
     
     observeEvent(input$reload_plugins_var, {
@@ -1802,6 +1823,36 @@ mod_data_server <- function(id, r, d, m, language, i18n, debug, user_accesses){
       elements_ui <- create_elements_ui(page_id = id, id = "plugins", elements = r$filtered_data_plugins_long, r = r, language = language, i18n = i18n)
       
       output$plugins_widgets <- renderUI(elements_ui)
+    })
+    
+    # Display a plugin description
+    
+    observeEvent(input$show_plugin_description_trigger, {
+      if (debug) cat(paste0("\n", now(), " - mod_data - observer input$show_plugin_description_trigger"))
+      
+      shinyjs::hide("select_a_plugin_modal")
+      shinyjs::delay(50, shinyjs::show("plugin_description_modal"))
+      
+      description_code <-
+        r$plugins_long %>%
+        dplyr::filter(id == input$show_plugin_description, name == paste0("description_", language)) %>%
+        dplyr::pull(value)
+      
+      description_title <-
+        r$plugins_wide %>%
+        dplyr::filter(id == input$show_plugin_description) %>%
+        dplyr::pull(name)
+        
+      output_file <- create_rmarkdown_file(r, description_code, interpret_code = FALSE)
+      output$plugin_description <- renderUI(div(class = "markdown", withMathJax(includeMarkdown(output_file))))
+      output$plugin_description_title <- renderUI(tags$h1(description_title))
+    })
+    
+    observeEvent(input$close_plugin_description_modal, {
+      if (debug) cat(paste0("\n", now(), " - mod_data - observer input$close_plugin_description_modal"))
+      
+      shinyjs::hide("plugin_description_modal")
+      shinyjs::delay(50, shinyjs::show("select_a_plugin_modal"))
     })
     
     # Search a plugin
@@ -1844,6 +1895,7 @@ mod_data_server <- function(id, r, d, m, language, i18n, debug, user_accesses){
       
       output$selected_plugin <- renderUI(element_ui)
       
+      shinyjs::show("add_widget_modal")
       shinyjs::delay(50, shinyjs::hide("select_a_plugin_modal"))
     })
     

@@ -254,7 +254,7 @@ a.no-hover-effect:hover {
 
 .delete_modal, .create_element_modal, .import_modal, .load_status_modal, .select_concepts_modal, .select_a_plugin_modal,
 .import_concepts_modal, .update_or_delete_git_element_modal, .reload_concepts_count_modal, .create_git_repo_modal,
-.push_git_modal, .help_modal {
+.push_git_modal, .help_modal, .plugin_description_modal {
   display: flex;
   align-items: center;
   justify-content: center;
@@ -271,7 +271,7 @@ a.no-hover-effect:hover {
 .create_vocabulary_modal_content, .create_data_cleaning_modal_content, .select_concepts_modal_content, .select_a_plugin_modal_content,
 .import_concepts_modal_content, .update_or_delete_git_element_modal_content, .reload_concepts_count_modal_content,
 .create_git_repo_modal_content, .push_git_modal_content, .create_user_modal_content, .create_user_status_modal_content,
-.create_user_access_modal_content, .help_modal_content {
+.create_user_access_modal_content, .help_modal_content, .plugin_description_modal_content {
   background: #fff;
   padding: 5px;
   position: relative;
@@ -309,7 +309,7 @@ a.no-hover-effect:hover {
 
 .delete_modal_content h1, .create_element_modal h1, .import_modal_content h1, .load_status_modal h1, .select_concepts_modal h1, .select_a_plugin_modal h1, .import_concepts_modal_content h1, .update_or_delete_git_element_modal_content h1, .create_user_modal_content h1, 
 .reload_concepts_count_modal_content h1, .create_git_repo_modal h1, .push_git_modal_content h1, .create_user_status_modal_content h1,
-.create_user_access_modal_content h1, .help_modal_content h1 {
+.create_user_access_modal_content h1, .help_modal_content h1, .plugin_description_modal_content h1 {
   font-size: 14px;
 }
 
@@ -363,7 +363,7 @@ a.no-hover-effect:hover {
 }
 
 .create_element_modal_head, .select_concepts_modal_head, .select_a_plugin_modal_head, .import_concepts_modal_head,
-.create_git_repo_modal_head, .help_modal_head {
+.create_git_repo_modal_head, .help_modal_head, .plugin_description_modal_head {
   display: flex;
   justify-content: space-between;
 }
@@ -392,6 +392,12 @@ a.no-hover-effect:hover {
 
 .select_a_plugin_modal_content {
   width: 80%;
+  height: 80%;
+  overflow-y: auto;
+}
+
+.plugin_description_modal_content {
+  width: 50%;
   height: 80%;
   overflow-y: auto;
 }
@@ -477,6 +483,7 @@ a.no-hover-effect:hover {
   gap: 0;
   cursor: pointer;
   transition: all 0.3s ease;
+  position: relative;
 }
 
 .element_widget:hover {
@@ -646,6 +653,12 @@ a.no-hover-effect:hover {
   display: flex;
   flex-direction: column;
   justify-content: center;
+  overflow: hidden;
+  margin-right: 30px;
+}
+
+.element_widget_content h1 {
+  white-space: nowrap;
 }
 
 .element_widget h1 {
@@ -800,9 +813,30 @@ a.no-hover-effect:hover {
   display: flex;
 }
 
-.plugin_widget_bottom {
+.plugin_widget_bottom_button {
+  position: absolute;
+  bottom: 5px;
+  right: 8px;
+}
+
+.plugin_widget_top_button {
+  position: absolute;
+  top: 5px;
+  right: 5px;
+}
+
+.plugin_widget_top_button a {
+  color: #6D29D9;
+  width: 20px;
+  height: 20px;
   display: flex;
-  justify-content: space-between;
+  align-items: center;
+  justify-content: center;
+  text-decoration: none;
+}
+
+.plugin_widget_top_button a:hover {
+  color: #936bd4;
 }
 
 .widget {
