@@ -593,10 +593,6 @@ mod_page_sidenav_ui <- function(id, language, i18n){
                   create_hover_card(ui = shiny.fluent::IconButton.shinyInput(ns("edit_code_add_file"), iconProps = list(iconName = "Add")), text = i18n$t("add_file")),
                   class = "small_icon_button"
                 ),
-                # div(
-                #   create_hover_card(ui = shiny.fluent::IconButton.shinyInput(ns("edit_code_add_folder"), iconProps = list(iconName = "FabricNewFolder")), text = i18n$t("add_folder")),
-                #   class = "small_icon_button"
-                # ),
                 div(
                   create_hover_card(ui = shiny.fluent::IconButton.shinyInput(ns("save_file_code"), iconProps = list(iconName = "Save")), text = i18n$t("save_current_file")),
                   class = "small_icon_button"
@@ -611,7 +607,6 @@ mod_page_sidenav_ui <- function(id, language, i18n){
                 )
               )
             ),
-            shinyjs::hidden(div(id = ns("edit_code_directory_browser_div"), uiOutput(ns("edit_code_directory_browser")))),
             shinyjs::hidden(div(id = ns("edit_code_files_browser_div"), uiOutput(ns("edit_code_files_browser"))))
           )
         )

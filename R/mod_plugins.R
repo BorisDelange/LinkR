@@ -363,7 +363,7 @@ mod_plugins_server <- function(id, r, d, m, language, i18n, debug, user_accesses
     if ("plugins_edit_code" %in% user_accesses){
       sapply(c(
         "edit_code_tabs_div", "edit_code_editors_div", "run_code_content_div", "edit_page_on_div", "reload_plugin_code_button",
-        "edit_code_buttons", "edit_code_directory_browser_div", "edit_code_files_browser_div"
+        "edit_code_buttons", "edit_code_files_browser_div"
         ), shinyjs::show)
       sapply(c("edit_code_forbidden_access", "run_code_forbidden_access"), shinyjs::hide)
     }
@@ -413,7 +413,6 @@ mod_plugins_server <- function(id, r, d, m, language, i18n, debug, user_accesses
       create_plugin_files(id = id, r = r, plugin_id = input$selected_element)
       
       # Reload files browser
-      output$edit_code_directory_browser <- renderUI("test")
       r$edit_plugin_code_reload_files_browser <- now()
       
       # Initiate plugin tabs and files, if not already loaded
@@ -481,12 +480,6 @@ mod_plugins_server <- function(id, r, d, m, language, i18n, debug, user_accesses
     
     observeEvent(r$edit_plugin_code_reload_files_browser, {
       if (debug) cat(paste0("\n", now(), " - mod_plugins - observer r$edit_plugin_code_reload_files_browser"))
-      
-      output$edit_code_directory_browser <- renderUI(div(
-        class = "directories-browser",
-        div(class = "directory-item", tags$i(class = "fa fa-folder")),
-        div(class = "directory-sep", " / ")
-      ))
       
       filenames_order <- c("ui.R", "server.R", "translations.csv")
       edit_plugin_code_files_list <- 
