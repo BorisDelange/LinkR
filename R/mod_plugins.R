@@ -1002,7 +1002,7 @@ mod_plugins_server <- function(id, r, d, m, language, i18n, debug, user_accesses
       
       # Update tabs
       r$edit_plugin_code_tabs <- r$edit_plugin_code_tabs %>% dplyr::mutate(filename = dplyr::case_when(id == file_id ~ new_name, TRUE ~ filename))
-      shinyjs::runjs(paste0("document.getElementById('", id, "-edit_code_tab_", file_id, "').childNodes[0].nodeValue = '", new_name, "';"))
+      r$edit_plugin_code_reload_files_tab <- now(format = "%Y-%m-%d %H:%M:%OS3")
       
       # Update files browser
       r$edit_plugin_code_files_list <- r$edit_plugin_code_files_list %>% dplyr::mutate(filename = dplyr::case_when(id == file_id ~ new_name, TRUE ~ filename))
