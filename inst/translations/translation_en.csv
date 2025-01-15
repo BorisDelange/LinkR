@@ -502,3 +502,4 @@ plugin_added,New plugin added
 error_update_remote_git_repo,Error updating remote git repo
 invalid_filename,Invalid file name
 invalid_file_extension,Invalid file extension
+project_files,Project files

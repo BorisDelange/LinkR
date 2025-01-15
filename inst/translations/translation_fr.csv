@@ -502,3 +502,4 @@ plugin_added,Nouveau plugin ajouté
 error_update_remote_git_repo,Erreur lors de la mise à jour du dépôt git distant
 invalid_filename,Nom du fichier non valide
 invalid_file_extension,Extension du fichier non valide
+project_files,Fichiers du projet

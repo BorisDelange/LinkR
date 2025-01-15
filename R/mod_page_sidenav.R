@@ -557,22 +557,6 @@ mod_page_sidenav_ui <- function(id, language, i18n){
     ) -> result
   }
   
-  # Project messages ----
-  
-  else if (id == "project_messages") {
-    div(
-      id = ns("sidenav"),
-      class = "sidenav",
-      div(
-        id = ns("large_sidenav")
-      ),
-      div(
-        id = ns("reduced_sidenav")
-      ),
-      hide_sidenav
-    ) -> result
-  }
-  
   # Plugins ----
   
   else if (id %in% c("plugins")){
@@ -713,14 +697,33 @@ mod_page_sidenav_ui <- function(id, language, i18n){
     ) -> result
   }
   
-  # Project console ----
+  # Project files ----
   
-  else if (id == "project_console") {
+  else if (id == "project_files") {
     div(
       id = ns("sidenav"),
       class = "sidenav",
       div(
-        id = ns("large_sidenav")
+        id = ns("large_sidenav"),
+        div(
+          div(
+            id = ns("edit_code_buttons"),
+            class = "sidenav_top",
+            div(
+              create_hover_card(ui = shiny.fluent::IconButton.shinyInput(ns("edit_code_add_file"), iconProps = list(iconName = "Add")), text = i18n$t("add_file")),
+              class = "small_icon_button"
+            ),
+            div(
+              create_hover_card(ui = shiny.fluent::IconButton.shinyInput(ns("save_file_code"), iconProps = list(iconName = "Save")), text = i18n$t("save_current_file")),
+              class = "small_icon_button"
+            ),
+            div(
+              create_hover_card(ui = shiny.fluent::IconButton.shinyInput(ns("run_code"), iconProps = list(iconName = "Play")), text = i18n$t("run_code")),
+              class = "small_icon_button"
+            )
+          ),
+          div(id = ns("files_browser_div"), uiOutput(ns("files_browser")))
+        )
       ),
       div(
         id = ns("reduced_sidenav")

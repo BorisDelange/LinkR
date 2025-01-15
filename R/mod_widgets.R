@@ -976,6 +976,7 @@ mod_widgets_server <- function(id, r, d, m, language, i18n, all_divs, debug, use
         
         # Change current project name
         m$selected_study <- input$selected_element
+        m$selected_project <- input$selected_element
         
         # Update selected dataset dropdown
         shiny.fluent::updateDropdown.shinyInput(

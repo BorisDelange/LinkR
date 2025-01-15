@@ -74,15 +74,14 @@ mod_page_header_ui <- function(id, language, i18n){
           shiny.fluent::CommandBarItem("", "Contact", href = shiny.router::route_link("data?type=patient_lvl"), title = i18n$t("patient_lvl_data")),
           shiny.fluent::CommandBarItem("", "People", href = shiny.router::route_link("data?type=aggregated"), title = i18n$t("aggregated_data")),
           shiny.fluent::CommandBarItem("", "AllApps", href = shiny.router::route_link("concepts"), title = i18n$t("concepts")),
-          # shiny.fluent::CommandBarItem("", "Code", href = shiny.router::route_link("project_console"), title = i18n$t("console")),
-          # shiny.fluent::CommandBarItem("", "Chat", href = shiny.router::route_link("project_messages"), title = i18n$t("messages")),
           shiny.fluent::CommandBarItem(
             "", "More",
             subMenuProps = list(items = list(
               list(
-                text = i18n$t("subsets"), iconProps = list(iconName = "People"), href = shiny.router::route_link("subsets"),
+                text = i18n$t("subsets"), iconProps = list(iconName = "MapLayers"), href = shiny.router::route_link("subsets"),
                 onClick = htmlwidgets::JS(paste0("item => {Shiny.setInputValue('", id, "-show_home', Math.random());}"))
-              )#,
+              ),
+              list(text = i18n$t("project_files"), iconProps = list(iconName = "Documentation"), href = shiny.router::route_link("project_files"))#,
               # list(text = i18n$t("tasks"), iconProps = list(iconName = "CheckList"), href = shiny.router::route_link("tasks"))
             )),
             title = i18n$t("other_pages")
@@ -186,7 +185,7 @@ mod_page_header_server <- function(id, r, d, m, language, i18n, debug){
     
     # Selected project
     
-    if (id %in% c("concepts", "data", "projects", "project_messages", "project_console", "subsets", "tasks")){
+    if (id %in% c("concepts", "data", "projects", "project_files", "subsets", "tasks")){
       
       observeEvent(m$selected_study, {
         if (debug) cat(paste0("\n", now(), " - mod_page_header (", id, ") - observer m$selected_study"))

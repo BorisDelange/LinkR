@@ -465,17 +465,6 @@ mod_projects_server <- function(id, r, d, m, language, i18n, debug, user_accesse
       }
     })
     
-    # We can load a project without loading data, and load data after
-    observeEvent(shiny.router::get_page(), {
-      if (debug) cat(paste0("\n", now(), " - mod_projects - observer shiny.router::get_page()"))
-      
-      # If data is not already loaded, load data
-      req(shiny.router::get_page() %in% c("subsets", "project_messages", "project_console", "tasks"))
-      
-      if (debug) cat(paste0("\n", now(), " - mod_projects - observer shiny.router::get_page()"))
-      r$load_project_trigger <- now()
-    })
-    
     # Reload data rows UI
     observeEvent(d$care_site, {
       if (debug) cat(paste0("\n", now(), " - mod_projects - observer d$person"))
