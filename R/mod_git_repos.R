@@ -188,8 +188,8 @@ mod_git_repos_ui <- function(id = character(), language = "en", languages = tibb
         # shinyjs::hidden(
         div(
           id = ns("widgets_div"),
-          div(shiny.fluent::SearchBox.shinyInput(ns("search_element")), style = "width:320px; margin:10px 0 0 10px;"),
-          uiOutput(ns("elements")),
+          div(shiny.fluent::SearchBox.shinyInput(ns("search_element")), style = "width: 280px; margin: 10px 0 15px 10px;"),
+          div(uiOutput(ns("elements")), style = "margin: 10px 0 0 10px;"),
           style = "height: 100%;"
         ),
         # ),
@@ -201,7 +201,7 @@ mod_git_repos_ui <- function(id = character(), language = "en", languages = tibb
             div(
               div(
                 uiOutput(ns("element_details_title")),
-                div(uiOutput(ns("element_details_ui")), style = "margin-top:10px;"),
+                div(uiOutput(ns("element_details_ui"))),
                 div(
                   uiOutput(ns("synchronize_git_buttons")),
                   class = "git_element_details_git_buttons"
