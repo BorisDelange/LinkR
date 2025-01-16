@@ -287,7 +287,7 @@ mod_projects_ui <- function(id, language, languages, i18n){
                     div(tableOutput(ns("dataset_care_sites_table")), class = "dataset_details_table", style = "margin: 50px 0 20px 0;")
                   )
                 ),
-                class = "widget", style = "height: calc(100% - 25px); overflow: auto;"
+                class = "widget", style = "height: 100%; overflow: auto;"
               ),
               class = "projects_dataset_right"
             ),

@@ -515,7 +515,7 @@ a.no-hover-effect:hover {
   border-color: #db2777;
 }
 
-.yellow-widget:hover {
+.vocabulary_widget:hover, .yellow-widget:hover {
   border-color: #ca8a04;
 }
 
@@ -555,28 +555,8 @@ a.no-hover-effect:hover {
   border: solid 2px #d97706;
 }
 
-.selected_pink-widget {
-  border: solid 2px #db2777;
-}
-
-.selected_yellow-widget {
+.selected_vocabulary_widget {
   border: solid 2px #ca8a04;
-}
-
-.selected_cyan-widget {
-  border: solid 2px #0891b2;
-}
-
-.selected_teal-widget {
-  border: solid 2px #0d9488;
-}
-
-.selected_gray-widget {
-  border: solid 2px #4b5563;
-}
-
-.selected_rose-widget {
-  border: solid 2px #e11d48;
 }
 
 .element_widget_icon {
@@ -622,7 +602,7 @@ a.no-hover-effect:hover {
   background: #fce7f3;
 }
 
-.yellow-widget-icon {
+.vocabulary_widget_icon, .yellow-widget-icon {
   color: #ca8a04;
   background: #fef9c3;
 }
@@ -1558,26 +1538,6 @@ button.ms-UpButton, button.ms-DownButton {
   width: 50%;
 }
 
-/* ---------------------- */
-/* PROJECTS PAGE          */
-/* ---------------------- */
-
-.projects_summary_container, .projects_dataset_container {
-  display: flex;
-  justify-content: space-between;
-  height: calc(100% - 50px);
-}
-
-.projects_summary_left, .projects_dataset_left {
-  display: flex;
-  flex-direction: column;
-  width: 50%;
-}
-
-.projects_summary_right, .projects_dataset_right {
-  width: 50%;
-}
-
 /* --------------------------- */
 /* USER SETTINGS PAGE          */
 /* --------------------------- */
@@ -1595,7 +1555,7 @@ button.ms-UpButton, button.ms-DownButton {
 .subsets_summary_container {
   display: flex;
   justify-content: space-between;
-  height: calc(100% - 50px);
+  height: 100%;
 }
 
 .subsets_summary_left {
@@ -1606,7 +1566,7 @@ button.ms-UpButton, button.ms-DownButton {
 
 .subsets_summary_right {
   width: 50%;
-  height: calc(100% - 16px)
+  height: 100%;
 }
 
 
@@ -1617,7 +1577,7 @@ button.ms-UpButton, button.ms-DownButton {
 .datasets_summary_container, .datasets_share_container {
   display: flex;
   justify-content: space-between;
-  height: calc(100% - 50px);
+  height: 100%;
 }
 
 .datasets_summary_left, .datasets_share_left {
@@ -1628,7 +1588,7 @@ button.ms-UpButton, button.ms-DownButton {
 
 .datasets_summary_right, .datasets_share_right {
   width: 50%;
-  height: calc(100% - 16px)
+  height: 100%;
 }
 
 /* -------------------------- */
@@ -1638,7 +1598,7 @@ button.ms-UpButton, button.ms-DownButton {
 .data_cleaning_summary_container, .data_cleaning_share_container {
   display: flex;
   justify-content: space-between;
-  height: calc(100% - 50px);
+  height: 100%;
 }
 
 .data_cleaning_summary_left, .data_cleaning_share_left {
@@ -1649,7 +1609,7 @@ button.ms-UpButton, button.ms-DownButton {
 
 .data_cleaning_summary_right, .data_cleaning_share_right {
   width: 50%;
-  height: calc(100% - 16px)
+  height: 100%;
 }
 
 /* ---------------------- */
@@ -1681,7 +1641,7 @@ button.ms-UpButton, button.ms-DownButton {
 .vocabularies_summary_container, .vocabularies_concepts_container {
   display: flex;
   justify-content: space-between;
-  height: calc(100% - 50px);
+  height: 100%;
 }
 
 .vocabularies_summary_left, .vocabularies_concepts {
@@ -1692,7 +1652,7 @@ button.ms-UpButton, button.ms-DownButton {
 
 .vocabularies_summary_right {
   width: 50%;
-  height: calc(100% - 16px)
+  height: 100%;
 }
 
 /* ------------------- */
@@ -1724,10 +1684,16 @@ button.ms-UpButton, button.ms-DownButton {
 .projects_summary_container, .projects_share_container {
   display: flex;
   justify-content: space-between;
-  height: calc(100% - 50px);
+  height: 100%;
 }
 
-.projects_summary_left, .projects_share_left {
+.projects_dataset_container {
+  display: flex;
+  justify-content: space-between;
+  height: calc(100% - 35px);
+}
+
+.projects_summary_left, .projects_share_left, .projects_dataset_left {
   display: flex;
   flex-direction: column;
   width: 50%;
@@ -1742,7 +1708,12 @@ button.ms-UpButton, button.ms-DownButton {
 
 .projects_summary_right, .projects_share_right {
   width: 50%;
-  height: calc(100% - 16px)
+  height: calc(100% - 16px);
+}
+
+.projects_dataset_right {
+  width: 50%;
+  height: calc(100% - 25px);
 }
 
 .project_widget_buttons {

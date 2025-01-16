@@ -83,7 +83,7 @@ create_element_ui <- function(ns, page_id, element_id, single_id, element_name, 
     "data_cleaning" = "fa-broom",
     "plugin" = "fa-puzzle-piece",
     "subset" = "fa-layer-group",
-    "vocabulary" = 
+    "vocabulary" = "fa-language"
   )
   
   max_length <- 75

@@ -75,22 +75,22 @@ mod_vocabularies_ui <- function(id, language, languages, i18n, code_hotkeys, dro
                   style = "display: flex; gap: 5px;"
                 ),
                 DT::DTOutput(ns("primary_concepts_dt")),
-                class = "widget", style = "height: 50%; padding: 10px 15px; overflow: auto;"
+                class = "widget", style = "height: 50%; padding: 10px 15px; overflow: auto; box-sizing: border-box;"
               ),
               div(
                 DT::DTOutput(ns("secondary_concepts_dt")),
-                class = "widget", style = "height: 50%;"
+                class = "widget", style = "height: 50%; box-sizing: border-box;"
               ),
               class = "vocabularies_concepts"
             ),
             div(
               div(
                 uiOutput(ns("primary_concepts_details_ui")),
-                class = "widget", style = "height: 50%;"
+                class = "widget", style = "height: 50%; box-sizing: border-box;"
               ),
               div(
                 uiOutput(ns("secondary_concepts_details_ui")),
-                class = "widget", style = "height: 50%;"
+                class = "widget", style = "height: 50%; box-sizing: border-box;"
               ),
               class = "vocabularies_concepts"
             ),
