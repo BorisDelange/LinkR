@@ -710,7 +710,7 @@ mod_page_sidenav_ui <- function(id, language, i18n){
             id = ns("edit_code_buttons"),
             class = "sidenav_top",
             div(
-              create_hover_card(ui = shiny.fluent::IconButton.shinyInput(ns("edit_code_add_file"), iconProps = list(iconName = "Add")), text = i18n$t("add_file")),
+              create_hover_card(ui = shiny.fluent::IconButton.shinyInput(ns("add_file"), iconProps = list(iconName = "Add")), text = i18n$t("add_file")),
               class = "small_icon_button"
             ),
             div(

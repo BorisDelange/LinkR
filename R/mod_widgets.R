@@ -803,10 +803,7 @@ mod_widgets_server <- function(id, r, d, m, language, i18n, all_divs, debug, use
         
         # Code table
         
-        # For plugins, add code in database with create_plugin_files
-        if (id == "plugins") create_plugin_files(id = id, r = r, plugin_id = new_data$id)
-        
-        else if (id == "datasets"){
+        if (id == "datasets"){
           new_code <- tibble::tibble(
             id = get_last_row(r$db, "code") + 1, category = sql_category, link_id = new_data$id,
             code = "", creator_id = r$user_id, datetime = now(), deleted = FALSE
@@ -1680,11 +1677,8 @@ mod_widgets_server <- function(id, r, d, m, language, i18n, all_divs, debug, use
         element_options <- DBI::dbGetQuery(r$db, sql)
         element_dir <- paste0(r$app_folder, "/", id, "/", input$git_repo_element_unique_id)
         
-        # Create files if don't exist
-        if (id == "plugins") create_plugin_files(id = id, r = r, plugin_id = input$selected_element)
-        
         # To download a project, we have to copy db files and plugins files
-        else if (id == "projects"){
+        if (id == "projects"){
           element_wide <- r[[wide_var]] %>% dplyr::filter(id == input$selected_element)
           project_dir <- create_project_files(id, r, m, single_id, input$selected_element, element_wide, element_options, element_dir)
         }
@@ -1810,11 +1804,8 @@ mod_widgets_server <- function(id, r, d, m, language, i18n, all_divs, debug, use
           sql <- glue::glue_sql("SELECT * FROM options WHERE category = {sql_category} AND link_id = {input$selected_element}", .con = con)
           element_options <- DBI::dbGetQuery(r$db, sql)
           
-          # Create files if don't exist
-          if (id == "plugins") create_plugin_files(id = id, r = r, plugin_id = input$selected_element)
-          
           # To download a project, we have to copy db files and plugins files
-          else if (id == "projects"){
+          if (id == "projects"){
             element_wide <- r[[wide_var]] %>% dplyr::filter(id == input$selected_element)
             element_dir <- create_project_files(id, r, m, single_id, input$selected_element, element_wide, element_options, element_dir)
           }

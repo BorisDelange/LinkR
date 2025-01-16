@@ -2392,9 +2392,6 @@ mod_data_server <- function(id, r, d, m, language, i18n, debug, user_accesses){
         # Load all plugins
         sql <- glue::glue_sql("SELECT DISTINCT(plugin_id) FROM widgets WHERE id IN ({widgets$id*})", .con = r$db)
         plugin_ids <- DBI::dbGetQuery(r$db, sql) %>% dplyr::pull()
-        
-        # For each plugin, create plugins files if don't exist
-        if (length(plugin_ids) > 0) for (plugin_id in plugin_ids) create_plugin_files(id = id, r = r, plugin_id = plugin_id)
       }
     }
     

@@ -267,7 +267,7 @@ app_server <- function(
       else {
         if (page == "users") args <- list(page, r, d, m, language, i18n, debug, users_accesses_toggles_options, user_accesses)
         else if (page == "app_db") args <- list(page, r, d, m, language, i18n, db_col_types, app_folder, debug, user_accesses, user_settings)
-        else if (page %in% c("console", "data_cleaning", "datasets", "plugins", "projects", "subsets", "user_settings", "vocabularies")) args <- list(page, r, d, m, language, i18n, debug, user_accesses, user_settings)
+        else if (page %in% c("console", "data_cleaning", "datasets", "plugins", "projects", "project_files", "subsets", "user_settings", "vocabularies")) args <- list(page, r, d, m, language, i18n, debug, user_accesses, user_settings)
         else args <- list(page, r, d, m, language, i18n, debug, user_accesses)
         do.call(paste0("mod_", page, "_server"), args)
 

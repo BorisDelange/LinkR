@@ -347,9 +347,6 @@ create_project_files <- function(id, r, m, single_id, element_id, element_wide, 
   data$plugins <- DBI::dbGetQuery(r$db, sql)
   if (nrow(data$plugins) > 0){
     
-    # Create plugins files
-    for (plugin_id in data$plugins$id) create_plugin_files(id = id, r = r, plugin_id = plugin_id)
-    
     if (nrow(corresponding_ids$plugins) > 0) last_row <- max(corresponding_ids$plugins$new_id)
     else last_row <- 0L
     corresponding_ids$plugins <- corresponding_ids$plugins %>% dplyr::bind_rows(
