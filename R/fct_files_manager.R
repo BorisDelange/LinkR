@@ -186,7 +186,7 @@ files_browser_delete_file <- function(id, i18n, output, input_prefix, r, r_prefi
   if (reload_tabs) shinyjs::runjs(paste0("Shiny.setInputValue('", id, "-", input_prefix, "reload_files_tab', '", now(format = "%Y-%m-%d %H:%M:%OS3"), "');"))
   
   # Hide all editors
-  sapply(paste0("edit_code_editor_div_", r[[paste0(r_prefix, "_editors")]]$id), shinyjs::hide)
+  sapply(paste0(input_prefix, "editor_div_", r[[paste0(r_prefix, "_editors")]]$id), shinyjs::hide)
   
   # Show editor of last file
   if (id == "plugins") first_file_id <- r[[paste0(r_prefix, "_tabs")]] %>% dplyr::filter(plugin_id == element_id)
@@ -291,10 +291,13 @@ files_browser_open_file <- function(id, input_prefix, r, r_prefix, folder, eleme
   if (id == "plugins") id_col <- "plugin_id"
   else if (id == "project_files") id_col <- "project_id"
   
+  if (nrow(r[[paste0(r_prefix, "_tabs")]]) > 0) new_position <- max(r[[paste0(r_prefix, "_tabs")]] %>% dplyr::filter(!!rlang::sym(id_col) == element_id) %>% dplyr::pull(position)) + 1
+  else new_position <- 1
+  
   file_row <- 
     r[[paste0(r_prefix, "_files_list")]] %>% 
     dplyr::filter(id == file_id) %>%
-    dplyr::mutate(position = max(r[[paste0(r_prefix, "_tabs")]] %>% dplyr::filter(!!rlang::sym(id_col) == element_id) %>% dplyr::pull(position)) + 1)
+    dplyr::mutate(position = new_position)
   file_ext <- sub(".*\\.", "", tolower(file_row$filename))
   ace_mode <- switch(file_ext, "r" = "r", "py" = "python", "")
   
@@ -319,7 +322,7 @@ files_browser_open_file <- function(id, input_prefix, r, r_prefix, folder, eleme
     
     # Create editor
     insertUI(selector = paste0("#", ns(paste0(input_prefix, "editors_div"))), where = "beforeEnd", ui = div(
-      id = ns(paste0(input_prefix, "ditor_div_", file_id)),
+      id = ns(paste0(input_prefix, "editor_div_", file_id)),
       shinyAce::aceEditor(
         ns(paste0(input_prefix, "editor_", file_id)), value = file_code, mode = ace_mode,
         hotkeys = code_hotkeys,
@@ -333,4 +336,103 @@ files_browser_open_file <- function(id, input_prefix, r, r_prefix, folder, eleme
     shinyjs::runjs(paste0("Shiny.setInputValue('", id, "-add_code_editor_hotkeys', ", file_id, ");"))
   }
   else shinyjs::delay(50, shinyjs::show(paste0(input_prefix, "editor_div_", file_id)))
+}
+
+files_browser_change_tab <- function(id, input_prefix, r, r_prefix, file_id){
+  
+  shinyjs::runjs(paste0("Shiny.setInputValue('", id, "-", input_prefix, "selected_file', ", file_id, ");"))
+  
+  # Set current file tab active
+  shinyjs::removeClass(selector = paste0("#", id, "-", input_prefix, "tabs .tab"), class = "active")
+  shinyjs::addClass(selector = paste0("#", id, "-", input_prefix, "tab_", file_id), class = "active")
+  
+  # Show current file editor
+  shinyjs::delay(50, shinyjs::show(paste0(input_prefix, "editor_div_", file_id)))
+  
+  # Hide other editors
+  hide_ids <- setdiff(r[[paste0(r_prefix, "_tabs")]]$id, file_id)
+  sapply(hide_ids, function(file_id) shinyjs::hide(paste0(input_prefix, "editor_div_", file_id)))
+}
+
+files_browser_close_file <- function(id, input_prefix, r, r_prefix, element_id, file_id){
+  
+  if (id == "plugins") id_col <- "plugin_id"
+  else if (id == "project_files") id_col <- "project_id"
+  
+  # Hide all editors
+  sapply(paste0(input_prefix, "editor_div_", r[[paste0(r_prefix, "_editors")]]$id), shinyjs::hide)
+  
+  r[[paste0(r_prefix, "_tabs")]] <- r[[paste0(r_prefix, "_tabs")]] %>% dplyr::filter(id %not_in% file_id)
+  
+  # Show editor of first file
+  first_file_id <-
+    r[[paste0(r_prefix, "_tabs")]] %>%
+    dplyr::filter(!rlang::sym(id_col) == element_id) %>%
+    dplyr::slice(1) %>%
+    dplyr::pull(id)
+  
+  shinyjs::runjs(paste0("Shiny.setInputValue('", id, "-", input_prefix, "selected_file', ", first_file_id, ");"))
+  if (length(first_file_id) > 0) shinyjs::delay(50, shinyjs::show(paste0(input_prefix, "editor_div_", first_file_id)))
+  
+  shinyjs::runjs(paste0("Shiny.setInputValue('", id, "-", input_prefix, "reload_files_tab', '", now(format = "%Y-%m-%d %H:%M:%OS3"), "');"))
+}
+
+files_browser_save_file <- function(id, i18n, output, input_prefix, r, r_prefix, folder, element_id, file_id, new_code){
+  
+  ns <- NS(id)
+  
+  if(length(file_id) > 0){
+  
+    file <- r[[paste0(r_prefix, "_files_list")]] %>% dplyr::filter(id == file_id)
+    
+    # Update file
+    writeLines(new_code, paste0(folder, "/", file$filename))
+    
+    # Update update_datetime
+    if (id == "plugins") sql_table <- "plugins"
+    else if (id == "project_files") sql_table <- "studies"
+    sql_send_statement(r$db, glue::glue_sql("UPDATE {`sql_table`} SET update_datetime = {now()} WHERE id = {element_id}", .con = r$db))
+    
+    show_message_bar(output, "modif_saved", "success", i18n = i18n, ns = ns)
+  }
+}
+
+files_browser_edit_filename <- function(id, i18n, output, input_prefix, r, r_prefix, folder, element_id, file_id, new_name){
+  
+  ns <- NS(id)
+  
+  old_name <- r[[paste0(r_prefix, "_files_list")]] %>% dplyr::filter(id == file_id) %>% dplyr::pull(filename)
+  
+  # Check extension
+  check_extension <- grepl("\\.(r|py|csv|css|js)$", new_name, ignore.case = TRUE)
+  if (!check_extension) show_message_bar(output, "invalid_file_extension", "severeWarning", i18n = i18n, ns = ns)
+  req(check_extension)
+  
+  # Check name (no space, no special character and not empty)
+  if (new_name == "") check_special_char <- FALSE
+  else check_special_char <- grepl("^[\\w\\.]+\\.(r|py|csv|css|js)$", new_name, ignore.case = TRUE, perl = TRUE)
+  if (!check_special_char) show_message_bar(output, "invalid_filename", "severeWarning", i18n = i18n, ns = ns)
+  req(check_special_char)
+  
+  # Check if name is already used
+  if (new_name == old_name) check_used_name <- TRUE
+  else check_used_name <- !file.exists(paste0(folder, "/", new_name))
+  if (!check_used_name) show_message_bar(output, "name_already_used", "severeWarning", i18n = i18n, ns = ns)
+  req(check_used_name)
+  
+  # Update file
+  file.rename(paste0(folder, "/", old_name), paste0(folder, "/", new_name))
+  
+  # Update tabs
+  r[[paste0(r_prefix, "_tabs")]] <- r[[paste0(r_prefix, "_tabs")]] %>% dplyr::mutate(filename = dplyr::case_when(id == file_id ~ new_name, TRUE ~ filename))
+  shinyjs::runjs(paste0("Shiny.setInputValue('", id, "-", input_prefix, "reload_files_tab', '", now(format = "%Y-%m-%d %H:%M:%OS3"), "');"))
+  
+  # Update files browser
+  r[[paste0(r_prefix, "_files_list")]] <- r[[paste0(r_prefix, "_files_list")]] %>% dplyr::mutate(filename = dplyr::case_when(id == file_id ~ new_name, TRUE ~ filename))
+  shinyjs::runjs(paste0("Shiny.setInputValue('", id, "-", input_prefix, "reload_files_browser', '", now(format = "%Y-%m-%d %H:%M:%OS3"), "');"))
+  
+  show_message_bar(output,  "modif_saved", "success", i18n = i18n, ns = ns)
+  
+  shinyjs::delay(50, sapply(c(paste0(input_prefix, "filename_div_", file_id), paste0(input_prefix, "edit_filename_button_div_", file_id)), shinyjs::show))
+  sapply(c(paste0(input_prefix, "edit_filename_textfield_div_", file_id), paste0(input_prefix, "save_filename_button_div_", file_id)), shinyjs::hide)
 }

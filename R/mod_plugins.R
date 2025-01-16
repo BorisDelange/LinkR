@@ -541,19 +541,7 @@ mod_plugins_server <- function(id, r, d, m, language, i18n, debug, user_accesses
     observeEvent(input$edit_code_selected_tab, {
       if (debug) cat(paste0("\n", now(), " - mod_plugins - observer input$edit_code_selected_tab"))
       
-      selected_file_id <- input$edit_code_selected_tab
-      shinyjs::runjs(paste0("Shiny.setInputValue('", id, "-edit_code_selected_file', ", selected_file_id, ");"))
-      
-      # Set current file tab active
-      shinyjs::removeClass(selector = paste0("#", id, "-edit_code_tabs .tab"), class = "active")
-      shinyjs::addClass(selector = paste0("#", id, "-edit_code_tab_", selected_file_id), class = "active")
-      
-      # Show current file editor
-      shinyjs::delay(50, shinyjs::show(paste0("edit_code_editor_div_", selected_file_id)))
-      
-      # Hide other editors
-      hide_ids <- setdiff(r$edit_plugin_code_tabs$id, selected_file_id)
-      sapply(hide_ids, function(file_id) shinyjs::hide(paste0("edit_code_editor_div_", file_id)))
+      files_browser_change_tab(id = id, input_prefix = "edit_code_", r = r, r_prefix = "edit_plugin_code", file_id = input$edit_code_selected_tab)
     })
     
     ## Open a file ----
@@ -574,23 +562,10 @@ mod_plugins_server <- function(id, r, d, m, language, i18n, debug, user_accesses
     observeEvent(input$edit_code_close_selected_tab_trigger, {
       if (debug) cat(paste0("\n", now(), " - mod_plugins - observer input$edit_code_close_selected_tab_trigger"))
       
-      file_id <- input$edit_code_close_selected_tab
-      
-      # Hide all editors
-      sapply(paste0("edit_code_editor_div_", r$edit_plugin_code_editors$id), shinyjs::hide)
-      
-      r$edit_plugin_code_tabs <- r$edit_plugin_code_tabs %>% dplyr::filter(id %not_in% file_id)
-      
-      # Show editor of first file
-      first_file_id <-
-        r$edit_plugin_code_tabs %>%
-        dplyr::filter(plugin_id == input$selected_element) %>%
-        dplyr::slice(1) %>%
-        dplyr::pull(id)
-      shinyjs::runjs(paste0("Shiny.setInputValue('", id, "-edit_code_selected_file', ", first_file_id, ");"))
-      if (length(first_file_id) > 0) shinyjs::delay(50, shinyjs::show(paste0("edit_code_editor_div_", first_file_id)))
-      
-      shinyjs::runjs(paste0("Shiny.setInputValue('", id, "-edit_code_reload_files_tab', '", now(format = "%Y-%m-%d %H:%M:%OS3"), "');"))
+      files_browser_close_file(
+        id = id, input_prefix = "edit_code_", r = r, r_prefix = "edit_plugin_code",
+        element_id = input$selected_element, file_id = input$edit_code_close_selected_tab
+      )
     })
     
     ## Create a file ----
@@ -642,26 +617,13 @@ mod_plugins_server <- function(id, r, d, m, language, i18n, debug, user_accesses
       
       req("plugins_edit_code" %in% user_accesses)
       
-      req(length(input$edit_code_selected_file) > 0)
-      
       file <- r$edit_plugin_code_files_list %>% dplyr::filter(id == input$edit_code_selected_file)
-      new_code <- input[[paste0("edit_code_editor_", file$id)]]
       
-      # Update file
-      writeLines(new_code, paste0(input$selected_plugin_folder, "/", file$filename))
-      
-      # Update database
-      sql <- glue::glue_sql("UPDATE code SET code = {new_code} WHERE category = 'plugin' AND link_id = {file$id}", .con = r$db)
-      sql_send_statement(r$db, sql)
-      
-      # Update update_datetime
-      plugin_id <- input$selected_element
-      sql_send_statement(r$db, glue::glue_sql("UPDATE plugins SET update_datetime = {now()} WHERE id = {plugin_id}", .con = r$db))
-      
-      # Reload plugins vars
-      shinyjs::runjs(paste0("Shiny.setInputValue('", id, "-reload_elements_var', Math.random());"))
-      
-      show_message_bar(output, "modif_saved", "success", i18n = i18n, ns = ns)
+      files_browser_save_file(
+        id = id, i18n = i18n, output = output, input_prefix = "edit_code_", r = r, r_prefix = "edit_plugin_code",
+        folder = input$selected_plugin_folder, element_id = input$selected_element, file_id = file$id,
+        new_code = input[[paste0("edit_code_editor_", file$id)]]
+      )
     })
     
     ## Rename a file ----
@@ -719,53 +681,13 @@ mod_plugins_server <- function(id, r, d, m, language, i18n, debug, user_accesses
       
       file_id <- input$edit_code_save_filename
       textfield_id <- paste0("edit_code_edit_filename_textfield_", file_id)
-      
-      old_name <- r$edit_plugin_code_files_list %>% dplyr::filter(id == file_id) %>% dplyr::pull(filename)
       new_name <- input[[textfield_id]]
       
-      # Check extension
-      check_extension <- grepl("\\.(r|py|csv|css|js)$", new_name, ignore.case = TRUE)
-      if (!check_extension) show_message_bar(output, "invalid_file_extension", "severeWarning", i18n = i18n, ns = ns)
-      req(check_extension)
-      
-      # Check name (no space, no special character and not empty)
-      if (new_name == "") check_special_char <- FALSE
-      else check_special_char <- grepl("^[\\w\\.]+\\.(r|py|csv|css|js)$", new_name, ignore.case = TRUE, perl = TRUE)
-      if (!check_special_char) show_message_bar(output, "invalid_filename", "severeWarning", i18n = i18n, ns = ns)
-      req(check_special_char)
-      
-      # Check if name is already used
-      if (new_name == old_name) check_used_name <- TRUE
-      else {
-        check_used_name <- !file.exists(paste0(input$selected_plugin_folder, "/", new_name))
-        if (!check_used_name) {
-          sql <- glue::glue_sql("SELECT * FROM options WHERE category = 'plugin_code' AND name = 'filename' AND value = {new_name}", .con = r$db)
-          used_name <- DBI::dbGetQuery(r$db, sql)
-          check_used_name <- !nrow(used_name) > 0
-        }
-      }
-      if (!check_used_name) show_message_bar(output, "name_already_used", "severeWarning", i18n = i18n, ns = ns)
-      req(check_used_name)
-      
-      # Update file
-      file.rename(paste0(input$selected_plugin_folder, "/", old_name), paste0(input$selected_plugin_folder, "/", new_name))
-      
-      # Update database
-      sql <- glue::glue_sql("UPDATE options SET value = {new_name} WHERE id = {file_id}", .con = r$db)
-      sql_send_statement(r$db, sql)
-      
-      # Update tabs
-      r$edit_plugin_code_tabs <- r$edit_plugin_code_tabs %>% dplyr::mutate(filename = dplyr::case_when(id == file_id ~ new_name, TRUE ~ filename))
-      shinyjs::runjs(paste0("Shiny.setInputValue('", id, "-edit_code_reload_files_tab', '", now(format = "%Y-%m-%d %H:%M:%OS3"), "');"))
-      
-      # Update files browser
-      r$edit_plugin_code_files_list <- r$edit_plugin_code_files_list %>% dplyr::mutate(filename = dplyr::case_when(id == file_id ~ new_name, TRUE ~ filename))
-      shinyjs::runjs(paste0("Shiny.setInputValue('", id, "-edit_code_reload_files_browser', '", now(format = "%Y-%m-%d %H:%M:%OS3"), "');"))
-      
-      show_message_bar(output,  "modif_saved", "success", i18n = i18n, ns = ns)
-      
-      shinyjs::delay(50, sapply(c(paste0("edit_code_filename_div_", file_id), paste0("edit_code_edit_filename_button_div_", file_id)), shinyjs::show))
-      sapply(c(paste0("edit_code_edit_filename_textfield_div_", file_id), paste0("edit_code_save_filename_button_div_", file_id)), shinyjs::hide)
+      files_browser_edit_filename(
+        id = id, i18n = i18n, output = output, input_prefix = "edit_code_", r = r, r_prefix = "edit_plugin_code",
+        folder = input$selected_plugin_folder, element_id = input$selected_element, file_id = file_id,
+        new_name = new_name
+      )
     })
     
     ## Delete a file ----

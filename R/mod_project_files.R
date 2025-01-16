@@ -13,8 +13,6 @@ mod_project_files_ui <- function(id, language, languages, i18n){
           style = "display: inline-block; margin-top: 15px;"
         )
       ),
-      # shinyjs::hidden(div(id = ns("tabs_div"), uiOutput(ns("edit_code_tabs_ui")))),
-      # shinyjs::hidden(div(id = ns("editors_div"), style = "height: calc(100% - 45px);")),
       div(id = ns("tabs_div"), uiOutput(ns("tabs_ui"))),
       div(id = ns("editors_div"), style = "height: calc(100% - 45px);"),
       style = "height: 100%;"
@@ -50,6 +48,7 @@ mod_project_files_server <- function(id, r, d, m, language, i18n, debug, user_ac
     r$project_files_list <- tibble::tibble(id = integer(), project_id = integer(), filename = character())
     r$project_tabs <- tibble::tibble(id = integer(), project_id = integer(), filename = character(), position = integer())
     r$project_deleted_files_id <- c()
+    r$project_editors <- tibble::tibble(id = integer(), project_id = integer(), filename = character())
     
     code_hotkeys <- list(
       save = list(win = "CTRL-S", mac = "CTRL-S|CMD-S"),
@@ -132,6 +131,12 @@ mod_project_files_server <- function(id, r, d, m, language, i18n, debug, user_ac
     
     # Change file tab ----
     
+    observeEvent(input$selected_tab, {
+      if (debug) cat(paste0("\n", now(), " - mod_project_files - observer input$selected_tab"))
+      
+      files_browser_change_tab(id = id, input_prefix = "", r = r, r_prefix = "project", file_id = input$selected_tab)
+    })
+    
     # Open a file ----
     
     observeEvent(input$selected_file, {
@@ -147,6 +152,15 @@ mod_project_files_server <- function(id, r, d, m, language, i18n, debug, user_ac
     
     # Close a file ----
     
+    observeEvent(input$close_selected_tab_trigger, {
+      if (debug) cat(paste0("\n", now(), " - mod_project_files - observer input$close_selected_tab_trigger"))
+      
+      files_browser_close_file(
+        id = id, input_prefix = "", r = r, r_prefix = "project",
+        element_id = m$selected_project, file_id = input$close_selected_tab
+      )
+    })
+    
     # Create a file ----
     
     observeEvent(input$add_file, {
@@ -161,10 +175,117 @@ mod_project_files_server <- function(id, r, d, m, language, i18n, debug, user_ac
     })
     
     # Editor hotkeys ----
+    observeEvent(input$add_code_editor_hotkeys, {
+      if (debug) cat(paste0("\n", now(), " - mod_project_files - observer input$add_code_editor_hotkeys"))
+      
+      file_id <- input$add_code_editor_hotkeys
+      editor_id <- paste0("editor_", file_id)
+      
+      observeEvent(input[[paste0(editor_id, "_run_all")]], {
+        if (debug) cat(paste0("\n", now(), " - mod_project_files - observer input$editor..run_all"))
+        r$run_project_code <- now()
+      })
+      
+      observeEvent(input[[paste0(editor_id, "_run_selection")]], {
+        if (debug) cat(paste0("\n", now(), " - mod_project_files - observer input$editor..run_selection"))
+        r$run_project_code <- now()
+      })
+      
+      observeEvent(input[[paste0(editor_id, "_comment")]], {
+        if (debug) cat(paste0("\n", now(), " - mod_project_files - observer input$editor..comment"))
+        
+        toggle_comments(id = id, input_id = editor_id, code = input[[editor_id]], selection = input[[paste0(editor_id, "_comment")]]$range, session = session)
+      })
+      
+      observeEvent(input[[paste0(editor_id, "_save")]], {
+        if (debug) cat(paste0("\n", now(), " - mod_project_files - observer input$edit_code_editor..save"))
+        shinyjs::runjs(paste0("Shiny.setInputValue('", id, "-save_file_code', Math.random());"))
+      })
+    })
     
     # Save updates ----
     
+    observeEvent(input$save_file_code, {
+      if (debug) cat(paste0("\n", now(), " - mod_plugins - observer input$save_file_code"))
+      
+      # req("plugins_edit_code" %in% user_accesses)
+      
+      file <- r$project_files_list %>% dplyr::filter(id == input$selected_file)
+      
+      files_browser_save_file(
+        id = id, i18n = i18n, output = output, input_prefix = "", r = r, r_prefix = "project",
+        folder = input$selected_project_folder, element_id = m$selected_project, file_id = file$id,
+        new_code = input[[paste0("editor_", file$id)]]
+      )
+    })
+    
     # Rename a file ----
+    
+    # Show textfield
+    
+    observeEvent(input$edit_filename_trigger, {
+      if (debug) cat(paste0("\n", now(), " - mod_project_files - observer input$edit_filename_trigger"))
+      
+      file_id <- input$edit_filename
+      file_name <- r$project_files_list %>% dplyr::filter(id == file_id) %>% dplyr::pull(filename)
+      shiny.fluent::updateTextField.shinyInput(session, paste0("edit_filename_textfield_", file_id), value = file_name)
+      
+      shinyjs::delay(
+        50, 
+        sapply(c(
+          paste0("edit_filename_textfield_div_", file_id),
+          paste0("save_filename_button_div_", file_id),
+          paste0("cancel_rename_button_div_", file_id)),
+          shinyjs::show
+        )
+      )
+      sapply(c(
+        paste0("filename_div_", file_id),
+        paste0("delete_file_button_div_", file_id),
+        paste0("edit_filename_button_div_", file_id)),
+        shinyjs::hide
+      )
+    })
+    
+    # Cancel rename
+    
+    observeEvent(input$cancel_rename_trigger, {
+      if (debug) cat(paste0("\n", now(), " - mod_project_files - observer input$cancel_rename_trigger"))
+      
+      file_id <- input$edit_filename
+      
+      shinyjs::delay(
+        50, 
+        sapply(c(
+          paste0("edit_filename_textfield_div_", file_id),
+          paste0("save_filename_button_div_", file_id),
+          paste0("cancel_rename_button_div_", file_id)),
+          shinyjs::hide
+        )
+      )
+      sapply(c(
+        paste0("filename_div_", file_id),
+        paste0("delete_file_button_div_", file_id),
+        paste0("edit_filename_button_div_", file_id)),
+        shinyjs::show
+      )
+    })
+    
+    # Save new name
+    
+    observeEvent(input$save_filename_trigger, {
+      if (debug) cat(paste0("\n", now(), " - mod_plugins - observer input$save_filename_trigger"))
+      
+      file_id <- input$save_filename
+      textfield_id <- paste0("edit_filename_textfield_", file_id)
+      new_name <- input[[textfield_id]]
+      
+      files_browser_edit_filename(
+        id = id, i18n = i18n, output = output, input_prefix = "", r = r, r_prefix = "project",
+        folder = input$selected_project_folder, element_id = m$selected_project, file_id = file_id,
+        new_name = new_name
+      )
+    })
     
     # Delete a file ----
     
@@ -183,12 +304,14 @@ mod_project_files_server <- function(id, r, d, m, language, i18n, debug, user_ac
       
       # req("plugins_edit_code" %in% user_accesses)
       
-      # files_browser_delete_file(
-      #   id = id, i18n = i18n, output = output, input_prefix = "", r = r, r_prefix = "project",
-      #   folder = input$selected_project_folder, element_id = input$selected_element, file_id = input$delete_file
-      # )
+      files_browser_delete_file(
+        id = id, i18n = i18n, output = output, input_prefix = "", r = r, r_prefix = "project",
+        folder = input$selected_project_folder, element_id = m$selected_project, file_id = input$delete_file
+      )
     })
     
     # Run code ----
+    
+    
   })
 }

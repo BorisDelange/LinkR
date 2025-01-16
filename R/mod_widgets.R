@@ -1222,7 +1222,7 @@ mod_widgets_server <- function(id, r, d, m, language, i18n, all_divs, debug, use
       }
       
       # Change update datetime
-      sql <- glue::glue_sql("UPDATE {sql_table} SET update_datetime = {now()} WHERE id = {input$selected_element}", .con = r$db)
+      sql <- glue::glue_sql("UPDATE {`sql_table`} SET update_datetime = {now()} WHERE id = {input$selected_element}", .con = r$db)
       sql_send_statement(r$db, sql)
       
       # List existing fields : add fields that don't exist
