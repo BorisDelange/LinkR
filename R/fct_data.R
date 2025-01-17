@@ -266,7 +266,7 @@ load_dataset <- function(r, m, d, dataset_id, main_tables, selected_study){
       "add_patients_to_subset(\n",
       "    patients = d$person %>% dplyr::pull(person_id),\n",
       "    subset_id = %subset_id%,\n",
-      "    output = output, r = r, m = m, i18n = i18n, ns = ns\n",
+      "    output = output, r = r, m = m\n",
       ")"
     )
     new_code <- tibble::tibble(

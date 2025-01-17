@@ -1,43 +1,64 @@
 #' Add patients to a subset
 #'
-#' @description Add patients to a subset
+#' @description
+#' #' This function adds patients to a specific subset by inserting their `person_id` into a database table. 
+#' It ensures the validity of the input parameters (`subset_id` and `patients`) and prevents duplicate entries.
 #' @param output Shiny output variable
 #' @param r A shiny::reactiveValues object, used to communicate between modules
 #' @param m A shiny::reactiveValues object, used to communicate between modules
-#' @param patients numeric vector containing patients / persons (numeric)
-#' @param subset_id ID of the subset (integer)
-#' @param i18n Translator object from shiny.i18n library
-#' @param ns Shiny namespace
+#' @param patients A numeric vector of `person_id`s or a `data.frame`/`tibble` containing a `person_id` column. 
+#' These are the patients to be added to the subset.
+#' @param subset_id An integer representing the ID of the subset to which the patients will be added. 
+#' The subset ID must be positive and valid.
+#' 
+#' @return 
+#' A character string indicating the success or failure of the operation. If successful, the message includes 
+#' the number of patients added to the subset. If an error occurs, it returns an error message.
+#' 
+#' @details 
+#' The function performs several checks:
+#' - Validates `subset_id` to ensure it is a positive integer.
+#' - Validates `patients` to ensure it is either a numeric vector or a `data.frame`/`tibble` with a `person_id` column.
+#' - Removes patients that are already in the subset to avoid duplicates.
+#' 
+#' If the inputs are valid, the function inserts the new patients into the `subset_persons` table in the database.
+#' 
 #' @examples 
 #' \dontrun{
+#' # Example with a numeric vector of person IDs
 #' patients <- c(123, 456, 789)
-#' add_patients_to_subset(output = output, r = r, m = m, patients = patients, subset_id = 3, i18n = i18n, ns = ns)
+#' add_patients_to_subset(output = output, r = r, m = m, patients = patients, subset_id = 3)
+#' 
+#' # Example with a tibble
+#' patients <- tibble::tibble(person_id = c(123, 456, 789))
+#' add_patients_to_subset(output = output, r = r, m = m, patients = patients, subset_id = 3)
 #' }
-add_patients_to_subset <- function(output, r = shiny::reactiveValues(), m = shiny::reactiveValues(), patients = tibble::tibble(),
-  subset_id = integer(), i18n = character(), ns = character()){
+#' 
+#' @export
+add_patients_to_subset <- function(
+  output, r = shiny::reactiveValues(), m = shiny::reactiveValues(), 
+  patients = tibble::tibble(), subset_id = integer()){
+  
+  i18n <- r$i18n
   
   # Check subset_id
   
   invalid_subset_id <- TRUE
   if (length(subset_id) > 0) if (is.numeric(subset_id)) if (!is.na(subset_id) & subset_id > 0) invalid_subset_id <- FALSE
-  if (invalid_subset_id){
-    show_message_bar(output, "invalid_subset_id_value", "severeWarning", i18n = i18n, ns = ns)
-    stop(i18n$t("invalid_subset_id_value"))
-  }
+  if (invalid_subset_id) return(i18n$t("invalid_subset_id_value"))
   
   # Check patients
   
-  invalid_patients <- TRUE
-  if (length(patients) > 0) if (is.numeric(subset_id)) invalid_patients <- FALSE
-  if (invalid_patients){
-    show_message_bar(output, "invalid_patients_value", "severeWarning", i18n = i18n, ns = ns)
-    stop(i18n$t("invalid_patients_value"))
-  }
+  # Check and process patients
+  if (is.numeric(patients)) patients <- tibble::tibble(person_id = patients)
+  else if (is.data.frame(patients)) {
+    if (!"person_id" %in% names(patients)) {
+      return(i18n$t("invalid_patients_value_person_id_col_missing"))
+    }
+    patients <- patients %>% dplyr::select(person_id)
+  } else return(i18n$t("invalid_patients_value_not_numeric_vector_or_tibble"))
   
-  # Transform as tibble
-  patients <- tibble::tibble(person_id = patients)
-  
-  # Keep only persons not already in the subset
+  # Keep only patients not already in the subset
   actual_patients <- DBI::dbGetQuery(m$db, glue::glue_sql("SELECT person_id FROM subset_persons WHERE subset_id = {subset_id}", .con = m$db))
   patients <- patients %>% dplyr::anti_join(actual_patients, by = "person_id")
   
@@ -51,83 +72,82 @@ add_patients_to_subset <- function(output, r = shiny::reactiveValues(), m = shin
       patients <- patients %>% dplyr::bind_cols(other_cols) %>% dplyr::relocate(person_id, .after = "subset_id")
       DBI::dbAppendTable(m$db, "subset_persons", patients)
     },
-      error = function(e){
-        cat(paste0("add_patients_to_subset - error_inserting_data - ", toString(e)))
-        stop(i18n$t("error_inserting_data"))}
+      error = function(e) return(paste0("add_patients_to_subset - error inserting patients in subsets - ", toString(e)))
     )
   }
   
-  show_message_bar(output, "add_persons_subset_success", "success", i18n = i18n, ns = ns)
+  return(paste0(i18n$t("add_patients_subset_success"), " (n = ", nrow(patients), ")"))
 }
 
 #' Remove patients from a subset
 #'
-#' @description Remove patients from a subset
-#' @param output Shiny output variable
-#' @param r A shiny::reactiveValues object, used to communicate between modules
-#' @param m A shiny::reactiveValues object, used to communicate between modules
-#' @param persons data variable containing patients / persons (data.frame / tibble)
-#' @param subset_id ID of subset (integer)
-#' @param i18n Translator object from shiny.i18n library
-#' @param ns Shiny namespace
+#' @description 
+#' This function removes patients from a specific subset by deleting their `person_id` from a database table. 
+#' It validates the input parameters (`subset_id` and `patients`) before performing the operation.
+#' 
+#' @param output Shiny output variable, used for displaying outputs in a Shiny application.
+#' @param r A `shiny::reactiveValues` object, used to communicate between modules in the Shiny app. 
+#' @param m A `shiny::reactiveValues` object, used to communicate between modules in the Shiny app. 
+#' @param patients A `data.frame`/`tibble` containing a `person_id` column representing the patients to remove.
+#' @param subset_id An integer representing the ID of the subset from which the patients will be removed. 
+#' The subset ID must be positive and valid.
+#' 
+#' @return 
+#' A success message is displayed via a Shiny message bar if the operation is successful. 
+#' Errors stop the execution and display corresponding error messages.
+#' 
 #' @examples 
 #' \dontrun{
-#' persons <- tibble::tribble(~patient_id, 123L, 456L, 789L)
-#' remove_persons_from_subset(output = output, r = r, m = m, persons = persons, subset_id = 3, i18n = i18n, ns = ns)
+#' patients <- tibble::tibble(person_id = c(123, 456, 789))
+#' remove_patients_from_subset(output = output, r = r, m = m, patients = patients, subset_id = 3)
 #' }
-remove_patients_from_subset <- function(output, r = shiny::reactiveValues(), m = shiny::reactiveValues(), persons = tibble::tibble(), 
-  subset_id = integer(), i18n = character(), ns = character()){
+#' 
+#' @export
+remove_patients_from_subset <- function(
+  output, r = shiny::reactiveValues(), m = shiny::reactiveValues(),
+  patients = tibble::tibble(), subset_id = integer()){
+  
+  i18n <- r$i18n
   
   # Check subset_id
   
-  if (length(subset_id) == 0){
-    show_message_bar(output, "invalid_subset_id_value", "severeWarning", i18n = i18n, ns = ns)
-    stop(i18n$t("invalid_subset_id_value"))
-  }
+  invalid_subset_id <- TRUE
+  if (length(subset_id) > 0) if (is.numeric(subset_id)) if (!is.na(subset_id) & subset_id > 0) invalid_subset_id <- FALSE
+  if (invalid_subset_id) return(i18n$t("invalid_subset_id_value"))
   
-  tryCatch(subset_id <- as.integer(subset_id), 
-    error = function(e) cat(paste0("\n", now(), " - remove_patients_from_subset - invalid_subset_id_value"))
-  )
+  # Check patients
   
-  if (is.na(subset_id)){
-    show_message_bar(output, "invalid_subset_id_value", "severeWarning", i18n = i18n, ns = ns)
-    stop(i18n$t("invalid_subset_id_value"))
-  }
-  
-  var_cols <- tibble::tribble(
-    ~name, ~type,
-    "person_id", "integer")
-  
-  # Check col names
-  if (!identical(names(persons), "person_id")){
-    show_message_bar(output, "invalid_col_names", "severeWarning", i18n = i18n, ns = ns)
-    stop(i18n$t("valid_col_names_are"), toString(var_cols %>% dplyr::pull(name)))
-  }
-  
-  # Check col types
-  sapply(1:nrow(var_cols), function(i){
-    var_name <- var_cols[[i, "name"]]
-    if (var_cols[[i, "type"]] == "integer" & !is.integer(persons[[var_name]])){
-      show_message_bar(output, "invalid_col_types", "severeWarning", i18n = i18n, ns = ns)
-      stop(paste0(i18n$t("column"), " ", var_name, " ", i18n$t("type_must_be_integer")))
+  # Check and process patients
+  if (is.numeric(patients)) patients <- tibble::tibble(person_id = patients)
+  else if (is.data.frame(patients)) {
+    if (!"person_id" %in% names(patients)) {
+      return(i18n$t("invalid_patients_value_person_id_col_missing"))
     }
-  })
+    patients <- patients %>% dplyr::select(person_id)
+  } else return(i18n$t("invalid_patients_value_not_numeric_vector_or_tibble"))
   
-  # Transform as tibble
-  tryCatch(persons <- tibble::as_tibble(persons), 
-    error = function(e) cat(paste0("\n", now(), " - remove_patients_from_subset - error_transforming_tibble"))
-  )
+  # If there are patients to remove
+  if (nrow(patients) > 0){
+    
+    # Remove patients from the subset
+    tryCatch({ 
+      existing_patients <- DBI::dbGetQuery(
+          m$db, 
+          glue::glue_sql(
+            "SELECT person_id FROM subset_persons WHERE subset_id = {subset_id} AND person_id IN ({patients %>% dplyr::pull(person_id)*})",
+            .con = m$db
+          )
+        )
+      
+      sql <- glue::glue_sql("DELETE FROM subset_persons WHERE subset_id = {subset_id} AND person_id IN ({patients %>% dplyr::pull(person_id)*})", .con = m$db)
+      query <- DBI::dbSendStatement(m$db, sql)
+      DBI::dbClearResult(query)
+    }, 
+    error = function(e) return(paste0("\n", now(), " - remove_patients_from_subset - error removing patients from subset - ", toString(e)))
+    )
+  }
   
-  tryCatch({ 
-    sql <- glue::glue_sql(paste0("DELETE FROM subset_persons WHERE subset_id = {subset_id} AND ",
-      "person_id IN ({persons %>% dplyr::pull(person_id)*})"), .con = m$db)
-    query <- DBI::dbSendStatement(m$db, sql)
-    DBI::dbClearResult(query)
-  }, 
-    error = function(e) cat(paste0("\n", now(), " - remove_patients_from_subset - error_removing_persons_from_subset"))
-  )
-  
-  show_message_bar(output, "remove_persons_subset_success", "success", i18n = i18n, ns = ns)
+  return(paste0(i18n$t("remove_patients_subset_success"), " (n = ", nrow(existing_patients), ")"))
 }
 
 #' @noRd

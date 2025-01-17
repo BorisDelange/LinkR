@@ -425,7 +425,7 @@ mod_widgets_server <- function(id, r, d, m, language, i18n, all_divs, debug, use
           "add_patients_to_subset(\n",
           "    patients = d$person %>% dplyr::pull(person_id),\n",
           "    subset_id = %subset_id%,\n",
-          "    output = output, r = r, m = m, i18n = i18n, ns = ns\n",
+          "    output = output, r = r, m = m\n",
           ")"
         )
         new_subset_code <- tibble::tibble(
@@ -577,7 +577,7 @@ mod_widgets_server <- function(id, r, d, m, language, i18n, all_divs, debug, use
           "add_patients_to_subset(\n",
           "    patients = d$person %>% dplyr::pull(person_id),\n",
           "    subset_id = %subset_id%,\n",
-          "    output = output, r = r, m = m, i18n = i18n, ns = ns\n",
+          "    output = output, r = r, m = m\n",
           ")"
         )
         else if (id == "datasets") code <- paste0(

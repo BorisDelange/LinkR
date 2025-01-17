@@ -242,7 +242,8 @@ invalid_col_names,Noms de colonnes non valides
 invalid_data_folder,L'argument data_folder doit être de type character
 invalid_dataset_id_value,La variable dataset_id doit être de type integer
 invalid_omop_version,"Version d'OMOP non valide. Versions valides : 5.3, 5.4 et 6.0."
-invalid_patients_value,Valeur de patients non valide
+invalid_patients_value_person_id_col_missing,Valeur de patients invalide : la colonne 'person_id' est manquante
+invalid_patients_value_not_numeric_vector_or_tibble,Valeur de patients invalide : patients doit être un vecteur numérique ou un dataframe
 invalid_reason,Raison d'invalidité
 invalid_subset_id_value,Valeur de subset_id non valide
 invalid_vocabulary_table,Nom de table de terminologie non valide
@@ -462,7 +463,8 @@ mean,Moyenne
 all_patients,Tous les patients
 start_date,Date de début
 end_date,Date de fin
-add_persons_subset_success,Patients ajoutés au subset avec succès
+add_patients_subset_success,Patients ajoutés au subset avec succès
+remove_patients_subset_success,Patients retirés du subset avec succès
 add_concept_input,Action
 subset_added,Nouveau subset ajouté
 tab_deleted,Onglet supprimé
