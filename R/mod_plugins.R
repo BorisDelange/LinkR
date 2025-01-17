@@ -180,7 +180,7 @@ mod_plugins_ui <- function(id, language, languages, i18n){
             shiny.fluent::MessageBar(i18n$t("unauthorized_access_area"), messageBarType = 5),
             style = "display: inline-block; margin-top: 15px;"
           ),
-          shinyjs::hidden(div(id = ns("edit_code_tabs_div"), uiOutput(ns("edit_code_tabs_ui")))),
+          shinyjs::hidden(div(id = ns("edit_code_tabs_div"), uiOutput(ns("edit_code_tabs_ui")), style = "height: 34px;")),
           shinyjs::hidden(div(id = ns("edit_code_editors_div"), style = "height: calc(100% - 45px);")),
           style = "height: 100%;"
         ),
@@ -533,7 +533,7 @@ mod_plugins_server <- function(id, r, d, m, language, i18n, debug, user_accesses
     observeEvent(input$edit_code_tab_positions, {
       if (debug) cat(paste0("\n", now(), " - mod_plugins - observer input$edit_code_tab_positions"))
       
-      files_browser_edit_tab_positions(positions = input$edit_code_tab_positions, r = r, r_prefix = "edit_plugin_code", element_id = input$selected_element)
+      files_browser_edit_tab_positions(id = id, positions = input$edit_code_tab_positions, r = r, r_prefix = "edit_plugin_code", element_id = input$selected_element)
     })
     
     ## Change file tab ----

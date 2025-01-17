@@ -261,7 +261,7 @@ reload_files_browser_tabs <- function(id, input_prefix, r, r_prefix, element_id,
   tabs_container
 }
 
-files_browser_edit_tab_positions <- function(positions, r, r_prefix, element_id){
+files_browser_edit_tab_positions <- function(id, positions, r, r_prefix, element_id){
   
   ids <- positions[seq(1, length(positions), 2)]
   pos <- positions[seq(2, length(positions), 2)]
@@ -271,12 +271,15 @@ files_browser_edit_tab_positions <- function(positions, r, r_prefix, element_id)
     position = pos
   )
   
+  if (id == "plugins") id_col <- "plugin_id"
+  else if (id == "project_files") id_col <- "project_id"
+  
   for (i in 1:nrow(pos_df)) {
     r[[paste0(r_prefix, "_tabs")]] <-
       r[[paste0(r_prefix, "_tabs")]] %>%
       dplyr::mutate(
         position = ifelse(
-          id == pos_df$id[i] & plugin_id == element_id,
+          id == pos_df$id[i] & !!rlang::sym(id_col) == element_id,
           pos_df$position[i],
           position
         )

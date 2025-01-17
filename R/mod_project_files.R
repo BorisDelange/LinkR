@@ -13,7 +13,7 @@ mod_project_files_ui <- function(id, language, languages, i18n){
           style = "display: inline-block; margin-top: 15px;"
         )
       ),
-      div(id = ns("tabs_div"), uiOutput(ns("tabs_ui"))),
+      div(id = ns("tabs_div"), uiOutput(ns("tabs_ui")), style = "height: 34px;"),
       div(
         div(
           id = ns("editors_div"),
@@ -28,7 +28,7 @@ mod_project_files_ui <- function(id, language, languages, i18n){
           style = "width: 50%; padding: 0 10px; font-size: 12px; overflow-y: auto;"
         ),
         class = "resizable-container",
-        style = "height: calc(100% - 10px); display: flex; margin-top: 10px;"
+        style = "height: calc(100% - 10px); display: flex;"
       ),
       style = "height: calc(100% - 45px);"
     ),
@@ -141,7 +141,7 @@ mod_project_files_server <- function(id, r, d, m, language, i18n, debug, user_ac
     observeEvent(input$tab_positions, {
       if (debug) cat(paste0("\n", now(), " - mod_project_files - observer input$tab_positions"))
       
-      files_browser_edit_tab_positions(positions = input$tab_positions, r = r, r_prefix = "project", element_id = m$selected_project)
+      files_browser_edit_tab_positions(id = id, positions = input$tab_positions, r = r, r_prefix = "project", element_id = m$selected_project)
     })
     
     # Change file tab ----
