@@ -306,18 +306,24 @@ toggle_comments <- function(id, input_id, code, selection, session) {
   
   # If all non-empty lines are commented, uncomment everything
   all_commented <- all(sapply(non_empty_lines, is_commented))
+  if (is.na(all_commented)) all_commented <- FALSE
   
   # Process each line
   for (i in start_row:end_row) {
     line <- lines[i]
-    if (nchar(trimws(line)) == 0) next
-
+    
+    if (is.na(line) || nchar(trimws(line)) == 0) next
     if (all_commented) lines[i] <- sub("^(\\s*)#\\s*", "\\1", line)
     else lines[i] <- sub("^(\\s*)", "\\1# ", line)
   }
   
+  modified_code <- paste(lines, collapse = "\n")
+  if (substr(code, nchar(code), nchar(code)) == "\n") {
+    modified_code <- paste0(modified_code, "\n")
+  }
+  
   # Update editor
-  shinyAce::updateAceEditor(session, input_id, value = paste0(lines, collapse = "\n"))
+  shinyAce::updateAceEditor(session, input_id, value = modified_code)
   
   # Restore cursor position
   shinyjs::runjs(sprintf(

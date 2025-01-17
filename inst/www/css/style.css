@@ -216,7 +216,7 @@ a.no-hover-effect:hover {
 .main {
   flex-grow: 1;
   overflow-y: auto;
-  padding: 0px 10px 0px 18px;
+  padding: 0px 10px 0 12px;
 }
 
 /* --------------- */

@@ -14,8 +14,23 @@ mod_project_files_ui <- function(id, language, languages, i18n){
         )
       ),
       div(id = ns("tabs_div"), uiOutput(ns("tabs_ui"))),
-      div(id = ns("editors_div"), style = "height: calc(100% - 45px);"),
-      style = "height: 100%;"
+      div(
+        div(
+          id = ns("editors_div"),
+          class = "resizable-panel left-panel",
+          style = "width: 50%;"
+        ),
+        div(class = "resizer"),
+        div(
+          id = ns("code_result_div"),
+          verbatimTextOutput(ns("code_result")),
+          class = "resizable-panel right-panel",
+          style = "width: 50%; padding: 0 10px; font-size: 12px; overflow-y: auto;"
+        ),
+        class = "resizable-container",
+        style = "height: calc(100% - 10px); display: flex; margin-top: 10px;"
+      ),
+      style = "height: calc(100% - 45px);"
     ),
     
     # Delete a file modal ----

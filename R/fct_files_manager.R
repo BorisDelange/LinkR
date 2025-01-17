@@ -321,7 +321,8 @@ files_browser_open_file <- function(id, input_prefix, r, r_prefix, folder, eleme
     file_code <- readLines(paste0(folder, "/", file_row$filename), warn = FALSE)
     
     # Create editor
-    insertUI(selector = paste0("#", ns(paste0(input_prefix, "editors_div"))), where = "beforeEnd", ui = div(
+    insertUI(
+      selector = paste0("#", ns(paste0(input_prefix, "editors_div"))), where = "beforeEnd", ui = div(
       id = ns(paste0(input_prefix, "editor_div_", file_id)),
       shinyAce::aceEditor(
         ns(paste0(input_prefix, "editor_", file_id)), value = file_code, mode = ace_mode,
