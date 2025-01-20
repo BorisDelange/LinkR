@@ -284,6 +284,40 @@ load_dataset <- function(r, m, d, dataset_id, main_tables, selected_study){
 }
 
 #' @noRd
+load_element_code <- function(id, r, unique_id){
+  
+  folder <- paste0(r$app_folder, "/", id, "/", unique_id)
+  code_file <- paste0(folder, "/main.R")
+  old_code_file <- paste0(folder, "/code.R")
+  
+  if (!dir.exists(folder)) dir.create(folder)
+  
+  # Retro-compatibility with older versions (with "code.R" instead of "main.R")
+  if (file.exists(code_file)) code <- readLines(code_file, warn = FALSE)
+  else {
+    if (file.exists(old_code_file)) code <- readLines(old_code_file, warn = FALSE)
+    else code <- ""
+    
+    writeLines(code, code_file)
+  }
+  
+  paste(code, collapse = "\n")
+}
+
+#' @noRd
+save_element_code <- function(id, i18n, output, r, unique_id, new_code){
+  
+  ns <- NS(id)
+  
+  folder <- paste0(r$app_folder, "/", id, "/", unique_id)
+  code_file <- paste0(folder, "/main.R")
+  
+  code <- writeLines(new_code, code_file)
+  
+  show_message_bar(output, "modif_saved", "success", i18n = i18n, ns = ns)
+}
+
+#' @noRd
 load_dataset_concepts <- function(r, d, m){
   
   req(!is.na(r$selected_dataset), r$selected_dataset != 0)

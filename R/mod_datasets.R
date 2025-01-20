@@ -317,9 +317,8 @@ mod_datasets_server <- function(id, r, d, m, language, i18n, debug, user_accesse
       if (debug) cat(paste0("\n", now(), " - mod_datasets - observer input$load_dataset_code"))
       
       dataset_id <- input$selected_element
-      
-      sql <- glue::glue_sql("SELECT code FROM code WHERE category = 'dataset' AND link_id = {dataset_id}", .con = r$db)
-      code <- DBI::dbGetQuery(r$db, sql) %>% dplyr::pull()
+      unique_id <- r$datasets_long %>% dplyr::filter(id == dataset_id) %>% dplyr::filter(name == "unique_id") %>% dplyr::pull(value)
+      code <- load_element_code(id = id, r = r, unique_id = unique_id)
       
       shinyAce::updateAceEditor(session, "dataset_code", value = code)
     })
@@ -390,16 +389,8 @@ mod_datasets_server <- function(id, r, d, m, language, i18n, debug, user_accesse
       if (debug) cat(paste0("\n", now(), " - mod_datasets - observer input$save_code_trigger"))
       
       dataset_id <- input$selected_element
-      sql_send_statement(r$db, glue::glue_sql("UPDATE datasets SET update_datetime = {now()} WHERE id = {dataset_id}", .con = r$db))
-      
-      code_id <- DBI::dbGetQuery(r$db, glue::glue_sql("SELECT id FROM code WHERE category = 'dataset' AND link_id = {dataset_id}", .con = r$db)) %>% dplyr::pull()
-      
-      sql_send_statement(r$db, glue::glue_sql("UPDATE code SET code = {input$dataset_code} WHERE id = {code_id}", .con = r$db))
-      
-      # Reload datasets vars
-      shinyjs::runjs(paste0("Shiny.setInputValue('", id, "-reload_elements_var', Math.random());"))
-      
-      show_message_bar(output, "modif_saved", "success", i18n = i18n, ns = ns)
+      unique_id <- r$datasets_long %>% dplyr::filter(id == dataset_id) %>% dplyr::filter(name == "unique_id") %>% dplyr::pull(value)
+      save_element_code(id = id, i18n = i18n, output = output, r = r, unique_id = unique_id, new_code = input$dataset_code)
     })
   })
 }

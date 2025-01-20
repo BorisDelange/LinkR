@@ -57,17 +57,77 @@ create_element_files <- function(id, r, element_id, single_id, sql_category, ele
   
   if (!dir.exists(element_dir)) dir.create(element_dir)
   
-  if (id %in% c("data_cleaning", "datasets")){
-    # Get dataset code
-    
-    sql <- glue::glue_sql("SELECT code FROM code WHERE category = {sql_category} AND link_id = {element_id}", .con = r$db)
-    code <- DBI::dbGetQuery(r$db, sql) %>% dplyr::pull()
-    
-    writeLines(code, paste0(element_dir, "/code.R"))
-  }
+  # if (id %in% c("data_cleaning", "datasets")){
+  #   # Get dataset code
+  #   
+  #   sql <- glue::glue_sql("SELECT code FROM code WHERE category = {sql_category} AND link_id = {element_id}", .con = r$db)
+  #   code <- DBI::dbGetQuery(r$db, sql) %>% dplyr::pull()
+  #   
+  #   writeLines(code, paste0(element_dir, "/code.R"))
+  # }
   
   # Create XML file
   create_element_xml(id, r, element_id, single_id, element_options, element_dir)
+}
+
+#' @noRd
+create_element_scripts <- function(id, r, element_id, element_dir, code){
+  
+  if (id == "datasets"){
+    
+    code <- paste0(
+      "# See documentation here: https://linkr.interhop.org/en/docs/import_data/\n\n",
+      "# 1) Import data from a folder\n\n",
+      "# Specify a folder: all CSV and Parquet files will be automatically loaded.\n",
+      "# If you import CSV files, additional arguments for the vroom::vroom() function can be passed via the ... argument.\n",
+      "# For example, this can be useful to modify the delim argument.\n\n",
+      "# import_dataset(\n",
+      "#     r, d, dataset_id = %dataset_id%, omop_version = \"5.4\",\n",
+      "#     data_source = \"disk\", data_folder = \"/my_data_folder\",\n",
+      "# )\n\n",
+      "# 2) Import data from a database connection\n\n",
+      "# con <- DBI::dbConnect(\n",
+      "#     RPostgres::Postgres(),\n",
+      "#     host = \"localhost\",\n",
+      "#     port = 5432,\n",
+      "#     dbname = \"mimic-iv\",\n",
+      "#     user = \"postgres\",\n",
+      "#     password = \"postgres\"\n",
+      "# )\n",
+      "# \n",
+      "# import_dataset(\n",
+      "#     r, d, dataset_id = %dataset_id%, omop_version = \"5.4\",\n",
+      "#     data_source = \"db\", con = con,\n",
+      "# )\n\n",
+      "# To import only specific tables, add load_tables argument:\n",
+      "# load_tables = c(\"person\", \"visit_occurrence\", \"visit_detail\", \"measurement\")"
+    )
+    
+    writeLines(code, paste0(element_dir, "/main.R"))
+  }
+  else if (id == "subsets"){
+    
+    code <- paste0(
+      "add_patients_to_subset(\n",
+      "    patients = d$person %>% dplyr::pull(person_id),\n",
+      "    subset_id = %subset_id%,\n",
+      "    output = output, r = r, m = m\n",
+      ")"
+    )
+    
+    writeLines(code, paste0(element_dir, "/main.R"))
+  }
+  else if (id == "plugins"){
+    
+    ui_code <- ""
+    writeLines(ui_code, paste0(element_dir, "/ui.R"))
+    
+    server_code <- ""
+    writeLines(server_code, paste0(element_dir, "/server.R"))
+    
+    translations_code <- "base,en,fr\n"
+    writeLines(translations_code, paste0(element_dir, "/translations.csv"))
+  }
 }
 
 #' @noRd

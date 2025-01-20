@@ -295,9 +295,8 @@ mod_data_cleaning_server <- function(id, r, d, m, language, i18n, debug, user_ac
       if (debug) cat(paste0("\n", now(), " - mod_data_cleaning - observer input$load_data_cleaning_code"))
       
       data_cleaning_script_id <- input$selected_element
-      
-      sql <- glue::glue_sql("SELECT code FROM code WHERE category = 'data_cleaning' AND link_id = {data_cleaning_script_id}", .con = r$db)
-      code <- DBI::dbGetQuery(r$db, sql) %>% dplyr::pull()
+      unique_id <- r$data_cleaning_long %>% dplyr::filter(id == data_cleaning_script_id) %>% dplyr::filter(name == "unique_id") %>% dplyr::pull(value)
+      code <- load_element_code(id = id, r = r, unique_id = unique_id)
       
       shinyAce::updateAceEditor(session, "data_cleaning_code", value = code)
     })
@@ -358,16 +357,8 @@ mod_data_cleaning_server <- function(id, r, d, m, language, i18n, debug, user_ac
       if (debug) cat(paste0("\n", now(), " - mod_data_cleaning - observer input$save_code_trigger"))
       
       data_cleaning_script_id <- input$selected_element
-      sql_send_statement(r$db, glue::glue_sql("UPDATE scripts SET update_datetime = {now()} WHERE id = {data_cleaning_script_id}", .con = r$db))
-      
-      code_id <- DBI::dbGetQuery(r$db, glue::glue_sql("SELECT id FROM code WHERE category = 'data_cleaning' AND link_id = {data_cleaning_script_id}", .con = r$db)) %>% dplyr::pull()
-      
-      sql_send_statement(r$db, glue::glue_sql("UPDATE code SET code = {input$data_cleaning_code} WHERE id = {code_id}", .con = r$db))
-      
-      # Reload data cleaning scripts vars
-      shinyjs::runjs(paste0("Shiny.setInputValue('", id, "-reload_elements_var', Math.random());"))
-      
-      show_message_bar(output, "modif_saved", "success", i18n = i18n, ns = ns)
+      unique_id <- r$data_cleaning_long %>% dplyr::filter(id == data_cleaning_script_id) %>% dplyr::filter(name == "unique_id") %>% dplyr::pull(value)
+      save_element_code(id = id, i18n = i18n, output = output, r = r, unique_id = unique_id, new_code = input$data_cleaning_code)
     })
   })
 }

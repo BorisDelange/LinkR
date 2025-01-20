@@ -412,22 +412,19 @@ mod_plugins_server <- function(id, r, d, m, language, i18n, debug, user_accesses
       plugin_folder <- paste0(r$app_folder, "/plugins/", input$selected_plugin_unique_id)
       shinyjs::runjs(paste0("Shiny.setInputValue('", id, "-selected_plugin_folder', '", plugin_folder, "');"))
       
-      if (!dir.exists(plugin_folder)) dir.create(plugin_folder, recursive = TRUE)
-      else {
-        file_names <- list.files(plugin_folder, full.names = FALSE)
-        plugin_files <- r$edit_plugin_code_files_list %>% dplyr::filter(plugin_id == input$selected_element) %>% dplyr::pull(filename)
-        file_names <- setdiff(file_names, plugin_files)
+      file_names <- list.files(plugin_folder, full.names = FALSE)
+      plugin_files <- r$edit_plugin_code_files_list %>% dplyr::filter(plugin_id == input$selected_element) %>% dplyr::pull(filename)
+      file_names <- setdiff(file_names, plugin_files)
+      
+      if (length(file_names) > 0){
         
-        if (length(file_names) > 0){
-          
-          if (nrow(r$edit_plugin_code_files_list) > 0) max_id <- max(r$edit_plugin_code_files_list$id)
-          else max_id <- 0
-          
-          r$edit_plugin_code_files_list <-
-            r$edit_plugin_code_files_list %>%
-            dplyr::bind_rows(tibble::tibble(id = max_id + 1:length(file_names), plugin_id = input$selected_element, filename = file_names)) %>%
-            dplyr::arrange(filename)
-        }
+        if (nrow(r$edit_plugin_code_files_list) > 0) max_id <- max(r$edit_plugin_code_files_list$id)
+        else max_id <- 0
+        
+        r$edit_plugin_code_files_list <-
+          r$edit_plugin_code_files_list %>%
+          dplyr::bind_rows(tibble::tibble(id = max_id + 1:length(file_names), plugin_id = input$selected_element, filename = file_names)) %>%
+          dplyr::arrange(filename)
       }
       
       # Reload files browser + tabs
@@ -454,7 +451,7 @@ mod_plugins_server <- function(id, r, d, m, language, i18n, debug, user_accesses
         
         # Create ace editors for server.R, ui.R and translations.csv
         for (filename in c("ui.R", "server.R", "translations.csv")){
-          file_code <- readLines(paste0(plugin_folder, "/", filename), warn = FALSE)
+          file_code <- readLines(paste0(plugin_folder, "/", filename), warn = FALSE) %>% paste(collapse = "\n")
           file_id <- r$edit_plugin_code_files_list %>% dplyr::filter(plugin_id == input$selected_element, filename == !!filename) %>% dplyr::pull(id)
           file_ext <- sub(".*\\.", "", tolower(filename))
           ace_mode <- switch(file_ext, "r" = "r", "py" = "python", "")
@@ -769,7 +766,7 @@ mod_plugins_server <- function(id, r, d, m, language, i18n, debug, user_accesses
           if (!dir.exists(new_dir)) dir.create(new_dir)
 
           # Get translations file
-          translations <- readLines(paste0(input$selected_plugin_folder, "/translations.csv"), warn = FALSE)
+          translations <- readLines(paste0(input$selected_plugin_folder, "/translations.csv"), warn = FALSE) %>% paste(collapse = "\n")
 
           # Create a csv with all languages
           data <- read.csv(text = translations, header = TRUE, stringsAsFactors = FALSE)

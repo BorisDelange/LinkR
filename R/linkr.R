@@ -72,7 +72,20 @@ linkr <- function(
   
   # Create app sub-dirs
   if (debug) cat(paste0("\n", now(), " - linkr - app sub-dirs"))
-  sub_dirs <- c("app_database", "datasets", "datasets_files", "messages", "plugins", "projects", "projects_files", "data_cleaning", "temp_files", "translations", "log")
+  sub_dirs <- c(
+    "app_database",
+    "data_cleaning",
+    "datasets",
+    "datasets_files",
+    "messages",
+    "plugins",
+    "projects",
+    "projects_files",
+    "subsets",
+    "temp_files",
+    "translations",
+    "log"
+  )
   for (sub_dir in sub_dirs) if (!dir.exists(paste0(app_folder, "/", sub_dir))) dir.create(paste0(app_folder, "/", sub_dir))
   
   # Load translations

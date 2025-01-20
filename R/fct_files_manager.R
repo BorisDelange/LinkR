@@ -321,7 +321,7 @@ files_browser_open_file <- function(id, input_prefix, r, r_prefix, folder, eleme
   
   # Add editor UI or show it if already exists
   if (open_new_editor){
-    file_code <- readLines(paste0(folder, "/", file_row$filename), warn = FALSE)
+    file_code <- readLines(paste0(folder, "/", file_row$filename), warn = FALSE) %>% paste(collapse = "\n")
     
     # Create editor
     insertUI(

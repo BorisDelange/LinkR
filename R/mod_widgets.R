@@ -354,7 +354,7 @@ mod_widgets_server <- function(id, r, d, m, language, i18n, all_divs, debug, use
       if (name_already_used) shiny.fluent::updateTextField.shinyInput(session, "element_creation_name", errorMessage = i18n$t("name_already_used"))
       req(!name_already_used)
       
-     # For plugins page...
+     # For plugins page
       if (sql_table == "plugins"){
         
         # Check if plugin_creation_type is empty
@@ -415,23 +415,6 @@ mod_widgets_server <- function(id, r, d, m, language, i18n, all_divs, debug, use
           id = subset_id, name = i18n$t("subset_all_patients"), description = NA_character_, study_id = element_id,
           creator_id = r$user_id, datetime = now(), deleted = FALSE)
         DBI::dbAppendTable(m$db, "subsets", new_subset)
-        
-        new_subset_options <- create_options_tibble(
-          element_id = subset_id, element_name = i18n$t("subset_all_patients"), sql_category = "subset", user_id = r$user_id, username = username, 
-          languages = r$languages, last_options_id = get_last_row(m$db, "options"))
-        DBI::dbAppendTable(m$db, "options", new_subset_options)
-        
-        code <- paste0(
-          "add_patients_to_subset(\n",
-          "    patients = d$person %>% dplyr::pull(person_id),\n",
-          "    subset_id = %subset_id%,\n",
-          "    output = output, r = r, m = m\n",
-          ")"
-        )
-        new_subset_code <- tibble::tibble(
-          id = get_last_row(m$db, "code") + 1, category = "subset", link_id = subset_id, code = code,
-          creator_id = r$user_id, datetime = now(), deleted = FALSE)
-        DBI::dbAppendTable(m$db, "code", new_subset_code)
       }
 
       else if (sql_table == "plugins"){
@@ -483,48 +466,6 @@ mod_widgets_server <- function(id, r, d, m, language, i18n, all_divs, debug, use
         element_id = element_id, element_name = element_name, sql_category = sql_category, user_id = r$user_id, username = username, 
         languages = r$languages, last_options_id = get_last_row(con, "options"))
       
-      ### For plugins table, add a row for each file
-      if (id == "plugins"){
-        
-        copy_existing_plugin_options <- FALSE
-        
-        # Copy existing plugin
-        if (copy_existing_plugin){
-          
-          sql <- glue::glue_sql("SELECT * FROM options WHERE category = 'plugin_code' AND name = 'filename' AND link_id = {input$plugin_to_copy}", .con = r$db)
-          options_copy <- DBI::dbGetQuery(r$db, sql)
-          if (nrow(options_copy) > 0) copy_existing_plugin_options <- TRUE
-        }
-        
-        if (copy_existing_plugin_options){
-          
-          new_options_ids <- max(new_options$id) + 1:nrow(options_copy)
-          plugin_options_corresponding_ids <- options_copy %>% dplyr::transmute(id, new_id = new_options_ids)
-          
-          new_options <- new_options %>%
-            dplyr::bind_rows(
-              options_copy %>%
-                dplyr::left_join(plugin_options_corresponding_ids, by = "id") %>%
-                dplyr::select(-id) %>%
-                dplyr::relocate(new_id, .before = dplyr::everything()) %>%
-                dplyr::rename(id = new_id) %>%
-                dplyr::mutate(link_id = element_id)
-            )
-        }
-        
-        else {
-          new_options_ids <- max(new_options$id) + 1:3
-          
-          new_options <- new_options %>%
-            dplyr::bind_rows(
-              tibble::tibble(
-                id = new_options_ids, category = "plugin_code", link_id = element_id, name = "filename",
-                value = c("ui.R", "server.R", "translations.csv"), value_num = NA_real_, creator_id = r$user_id, datetime = now(), deleted = FALSE
-              )
-            )
-        }
-      }
-      
       ### For datasets table, add a row for omop version
       if (id == "datasets"){
         new_options <- new_options %>%
@@ -536,87 +477,51 @@ mod_widgets_server <- function(id, r, d, m, language, i18n, all_divs, debug, use
           )
       }
       
+      ### For a new study, add a default subset
+      else if (id == "studies"){
+        new_subset_options <- create_options_tibble(
+          element_id = subset_id, element_name = i18n$t("subset_all_patients"), sql_category = "subset", user_id = r$user_id, username = username, 
+          languages = r$languages, last_options_id = get_last_row(m$db, "options"))
+        DBI::dbAppendTable(m$db, "options", new_subset_options)
+      }
+      
       DBI::dbAppendTable(con, "options", new_options)
 
       ## Code table
       
-      ### For plugins table, add 3 files (ui.R, server.R, translations.csv)
-      if (id == "plugins"){
+      element_unique_id <- new_options %>% dplyr::filter(name == "unique_id") %>% dplyr::pull(value)
+      element_dir <- paste0(r$app_folder, "/", id, "/", element_unique_id)
+      if (!dir.exists(element_dir)) dir.create(element_dir)
+      
+      code <- ""
+      
+      # Copy existing plugin
+      if (id == "plugins" && copy_existing_plugin){
         
-        # Copy existing plugin
-        if (copy_existing_plugin_options){
-          sql <- glue::glue_sql("SELECT * FROM code WHERE category = 'plugin' AND link_id IN ({options_copy$id*})", .con = r$db)
-          code_copy <- DBI::dbGetQuery(r$db, sql)
-          
-          new_code <- code_copy %>% 
-            dplyr::mutate(id = get_last_row(con, "code") + 1:nrow(code_copy)) %>%
-            dplyr::left_join(plugin_options_corresponding_ids %>% dplyr::rename(link_id = id), by = "link_id") %>%
-            dplyr::select(-link_id) %>%
-            dplyr::rename(link_id = new_id) %>%
-            dplyr::relocate(link_id, .before = "code")
-        }
+        sql <- glue::glue_sql("SELECT value FROM options WHERE category = 'plugin' AND name = 'unique_id' AND link_id = {input$plugin_to_copy}", .con = r$db)
+        plugin_to_copy_unique_id <- DBI::dbGetQuery(r$db, sql) %>% dplyr::pull()
+        plugin_to_copy_dir <- paste0(r$app_folder, "/", id, "/", plugin_to_copy_unique_id)
         
-        else {
-          default_ui <- ""
-          default_server <- ""
-          default_translations <- "base,en,fr\n"
-          code <- c(default_ui, default_server, default_translations)
-          
-          new_code <- tibble::tibble(
-            id = get_last_row(con, "code") + 1:3, category = "plugin", link_id = new_options_ids, code = code,
-            creator_id = r$user_id, datetime = now(), deleted = FALSE
-          )
+        files_to_copy <- list.files(plugin_to_copy_dir, full.names = TRUE)
+        files_to_copy <- files_to_copy[grepl("\\.r$|\\.py$|translations\\.csv$", files_to_copy, ignore.case = TRUE)]
+        
+        for (file in files_to_copy){
+          file_name <- basename(file)
+          file.copy(file, paste0(element_dir, "/", file_name), overwrite = TRUE)
         }
+      }
+      else create_element_scripts(id = id, r = r, element_id = element_id, element_dir = element_dir)
+      
+      # For a new study, create default subset code
+      if (id == "studeis"){
+        new_subset_unique_id <- new_subset_options %>% dplyr::filter(name == "unique_id") %>% dplyr::pull(value)
+        new_subset_dir <- paste0(r$app_folder, "/", id, "/", new_subset_unique_id)
+        create_element_scripts(id = id, r = r, element_id = subset_id, element_dir = new_subset_dir)
       }
       
-      else {
-        
-        code <- ""
-        
-        if (id == "subsets") code <- paste0(
-          "add_patients_to_subset(\n",
-          "    patients = d$person %>% dplyr::pull(person_id),\n",
-          "    subset_id = %subset_id%,\n",
-          "    output = output, r = r, m = m\n",
-          ")"
-        )
-        else if (id == "datasets") code <- paste0(
-          "# See documentation here: https://linkr.interhop.org/en/docs/import_data/\n\n",
-          "# 1) Import data from a folder\n\n",
-          "# Specify a folder: all CSV and Parquet files will be automatically loaded.\n",
-          "# If you import CSV files, additional arguments for the vroom::vroom() function can be passed via the ... argument.\n",
-          "# For example, this can be useful to modify the delim argument.\n\n",
-          "# import_dataset(\n",
-          "#     r, d, dataset_id = %dataset_id%, omop_version = \"5.4\",\n",
-          "#     data_source = \"disk\", data_folder = \"/my_data_folder\",\n",
-          "# )\n\n",
-          "# 2) Import data from a database connection\n\n",
-          "# con <- DBI::dbConnect(\n",
-          "#     RPostgres::Postgres(),\n",
-          "#     host = \"localhost\",\n",
-          "#     port = 5432,\n",
-          "#     dbname = \"mimic-iv\",\n",
-          "#     user = \"postgres\",\n",
-          "#     password = \"postgres\"\n",
-          "# )\n",
-          "# \n",
-          "# import_dataset(\n",
-          "#     r, d, dataset_id = %dataset_id%, omop_version = \"5.4\",\n",
-          "#     data_source = \"db\", con = con,\n",
-          "# )\n\n",
-          "# To import only specific tables, add load_tables argument:\n",
-          "# load_tables = c(\"person\", \"visit_occurrence\", \"visit_detail\", \"measurement\")"
-        )
-        
-        new_code <- tibble::tibble(
-          id = get_last_row(con, "code") + 1, category = sql_category, link_id = element_id, code = code,
-          creator_id = r$user_id, datetime = now(), deleted = FALSE)
-      }
-
-      DBI::dbAppendTable(con, "code", new_code)
-
       # Reset fields
       shiny.fluent::updateTextField.shinyInput(session, "element_creation_name", value = "", errorMessage = NULL)
+      
       if (id == "plugins"){
         shiny.fluent::updateDropdown.shinyInput(session, "plugin_creation_type", errorMessage = NULL, value = 1)
         shiny.fluent::updateDropdown.shinyInput(session, "plugin_to_copy", options = plugin_to_copy_options, errorMessage = i18n$t("field_cant_be_empty"))

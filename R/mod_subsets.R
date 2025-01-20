@@ -152,9 +152,8 @@ mod_subsets_server <- function(id, r, d, m, language, i18n, debug, user_accesses
       if (debug) cat(paste0("\n", now(), " - mod_subsets - observer input$load_subset_code"))
       
       subset_id <- input$selected_element
-      
-      sql <- glue::glue_sql("SELECT code FROM code WHERE category = 'subset' AND link_id = {subset_id}", .con = m$db)
-      code <- DBI::dbGetQuery(m$db, sql) %>% dplyr::pull()
+      unique_id <- r$subsets_long %>% dplyr::filter(id == subset_id) %>% dplyr::filter(name == "unique_id") %>% dplyr::pull(value)
+      code <- load_element_code(id = id, r = r, unique_id = unique_id)
       
       shinyAce::updateAceEditor(session, "subset_code", value = code)
     })
@@ -221,13 +220,8 @@ mod_subsets_server <- function(id, r, d, m, language, i18n, debug, user_accesses
       if (debug) cat(paste0("\n", now(), " - mod_subsets - observer input$save_code_trigger"))
       
       subset_id <- input$selected_element
-      
-      code_id <- DBI::dbGetQuery(m$db, glue::glue_sql("SELECT id FROM code WHERE category = 'subset' AND link_id = {subset_id}", .con = m$db)) %>% dplyr::pull()
-      
-      edited_code <- gsub("'", "''", input$subset_code)
-      sql_send_statement(m$db, glue::glue_sql("UPDATE code SET code = {edited_code} WHERE id = {code_id}", .con = m$db))
-      
-      show_message_bar(output, "modif_saved", "success", i18n = i18n, ns = ns)
+      unique_id <- r$subsets_long %>% dplyr::filter(id == subset_id) %>% dplyr::filter(name == "unique_id") %>% dplyr::pull(value)
+      save_element_code(id = id, i18n = i18n, output = output, r = r, unique_id = unique_id, new_code = input$subset_code)
     })
   })
 }
