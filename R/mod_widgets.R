@@ -1588,15 +1588,13 @@ mod_widgets_server <- function(id, r, d, m, language, i18n, all_divs, debug, use
           project_dir <- create_project_files(id, r, m, single_id, input$selected_element, element_wide, element_options, element_dir)
         }
         
-        else create_element_files(id, r, input$selected_element, single_id, sql_category, element_options, element_dir)
-        
-        if (id != "projects"){
+        else {
           
-          # Create XML file
-          create_element_xml(id, r, input$selected_element, single_id, element_options, element_dir)
+          # Create XML and README files
+          create_element_xml(id = id, r = r, element_id = input$selected_element, single_id = single_id, element_options = element_options, element_dir = element_dir)
           
-          # Write README.md
-          writeLines(element_options %>% dplyr::filter(name == "description_en") %>% dplyr::pull(value), paste0(element_dir, "/README.md"))
+          description <- element_options %>% dplyr::filter(name == "description_en") %>% dplyr::pull(value)
+          create_element_readme(description = description, element_dir = element_dir)
         }
         
         # Copy files
@@ -1700,6 +1698,8 @@ mod_widgets_server <- function(id, r, d, m, language, i18n, all_divs, debug, use
         
         tryCatch({
           
+          element_wide <- r[[wide_var]] %>% dplyr::filter(id == input$selected_element)
+          
           # Element dir
           sql <- glue::glue_sql("SELECT value FROM options WHERE category = {sql_category} AND name = 'unique_id' AND link_id = {input$selected_element}", .con = con)
           element_unique_id <- DBI::dbGetQuery(r$db, sql) %>% dplyr::pull()
@@ -1708,26 +1708,33 @@ mod_widgets_server <- function(id, r, d, m, language, i18n, all_divs, debug, use
           # Get element options
           sql <- glue::glue_sql("SELECT * FROM options WHERE category = {sql_category} AND link_id = {input$selected_element}", .con = con)
           element_options <- DBI::dbGetQuery(r$db, sql)
+          element_name <- element_options %>% dplyr::filter(name == "name_en") %>% dplyr::pull(value) %>% remove_special_chars()
           
           # To download a project, we have to copy db files and plugins files
-          if (id == "projects"){
-            element_wide <- r[[wide_var]] %>% dplyr::filter(id == input$selected_element)
-            element_dir <- create_project_files(id, r, m, single_id, input$selected_element, element_wide, element_options, element_dir)
+          if (id == "projects") element_dir <- create_project_files(id, r, m, single_id, input$selected_element, element_wide, element_options, element_dir)
+          
+          else {
+            
+            # Create XML and README files
+            create_element_xml(id = id, r = r, element_id = input$selected_element, single_id = single_id, element_options = element_options, element_dir = element_dir)
+            
+            description <- element_options %>% dplyr::filter(name == "description_en") %>% dplyr::pull(value)
+            create_element_readme(description = description, element_dir = element_dir)
           }
           
-          else create_element_files(id, r, input$selected_element, single_id, sql_category, element_options, element_dir)
+          # Create a temp dir
+          temp_zip_dir <- file.path(r$app_folder, "temp_files", element_unique_id)
+          if (dir.exists(temp_zip_dir)) unlink(temp_zip_dir, recursive = TRUE)
+          dir.create(temp_zip_dir)
           
-          if (id != "projects"){
-            
-            # Create XML file
-            create_element_xml(id, r, input$selected_element, single_id, element_options, element_dir)
-            
-            # Write README.md
-            writeLines(element_options %>% dplyr::filter(name == "description_en") %>% dplyr::pull(value), paste0(element_dir, "/README.md"))
-          }
+          temp_element_dir <- file.path(temp_zip_dir, element_name)
+          dir.create(temp_element_dir)
+          
+          file_list <- list.files(element_dir, full.names = TRUE)
+          file.copy(file_list, temp_element_dir, overwrite = TRUE)
           
           # Create a ZIP
-          zip::zipr(file, list.files(element_dir, full.names = TRUE))
+          zip::zipr(file, list.files(temp_zip_dir, full.names = TRUE))
           
         }, error = function(e){
           shinyjs::runjs(paste0("Shiny.setInputValue('", id, "-error_downloading_element', Math.random());"))

@@ -53,21 +53,8 @@ create_authors_ui <- function(authors){
 }
 
 #' @noRd
-create_element_files <- function(id, r, element_id, single_id, sql_category, element_options, element_dir){
-  
-  if (!dir.exists(element_dir)) dir.create(element_dir)
-  
-  # if (id %in% c("data_cleaning", "datasets")){
-  #   # Get dataset code
-  #   
-  #   sql <- glue::glue_sql("SELECT code FROM code WHERE category = {sql_category} AND link_id = {element_id}", .con = r$db)
-  #   code <- DBI::dbGetQuery(r$db, sql) %>% dplyr::pull()
-  #   
-  #   writeLines(code, paste0(element_dir, "/code.R"))
-  # }
-  
-  # Create XML file
-  create_element_xml(id, r, element_id, single_id, element_options, element_dir)
+create_element_readme <- function(description, element_dir){
+  writeLines(description, paste0(element_dir, "/README.md"))
 }
 
 #' @noRd
@@ -269,14 +256,24 @@ create_element_xml <- function(id, r, element_id, single_id, element_options, el
   
   XML::newXMLNode("app_version", r$app_version, parent = element_node)
   
-  for(name in c("unique_id", "version", "author", paste0("name_", r$languages$code), paste0("category_", r$languages$code))){
-    XML::newXMLNode(name, element_options %>% dplyr::filter(name == !!name) %>% dplyr::pull(value), parent = element_node)
-  }
+  for(name in c("unique_id", "version", paste0("name_", r$languages$code), paste0("category_", r$languages$code))) XML::newXMLNode(
+    name,
+    element_options %>% dplyr::filter(name == !!name) %>% dplyr::pull(value),
+    parent = element_node
+  )
+  
   for(name in c(paste0("description_", r$languages$code), paste0("short_description_", r$languages$code))) XML::newXMLNode(
     name,
     element_options %>% dplyr::filter(name == !!name) %>% dplyr::pull(value),
     parent = element_node
   )
+  
+  author_value <- element_options %>% dplyr::filter(name == "author") %>% dplyr::pull(value)
+  authors_node <- XML::newXMLNode("authors", parent = element_node)
+  authors <- strsplit(author_value, "[;,]")[[1]] %>% trimws()
+  for (author in authors) {
+    XML::newXMLNode("author", author, parent = authors_node)
+  }
   
   element <- r[[paste0(id, "_wide")]] %>% dplyr::filter(id == element_id)
   
