@@ -478,7 +478,7 @@ mod_widgets_server <- function(id, r, d, m, language, i18n, all_divs, debug, use
       }
       
       ### For a new study, add a default subset
-      else if (id == "studies"){
+      else if (id == "projects"){
         new_subset_options <- create_options_tibble(
           element_id = subset_id, element_name = i18n$t("subset_all_patients"), sql_category = "subset", user_id = r$user_id, username = username, 
           languages = r$languages, last_options_id = get_last_row(m$db, "options"))
@@ -486,14 +486,6 @@ mod_widgets_server <- function(id, r, d, m, language, i18n, all_divs, debug, use
       }
       
       DBI::dbAppendTable(con, "options", new_options)
-
-      ## Code table
-      
-      element_unique_id <- new_options %>% dplyr::filter(name == "unique_id") %>% dplyr::pull(value)
-      element_dir <- paste0(r$app_folder, "/", id, "/", element_unique_id)
-      if (!dir.exists(element_dir)) dir.create(element_dir)
-      
-      code <- ""
       
       # Copy existing plugin
       if (id == "plugins" && copy_existing_plugin){
@@ -510,13 +502,17 @@ mod_widgets_server <- function(id, r, d, m, language, i18n, all_divs, debug, use
           file.copy(file, paste0(element_dir, "/", file_name), overwrite = TRUE)
         }
       }
-      else create_element_scripts(id = id, r = r, element_id = element_id, element_dir = element_dir)
+      else {
+        new_element_unique_id <- new_options %>% dplyr::filter(name == "unique_id") %>% dplyr::pull(value)
+        new_element_dir <- paste0(r$app_folder, "/", id, "/", new_element_unique_id)
+        create_element_scripts(id = id, element_dir = new_element_dir)
+      }
       
       # For a new study, create default subset code
-      if (id == "studeis"){
+      if (id == "projects"){
         new_subset_unique_id <- new_subset_options %>% dplyr::filter(name == "unique_id") %>% dplyr::pull(value)
-        new_subset_dir <- paste0(r$app_folder, "/", id, "/", new_subset_unique_id)
-        create_element_scripts(id = id, r = r, element_id = subset_id, element_dir = new_subset_dir)
+        new_subset_dir <- paste0(r$app_folder, "/subsets/", new_subset_unique_id)
+        create_element_scripts(id = "subsets", element_dir = new_subset_dir)
       }
       
       # Reset fields
@@ -552,7 +548,7 @@ mod_widgets_server <- function(id, r, d, m, language, i18n, all_divs, debug, use
     })
     
     observeEvent(input$import_element_upload, {
-      if (debug) cat(paste0("\n", now(), " - mod_widgets - (", id, ") - observer input$import_plugins_button"))
+      if (debug) cat(paste0("\n", now(), " - mod_widgets - (", id, ") - observer input$import_element_upload"))
     
       req(paste0(id, "_import") %in% user_accesses)
       
@@ -562,14 +558,18 @@ mod_widgets_server <- function(id, r, d, m, language, i18n, all_divs, debug, use
 
         r$imported_element_temp_dir <- paste0(r$app_folder, "/temp_files/", r$user_id, "/", id, "/", now() %>% stringr::str_replace_all(":| |-", ""), paste0(sample(c(0:9, letters[1:6]), 24, TRUE), collapse = ''))
         zip::unzip(input$import_element_upload$datapath, exdir = r$imported_element_temp_dir)
+        r$imported_element_temp_dir <- file.path(r$imported_element_temp_dir, list.files(r$imported_element_temp_dir))
 
         # Read XML file
-
+        
         r$imported_element <-
           xml2::read_xml(paste0(r$imported_element_temp_dir, "/", single_id, ".xml")) %>%
           XML::xmlParse() %>%
           XML::xmlToDataFrame(nodes = XML::getNodeSet(., paste0("//", single_id)), stringsAsFactors = FALSE) %>%
-          tibble::as_tibble()
+          tibble::as_tibble() %>%
+          dplyr::mutate(
+            authors = stringr::str_replace_all(authors, "(?<=\\p{L})(?=\\p{Lu})", "; ")
+          )
         
         # Check if this element already exists in our database
         # If this element already exists, confirm its deletion
@@ -629,20 +629,8 @@ mod_widgets_server <- function(id, r, d, m, language, i18n, all_divs, debug, use
           # Delete element in db
           sql_send_statement(con, glue::glue_sql("DELETE FROM {sql_table} WHERE id = {element_id}", .con = con))
           
-          # For plugins, get options id to delete corresponding code rows
-          if (id == "plugins"){
-            options_ids <- DBI::dbGetQuery(r$db, glue::glue_sql("SELECT id FROM options WHERE category = 'plugin_code' AND link_id = {element_id}", .con = con)) %>% dplyr::pull()
-            
-            # Delete code in db
-            sql_send_statement(con, glue::glue_sql("DELETE FROM code WHERE link_id IN ({options_ids*})", .con = con))
-            sql_send_statement(con, glue::glue_sql("DELETE FROM options WHERE category = 'plugin_code' AND link_id = {element_id}", .con = con))
-          }
-          
           # For projects, delete all rows in associated tables
           delete_project(r, m, element_id)
-          
-          # Delete code in db
-          sql_send_statement(con, glue::glue_sql("DELETE FROM code WHERE category = {sql_category} AND link_id = {element_id}", .con = con))
           
           # Delete options in db
           sql_send_statement(con, glue::glue_sql("DELETE FROM options WHERE category = {sql_category} AND link_id = {element_id}", .con = con))
@@ -706,27 +694,27 @@ mod_widgets_server <- function(id, r, d, m, language, i18n, all_divs, debug, use
         
         DBI::dbAppendTable(con, "options", new_options)
         
-        # Code table
-        
-        if (id == "datasets"){
-          new_code <- tibble::tibble(
-            id = get_last_row(r$db, "code") + 1, category = sql_category, link_id = new_data$id,
-            code = "", creator_id = r$user_id, datetime = now(), deleted = FALSE
-          )
-          DBI::dbAppendTable(con, "code", new_code)
-        }
-        
-        # Add values to SQL tables for project import
-        else if (id == "projects"){
-          
-          project_id <- r$imported_element$id
-          csv_folder <- paste0(r$imported_element_temp_dir, "/app_db")
-          
-          update_plugins <- TRUE
-          if (length(input$import_project_plugins) > 0) update_plugins <- input$import_project_plugins
-          
-          import_project(r, m, csv_folder, update_plugins, project_id, user_accesses)
-        }
+        # # Code table
+        # 
+        # if (id == "datasets"){
+        #   new_code <- tibble::tibble(
+        #     id = get_last_row(r$db, "code") + 1, category = sql_category, link_id = new_data$id,
+        #     code = "", creator_id = r$user_id, datetime = now(), deleted = FALSE
+        #   )
+        #   DBI::dbAppendTable(con, "code", new_code)
+        # }
+        # 
+        # # Add values to SQL tables for project import
+        # else if (id == "projects"){
+        #   
+        #   project_id <- r$imported_element$id
+        #   csv_folder <- paste0(r$imported_element_temp_dir, "/app_db")
+        #   
+        #   update_plugins <- TRUE
+        #   if (length(input$import_project_plugins) > 0) update_plugins <- input$import_project_plugins
+        #   
+        #   import_project(r, m, csv_folder, update_plugins, project_id, user_accesses)
+        # }
         
         # Reload elements var and widgets
         shinyjs::runjs(paste0("Shiny.setInputValue('", id, "-reload_elements_var', Math.random());"))
@@ -1700,38 +1688,13 @@ mod_widgets_server <- function(id, r, d, m, language, i18n, all_divs, debug, use
           
           element_wide <- r[[wide_var]] %>% dplyr::filter(id == input$selected_element)
           
-          # Element dir
-          sql <- glue::glue_sql("SELECT value FROM options WHERE category = {sql_category} AND name = 'unique_id' AND link_id = {input$selected_element}", .con = con)
-          element_unique_id <- DBI::dbGetQuery(r$db, sql) %>% dplyr::pull()
-          element_dir <- paste0(r$app_folder, "/", id, "/", element_unique_id)
+          # Reload subsets var
+          if (id == "projects") reload_elements_var(page_id = "subsets", id = "subsets", con = m$db, r = r, m = m, long_var_filtered = "filtered_subsets_long", user_accesses = user_accesses)
           
-          # Get element options
-          sql <- glue::glue_sql("SELECT * FROM options WHERE category = {sql_category} AND link_id = {input$selected_element}", .con = con)
-          element_options <- DBI::dbGetQuery(r$db, sql)
-          element_name <- element_options %>% dplyr::filter(name == "name_en") %>% dplyr::pull(value) %>% remove_special_chars()
-          
-          # To download a project, we have to copy db files and plugins files
-          if (id == "projects") element_dir <- create_project_files(id, r, m, single_id, input$selected_element, element_wide, element_options, element_dir)
-          
-          else {
-            
-            # Create XML and README files
-            create_element_xml(id = id, r = r, element_id = input$selected_element, single_id = single_id, element_options = element_options, element_dir = element_dir)
-            
-            description <- element_options %>% dplyr::filter(name == "description_en") %>% dplyr::pull(value)
-            create_element_readme(description = description, element_dir = element_dir)
-          }
-          
-          # Create a temp dir
-          temp_zip_dir <- file.path(r$app_folder, "temp_files", element_unique_id)
-          if (dir.exists(temp_zip_dir)) unlink(temp_zip_dir, recursive = TRUE)
-          dir.create(temp_zip_dir)
-          
-          temp_element_dir <- file.path(temp_zip_dir, element_name)
-          dir.create(temp_element_dir)
-          
-          file_list <- list.files(element_dir, full.names = TRUE)
-          file.copy(file_list, temp_element_dir, overwrite = TRUE)
+          temp_zip_dir <- create_element_files(
+            id = id, r = r, m = m, sql_category = sql_category, con = con, single_id = single_id,
+            element_id = input$selected_element, element_wide = element_wide
+          )
           
           # Create a ZIP
           zip::zipr(file, list.files(temp_zip_dir, full.names = TRUE))
