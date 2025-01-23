@@ -330,6 +330,9 @@ mod_data_server <- function(id, r, d, m, language, i18n, debug, user_accesses){
       
       # Show selected project div
       shinyjs::show("selected_project_div")
+      
+      # Load subsets
+      reload_elements_var(page_id = "subsets", id = "subsets", con = m$db, r = r, m = m, long_var_filtered = "filtered_subsets_long", user_accesses)
 
       shinyjs::delay(100, {
         

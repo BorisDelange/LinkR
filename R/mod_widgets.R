@@ -576,7 +576,7 @@ mod_widgets_server <- function(id, r, d, m, language, i18n, all_divs, debug, use
         
         if (r[[long_var]] %>% dplyr::filter(name == "unique_id" & value == r$imported_element$unique_id) %>% nrow() > 0) shinyjs::show("import_element_modal")
         else {
-          if (id == "projects") if (id == "projects") shinyjs::runjs(paste0("Shiny.setInputValue('", id, "-ask_plugins_update', Math.random());"))
+          if (id == "projects") shinyjs::runjs(paste0("Shiny.setInputValue('", id, "-ask_plugins_update', Math.random());"))
           else shinyjs::runjs(paste0("Shiny.setInputValue('", id, "-confirm_element_import_2', Math.random());"))
         }
         
@@ -672,7 +672,7 @@ mod_widgets_server <- function(id, r, d, m, language, i18n, all_divs, debug, use
           "user_allowed_read", "", r$user_id,
           "version", r$imported_element$version, NA_real_,
           "unique_id", r$imported_element$unique_id, NA_real_,
-          "author", r$imported_element$author, NA_real_,
+          "author", r$imported_element$authors, NA_real_,
           "downloaded_from", "", NA_real_,
           "downloaded_from_url", "", NA_real_
         ) %>%
@@ -694,27 +694,18 @@ mod_widgets_server <- function(id, r, d, m, language, i18n, all_divs, debug, use
         
         DBI::dbAppendTable(con, "options", new_options)
         
-        # # Code table
-        # 
-        # if (id == "datasets"){
-        #   new_code <- tibble::tibble(
-        #     id = get_last_row(r$db, "code") + 1, category = sql_category, link_id = new_data$id,
-        #     code = "", creator_id = r$user_id, datetime = now(), deleted = FALSE
-        #   )
-        #   DBI::dbAppendTable(con, "code", new_code)
-        # }
-        # 
-        # # Add values to SQL tables for project import
-        # else if (id == "projects"){
-        #   
-        #   project_id <- r$imported_element$id
-        #   csv_folder <- paste0(r$imported_element_temp_dir, "/app_db")
-        #   
-        #   update_plugins <- TRUE
-        #   if (length(input$import_project_plugins) > 0) update_plugins <- input$import_project_plugins
-        #   
-        #   import_project(r, m, csv_folder, update_plugins, project_id, user_accesses)
-        # }
+        # Import project
+        
+        if (id == "projects"){
+          
+          update_plugins <- TRUE
+          if (length(input$import_project_plugins) > 0) update_plugins <- input$import_project_plugins
+          
+          import_project(
+            r = r, m = m, temp_dir = r$imported_element_temp_dir,
+            update_plugins = update_plugins, project_id = r$imported_element$id, user_accesses = user_accesses
+          )
+        }
         
         # Reload elements var and widgets
         shinyjs::runjs(paste0("Shiny.setInputValue('", id, "-reload_elements_var', Math.random());"))

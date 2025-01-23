@@ -8,96 +8,99 @@ load_files_browser_ui <- function(id, input_prefix, files_list){
     for (i in 1:nrow(files_list)){
       file <- files_list[i, ]
       
-      file <- file %>% dplyr::mutate(short_filename = ifelse(nchar(filename) >= 23, paste0(substr(filename, 1, 20), "..."), filename))
+      if (tolower(file$filename) %not_in% c("readme.md", "plugin.xml")){
       
-      if (id == "plugins" & file$filename %in% c("ui.R", "server.R", "translations.csv")) icons_div <- tagList()
-      else icons_div <- div(
-        class = "file-item-icons",
-        shinyjs::hidden(
-          div(
-            id = ns(paste0(input_prefix, "save_filename_button_div_", file$id)),
-            shiny.fluent::IconButton.shinyInput(paste0(input_prefix, "save_filename_button_", file$id), iconProps = list(iconName = "CheckMark")), 
-            class = "small_icon_button",
-            onclick = paste0(
-              "Shiny.setInputValue('", id, "-", input_prefix, "save_filename', ", file$id, ", {priority: 'event'});",
-              "Shiny.setInputValue('", id, "-", input_prefix, "save_filename_trigger', Math.random(), {priority: 'event'});"
-            )
-          )
-        ),
-        shinyjs::hidden(
-          div(
-            id = ns(paste0(input_prefix, "cancel_rename_button_div_", file$id)),
-            shiny.fluent::IconButton.shinyInput(paste0(input_prefix, "cancel_rename_button_", file$id), iconProps = list(iconName = "Clear")), 
-            class = "small_icon_button",
-            onclick = paste0(
-              "Shiny.setInputValue('", id, "-", input_prefix, "cancel_rename', ", file$id, ", {priority: 'event'});",
-              "Shiny.setInputValue('", id, "-", input_prefix, "cancel_rename_trigger', Math.random(), {priority: 'event'});"
-            )
-          )
-        ),
-        div(
-          id = ns(paste0(input_prefix, "edit_filename_button_div_", file$id)),
-          shiny.fluent::IconButton.shinyInput(paste0(input_prefix, "edit_filename_button_", file$id), iconProps = list(iconName = "Edit")), 
-          class = "small_icon_button",
-          onclick = paste0(
-            "Shiny.setInputValue('", id, "-", input_prefix, "edit_filename', ", file$id, ", {priority: 'event'});",
-            "Shiny.setInputValue('", id, "-", input_prefix, "edit_filename_trigger', Math.random(), {priority: 'event'});"
-          )
-        ),
-        div(
-          id = ns(paste0(input_prefix, "delete_file_button_div_", file$id)),
-          shiny.fluent::IconButton.shinyInput(paste0(input_prefix, "delete_file_button_", file$id), iconProps = list(iconName = "Delete")), 
-          class = "small_icon_button",
-          onclick = paste0(
-            "Shiny.setInputValue('", id, "-", input_prefix, "delete_file', ", file$id, ", {priority: 'event'});",
-            "Shiny.setInputValue('", id, "-", input_prefix, "delete_file_trigger', Math.random(), {priority: 'event'});"
-          )
-        ),
-        onclick = "event.stopPropagation();"
-      )
-      
-      files_ui <- tagList(
-        files_ui,
-        tags$li(
-          id = ns(paste0(input_prefix, "file_div_", file$id)),
-          class = "file-item",
-          div(
-            class = "file-item-title",
-            tags$i(class = "fa fa-file"),
-            shinyjs::hidden(
-              div(
-                id = ns(paste0(input_prefix, "edit_filename_textfield_div_", file$id)), 
-                shiny.fluent::TextField.shinyInput(
-                  ns(paste0(input_prefix, "edit_filename_textfield_", file$id)),
-                  value = file$filename,
-                  onKeyPress = htmlwidgets::JS(sprintf(
-                    "function(event) {
-                      if (event.key === 'Enter') {
-                        event.preventDefault();
-                        Shiny.setInputValue('%s-%ssave_filename', %s, {priority: 'event'});
-                        Shiny.setInputValue('%s-%ssave_filename_trigger', Math.random(), {priority: 'event'});
-                      }
-                    }", 
-                    id, input_prefix, file$id, id, input_prefix
-                  ))
-                ), 
-                class = "small_textfield",
-                onclick = "event.stopPropagation();"
+        file <- file %>% dplyr::mutate(short_filename = ifelse(nchar(filename) >= 23, paste0(substr(filename, 1, 20), "..."), filename))
+        
+        if (id == "plugins" & file$filename %in% c("ui.R", "server.R", "translations.csv")) icons_div <- tagList()
+        else icons_div <- div(
+          class = "file-item-icons",
+          shinyjs::hidden(
+            div(
+              id = ns(paste0(input_prefix, "save_filename_button_div_", file$id)),
+              shiny.fluent::IconButton.shinyInput(paste0(input_prefix, "save_filename_button_", file$id), iconProps = list(iconName = "CheckMark")), 
+              class = "small_icon_button",
+              onclick = paste0(
+                "Shiny.setInputValue('", id, "-", input_prefix, "save_filename', ", file$id, ", {priority: 'event'});",
+                "Shiny.setInputValue('", id, "-", input_prefix, "save_filename_trigger', Math.random(), {priority: 'event'});"
               )
-            ),
-            create_hover_card(
-              ui = div(
-                style = "padding-left: 5px;",
-                id = ns(paste0(input_prefix, "filename_div_", file$id)),
-                file$short_filename
-              ),
-              text = file$filename
             )
           ),
-          icons_div,
-          onClick = htmlwidgets::JS(paste0("Shiny.setInputValue('", id, "-", input_prefix, "selected_file', ", file$id, ", {priority: 'event'});"))
+          shinyjs::hidden(
+            div(
+              id = ns(paste0(input_prefix, "cancel_rename_button_div_", file$id)),
+              shiny.fluent::IconButton.shinyInput(paste0(input_prefix, "cancel_rename_button_", file$id), iconProps = list(iconName = "Clear")), 
+              class = "small_icon_button",
+              onclick = paste0(
+                "Shiny.setInputValue('", id, "-", input_prefix, "cancel_rename', ", file$id, ", {priority: 'event'});",
+                "Shiny.setInputValue('", id, "-", input_prefix, "cancel_rename_trigger', Math.random(), {priority: 'event'});"
+              )
+            )
+          ),
+          div(
+            id = ns(paste0(input_prefix, "edit_filename_button_div_", file$id)),
+            shiny.fluent::IconButton.shinyInput(paste0(input_prefix, "edit_filename_button_", file$id), iconProps = list(iconName = "Edit")), 
+            class = "small_icon_button",
+            onclick = paste0(
+              "Shiny.setInputValue('", id, "-", input_prefix, "edit_filename', ", file$id, ", {priority: 'event'});",
+              "Shiny.setInputValue('", id, "-", input_prefix, "edit_filename_trigger', Math.random(), {priority: 'event'});"
+            )
+          ),
+          div(
+            id = ns(paste0(input_prefix, "delete_file_button_div_", file$id)),
+            shiny.fluent::IconButton.shinyInput(paste0(input_prefix, "delete_file_button_", file$id), iconProps = list(iconName = "Delete")), 
+            class = "small_icon_button",
+            onclick = paste0(
+              "Shiny.setInputValue('", id, "-", input_prefix, "delete_file', ", file$id, ", {priority: 'event'});",
+              "Shiny.setInputValue('", id, "-", input_prefix, "delete_file_trigger', Math.random(), {priority: 'event'});"
+            )
+          ),
+          onclick = "event.stopPropagation();"
         )
-      )
+        
+        files_ui <- tagList(
+          files_ui,
+          tags$li(
+            id = ns(paste0(input_prefix, "file_div_", file$id)),
+            class = "file-item",
+            div(
+              class = "file-item-title",
+              tags$i(class = "fa fa-file"),
+              shinyjs::hidden(
+                div(
+                  id = ns(paste0(input_prefix, "edit_filename_textfield_div_", file$id)), 
+                  shiny.fluent::TextField.shinyInput(
+                    ns(paste0(input_prefix, "edit_filename_textfield_", file$id)),
+                    value = file$filename,
+                    onKeyPress = htmlwidgets::JS(sprintf(
+                      "function(event) {
+                        if (event.key === 'Enter') {
+                          event.preventDefault();
+                          Shiny.setInputValue('%s-%ssave_filename', %s, {priority: 'event'});
+                          Shiny.setInputValue('%s-%ssave_filename_trigger', Math.random(), {priority: 'event'});
+                        }
+                      }", 
+                      id, input_prefix, file$id, id, input_prefix
+                    ))
+                  ), 
+                  class = "small_textfield",
+                  onclick = "event.stopPropagation();"
+                )
+              ),
+              create_hover_card(
+                ui = div(
+                  style = "padding-left: 5px;",
+                  id = ns(paste0(input_prefix, "filename_div_", file$id)),
+                  file$short_filename
+                ),
+                text = file$filename
+              )
+            ),
+            icons_div,
+            onClick = htmlwidgets::JS(paste0("Shiny.setInputValue('", id, "-", input_prefix, "selected_file', ", file$id, ", {priority: 'event'});"))
+          )
+        )
+      }
     }
   }
   

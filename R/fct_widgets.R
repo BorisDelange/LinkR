@@ -79,13 +79,13 @@ create_element_files <- function(id, r, m, sql_category, con, single_id, element
   temp_element_dir <- file.path(temp_zip_dir, element_name)
   dir.create(temp_element_dir)
   
-  file_list <- list.files(element_dir, full.names = TRUE)
-  file.copy(file_list, temp_element_dir, overwrite = TRUE)
+  files_list <- list.files(element_dir, full.names = TRUE)
+  file.copy(files_list, temp_element_dir, overwrite = TRUE)
   
   # Create XML and README files
-  create_element_xml(id = id, r = r, element_id = element_id, single_id = single_id, element_options = element_options, element_dir = element_dir)
+  create_element_xml(id = id, r = r, element_id = element_id, single_id = single_id, element_options = element_options, element_dir = temp_element_dir)
   description <- element_options %>% dplyr::filter(name == "description_en") %>% dplyr::pull(value)
-  create_element_readme(description = description, element_dir = element_dir)
+  create_element_readme(description = description, element_dir = temp_element_dir)
   
   if (id == "projects"){
   
@@ -97,6 +97,8 @@ create_element_files <- function(id, r, m, sql_category, con, single_id, element
     # - widgets
     # - widgets_concepts
     # - widgets_options
+    # - plugins
+    # - subsets
     # - options
     
     corresponding_ids <- list()
@@ -200,7 +202,7 @@ create_element_files <- function(id, r, m, sql_category, con, single_id, element
     
     # Create CSV files
     dir.create(paste0(temp_element_dir, "/app_db"))
-    for (csv_file in c("tabs_groups", "tabs", "widgets", "widgets_concepts", "widgets_options")) readr::write_csv(data[[csv_file]], paste0(temp_element_dir, "/app_db/", csv_file, ".csv"))
+    for (csv_file in c("tabs_groups", "tabs", "widgets", "widgets_concepts", "widgets_options", "plugins", "subsets", "options")) readr::write_csv(data[[csv_file]], paste0(temp_element_dir, "/app_db/", csv_file, ".csv"))
     
     # Copy plugins files
     
@@ -217,7 +219,7 @@ create_element_files <- function(id, r, m, sql_category, con, single_id, element
           element <- data[[element_type]][i, ]
           element_type_unique_id <- data$options %>% dplyr::filter(category == element_single & name == "unique_id" & link_id == element$id) %>% dplyr::pull(value)
           
-          element_name <- r[[paste0(element_type, "_wide")]] %>% dplyr::filter(id == element$id) %>% dplyr::pull(name) %>% remove_special_chars()
+          element_name <- r[[paste0(element_type, "_long")]] %>% dplyr::filter(id == element$id, name == "name_en") %>% dplyr::pull(value) %>% remove_special_chars()
           
           type_dir <- paste0(r$app_folder, "/", element_type, "/", element_type_unique_id)
           project_type_dir <- paste0(element_dir, "/", element_name)
@@ -567,6 +569,21 @@ create_rmarkdown_file <- function(r, code, interpret_code = TRUE){
 #' @noRd
 delete_project <- function(r, m, project_id){
   
+  # Delete project files
+  
+  project_unique_id <- r$projects_long %>% dplyr::filter(id == project_id, name == "unique_id") %>% dplyr::pull(value)
+  if (length(project_unique_id) > 0) unlink(file.path(r$app_folder, "projects_files", project_unique_id), recursive = TRUE)
+  
+  # Delete subsets files
+  
+  sql <- glue::glue_sql("SELECT id FROM subsets WHERE study_id = {project_id}", .con = m$db)
+  subsets_ids <- DBI::dbGetQuery(m$db, sql) %>% dplyr::pull()
+  sql <- glue::glue_sql("SELECT value FROM options WHERE category = 'subset' AND link_id IN ({subsets_ids*})", .con = m$db)
+  subsets_unique_ids <- DBI::dbGetQuery(m$db, sql) %>% dplyr::pull()
+  for (subset_unique_id in subsets_unique_ids) unlink(file.path(r$app_folder, "subsets", subset_unique_id), recursive = TRUE)
+  
+  # Delete data in DB
+  
   sql <- glue::glue_sql("SELECT patient_lvl_tab_group_id, aggregated_tab_group_id FROM studies WHERE id = {project_id}", .con = r$db)
   tabs_groups_ids <- DBI::dbGetQuery(r$db, sql)
   tabs_groups_ids <- c(tabs_groups_ids$patient_lvl_tab_group_id, tabs_groups_ids$aggregated_tab_group_id)
@@ -584,9 +601,6 @@ delete_project <- function(r, m, project_id){
   sql_send_statement(m$db, sql)
   
   sql <- glue::glue_sql("DELETE FROM options WHERE category = 'subset' AND link_id IN ({subsets_ids*})", .con = m$db)
-  sql_send_statement(m$db, sql)
-  
-  sql <- glue::glue_sql("DELETE FROM code WHERE category = 'subset' AND link_id IN ({subsets_ids*})", .con = m$db)
   sql_send_statement(m$db, sql)
   
   sql <- glue::glue_sql("DELETE FROM widgets_options WHERE widget_id IN ({widgets_ids*})", .con = m$db)
@@ -662,7 +676,7 @@ get_plugin_buttons <- function(id, buttons, plugin_type, plugin_id, i18n){
 }
 
 #' @noRd
-import_project <- function(r, m, csv_folder, update_plugins, project_id, user_accesses){
+import_project <- function(r, m, temp_dir, update_plugins, project_id, user_accesses){
   
   # Tables :
   # - tabs_groups
@@ -671,10 +685,12 @@ import_project <- function(r, m, csv_folder, update_plugins, project_id, user_ac
   # - widgets_concepts
   # - widgets_options
   # - plugins
-  # - code
+  # - subsets
   # - options
   
   # Load CSV files
+  
+  csv_folder <- paste0(temp_dir, "/app_db")
   
   csv_files <- list.files(csv_folder)
   
@@ -688,7 +704,7 @@ import_project <- function(r, m, csv_folder, update_plugins, project_id, user_ac
       
       file_path <- paste0(csv_folder, "/", csv_file)
       
-      if (table %in% c("code", "options", "plugins", "tabs", "tabs_groups", "widgets")){
+      if (table %in% c("options", "plugins", "tabs", "tabs_groups", "widgets")){
         db <- "main"
         con <- r$db
       }
@@ -776,14 +792,25 @@ import_project <- function(r, m, csv_folder, update_plugins, project_id, user_ac
     data$widgets_options %>%
     dplyr::mutate(widget_id = widget_id + last_row$widgets, link_id = link_id + last_row$widgets_options)
   
-  data$options <- data$options %>%
-    dplyr::left_join(
-      data$plugins %>% dplyr::select(link_id = id, new_link_id = new_id),
-      by = "link_id"
-    ) %>%
-    dplyr::select(-link_id) %>%
-    dplyr::rename(link_id = new_link_id) %>%
-    dplyr::relocate(link_id, .after = "category")
+  ## options
+  
+  if (nrow(data$plugins) > 0){
+    data$options <-
+      data$options %>%
+      dplyr::left_join(
+        data$plugins %>% dplyr::transmute(link_id = id, new_link_id = new_id, category = "plugin"),
+        by = c("link_id", "category")
+      ) %>%
+      dplyr::select(-link_id) %>%
+      dplyr::rename(link_id = new_link_id) %>%
+      dplyr::relocate(link_id, .after = "category")
+  }
+  
+  if (nrow(data$subsets) > 0){
+    data$options <-
+      data$options %>%
+      dplyr::mutate(link_id = dplyr::if_else(category == "subset", link_id + last_row$subsets, link_id))
+  }
   
   # Delete data for more recent plugins
   if (update_plugins){
@@ -799,14 +826,7 @@ import_project <- function(r, m, csv_folder, update_plugins, project_id, user_ac
       sql <- glue::glue_sql("DELETE FROM plugins WHERE id IN ({ids_to_del*})", .con = r$db)
       sql_send_statement(r$db, sql)
       
-      # Get options ids to delete code rows
-      options_ids <- DBI::dbGetQuery(r$db, glue::glue_sql("SELECT id FROM options WHERE category = 'plugin_code' AND link_id IN ({ids_to_del*})", .con = r$db)) %>% dplyr::pull()
-      
-      # Delete code in db
-      sql <- glue::glue_sql("DELETE FROM code WHERE link_id IN ({options_ids*})", .con = r$db)
-      sql_send_statement(r$db, sql)
-      
-      sql <- glue::glue_sql("DELETE FROM options WHERE category IN ('plugin', 'plugin_code') AND link_id IN ({ids_to_del*})", .con = r$db)
+      sql <- glue::glue_sql("DELETE FROM options WHERE category = 'plugin' AND link_id IN ({ids_to_del*})", .con = r$db)
       sql_send_statement(r$db, sql)
     }
   }
@@ -817,24 +837,76 @@ import_project <- function(r, m, csv_folder, update_plugins, project_id, user_ac
   
   data$plugins <- data$plugins %>% dplyr::mutate(id = new_id) %>% dplyr::select(-new_id)
   
-  # Filter options & code on plugins to import
-  data$options <- data$options %>% dplyr::filter(link_id %in% data$plugins$id)
-  data$code <- 
-    data$code %>% 
-    dplyr::mutate(link_id = link_id + last_row$options) %>%
-    dplyr::filter(link_id %in% data$options$id)
+  # Filter options on plugins to import
+  data$options <- data$options %>% dplyr::filter(category == "subset" | (category == "plugin" & link_id %in% data$plugins$id))
   
   # Copy data in app database
-  for (table in c("tabs_groups", "tabs", "widgets", "widgets_concepts", "widgets_options", "plugins", "options", "code")){
+  for (table in c("tabs_groups", "tabs", "widgets", "widgets_concepts", "widgets_options", "plugins", "subsets")){
     
-    if (table %in% c("widgets_concepts", "widgets_options")) con <- m$db
+    if (table %in% c("widgets_concepts", "widgets_options", "subsets")) con <- m$db
     else con <- r$db
     
     DBI::dbAppendTable(con, table, data[[table]])
+    
+    if (table == "plugins") DBI::dbAppendTable(con, "options", data$options %>% dplyr::filter(category == "plugin"))
+    else if (table == "subsets") DBI::dbAppendTable(con, "options", data$options %>% dplyr::filter(category == "subset"))
   }
   
-  # Reload r$plugins_wide & r$plugins_long
-  if (update_plugins) reload_elements_var(page_id = "plugins", id = "plugins", con = r$db, r = r, m = m, long_var_filtered = "filtered_plugins_long", user_accesses)
+  # Copy plugins and subsets files
+  
+  r$data_subsets <- data$subsets
+  r$data_options <- data$options
+  
+  for (element_type in c("plugins", "subsets")) {
+    
+    element_single <- substr(element_type, 1, nchar(element_type)-1)
+    
+    if (nrow(data[[element_type]]) > 0){
+      items <-
+        data[[element_type]] %>%
+        dplyr::select(id) %>%
+        dplyr::left_join(
+          data$options %>%
+            dplyr::filter(category == element_single & name == "unique_id") %>%
+            dplyr::select(id = link_id, unique_id = value),
+          by = "id"
+        ) %>%
+        dplyr::left_join(
+          data$options %>%
+            dplyr::filter(category == element_single & name == "name_en") %>%
+            dplyr::select(id = link_id, name = value),
+          by = "id"
+        ) %>%
+        dplyr::mutate_at("name", remove_special_chars)
+      
+      name_to_unique_id <- items %>% dplyr::select(name, unique_id) %>% dplyr::distinct()
+      
+      source_folder <- file.path(temp_dir, element_type)
+      target_folder <- file.path(r$app_folder, element_type)
+      
+      for (name in name_to_unique_id$name) {
+        source_path <- file.path(source_folder, name)
+        
+        new_name <- name_to_unique_id %>% dplyr::filter(name == !!name) %>% dplyr::pull(unique_id)
+        
+        target_path <- file.path(target_folder, new_name)
+        if (!dir.exists(target_path)) dir.create(target_path, recursive = TRUE)
+        
+        files_list <- list.files(source_path, full.names = TRUE)
+        file.copy(files_list, target_path, overwrite = TRUE)
+      }
+    }
+  }
+  
+  # Copy projects scripts files
+  
+  projects_files_source_folder <- paste0(temp_dir, "/projects_files")
+  files_list <- list.files(projects_files_source_folder, full.names = TRUE)
+  
+  projects_files_target_folder <- file.path(r$app_folder, "projects_files", r$imported_element$unique_id)
+  if (!dir.exists(projects_files_target_folder)) dir.create(projects_files_target_folder)
+  
+  file.copy(files_list, projects_files_target_folder, overwrite = TRUE)
 }
 
 #' @noRd
