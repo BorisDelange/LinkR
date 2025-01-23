@@ -505,3 +505,15 @@ error_update_remote_git_repo,Error updating remote git repo
 invalid_filename,Invalid file name
 invalid_file_extension,Invalid file extension
 project_files,Project files
+error_downloading_plugin,Error downloading plugin
+error_downloading_project,Error downloading project
+error_downloading_dataset,Error downloading dataset
+error_downloading_data_cleaning,Error downloading data cleaning script
+error_importing_plugin,Error importing plugin
+error_importing_project,Error importing project
+error_importing_dataset,Error importing dataset
+error_importing_data_cleaning,Error importing data cleaning script
+success_importing_plugin,Plugin successfully imported
+success_importing_project,Project successfully imported
+success_importing_dataset,Dataset successfully imported
+success_importing_data_cleaning,Data cleaning script successfully imported

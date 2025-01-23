@@ -505,3 +505,15 @@ error_update_remote_git_repo,Erreur lors de la mise à jour du dépôt git dista
 invalid_filename,Nom du fichier non valide
 invalid_file_extension,Extension du fichier non valide
 project_files,Fichiers du projet
+error_downloading_plugin,Erreur lors du téléchargement du plugin
+error_downloading_project,Erreur lors du téléchargement du projet
+error_downloading_dataset,Erreur lors du téléchargement du set de données
+error_downloading_data_cleaning,Erreur lors du téléchargement du script de data cleaning
+error_importing_plugin,Erreur lors de l'importation du plugin
+error_importing_project,Erreur lors de l'importation du projet
+error_importing_dataset,Erreur lors de l'importation du set de données
+error_importing_data_cleaning,Erreur lors de l'importation du script de data cleaning
+success_importing_plugin,Plugin importé avec succès
+success_importing_project,Projet importé avec succès
+success_importing_dataset,Set de données importé avec succès
+success_importing_data_cleaning,Script de data cleaning importé avec succès
