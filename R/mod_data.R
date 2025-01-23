@@ -614,7 +614,12 @@ mod_data_server <- function(id, r, d, m, language, i18n, debug, user_accesses){
         
         # If this subset contains no patient, maybe the code has not been run yet
         if (nrow(m$subset_persons) == 0){
-          sql <- glue::glue_sql("SELECT code FROM code WHERE category = 'subset' AND link_id = {selected_subset}", .con = m$db)
+          
+          sql <- glue::glue_sql("SELECT value FROM options WHERE category = 'subset' AND name = 'unique_id' AND link_id = {selected_subset}", .con = m$db)
+          subset_unique_id <- DBI::dbGetQuery(m$db, sql) %>% dplyr::pull()
+          
+          file_path <- file.path(r$app_folder, "subsets", subset_unique_id, "main.R")
+          subset_code <- readLines(file_path, warn = FALSE) %>% paste(collapse = "\n")
 
           subset_code <-
             DBI::dbGetQuery(m$db, sql) %>%
@@ -2354,7 +2359,7 @@ mod_data_server <- function(id, r, d, m, language, i18n, debug, user_accesses){
     # Module functions ----
     # --- --- --- --- --- -
     
-    create_translations_files <- function(plugin_id, plugin_translations_dir, plugin_folder){
+    create_translations_files <- function(plugin_unique_id, plugin_translations_dir, plugin_folder){
       
       if (!dir.exists(plugin_translations_dir)) dir.create(plugin_translations_dir)
       if (!dir.exists(plugin_folder)) dir.create(plugin_folder)
@@ -2364,11 +2369,8 @@ mod_data_server <- function(id, r, d, m, language, i18n, debug, user_accesses){
       
       if (!file.exists(translations_file)){
         
-        sql <- glue::glue_sql("SELECT id FROM options WHERE category = 'plugin_code' AND link_id = {plugin_id} AND name = 'filename' AND value = 'translations.csv'", .con = r$db)
-        options_id <- DBI::dbGetQuery(r$db, sql) %>% dplyr::pull()
-        
-        sql <- glue::glue_sql("SELECT code FROM code WHERE category = 'plugin' AND link_id = {options_id}", .con = r$db)
-        translations_code <- DBI::dbGetQuery(r$db, sql) %>% dplyr::pull()
+        file_path <- file.path(r$app_folder, "plugins", plugin_unique_id, "translations.csv")
+        translations_code <- readLines(file_path, warn = FALSE) %>% paste(collapse = "\n")
         
         writeLines(translations_code, translations_file)
       }
@@ -2461,15 +2463,14 @@ mod_data_server <- function(id, r, d, m, language, i18n, debug, user_accesses){
           else {
 
             # Get plugin unique_id
-            sql <- glue::glue_sql("SELECT value FROM options WHERE category = 'plugin' AND name = 'unique_id' AND link_id = {plugin_id}", .con = r$db)
-            plugin_unique_id <- DBI::dbGetQuery(r$db, sql) %>% dplyr::pull()
+            plugin_unique_id <- r$plugins_long %>% dplyr::filter(id == plugin_id, name == "unique_id") %>% dplyr::pull(value)
 
             # Get plugin folder
             plugin_folder <- paste0(r$app_folder, "/plugins/", plugin_unique_id)
 
             # Create translations files and var
             plugin_translations_dir <- paste0(r$app_folder, "/translations/", plugin_unique_id)
-            create_translations_files(plugin_id, plugin_translations_dir, plugin_folder)
+            create_translations_files(plugin_unique_id, plugin_translations_dir, plugin_folder)
 
             tryCatch({
               i18np <- suppressWarnings(shiny.i18n::Translator$new(translation_csvs_path = plugin_translations_dir))
@@ -2490,8 +2491,12 @@ mod_data_server <- function(id, r, d, m, language, i18n, debug, user_accesses){
             # Widget card
 
             ui_code <- tryCatch({
-                sql <- glue::glue_sql("SELECT code FROM code WHERE category = 'plugin' AND link_id = {code_id}", .con = r$db)
-                ui_code <- DBI::dbGetQuery(r$db, sql) %>% dplyr::pull() %>% process_widget_code(tab_id, widget_id, m$selected_study, patient_id, plugin_folder)
+              
+                file_path <- file.path(r$app_folder, "plugins", plugin_unique_id, "ui.R")
+                ui_code <-
+                  readLines(file_path, warn = FALSE) %>% paste(collapse = "\n") %>%
+                  process_widget_code(tab_id, widget_id, m$selected_study, patient_id, plugin_folder)
+                
                 eval(parse(text = ui_code))
               },
               error = function(e){
@@ -2552,18 +2557,18 @@ mod_data_server <- function(id, r, d, m, language, i18n, debug, user_accesses){
             # Get plugin code
             
             ids <- widgets %>% dplyr::filter(widget_id == !!widget_id) %>% dplyr::slice(1) %>% dplyr::select(plugin_id, tab_id)
+            
             plugin_id <- ids$plugin_id
+            plugin_unique_id <- r$plugins_long %>% dplyr::filter(id == plugin_id, name == "unique_id") %>% dplyr::pull(value)
+            
             tab_id <- ids$tab_id
             
             # Check if plugin has been deleted
             check_deleted_plugin <- nrow(DBI::dbGetQuery(r$db, paste0("SELECT * FROM plugins WHERE id = ", plugin_id))) == 0
             if (!check_deleted_plugin){
               
-              sql <- glue::glue_sql("SELECT id FROM options WHERE link_id = {plugin_id} AND name = 'filename' AND value = 'server.R'", .con = r$db)
-              code_id <- DBI::dbGetQuery(r$db, sql) %>% dplyr::pull()
-              
-              sql <- glue::glue_sql("SELECT code FROM code WHERE category = 'plugin' AND link_id = {code_id}", .con = r$db)
-              server_code <- DBI::dbGetQuery(r$db, sql) %>% dplyr::pull()
+              file_path <- file.path(r$app_folder, "plugins", plugin_unique_id, "server.R")
+              server_code <- readLines(file_path, warn = FALSE) %>% paste(collapse = "\n")
               
               patient_id <- NA_integer_
               if (length(m$selected_person) > 0) patient_id <- m$selected_person

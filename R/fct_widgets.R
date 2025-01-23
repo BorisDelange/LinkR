@@ -249,7 +249,7 @@ create_element_files <- function(id, r, m, sql_category, con, single_id, element
     source_project_files_dir <- paste0(r$app_folder, "/projects_files/", element_unique_id)
     list_of_files <- list.files(source_project_files_dir)
     
-    file.copy(paste0(source_project_files_dir, "/", list_of_files), paste0(target_project_files_dir, "/", list_of_files))
+    if (length(list_of_files) > 0) file.copy(paste0(source_project_files_dir, "/", list_of_files), paste0(target_project_files_dir, "/", list_of_files))
   }
   
   return(temp_zip_dir)
@@ -849,13 +849,16 @@ import_project <- function(r, m, temp_dir, update_plugins, project_id, user_acce
     DBI::dbAppendTable(con, table, data[[table]])
     
     if (table == "plugins") DBI::dbAppendTable(con, "options", data$options %>% dplyr::filter(category == "plugin"))
-    else if (table == "subsets") DBI::dbAppendTable(con, "options", data$options %>% dplyr::filter(category == "subset"))
+    else if (table == "subsets"){
+      
+      # We need to redefine ids
+      last_options_row <- get_last_row(m$db, "options")
+      data$options <- data$options %>% dplyr::mutate(id = last_options_row + dplyr::row_number())
+      DBI::dbAppendTable(con, "options", data$options %>% dplyr::filter(category == "subset"))
+    }
   }
   
   # Copy plugins and subsets files
-  
-  r$data_subsets <- data$subsets
-  r$data_options <- data$options
   
   for (element_type in c("plugins", "subsets")) {
     

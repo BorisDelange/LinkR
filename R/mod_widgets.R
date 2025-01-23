@@ -610,8 +610,7 @@ mod_widgets_server <- function(id, r, d, m, language, i18n, all_divs, debug, use
         unlink(element_folder, recursive = TRUE)
         dir.create(element_folder)
         
-        files_list <- list.files(r$imported_element_temp_dir)
-        
+        files_list <- list.files(r$imported_element_temp_dir) %>% setdiff(c("app_db", "plugins", "projects_files", "subsets"))
         file.copy(paste0(r$imported_element_temp_dir, "/", files_list), paste0(element_folder, "/", files_list))
         
         # Reassign new id
