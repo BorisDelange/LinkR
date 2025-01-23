@@ -718,7 +718,7 @@ import_project <- function(r, m, temp_dir, update_plugins, project_id, user_acce
       col_types <- r$db_col_types %>% dplyr::filter(db == !!db, table == !!table) %>% dplyr::pull(col_types)
       data[[table]] <- vroom::vroom(file_path, col_types = col_types, progress = FALSE)
       
-      if (table != "plugins") data[[table]] <- data[[table]] %>% dplyr::mutate(id = id + last_row[[table]])
+      if (table %not_in% c("options", "plugins")) data[[table]] <- data[[table]] %>% dplyr::mutate(id = id + last_row[[table]])
     }
   }
   
@@ -763,6 +763,9 @@ import_project <- function(r, m, temp_dir, update_plugins, project_id, user_acce
     )) %>%
     dplyr::select(-unique_id, -local_id)
   
+  # Change study_id
+  data$subsets <- data$subsets %>% dplyr::mutate(study_id = project_id)
+  
   ## projects
   patient_lvl_tab_group_id <- data$tabs_groups %>% dplyr::filter(category == "patient_lvl") %>% dplyr::pull(id)
   aggregated_tab_group_id <- data$tabs_groups %>% dplyr::filter(category == "aggregated") %>% dplyr::pull(id)
@@ -794,9 +797,12 @@ import_project <- function(r, m, temp_dir, update_plugins, project_id, user_acce
   
   ## options
   
+  plugins_options <- data$options %>% dplyr::filter(category == "plugin")
+  subsets_options <- data$options %>% dplyr::filter(category == "subset")
+  
   if (nrow(data$plugins) > 0){
-    data$options <-
-      data$options %>%
+    plugins_options <-
+      plugins_options %>%
       dplyr::left_join(
         data$plugins %>% dplyr::transmute(link_id = id, new_link_id = new_id, category = "plugin"),
         by = c("link_id", "category")
@@ -807,10 +813,12 @@ import_project <- function(r, m, temp_dir, update_plugins, project_id, user_acce
   }
   
   if (nrow(data$subsets) > 0){
-    data$options <-
-      data$options %>%
-      dplyr::mutate(link_id = dplyr::if_else(category == "subset", link_id + last_row$subsets, link_id))
+    subsets_options <-
+      subsets_options %>%
+      dplyr::mutate(link_id = link_id + last_row$subsets)
   }
+  
+  data$options <- dplyr::bind_rows(plugins_options, subsets_options)
   
   # Delete data for more recent plugins
   if (update_plugins){
@@ -848,11 +856,15 @@ import_project <- function(r, m, temp_dir, update_plugins, project_id, user_acce
     
     DBI::dbAppendTable(con, table, data[[table]])
     
-    if (table == "plugins") DBI::dbAppendTable(con, "options", data$options %>% dplyr::filter(category == "plugin"))
+    if (table == "plugins"){
+      
+      last_options_row <- get_last_row(con, "options")
+      data$options <- data$options %>% dplyr::mutate(id = last_options_row + dplyr::row_number())
+      DBI::dbAppendTable(con, "options", data$options %>% dplyr::filter(category == "plugin"))
+    }
     else if (table == "subsets"){
       
-      # We need to redefine ids
-      last_options_row <- get_last_row(m$db, "options")
+      last_options_row <- get_last_row(con, "options")
       data$options <- data$options %>% dplyr::mutate(id = last_options_row + dplyr::row_number())
       DBI::dbAppendTable(con, "options", data$options %>% dplyr::filter(category == "subset"))
     }
@@ -996,4 +1008,7 @@ reload_elements_var <- function(page_id, id, con, r, m, long_var_filtered, user_
   
   sql <- glue::glue_sql("SELECT * FROM {sql_table} WHERE id IN ({unique(r[[long_var]]$id)*})", .con = con)
   r[[wide_var]] <- DBI::dbGetQuery(con, sql) %>% tibble::as_tibble()
+  
+  # Reload home widgets
+  r[[paste0("reload_home_", id)]] <- now()
 }

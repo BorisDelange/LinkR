@@ -49,10 +49,14 @@ mod_home_server <- function(id, r, d, m, language, i18n, debug, user_accesses){
       
       if (page %in% user_accesses){
         
-        reload_elements_var(page_id = "home", id = page, con = r$db, r = r, m = m, long_var_filtered = paste0("filtered_", page, "_long"), user_accesses)
-        elements_ui <- create_elements_ui(page_id = "home", id = page, elements = r[[paste0("filtered_", page, "_long")]], r = r, language = language, i18n = i18n)
-        output[[page]] <- renderUI(elements_ui)
+        observeEvent(r[[paste0("reload_home_", page)]], {
+          reload_elements_var(page_id = "home", id = page, con = r$db, r = r, m = m, long_var_filtered = paste0("filtered_", page, "_long"), user_accesses)
+          elements_ui <- create_elements_ui(page_id = "home", id = page, elements = r[[paste0("filtered_", page, "_long")]], r = r, language = language, i18n = i18n)
+          output[[page]] <- renderUI(elements_ui)
+        })
       }
+      
+      r[[paste0("reload_home_", page)]] <- now()
       
       observeEvent(input[[paste0("selected_", single_id, "_trigger")]], {
         if (debug) cat(paste0("\n", now(), " - mod_home - observer input$selected_", single_id, "_trigger"))
