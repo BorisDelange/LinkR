@@ -30,7 +30,7 @@ mod_project_files_ui <- function(id, language, languages, i18n){
         class = "resizable-container",
         style = "height: calc(100% - 10px); display: flex;"
       ),
-      style = "height: calc(100% - 45px);"
+      style = "height: calc(100% - 24px);"
     ),
     
     # Delete a file modal ----

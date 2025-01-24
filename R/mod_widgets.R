@@ -559,6 +559,18 @@ mod_widgets_server <- function(id, r, d, m, language, i18n, all_divs, debug, use
         r$imported_element_temp_dir <- paste0(r$app_folder, "/temp_files/", r$user_id, "/", id, "/", now() %>% stringr::str_replace_all(":| |-", ""), paste0(sample(c(0:9, letters[1:6]), 24, TRUE), collapse = ''))
         zip::unzip(input$import_element_upload$datapath, exdir = r$imported_element_temp_dir)
         r$imported_element_temp_dir <- file.path(r$imported_element_temp_dir, list.files(r$imported_element_temp_dir))
+        
+        # Case 1: import from LinkR download
+        top_level_items <- list.files(r$imported_element_temp_dir, full.names = TRUE)
+        
+        # Case 2: import from git repo download. Only select the first element.
+        if (id %in% basename(top_level_items)) {
+          
+          element_dir <- file.path(r$imported_element_temp_dir, id)
+          elements_list <- list.dirs(element_dir, recursive = FALSE, full.names = TRUE)
+          
+          if (length(elements_list) > 0) r$imported_element_temp_dir <- elements_list[1]
+        }
 
         # Read XML file
         
@@ -567,9 +579,7 @@ mod_widgets_server <- function(id, r, d, m, language, i18n, all_divs, debug, use
           XML::xmlParse() %>%
           XML::xmlToDataFrame(nodes = XML::getNodeSet(., paste0("//", single_id)), stringsAsFactors = FALSE) %>%
           tibble::as_tibble() %>%
-          dplyr::mutate(
-            authors = stringr::str_replace_all(authors, "(?<=\\p{L})(?=\\p{Lu})", "; ")
-          )
+          dplyr::mutate(authors = stringr::str_replace_all(authors, "(?<=\\p{L})(?=\\p{Lu})", "; "))
         
         # Check if this element already exists in our database
         # If this element already exists, confirm its deletion
@@ -604,116 +614,11 @@ mod_widgets_server <- function(id, r, d, m, language, i18n, all_divs, debug, use
       
       tryCatch({
         
-        # Delete old files and copy new files
-        
-        element_folder <- paste0(r$app_folder, "/", id, "/", r$imported_element$unique_id)
-        unlink(element_folder, recursive = TRUE)
-        dir.create(element_folder)
-        
-        files_list <- list.files(r$imported_element_temp_dir) %>% setdiff(c("app_db", "plugins", "projects_files", "subsets"))
-        file.copy(paste0(r$imported_element_temp_dir, "/", files_list), paste0(element_folder, "/", files_list))
-        
-        # Reassign new id
-        r$imported_element <- r$imported_element %>% dplyr::mutate(id = get_last_row(con, sql_table) + 1)
-        
-        # Delete old entries in database
-        
-        element_id <- DBI::dbGetQuery(r$db, glue::glue_sql("SELECT link_id FROM options WHERE category = {sql_category} AND name = 'unique_id' AND value = {r$imported_element$unique_id}", .con = con)) %>% dplyr::pull()
-        
-        if (length(element_id) > 0){
-          
-          # Keep old element id
-          r$imported_element <- r$imported_element %>% dplyr::mutate(id = element_id)
-          
-          # Delete element in db
-          sql_send_statement(con, glue::glue_sql("DELETE FROM {sql_table} WHERE id = {element_id}", .con = con))
-          
-          # For projects, delete all rows in associated tables
-          delete_project(r, m, element_id)
-          
-          # Delete options in db
-          sql_send_statement(con, glue::glue_sql("DELETE FROM options WHERE category = {sql_category} AND link_id = {element_id}", .con = con))
-        }
-        
-        # Import data in database
-        
-        # Create columns if don't exist (one column for option and for language)
-        prefixes <- c("short_description", "description", "name", "category")
-        new_cols <- outer(prefixes, r$languages$code, paste, sep = "_") %>% as.vector()
-        for(col in new_cols) if(!col %in% colnames(r$imported_element)) r$imported_element <- r$imported_element %>% dplyr::mutate(!!col := "")
-        
-        r$imported_element <- r$imported_element %>% dplyr::mutate(name = get(paste0("name_", language)))
-        
-        # Element table
-        
-        if (id == "plugins") new_data <-
-          r$imported_element %>% 
-          dplyr::transmute(id, name, tab_type_id = type, creation_datetime, update_datetime, deleted = FALSE)
-        
-        else if (id == "datasets") new_data <-
-          r$imported_element %>% 
-          dplyr::transmute(id, name, data_source_id = NA_integer_, creation_datetime, update_datetime, deleted = FALSE)
-        
-        else if (id == "projects") new_data <-
-          r$imported_element %>%
-          dplyr::transmute(
-            id, name, dataset_id = NA_integer_, patient_lvl_tab_group_id = NA_integer_, aggregated_tab_group_id = NA_integer_,
-            creator_id = r$user_id, creation_datetime, update_datetime, deleted = FALSE
-          )
-        
-        DBI::dbAppendTable(con, sql_table, new_data)
-        
-        # Options table
-        
-        new_options <- tibble::tribble(
-          ~name, ~value, ~value_num,
-          "users_allowed_read_group", "everybody", 1,
-          "user_allowed_read", "", r$user_id,
-          "version", r$imported_element$version, NA_real_,
-          "unique_id", r$imported_element$unique_id, NA_real_,
-          "author", r$imported_element$authors, NA_real_,
-          "downloaded_from", "", NA_real_,
-          "downloaded_from_url", "", NA_real_
-        ) %>%
-          dplyr::bind_rows(
-            r$imported_element %>%
-              dplyr::select(dplyr::starts_with(c("category", "name", "description", "short_description")), -name) %>%
-              tidyr::pivot_longer(dplyr::starts_with(c("category", "name", "description", "short_description")), names_to = "name", values_to = "value") %>%
-              dplyr::mutate(value_num = NA_real_)
-          )
-        
-        if (id == "datasets") new_options <- 
-          new_options %>% 
-          dplyr::bind_rows(tibble::tibble(name = "omop_version", value = r$imported_element$omop_version, value_num = NA_integer_))
-        
-        new_options <- 
-          new_options %>%
-          dplyr::mutate(id = get_last_row(con, "options") + dplyr::row_number(), category = sql_category, link_id = new_data$id, .before = "name") %>%
-          dplyr::mutate(creator_id = r$user_id, datetime = now(), deleted = FALSE)
-        
-        DBI::dbAppendTable(con, "options", new_options)
-        
-        # Import project
-        
-        if (id == "projects"){
-          
-          update_plugins <- TRUE
-          if (length(input$import_project_plugins) > 0) update_plugins <- input$import_project_plugins
-          
-          import_project(
-            r = r, m = m, temp_dir = r$imported_element_temp_dir,
-            update_plugins = update_plugins, project_id = r$imported_element$id, user_accesses = user_accesses
-          )
-        }
-         
-        # Reload elements var and widgets
-        shinyjs::runjs(paste0("Shiny.setInputValue('", id, "-reload_elements_var', Math.random());"))
-        
-        # For project import, reload plugins var
-        if (id == "projects") reload_elements_var(page_id = id, id = "plugins", con = r$db, r = r, m = m, long_var_filtered = "filtered_plugins_long", user_accesses)
-       
-        show_message_bar(output, message = paste0("success_importing_", single_id), type = "success", i18n = i18n, ns = ns)
-        
+        import_element(
+          id = id, input = input, output = output, r = r, m = m, con = con, sql_table = sql_table, sql_category = sql_category, single_id = single_id,
+          unique_id = r$imported_element$unique_id, element = r$imported_element, element_type = id, temp_dir = r$imported_element_temp_dir,
+          user_accesses = user_accesses
+        )
       }, error = function(e){
         show_message_bar(output, paste0("error_importing_", single_id), "warning", i18n = i18n, ns = ns)
         cat(paste0("\n", now(), " - mod_widgets - (", id, ") - import element error - ", toString(e)))
