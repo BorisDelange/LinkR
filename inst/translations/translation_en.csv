@@ -517,3 +517,15 @@ success_importing_plugin,Plugin successfully imported
 success_importing_project,Project successfully imported
 success_importing_dataset,Dataset successfully imported
 success_importing_data_cleaning,Data cleaning script successfully imported
+install_plugin,Install plugin
+install_project,Install project
+install_data_cleaning_script,Install data cleaning script
+install_dataset,Install dataset
+error_install_remote_git_plugin,Error installing a plugin from remote git
+error_install_remote_git_data_cleaning,Error installing a data cleaning script from remote git
+error_install_remote_git_project,Error installing a project from remote git
+error_install_remote_git_dataset,Error installing a dataset from remote git
+dataset_added,New dataset added
+data_cleaning_added,New data cleaning script added
+plugin_added,New plugin added
+project_added,New project added
