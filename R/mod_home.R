@@ -56,7 +56,7 @@ mod_home_server <- function(id, r, d, m, language, i18n, debug, user_accesses){
         })
       }
       
-      r[[paste0("reload_home_", page)]] <- now()
+      r[[paste0("reload_home_", page)]] <-
       
       observeEvent(input[[paste0("selected_", single_id, "_trigger")]], {
         if (debug) cat(paste0("\n", now(), " - mod_home - observer input$selected_", single_id, "_trigger"))
