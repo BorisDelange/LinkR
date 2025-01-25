@@ -314,7 +314,6 @@ plugins_share_user_access_description,Share plugins (zip and git)
 plugins_widget_text,"Plugins are R or Python scripts that add features to LinkR. They are the building blocks of projects, enabling the visualization and analysis of data."
 port,Port
 programming_language,Language
-project_added,New project created
 project_deleted,Project deleted
 projects,Projects
 projects_console_access_user_access_description,Access the console from a project
@@ -500,7 +499,6 @@ folder_doesnt_exist,Provided folder doesn't exist
 install_study,Install project
 error_loading_data,Error loading data
 create_data_cleaning_script,Create a script for data cleaning
-plugin_added,New plugin added
 error_update_remote_git_repo,Error updating remote git repo
 invalid_filename,Invalid file name
 invalid_file_extension,Invalid file extension
@@ -529,3 +527,9 @@ dataset_added,New dataset added
 data_cleaning_added,New data cleaning script added
 plugin_added,New plugin added
 project_added,New project added
+vocabulary_added,New vocabulary added
+download_plugin,Download plugin
+download_project,Download project
+download_dataset,Download dataset
+download_data_cleaning,Download data cleaning script
+download,Download
