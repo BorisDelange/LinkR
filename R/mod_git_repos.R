@@ -173,7 +173,7 @@ mod_git_repos_ui <- function(id = character(), language = "en", languages = tibb
       div(
         id = ns("one_git_repo"),
         div(
-          div(uiOutput(ns("breadcrumb")), style = "flex: 1;"),
+          div(uiOutput(ns("breadcrumb")), class = "breadcrumb"),
           div(
             id = ns("plugin_pivot"),
             tags$button(id = ns("projects"), i18n$t("projects"), class = "pivot_item", onclick = pivot_item_js),
@@ -1281,7 +1281,7 @@ mod_git_repos_server <- function(id, r, d, m, language, i18n, debug, user_access
             short_description <- row[[paste0("short_description_", language)]]
             
             elements_ui <- tagList(
-              create_element_ui(ns, page_id = id, unique(row$id), single_id, element_name, users_ui, widget_buttons, onclick, short_description, FALSE),
+              create_element_ui(ns, page_id = id, i, single_id, element_name, users_ui, widget_buttons, onclick, short_description, FALSE),
               elements_ui
             )
           }
@@ -1357,7 +1357,7 @@ mod_git_repos_server <- function(id, r, d, m, language, i18n, debug, user_access
           git_element_ui <- div(
             tags$table(
               tags$tr(tags$td(strong(i18n$t("name")), style = "min-width: 80px;"), tags$td(git_element_name)),
-              tags$tr(tags$td(strong(i18n$t("author_s"))), tags$td(git_element$author)),
+              tags$tr(tags$td(strong(i18n$t("author_s"))), tags$td(git_element$authors)),
               tags$tr(tags$td(strong(i18n$t("created_on"))), tags$td(git_element$creation_datetime)),
               tags$tr(
                 tags$td(strong(i18n$t("updated_on"))),
@@ -1474,7 +1474,7 @@ mod_git_repos_server <- function(id, r, d, m, language, i18n, debug, user_access
           
           git_element <- r$loaded_git_repo_elements %>% dplyr::filter(unique_id == input$selected_element)
           git_folder <- r$loaded_git_repos %>% dplyr::filter(unique_id == r$git_repo$unique_id) %>% dplyr::pull(local_path)
-          element_name <- r$loaded_git_repo_elements %>% dplyr::pull(name_en) %>% remove_special_chars()
+          element_name <- git_element %>% dplyr::pull(name_en) %>% remove_special_chars()
           git_element_folder <- file.path(git_folder, current_tab, element_name)
           
           import_element(
@@ -1482,6 +1482,9 @@ mod_git_repos_server <- function(id, r, d, m, language, i18n, debug, user_access
             unique_id = input$selected_element, element = git_element, element_type = current_tab, temp_dir = git_element_folder,
             user_accesses = user_accesses
           )
+          
+          # Update selected element UI
+          shinyjs::runjs(paste0("Shiny.setInputValue('", id, "-selected_element_trigger', Math.random());"))
         },
         error = function(e){
           show_message_bar(output, paste0("error_install_remote_git_", current_tab_single), "warning", i18n = i18n, ns = ns)
