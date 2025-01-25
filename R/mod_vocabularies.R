@@ -20,7 +20,7 @@ mod_vocabularies_ui <- function(id, language, languages, i18n, code_hotkeys, dro
       div(
         id = ns("one_element"),
         div(
-          div(uiOutput(ns("breadcrumb")), style = "flex: 1;"),
+          div(uiOutput(ns("breadcrumb")), class = "breadcrumb"),
           div(
             id = ns("vocabulary_pivot"),
             tags$button(id = ns("summary"), i18n$t("summary"), class = "pivot_item selected_pivot_item", onclick = pivot_item_js),
