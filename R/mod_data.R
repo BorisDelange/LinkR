@@ -188,7 +188,7 @@ mod_data_ui <- function(id, language, languages, i18n){
     shinyjs::hidden(uiOutput(ns(paste0(category, "_study_menu")))),
     shinyjs::hidden(div(
       id = ns(paste0(category, "_no_tabs_to_display")), shiny.fluent::MessageBar(i18n$t("no_tabs_to_display_click_add_tab"), messageBarType = 5),
-      style = "display: inline-block; margin-top: 10px;"
+      style = "display: inline-block; margin: 5px 8px;"
     )),
   )
   
@@ -1384,16 +1384,18 @@ mod_data_server <- function(id, r, d, m, language, i18n, debug, user_accesses){
           
           if (nrow(all_tabs) == 0){
             
-            study_menu_ui <- div(
-              id = ns(paste0(category, "_study_breadcrumb_", tab_group_id, "_0")),
-              shiny.fluent::Breadcrumb(items = list(list(key = "main", text = shiny.fluent::FontIcon(iconName = "Home"), href = paste0("#!/data?type=", category), isCurrentItem = FALSE,
-                onClick = htmlwidgets::JS(paste0("item => {",
-                  "Shiny.setInputValue('", id, "-study_go_to_tab', 0);",
-                  "Shiny.setInputValue('", id, "-study_go_to_tab_trigger', Math.random());",
-                  "}"
-                )))), maxDisplayedItems = 3)
-            )
+            study_menu_ui <- div()
             
+            # study_menu_ui <- div(
+            #   id = ns(paste0(category, "_study_breadcrumb_", tab_group_id, "_0")),
+            #   shiny.fluent::Breadcrumb(items = list(list(key = "main", text = shiny.fluent::FontIcon(iconName = "Home"), href = paste0("#!/data?type=", category), isCurrentItem = FALSE,
+            #     onClick = htmlwidgets::JS(paste0("item => {",
+            #       "Shiny.setInputValue('", id, "-study_go_to_tab', 0);",
+            #       "Shiny.setInputValue('", id, "-study_go_to_tab_trigger', Math.random());",
+            #       "}"
+            #     )))), maxDisplayedItems = 3)
+            # )
+            # 
             r[[paste0(category, "_no_tabs_to_display")]] <- TRUE
             if (r$data_page == category) shinyjs::show(paste0(category, "_no_tabs_to_display"))
           }
@@ -2457,7 +2459,7 @@ mod_data_server <- function(id, r, d, m, language, i18n, debug, user_accesses){
           # Check if plugin has been deleted
           check_deleted_plugin <- nrow(DBI::dbGetQuery(r$db, paste0("SELECT * FROM plugins WHERE id = ", plugin_id))) == 0
           if (check_deleted_plugin){
-            ui_code <- div(shiny.fluent::MessageBar(i18n$t("plugin_deleted"), messageBarType = 5), style = "display: inline-block; margin-top:10px;")
+            ui_code <- div(shiny.fluent::MessageBar(i18n$t("plugin_deleted"), messageBarType = 5), style = "display: inline-block; margin: 5px 8px;")
             settings_widget_button <- ""
           }
           else {

@@ -19,7 +19,7 @@ mod_data_cleaning_ui <- function(id, language, languages, i18n, code_hotkeys, au
       div(
         id = ns("one_element"),
         div(
-          div(uiOutput(ns("breadcrumb")), style = "flex: 1;"),
+          div(uiOutput(ns("breadcrumb")), class = "breadcrumb"),
           div(
             id = ns("data_cleaning_pivot"),
             tags$button(id = ns("summary"), i18n$t("summary"), class = "pivot_item selected_pivot_item", onclick = pivot_item_js),
@@ -200,6 +200,21 @@ mod_data_cleaning_ui <- function(id, language, languages, i18n, code_hotkeys, au
             id = ns("share_div"),
             div(
               div(
+                h1(i18n$t("download_data_cleaning")),
+                div(
+                  id = ns("download_content_div"),
+                  div(
+                    shiny.fluent::PrimaryButton.shinyInput(ns("export_element"), i18n$t("download")),
+                    style = "position: absolute; right: 8px; bottom: 8px;"
+                  ),
+                  div(downloadButton(ns("export_element_download")), style = "visibility: hidden; position: absolute; right: 0; bottom: 0;")
+                ),
+                class = "widget", style = "min-height: 50%; padding-top: 1px;"
+              ),
+              class = "data_cleaning_share_left"
+            ),
+            div(
+              div(
                 h1(i18n$t("synchronize_with_git_repo")),
                 div(shiny.fluent::Dropdown.shinyInput(ns("git_repo"), label = i18n$t("git_repo")), style = "width: 200px;"),
                 div(uiOutput(ns("git_repo_element_ui")), style = "margin-top:10px;"),
@@ -207,11 +222,9 @@ mod_data_cleaning_ui <- function(id, language, languages, i18n, code_hotkeys, au
                   uiOutput(ns("synchronize_git_buttons")),
                   class = "data_cleaning_share_buttons"
                 ),
-                # Button to download a data cleaning script (sidenav button)
-                div(downloadButton(ns("export_element_download")), style = "visibility: hidden; position: absolute; right: 0; bottom: 0;"),
                 class = "widget", style = "height: 50%; padding-top: 1px;"
               ),
-              class = "data_cleaning_share_left",
+              class = "data_cleaning_share_right",
             ),
             class = "data_cleaning_share_container"
           )

@@ -19,7 +19,7 @@ mod_datasets_ui <- function(id, language, languages, i18n, code_hotkeys, auto_co
       div(
         id = ns("one_element"),
         div(
-          div(uiOutput(ns("breadcrumb")), style = "flex: 1;"),
+          div(uiOutput(ns("breadcrumb")), class = "breadcrumb"),
           div(
             id = ns("dataset_pivot"),
             tags$button(id = ns("summary"), i18n$t("summary"), class = "pivot_item selected_pivot_item", onclick = pivot_item_js),
@@ -211,6 +211,21 @@ mod_datasets_ui <- function(id, language, languages, i18n, code_hotkeys, auto_co
             id = ns("share_div"),
             div(
               div(
+                h1(i18n$t("download_dataset")),
+                div(
+                  id = ns("download_content_div"),
+                  div(
+                    shiny.fluent::PrimaryButton.shinyInput(ns("export_element"), i18n$t("download")),
+                    style = "position: absolute; right: 8px; bottom: 8px;"
+                  ),
+                  div(downloadButton(ns("export_element_download")), style = "visibility: hidden; position: absolute; right: 0; bottom: 0;")
+                ),
+                class = "widget", style = "min-height: 50%; padding-top: 1px;"
+              ),
+              class = "datasets_share_left"
+            ),
+            div(
+              div(
                 h1(i18n$t("synchronize_with_git_repo")),
                 div(
                   id = ns("share_forbidden_access"),
@@ -225,14 +240,12 @@ mod_datasets_ui <- function(id, language, languages, i18n, code_hotkeys, auto_co
                     div(
                       uiOutput(ns("synchronize_git_buttons")),
                       class = "projects_share_buttons"
-                    ),
-                    # Button to download a dataset (sidenav button)
-                    div(downloadButton(ns("export_element_download")), style = "visibility: hidden; position: absolute; right: 0; bottom: 0;")
+                    )
                   )
                 ),
                 class = "widget", style = "height: 50%; padding-top: 1px;"
               ),
-              class = "datasets_share_left",
+              class = "datasets_share_right",
             ),
             class = "datasets_share_container"
           )

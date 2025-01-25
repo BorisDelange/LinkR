@@ -100,11 +100,11 @@ mod_app_db_ui <- function(id, language, languages, i18n, code_hotkeys, db_col_ty
           div(
             id = ns("request_db_content_div"),
             div(
-              shiny.fluent::ChoiceGroup.shinyInput(ns("run_sql_code_db"), label = i18n$t("database"), options = list(
+              shiny.fluent::ChoiceGroup.shinyInput(ns("run_sql_code_db"), options = list(
                 list(key = "main", text = i18n$t("main_db")),
                 list(key = "public", text = i18n$t("public_db"))
               ), value = "main", className = "inline_choicegroup"),
-              style = "margin-bottom: 10px;"
+              style = "margin: 0 0 5px 5px;"
             ),
             div(
               div(
@@ -125,9 +125,9 @@ mod_app_db_ui <- function(id, language, languages, i18n, code_hotkeys, db_col_ty
                 style = "width: 50%; padding: 0 10px; font-size: 12px; overflow-y: auto;"
               ),
               class = "resizable-container",
-              style = "height: 100%; display: flex;"
+              style = "height: calc(100% - 40px); display: flex;"
             ),
-            style = "height: calc(100% - 70px);"
+            style = "height: 100%;"
           )
         ),
         style = "height: 100%;"

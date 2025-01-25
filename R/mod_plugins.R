@@ -23,7 +23,7 @@ mod_plugins_ui <- function(id, language, languages, i18n){
       div(
         id = ns("one_element"),
         div(
-          div(uiOutput(ns("breadcrumb")), style = "flex: 1;"),
+          div(uiOutput(ns("breadcrumb")), class = "breadcrumb"),
           div(
             id = ns("plugin_pivot"),
             tags$button(id = ns("summary"), i18n$t("summary"), class = "pivot_item selected_pivot_item", onclick = pivot_item_js),
@@ -60,7 +60,7 @@ mod_plugins_ui <- function(id, language, languages, i18n){
                     ),
                     autoScrollEditorIntoView = TRUE, height = "100%", debounce = 100, fontSize = 11, showPrintMargin = FALSE
                   ),
-                  style = "width: 100%; height: calc(100% - 45px); display: flex; flex-direction: column;"
+                  style = "width: 100%; height: calc(100% - 35px); display: flex; flex-direction: column;"
                 ),
                 class = "widget", style = "height: 100%;"
               )
@@ -180,8 +180,8 @@ mod_plugins_ui <- function(id, language, languages, i18n){
             shiny.fluent::MessageBar(i18n$t("unauthorized_access_area"), messageBarType = 5),
             style = "display: inline-block; margin-top: 15px;"
           ),
-          shinyjs::hidden(div(id = ns("edit_code_tabs_div"), uiOutput(ns("edit_code_tabs_ui")), style = "height: 34px;")),
-          shinyjs::hidden(div(id = ns("edit_code_editors_div"), style = "height: calc(100% - 45px);")),
+          shinyjs::hidden(div(id = ns("edit_code_tabs_div"), uiOutput(ns("edit_code_tabs_ui")), style = "height: 29px; position: relative; top: -5px;")),
+          shinyjs::hidden(div(id = ns("edit_code_editors_div"), style = "height: calc(100% - 30px);")),
           style = "height: 100%;"
         ),
         
@@ -198,8 +198,10 @@ mod_plugins_ui <- function(id, language, languages, i18n){
               id = ns("run_code_content_div"),
               div(textOutput(ns("run_code_datetime_code_execution")), style = "color:#878787; font-size:12px; margin-left:8px;"),
               div(id = ns("gridstack_plugin_run_code"), class = "grid-stack"),
-              div(verbatimTextOutput(ns("run_code_result_server")), style = "font-size:12px; margin-left:8px; padding-top:10px;")
-            )
+              div(verbatimTextOutput(ns("run_code_result_server")), style = "font-size:12px; margin-left:8px; padding-top:10px;"),
+              style = "margin-top: 10px; width: 100%;"
+            ),
+            class = "plugins_test_container"
           )
         ),
         
@@ -207,6 +209,21 @@ mod_plugins_ui <- function(id, language, languages, i18n){
         shinyjs::hidden(
           div(
             id = ns("share_div"),
+            div(
+              div(
+                h1(i18n$t("download_plugin")),
+                div(
+                  id = ns("download_content_div"),
+                  div(
+                    shiny.fluent::PrimaryButton.shinyInput(ns("export_element"), i18n$t("download")),
+                    style = "position: absolute; right: 8px; bottom: 8px;"
+                  ),
+                  div(downloadButton(ns("export_element_download")), style = "visibility: hidden; position: absolute; right: 0; bottom: 0;")
+                ),
+                class = "widget", style = "min-height: 50%; padding-top: 1px;"
+              ),
+              class = "plugins_share_left"
+            ),
             div(
               div(
                 h1(i18n$t("synchronize_with_git_repo")),
@@ -223,9 +240,7 @@ mod_plugins_ui <- function(id, language, languages, i18n){
                     div(
                       uiOutput(ns("synchronize_git_buttons")),
                       class = "datasets_share_buttons"
-                    ),
-                    # Button to download a plugin (sidenav button)
-                    div(downloadButton(ns("export_element_download")), style = "visibility: hidden; position: absolute; right: 0; bottom: 0;")
+                    )
                   )
                 ),
                 class = "widget", style = "min-height: 50%; padding-top: 1px;"

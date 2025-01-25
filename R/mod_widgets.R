@@ -26,7 +26,8 @@ mod_widgets_ui <- function(id, language, languages, i18n){
           shiny.fluent::SearchBox.shinyInput(ns("search_element")), style = "width:280px; margin:10px 0 15px 10px;"
         ),
         div(uiOutput(ns("elements")), style = "margin: 10px 0 0 10px;"),
-        div(style = "display:none;", fileInput(ns("import_element_upload"), label = "", multiple = FALSE, accept = ".zip"))
+        div(style = "display:none;", fileInput(ns("import_element_upload"), label = "", multiple = FALSE, accept = ".zip")),
+        style = "padding: 0 10px;"
       ),
 
       # Delete an element modal ----

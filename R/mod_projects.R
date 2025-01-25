@@ -62,7 +62,7 @@ mod_projects_ui <- function(id, language, languages, i18n){
       div(
         id = ns("one_element"),
         div(
-          div(uiOutput(ns("breadcrumb")), style = "flex: 1;"),
+          div(uiOutput(ns("breadcrumb")), class = "breadcrumb"),
           div(
             id = ns("project_pivot"),
             tags$button(id = ns("summary"), i18n$t("summary"), class = "pivot_item selected_pivot_item", onclick = pivot_item_js),
@@ -218,7 +218,7 @@ mod_projects_ui <- function(id, language, languages, i18n){
                 style = "display: flex; justify-content: space-between;"
               ),
               uiOutput(ns("description_ui")),
-              class = "widget", style = "height: calc(100% - 10px); padding-top: 1px; overflow: auto;"
+              class = "widget", style = "height: calc(100% - 25px); padding-top: 1px; overflow: auto;"
             ),
             class = "projects_summary_right"
           ),
@@ -324,6 +324,21 @@ mod_projects_ui <- function(id, language, languages, i18n){
             id = ns("share_div"),
             div(
               div(
+                h1(i18n$t("download_project")),
+                div(
+                  id = ns("download_content_div"),
+                  div(
+                    shiny.fluent::PrimaryButton.shinyInput(ns("export_element"), i18n$t("download")),
+                    style = "position: absolute; right: 8px; bottom: 8px;"
+                  ),
+                  div(downloadButton(ns("export_element_download")), style = "visibility: hidden; position: absolute; right: 0; bottom: 0;")
+                ),
+                class = "widget", style = "min-height: 50%; padding-top: 1px;"
+              ),
+              class = "projects_share_left"
+            ),
+            div(
+              div(
                 h1(i18n$t("synchronize_with_git_repo")),
                 div(
                   id = ns("share_forbidden_access"),
@@ -338,14 +353,12 @@ mod_projects_ui <- function(id, language, languages, i18n){
                     div(
                       uiOutput(ns("synchronize_git_buttons")),
                       class = "projects_share_buttons"
-                    ),
-                    # Button to download a project (sidenav button)
-                    div(downloadButton(ns("export_element_download")), style = "visibility: hidden; position: absolute; right: 0; bottom: 0;")
+                    )
                   )
                 ),
                 class = "widget", style = "height: 50%; padding-top: 1px;"
               ),
-              class = "projects_share_left",
+              class = "projects_share_right",
             ),
             class = "projects_share_container"
           )

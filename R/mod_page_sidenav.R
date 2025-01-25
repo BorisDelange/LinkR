@@ -89,15 +89,6 @@ mod_page_sidenav_ui <- function(id, language, i18n){
   
   share_buttons <- function(type){
     div(
-      create_hover_card(
-        ui = shinyjs::hidden(
-          div(
-            id = ns("export_element_button"),
-            shiny.fluent::IconButton.shinyInput(ns("export_element"), iconProps = list(iconName = "Download"))
-          )
-        ),
-        text = i18n$t(paste0("export_", type))
-      ),
       shinyjs::hidden(
         div(
           id = ns("reload_git_repo_div"),
