@@ -49,11 +49,13 @@ db_create_tables <- function(db, type, dbms, db_col_types){
       
       types <- strsplit(row$col_types, "")[[1]]
       cols <- lapply(seq_along(types), function(i) {
-        switch(types[[i]],
-               "i" = integer(),
-               "c" = character(),
-               "n" = numeric(),
-               "l" = logical())
+        switch(
+          types[[i]],
+          "i" = integer(),
+          "c" = character(),
+          "n" = numeric(),
+          "l" = logical()
+        )
       })
       names(cols) <- row$col_names %>% unlist()
       empty_tibble <- tibble::as_tibble(cols)
