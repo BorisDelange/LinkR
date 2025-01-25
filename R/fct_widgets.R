@@ -250,6 +250,62 @@ create_element_files <- function(id, r, m, sql_category, con, single_id, element
     list_of_files <- list.files(source_project_files_dir)
     
     if (length(list_of_files) > 0) file.copy(paste0(source_project_files_dir, "/", list_of_files), paste0(target_project_files_dir, "/", list_of_files))
+    
+    # Create widgets folder with widgets scripts
+    
+    widgets_dir <- file.path(temp_element_dir, "widgets")
+    patient_lvl_data_dir <- file.path(widgets_dir, "patient_lvl_data")
+    aggregated_data_dir <- file.path(widgets_dir, "aggregated_data")
+    
+    dir.create(widgets_dir)
+    dir.create(patient_lvl_data_dir)
+    dir.create(aggregated_data_dir)
+    
+    for (category in c("patient_lvl", "aggregated")){
+      
+      tabs <- data$tabs %>% dplyr::filter(category == !!category)
+      if (nrow(tabs) > 0){
+        for (i in 1:nrow(tabs)){
+          tab <- tabs[i, ]
+          
+          tab_name <- tab$name %>% remove_special_chars()
+          tab_path <- file.path(widgets_dir, paste0(category, "_data"), tab_name)
+          dir.create(tab_path)
+          
+          widgets <- data$widgets %>% dplyr::filter(tab_id == tab$id)
+          
+          if (nrow(widgets) > 0){
+            for (i in 1:nrow(widgets)){
+              widget <- widgets[i, ]
+              
+              widget_name <- widget$name %>% remove_special_chars()
+              widget_path <- file.path(tab_path, widget_name)
+              dir.create(widget_path)
+              
+              scripts <-
+                data$widgets_options %>%
+                dplyr::filter(widget_id == widget$id, category == "settings_files", name == "file_name") %>%
+                dplyr::select(id, name = value) %>%
+                dplyr::left_join(
+                  data$widgets_options %>%
+                    dplyr::filter(widget_id == widget$id, category == "figure_settings", name == "code") %>%
+                    dplyr::select(id = link_id, code = value),
+                  by = "id"
+                )
+              
+              if (nrow(scripts) > 0){
+                for (i in 1:nrow(scripts)){
+                  script <- scripts[i, ]
+                  
+                  script_path <- file.path(widget_path, paste0(script$name, ".R"))
+                  writeLines(script$code, script_path)
+                }
+              }
+            } 
+          }
+        }
+      }
+    }
   }
   
   return(temp_zip_dir)
