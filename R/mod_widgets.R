@@ -1303,17 +1303,33 @@ mod_widgets_server <- function(id, r, d, m, language, i18n, all_divs, debug, use
         element_exists <- FALSE
         
         # Check if this element already exists
-        file_names <- list.files(path = elements_folder)
         
-        for (file_name in file_names){
-          if (grepl(element_unique_id, file_name)){
-            element_exists <- TRUE
-            element_path <- paste0(elements_folder, "/", file_name)
-          }
+        elements <- tibble::tibble()
+        error_loading_xml_file <- TRUE
+        
+        tryCatch({  
+          category_dir <- file.path(git_repo_local_path, id)
+          elements <- get_elements_from_xml(category_dir = category_dir, single_id = single_id)
+          error_loading_xml_file <- FALSE
+        }, error = function(e) catelement_path(paste0("\n", now(), " - mod_git_repos - error downloading xml file : ", toString(e))))
+        
+        if (nrow(elements) > 0) if (elements %>% dplyr::filter(unique_id == element_unique_id) %>% nrow() > 0){
+          element_exists <- TRUE
+          file_name <- elements %>% dplyr::filter(unique_id == element_unique_id) %>% dplyr::pull(name_en) %>% remove_special_chars()
+          element_path <- paste0(elements_folder, "/", file_name)
+        }
+        
+        # Error downloading XML files
+        if (error_loading_xml_file){
+          
+          git_element_ui <- div(
+            shiny.fluent::MessageBar(i18n$t("error_loading_category_xml_file"), messageBarType = 5), 
+            style = "display: inline-block;"
+          )
         }
         
         # The element exists in the git repo
-        if (element_exists){
+        else if (element_exists){
           
           shinyjs::runjs(paste0("Shiny.setInputValue('", id, "-element_git_path', '", element_path, "');"))
           
@@ -1330,7 +1346,8 @@ mod_widgets_server <- function(id, r, d, m, language, i18n, all_divs, debug, use
               xml2::read_xml(xml_file_path) %>%
               XML::xmlParse() %>%
               XML::xmlToDataFrame(nodes = XML::getNodeSet(., paste0("//", single_id)), stringsAsFactors = FALSE) %>%
-              tibble::as_tibble()
+              tibble::as_tibble() %>%
+              dplyr::mutate(authors = stringr::str_replace_all(authors, "(?<=\\p{L})(?=\\p{Lu})", "; "))
             
             error_loading_xml_file <- FALSE
           }, error = function(e) cat(paste0("\n", now(), " - mod_git_repos - error downloading ", current_tab, " readme - error = ", toString(e))))
@@ -1349,7 +1366,7 @@ mod_widgets_server <- function(id, r, d, m, language, i18n, all_divs, debug, use
             git_element_ui <- div(
               tags$table(
                 tags$tr(tags$td(strong(i18n$t("name")), style = "min-width: 80px;"), tags$td(git_element[[paste0("name_", language)]])),
-                tags$tr(tags$td(strong(i18n$t("author_s"))), tags$td(git_element$author)),
+                tags$tr(tags$td(strong(i18n$t("author_s"))), tags$td(git_element$authors)),
                 tags$tr(tags$td(strong(i18n$t("created_on"))), tags$td(git_element$creation_datetime)),
                 tags$tr(
                   tags$td(strong(i18n$t("updated_on"))),
@@ -1455,66 +1472,22 @@ mod_widgets_server <- function(id, r, d, m, language, i18n, all_divs, debug, use
         
         if (!dir.exists(input$git_repo_elements_folder)) dir.create(input$git_repo_elements_folder)
         
-        new_dir <- paste0(
-          input$git_repo_elements_folder, "/", 
-          input$git_repo_element_name_en %>% remove_special_chars(), "-",
-          input$git_repo_element_unique_id
-        )
+        new_dir <- file.path(input$git_repo_elements_folder, input$git_repo_element_name_en %>% remove_special_chars())
         
         dir.create(new_dir)
         
         # Create element files
         
-        sql <- glue::glue_sql("SELECT * FROM options WHERE category = {sql_category} AND link_id = {input$selected_element}", .con = con)
-        element_options <- DBI::dbGetQuery(r$db, sql)
-        element_dir <- paste0(r$app_folder, "/", id, "/", input$git_repo_element_unique_id)
-        
-        # To download a project, we have to copy db files and plugins files
-        if (id == "projects"){
-          element_wide <- r[[wide_var]] %>% dplyr::filter(id == input$selected_element)
-          project_dir <- create_project_files(id, r, m, single_id, input$selected_element, element_wide, element_options, element_dir)
-        }
-        
-        else {
-          
-          # Create XML and README files
-          create_element_xml(id = id, r = r, element_id = input$selected_element, single_id = single_id, element_options = element_options, element_dir = element_dir)
-          
-          description <- element_options %>% dplyr::filter(name == "description_en") %>% dplyr::pull(value)
-          create_element_readme(description = description, element_dir = element_dir)
-        }
+        temp_zip_dir <- create_element_files(
+          id = id, r = r, m = m, sql_category = sql_category, con = con, single_id = single_id,
+          element_id = input$selected_element, element_wide = element_wide
+        )
         
         # Copy files
         
-        if (id == "projects"){
-          
-          files <- list.files(project_dir, full.names = TRUE, recursive = TRUE)
-          
-          # Ensure the new directories exist
-          dirs <- unique(dirname(files))
-          new_dirs <- file.path(new_dir, dirs)
-          new_dirs <- gsub(paste0("^", project_dir), new_dir, dirs)
-          new_dirs <- unique(new_dirs)
-          
-          # Ensure all directories exist
-          sapply(new_dirs, function(x) {
-            if (!dir.exists(x)) dir.create(x, recursive = TRUE)
-          })
-          
-          sapply(files, function(file) {
-            file.copy(file, gsub(project_dir, new_dir, file), overwrite = TRUE)
-          })
-        }
-        
-        else {
-          files <- list.files(local_dir, full.names = TRUE)
-          file.copy(files, new_dir, overwrite = TRUE)
-        }
+        files <- list.files(temp_zip_dir, full.names = TRUE, recursive = TRUE)
+        file.copy(files, new_dir, overwrite = TRUE)
       }
-      
-      # Update global XML file
-      
-      create_elements_xml(id, input$git_repo_local_path)
       
       # Commit and push
       if (length(r$loaded_git_repos_objects[[git_repo$unique_id]]) > 0){
@@ -1546,6 +1519,9 @@ mod_widgets_server <- function(id, r, d, m, language, i18n, all_divs, debug, use
 
             # Notify user
             show_message_bar(output, "success_update_remote_git_repo", "success", i18n = i18n, ns = ns)
+
+            # Reload git element UI
+            shinyjs::runjs(paste0("Shiny.setInputValue('", id, "-reload_git_element_ui', Math.random());"))
           }
         }, error = function(e){
           show_message_bar(output, message = "error_update_remote_git_repo", type = "severeWarning", i18n = i18n, ns = ns)
@@ -1553,9 +1529,6 @@ mod_widgets_server <- function(id, r, d, m, language, i18n, all_divs, debug, use
         })
 
         shinyjs::hide("update_or_delete_git_element_modal")
-
-        # Reload git element UI
-        shinyjs::runjs(paste0("Shiny.setInputValue('", id, "-reload_git_element_ui', Math.random());"))
       }
     })
     

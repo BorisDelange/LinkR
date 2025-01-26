@@ -82,7 +82,7 @@ create_element_files <- function(id, r, m, sql_category, con, single_id, element
   # Copy only specific types of files (excluding data or other irrelevant files)
   
   extensions <- c("py", "r", "jpg", "jpeg", "png", "svg", "md")
-  regex <- paste0("\\.(", paste(extensions, collapse = "|"), ")$", collapse = "")
+  regex <- paste0("\\.(", paste(extensions, collapse = "|"), ")$|^translations\\.csv$", collapse = "")
   
   files_list <- list.files(element_dir, full.names = TRUE, ignore.case = TRUE, pattern = regex)
   file.copy(files_list, temp_element_dir, overwrite = TRUE)

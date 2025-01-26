@@ -1168,16 +1168,6 @@ mod_git_repos_server <- function(id, r, d, m, language, i18n, debug, user_access
         current_tab <- gsub(paste0(id, "-"), "", input$current_tab, fixed = FALSE)
         shinyjs::show("widgets_div")
         
-        # Show or hide pages depending on selected tab
-        # if (current_tab == "summary"){
-        #   shinyjs::show("summary_div")
-        #   shinyjs::hide("widgets_div")
-        # }
-        # else {
-        #   shinyjs::show("widgets_div")
-        #   shinyjs::hide("summary_div")
-        # }
-        
         shinyjs::show("one_repo_reduced_sidenav")
         shinyjs::hide("all_repos_reduced_sidenav")
         shinyjs::runjs(paste0("Shiny.setInputValue('", id, "-show_hide_sidenav', 'hide');"))
@@ -1210,34 +1200,13 @@ mod_git_repos_server <- function(id, r, d, m, language, i18n, debug, user_access
         ) 
         
         elements <- tibble::tibble()
+        error_loading_xml_file <- TRUE
         
-        # Get elements from XML files
-        
-        category_dir <- file.path(input$git_repo_local_path, current_tab)
-        subdirs <- list.dirs(category_dir, recursive = FALSE, full.names = TRUE)
-        
-        error_loading_xml_file <- FALSE
-        
-        for (subdir in subdirs) {
-          xml_file_path <- file.path(subdir, paste0(single_id, ".xml"))
-          
-          if (file.exists(xml_file_path)) {
-            tryCatch({
-              element_to_add <-
-                xml2::read_xml(xml_file_path) %>%
-                XML::xmlParse() %>%
-                XML::xmlToDataFrame(nodes = XML::getNodeSet(., paste0("//", single_id)), stringsAsFactors = FALSE) %>%
-                tibble::as_tibble() %>%
-                dplyr::mutate(authors = stringr::str_replace_all(authors, "(?<=\\p{L})(?=\\p{Lu})", "; "))
-              
-              if (nrow(elements) == 0) elements <- element_to_add
-              else elements <- dplyr::bind_rows(elements, element_to_add)
-            }, error = function(e) {
-              cat(paste0("\n", now(), " - mod_git_repos - error downloading ", xml_file_path, " : ", toString(e)))
-              error_loading_xml_file <- TRUE
-            })
-          }
-        }
+        tryCatch({  
+          category_dir <- file.path(input$git_repo_local_path, current_tab)
+          elements <- get_elements_from_xml(category_dir = category_dir, single_id = single_id)
+          error_loading_xml_file <- FALSE
+        }, error = function(e) cat(paste0("\n", now(), " - mod_git_repos - error downloading xml file : ", toString(e))))
         
         r$loaded_git_repo_elements <- elements
         

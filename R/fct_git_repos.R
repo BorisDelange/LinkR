@@ -46,3 +46,28 @@ load_git_repo <- function(id, r, git_repo){
   
   return(r$loaded_git_repos %>% dplyr::filter(unique_id == git_repo$unique_id))
 }
+
+get_elements_from_xml <- function(category_dir, single_id){
+  
+  elements <- tibble::tibble()
+  
+  subdirs <- list.dirs(category_dir, recursive = FALSE, full.names = TRUE)
+  
+  for (subdir in subdirs) {
+    xml_file_path <- file.path(subdir, paste0(single_id, ".xml"))
+    
+    if (file.exists(xml_file_path)) {
+      element_to_add <-
+        xml2::read_xml(xml_file_path) %>%
+        XML::xmlParse() %>%
+        XML::xmlToDataFrame(nodes = XML::getNodeSet(., paste0("//", single_id)), stringsAsFactors = FALSE) %>%
+        tibble::as_tibble() %>%
+        dplyr::mutate(authors = stringr::str_replace_all(authors, "(?<=\\p{L})(?=\\p{Lu})", "; "))
+      
+      if (nrow(elements) == 0) elements <- element_to_add
+      else elements <- dplyr::bind_rows(elements, element_to_add)
+    }
+  }
+  
+  return(elements)
+}
