@@ -1482,9 +1482,6 @@ mod_git_repos_server <- function(id, r, d, m, language, i18n, debug, user_access
             unique_id = input$selected_element, element = git_element, element_type = current_tab, temp_dir = git_element_folder,
             user_accesses = user_accesses
           )
-          
-          # Update selected element UI
-          shinyjs::runjs(paste0("Shiny.setInputValue('", id, "-selected_element_trigger', Math.random());"))
         },
         error = function(e){
           show_message_bar(output, paste0("error_install_remote_git_", current_tab_single), "warning", i18n = i18n, ns = ns)
