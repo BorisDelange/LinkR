@@ -79,7 +79,12 @@ create_element_files <- function(id, r, m, sql_category, con, single_id, element
   temp_element_dir <- file.path(temp_zip_dir, element_name)
   dir.create(temp_element_dir)
   
-  files_list <- list.files(element_dir, full.names = TRUE)
+  # Copy only specific types of files (excluding data or other irrelevant files)
+  
+  extensions <- c("py", "r", "jpg", "jpeg", "png", "svg", "md")
+  regex <- paste0("\\.(", paste(extensions, collapse = "|"), ")$", collapse = "")
+  
+  files_list <- list.files(element_dir, full.names = TRUE, ignore.case = TRUE, pattern = regex)
   file.copy(files_list, temp_element_dir, overwrite = TRUE)
   
   # Create XML and README files
@@ -223,8 +228,7 @@ create_element_files <- function(id, r, m, sql_category, con, single_id, element
           
           type_dir <- paste0(r$app_folder, "/", element_type, "/", element_type_unique_id)
           project_type_dir <- paste0(element_dir, "/", element_name)
-          
-          list_of_files <- list.files(type_dir)
+          list_of_files <- list.files(type_dir, ignore.case = TRUE, pattern = regex)
           
           dir.create(project_type_dir)
           file.copy(paste0(type_dir, "/", list_of_files), paste0(project_type_dir, "/", list_of_files))
@@ -247,7 +251,7 @@ create_element_files <- function(id, r, m, sql_category, con, single_id, element
     dir.create(target_project_files_dir)
     
     source_project_files_dir <- paste0(r$app_folder, "/projects_files/", element_unique_id)
-    list_of_files <- list.files(source_project_files_dir)
+    list_of_files <- list.files(source_project_files_dir, ignore.case = TRUE, pattern = regex)
     
     if (length(list_of_files) > 0) file.copy(paste0(source_project_files_dir, "/", list_of_files), paste0(target_project_files_dir, "/", list_of_files))
     
