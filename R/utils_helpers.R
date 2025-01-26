@@ -15,11 +15,6 @@ convert_tibble_to_list <- function(data = tibble::tibble(), key_col = character(
 }
 
 #' @noRd
-is_integer_or_integer64 <- function(x) {
-  is.integer(x) || bit64::is.integer64(x)
-}
-
-#' @noRd
 now <- function(format = "%Y-%m-%d %H:%M:%S"){
   format(Sys.time(), format)
 }

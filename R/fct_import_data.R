@@ -294,21 +294,15 @@ import_vocabulary_table <- function(r = shiny::reactiveValues(), m = shiny::reac
   }
   
   # Transform col types
-  transform_column <- function(column, type){
-    switch(
-      type,
-      "c" = as.character(column),
-      "i" = bit64::as.integer64(column),
-      "n" = as.numeric(column)
-    )
-  }
   
-  types <- col_types[[table_name]]
+  types <- unlist(strsplit(col_types[[table_name]], ""))
   
   for (i in seq_along(types)) {
     col_name <- names(data)[i]
-    col_type <- substr(types, i, i)
-    data[[col_name]] <- transform_column(data[[col_name]], col_type)
+    col_type <- types[[i]]
+    
+    if (col_type == "c") data <- data %>% dplyr::mutate_at(col_name, as.character)
+    else if (col_type %in% c("i", "n")) data <- data %>% dplyr::mutate_at(col_name, as.numeric)
   }
   
   # Add data to database
