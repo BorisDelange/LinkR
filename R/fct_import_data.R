@@ -182,7 +182,7 @@ import_dataset <- function(
     
     if (length(file_names) == 0) return(i18n$t("folder_doesnt_contain_any_file"))
       
-    # tryCatch({
+    tryCatch({
       
       if (save_as_duckdb_file) {
         
@@ -257,13 +257,8 @@ import_dataset <- function(
                         file.path(data_folder, file_name)
                       )
                     )
-                    
-                    # sql <- paste0("CREATE TABLE ", table, " (", col_types_sql, ") AS SELECT * FROM read_csv_auto('", file_path, "')")
-                    # print(sql)
                   }
                   else if (file_ext == "parquet") DBI::dbExecute(d$con, paste0("CREATE TABLE ", table, " AS SELECT * FROM read_parquet('", file_path, "')"))
-                  #   sql <- paste0("CREATE TABLE ", table, " AS SELECT * FROM read_parquet('", file_path, "')")
-                  # DBI::dbExecute(d$con, sql)
                 }
               } else {
               
@@ -282,8 +277,8 @@ import_dataset <- function(
           }
         }
       }
-    # },
-    # error = function(e) return(paste0(i18n$t("error_loading_data"), " - ", toString(e))))
+    },
+    error = function(e) return(paste0(i18n$t("error_loading_data"), " - ", toString(e))))
   }
   
   ## Import data from database connection ----
