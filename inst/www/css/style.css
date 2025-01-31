@@ -882,6 +882,12 @@ a.no-hover-effect:hover {
 /* BUTTONS          */
 /* ---------------- */
 
+.top-right-button {
+  position: absolute;
+  right: 5px;
+  top: 5px;
+}
+
 .delete_button .ms-Button {
   background-color: #f44336;
   border: #f44336;

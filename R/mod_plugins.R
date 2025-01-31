@@ -42,14 +42,10 @@ mod_plugins_ui <- function(id, language, languages, i18n){
             shinyjs::hidden(
               div(
                 id = ns("edit_description_div"),
+                h1(i18n$t("edit_description")),
                 div(
-                  h1(i18n$t("edit_description")),
-                  div(
-                    create_hover_card(ui = shiny.fluent::IconButton.shinyInput(ns("run_description_code"), iconProps = list(iconName = "Play")), text = i18n$t("run_code")),
-                    style = "margin-top: 5px;"
-                  ),
-                  class = "small_icon_button",
-                  style = "display: flex; justify-content: space-between;"
+                  create_hover_card(ui = shiny.fluent::IconButton.shinyInput(ns("run_description_code"), iconProps = list(iconName = "Play")), text = i18n$t("run_code")),
+                  class = "small_icon_button top-right-button"
                 ),
                 div(
                   shinyAce::aceEditor(
@@ -60,7 +56,7 @@ mod_plugins_ui <- function(id, language, languages, i18n){
                     ),
                     autoScrollEditorIntoView = TRUE, height = "100%", debounce = 100, fontSize = 11, showPrintMargin = FALSE
                   ),
-                  style = "width: 100%; height: calc(100% - 35px); display: flex; flex-direction: column;"
+                  style = "width: 100%; height: calc(100% - 40px); display: flex; flex-direction: column;"
                 ),
                 class = "widget", style = "height: 100%;"
               )
@@ -159,10 +155,8 @@ mod_plugins_ui <- function(id, language, languages, i18n){
                       style = "display: flex;"
                     )
                   ),
-                  style = "margin-top: 5px;"
-                ),
-                class = "small_icon_button",
-                style = "display: flex; justify-content: space-between;"
+                  class = "small_icon_button top-right-button"
+                )
               ),
               uiOutput(ns("description_ui")),
               class = "widget", style = "height: calc(100% - 25px); padding-top: 1px; overflow: auto;"
