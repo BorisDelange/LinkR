@@ -219,6 +219,7 @@ app_server <- function(
       if (debug) cat(paste0("\n", now(), " - server - observer shiny.router::get_page()"))
       
       current_page <- shiny.router::get_page()
+      r$current_page <- current_page
       
       req(current_page %in% pages)
       

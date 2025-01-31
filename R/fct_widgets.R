@@ -336,6 +336,7 @@ create_element_scripts <- function(id, element_dir, code = ""){
       "# import_dataset(\n",
       "#     r, d, dataset_id = %dataset_id%, omop_version = \"5.4\",\n",
       "#     data_source = \"disk\", data_folder = \"/my_data_folder\",\n",
+      "#     save_duckdb_file = TRUE, rewrite = FALSE\n",
       "# )\n\n",
       "# 2) Import data from a database connection\n\n",
       "# con <- DBI::dbConnect(\n",

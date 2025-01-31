@@ -216,13 +216,13 @@ load_dataset <- function(r, m, d, dataset_id, main_tables, selected_study){
   omop_version <- DBI::dbGetQuery(r$db, sql) %>% dplyr::pull()
   m$omop_version <- omop_version
   
-  # Get dataset code from db
-  sql <- glue::glue_sql("SELECT code FROM code WHERE category = 'dataset' AND link_id = {dataset_id}", .con = r$db)
-  dataset_code <- DBI::dbGetQuery(r$db, sql) %>% dplyr::pull()
-  
   # Get dataset unique ID
   sql <- glue::glue_sql("SELECT value FROM options WHERE category = 'dataset' AND name = 'unique_id' AND link_id = {dataset_id}", .con = r$db)
   unique_id <- DBI::dbGetQuery(r$db, sql) %>% dplyr::pull()
+  
+  # Get dataset code
+  dataset_code_path <- file.path(r$app_folder, "datasets", unique_id, "main.R")
+  dataset_code <- readLines(dataset_code_path, warn = FALSE) %>% paste(collapse = "\n")
   
   # Dataset folder
   dataset_folder <- paste0(r$app_folder, "/datasets_files/", dataset_id)
