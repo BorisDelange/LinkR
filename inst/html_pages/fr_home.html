@@ -145,13 +145,11 @@
         const section = button.closest('.home-section');
         const container = section.querySelector('.home-widget-container');
         const scrollAmount = 300;
-        
         if (direction === 'left') {
             container.scrollLeft -= scrollAmount;
         } else {
             container.scrollLeft += scrollAmount;
         }
-        
         updateNavButtons(section);
     }
 
@@ -159,11 +157,45 @@
         const container = section.querySelector('.home-widget-container');
         const prevButton = section.querySelector('.home-nav-button.prev');
         const nextButton = section.querySelector('.home-nav-button.next');
-
+        
+        if (!container || !prevButton || !nextButton) return;
+        
         prevButton.classList.toggle('hidden', container.scrollLeft <= 0);
-
         const hasMoreContent = container.scrollWidth > container.clientWidth &&
-                             container.scrollLeft < container.scrollWidth - container.clientWidth;
+            container.scrollLeft < container.scrollWidth - container.clientWidth;
         nextButton.classList.toggle('hidden', !hasMoreContent);
     }
+
+    function initializeAllNavButtons() {
+        const sections = document.querySelectorAll('.home-section');
+        sections.forEach(section => {
+            if (section) {
+                const container = section.querySelector('.home-widget-container');
+                if (container) {
+                    container.scrollLeft = 0;
+                    updateNavButtons(section);
+                }
+            }
+        });
+    }
+
+    document.addEventListener('DOMContentLoaded', function() {
+        initializeAllNavButtons();
+        
+        const containers = document.querySelectorAll('.home-widget-container');
+        containers.forEach(container => {
+            if (container) {
+                container.addEventListener('scroll', function() {
+                    const section = container.closest('.home-section');
+                    if (section) {
+                        updateNavButtons(section);
+                    }
+                });
+            }
+        });
+    });
+
+    window.addEventListener('hashchange', function() {
+        setTimeout(initializeAllNavButtons, 100);
+    });
 </script>
