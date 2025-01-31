@@ -426,7 +426,7 @@ mod_users_server <- function(id, r, d, m, language, i18n, debug, users_accesses_
       shinyjs::runjs(paste0("Shiny.setInputValue('", id, "-reload_users', Math.random());"))
       
       # Notify user
-      show_message_bar(output, "user_added", "success", i18n = i18n, ns = ns)
+      show_message_bar(id, output, "user_added", "success", i18n = i18n, ns = ns)
       
       shinyjs::hide("create_user_modal")
     })
@@ -518,7 +518,7 @@ mod_users_server <- function(id, r, d, m, language, i18n, debug, users_accesses_
       shinyjs::runjs(paste0("Shiny.setInputValue('", id, "-reload_users', Math.random());"))
       
       # Notify user
-      show_message_bar(output, "modif_saved", "success", i18n = i18n, ns = ns)
+      show_message_bar(id, output, "modif_saved", "success", i18n = i18n, ns = ns)
       
       sapply(c("user_edition_div", "edit_user_icons"), shinyjs::hide)
       sapply(c("users_dt", "add_user_icon"), shinyjs::show)
@@ -562,7 +562,7 @@ mod_users_server <- function(id, r, d, m, language, i18n, debug, users_accesses_
       shinyjs::runjs(paste0("Shiny.setInputValue('", id, "-reload_users', Math.random());"))
       
       # Notify user
-      show_message_bar(output, "user_deleted", "warning", i18n = i18n, ns = ns)
+      show_message_bar(id, output, "user_deleted", "warning", i18n = i18n, ns = ns)
       
       sapply(c("user_edition_div", "edit_user_icons", "delete_user_modal"), shinyjs::hide)
       sapply(c("users_dt", "add_user_icon"), shinyjs::show)
@@ -830,7 +830,7 @@ mod_users_server <- function(id, r, d, m, language, i18n, debug, users_accesses_
       shinyjs::runjs(paste0("Shiny.setInputValue('", id, "-reload_", table, "', Math.random());"))
       
       # Notify user
-      show_message_bar(output, paste0(type, "_added"), "success", i18n = i18n, ns = ns)
+      show_message_bar(id, output, paste0(type, "_added"), "success", i18n = i18n, ns = ns)
       
       shinyjs::hide(paste0("create_", type, "_modal"))
     }
@@ -847,7 +847,7 @@ mod_users_server <- function(id, r, d, m, language, i18n, debug, users_accesses_
       shinyjs::runjs(paste0("Shiny.setInputValue('", id, "-reload_", table, "', Math.random());"))
       
       # Notify user
-      show_message_bar(output, paste0(type, "_deleted"), "warning", i18n = i18n, ns = ns)
+      show_message_bar(id, output, paste0(type, "_deleted"), "warning", i18n = i18n, ns = ns)
       
       sapply(c(paste0(type, "_edition_div"), paste0("edit_", type, "_icons"), paste0("delete_", type, "_modal")), shinyjs::hide)
       sapply(c(paste0(table, "_dt"), paste0("add_", type, "_icon")), shinyjs::show)
@@ -1001,7 +1001,7 @@ mod_users_server <- function(id, r, d, m, language, i18n, debug, users_accesses_
       shinyjs::runjs(paste0("Shiny.setInputValue('", id, "-reload_", table, "', Math.random());"))
       
       # Notify user
-      show_message_bar(output, "modif_saved", "success", i18n = i18n, ns = ns)
+      show_message_bar(id, output, "modif_saved", "success", i18n = i18n, ns = ns)
       
       sapply(c(paste0(type, "_edition_div"), paste0("edit_", type, "_icons")), shinyjs::hide)
       sapply(c(paste0(table, "_dt"), paste0("add_", type, "_icon")), shinyjs::show)

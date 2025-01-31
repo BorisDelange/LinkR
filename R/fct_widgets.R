@@ -846,7 +846,7 @@ import_element <- function(id, input, output, r, m, con, sql_table, sql_category
   # For project import, reload plugins var
   if (element_type == "projects") reload_elements_var(page_id = id, id = "plugins", con = r$db, r = r, m = m, long_var_filtered = "filtered_plugins_long", user_accesses)
   
-  show_message_bar(output, message = paste0("success_importing_", single_id), type = "success", i18n = i18n, ns = ns)
+  show_message_bar(id, output, message = paste0("success_importing_", single_id), type = "success", i18n = i18n, ns = ns)
   
   # Update selected element UI
   if (id == "git_repos") shinyjs::runjs(paste0("Shiny.setInputValue('", id, "-selected_element_trigger', Math.random());"))

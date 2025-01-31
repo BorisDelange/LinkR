@@ -1572,7 +1572,7 @@ mod_data_server <- function(id, r, d, m, language, i18n, debug, user_accesses){
         if (input$add_tab_type == "level_under"){
           # selected_tab <- r[[paste0(category, "_selected_tab")]]
           widgets <- r$data_widgets %>% dplyr::filter(tab_id == selected_tab, !deleted) %>% dplyr::rename(widget_id = id)
-          if (nrow(widgets) > 0) show_message_bar(output, message = "add_tab_has_widgets", i18n = i18n, ns = ns)
+          if (nrow(widgets) > 0) show_message_bar(id, output, message = "add_tab_has_widgets", i18n = i18n, ns = ns)
           req(nrow(widgets) == 0)
         }
       }
@@ -1599,7 +1599,7 @@ mod_data_server <- function(id, r, d, m, language, i18n, debug, user_accesses){
       load_tab_ui(category, new_id, action = "add_tab")
       
       # Notify user
-      show_message_bar(output, "tab_added", "success", i18n = i18n, ns = ns)
+      show_message_bar(id, output, "tab_added", "success", i18n = i18n, ns = ns)
       
       # Reload update_datetime
       sql_update_datetime(r, m)
@@ -1680,7 +1680,7 @@ mod_data_server <- function(id, r, d, m, language, i18n, debug, user_accesses){
       r$data_reload_tabs <- now()
       
       # Notify user
-      show_message_bar(output, message = "modif_saved", type = "success", i18n = i18n, ns = ns)
+      show_message_bar(id, output, message = "modif_saved", type = "success", i18n = i18n, ns = ns)
       
       # Reload update_datetime
       sql_update_datetime(r, m)
@@ -1769,7 +1769,7 @@ mod_data_server <- function(id, r, d, m, language, i18n, debug, user_accesses){
       r$data_reload_tabs <- now()
       
       # Notify user
-      show_message_bar(output, message = "tab_deleted", type = "warning", i18n = i18n, ns = ns)
+      show_message_bar(id, output, message = "tab_deleted", type = "warning", i18n = i18n, ns = ns)
       
       # Reload update_datetime
       sql_update_datetime(r, m)
@@ -1786,11 +1786,11 @@ mod_data_server <- function(id, r, d, m, language, i18n, debug, user_accesses){
     observeEvent(input$add_widget, {
       if (debug) cat(paste0("\n", now(), " - mod_data - observer input$add_widget"))
       
-      if (is.na(r[[paste0(r$data_page, "_selected_tab")]])) show_message_bar(output, message = "create_a_tab_before_adding_a_widget", type = "warning", i18n = i18n, ns = ns)
+      if (is.na(r[[paste0(r$data_page, "_selected_tab")]])) show_message_bar(id, output, message = "create_a_tab_before_adding_a_widget", type = "warning", i18n = i18n, ns = ns)
       
       req(!is.na(r[[paste0(r$data_page, "_selected_tab")]]))
       
-      if (r[[paste0(r$data_page, "_selected_tab")]] %in% r$data_tabs_full_screen$tab_id) show_message_bar(output, message = "cant_add_widget_in_full_screen_mode", type = "warning", i18n = i18n, ns = ns)
+      if (r[[paste0(r$data_page, "_selected_tab")]] %in% r$data_tabs_full_screen$tab_id) show_message_bar(id, output, message = "cant_add_widget_in_full_screen_mode", type = "warning", i18n = i18n, ns = ns)
       req(r[[paste0(r$data_page, "_selected_tab")]] %not_in% r$data_tabs_full_screen$tab_id)
       
       shinyjs::show("add_widget_modal")
@@ -1998,7 +1998,7 @@ mod_data_server <- function(id, r, d, m, language, i18n, debug, user_accesses){
       }
       
       # Notify user
-      show_message_bar(output, message = "widget_added", type = "success", i18n = i18n, ns = ns)
+      show_message_bar(id, output, message = "widget_added", type = "success", i18n = i18n, ns = ns)
       
       # Reload update_datetime
       sql_update_datetime(r, m)
@@ -2217,7 +2217,7 @@ mod_data_server <- function(id, r, d, m, language, i18n, debug, user_accesses){
       shinyjs::hide("delete_widget_modal")
       
       # Notify user
-      show_message_bar(output,  "widget_deleted", "warning", i18n = i18n, ns = ns)
+      show_message_bar(id, output,  "widget_deleted", "warning", i18n = i18n, ns = ns)
       
       # Reload update_datetime
       sql_update_datetime(r, m)
@@ -2503,7 +2503,7 @@ mod_data_server <- function(id, r, d, m, language, i18n, debug, user_accesses){
               },
               error = function(e){
                 r$widget_ui_last_error <- e
-                show_message_bar(output,  "error_run_plugin_ui_code", "severeWarning", i18n = i18n, ns = ns)
+                show_message_bar(id, output,  "error_run_plugin_ui_code", "severeWarning", i18n = i18n, ns = ns)
                 cat(paste0("\n", now(), " - mod_data - error loading UI code - widget_id = ", widget_id, " - ", toString(e)))
               }
             )
@@ -2626,7 +2626,7 @@ mod_data_server <- function(id, r, d, m, language, i18n, debug, user_accesses){
             tryCatch(eval(parse(text = server_code), envir = new_env),
               error = function(e){
                 r$widget_server_last_error <- e
-                show_message_bar(output,  "error_run_plugin_server_code", "severeWarning", i18n = i18n, ns = ns)
+                show_message_bar(id, output,  "error_run_plugin_server_code", "severeWarning", i18n = i18n, ns = ns)
                 cat(paste0("\n", now(), " - mod_data - error loading server code - widget_id = ", widget_id, " - ", toString(e)))
               })
           }

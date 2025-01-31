@@ -264,13 +264,25 @@ render_datatable <- function(output, ns = character(), i18n = character(), data 
 }
 
 #' @noRd
-show_message_bar <- function(output, message = character(), type = "severeWarning", i18n = character(), time = 7000, ns = character()){
+show_message_bar <- function(id, output, message = character(), type = "severeWarning", i18n = character(), time = 7000, ns = character()){
+  # Convert message type to numeric value for Fluent UI
   type <- switch(type, "info" = 0, "error" = 1, "blocked" = 2, "severeWarning" = 3, "success" = 4, "warning" = 5)
   
+  # Translate message if i18n is provided
   output_message <- i18n$t(message)
   
+  # Clear all previous timeouts
+  shinyjs::runjs("
+    if (window.messageBarTimeouts) {
+      window.messageBarTimeouts.forEach(timeout => clearTimeout(timeout));
+    }
+    window.messageBarTimeouts = [];
+  ")
+  
+  # Hide any existing message bar
   shinyjs::hide("message_bar")
   
+  # Render the new message bar UI
   output$message_bar <- renderUI(div(
     class = "message_bar_container",
     div(shiny.fluent::MessageBar(output_message, messageBarType = type), class = "message_bar"),
@@ -280,8 +292,15 @@ show_message_bar <- function(output, message = character(), type = "severeWarnin
     ))
   )
   
-  shinyjs::delay(50, shinyjs::show("message_bar"))
-  shinyjs::delay(time, shinyjs::hide("message_bar"))
+  # Show the message bar
+  shinyjs::show("message_bar")
+  
+  # Set timeout to hide the message bar
+  shinyjs::runjs(paste0("
+    window.messageBarTimeouts.push(setTimeout(function() {
+      $('#", id, "-message_bar').hide();
+    }, ", time, "));
+  "))
 }
 
 #' @noRd

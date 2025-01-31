@@ -204,7 +204,7 @@ files_browser_delete_file <- function(id, i18n, output, input_prefix, r, r_prefi
   r[[paste0(r_prefix, "_deleted_files_ids")]] <- c(r[[paste0(r_prefix, "_deleted_files_ids")]], file_id)
   
   shinyjs::hide("delete_file_modal")
-  show_message_bar(output, "file_deleted", "warning", i18n = i18n, ns = ns)
+  show_message_bar(id, output, "file_deleted", "warning", i18n = i18n, ns = ns)
 }
 
 reload_files_browser_tabs <- function(id, input_prefix, r, r_prefix, element_id, file_id){
@@ -400,7 +400,7 @@ files_browser_save_file <- function(id, i18n, output, input_prefix, r, r_prefix,
     else if (id == "project_files") sql_table <- "studies"
     sql_send_statement(r$db, glue::glue_sql("UPDATE {`sql_table`} SET update_datetime = {now()} WHERE id = {element_id}", .con = r$db))
     
-    show_message_bar(output, "modif_saved", "success", i18n = i18n, ns = ns)
+    show_message_bar(id, output, "modif_saved", "success", i18n = i18n, ns = ns)
   }
 }
 
@@ -412,19 +412,19 @@ files_browser_edit_filename <- function(id, i18n, output, input_prefix, r, r_pre
   
   # Check extension
   check_extension <- grepl("\\.(r|py|csv|css|js)$", new_name, ignore.case = TRUE)
-  if (!check_extension) show_message_bar(output, "invalid_file_extension", "severeWarning", i18n = i18n, ns = ns)
+  if (!check_extension) show_message_bar(id, output, "invalid_file_extension", "severeWarning", i18n = i18n, ns = ns)
   req(check_extension)
   
   # Check name (no space, no special character and not empty)
   if (new_name == "") check_special_char <- FALSE
   else check_special_char <- grepl("^[\\w\\.]+\\.(r|py|csv|css|js)$", new_name, ignore.case = TRUE, perl = TRUE)
-  if (!check_special_char) show_message_bar(output, "invalid_filename", "severeWarning", i18n = i18n, ns = ns)
+  if (!check_special_char) show_message_bar(id, output, "invalid_filename", "severeWarning", i18n = i18n, ns = ns)
   req(check_special_char)
   
   # Check if name is already used
   if (new_name == old_name) check_used_name <- TRUE
   else check_used_name <- !file.exists(paste0(folder, "/", new_name))
-  if (!check_used_name) show_message_bar(output, "name_already_used", "severeWarning", i18n = i18n, ns = ns)
+  if (!check_used_name) show_message_bar(id, output, "name_already_used", "severeWarning", i18n = i18n, ns = ns)
   req(check_used_name)
   
   # Update file
@@ -438,7 +438,7 @@ files_browser_edit_filename <- function(id, i18n, output, input_prefix, r, r_pre
   r[[paste0(r_prefix, "_files_list")]] <- r[[paste0(r_prefix, "_files_list")]] %>% dplyr::mutate(filename = dplyr::case_when(id == file_id ~ new_name, TRUE ~ filename))
   shinyjs::runjs(paste0("Shiny.setInputValue('", id, "-", input_prefix, "reload_files_browser', '", now(format = "%Y-%m-%d %H:%M:%OS3"), "');"))
   
-  show_message_bar(output,  "modif_saved", "success", i18n = i18n, ns = ns)
+  show_message_bar(id, output,  "modif_saved", "success", i18n = i18n, ns = ns)
   
   shinyjs::delay(50, sapply(c(paste0(input_prefix, "filename_div_", file_id), paste0(input_prefix, "edit_filename_button_div_", file_id)), shinyjs::show))
   sapply(c(paste0(input_prefix, "edit_filename_textfield_div_", file_id), paste0(input_prefix, "save_filename_button_div_", file_id)), shinyjs::hide)

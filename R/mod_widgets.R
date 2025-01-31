@@ -529,7 +529,7 @@ mod_widgets_server <- function(id, r, d, m, language, i18n, all_divs, debug, use
       shinyjs::runjs(paste0("Shiny.setInputValue('", id, "-reload_elements_var', Math.random());"))
       
       # Notify user
-      show_message_bar(output, message = element_added, type = "success", i18n = i18n, ns = ns)
+      show_message_bar(id, output, message = element_added, type = "success", i18n = i18n, ns = ns)
       
       # Close modal
       shinyjs::hide("create_element_modal")
@@ -621,7 +621,7 @@ mod_widgets_server <- function(id, r, d, m, language, i18n, all_divs, debug, use
           user_accesses = user_accesses
         )
       }, error = function(e){
-        show_message_bar(output, paste0("error_importing_", single_id), "warning", i18n = i18n, ns = ns)
+        show_message_bar(id, output, paste0("error_importing_", single_id), "warning", i18n = i18n, ns = ns)
         cat(paste0("\n", now(), " - mod_widgets - (", id, ") - import element error - ", toString(e)))
       })
     })
@@ -965,7 +965,7 @@ mod_widgets_server <- function(id, r, d, m, language, i18n, all_divs, debug, use
       output_file <- create_rmarkdown_file(r, input$description_code, interpret_code = FALSE)
       output$description_ui <- renderUI(div(class = "markdown", withMathJax(includeMarkdown(output_file))))
       
-      show_message_bar(output, "modif_saved", "success", i18n = i18n, ns = ns)
+      show_message_bar(id, output, "modif_saved", "success", i18n = i18n, ns = ns)
     })
     
     ## Cancel description updates ----
@@ -1096,7 +1096,7 @@ mod_widgets_server <- function(id, r, d, m, language, i18n, all_divs, debug, use
         )
       )
       
-      show_message_bar(output, "modif_saved", "success", i18n = i18n, ns = ns)
+      show_message_bar(id, output, "modif_saved", "success", i18n = i18n, ns = ns)
       
       # Reload description UI
       shinyjs::runjs(paste0("Shiny.setInputValue('", id, "-reload_description_ui', Math.random());"))
@@ -1209,7 +1209,7 @@ mod_widgets_server <- function(id, r, d, m, language, i18n, all_divs, debug, use
         Shiny.setInputValue('", id, "-show_home', Math.random());"))
       
       # Notify user
-      show_message_bar(output, element_deleted, "warning", i18n = i18n, ns = ns)
+      show_message_bar(id, output, element_deleted, "warning", i18n = i18n, ns = ns)
       
       # Close modal
       shinyjs::hide("delete_element_modal")
@@ -1245,7 +1245,7 @@ mod_widgets_server <- function(id, r, d, m, language, i18n, all_divs, debug, use
       tryCatch({
         loaded_git_repo <- load_git_repo(id, r, git_repo)
         }, error = function(e){
-          show_message_bar(output, "error_loading_git_repo", "warning", i18n = i18n, ns = ns)
+          show_message_bar(id, output, "error_loading_git_repo", "warning", i18n = i18n, ns = ns)
           cat(paste0("\n", now(), " - mod_widgets - error downloading git repo - error = ", toString(e)))
         }
       )
@@ -1518,13 +1518,13 @@ mod_widgets_server <- function(id, r, d, m, language, i18n, all_divs, debug, use
             shiny.fluent::updateTextField.shinyInput(session, "update_or_delete_git_element_commit_message", value = "")
 
             # Notify user
-            show_message_bar(output, "success_update_remote_git_repo", "success", i18n = i18n, ns = ns)
+            show_message_bar(id, output, "success_update_remote_git_repo", "success", i18n = i18n, ns = ns)
 
             # Reload git element UI
             shinyjs::runjs(paste0("Shiny.setInputValue('", id, "-reload_git_element_ui', Math.random());"))
           }
         }, error = function(e){
-          show_message_bar(output, message = "error_update_remote_git_repo", type = "severeWarning", i18n = i18n, ns = ns)
+          show_message_bar(id, output, message = "error_update_remote_git_repo", type = "severeWarning", i18n = i18n, ns = ns)
           cat(paste0("\n", now(), " - mod_widgets - (", id, ") - update remot git error - ", toString(e)))
         })
 
@@ -1581,7 +1581,7 @@ mod_widgets_server <- function(id, r, d, m, language, i18n, all_divs, debug, use
     # Prevent a bug : show_message_bar in downloadHandler never ends
     observeEvent(input$error_downloading_element, {
       if (debug) cat(paste0("\n", now(), " - mod_widgets - (", id, ") - observer input$error_downloading_element"))
-      show_message_bar(output, message = paste0("error_downloading_", single_id), type = "severeWarning", i18n = i18n, ns = ns)
+      show_message_bar(id, output, message = paste0("error_downloading_", single_id), type = "severeWarning", i18n = i18n, ns = ns)
     })
   })
 }

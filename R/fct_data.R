@@ -314,7 +314,7 @@ save_element_code <- function(id, i18n, output, r, unique_id, new_code){
   
   code <- writeLines(new_code, code_file)
   
-  show_message_bar(output, "modif_saved", "success", i18n = i18n, ns = ns)
+  show_message_bar(id, output, "modif_saved", "success", i18n = i18n, ns = ns)
 }
 
 #' @noRd

@@ -385,13 +385,13 @@ mod_git_repos_server <- function(id, r, d, m, language, i18n, debug, user_access
       ## Get csv file from remote git
       tryCatch(download.file(filename, filename_local, quiet = TRUE),
         error = function(e){
-          show_message_bar(output, "error_loading_git_repos_csv", "warning", i18n = i18n, ns = ns)
+          show_message_bar(id, output, "error_loading_git_repos_csv", "warning", i18n = i18n, ns = ns)
           cat(paste0("\n", now(), " - mod_git_repos - error loading remote git csv file - error = ", toString(e)))
         })
       
       tryCatch(git_repos <- vroom::vroom(filename_local, col_types = "cnnccccl", progress = FALSE),
         error = function(e){
-          show_message_bar(output, "error_loading_git_repos_csv", "warning", i18n = i18n, ns = ns)
+          show_message_bar(id, output, "error_loading_git_repos_csv", "warning", i18n = i18n, ns = ns)
           cat(paste0("\n", now(), " - mod_git_repos - error loading remote git csv file - error = ", toString(e)))
         })
       
@@ -685,7 +685,7 @@ mod_git_repos_server <- function(id, r, d, m, language, i18n, debug, user_access
         shinyjs::runjs(paste0("Shiny.setInputValue('", id, "-reload_git_repos', Math.random());"))
         
         # Notify user
-        show_message_bar(output, "git_repo_added", "success", i18n = i18n, ns = ns)
+        show_message_bar(id, output, "git_repo_added", "success", i18n = i18n, ns = ns)
         
         # Reset fields
         for (field in c("git_repo_creation_name", "git_repo_creation_url_address", "git_repo_creation_raw_files_url_address")){
@@ -735,7 +735,7 @@ mod_git_repos_server <- function(id, r, d, m, language, i18n, debug, user_access
         shinyjs::runjs(paste0("Shiny.setInputValue('", id, "-reload_git_repos', Math.random());"))
         
         # Notify user
-        show_message_bar(output, "git_repo_deleted", "warning", i18n = i18n, ns = ns)
+        show_message_bar(id, output, "git_repo_deleted", "warning", i18n = i18n, ns = ns)
         
         # Close modal
         shinyjs::hide("delete_git_repo_modal")
@@ -807,7 +807,7 @@ mod_git_repos_server <- function(id, r, d, m, language, i18n, debug, user_access
         sapply(c("edit_git_repo_button", "list_git_infos_content"), shinyjs::show)
         
         # Notify user
-        show_message_bar(output, "modif_saved", "success", i18n = i18n, ns = ns)
+        show_message_bar(id, output, "modif_saved", "success", i18n = i18n, ns = ns)
       })
       
       ## Edit readme ----
@@ -849,7 +849,7 @@ mod_git_repos_server <- function(id, r, d, m, language, i18n, debug, user_access
         tryCatch({
             loaded_git_repo <- load_git_repo(id, r, git_repo)
           }, error = function(e){
-            show_message_bar(output, "error_loading_git_repo", "warning", i18n = i18n, ns = ns)
+            show_message_bar(id, output, "error_loading_git_repo", "warning", i18n = i18n, ns = ns)
             cat(paste0("\n", now(), " - mod_git_repos - error downloading git repo - error = ", toString(e)))
           }
         )
@@ -925,7 +925,7 @@ mod_git_repos_server <- function(id, r, d, m, language, i18n, debug, user_access
               automatic_code <- paste0(automatic_code, readme_category)
               
             }, error = function(e){
-              show_message_bar(output, "error_generate_readme", "warning", i18n = i18n, ns = ns)
+              show_message_bar(id, output, "error_generate_readme", "warning", i18n = i18n, ns = ns)
               cat(paste0("\n", now(), " - mod_git_repos - error generating readme - category = ", category, " - error = ", toString(e)))
             })
           }
@@ -998,7 +998,7 @@ mod_git_repos_server <- function(id, r, d, m, language, i18n, debug, user_access
         tryCatch({
             loaded_git_repo <- load_git_repo(id, r, git_repo)
           }, error = function(e){
-            show_message_bar(output, "error_loading_git_repo", "warning", i18n = i18n, ns = ns)
+            show_message_bar(id, output, "error_loading_git_repo", "warning", i18n = i18n, ns = ns)
             cat(paste0("\n", now(), " - mod_git_repos - error downloading git repo - error = ", toString(e)))
           }
         )
@@ -1062,10 +1062,10 @@ mod_git_repos_server <- function(id, r, d, m, language, i18n, debug, user_access
             shiny.fluent::updateTextField.shinyInput(session, "push_git_commit_message", value = "")
 
             # Notify user
-            show_message_bar(output, "success_update_remote_git_repo", "success", i18n = i18n, ns = ns)
+            show_message_bar(id, output, "success_update_remote_git_repo", "success", i18n = i18n, ns = ns)
           }
         }, error = function(e){
-          show_message_bar(output, message = "error_update_remote_git_repo", type = "severeWarning", i18n = i18n, ns = ns)
+          show_message_bar(id, output, message = "error_update_remote_git_repo", type = "severeWarning", i18n = i18n, ns = ns)
           cat(paste0("\n", now(), " - mod_git_repos - update remot git error - ", toString(e)))
         })
         
@@ -1140,7 +1140,7 @@ mod_git_repos_server <- function(id, r, d, m, language, i18n, debug, user_access
         tryCatch({
             loaded_git_repo <- load_git_repo(id, r, r$git_repo)
           }, error = function(e){
-            show_message_bar(output, "error_loading_git_repo", "warning", i18n = i18n, ns = ns)
+            show_message_bar(id, output, "error_loading_git_repo", "warning", i18n = i18n, ns = ns)
             cat(paste0("\n", now(), " - mod_git_repos - error downloading git repo - error = ", toString(e)))
           }
         )
@@ -1453,7 +1453,7 @@ mod_git_repos_server <- function(id, r, d, m, language, i18n, debug, user_access
           )
         },
         error = function(e){
-          show_message_bar(output, paste0("error_install_remote_git_", current_tab_single), "warning", i18n = i18n, ns = ns)
+          show_message_bar(id, output, paste0("error_install_remote_git_", current_tab_single), "warning", i18n = i18n, ns = ns)
           cat(paste0("\n", now(), " - mod_git_repos - error installing ", current_tab_single, " from git - error = ", toString(e)))
         })
       })
@@ -1497,7 +1497,7 @@ mod_git_repos_server <- function(id, r, d, m, language, i18n, debug, user_access
           ))
         },
         error = function(e){
-          show_message_bar(output, "error_removing_git_element", "severeWarning", i18n = i18n, ns = ns)
+          show_message_bar(id, output, "error_removing_git_element", "severeWarning", i18n = i18n, ns = ns)
           cat(paste0("\n", now(), " - mod_git_repos - error removing git element - error = ", toString(e)))
         })
         
