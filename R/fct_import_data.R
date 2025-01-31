@@ -7,14 +7,14 @@
 #' @param omop_version The OMOP version of the imported data. Accepted values are `"5.3"`, `"5.4"`, and `"6.0"`. Defaults to `"5.4"`.
 #' @param data_source The source of the data. Accepted values are `"db"` for a database connection or `"disk"` for disk storage. Defaults to `"disk"`.
 #' @param data_folder The folder containing the data. Must be a character string.
-#' @param save_duckdb_file A logical value indicating whether to save the data as a DuckDB database file (.db). If TRUE, the data will be persistently stored in a DuckDB file in the dataset folder. Defaults to FALSE.
+#' @param save_as_duckdb_file A logical value indicating whether to save the data as a DuckDB database file (.db). If TRUE, the data will be persistently stored in a DuckDB file in the dataset folder. Defaults to FALSE.
 #' @param rewrite A logical value indicating whether to rewrite DuckDB database.
 #' @param con A `DBI::dbConnect` object representing the database connection, required if `data_source` is `"db"`.
 #' @param load_tables A character vector specifying which OMOP tables to load
 #' @details ...
 import_dataset <- function(
   r, d, dataset_id = integer(), omop_version = "5.4",
-  data_source = "disk", data_folder = character(), save_duckdb_file = FALSE, rewrite = FALSE,
+  data_source = "disk", data_folder = character(), save_as_duckdb_file = FALSE, rewrite = FALSE,
   con, load_tables = character()
 ){
   
@@ -43,195 +43,52 @@ import_dataset <- function(
   
   # Col types depending on OMOP CDM version
   
-  col_names <- c(
-    "person",
-    "observation_period",
-    "visit_occurrence",
-    "visit_detail",
-    "condition_occurrence",
-    "drug_exposure",
-    "procedure_occurrence",
-    "device_exposure",
-    "measurement",
-    "observation",
-    "death",
-    "note",
-    "note_nlp",
-    "specimen",
-    "fact_relationship",
-    "location",
-    "location_history",
-    "care_site",
-    "provider",
-    "payer_plan_period",
-    "cost",
-    "drug_era",
-    "dose_era",
-    "condition_era"
+  col_types <- list(
+    "person" = "iiiiiTTiiiiiccicici",
+    "observation_period" = "iiDDi",
+    "visit_occurrence" = "iiiDTDTiiiciicici",
+    "visit_detail" = "iiiDTDTiiiciicciiii",
+    "condition_occurrence" = "iiiDTDTiiciiicic",
+    "drug_exposure" = "iiiDTDTDiciniciciiicicc",
+    "procedure_occurrence" = "iiiDTiiiiiicic",
+    "device_exposure" = "iiiDTDTiciiiici",
+    "measurement" = "iiiDTciiniinniiicicc",
+    "observation" = "iiiDTinciiiiiicicciiT",
+    "death" = "iDTiici",
+    "note" = "iiiiDTiicciiiiic",
+    "note_nlp" = "iiiccciicDTccc",
+    "specimen" = "iiiiDTniiiccccc",
+    "fact_relationship" = "iiiii",
+    "location" = "icccccccnn",
+    "location_history" = "iiciDD",
+    "care_site" = "iciicc",
+    "provider" = "iccciiiiccici",
+    "payer_plan_period" = "iiiDDiciiciiciicicici",
+    "cost" = "iiiiiiicinDDDiicci",
+    "drug_era" = "iiiTTii",
+    "dose_era" = "iiiinTT",
+    "condition_era" = "iiiTTi"
   )
-  
-  # col_types <- list(
-  #   "person" = "iiiiiTTiiiiiccicici",
-  #   "observation_period" = "iiDDi",
-  #   "visit_occurrence" = "iiiDTDTiiiciicici",
-  #   "visit_detail" = "iiiDTDTiiiciicciiii",
-  #   "condition_occurrence" = "iiiDTDTiiciiicic",
-  #   "drug_exposure" = "iiiDTDTDiciniciciiicicc",
-  #   "procedure_occurrence" = "iiiDTiiiiiicic",
-  #   "device_exposure" = "iiiDTDTiciiiici",
-  #   "measurement" = "iiiDTciiniinniiicicc",
-  #   "observation" = "iiiDTinciiiiiicicciiT",
-  #   "death" = "iDTiici",
-  #   "note" = "iiiiDTiicciiiiic",
-  #   "note_nlp" = "iiiccciicDTccc",
-  #   "specimen" = "iiiiDTniiiccccc",
-  #   "fact_relationship" = "iiiii",
-  #   "location" = "icccccccnn",
-  #   "location_history" = "iiciDD",
-  #   "care_site" = "iciicc",
-  #   "provider" = "iccciiiiccici",
-  #   "payer_plan_period" = "iiiDDiciiciiciicicici",
-  #   "cost" = "iiiiiiicinDDDiicci",
-  #   "drug_era" = "iiiTTii",
-  #   "dose_era" = "iiiinTT",
-  #   "condition_era" = "iiiTTi"
-  # )
-  # 
-  # if (omop_version == "5.3"){
-  #   col_types$person <- "iiiiiTiiiiiccicici"
-  #   col_types$visit_detail <- "iiiDTDTiiiciciciiii"
-  #   col_types$observation <-  "iiiDTinciiiiiicicc"
-  #   col_types$location <-  "iccccccc"
-  #   col_types$drug_era <- "iiiDDii"
-  #   col_types$dose_era <- "iiiinDD"
-  #   col_types$condition_era <- "iiiDDi"
-  # }
-  # 
-  # else if (omop_version == "5.4"){
-  #   col_types$person <- "iiiiiTiiiiiccicici"
-  #   col_types$observation <-  "iiiDTinciiiiiicicccii"
-  #   col_types$drug_era <- "iiiDDii"
-  #   col_types$dose_era <- "iiiinDD"
-  #   col_types$condition_era <- "iiiDDi"
-  #   col_types$procedure_occurrence <- "iiiDTDTiiiiiicic"
-  # }
-  
-  # Load tables from load_tables argument if specified. If not specified, load all OMOP tables.
-  if (length(load_tables) == 0) load_tables <- col_names
-  if (length(load_tables) > 0) load_tables <- intersect(load_tables, col_names)
-  
-  # Record loaded tables
-  loaded_tables <- c()
-  
-  # Folder where data will be saved
-  
-  data_app_folder <- paste0(r$app_folder, "/datasets_files/", dataset_id)
-  if (!dir.exists(data_app_folder)) dir.create(data_app_folder)
-  
-  # Disconnect db
-  if (length(d$con) > 0) if (DBI::dbIsValid(d$con)) DBI::dbDisconnect(d$con)
-  
-  ## Import data from disk files ----
-  
-  if (data_source == "disk"){
-    
-    # List files of provided folder
-    
-    if (!dir.exists(data_folder)) return(i18n$t("folder_doesnt_exist"))
-    
-    file_names <- list.files(path = data_folder)
-    
-    if (length(file_names) == 0) return(i18n$t("folder_doesnt_contain_any_file"))
-      
-    tryCatch({
-      
-      if (save_duckdb_file) {
-        
-        db_path <- file.path(r$app_folder, "datasets_files", dataset_id, "duckdb_data.db")
-        
-        # Rewrite DuckDB database ?
-        if (rewrite) unlink(db_path)
-        
-        d$con <- DBI::dbConnect(duckdb::duckdb(), dbdir = db_path, read_only = FALSE)
-      } else d$con <- DBI::dbConnect(duckdb::duckdb())
-      
-      for (file_name in file_names){
-        
-        table <- sub("\\.[^.]*$", "", file_name)
-        file_ext <- sub(".*\\.", "", tolower(file_name))
-        
-        # If no file_ext, consider it is a folder containing parquet or CSV files
-        if (file_ext == table) file_ext <- ""
-        
-        # Check if this is an OMOP table
-        
-        if (table %in% load_tables){
-          
-          if (!DBI::dbExistsTable(d$con, table)){
-          
-            if (file_ext %in% c("csv", "parquet", "")){
-              
-              # If no file_ext, consider it is a folder and try to find extension of first file
-              if (file_ext == "") {
-                folder_path <- file.path(data_folder, file_name)
-                
-                if (dir.exists(folder_path)) {
-                  folder_files <- list.files(folder_path)
-                  
-                  if (length(folder_files) > 0) {
-                    # Get extension of first file
-                    first_file_ext <- sub(".*\\.", "", tolower(folder_files[1]))
-                    if (first_file_ext %in% c("csv", "parquet")) {
-                      file_ext <- first_file_ext
-                    }
-                  }
-                }
-              }
-              
-              if (file_ext %in% c("csv", "parquet")){
-              
-                duckdb::duckdb_unregister_arrow(d$con, table)
-                duckdb::duckdb_register_arrow(
-                  d$con, table,
-                  arrow::open_dataset(file.path(data_folder, file_name), format = file_ext)
-                )
-              }
-            }
-          }
-          
-          if (DBI::dbExistsTable(d$con, table)){
-            d[[table]] <- dplyr::tbl(d$con, table)
-            loaded_tables <- c(loaded_tables, table)
-          }
-        }
-      }
-    },
-    error = function(e) return(paste0(i18n$t("error_loading_data"), " - ", toString(e))))
+
+  if (omop_version == "5.3"){
+    col_types$person <- "iiiiiTiiiiiccicici"
+    col_types$visit_detail <- "iiiDTDTiiiciciciiii"
+    col_types$observation <-  "iiiDTinciiiiiicicc"
+    col_types$location <-  "iccccccc"
+    col_types$drug_era <- "iiiDDii"
+    col_types$dose_era <- "iiiinDD"
+    col_types$condition_era <- "iiiDDi"
+    col_types$cost <- "iiciinnnnnnnnnnninicic"
   }
-  
-  ## Import data from database connection ----
-  
-  else if (data_source == "db"){
-    
-    # Test connection
-    if (!DBI::dbIsValid(con)) return(i18n$t("dataset_error_with_db_connection"))
-    
-    d$con <- con
-    
-    tables <- DBI::dbListTables(con)
-    
-    for (table in tables){
-      if (table %in% load_tables){
-        d[[table]] <- dplyr::tbl(con, table)
-        
-        loaded_tables <- c(loaded_tables, table)
-      }
-    }
+
+  else if (omop_version == "5.4"){
+    col_types$person <- "iiiiiTiiiiiccicici"
+    col_types$observation <-  "iiiDTinciiiiiicicccii"
+    col_types$drug_era <- "iiiDDii"
+    col_types$dose_era <- "iiiinDD"
+    col_types$condition_era <- "iiiDDi"
+    col_types$procedure_occurrence <- "iiiDTDTiiiiiicic"
   }
-  
-  # Transform data ----
-  
-  ## Select cols ----
   
   data_cols <- list(
     person = c("person_id", "gender_concept_id", "year_of_birth", "month_of_birth", "day_of_birth", "birth_datetime", "death_datetime", "race_concept_id", "ethnicity_concept_id", "location_id", "provider_id", "care_site_id", "person_source_value", "gender_source_value", "gender_source_concept_id", "race_source_value", "race_source_concept_id", "ethnicity_source_value", "ethnicity_source_concept_id"),
@@ -285,6 +142,173 @@ import_dataset <- function(
     data_cols$cost <- c("cost_id", "cost_event_id", "cost_domain_id", "cost_type_concept_id", "currency_concept_id", "total_charge", "total_cost", "total_paid", "paid_by_payer", "paid_by_patient", "paid_patient_copay", "paid_patient_coinsurance", "paid_patient_deductible", "paid_by_primary", "paid_ingredient_cost", "paid_dispensing_fee", "payer_plan_period_id", "amount_allowed", "revenue_code_concept_id", "revenue_code_source_value", "drg_concept_id", "drg_source_value")
     data_cols$procedure_occurrence = c("procedure_occurrence_id", "person_id", "procedure_concept_id", "procedure_date", "procedure_datetime", "procedure_end_date", "procedure_end_datetime", "procedure_type_concept_id", "modifier_concept_id", "quantity", "provider_id", "visit_occurrence_id", "visit_detail_id", "procedure_source_value", "procedure_source_concept_id", "modifier_source_value")
   }
+  
+  convert_to_duckdb_type <- function(type_code) {
+    switch(
+      type_code,
+       "i" = "BIGINT",
+       "n" = "DOUBLE",
+       "c" = "VARCHAR",
+       "D" = "DATE",
+       "T" = "TIMESTAMP",
+       "VARCHAR"
+    )
+  }
+  
+  # Load tables from load_tables argument if specified. If not specified, load all OMOP tables.
+  if (length(load_tables) == 0) load_tables <- names(col_types)
+  if (length(load_tables) > 0) load_tables <- intersect(load_tables, names(col_types))
+  
+  # Record loaded tables
+  loaded_tables <- c()
+  
+  # Folder where data will be saved
+  
+  data_app_folder <- paste0(r$app_folder, "/datasets_files/", dataset_id)
+  if (!dir.exists(data_app_folder)) dir.create(data_app_folder)
+  
+  # Disconnect db
+  if (length(d$con) > 0) if (DBI::dbIsValid(d$con)) DBI::dbDisconnect(d$con)
+  
+  ## Import data from disk files ----
+  
+  if (data_source == "disk"){
+    
+    # List files of provided folder
+    
+    if (!dir.exists(data_folder)) return(i18n$t("folder_doesnt_exist"))
+    
+    file_names <- list.files(path = data_folder)
+    
+    if (length(file_names) == 0) return(i18n$t("folder_doesnt_contain_any_file"))
+      
+    # tryCatch({
+      
+      if (save_as_duckdb_file) {
+        
+        db_path <- file.path(r$app_folder, "datasets_files", dataset_id, "duckdb_data.db")
+        
+        # Rewrite DuckDB database ?
+        if (rewrite) unlink(db_path)
+        
+        d$con <- DBI::dbConnect(duckdb::duckdb(), dbdir = db_path, read_only = FALSE)
+      } else d$con <- DBI::dbConnect(duckdb::duckdb())
+      
+      for (file_name in file_names){
+        
+        table <- sub("\\.[^.]*$", "", file_name)
+        file_ext <- sub(".*\\.", "", tolower(file_name))
+        
+        # If no file_ext, consider it is a folder containing parquet or CSV files
+        if (file_ext == table) file_ext <- ""
+        
+        # Check if this is an OMOP table
+        
+        if (table %in% load_tables){
+          
+          if (file_ext %in% c("csv", "parquet", "")){
+            
+            # If no file_ext, consider it is a folder and try to find extension of first file
+            if (file_ext == "") {
+              folder_path <- file.path(data_folder, file_name)
+              
+              if (dir.exists(folder_path)) {
+                folder_files <- list.files(folder_path)
+                
+                if (length(folder_files) > 0) {
+                  # Get extension of first file
+                  first_file_ext <- sub(".*\\.", "", tolower(folder_files[1]))
+                  if (first_file_ext %in% c("csv", "parquet")) {
+                    file_ext <- first_file_ext
+                  }
+                }
+              }
+            }
+            
+            if (file_ext %in% c("csv", "parquet")){
+              
+              if (save_as_duckdb_file) {
+                if (!DBI::dbExistsTable(d$con, table)){
+                  
+                  file_path <- file.path(data_folder, file_name)
+                  
+                  if (file_ext == "csv"){
+                    type_codes <- strsplit(col_types[[table]], "")[[1]]
+                    col_names <- data_cols[[table]]
+                    col_types_sql <- paste(
+                      mapply(
+                        function(col, type) {
+                          sprintf('"%s" %s', col, convert_to_duckdb_type(type))
+                        },
+                        col_names,
+                        type_codes
+                      ),
+                      collapse = ", "
+                    )
+                    
+                    DBI::dbExecute(d$con, sprintf("CREATE TABLE %s (%s)", table, col_types_sql))
+                    
+                    DBI::dbExecute(
+                      d$con,
+                      sprintf(
+                        "INSERT INTO %s SELECT * FROM read_%s_auto('%s', nullstr='NA')",
+                        table,
+                        file_ext,
+                        file.path(data_folder, file_name)
+                      )
+                    )
+                    
+                    # sql <- paste0("CREATE TABLE ", table, " (", col_types_sql, ") AS SELECT * FROM read_csv_auto('", file_path, "')")
+                    # print(sql)
+                  }
+                  else if (file_ext == "parquet") DBI::dbExecute(d$con, paste0("CREATE TABLE ", table, " AS SELECT * FROM read_parquet('", file_path, "')"))
+                  #   sql <- paste0("CREATE TABLE ", table, " AS SELECT * FROM read_parquet('", file_path, "')")
+                  # DBI::dbExecute(d$con, sql)
+                }
+              } else {
+              
+                duckdb::duckdb_unregister_arrow(d$con, table)
+                duckdb::duckdb_register_arrow(
+                  d$con, table,
+                  arrow::open_dataset(file.path(data_folder, file_name), format = file_ext)
+                )
+              }
+            }
+          }
+          
+          if (DBI::dbExistsTable(d$con, table)){
+            d[[table]] <- dplyr::tbl(d$con, table)
+            loaded_tables <- c(loaded_tables, table)
+          }
+        }
+      }
+    # },
+    # error = function(e) return(paste0(i18n$t("error_loading_data"), " - ", toString(e))))
+  }
+  
+  ## Import data from database connection ----
+  
+  else if (data_source == "db"){
+    
+    # Test connection
+    if (!DBI::dbIsValid(con)) return(i18n$t("dataset_error_with_db_connection"))
+    
+    d$con <- con
+    
+    tables <- DBI::dbListTables(con)
+    
+    for (table in tables){
+      if (table %in% load_tables){
+        d[[table]] <- dplyr::tbl(con, table)
+        
+        loaded_tables <- c(loaded_tables, table)
+      }
+    }
+  }
+  
+  # Transform data ----
+  
+  ## Select cols ----
   
   loaded_data <- tibble::tibble(table = character(), n_rows = integer())
   
