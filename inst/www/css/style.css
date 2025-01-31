@@ -150,6 +150,22 @@ a.no-hover-effect:hover {
   z-index: 2;
 }
 
+.message_bar {
+  display: inline-block;
+}
+
+.message_bar a {
+  color: black;
+}
+
+.message_bar a:visited {
+  color: black;
+}
+
+.message_bar a:hover {
+  color: rgb(0, 120, 212);
+}
+
 /* --------------- */
 /* SIDENAV         */
 /* --------------- */

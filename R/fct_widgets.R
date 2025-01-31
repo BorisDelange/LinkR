@@ -499,13 +499,9 @@ create_elements_ui <- function(page_id, id, elements, selected_element = NA_inte
     )
   }
   
-  if (page_id == "home") div(
-    class = "home-widget-container",
-    tags$button(class = "home-nav-button prev", onclick = "scrollContainer(this, 'left')", tags$i(class = "fas fa-chevron-left")),
-    tags$button(class = "home-nav-button next", onclick = "scrollContainer(this, 'right')", tags$i(class = "fas fa-chevron-right")),
-    elements_ui
-  )
-  else div(elements_ui, class = paste0(id, "_container"))
+  if (page_id != "home") elements_ui <- div(elements_ui, class = paste0(id, "_container"))
+  
+  elements_ui
 }
 
 #' @noRd

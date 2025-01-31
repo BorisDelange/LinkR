@@ -278,6 +278,12 @@ name_already_used,Ce nom est déjà utilisé
 no_data_to_insert,Pas de nouvelles données à insérer
 no_data_to_insert_in_table,Pas de données à insérer dans la table
 no_elements_to_display,Pas d'élément à afficher
+no_data_cleaning_to_display,Pas de script de data cleaning à afficher
+no_dataset_to_display,Pas de set de données à afficher
+no_project_to_display,Pas de projet à afficher
+no_subset_to_display,Pas de subset à afficher
+no_vocabulary_to_display,Pas de terminologie à afficher
+no_plugin_to_display,Pas de plugin à afficher
 no_internet_access,Pas d'accès à internet
 no_person_in_subset,Aucun patient dans le subset
 no_results_found,Pas de résultats

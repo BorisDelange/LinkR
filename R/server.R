@@ -227,7 +227,10 @@ app_server <- function(
       else if (current_page == "data"){
         if (length(shiny.router::get_query_param()$type) > 0) r$data_page <- shiny.router::get_query_param()$type
         else r$data_page <- "patient_lvl"
-        current_page <- "data"
+      }
+      
+      else if (current_page %in% c("datasets", "data_cleaning", "datasets", "plugins", "subsets", "projects")){
+        if (length(shiny.router::get_query_param()$create_element) > 0) shinyjs::runjs(paste0("Shiny.setInputValue('", current_page, "-create_element', Math.random());"))
       }
       
       if (length(r$loaded_pages[[current_page]]) == 0) r$load_page <- current_page

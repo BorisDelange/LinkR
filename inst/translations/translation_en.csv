@@ -278,6 +278,12 @@ name_already_used,This name is already used
 no_data_to_insert,No data to insert
 no_data_to_insert_in_table,No data to insert in table
 no_elements_to_display,No elements to display
+no_data_cleaning_to_display,No data cleaning script to display
+no_dataset_to_display,No dataset to display
+no_project_to_display,No project to display
+no_subset_to_display,No subset to display
+no_vocabulary_to_display,No vocabulary to display
+no_plugin_to_display,No plugin to display
 no_internet_access,No internet access
 no_person_in_subset,No patient in this subset
 no_results_found,No results found
