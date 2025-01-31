@@ -8,11 +8,10 @@
 #' @param data_source The source of the data. Accepted values are `"db"` for a database connection or `"disk"` for disk storage. Defaults to `"disk"`.
 #' @param data_folder The folder containing the data. Must be a character string.
 #' @param con A `DBI::dbConnect` object representing the database connection, required if `data_source` is `"db"`.
-#' @param load_tables A character vector specifying which OMOP tables to load.
-#' @param ... Additional arguments to be passed to the `vroom` function (e.g., `delim`).
+#' @param load_tables A character vector specifying which OMOP tables to load
 #' @details ...
 import_dataset <- function(
-  r, d, dataset_id = integer(), omop_version = "5.4", data_source = "disk", data_folder = character(), con, load_tables = character(), ...
+  r, d, dataset_id = integer(), omop_version = "5.4", data_source = "disk", data_folder = character(), con, load_tables = character()
 ){
   
   i18n <- r$i18n
@@ -99,7 +98,7 @@ import_dataset <- function(
   if (!dir.exists(data_app_folder)) dir.create(data_app_folder)
   
   # Disconnect db
-  # if (length(d$con) > 0) if (DBI::dbIsValid(d$con)) DBI::dbDisconnect(d$con)
+  if (length(d$con) > 0) if (DBI::dbIsValid(d$con)) DBI::dbDisconnect(d$con)
   
   ## Import data from disk files ----
   
@@ -115,42 +114,51 @@ import_dataset <- function(
       
     tryCatch({
       
-      connection_loaded <- FALSE
+      d$con <- DBI::dbConnect(duckdb::duckdb())
       
       for (file_name in file_names){
         
         table <- sub("\\.[^.]*$", "", file_name)
         file_ext <- sub(".*\\.", "", tolower(file_name))
         
-        # If no file_ext, consider it is a folder containing parquet files
+        # If no file_ext, consider it is a folder containing parquet or CSV files
         if (file_ext == table) file_ext <- ""
         
         # Check if this is an OMOP table
         
         if (table %in% load_tables){
-        
-          if (file_ext %in% c("parquet", "")){
-            
-            # if duckdb not declared, create connection
-            if (!connection_loaded){
-              d$con <- DBI::dbConnect(duckdb::duckdb())
-              connection_loaded <- TRUE
-            }
-            # if (length(d$con) == 0) d$con <- DBI::dbConnect(duckdb::duckdb())
-            
-            duckdb::duckdb_unregister_arrow(d$con, table)
-            duckdb::duckdb_register_arrow(d$con, table, arrow::open_dataset(paste0(data_folder, "/", file_name)))
-            
-            d[[table]] <- dplyr::tbl(d$con, table)
-            
-            loaded_tables <- c(loaded_tables, table)
-          }
           
-          else if (file_ext == "csv"){
+          if (file_ext %in% c("csv", "parquet", "")){
             
-            d[[table]] <- vroom::vroom(paste0(data_folder, "/", file_name), col_types = col_types[[table]], progress = FALSE, ...)
+            # If no file_ext, consider it is a folder and try to find extension of first file
+            if (file_ext == "") {
+              folder_path <- file.path(data_folder, file_name)
+              
+              if (dir.exists(folder_path)) {
+                folder_files <- list.files(folder_path)
+                
+                if (length(folder_files) > 0) {
+                  # Get extension of first file
+                  first_file_ext <- sub(".*\\.", "", tolower(folder_files[1]))
+                  if (first_file_ext %in% c("csv", "parquet")) {
+                    file_ext <- first_file_ext
+                  }
+                }
+              }
+            }
             
-            loaded_tables <- c(loaded_tables, table)
+            if (file_ext %in% c("csv", "parquet")){
+            
+              duckdb::duckdb_unregister_arrow(d$con, table)
+              duckdb::duckdb_register_arrow(
+                d$con, table,
+                arrow::open_dataset(file.path(data_folder, file_name), format = file_ext)
+              )
+              
+              d[[table]] <- dplyr::tbl(d$con, table)
+              
+              loaded_tables <- c(loaded_tables, table)
+            }
           }
         }
       }
