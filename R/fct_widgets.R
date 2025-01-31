@@ -634,7 +634,7 @@ delete_project <- function(r, m, project_id){
   
   sql <- glue::glue_sql("SELECT id FROM subsets WHERE study_id = {project_id}", .con = m$db)
   subsets_ids <- DBI::dbGetQuery(m$db, sql) %>% dplyr::pull()
-  sql <- glue::glue_sql("SELECT value FROM options WHERE category = 'subset' AND link_id IN ({subsets_ids*})", .con = m$db)
+  sql <- glue::glue_sql("SELECT value FROM options WHERE category = 'subset' AND name = 'unique_id' AND link_id IN ({subsets_ids*})", .con = m$db)
   subsets_unique_ids <- DBI::dbGetQuery(m$db, sql) %>% dplyr::pull()
   for (subset_unique_id in subsets_unique_ids) unlink(file.path(r$app_folder, "subsets", subset_unique_id), recursive = TRUE)
   
