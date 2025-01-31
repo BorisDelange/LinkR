@@ -843,30 +843,42 @@ mod_widgets_server <- function(id, r, d, m, language, i18n, all_divs, debug, use
       element_wide <- r[[wide_var]] %>% dplyr::filter(id == input$selected_element)
       element_long <- r[[long_var]] %>% dplyr::filter(id == input$selected_element)
       
-      specific_row <- tagList()
-      if (id == "plugins"){
-        if(element_wide$tab_type_id == 1) tab_type <- i18n$t("patient_lvl_data")
-        else if (element_wide$tab_type_id == 2) tab_type <- i18n$t("aggregated_data")
-        else if (element_wide$tab_type_id %in% c(12, 21)) tab_type <- i18n$t("patient_lvl_or_aggregated_data")
-        specific_row <- tags$tr(tags$td(strong(i18n$t("plugin_for"))), tags$td(tab_type))
-      }
-      else if (id == "datasets") specific_row <- tags$tr(
-        tags$td(strong(i18n$t("omop_version"))), 
-        tags$td(element_long %>% dplyr::filter(name == "omop_version") %>% dplyr::pull(value))
-      )
-      
-      output$summary_informations_ui <- renderUI(
-        div(
-          tags$table(
-            tags$tr(tags$td(strong(i18n$t("name"))), tags$td(element_wide$name)),
-            tags$tr(tags$td(strong(i18n$t("created_on"))), tags$td(format_datetime(element_wide$creation_datetime, language = language, sec = FALSE))),
-            tags$tr(tags$td(strong(i18n$t("updated_on"))), tags$td(format_datetime(element_wide$update_datetime, language = language, sec = FALSE))),
-            specific_row,
-            tags$tr(tags$td(strong(i18n$t("author_s"))), tags$td(element_long %>% dplyr::filter(name == "author") %>% dplyr::pull(value))),
-            tags$tr(tags$td(strong(i18n$t("short_description")), style = "min-width: 150px;"), tags$td(element_long %>% dplyr::filter(name == paste0("short_description_", language)) %>% dplyr::pull(value)))
+      if (id == "subsets"){
+        output$summary_informations_ui <- renderUI(
+          div(
+            tags$table(
+              tags$tr(tags$td(strong(i18n$t("name"))), tags$td(element_wide$name)),
+              tags$tr(tags$td(strong(i18n$t("short_description")), style = "min-width: 150px;"), tags$td(element_long %>% dplyr::filter(name == paste0("short_description_", language)) %>% dplyr::pull(value)))
+            )
           )
         )
-      )
+      }
+      else {
+        specific_row <- tagList()
+        if (id == "plugins"){
+          if(element_wide$tab_type_id == 1) tab_type <- i18n$t("patient_lvl_data")
+          else if (element_wide$tab_type_id == 2) tab_type <- i18n$t("aggregated_data")
+          else if (element_wide$tab_type_id %in% c(12, 21)) tab_type <- i18n$t("patient_lvl_or_aggregated_data")
+          specific_row <- tags$tr(tags$td(strong(i18n$t("plugin_for"))), tags$td(tab_type))
+        }
+        else if (id == "datasets") specific_row <- tags$tr(
+          tags$td(strong(i18n$t("omop_version"))), 
+          tags$td(element_long %>% dplyr::filter(name == "omop_version") %>% dplyr::pull(value))
+        )
+        
+        output$summary_informations_ui <- renderUI(
+          div(
+            tags$table(
+              tags$tr(tags$td(strong(i18n$t("name"))), tags$td(element_wide$name)),
+              tags$tr(tags$td(strong(i18n$t("created_on"))), tags$td(format_datetime(element_wide$creation_datetime, language = language, sec = FALSE))),
+              tags$tr(tags$td(strong(i18n$t("updated_on"))), tags$td(format_datetime(element_wide$update_datetime, language = language, sec = FALSE))),
+              specific_row,
+              tags$tr(tags$td(strong(i18n$t("author_s"))), tags$td(element_long %>% dplyr::filter(name == "author") %>% dplyr::pull(value))),
+              tags$tr(tags$td(strong(i18n$t("short_description")), style = "min-width: 150px;"), tags$td(element_long %>% dplyr::filter(name == paste0("short_description_", language)) %>% dplyr::pull(value)))
+            )
+          )
+        )
+      }
       
     })
     
@@ -1001,7 +1013,8 @@ mod_widgets_server <- function(id, r, d, m, language, i18n, all_divs, debug, use
       req(!empty_name)
       
       # Check if name is not already used
-      sql <- glue::glue_sql("SELECT name FROM {sql_table} WHERE LOWER(name) = {tolower(element_name)} AND id != {input$selected_element}", .con = con)
+      if (id == "subsets") sql <- glue::glue_sql("SELECT name FROM subsets WHERE LOWER(name) = {tolower(element_name)} AND id != {input$selected_element} AND study_id = {m$selected_study}", .con = con)
+      else sql <- glue::glue_sql("SELECT name FROM {sql_table} WHERE LOWER(name) = {tolower(element_name)} AND id != {input$selected_element}", .con = con)
       name_already_used <- nrow(DBI::dbGetQuery(con, sql) > 0)
       
       if (name_already_used) shiny.fluent::updateTextField.shinyInput(session, name_field, errorMessage = i18n$t("name_already_used"))
@@ -1014,9 +1027,11 @@ mod_widgets_server <- function(id, r, d, m, language, i18n, all_divs, debug, use
       }
       
       # Change update datetime
-      sql <- glue::glue_sql("UPDATE {`sql_table`} SET update_datetime = {now()} WHERE id = {input$selected_element}", .con = r$db)
-      sql_send_statement(r$db, sql)
-      
+      if (id != "subsets"){
+        sql <- glue::glue_sql("UPDATE {`sql_table`} SET update_datetime = {now()} WHERE id = {input$selected_element}", .con = con)
+        sql_send_statement(con, sql)
+      }
+        
       # List existing fields : add fields that don't exist
       
       fields <- c(
@@ -1028,10 +1043,13 @@ mod_widgets_server <- function(id, r, d, m, language, i18n, all_divs, debug, use
       # OMOP version field
       if (id == "datasets") fields <- c(fields, "omop_version")
       
-      sql <- glue::glue_sql("SELECT DISTINCT(name) FROM options WHERE category = {sql_category} AND link_id = {input$selected_element}", .con = r$db)
-      existing_fields <- DBI::dbGetQuery(r$db, sql) %>% dplyr::pull()
+      # Only names and description fields for subsets
+      if (id == "subsets") fields <- c(paste0("name_", r$languages$code), paste0("short_description_", r$languages$code))
+      
+      sql <- glue::glue_sql("SELECT DISTINCT(name) FROM options WHERE category = {sql_category} AND link_id = {input$selected_element}", .con = con)
+      existing_fields <- DBI::dbGetQuery(con, sql) %>% dplyr::pull()
       new_fields <- setdiff(fields, existing_fields)
-      options_last_row <- get_last_row(r$db, "options")
+      options_last_row <- get_last_row(con, "options")
       
       if (length(new_fields) > 0){
         new_data <- tibble::tibble(
@@ -1040,7 +1058,7 @@ mod_widgets_server <- function(id, r, d, m, language, i18n, all_divs, debug, use
           datetime = now(), deleted = FALSE
         )
         options_last_row <- options_last_row + length(new_fields)
-        DBI::dbAppendTable(r$db, "options", new_data)
+        DBI::dbAppendTable(con, "options", new_data)
       }
         
       # Update sql data
@@ -1054,10 +1072,10 @@ mod_widgets_server <- function(id, r, d, m, language, i18n, all_divs, debug, use
       sql <- glue::glue_sql(paste0(
         "UPDATE options SET value = CASE {DBI::SQL(case_statement)} ELSE value END ",
         "WHERE name IN ({fields*}) AND category = {sql_category} AND link_id = {input$selected_element}"), .con = con)
-      sql_send_statement(r$db, sql)
+      sql_send_statement(con, sql)
       
-      sql <- glue::glue_sql("DELETE FROM options WHERE category = {sql_category} AND link_id = {input$selected_element} AND name = 'user_allowed_read'", .con = r$db)
-      sql_send_statement(r$db, sql)
+      sql <- glue::glue_sql("DELETE FROM options WHERE category = {sql_category} AND link_id = {input$selected_element} AND name = 'user_allowed_read'", .con = con)
+      sql_send_statement(con, sql)
       
       # Add users allowed read (one row by user)
       
@@ -1070,19 +1088,19 @@ mod_widgets_server <- function(id, r, d, m, language, i18n, all_divs, debug, use
           name = "user_allowed_read", value = "", value_num = value_num, creator_id = r$user_id,
           datetime = now(), deleted = FALSE
         )
-        DBI::dbAppendTable(r$db, "options", new_data)
+        DBI::dbAppendTable(con, "options", new_data)
       }
       
       # Update name
       new_name <- gsub("'", "''", input[[paste0('name_', language)]])
-      sql <- glue::glue_sql("UPDATE {`sql_table`} SET name = {new_name} WHERE id = {input$selected_element}", .con = r$db)
-      sql_send_statement(r$db, sql)
+      sql <- glue::glue_sql("UPDATE {`sql_table`} SET name = {new_name} WHERE id = {input$selected_element}", .con = con)
+      sql_send_statement(con, sql)
       
       # Update tab_type_id
       if (id == "plugins"){
         tab_type_id <- as.integer(paste(input$tab_type_id, collapse = ""))
-        sql <- glue::glue_sql("UPDATE {`sql_table`} SET tab_type_id = {tab_type_id} WHERE id = {input$selected_element}", .con = r$db)
-        sql_send_statement(r$db, sql)
+        sql <- glue::glue_sql("UPDATE {`sql_table`} SET tab_type_id = {tab_type_id} WHERE id = {input$selected_element}", .con = con)
+        sql_send_statement(con, sql)
       }
       
       # Reload widgets

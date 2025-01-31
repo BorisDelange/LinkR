@@ -479,7 +479,7 @@ create_elements_ui <- function(page_id, id, elements, selected_element = NA_inte
       Shiny.setInputValue('", page_id, "-selected_element_trigger', Math.random());
     ")
     
-    if (id %in% c("data_cleaning", "datasets", "plugins", "projects")) short_description <- row %>% dplyr::filter(name == paste0("short_description_", language)) %>% dplyr::pull(value)
+    if (id %in% c("data_cleaning", "datasets", "plugins", "projects", "subsets")) short_description <- row %>% dplyr::filter(name == paste0("short_description_", language)) %>% dplyr::pull(value)
     if (length(short_description) == 0) short_description <- ""
     
     if (id == "plugins"){
@@ -1146,19 +1146,11 @@ reload_elements_var <- function(page_id, id, con, r, m, long_var_filtered, user_
   
   else if (sql_table == "subsets"){
     req(length(m$selected_study) > 0)
-    sql <- glue::glue_sql(paste0("WITH {paste0('selected_', id)} AS (
-      SELECT DISTINCT d.id
-      FROM {sql_table} d
-      LEFT JOIN options AS r ON d.id = r.link_id AND r.category = {sql_category} AND r.name = 'users_allowed_read_group'
-      LEFT JOIN options AS u ON d.id = u.link_id AND u.category = {sql_category} AND u.name = 'user_allowed_read'
-      WHERE 
-        d.study_id = {m$selected_study} AND
-        (r.value = 'everybody' OR (r.value = 'people_picker' AND u.value_num = {r$user_id}))
-    )
-    SELECT d.id, o.name, o.value, o.value_num
-      FROM {sql_table} d
-      ", sql_join, " {paste0('selected_', id)} ON d.id = {paste0('selected_', id)}.id
-      LEFT JOIN options o ON o.category = {sql_category} AND d.id = o.link_id"), .con = con)
+    sql <- glue::glue_sql(paste0("
+      SELECT s.id, o.name, o.value, o.value_num
+      FROM subsets s
+      LEFT JOIN options o ON o.category = 'subset' AND s.id = o.link_id
+      WHERE study_id = {m$selected_study}"), .con = con)
   }
   
   else {

@@ -33,24 +33,114 @@ mod_subsets_ui <- function(id, language, languages, i18n, code_hotkeys, auto_com
         div(
           id = ns("summary_div"),
           div(
-            div(
-              h1(i18n$t("informations")),
-              uiOutput(ns("subset_summary")),
-              class = "widget", style = "height: 50%;"
+            shinyjs::hidden(
+              div(
+                id = ns("edit_description_div"),
+                div(
+                  h1(i18n$t("edit_description")),
+                  div(
+                    create_hover_card(ui = shiny.fluent::IconButton.shinyInput(ns("run_description_code"), iconProps = list(iconName = "Play")), text = i18n$t("run_code")),
+                    style = "margin-top: 5px;"
+                  ),
+                  class = "small_icon_button",
+                  style = "display: flex; justify-content: space-between;"
+                ),
+                div(
+                  shinyAce::aceEditor(
+                    ns("description_code"), mode = "markdown",
+                    hotkeys = list(
+                      save = list(win = "CTRL-S", mac = "CTRL-S|CMD-S"),
+                      run_all = list(win = "CTRL-SHIFT-ENTER", mac = "CTRL-SHIFT-ENTER|CMD-SHIFT-ENTER")
+                    ),
+                    autoScrollEditorIntoView = TRUE, height = "100%", debounce = 100, fontSize = 11, showPrintMargin = FALSE
+                  ),
+                  style = "width: 100%; height: calc(100% - 35px); display: flex; flex-direction: column;"
+                ),
+                class = "widget", style = "height: 100%;"
+              )
             ),
-            # div(
-            #   h1("?"),
-            #   class = "widget", style = "height: 50%;"
-            # ),
+            div(
+              id = ns("summary_informations_div"),
+              shinyjs::hidden(
+                div(
+                  id = ns("summary_edit_informations_div"),
+                  div(
+                    h1(i18n$t("edit_informations")),
+                    div(
+                      shiny.fluent::Dropdown.shinyInput(
+                        ns("language"), i18n$t("language"),
+                        options = convert_tibble_to_list(languages, key_col = "code", text_col = "language"), value = language
+                      ),
+                      style = "width: 100px; margin-top: 8px; height: 30px;"
+                    ),
+                    style = "display: flex; justify-content: space-between;"
+                  ),
+                  lapply(1:nrow(languages), function(i) {
+                    row <- languages[i, ]
+                    result <- div(
+                      id = ns(paste0("name_", row$code, "_div")),
+                      shiny.fluent::TextField.shinyInput(ns(paste0("name_", row$code)), label = i18n$t("name")),
+                      style = "width: 200px;"
+                    )
+                    if (row$code != language) result <- shinyjs::hidden(result)
+                    result
+                  }),
+                  lapply(1:nrow(languages), function(i) {
+                    row <- languages[i, ]
+                    result <- div(
+                      id = ns(paste0("short_description_", row$code, "_div")),
+                      shiny.fluent::TextField.shinyInput(ns(paste0("short_description_", row$code)), label = i18n$t("short_description")),
+                      style = "width: 400px;"
+                    )
+                    if (row$code != language) result <- shinyjs::hidden(result)
+                    result
+                  })
+                )
+              ),
+              div(
+                id = ns("summary_view_informations_div"),
+                h1(i18n$t("informations")),
+                uiOutput(ns("summary_informations_ui"))
+              ),
+              class = "widget", style = "min-height: 50%;"
+            ),
             class = "subsets_summary_left"
           ),
-          # div(
-          #   div(
-          #     h1(i18n$t("description")),
-          #     class = "widget", style = "height: calc(100% - 25px); padding-top: 1px;"
-          #   ),
-          #   class = "subsets_summary_right"
-          # ),
+          div(
+            div(
+              div(
+                h1(i18n$t("description")),
+                div(
+                  shinyjs::hidden(
+                    div(
+                      id = ns("edit_description_button"),
+                      create_hover_card(ui = shiny.fluent::IconButton.shinyInput(ns("edit_description"), iconProps = list(iconName = "Edit")), text = i18n$t("edit_description"))
+                    )
+                  ),
+                  shinyjs::hidden(
+                    div(
+                      id = ns ("save_and_cancel_description_buttons"),
+                      div(
+                        id = ns("cancel_description_button"),
+                        create_hover_card(ui = shiny.fluent::IconButton.shinyInput(ns("cancel_description"), iconProps = list(iconName = "Cancel")), text = i18n$t("cancel_description_updates"))
+                      ),
+                      div(
+                        id = ns("save_description_button"),
+                        create_hover_card(ui = shiny.fluent::IconButton.shinyInput(ns("save_description"), iconProps = list(iconName = "Accept")), text = i18n$t("save_description")),
+                      ),
+                      style = "display: flex;"
+                    )
+                  ),
+                  style = "margin-top: 5px;"
+                ),
+                class = "small_icon_button",
+                style = "display: flex; justify-content: space-between;"
+              ),
+              uiOutput(ns("description_ui")),
+              class = "widget", style = "height: calc(100% - 25px); padding-top: 1px; overflow: auto;"
+            ),
+            class = "subsets_summary_right"
+          ),
           class = "subsets_summary_container"
         ),
 
