@@ -83,6 +83,7 @@ import_dataset <- function(
     col_types$drug_era <- "iiiDDii"
     col_types$dose_era <- "iiiinDD"
     col_types$condition_era <- "iiiDDi"
+    col_types$procedure_occurrence <- "iiiDTDTiiiiiicic"
   }
   
   # Load tables from load_tables argument if specified. If not specified, load all OMOP tables.
@@ -231,6 +232,7 @@ import_dataset <- function(
     data_cols$dose_era <- c("dose_era_id", "person_id", "drug_concept_id", "unit_concept_id", "dose_value", "dose_era_start_date", "dose_era_end_date")
     data_cols$condition_era <- c("condition_era_id", "person_id", "condition_concept_id", "condition_era_start_date", "condition_era_end_date", "condition_occurrence_count")
     data_cols$cost <- c("cost_id", "cost_event_id", "cost_domain_id", "cost_type_concept_id", "currency_concept_id", "total_charge", "total_cost", "total_paid", "paid_by_payer", "paid_by_patient", "paid_patient_copay", "paid_patient_coinsurance", "paid_patient_deductible", "paid_by_primary", "paid_ingredient_cost", "paid_dispensing_fee", "payer_plan_period_id", "amount_allowed", "revenue_code_concept_id", "revenue_code_source_value", "drg_concept_id", "drg_source_value")
+    data_cols$procedure_occurrence = c("procedure_occurrence_id", "person_id", "procedure_concept_id", "procedure_date", "procedure_datetime", "procedure_end_date", "procedure_end_datetime", "procedure_type_concept_id", "modifier_concept_id", "quantity", "provider_id", "visit_occurrence_id", "visit_detail_id", "procedure_source_value", "procedure_source_concept_id", "modifier_source_value")
   }
   
   loaded_data <- tibble::tibble(table = character(), n_rows = integer())
