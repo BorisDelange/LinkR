@@ -339,12 +339,13 @@ create_element_scripts <- function(id, language, element_dir, code = ""){
       "# You can store data in a DuckDB file (.db) to significantly enhance app performance.\n",
       "# To do so, set save_as_duckdb_file to TRUE. Set rewrite to TRUE to overwrite an existing DuckDB file.\n\n",
       "# import_dataset(\n",
-      "    # r, d, dataset_id = %dataset_id%, omop_version = \"5.4\",\n",
+      "    # r, m, d, dataset_id = %dataset_id%, omop_version = \"5.4\",\n",
       "    # data_source = \"disk\", data_folder = \"/my_data_folder\",\n",
       "    # save_as_duckdb_file = TRUE, rewrite = FALSE\n",
       "# )\n\n",
       "# 2) Import data from a database connection\n\n",
       "# As for import data from a folder, you can save data to a DuckDB file.\n\n",
+      "# Set import_vocabulary_tables = TRUE to import OMOP vocabulary tables (concept, concept_relationship, etc.) in app database.\n\n",
       "# con <- DBI::dbConnect(\n",
       "    # RPostgres::Postgres(),\n",
       "    # host = \"localhost\",\n",
@@ -354,9 +355,11 @@ create_element_scripts <- function(id, language, element_dir, code = ""){
       "    # password = \"postgres\"\n",
       "# )\n\n",
       "# import_dataset(\n",
-      "    # r, d, dataset_id = %dataset_id%, omop_version = \"5.4\",\n",
+      "    # r, m, d, dataset_id = %dataset_id%, omop_version = \"5.4\",\n",
       "    # data_source = \"db\", con = con,\n",
-      "    # save_as_duckdb_file = FALSE, rewrite = FALSE\n"
+      "    # save_as_duckdb_file = FALSE, rewrite = FALSE,\n",
+      "    # import_vocabulary_tables = FALSE\n",
+      "# )"
     )
     
     writeLines(code, paste0(element_dir, "/main.R"))

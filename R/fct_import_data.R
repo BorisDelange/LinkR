@@ -11,11 +11,12 @@
 #' @param rewrite A logical value indicating whether to rewrite DuckDB database.
 #' @param con A `DBI::dbConnect` object representing the database connection, required if `data_source` is `"db"`.
 #' @param load_tables A character vector specifying which OMOP tables to load
+#' @param import_vocabulary_tables A logical value indicating whether to import OMOP vocabulary tables (concept, vocabulary, concept_relationship, etc.) into LinkR. If TRUE, terminology tables will be uploaded into app database. Defaults to FALSE.
 #' @details ...
 import_dataset <- function(
-  r, d, dataset_id = integer(), omop_version = "5.4",
+  r, m, d, dataset_id = integer(), omop_version = "5.4",
   data_source = "disk", data_folder = character(), save_as_duckdb_file = FALSE, rewrite = FALSE,
-  con, load_tables = character()
+  con, load_tables = character(), import_vocabulary_tables = FALSE
 ){
   
   i18n <- r$i18n
@@ -43,6 +44,14 @@ import_dataset <- function(
   if (data_source == "disk" & length(data_folder) == 0) return(i18n$t("invalid_data_folder"))
   
   # Load data ----
+  
+  # Vocabulary tables
+  
+  vocabulary_tables <- c(
+    "concept", "vocabulary", "domain", "concept_class", 
+    "concept_relationship", "relationship", "concept_synonym", 
+    "concept_ancestor", "drug_strength"
+  )
   
   # Col types depending on OMOP CDM version
   
@@ -350,6 +359,18 @@ import_dataset <- function(
         }
       }
     }
+    
+    # Import vocabulary tables in app database
+    
+    if (import_vocabulary_tables){
+      cat("Import vocabulary tables:\n")
+      for (table in vocabulary_tables){
+        sql <- glue::glue_sql("SELECT * FROM {`table`}", .con = con)
+        vocabulary_data <- DBI::dbGetQuery(con, sql)
+        import_vocabulary_table(r = r, m = m, table_name = table, data = vocabulary_data)
+      }
+      cat("\n\n")
+    }
   }
   
   # Transform data ----
@@ -435,14 +456,13 @@ import_vocabulary_table <- function(r = shiny::reactiveValues(), m = shiny::reac
   # Case 1 : table has a primary key, add data not already in database, filtered by primary key
 
   if (table_name %in% tables_with_primary_key){
-
-  # Check if there are duplicates in primary_keys
-
-    primary_keys_duplicates <- data %>% dplyr::group_by_at(paste0(table_name, "_id")) %>% dplyr::summarize(n = dplyr::n()) %>% dplyr::filter(n > 1) %>% nrow()
-    if (primary_keys_duplicates > 0){
-      cat(paste0("\n", i18n$t("error_multiple_primary_keys")))
-      return(c(0L, i18n$t("error_multiple_primary_keys")))
-    }
+    
+    # Remove duplicates by keeping first occurrence
+    data <-
+      data %>% 
+      dplyr::group_by_at(paste0(table_name, "_id")) %>%
+      dplyr::slice(1) %>%
+      dplyr::ungroup()
 
     if (table_name == "vocabulary") sql <- glue::glue_sql("SELECT vocabulary_id FROM vocabulary WHERE deleted IS FALSE", .con = m$db)
     else sql <- glue::glue_sql("SELECT {`paste0(table_name, '_id')`} FROM {`table_name`}", .con = m$db)
@@ -463,13 +483,12 @@ import_vocabulary_table <- function(r = shiny::reactiveValues(), m = shiny::reac
       "drug_strength" = c("drug_concept_id", "ingredient_concept_id", "amount_value", "amount_unit_concept_id", "numerator_value", "numerator_unit_concept_id",
         "denominator_value", "denominator_unit_concept_id", "box_size")
     )
-
-    data_duplicates <- data %>% dplyr::group_by_at(data_duplicates_cols) %>% dplyr::summarize(n = dplyr::n()) %>% dplyr::filter(n > 1) %>% nrow()
-
-    if (data_duplicates > 0){
-      cat(paste0("\n", i18n$t("error_multiple_identical_values")))
-      return(c(0L, i18n$t("error_multiple_identical_values")))
-    }
+    
+    data <-
+      data %>% 
+      dplyr::group_by_at(data_duplicates_cols) %>%
+      dplyr::slice(1) %>%
+      dplyr::ungroup()
 
     sql <- glue::glue_sql("SELECT {`data_duplicates_cols`*} FROM {`table_name`}", .con = m$db)
     actual_data <- DBI::dbGetQuery(m$db, sql)
@@ -571,7 +590,7 @@ import_vocabulary_table <- function(r = shiny::reactiveValues(), m = shiny::reac
     else DBI::dbAppendTable(m$db, table_name, data_to_insert)
   }
   
-  # cat(paste0("\n", rows_inserted, " ", i18n$t("rows_inserted_in_table") , " ", table_name))
+  cat(paste0("\n", rows_inserted, " ", i18n$t("rows_inserted_in_table") , " ", table_name))
 
   return(c(rows_inserted, i18n$t("success_importing_concepts")))
 }

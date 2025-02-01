@@ -176,8 +176,6 @@ error_loading_duckdb,Error loading data with duckdb
 error_loading_git_infos,Error loading git repo informations
 error_loading_git_readme,Error loading git repo description
 error_loading_git_repo,Error loading git repo
-error_multiple_identical_values,Some values are duplicated. Remove duplicates before insert vocabulary table.
-error_multiple_primary_keys,Some primary keys are duplicated. Remove duplicates before insert vocabulary table.
 error_run_plugin_ui_code,Error running plugin's UI code
 error_run_plugin_server_code,Error running plugin's server code
 error_transforming_cols,Error transforming columns
