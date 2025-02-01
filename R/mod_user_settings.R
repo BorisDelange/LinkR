@@ -81,8 +81,7 @@ mod_user_settings_ui <- function(id, language, languages, i18n, code_hotkeys, au
           ),
           style = "margin-top: 4px;"
         ),
-        style = "height: 70px; display: flex; gap: 20px; padding-top: 10px; width: 430px;",
-        class = "widget"
+        style = "display: flex; gap: 20px;"
       ),
       div(
         div(
@@ -102,8 +101,8 @@ mod_user_settings_ui <- function(id, language, languages, i18n, code_hotkeys, au
           class = "resizable-panel right-panel",
           style = "width: 50%; padding: 0 15px; font-size: 12px; overflow-y: auto;"
         ),
-        class = "resizable-container widget",
-        style = "height: calc(100% - 100px); width: calc(100% - 20px); margin-top: 20px; display: flex; padding: 0;"
+        class = "resizable-container",
+        style = "height: calc(100% - 32px); margin-top: 10px; display: flex;"
       ),
       style = "height: calc(100% - 50px);"
     )
