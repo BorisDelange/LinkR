@@ -49,32 +49,33 @@ add_patients_to_subset <- function(
   
   # Check patients
   
-  # Check and process patients
-  if (is.numeric(patients)) patients <- tibble::tibble(person_id = patients)
-  else if (is.data.frame(patients)) {
-    if (!"person_id" %in% colnames(patients)) {
-      return(i18n$t("invalid_patients_value_person_id_col_missing"))
-    }
-  } else return(i18n$t("invalid_patients_value_not_numeric_vector_or_tibble"))
+  patients <- patients %>% dplyr::collect()
   
-  if ("visit_detail_id" %in% colnames(patients) & "visit_occurrence_id" %in% colnames(patients)) patients <- patients %>% dplyr::distinct(person_id, visit_occurrence_id, visit_detail_id)
-  else if ("visit_occurrence_id" %in% colnames(patients)) patients <- patients %>% dplyr::distinct(person_id, visit_occurrence_id)
-  else patients <- patients %>% dplyr::distinct(person_id)
+  if (!is.data.frame(patients)) return(i18n$t("invalid_patients_not_tibble"))
+  
+  if (!"person_id" %in% colnames(patients)) patients$person_id <- NA_integer_
+  if (!"visit_occurrence_id" %in% colnames(patients)) patients$visit_occurrence_id <- NA_integer_
+  if (!"visit_detail_id" %in% colnames(patients)) patients$visit_detail_id <- NA_integer_
+  
+  patients <- patients %>% dplyr::distinct(person_id, visit_occurrence_id, visit_detail_id)
   
   # Keep only patients not already in the subset
+  actual_patients <- DBI::dbGetQuery(m$db, glue::glue_sql(
+    "SELECT person_id, visit_occurrence_id, visit_detail_id 
+   FROM subset_persons 
+   WHERE subset_id = {subset_id}", 
+    .con = m$db
+  ))
   
-  if ("visit_detail_id" %in% colnames(patients)) {
-    actual_patients <- DBI::dbGetQuery(m$db, glue::glue_sql("SELECT person_id, visit_occurrence_id, visit_detail_id FROM subset_persons WHERE subset_id = {subset_id}", .con = m$db))
-    patients <- patients %>% dplyr::anti_join(actual_patients, by = c("person_id", "visit_occurrence_id", "visit_detail_id"))
-  }
-  else if ("visit_occurrence_id" %in% colnames(patients)) {
-    actual_patients <- DBI::dbGetQuery(m$db, glue::glue_sql("SELECT person_id, visit_occurrence_id FROM subset_persons WHERE subset_id = {subset_id}", .con = m$db))
-    patients <- patients %>% dplyr::anti_join(actual_patients, by = c("person_id", "visit_occurrence_id"))
-  }
-  else {
-    actual_patients <- DBI::dbGetQuery(m$db, glue::glue_sql("SELECT person_id FROM subset_persons WHERE subset_id = {subset_id}", .con = m$db))
-    patients <- patients %>% dplyr::anti_join(actual_patients, by = "person_id")
-  }
+  # Anti-join dynamique basé sur les colonnes non-NA
+  patients <-
+    patients %>% 
+    dplyr::anti_join(
+      actual_patients,
+      by = names(patients)[names(patients) %in% c("person_id", "visit_occurrence_id", "visit_detail_id")][
+        !colSums(is.na(patients %>% dplyr::select(person_id, visit_occurrence_id, visit_detail_id))) == nrow(patients)
+      ]
+    )
   
   # If there are patients to add
   if (nrow(patients) > 0){

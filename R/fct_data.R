@@ -225,7 +225,7 @@ load_dataset <- function(id, output, r, m, d, dataset_id, main_tables, selected_
     
     code <- paste0(
       "add_patients_to_subset(\n",
-      "    patients = d$person %>% dplyr::pull(person_id),\n",
+      "    patients = d$visit_detail %>% dplyr::select(person_id, visit_occurrence_id, visit_detail_id),\n",
       "    subset_id = %subset_id%,\n",
       "    output = output, r = r, m = m\n",
       ")"
