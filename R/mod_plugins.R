@@ -174,7 +174,7 @@ mod_plugins_ui <- function(id, language, languages, i18n){
             shiny.fluent::MessageBar(i18n$t("unauthorized_access_area"), messageBarType = 5),
             style = "display: inline-block; margin-top: 15px;"
           ),
-          shinyjs::hidden(div(id = ns("edit_code_tabs_div"), uiOutput(ns("edit_code_tabs_ui")), style = "height: 29px; position: relative; top: -5px;")),
+          shinyjs::hidden(div(id = ns("edit_code_tabs_div"), uiOutput(ns("edit_code_tabs_ui")), style = "height: 24px; position: relative;")),
           shinyjs::hidden(div(id = ns("edit_code_editors_div"), style = "height: calc(100% - 30px);")),
           style = "height: 100%;"
         ),

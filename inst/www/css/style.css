@@ -1178,7 +1178,7 @@ button.ms-UpButton, button.ms-DownButton {
 
 .tabs {
   display: flex;
-  padding: 10px 0 5px 0;
+  padding: 0;
   font-size: 12px;
   overflow-x: auto;
   scrollbar-width: thin;
@@ -1187,7 +1187,6 @@ button.ms-UpButton, button.ms-DownButton {
 .tab {
   padding: 3px 2px 3px 10px;
   background-color: #ccc;
-  margin-right: 2px;
   flex: 0 0 120px;
   max-width: 120px;
   cursor: pointer;
