@@ -580,25 +580,14 @@ mod_projects_server <- function(id, r, d, m, language, i18n, debug, user_accesse
         dplyr::mutate(dataset_id = dplyr::case_when(id == input$selected_element ~ input$project_dataset, TRUE ~ dataset_id))
     })
     
-    ## Load dataset ----
+    ## Load or reload dataset ----
     
     observeEvent(input$load_dataset, {
       if (debug) cat(paste0("\n", now(), " - mod_projects - observer input$load_dataset"))
       
-      shinyjs::delay(100, {
-        dataset_id <- r$selected_dataset
-        
-        # Reset import_dataset saved parameters
-        r$import_dataset_save_as_duckdb_file <- FALSE
-        
-        load_dataset(id, output, r, m, d, dataset_id, r$main_tables, m$selected_study)
-        
-        ## Load concepts
-        load_dataset_concepts(r, d, m)
-      })
+      shinyjs::runjs(paste0("Shiny.setInputValue('", id, "-load_dataset_id', ", r$selected_dataset, ");"))
+      shinyjs::runjs(paste0("Shiny.setInputValue('", id, "-load_or_reload_dataset', Math.random());"))
     })
-    
-    ## Reload dataset ----
     
     observeEvent(input$reload_dataset, {
       if (debug) cat(paste0("\n", now(), " - mod_projects - observer input$reload_dataset"))
@@ -606,17 +595,26 @@ mod_projects_server <- function(id, r, d, m, language, i18n, debug, user_accesse
       req(length(input$project_dataset) > 0)
       req("projects_dataset" %in% user_accesses)
       
-      # Hide dataset details
-      sapply(c("dataset_care_sites_details", "dataset_patients_details", "dataset_stays_details"), shinyjs::hide)
+      shinyjs::runjs(paste0("Shiny.setInputValue('", id, "-load_dataset_id', ", input$project_dataset, ");"))
+      shinyjs::runjs(paste0("Shiny.setInputValue('", id, "-load_or_reload_dataset', Math.random());"))
+    })
+    
+    observeEvent(input$load_or_reload_dataset, {
+      if (debug) cat(paste0("\n", now(), " - mod_projects - observer input$load_or_reload_dataset"))
       
-      # Reset import_dataset saved parameters
-      r$import_dataset_save_as_duckdb_file <- FALSE
-      
-      # Load dataset
-      load_dataset(id, output, r, m, d, input$project_dataset, r$main_tables, m$selected_study)
-      
-      ## Load concepts
-      load_dataset_concepts(r, d, m)
+      shinyjs::delay(100, {
+        # Hide dataset details
+        sapply(c("dataset_care_sites_details", "dataset_patients_details", "dataset_stays_details"), shinyjs::hide)
+        
+        # Reset import_dataset saved parameters
+        r$import_dataset_save_as_duckdb_file <- FALSE
+        
+        # Load dataset
+        load_dataset(id, output, r, m, d, input$load_dataset_id, r$main_tables, m$selected_study)
+        
+        ## Load concepts
+        load_dataset_concepts(r, d, m)
+      })
     })
     
     ## Dataset details ----
