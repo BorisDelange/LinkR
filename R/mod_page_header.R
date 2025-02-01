@@ -30,11 +30,11 @@ mod_page_header_ui <- function(id, language, i18n){
           text = "", "More",
           subMenuProps = list(items = list(
             list(
-              text = i18n$t("plugins"), iconProps = list(iconName = "Puzzle"), href = shiny.router::route_link("plugins"),
+              text = i18n$t("datasets"), iconProps = list(iconName = "OfflineStorage"), href = shiny.router::route_link("datasets"),
               onClick = htmlwidgets::JS(paste0("item => {Shiny.setInputValue('", id, "-show_home', Math.random());}"))
             ),
             list(
-              text = i18n$t("datasets"), iconProps = list(iconName = "OfflineStorage"), href = shiny.router::route_link("datasets"),
+              text = i18n$t("plugins"), iconProps = list(iconName = "Puzzle"), href = shiny.router::route_link("plugins"),
               onClick = htmlwidgets::JS(paste0("item => {Shiny.setInputValue('", id, "-show_home', Math.random());}"))
             ),
             list(
