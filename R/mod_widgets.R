@@ -260,9 +260,6 @@ mod_widgets_server <- function(id, r, d, m, language, i18n, all_divs, debug, use
       divs <- setdiff(all_divs, current_tab)
       divs <- c(paste0(divs, "_reduced_sidenav"), paste0(divs, "_large_sidenav"), paste0(divs, "_div"))
       
-      # Prevent a bug with scroll into ace editor
-      if (current_tab == "edit_code") shinyjs::runjs("var event = new Event('resize'); window.dispatchEvent(event);")
-      
       sapply(divs, shinyjs::hide)
       sapply(c(paste0(current_tab, "_div"), paste0(current_tab, "_reduced_sidenav"), paste0(current_tab, "_large_sidenav")), shinyjs::show)
       
@@ -291,6 +288,9 @@ mod_widgets_server <- function(id, r, d, m, language, i18n, all_divs, debug, use
           shinyjs::runjs(paste0("Shiny.setInputValue('", id, "-show_hide_sidenav', 'hide');"))
         }
       }
+      
+      # Prevent a bug with scroll into ace editor
+      if (current_tab == "edit_code") shinyjs::runjs("var event = new Event('resize'); window.dispatchEvent(event);")
     })
     
     # Go to home page ----
@@ -506,14 +506,14 @@ mod_widgets_server <- function(id, r, d, m, language, i18n, all_divs, debug, use
       else {
         new_element_unique_id <- new_options %>% dplyr::filter(name == "unique_id") %>% dplyr::pull(value)
         new_element_dir <- paste0(r$app_folder, "/", id, "/", new_element_unique_id)
-        create_element_scripts(id = id, element_dir = new_element_dir)
+        create_element_scripts(id = id, language = language, element_dir = new_element_dir)
       }
       
       # For a new study, create default subset code
       if (id == "projects"){
         new_subset_unique_id <- new_subset_options %>% dplyr::filter(name == "unique_id") %>% dplyr::pull(value)
         new_subset_dir <- paste0(r$app_folder, "/subsets/", new_subset_unique_id)
-        create_element_scripts(id = "subsets", element_dir = new_subset_dir)
+        create_element_scripts(id = "subsets", language = language, element_dir = new_subset_dir)
       }
       
       # Reset fields

@@ -321,24 +321,30 @@ create_element_readme <- function(description, element_dir){
 }
 
 #' @noRd
-create_element_scripts <- function(id, element_dir, code = ""){
+create_element_scripts <- function(id, language, element_dir, code = ""){
   
   if (!dir.exists(element_dir)) dir.create(element_dir)
   
   if (id == "datasets"){
     
+    code_language <- ""
+    if (language != "fr") code_language <- paste0(language, "/")
+    
     code <- paste0(
-      "# See documentation here: https://linkr.interhop.org/en/docs/import_data/\n\n",
+      "# See documentation here: https://linkr.interhop.org/", code_language, "docs/import_data/\n\n",
+      "# To import only specific tables, add load_tables argument:\n",
+      "# load_tables = c(\"person\", \"visit_occurrence\", \"visit_detail\", \"measurement\")\n\n",
       "# 1) Import data from a folder\n\n",
-      "# Specify a folder: all CSV and Parquet files will be automatically loaded.\n",
-      "# If you import CSV files, additional arguments for the vroom::vroom() function can be passed via the ... argument.\n",
-      "# For example, this can be useful to modify the delim argument.\n\n",
+      "# Specify a folder: all CSV and Parquet files will be automatically loaded.\n\n",
+      "# You can store data in a DuckDB file (.db) to significantly enhance app performance.\n",
+      "# To do so, set save_as_duckdb_file to TRUE. Set rewrite to TRUE to overwrite an existing DuckDB file.\n\n",
       "# import_dataset(\n",
       "    # r, d, dataset_id = %dataset_id%, omop_version = \"5.4\",\n",
       "    # data_source = \"disk\", data_folder = \"/my_data_folder\",\n",
       "    # save_as_duckdb_file = TRUE, rewrite = FALSE\n",
       "# )\n\n",
       "# 2) Import data from a database connection\n\n",
+      "# As for import data from a folder, you can save data to a DuckDB file.\n\n",
       "# con <- DBI::dbConnect(\n",
       "    # RPostgres::Postgres(),\n",
       "    # host = \"localhost\",\n",
@@ -350,9 +356,7 @@ create_element_scripts <- function(id, element_dir, code = ""){
       "# import_dataset(\n",
       "    # r, d, dataset_id = %dataset_id%, omop_version = \"5.4\",\n",
       "    # data_source = \"db\", con = con,\n",
-      "# )\n\n",
-      "# To import only specific tables, add load_tables argument:\n",
-      "# load_tables = c(\"person\", \"visit_occurrence\", \"visit_detail\", \"measurement\")"
+      "    # save_as_duckdb_file = FALSE, rewrite = FALSE\n"
     )
     
     writeLines(code, paste0(element_dir, "/main.R"))

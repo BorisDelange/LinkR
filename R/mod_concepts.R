@@ -29,7 +29,7 @@ mod_concepts_ui <- function(id, language, languages, i18n, dropdowns){
           class = "widget", style = "height: 50%; display: flex; overflow: auto; padding: 15px 10px 5px 10px;"
         ),
         div(
-          plotOutput(ns("primary_concept_plot"), height = "calc(100% - 10px)"),
+          plotOutput(ns("primary_concept_plot"), height = "100%"),
           class = "widget", style = "height: 50%; padding: 10px;"
         ),
         class = "concepts_right"

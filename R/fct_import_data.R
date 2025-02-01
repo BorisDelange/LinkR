@@ -287,15 +287,67 @@ import_dataset <- function(
     # Test connection
     if (!DBI::dbIsValid(con)) return(i18n$t("dataset_error_with_db_connection"))
     
-    d$con <- con
+    if (save_as_duckdb_file) {
+      
+      # Create DuckDB connection
+      db_path <- file.path(r$app_folder, "datasets_files", dataset_id, "duckdb_data.db")
+      
+      # Rewrite DuckDB database ?
+      if (rewrite) unlink(db_path)
+      
+      d$con <- DBI::dbConnect(duckdb::duckdb(), dbdir = db_path, read_only = FALSE)
+      
+      # Copy tables from source database to DuckDB
+      for (table in load_tables) {
+        if (table %in% DBI::dbListTables(con)) {
+          
+          if (!DBI::dbExistsTable(d$con, table)){
+            
+            # Create table structure in DuckDB
+            type_codes <- strsplit(col_types[[table]], "")[[1]]
+            col_names <- data_cols[[table]]
+            col_types_sql <- paste(
+              mapply(
+                function(col, type) {
+                  sprintf('"%s" %s', col, convert_to_duckdb_type(type))
+                },
+                col_names,
+                type_codes
+              ),
+              collapse = ", "
+            )
+            
+            # Create table in DuckDB
+            DBI::dbExecute(d$con, sprintf("CREATE TABLE %s (%s)", table, col_types_sql))
+            
+            # Copy data from source database
+            source_data <-
+              dplyr::tbl(con, table) %>%
+              dplyr::select(all_of(data_cols[[table]])) %>%
+              dplyr::collect()
+            
+            # Insert data into DuckDB
+            DBI::dbAppendTable(d$con, table, source_data)
+          }
+          
+          # Create reference to the table
+          d[[table]] <- dplyr::tbl(d$con, table)
+          loaded_tables <- c(loaded_tables, table)
+        }
+      }
+    }
+    else {
     
-    tables <- DBI::dbListTables(con)
-    
-    for (table in tables){
-      if (table %in% load_tables){
-        d[[table]] <- dplyr::tbl(con, table)
-        
-        loaded_tables <- c(loaded_tables, table)
+      d$con <- con
+      
+      tables <- DBI::dbListTables(con)
+      
+      for (table in tables){
+        if (table %in% load_tables){
+          d[[table]] <- dplyr::tbl(con, table)
+          
+          loaded_tables <- c(loaded_tables, table)
+        }
       }
     }
   }
