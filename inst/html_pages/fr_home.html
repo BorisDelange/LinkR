@@ -1,10 +1,10 @@
 <div class="home-section">
     <h1 class="home-section-title"><a href="https://linkr.interhop.org/docs/" target=_blank">Documentation</a></h1>
     <div class="home-widget-container" data-section="documentation">
-        <button class="home-nav-button prev" onclick="scrollContainer(this, 'left')">
+        <button class="home-nav-button prev hidden" onclick="scrollContainer(this, 'left')">
             <i class="fas fa-chevron-left"></i>
         </button>
-        <button class="home-nav-button next" onclick="scrollContainer(this, 'right')">
+        <button class="home-nav-button next hidden" onclick="scrollContainer(this, 'right')">
             <i class="fas fa-chevron-right"></i>
         </button>
         <a href="https://linkr.interhop.org/docs/overview/" target="_blank" class="help-widget pink-widget">
@@ -122,10 +122,10 @@
 <div class="home-section">
     <h1 class="home-section-title"><a href="https://linkr.interhop.org/blog/" target="_blank">Articles</a></h1>
     <div class="home-widget-container" data-section="articles">
-        <button class="home-nav-button prev" onclick="scrollContainer(this, 'left')">
+        <button class="home-nav-button prev hidden" onclick="scrollContainer(this, 'left')">
             <i class="fas fa-chevron-left"></i>
         </button>
-        <button class="home-nav-button next" onclick="scrollContainer(this, 'right')">
+        <button class="home-nav-button next hidden" onclick="scrollContainer(this, 'right')">
             <i class="fas fa-chevron-right"></i>
         </button>
         <a href="https://linkr.interhop.org/blog/2024/09/02/requ%C3%AAtes-usuelles-v5.4/" target="_blank" class="help-widget purple-widget">
@@ -181,7 +181,10 @@
 
     document.addEventListener('DOMContentLoaded', function() {
         initializeAllNavButtons();
-        
+        setupScrollListeners();
+    });
+
+    function setupScrollListeners() {
         const containers = document.querySelectorAll('.home-widget-container');
         containers.forEach(container => {
             if (container) {
@@ -193,9 +196,18 @@
                 });
             }
         });
-    });
+    }
 
     window.addEventListener('hashchange', function() {
         setTimeout(initializeAllNavButtons, 100);
+    });
+
+    $(document).on('shiny:value', function(event) {
+        if (event.name.includes('home-')) {
+            setTimeout(function() {
+                initializeAllNavButtons();
+                setupScrollListeners();
+            }, 100);
+        }
     });
 </script>

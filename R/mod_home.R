@@ -57,8 +57,8 @@ mod_home_server <- function(id, r, d, m, language, i18n, debug, user_accesses){
           reload_elements_var(page_id = "home", id = page, con = r$db, r = r, m = m, long_var_filtered = long_var_filtered, user_accesses)
           
           buttons <- tagList(
-            tags$button(class = "home-nav-button prev", onclick = "scrollContainer(this, 'left')", tags$i(class = "fas fa-chevron-left")),
-            tags$button(class = "home-nav-button next", onclick = "scrollContainer(this, 'right')", tags$i(class = "fas fa-chevron-right")),
+            tags$button(class = "home-nav-button prev hidden", onclick = "scrollContainer(this, 'left')", tags$i(class = "fas fa-chevron-left")),
+            tags$button(class = "home-nav-button next hidden", onclick = "scrollContainer(this, 'right')", tags$i(class = "fas fa-chevron-right")),
           )
           
           if (nrow(r[[long_var_filtered]]) > 0) elements_ui <- create_elements_ui(page_id = "home", id = page, elements = r[[long_var_filtered]], r = r, language = language, i18n = i18n)

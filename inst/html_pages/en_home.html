@@ -1,144 +1,142 @@
-<div class="home-container">
-    <div class="home-section">
-        <h1 class="home-section-title"><a href="https://linkr.interhop.org/en/docs/" target=_blank">Documentation</a></h1>
-        <div class="home-widget-container" data-section="documentation">
-            <button class="home-nav-button prev" onclick="scrollContainer(this, 'left')">
-                <i class="fas fa-chevron-left"></i>
-            </button>
-            <button class="home-nav-button next" onclick="scrollContainer(this, 'right')">
-                <i class="fas fa-chevron-right"></i>
-            </button>
-            <a href="https://linkr.interhop.org/en/docs/overview/" target="_blank" class="help-widget pink-widget">
-                <div class="help-widget-icon pink-widget-icon">
-                    <i class="fas fa-tools"></i>
-                </div>
-                <div class="help-widget-content">
-                    <h3>Getting started</h3>
-                    <p>Start quickly with your first project</p>
-                </div>
-            </a>
+<div class="home-section">
+    <h1 class="home-section-title"><a href="https://linkr.interhop.org/en/docs/" target=_blank">Documentation</a></h1>
+    <div class="home-widget-container" data-section="documentation">
+        <button class="home-nav-button prev hidden" onclick="scrollContainer(this, 'left')">
+            <i class="fas fa-chevron-left"></i>
+        </button>
+        <button class="home-nav-button next hidden" onclick="scrollContainer(this, 'right')">
+            <i class="fas fa-chevron-right"></i>
+        </button>
+        <a href="https://linkr.interhop.org/en/docs/overview/" target="_blank" class="help-widget pink-widget">
+            <div class="help-widget-icon pink-widget-icon">
+                <i class="fas fa-tools"></i>
+            </div>
+            <div class="help-widget-content">
+                <h3>Getting started</h3>
+                <p>Start quickly with your first project</p>
+            </div>
+        </a>
 
-            <a href="https://linkr.interhop.org/en/docs/components/" target="_blank" class="help-widget purple-widget">
-                <div class="help-widget-icon purple-widget-icon">
-                    <i class="fas fa-puzzle-piece"></i>
-                </div>
-                <div class="help-widget-content">
-                    <h3>Components</h3>
-                    <p>Discover LinkR's essential elements</p>
-                </div>
-            </a>
+        <a href="https://linkr.interhop.org/en/docs/components/" target="_blank" class="help-widget purple-widget">
+            <div class="help-widget-icon purple-widget-icon">
+                <i class="fas fa-puzzle-piece"></i>
+            </div>
+            <div class="help-widget-content">
+                <h3>Components</h3>
+                <p>Discover LinkR's essential elements</p>
+            </div>
+        </a>
 
-            <a href="https://linkr.interhop.org/en/docs/import_data/" target="_blank" class="help-widget green-widget">
-                <div class="help-widget-icon green-widget-icon">
-                    <i class="fas fa-database"></i>
-                </div>
-                <div class="help-widget-content">
-                    <h3>Import data</h3>
-                    <p>Import from databases, Parquet and CSV</p>
-                </div>
-            </a>
+        <a href="https://linkr.interhop.org/en/docs/import_data/" target="_blank" class="help-widget green-widget">
+            <div class="help-widget-icon green-widget-icon">
+                <i class="fas fa-database"></i>
+            </div>
+            <div class="help-widget-content">
+                <h3>Import data</h3>
+                <p>Import from databases, Parquet and CSV</p>
+            </div>
+        </a>
 
-            <a href="https://linkr.interhop.org/en/docs/import_vocabularies/" target="_blank" class="help-widget yellow-widget">
-                <div class="help-widget-icon yellow-widget-icon">
-                    <i class="fas fa-language"></i>
-                </div>
-                <div class="help-widget-content">
-                    <h3>Import vocabularies</h3>
-                    <p>Integrate vocabularies from Athena</p>
-                </div>
-            </a>
+        <a href="https://linkr.interhop.org/en/docs/import_vocabularies/" target="_blank" class="help-widget yellow-widget">
+            <div class="help-widget-icon yellow-widget-icon">
+                <i class="fas fa-language"></i>
+            </div>
+            <div class="help-widget-content">
+                <h3>Import vocabularies</h3>
+                <p>Integrate vocabularies from Athena</p>
+            </div>
+        </a>
 
-            <a href="https://linkr.interhop.org/en/docs/create_project/" target="_blank" class="help-widget blue-widget">
-                <div class="help-widget-icon blue-widget-icon">
-                    <i class="fas fa-folder-plus"></i>
-                </div>
-                <div class="help-widget-content">
-                    <h3>Create project</h3>
-                    <p>Initialize and configure your workspace</p>
-                </div>
-            </a>
+        <a href="https://linkr.interhop.org/en/docs/create_project/" target="_blank" class="help-widget blue-widget">
+            <div class="help-widget-icon blue-widget-icon">
+                <i class="fas fa-folder-plus"></i>
+            </div>
+            <div class="help-widget-content">
+                <h3>Create project</h3>
+                <p>Initialize and configure your workspace</p>
+            </div>
+        </a>
 
-            <a href="https://linkr.interhop.org/en/docs/console/" target="_blank" class="help-widget gray-widget">
-                <div class="help-widget-icon gray-widget-icon">
-                    <i class="fas fa-terminal"></i>
-                </div>
-                <div class="help-widget-content">
-                    <h3>Console</h3>
-                    <p>Access integrated R and Python consoles</p>
-                </div>
-            </a>
+        <a href="https://linkr.interhop.org/en/docs/console/" target="_blank" class="help-widget gray-widget">
+            <div class="help-widget-icon gray-widget-icon">
+                <i class="fas fa-terminal"></i>
+            </div>
+            <div class="help-widget-content">
+                <h3>Console</h3>
+                <p>Access integrated R and Python consoles</p>
+            </div>
+        </a>
 
-            <a href="https://linkr.interhop.org/en/docs/create_subset/" target="_blank" class="help-widget orange-widget">
-                <div class="help-widget-icon orange-widget-icon">
-                    <i class="fas fa-layer-group"></i>
-                </div>
-                <div class="help-widget-content">
-                    <h3>Create subset</h3>
-                    <p>Explore data subsets</p>
-                </div>
-            </a>
+        <a href="https://linkr.interhop.org/en/docs/create_subset/" target="_blank" class="help-widget orange-widget">
+            <div class="help-widget-icon orange-widget-icon">
+                <i class="fas fa-layer-group"></i>
+            </div>
+            <div class="help-widget-content">
+                <h3>Create subset</h3>
+                <p>Explore data subsets</p>
+            </div>
+        </a>
 
-            <a href="https://linkr.interhop.org/en/docs/create_data_cleaning_script/" target="_blank" class="help-widget red-widget">
-                <div class="help-widget-icon red-widget-icon">
-                    <i class="fas fa-broom"></i>
-                </div>
-                <div class="help-widget-content">
-                    <h3>Data cleaning scripts</h3>
-                    <p>Clean and improve data quality</p>
-                </div>
-            </a>
+        <a href="https://linkr.interhop.org/en/docs/create_data_cleaning_script/" target="_blank" class="help-widget red-widget">
+            <div class="help-widget-icon red-widget-icon">
+                <i class="fas fa-broom"></i>
+            </div>
+            <div class="help-widget-content">
+                <h3>Data cleaning scripts</h3>
+                <p>Clean and improve data quality</p>
+            </div>
+        </a>
 
-            <a href="https://linkr.interhop.org/en/docs/create_plugin/" target="_blank" class="help-widget purple-widget">
-                <div class="help-widget-icon purple-widget-icon">
-                    <i class="fas fa-plug"></i>
-                </div>
-                <div class="help-widget-content">
-                    <h3>Plugins</h3>
-                    <p>Extend LinkR's functionality</p>
-                </div>
-            </a>
+        <a href="https://linkr.interhop.org/en/docs/create_plugin/" target="_blank" class="help-widget purple-widget">
+            <div class="help-widget-icon purple-widget-icon">
+                <i class="fas fa-plug"></i>
+            </div>
+            <div class="help-widget-content">
+                <h3>Plugins</h3>
+                <p>Extend LinkR's functionality</p>
+            </div>
+        </a>
 
-            <a href="https://linkr.interhop.org/en/docs/explore/" target="_blank" class="help-widget cyan-widget">
-                <div class="help-widget-icon cyan-widget-icon">
-                    <i class="fas fa-book"></i>
-                </div>
-                <div class="help-widget-content">
-                    <h3>Content catalog</h3>
-                    <p>Explore community shared content</p>
-                </div>
-            </a>
+        <a href="https://linkr.interhop.org/en/docs/explore/" target="_blank" class="help-widget cyan-widget">
+            <div class="help-widget-icon cyan-widget-icon">
+                <i class="fas fa-book"></i>
+            </div>
+            <div class="help-widget-content">
+                <h3>Content catalog</h3>
+                <p>Explore community shared content</p>
+            </div>
+        </a>
 
-            <a href="https://linkr.interhop.org/en/docs/share/" target="_blank" class="help-widget rose-widget">
-                <div class="help-widget-icon rose-widget-icon">
-                    <i class="fas fa-share-alt"></i>
-                </div>
-                <div class="help-widget-content">
-                    <h3>Share</h3>
-                    <p>Contribute to open science by sharing your work</p>
-                </div>
-            </a>
-        </div>
+        <a href="https://linkr.interhop.org/en/docs/share/" target="_blank" class="help-widget rose-widget">
+            <div class="help-widget-icon rose-widget-icon">
+                <i class="fas fa-share-alt"></i>
+            </div>
+            <div class="help-widget-content">
+                <h3>Share</h3>
+                <p>Contribute to open science by sharing your work</p>
+            </div>
+        </a>
     </div>
+</div>
 
-    <div class="home-section">
-        <h1 class="home-section-title"><a href="https://linkr.interhop.org/en/blog/" target="_blank">Articles</a></h1>
-        <div class="home-widget-container" data-section="articles">
-            <button class="home-nav-button prev" onclick="scrollContainer(this, 'left')">
-                <i class="fas fa-chevron-left"></i>
-            </button>
-            <button class="home-nav-button next" onclick="scrollContainer(this, 'right')">
-                <i class="fas fa-chevron-right"></i>
-            </button>
-            <a href="https://linkr.interhop.org/en/blog/2024/09/02/common-omop-v5.4-queries/" target="_blank" class="help-widget purple-widget">
-                <div class="help-widget-icon purple-widget-icon">
-                    <i class="fas fa-file-code"></i>
-                </div>
-                <div class="help-widget-content">
-                    <h3>OMOP - queries v5.4</h3>
-                    <p>Queries and usage of OMOP model v5.4</p>
-                </div>
-            </a>
-        </div>
+<div class="home-section">
+    <h1 class="home-section-title"><a href="https://linkr.interhop.org/en/blog/" target="_blank">Articles</a></h1>
+    <div class="home-widget-container" data-section="articles">
+        <button class="home-nav-button prev hidden" onclick="scrollContainer(this, 'left')">
+            <i class="fas fa-chevron-left"></i>
+        </button>
+        <button class="home-nav-button next hidden" onclick="scrollContainer(this, 'right')">
+            <i class="fas fa-chevron-right"></i>
+        </button>
+        <a href="https://linkr.interhop.org/en/blog/2024/09/02/common-omop-v5.4-queries/" target="_blank" class="help-widget purple-widget">
+            <div class="help-widget-icon purple-widget-icon">
+                <i class="fas fa-file-code"></i>
+            </div>
+            <div class="help-widget-content">
+                <h3>OMOP - queries v5.4</h3>
+                <p>Queries and usage of OMOP model v5.4</p>
+            </div>
+        </a>
     </div>
 </div>
 
@@ -147,13 +145,11 @@
         const section = button.closest('.home-section');
         const container = section.querySelector('.home-widget-container');
         const scrollAmount = 300;
-        
         if (direction === 'left') {
             container.scrollLeft -= scrollAmount;
         } else {
             container.scrollLeft += scrollAmount;
         }
-        
         updateNavButtons(section);
     }
 
@@ -161,11 +157,57 @@
         const container = section.querySelector('.home-widget-container');
         const prevButton = section.querySelector('.home-nav-button.prev');
         const nextButton = section.querySelector('.home-nav-button.next');
-
+        
+        if (!container || !prevButton || !nextButton) return;
+        
         prevButton.classList.toggle('hidden', container.scrollLeft <= 0);
-
         const hasMoreContent = container.scrollWidth > container.clientWidth &&
-                             container.scrollLeft < container.scrollWidth - container.clientWidth;
+            container.scrollLeft < container.scrollWidth - container.clientWidth;
         nextButton.classList.toggle('hidden', !hasMoreContent);
     }
+
+    function initializeAllNavButtons() {
+        const sections = document.querySelectorAll('.home-section');
+        sections.forEach(section => {
+            if (section) {
+                const container = section.querySelector('.home-widget-container');
+                if (container) {
+                    container.scrollLeft = 0;
+                    updateNavButtons(section);
+                }
+            }
+        });
+    }
+
+    document.addEventListener('DOMContentLoaded', function() {
+        initializeAllNavButtons();
+        setupScrollListeners();
+    });
+
+    function setupScrollListeners() {
+        const containers = document.querySelectorAll('.home-widget-container');
+        containers.forEach(container => {
+            if (container) {
+                container.addEventListener('scroll', function() {
+                    const section = container.closest('.home-section');
+                    if (section) {
+                        updateNavButtons(section);
+                    }
+                });
+            }
+        });
+    }
+
+    window.addEventListener('hashchange', function() {
+        setTimeout(initializeAllNavButtons, 100);
+    });
+
+    $(document).on('shiny:value', function(event) {
+        if (event.name.includes('home-')) {
+            setTimeout(function() {
+                initializeAllNavButtons();
+                setupScrollListeners();
+            }, 100);
+        }
+    });
 </script>
