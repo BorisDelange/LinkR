@@ -578,7 +578,15 @@ mod_projects_server <- function(id, r, d, m, language, i18n, debug, user_accesse
       
       shinyjs::delay(100, {
         dataset_id <- r$selected_dataset
+        
+        # Reset import_dataset saved parameters
+        r$import_dataset_source <- ""
+        r$import_dataset_save_as_duckdb_file <- FALSE
+        
         load_dataset(id, output, r, m, d, dataset_id, r$main_tables, m$selected_study)
+        
+        ## Load concepts
+        load_dataset_concepts(r, d, m)
       })
     })
     
@@ -593,8 +601,15 @@ mod_projects_server <- function(id, r, d, m, language, i18n, debug, user_accesse
       # Hide dataset details
       sapply(c("dataset_care_sites_details", "dataset_patients_details", "dataset_stays_details"), shinyjs::hide)
       
+      # Reset import_dataset saved parameters
+      r$import_dataset_source <- ""
+      r$import_dataset_save_as_duckdb_file <- FALSE
+      
       # Load dataset
       load_dataset(id, output, r, m, d, input$project_dataset, r$main_tables, m$selected_study)
+      
+      ## Load concepts
+      load_dataset_concepts(r, d, m)
     })
     
     ## Dataset details ----

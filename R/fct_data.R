@@ -1,4 +1,55 @@
 #' @noRd
+add_widget_to_gridstack <- function(id, tab_id, ui_output, widget_id, previous_widget_id = NA_integer_){
+  ns <- NS(id)
+  
+  if (id == "plugins") delete_previous_widget <- paste0(
+    "var previous_widget = grid.el.querySelector('#", ns(paste0("plugins_gridstack_item_", previous_widget_id)), "');
+    if (previous_widget) grid.removeWidget(previous_widget);"
+  )
+  else delete_previous_widget <- ""
+  
+  shinyjs::runjs(paste0("
+    function addWidget(tab_id) {
+      
+      var grid = window.gridStackInstances[tab_id];
+      
+      if (grid) {
+        // Remove previous widget
+        ", delete_previous_widget, "
+        
+        // Add new widget
+        grid.addWidget(`", ui_output, "`);
+        
+        // Load react components
+        $(document).on('shiny:idle', function(event) {
+          document.querySelectorAll('.react-container').forEach(container => {
+            const reactDataScript = container.querySelector('.react-data');
+            if (reactDataScript) {
+              jsmodule['@/shiny.react'].findAndRenderReactData();
+            }
+          });
+        });
+        
+        // Rebind Shiny components
+        setTimeout(function() {
+          $('#", id, "-", id, "_gridstack_item_", widget_id, " *').each(function() {
+            Shiny.unbindAll(this);
+            Shiny.bindAll(this);
+          });
+        }, 100);
+      } else {
+        // Retry after 500 ms
+        setTimeout(function() {
+          addWidget(tab_id);
+        }, 500);
+      }
+    }
+    
+    addWidget('", tab_id, "');
+  "))
+}
+
+#' @noRd
 create_gridstack_instance <- function(id, tab_id){
   ns <- NS(id)
   
@@ -61,6 +112,11 @@ create_widget <- function(id, widget_id, ui_code, w = 6, h = 20, x = 0, y = 0){
   )
 }
 
+data_query <- function(con, query){
+  DBI::dbGetQuery(con, query) %>% tibble::as_tibble()
+}
+
+#' @noRd
 get_widget_edit_buttons <- function(id, widget_id, show_edit_buttons = FALSE){
   ns <- NS(id)
   
@@ -102,107 +158,6 @@ get_widget_edit_buttons <- function(id, widget_id, show_edit_buttons = FALSE){
   if (!show_edit_buttons) edit_buttons <- shinyjs::hidden(edit_buttons)
   
   edit_buttons
-}
-
-#' @noRd
-add_widget_to_gridstack <- function(id, tab_id, ui_output, widget_id, previous_widget_id = NA_integer_){
-  ns <- NS(id)
-  
-  if (id == "plugins") delete_previous_widget <- paste0(
-    "var previous_widget = grid.el.querySelector('#", ns(paste0("plugins_gridstack_item_", previous_widget_id)), "');
-    if (previous_widget) grid.removeWidget(previous_widget);"
-  )
-  else delete_previous_widget <- ""
-  
-  shinyjs::runjs(paste0("
-    function addWidget(tab_id) {
-      
-      var grid = window.gridStackInstances[tab_id];
-      
-      if (grid) {
-        // Remove previous widget
-        ", delete_previous_widget, "
-        
-        // Add new widget
-        grid.addWidget(`", ui_output, "`);
-        
-        // Load react components
-        $(document).on('shiny:idle', function(event) {
-          document.querySelectorAll('.react-container').forEach(container => {
-            const reactDataScript = container.querySelector('.react-data');
-            if (reactDataScript) {
-              jsmodule['@/shiny.react'].findAndRenderReactData();
-            }
-          });
-        });
-        
-        // Rebind Shiny components
-        setTimeout(function() {
-          $('#", id, "-", id, "_gridstack_item_", widget_id, " *').each(function() {
-            Shiny.unbindAll(this);
-            Shiny.bindAll(this);
-          });
-        }, 100);
-      } else {
-        // Retry after 500 ms
-        setTimeout(function() {
-          addWidget(tab_id);
-        }, 500);
-      }
-    }
-    
-    addWidget('", tab_id, "');
-  "))
-}
-
-#' @noRd
-process_widget_code <- function(code, tab_id, widget_id, study_id, patient_id, plugin_folder) {
-  
-  # Replace %import_script% tags
-  import_scripts <- regmatches(code, gregexpr("%import_script\\(['\"](.*?)['\"]\\)%", code, perl = TRUE))[[1]]
-  
-  for (i in seq_along(import_scripts)){
-    tag <- import_scripts[i]
-    file_name <- gsub("%import_script\\(['\"](.*?)['\"]\\)%", "\\1", tag)
-    file_path <- paste0(plugin_folder, "/", file_name)
-    file_ext <- sub(".*\\.", "", tolower(file_name))
-    
-    if (file.exists(file_path)){
-      file_name <- file_name %>% gsub("\\.", "\\\\.", ., fixed = FALSE)
-      
-      if (file_ext == "r"){
-        file_code <- readLines(file_path, warn = FALSE) %>% paste(collapse = "\n")
-        
-        code <-
-          code %>%
-          gsub(paste0("%import_script\\('", file_name, "'\\)%"), file_code, ., fixed = FALSE) %>%
-          gsub(paste0('%import_script\\("', file_name, '"\\)%'), file_code, ., fixed = FALSE)
-      }
-      else if (file_ext == "py"){
-        file_code <- paste0("reticulate::source_python('", file_path, "')")
-        
-        code <-
-          code %>%
-          gsub(paste0("%import_script\\('", file_name, "'\\)%"), file_code, ., fixed = FALSE) %>%
-          gsub(paste0('%import_script\\("', file_name, '"\\)%'), file_code, ., fixed = FALSE)
-      }
-    }
-  }
-  
-  # Replace tab & widget IDs
-  code <- gsub("%tab_id%", as.character(tab_id), code, fixed = TRUE)
-  code <- gsub("%widget_id%", as.character(widget_id), code, fixed = TRUE)
-  
-  # Replace req (so that an observer in inactivated when server code is launched more than one time)
-  code <- gsub("%req%", "req(m[[session_code]] == session_num)\nreq(m$selected_study == %study_id%)", code, fixed = TRUE)
-  
-  # Replace study and patients IDS
-  code <- gsub("%study_id%", as.character(study_id), code, fixed = TRUE)
-  code <- gsub("%patient_id%", as.character(patient_id), code, fixed = TRUE)
-  
-  gsub("\r", "\n", code, fixed = TRUE)
-  
-  code
 }
 
 #' @noRd
@@ -293,40 +248,6 @@ load_dataset <- function(id, output, r, m, d, dataset_id, main_tables, selected_
 }
 
 #' @noRd
-load_element_code <- function(id, r, unique_id){
-  
-  folder <- paste0(r$app_folder, "/", id, "/", unique_id)
-  code_file <- paste0(folder, "/main.R")
-  old_code_file <- paste0(folder, "/code.R")
-  
-  if (!dir.exists(folder)) dir.create(folder)
-  
-  # Retro-compatibility with older versions (with "code.R" instead of "main.R")
-  if (file.exists(code_file)) code <- readLines(code_file, warn = FALSE)
-  else {
-    if (file.exists(old_code_file)) code <- readLines(old_code_file, warn = FALSE)
-    else code <- ""
-    
-    writeLines(code, code_file)
-  }
-  
-  paste(code, collapse = "\n")
-}
-
-#' @noRd
-save_element_code <- function(id, i18n, output, r, unique_id, new_code){
-  
-  ns <- NS(id)
-  
-  folder <- paste0(r$app_folder, "/", id, "/", unique_id)
-  code_file <- paste0(folder, "/main.R")
-  
-  code <- writeLines(new_code, code_file)
-  
-  show_message_bar(id, output, "modif_saved", "success", i18n = i18n, ns = ns)
-}
-
-#' @noRd
 load_dataset_concepts <- function(r, d, m){
   
   req(!is.na(r$selected_dataset), r$selected_dataset != 0)
@@ -335,10 +256,10 @@ load_dataset_concepts <- function(r, d, m){
   dataset_folder <- paste0(r$app_folder, "/datasets_files/", r$selected_dataset)
   if (!dir.exists(dataset_folder)) dir.create(dataset_folder)
   
-  # Load csv file if it exists
-  concept_filename <- paste0(dataset_folder, "/concept.csv")
+  # Load Parquet file if it exists
+  concept_filename <- paste0(dataset_folder, "/concept.parquet")
   
-  if (file.exists(concept_filename)) d$concept <- vroom::vroom(concept_filename, col_types = "iicccccccDDciic", progress = FALSE)
+  if (file.exists(concept_filename)) d$dataset_concepts <- arrow::read_parquet(concept_filename)
   
   if (!file.exists(concept_filename)){
     
@@ -436,16 +357,16 @@ load_dataset_concepts <- function(r, d, m){
               )
             
             if (table %not_in% c("specimen", "drug_era", "dose_era", "condition_era")) count_rows <-
-              count_rows %>%
-              dplyr::bind_rows(
-                d[[table]] %>%
-                  dplyr::group_by_at(paste0(main_cols[[table]], "_source_concept_id")) %>%
-                  dplyr::summarize(count_persons_rows = as.numeric(dplyr::n_distinct(person_id)), count_concepts_rows = as.numeric(dplyr::n())) %>%
-                  dplyr::ungroup() %>%
-                  dplyr::rename(concept_id = paste0(main_cols[[table]], "_source_concept_id")) %>%
-                  dplyr::mutate_at("concept_id", as.integer) %>%
-                  dplyr::collect()
-              )
+                count_rows %>%
+                dplyr::bind_rows(
+                  d[[table]] %>%
+                    dplyr::group_by_at(paste0(main_cols[[table]], "_source_concept_id")) %>%
+                    dplyr::summarize(count_persons_rows = as.numeric(dplyr::n_distinct(person_id)), count_concepts_rows = as.numeric(dplyr::n())) %>%
+                    dplyr::ungroup() %>%
+                    dplyr::rename(concept_id = paste0(main_cols[[table]], "_source_concept_id")) %>%
+                    dplyr::mutate_at("concept_id", as.integer) %>%
+                    dplyr::collect()
+                )
           }
         }
         
@@ -521,44 +442,162 @@ load_dataset_concepts <- function(r, d, m){
     # Add new rows to database
     if (nrow(concept) > 0) DBI::dbAppendTable(
       m$db, "concept_dataset",
-        concept %>%
+      concept %>%
         dplyr::transmute(
           id = get_last_row(m$db, "concept_dataset") + 1:dplyr::n(), concept_id, dataset_id = r$selected_dataset, vocabulary_id,
           count_persons_rows, count_concepts_rows, count_secondary_concepts_rows = as.numeric(0)))
     
     # Save data as csv
-    readr::write_csv(concept, concept_filename, progress = FALSE)
+    arrow::write_parquet(concept, concept_filename)
     
     # Update d var
-    d$concept <- concept
+    d$dataset_concepts <- concept
   }
   
   r$dataset_vocabularies <-
     r$vocabularies_wide %>%
-    dplyr::inner_join(d$concept %>% dplyr::distinct(vocabulary_id), by = "vocabulary_id") %>%
+    dplyr::inner_join(d$dataset_concepts %>% dplyr::distinct(vocabulary_id), by = "vocabulary_id") %>%
     dplyr::arrange(vocabulary_id)
   
-  # Then load d$dataset_drug_strength
+  # Save all concept tables as Parquet files
   
-  # Load csv file if it exists
-  drug_strength_filename <- paste0(dataset_folder, "/drug_strength.csv")
+  dataset_concept_ids <- d$dataset_concepts %>% dplyr::pull(concept_id)
   
-  if (file.exists(drug_strength_filename)) d$drug_strength <- vroom::vroom(drug_strength_filename, col_types = "iinininiiDDc", progress = FALSE)
-  
-  if (!file.exists(drug_strength_filename)){
+  for (table in c("concept", "concept_ancestor", "concept_relationship", "concept_synonym", "drug_strength")){
     
-    concept_ids <-
-      d$concept %>%
-      dplyr::filter(domain_id == "Drug") %>%
-      dplyr::pull(concept_id)
+    file_path <- file.path(dataset_folder, paste0(table, ".parquet"))
     
-    sql <- glue::glue_sql("SELECT * FROM drug_strength WHERE drug_concept_id IN ({concept_ids*})", .con = m$db)
-    drug_strength <- DBI::dbGetQuery(m$db, sql) %>% dplyr::select(-id) %>% tibble::as_tibble()
-    
-    # Save data as csv
-    readr::write_csv(drug_strength, drug_strength_filename, progress = FALSE)
-    
-    # Update d var
-    d$drug_strength <- drug_strength
+    if (!file.exists(file_path)){
+      
+      sql <- switch(
+        table,
+        "concept_ancestor" = glue::glue_sql("SELECT * FROM concept_ancestor WHERE ancestor_concept_id IN ({dataset_concept_ids*}) OR descendant_concept_id IN ({dataset_concept_ids*})", .con = m$db),
+        "concept_relationship" = glue::glue_sql("SELECT * FROM concept_relationship WHERE concept_id_1 IN ({dataset_concept_ids*}) OR concept_id_2 IN ({dataset_concept_ids*})", .con = m$db),
+        "concept_synonym" = glue::glue_sql("SELECT * FROM concept_synonym WHERE concept_id IN ({dataset_concept_ids*})", .con = m$db),
+        "drug_strength" = glue::glue_sql("SELECT * FROM drug_strength WHERE drug_concept_id IN ({dataset_concept_ids*}) OR ingredient_concept_id IN ({dataset_concept_ids*})", .con = m$db)
+      )
+      
+      data <- DBI::dbGetQuery(m$db, sql) %>% dplyr::select(-id) %>% tibble::as_tibble()
+      
+      # Save data as Parquet
+      arrow::write_parquet(data, file_path)
+    }
   }
+  
+  for (table in c("vocabulary", "concept_class", "relationship", "domain")){
+    
+    file_path <- file.path(dataset_folder, paste0(table, ".parquet"))
+    if (file.exists(file_path)) data <- arrow::read_parquet(file_path)
+    else {
+      sql <- glue::glue_sql("SELECT * FROM {`table`}", .con = m$db)
+      data <- DBI::dbGetQuery(m$db, sql) %>% dplyr::select(-id) %>% tibble::as_tibble()
+      
+      arrow::write_parquet(data, file_path)
+    }
+  }
+  
+  # If dataset is imported in a duckdb database, add these tables in the database
+  # In all cases, add these tables in d$...
+  
+  
+  for (table in c("concept", "concept_ancestor", "concept_relationship", "concept_synonym", "drug_strength", "vocabulary", "concept_class", "relationship", "domain")){
+    
+    if (r$import_dataset_source == "disk" && r$import_dataset_save_as_duckdb_file){
+      if (length(d$con) > 0){
+        
+        if (!DBI::dbExistsTable(d$con, table)){
+          sql <- glue::glue_sql("CREATE TABLE {`table`} AS SELECT * FROM read_parquet({file_path})", .con = d$con)
+          DBI::dbExecute(d$con, sql)
+        }
+        d[[table]] <- dplyr::tbl(d$con, table)
+      }
+    }
+    else {
+      d[[table]] <- arrow::read_parquet(file_path)
+    }
+  }
+}
+
+#' @noRd
+load_element_code <- function(id, r, unique_id){
+  
+  folder <- paste0(r$app_folder, "/", id, "/", unique_id)
+  code_file <- paste0(folder, "/main.R")
+  old_code_file <- paste0(folder, "/code.R")
+  
+  if (!dir.exists(folder)) dir.create(folder)
+  
+  # Retro-compatibility with older versions (with "code.R" instead of "main.R")
+  if (file.exists(code_file)) code <- readLines(code_file, warn = FALSE)
+  else {
+    if (file.exists(old_code_file)) code <- readLines(old_code_file, warn = FALSE)
+    else code <- ""
+    
+    writeLines(code, code_file)
+  }
+  
+  paste(code, collapse = "\n")
+}
+
+#' @noRd
+process_widget_code <- function(code, tab_id, widget_id, study_id, patient_id, plugin_folder) {
+  
+  # Replace %import_script% tags
+  import_scripts <- regmatches(code, gregexpr("%import_script\\(['\"](.*?)['\"]\\)%", code, perl = TRUE))[[1]]
+  
+  for (i in seq_along(import_scripts)){
+    tag <- import_scripts[i]
+    file_name <- gsub("%import_script\\(['\"](.*?)['\"]\\)%", "\\1", tag)
+    file_path <- paste0(plugin_folder, "/", file_name)
+    file_ext <- sub(".*\\.", "", tolower(file_name))
+    
+    if (file.exists(file_path)){
+      file_name <- file_name %>% gsub("\\.", "\\\\.", ., fixed = FALSE)
+      
+      if (file_ext == "r"){
+        file_code <- readLines(file_path, warn = FALSE) %>% paste(collapse = "\n")
+        
+        code <-
+          code %>%
+          gsub(paste0("%import_script\\('", file_name, "'\\)%"), file_code, ., fixed = FALSE) %>%
+          gsub(paste0('%import_script\\("', file_name, '"\\)%'), file_code, ., fixed = FALSE)
+      }
+      else if (file_ext == "py"){
+        file_code <- paste0("reticulate::source_python('", file_path, "')")
+        
+        code <-
+          code %>%
+          gsub(paste0("%import_script\\('", file_name, "'\\)%"), file_code, ., fixed = FALSE) %>%
+          gsub(paste0('%import_script\\("', file_name, '"\\)%'), file_code, ., fixed = FALSE)
+      }
+    }
+  }
+  
+  # Replace tab & widget IDs
+  code <- gsub("%tab_id%", as.character(tab_id), code, fixed = TRUE)
+  code <- gsub("%widget_id%", as.character(widget_id), code, fixed = TRUE)
+  
+  # Replace req (so that an observer in inactivated when server code is launched more than one time)
+  code <- gsub("%req%", "req(m[[session_code]] == session_num)\nreq(m$selected_study == %study_id%)", code, fixed = TRUE)
+  
+  # Replace study and patients IDS
+  code <- gsub("%study_id%", as.character(study_id), code, fixed = TRUE)
+  code <- gsub("%patient_id%", as.character(patient_id), code, fixed = TRUE)
+  
+  gsub("\r", "\n", code, fixed = TRUE)
+  
+  code
+}
+
+#' @noRd
+save_element_code <- function(id, i18n, output, r, unique_id, new_code){
+  
+  ns <- NS(id)
+  
+  folder <- paste0(r$app_folder, "/", id, "/", unique_id)
+  code_file <- paste0(folder, "/main.R")
+  
+  code <- writeLines(new_code, code_file)
+  
+  show_message_bar(id, output, "modif_saved", "success", i18n = i18n, ns = ns)
 }

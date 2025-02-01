@@ -20,6 +20,9 @@ import_dataset <- function(
   
   i18n <- r$i18n
   
+  r$import_dataset_source <- "disk"
+  r$import_dataset_save_as_duckdb_file <- save_as_duckdb_file
+  
   # Check arguments ----
 
   # Check dataset_id
@@ -516,7 +519,7 @@ import_vocabulary_table <- function(r = shiny::reactiveValues(), m = shiny::reac
     else DBI::dbAppendTable(m$db, table_name, data_to_insert)
   }
   
-  cat(paste0("\n", rows_inserted, " ", i18n$t("rows_inserted_in_table") , " ", table_name))
+  # cat(paste0("\n", rows_inserted, " ", i18n$t("rows_inserted_in_table") , " ", table_name))
 
   return(c(rows_inserted, i18n$t("success_importing_concepts")))
 }

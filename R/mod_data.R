@@ -418,11 +418,7 @@ mod_data_server <- function(id, r, d, m, language, i18n, debug, user_accesses){
           
         else {
           ## Load data
-          # shinyjs::runjs(paste0("Shiny.setInputValue('", id, "-load_dataset', Math.random());"))
           shinyjs::runjs(paste0("Shiny.setInputValue('projects-load_dataset', Math.random());"))
-
-          ## Load concepts
-          load_dataset_concepts(r, d, m)
         }
       })
     })
@@ -851,7 +847,7 @@ mod_data_server <- function(id, r, d, m, language, i18n, debug, user_accesses){
             dplyr::collect() %>%
             dplyr::arrange(person_id) %>%
             dplyr::mutate(n = dplyr::row_number()) %>%
-            dplyr::left_join(d$concept %>% dplyr::select(gender_concept_id = concept_id, gender_concept_name = concept_name), by = "gender_concept_id")
+            dplyr::left_join(d$dataset_concepts %>% dplyr::select(gender_concept_id = concept_id, gender_concept_name = concept_name), by = "gender_concept_id")
           
           r$subset_merged_patients <- persons
        
@@ -959,7 +955,7 @@ mod_data_server <- function(id, r, d, m, language, i18n, debug, user_accesses){
             visit_detail %>% 
             dplyr::collect() %>% 
             dplyr::left_join(
-              d$concept %>% dplyr::select(visit_detail_concept_id = concept_id, visit_detail_concept_name = concept_name),
+              d$dataset_concepts %>% dplyr::select(visit_detail_concept_id = concept_id, visit_detail_concept_name = concept_name),
               by = "visit_detail_concept_id"
             ) %>%
             dplyr::arrange(visit_detail_start_datetime)
@@ -1028,7 +1024,7 @@ mod_data_server <- function(id, r, d, m, language, i18n, debug, user_accesses){
           dplyr::mutate_at("person_id", as.integer) %>%
           dplyr::filter(person_id == !!person_id) %>% 
           dplyr::collect() %>%
-          dplyr::left_join(d$concept %>% dplyr::select(gender_concept_id = concept_id, gender_concept_name = concept_name), by = "gender_concept_id")
+          dplyr::left_join(d$dataset_concepts %>% dplyr::select(gender_concept_id = concept_id, gender_concept_name = concept_name), by = "gender_concept_id")
         
         output$person_info <- renderUI(
           tagList(
@@ -1073,7 +1069,7 @@ mod_data_server <- function(id, r, d, m, language, i18n, debug, user_accesses){
           dplyr::mutate_at("person_id", as.integer) %>%
           dplyr::filter(person_id == !!person_id) %>% 
           dplyr::collect() %>%
-          dplyr::left_join(d$concept %>% dplyr::select(gender_concept_id = concept_id, gender_concept_name = concept_name), by = "gender_concept_id")
+          dplyr::left_join(d$dataset_concepts %>% dplyr::select(gender_concept_id = concept_id, gender_concept_name = concept_name), by = "gender_concept_id")
         
         visit_detail_id <- selected_visit_detail
         visit_detail <- 
@@ -1081,7 +1077,7 @@ mod_data_server <- function(id, r, d, m, language, i18n, debug, user_accesses){
           dplyr::mutate_at("visit_detail_id", as.integer) %>%
           dplyr::filter(visit_detail_id == !!visit_detail_id) %>% 
           dplyr::collect() %>%
-          dplyr::left_join(d$concept %>% dplyr::select(visit_detail_concept_id = concept_id, visit_detail_concept_name = concept_name), by = "visit_detail_concept_id")
+          dplyr::left_join(d$dataset_concepts %>% dplyr::select(visit_detail_concept_id = concept_id, visit_detail_concept_name = concept_name), by = "visit_detail_concept_id")
         
         if (!is.na(person$birth_datetime)) age <- lubridate::interval(person$birth_datetime, visit_detail$visit_detail_start_datetime) / lubridate::years(1)
         else if (is.na(person$birth_datetime) & !is.na(person$year_of_birth)) age <- as.numeric(format(visit_detail$visit_detail_start_datetime, "%Y")) - person$year_of_birth

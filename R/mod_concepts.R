@@ -138,9 +138,9 @@ mod_concepts_server <- function(id, r, d, m, language, i18n, debug, user_accesse
       )
       
       if (length(input$vocabulary) > 0){
-        if (nrow(d$concept) > 0){
-          if (input$vocabulary == "all_vocabularies") data <- d$concept
-          else data <- d$concept %>% dplyr::filter(vocabulary_id == input$vocabulary)
+        if (nrow(d$dataset_concepts) > 0){
+          if (input$vocabulary == "all_vocabularies") data <- d$dataset_concepts
+          else data <- d$dataset_concepts %>% dplyr::filter(vocabulary_id == input$vocabulary)
           data <- 
             data %>% 
             dplyr::select(-id, -add_concept_input) %>%
@@ -250,10 +250,23 @@ mod_concepts_server <- function(id, r, d, m, language, i18n, debug, user_accesse
     observeEvent(input$confirm_reload_concepts_count, {
       if (debug) cat(paste0("\n", now(), " - mod_select_concepts - (", id, ") - observer input$confirm_reload_concepts_count"))
       
-      # Remove concept file
+      # Remove concept files
+      # Also remove duckDB tables
       dataset_folder <- paste0(r$app_folder, "/datasets_files/", r$selected_dataset)
-      concept_filename <- paste0(dataset_folder, "/concept.csv")
-      if (file.exists(concept_filename)) unlink(concept_filename)
+      
+      for (table in c("concept", "concept_ancestor", "concept_relationship", "concept_synonym", "drug_strength", "vocabulary", "concept_class", "relationship", "domain")){
+        file_path <- file.path(dataset_folder, paste0(table, ".parquet"))
+        if (file.exists(file_path)) unlink(file_path)
+        
+        if (r$import_dataset_source == "disk" && r$import_dataset_save_as_duckdb_file){
+          if (length(d$con) > 0){
+            if (DBI::dbExistsTable(d$con, table)){
+              sql <- glue::glue_sql("DROP TABLE {table}", .con = m$db)
+              DBI::dbExecute(d$con, sql)
+            }
+          }
+        }
+      }
 
       # Reload concepts count
       load_dataset_concepts(r, d, m)
