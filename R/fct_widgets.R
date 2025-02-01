@@ -463,7 +463,8 @@ create_elements_ui <- function(page_id, id, elements, selected_element = NA_inte
     
     users_ui <- create_authors_ui(row %>% dplyr::filter(name == "author") %>% dplyr::pull(value))
     
-    element_name <- row %>% dplyr::filter(name == paste0("name_", language)) %>% dplyr::pull(value)
+    if (id == "vocabularies") element_name <- r$vocabularies_wide %>% dplyr::filter(id == i) %>% dplyr::pull(vocabulary_id)
+    else element_name <- row %>% dplyr::filter(name == paste0("name_", language)) %>% dplyr::pull(value)
     
     # For plugins widgets, we add some content on the bottom
     

@@ -35,9 +35,21 @@ mod_vocabularies_ui <- function(id, language, languages, i18n, code_hotkeys, dro
           id = ns("summary_div"),
           div(
             div(
-              h1(i18n$t("informations")),
-              uiOutput(ns("vocabulary_summary")),
-              class = "widget", style = "height: 50%;"
+              id = ns("summary_informations_div"),
+              shinyjs::hidden(
+                div(
+                  id = ns("summary_edit_informations_div"),
+                  h1(i18n$t("edit_informations")),
+                  div(shiny.fluent::TextField.shinyInput(ns("vocabulary_id"), label = i18n$t("id")), style = "width: 200px;"),
+                  div(shiny.fluent::TextField.shinyInput(ns("vocabulary_name"), label = i18n$t("name")), style = "width: 200px;")
+                )
+              ),
+              div(
+                id = ns("summary_view_informations_div"),
+                h1(i18n$t("informations")),
+                uiOutput(ns("summary_informations_ui"))
+              ),
+              class = "widget", style = "min-height: 50%;"
             ),
             class = "vocabularies_summary_left"
           ),

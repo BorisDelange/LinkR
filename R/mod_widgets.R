@@ -680,45 +680,51 @@ mod_widgets_server <- function(id, r, d, m, language, i18n, all_divs, debug, use
       
       # Update summary fields ----
       
-      shiny.fluent::updateDropdown.shinyInput(session, "language", value = language)
-      
-      for (lang in r$languages$code){
+      if (id != "vocabularies"){
+        shiny.fluent::updateDropdown.shinyInput(session, "language", value = language)
         
-        for (field in c("name", "short_description")) shiny.fluent::updateTextField.shinyInput(
-          session, paste0(field, "_", lang), value = element_long %>% dplyr::filter(name == paste0(field, "_", lang)) %>% dplyr::pull(value))
+        for (lang in r$languages$code){
+          
+          for (field in c("name", "short_description")) shiny.fluent::updateTextField.shinyInput(
+            session, paste0(field, "_", lang), value = element_long %>% dplyr::filter(name == paste0(field, "_", lang)) %>% dplyr::pull(value))
+        }
+        
+        shiny.fluent::updateTextField.shinyInput(session, "author", value = element_long %>% dplyr::filter(name == "author") %>% dplyr::pull(value))
+        shiny.fluent::updateDropdown.shinyInput(session, "users_allowed_read_group", value = element_long %>% dplyr::filter(name == "users_allowed_read_group") %>% dplyr::pull(value))
       }
-      
-      shiny.fluent::updateTextField.shinyInput(session, "author", value = element_long %>% dplyr::filter(name == "author") %>% dplyr::pull(value))
-      shiny.fluent::updateDropdown.shinyInput(session, "users_allowed_read_group", value = element_long %>% dplyr::filter(name == "users_allowed_read_group") %>% dplyr::pull(value))
       
       ## Description
       
-      description_code <- element_long %>% dplyr::filter(name == paste0("description_", language)) %>% dplyr::pull(value)
-      shinyAce::updateAceEditor(session, "description_code", value = description_code)
-      output_file <- create_rmarkdown_file(r, description_code, interpret_code = FALSE)
-      output$description_ui <- renderUI(div(class = "markdown", withMathJax(includeMarkdown(output_file))))
+      if (id != "vocabularies"){
+        description_code <- element_long %>% dplyr::filter(name == paste0("description_", language)) %>% dplyr::pull(value)
+        shinyAce::updateAceEditor(session, "description_code", value = description_code)
+        output_file <- create_rmarkdown_file(r, description_code, interpret_code = FALSE)
+        output$description_ui <- renderUI(div(class = "markdown", withMathJax(includeMarkdown(output_file))))
+      }
       
       ## Load users UI
       
-      picker_options <- r$users %>% dplyr::select(key = id, imageInitials = initials, text = name, secondaryText = user_status)
-      picker_value <- element_long %>% dplyr::filter(name == "user_allowed_read") %>% dplyr::pull(value_num) %>% unique()
-      picker_value <- intersect(picker_options %>% dplyr::pull(key), picker_value)
-      default_selected_items <- picker_options %>% dplyr::filter(key %in% picker_value)
-      
-      output$users_allowed_read_ui <- renderUI(
-        div(
-          shiny.fluent::NormalPeoplePicker.shinyInput(
-            ns("users_allowed_read"),
-            options = picker_options, value = picker_value, defaultSelectedItems = default_selected_items,
-            pickerSuggestionsProps = list(
-              suggestionsHeaderText = i18n$t("users"),
-              noResultsFoundText = i18n$t("no_results_found"),
-              showRemoveButtons = TRUE
-            )
-          ),
-          style = "width: 400px; margin-top: 12px"
+      if (id %not_in% c("subsets", "vocabularies")){
+        picker_options <- r$users %>% dplyr::select(key = id, imageInitials = initials, text = name, secondaryText = user_status)
+        picker_value <- element_long %>% dplyr::filter(name == "user_allowed_read") %>% dplyr::pull(value_num) %>% unique()
+        picker_value <- intersect(picker_options %>% dplyr::pull(key), picker_value)
+        default_selected_items <- picker_options %>% dplyr::filter(key %in% picker_value)
+        
+        output$users_allowed_read_ui <- renderUI(
+          div(
+            shiny.fluent::NormalPeoplePicker.shinyInput(
+              ns("users_allowed_read"),
+              options = picker_options, value = picker_value, defaultSelectedItems = default_selected_items,
+              pickerSuggestionsProps = list(
+                suggestionsHeaderText = i18n$t("users"),
+                noResultsFoundText = i18n$t("no_results_found"),
+                showRemoveButtons = TRUE
+              )
+            ),
+            style = "width: 400px; margin-top: 12px"
+          )
         )
-      )
+      }
       
       ## Tab type id
       if (id == "plugins"){
@@ -750,6 +756,12 @@ mod_widgets_server <- function(id, r, d, m, language, i18n, all_divs, debug, use
         
         # Load plugin code files
         r$reload_plugin_code_files <- now()
+      }
+      
+      # Load vocabulary fields
+      if (id == "vocabularies"){
+        shiny.fluent::updateTextField.shinyInput(session, "vocabulary_id", value = element_wide %>% dplyr::pull(vocabulary_id))
+        shiny.fluent::updateTextField.shinyInput(session, "vocabulary_name", value = element_wide %>% dplyr::pull(vocabulary_name))
       }
       
       # Load project ----
@@ -801,7 +813,6 @@ mod_widgets_server <- function(id, r, d, m, language, i18n, all_divs, debug, use
       # Load vocabulary ----
       else if (id == "vocabularies"){
         
-        shinyjs::runjs(paste0("Shiny.setInputValue('", id, "-load_vocabulary_code', Math.random());"))
         shinyjs::runjs(paste0("Shiny.setInputValue('", id, "-load_vocabulary_tables', Math.random());"))
       }
       
@@ -849,6 +860,16 @@ mod_widgets_server <- function(id, r, d, m, language, i18n, all_divs, debug, use
             tags$table(
               tags$tr(tags$td(strong(i18n$t("name"))), tags$td(element_wide$name)),
               tags$tr(tags$td(strong(i18n$t("short_description")), style = "min-width: 150px;"), tags$td(element_long %>% dplyr::filter(name == paste0("short_description_", language)) %>% dplyr::pull(value)))
+            )
+          )
+        )
+      }
+      else if (id == "vocabularies"){
+        output$summary_informations_ui <- renderUI(
+          div(
+            tags$table(
+              tags$tr(tags$td(strong(i18n$t("id"))), tags$td(element_wide$vocabulary_id)),
+              tags$tr(tags$td(strong(i18n$t("name"))), tags$td(element_wide$vocabulary_name))
             )
           )
         )
@@ -1004,7 +1025,8 @@ mod_widgets_server <- function(id, r, d, m, language, i18n, all_divs, debug, use
       if (debug) cat(paste0("\n", now(), " - mod_widgets - (", id, ") - observer input$save_summary"))
       
       name_field <- paste0("name_", language)
-      element_name <- input[[name_field]]
+      if (id == "vocabularies") element_name <- input$vocabulary_id
+      else element_name <- input[[name_field]]
       
       # Check if name is not empty
       empty_name <- TRUE
@@ -1014,6 +1036,7 @@ mod_widgets_server <- function(id, r, d, m, language, i18n, all_divs, debug, use
       
       # Check if name is not already used
       if (id == "subsets") sql <- glue::glue_sql("SELECT name FROM subsets WHERE LOWER(name) = {tolower(element_name)} AND id != {input$selected_element} AND study_id = {m$selected_study}", .con = con)
+      else if (id == "vocabularies") sql <- glue::glue_sql("SELECT vocabulary_id FROM vocabulary WHERE LOWER(vocabulary_id) = {tolower(element_name)} AND id != {input$selected_element}", .con = con)
       else sql <- glue::glue_sql("SELECT name FROM {sql_table} WHERE LOWER(name) = {tolower(element_name)} AND id != {input$selected_element}", .con = con)
       name_already_used <- nrow(DBI::dbGetQuery(con, sql) > 0)
       
@@ -1032,74 +1055,83 @@ mod_widgets_server <- function(id, r, d, m, language, i18n, all_divs, debug, use
         sql_send_statement(con, sql)
       }
         
-      # List existing fields : add fields that don't exist
-      
-      fields <- c(
-        paste0("name_", r$languages$code),
-        paste0("short_description_", r$languages$code),
-        "author", "users_allowed_read_group"
-      )
-      
-      # OMOP version field
-      if (id == "datasets") fields <- c(fields, "omop_version")
-      
-      # Only names and description fields for subsets
-      if (id == "subsets") fields <- c(paste0("name_", r$languages$code), paste0("short_description_", r$languages$code))
-      
-      sql <- glue::glue_sql("SELECT DISTINCT(name) FROM options WHERE category = {sql_category} AND link_id = {input$selected_element}", .con = con)
-      existing_fields <- DBI::dbGetQuery(con, sql) %>% dplyr::pull()
-      new_fields <- setdiff(fields, existing_fields)
-      options_last_row <- get_last_row(con, "options")
-      
-      if (length(new_fields) > 0){
-        new_data <- tibble::tibble(
-          id = options_last_row + (1:length(new_fields)), category = sql_category, link_id = input$selected_element,
-          name = new_fields, value = "", value_num = NA_integer_, creator_id = r$user_id,
-          datetime = now(), deleted = FALSE
+      if (id != "vocabularies"){
+        # List existing fields : add fields that don't exist
+        
+        fields <- c(
+          paste0("name_", r$languages$code),
+          paste0("short_description_", r$languages$code),
+          "author", "users_allowed_read_group"
         )
-        options_last_row <- options_last_row + length(new_fields)
-        DBI::dbAppendTable(con, "options", new_data)
+        
+        # OMOP version field
+        if (id == "datasets") fields <- c(fields, "omop_version")
+        
+        # Only names and description fields for subsets
+        else if (id == "subsets") fields <- c(paste0("name_", r$languages$code), paste0("short_description_", r$languages$code))
+        
+        sql <- glue::glue_sql("SELECT DISTINCT(name) FROM options WHERE category = {sql_category} AND link_id = {input$selected_element}", .con = con)
+        existing_fields <- DBI::dbGetQuery(con, sql) %>% dplyr::pull()
+        new_fields <- setdiff(fields, existing_fields)
+        options_last_row <- get_last_row(con, "options")
+        
+        if (length(new_fields) > 0){
+          new_data <- tibble::tibble(
+            id = options_last_row + (1:length(new_fields)), category = sql_category, link_id = input$selected_element,
+            name = new_fields, value = "", value_num = NA_integer_, creator_id = r$user_id,
+            datetime = now(), deleted = FALSE
+          )
+          options_last_row <- options_last_row + length(new_fields)
+          DBI::dbAppendTable(con, "options", new_data)
+        }
+          
+        # Update sql data
+        
+        cases <- sapply(fields, function(field) {
+          value <- if (length(input[[field]]) > 0) gsub("'", "''", input[[field]]) else ""
+          paste0("WHEN name = '", field, "' THEN '", value, "'")
+        })
+        
+        case_statement <- paste(cases, collapse = " ")
+        sql <- glue::glue_sql(paste0(
+          "UPDATE options SET value = CASE {DBI::SQL(case_statement)} ELSE value END ",
+          "WHERE name IN ({fields*}) AND category = {sql_category} AND link_id = {input$selected_element}"), .con = con)
+        sql_send_statement(con, sql)
+        
+        sql <- glue::glue_sql("DELETE FROM options WHERE category = {sql_category} AND link_id = {input$selected_element} AND name = 'user_allowed_read'", .con = con)
+        sql_send_statement(con, sql)
+        
+        # Add users allowed read (one row by user)
+        
+        if (length(input$users_allowed_read) > 0){
+          
+          value_num <- unique(input$users_allowed_read)
+          
+          new_data <- tibble::tibble(
+            id = options_last_row + (1:length(value_num)), category = sql_category, link_id = input$selected_element,
+            name = "user_allowed_read", value = "", value_num = value_num, creator_id = r$user_id,
+            datetime = now(), deleted = FALSE
+          )
+          DBI::dbAppendTable(con, "options", new_data)
+        }
+      
+        # Update name
+        new_name <- gsub("'", "''", input[[paste0('name_', language)]])
+        sql <- glue::glue_sql("UPDATE {`sql_table`} SET name = {new_name} WHERE id = {input$selected_element}", .con = con)
+        sql_send_statement(con, sql)
+        
+        # Update tab_type_id
+        if (id == "plugins"){
+          tab_type_id <- as.integer(paste(input$tab_type_id, collapse = ""))
+          sql <- glue::glue_sql("UPDATE {`sql_table`} SET tab_type_id = {tab_type_id} WHERE id = {input$selected_element}", .con = con)
+          sql_send_statement(con, sql)
+        }
       }
-        
-      # Update sql data
       
-      cases <- sapply(fields, function(field) {
-        value <- if (length(input[[field]]) > 0) gsub("'", "''", input[[field]]) else ""
-        paste0("WHEN name = '", field, "' THEN '", value, "'")
-      })
-      
-      case_statement <- paste(cases, collapse = " ")
-      sql <- glue::glue_sql(paste0(
-        "UPDATE options SET value = CASE {DBI::SQL(case_statement)} ELSE value END ",
-        "WHERE name IN ({fields*}) AND category = {sql_category} AND link_id = {input$selected_element}"), .con = con)
-      sql_send_statement(con, sql)
-      
-      sql <- glue::glue_sql("DELETE FROM options WHERE category = {sql_category} AND link_id = {input$selected_element} AND name = 'user_allowed_read'", .con = con)
-      sql_send_statement(con, sql)
-      
-      # Add users allowed read (one row by user)
-      
-      if (length(input$users_allowed_read) > 0){
-        
-        value_num <- unique(input$users_allowed_read)
-        
-        new_data <- tibble::tibble(
-          id = options_last_row + (1:length(value_num)), category = sql_category, link_id = input$selected_element,
-          name = "user_allowed_read", value = "", value_num = value_num, creator_id = r$user_id,
-          datetime = now(), deleted = FALSE
-        )
-        DBI::dbAppendTable(con, "options", new_data)
-      }
-      
-      # Update name
-      new_name <- gsub("'", "''", input[[paste0('name_', language)]])
-      sql <- glue::glue_sql("UPDATE {`sql_table`} SET name = {new_name} WHERE id = {input$selected_element}", .con = con)
-      sql_send_statement(con, sql)
-      
-      # Update tab_type_id
-      if (id == "plugins"){
-        tab_type_id <- as.integer(paste(input$tab_type_id, collapse = ""))
-        sql <- glue::glue_sql("UPDATE {`sql_table`} SET tab_type_id = {tab_type_id} WHERE id = {input$selected_element}", .con = con)
+      # For vocabularies, update vocabulary_id and vocabulary_name
+      else if (id == "vocabularies"){
+        new_name <- element_name
+        sql <- glue::glue_sql("UPDATE vocabulary SET vocabulary_id = {element_name}, vocabulary_name = {input$vocabulary_name} WHERE id = {input$selected_element}", .con = con)
         sql_send_statement(con, sql)
       }
       
