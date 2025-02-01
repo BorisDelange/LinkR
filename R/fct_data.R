@@ -398,7 +398,7 @@ load_dataset_concepts <- function(r, d, m){
       dplyr::slice(0) %>%
       dplyr::mutate(count_persons_rows = numeric(), count_concepts_rows = numeric(), add_concept_input = character())
     
-    if (nrow(count_rows) > 0) {
+    if (nrow(count_rows) > 0 & nrow(concept) > 0) {
       
       # Group count_rows : if a concept_id is in distinct tables, it will produce multiple rows by concept_id
       count_rows <- 
