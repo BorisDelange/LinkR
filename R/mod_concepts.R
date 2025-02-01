@@ -112,11 +112,11 @@ mod_concepts_server <- function(id, r, d, m, language, i18n, debug, user_accesse
       else shiny.fluent::updateDropdown.shinyInput(session, "vocabulary", options = list(), value = NULL)
         
       # Reload concepts datatable
-      shinyjs::runjs(paste0("Shiny.setInputValue('", id, "-reload_concepts_dt', Math.random());"))
+      shinyjs::delay(100, shinyjs::runjs(paste0("Shiny.setInputValue('", id, "-reload_concepts_dt', Math.random());")))
       
       # Reset UI
       output$primary_concept_info <- renderUI("")
-      output$primary_concept_plot <- renderPlot(ggplot2::ggplot() + ggplot2::theme_void())
+      shinyjs::hide("primary_concept_plot")
     })
     
     # Reload concepts datatable ----
@@ -228,11 +228,12 @@ mod_concepts_server <- function(id, r, d, m, language, i18n, debug, user_accesse
           ggplot2::geom_histogram(color = "white", fill = "#0084D8", bins = 30) +
           ggplot2::theme_minimal() +
           ggplot2::labs(x = i18n$t("value"), y = i18n$t("occurrences"))
+        
+        output$primary_concept_plot <- renderPlot(plot)
+        shinyjs::show("primary_concept_plot")
       }
       
-      else plot <- ggplot2::ggplot() + ggplot2::theme_void()
-      
-      output$primary_concept_plot <- renderPlot(plot)
+      else shinyjs::hide("primary_concept_plot")
     })
     
     # Reload dataset concepts count ----
