@@ -52,28 +52,49 @@ add_patients_to_subset <- function(
   # Check and process patients
   if (is.numeric(patients)) patients <- tibble::tibble(person_id = patients)
   else if (is.data.frame(patients)) {
-    if (!"person_id" %in% names(patients)) {
+    if (!"person_id" %in% colnames(patients)) {
       return(i18n$t("invalid_patients_value_person_id_col_missing"))
     }
-    patients <- patients %>% dplyr::select(person_id)
   } else return(i18n$t("invalid_patients_value_not_numeric_vector_or_tibble"))
   
+  if ("visit_detail_id" %in% colnames(patients) & "visit_occurrence_id" %in% colnames(patients)) patients <- patients %>% dplyr::distinct(person_id, visit_occurrence_id, visit_detail_id)
+  else if ("visit_occurrence_id" %in% colnames(patients)) patients <- patients %>% dplyr::distinct(person_id, visit_occurrence_id)
+  else patients <- patients %>% dplyr::distinct(person_id)
+  
   # Keep only patients not already in the subset
-  actual_patients <- DBI::dbGetQuery(m$db, glue::glue_sql("SELECT person_id FROM subset_persons WHERE subset_id = {subset_id}", .con = m$db))
-  patients <- patients %>% dplyr::anti_join(actual_patients, by = "person_id")
+  
+  if ("visit_detail_id" %in% colnames(patients)) {
+    actual_patients <- DBI::dbGetQuery(m$db, glue::glue_sql("SELECT person_id, visit_occurrence_id, visit_detail_id FROM subset_persons WHERE subset_id = {subset_id}", .con = m$db))
+    patients <- patients %>% dplyr::anti_join(actual_patients, by = c("person_id", "visit_occurrence_id", "visit_detail_id"))
+  }
+  else if ("visit_occurrence_id" %in% colnames(patients)) {
+    actual_patients <- DBI::dbGetQuery(m$db, glue::glue_sql("SELECT person_id, visit_occurrence_id FROM subset_persons WHERE subset_id = {subset_id}", .con = m$db))
+    patients <- patients %>% dplyr::anti_join(actual_patients, by = c("person_id", "visit_occurrence_id"))
+  }
+  else {
+    actual_patients <- DBI::dbGetQuery(m$db, glue::glue_sql("SELECT person_id FROM subset_persons WHERE subset_id = {subset_id}", .con = m$db))
+    patients <- patients %>% dplyr::anti_join(actual_patients, by = "person_id")
+  }
   
   # If there are patients to add
   if (nrow(patients) > 0){
     
     # Add new patients in the subset
-    tryCatch({
-      last_id <- DBI::dbGetQuery(m$db, "SELECT COALESCE(MAX(id), 0) FROM subset_persons") %>% dplyr::pull()
-      other_cols <- tibble::tibble(id = 1:nrow(patients) + last_id, subset_id = subset_id, creator_id = m$user_id, datetime = now(), deleted = FALSE)
-      patients <- patients %>% dplyr::bind_cols(other_cols) %>% dplyr::relocate(person_id, .after = "subset_id")
-      DBI::dbAppendTable(m$db, "subset_persons", patients)
-    },
-      error = function(e) return(paste0("add_patients_to_subset - error inserting patients in subsets - ", toString(e)))
-    )
+    
+    last_id <- DBI::dbGetQuery(m$db, "SELECT COALESCE(MAX(id), 0) FROM subset_persons") %>% dplyr::pull()
+    other_cols <- tibble::tibble(id = 1:nrow(patients) + last_id, subset_id = subset_id, creator_id = r$user_id, datetime = now(), deleted = FALSE)
+    
+    if (!"visit_occurrence_id" %in% colnames(patients)) patients$visit_occurrence_id <- NA_integer_
+    if (!"visit_detail_id" %in% colnames(patients)) patients$visit_detail_id <- NA_integer_
+    
+    # Combine and reorder columns
+    
+    sql <- "SELECT * FROM subset_persons LIMIT 1"
+    cols_order <- colnames(DBI::dbGetQuery(m$db, sql))
+    
+    patients <- patients %>% dplyr::bind_cols(other_cols) %>% dplyr::select(dplyr::all_of(cols_order))
+    
+    DBI::dbAppendTable(m$db, "subset_persons", patients)
   }
   
   return(paste0(i18n$t("add_patients_subset_success"), " (n = ", nrow(patients), ")"))

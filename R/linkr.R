@@ -203,6 +203,9 @@ linkr <- function(
   
   db_col_types <- tibble::tribble(
     ~table, ~col_types, ~db, ~col_names,
+    
+    # Main tables
+    
     "users", "icccciicl", "main", c("id", "username", "firstname", "lastname", "password", "user_access_id", "user_status_id", "datetime", "deleted"),
     "users_accesses", "icccl", "main", c("id", "name", "description", "datetime", "deleted"),
     "users_statuses", "icccl", "main", c("id", "name", "description", "datetime", "deleted"),
@@ -221,12 +224,15 @@ linkr <- function(
     "inbox_messages", "iiilcl", "main", c("id", "message_id", "receiver_id", "read", "datetime", "deleted"),
     "log", "icccic", "main", c("id", "category", "name", "value", "creator_id", "datetime"),
     "git_repos", "icccccicl", "main", c("id", "unique_id", "name", "api_key", "repo_url_address", "raw_files_url_address", "creator_id", "datetime", "deleted"),
+    
+    # Public tables
+    
     "persons_options", "iiiiiiciccnicl", "public", c("id", "dataset_id", "study_id", "subset_id", "person_id", "visit_detail_id", "category", "link_id", "name", "value", "value_num", "creator_id", "datetime", "deleted"),
     "widgets_options", "iiiicccnicl", "public", c("id", "widget_id", "person_id", "link_id", "category", "name", "value", "value_num", "creator_id", "datetime", "deleted"),
     "subsets", "icciicl", "public", c("id", "name", "description", "study_id", "creator_id", "datetime", "deleted"),
     "options", "iciccnicl", "public", c("id", "category", "link_id", "name", "value", "value_num", "creator_id", "datetime", "deleted"),
     "code", "icicicl", "public", c("id", "category", "link_id", "code", "creator_id", "datetime", "deleted"),
-    "subset_persons", "iiiicl", "public", c("id", "subset_id", "person_id", "creator_id", "datetime", "deleted"),
+    "subset_persons", "iiiiiicl", "public", c("id", "subset_id", "person_id", "visit_occurrence_id", "visit_detail_id", "creator_id", "datetime", "deleted"),
     "concept", "iiccccccccc", "public", c("id", "concept_id", "concept_name", "domain_id", "vocabulary_id", "concept_class_id", "standard_concept", "concept_code", "valid_start_date", "valid_end_date", "invalid_reason"),
     "concept_dataset", "iiciiii", "public", c("id", "concept_id", "vocabulary_id", "dataset_id", "count_persons_rows", "count_concepts_rows", "count_secondary_concepts_rows"),
     "concept_user", "iiiccc", "public", c("id", "user_id", "concept_id", "concept_name", "concept_display_name", "vocabulary_id"),

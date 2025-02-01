@@ -140,7 +140,7 @@ app_server <- function(
       sql <- glue::glue_sql("SELECT * FROM git_repos", .con = r$db)
       r$git_repos <- DBI::dbGetQuery(r$db, sql) %>% tibble::as_tibble()
       
-      # Retro-compatibility : delete all insertions with DELETED IS TRUE
+      # Retro-compatibility: delete all insertions with DELETED IS TRUE
       sql <- glue::glue_sql("SELECT * FROM options WHERE name = 'unused_rows_deleted' AND value = 'true'", .con = r$db)
       if (nrow(DBI::dbGetQuery(r$db, sql)) == 0){
         
@@ -165,6 +165,16 @@ app_server <- function(
           value_num = NA_integer_, creator_id = NA_integer_, datetime = now(), deleted = FALSE
         )
         DBI::dbAppendTable(r$db, "options", new_data)
+      }
+      
+      # Retro-compatibility: add visit_occurrence_id and visit_detail_id cols to subset_persons table
+      
+      sql <- glue::glue_sql("SELECT * FROM subset_persons LIMIT 1", .con = m$db)
+      subset_persons_cols <- DBI::dbGetQuery(m$db, sql)
+      
+      if ("visit_occurrence_id" %not_in% colnames(subset_persons_cols)){
+        sql_send_statement(m$db, "ALTER TABLE subset_persons ADD COLUMN visit_occurrence_id INTEGER AFTER person_id;")
+        sql_send_statement(m$db, "ALTER TABLE subset_persons ADD COLUMN visit_detail_id INTEGER AFTER visit_occurrence_id;")
       }
     })
     

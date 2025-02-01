@@ -216,16 +216,9 @@ get_remote_db <- function(r, m, output, i18n, ns){
 load_database <- function(r, m, i18n){
   
   # Database tables to load
-  r_tables <- c("users", "users_accesses", "users_statuses", "datasets",
-    "plugins", "scripts", "code", "options", "git_repos")
-  # r_tables <- c("options", "code")
+  r_tables <- c("users", "users_accesses", "users_statuses", "datasets", "plugins", "scripts", "code", "options", "git_repos")
   
   m_tables <- c("vocabulary")
-  
-  # sapply(r_tables, function(table){
-  #   r[[table]] <- DBI::dbGetQuery(r$db, paste0("SELECT * FROM ", table, " WHERE deleted IS FALSE ORDER BY id"))
-  #   r[[paste0(table, "_temp")]] <- r[[table]] %>% dplyr::mutate(modified = FALSE)
-  # })
   
   sapply(m_tables, function(table){
     # Easier to load vocabulary in r var
