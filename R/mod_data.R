@@ -418,7 +418,8 @@ mod_data_server <- function(id, r, d, m, language, i18n, debug, user_accesses){
           
         else {
           ## Load data
-          shinyjs::runjs(paste0("Shiny.setInputValue('", id, "-load_dataset', Math.random());"))
+          # shinyjs::runjs(paste0("Shiny.setInputValue('", id, "-load_dataset', Math.random());"))
+          shinyjs::runjs(paste0("Shiny.setInputValue('projects-load_dataset', Math.random());"))
 
           ## Load concepts
           load_dataset_concepts(r, d, m)
@@ -431,14 +432,14 @@ mod_data_server <- function(id, r, d, m, language, i18n, debug, user_accesses){
     # --- --- --- --
     
     ## Dataset ----
-    observeEvent(input$load_dataset, {
-      if (debug) cat(paste0("\n", now(), " - mod_data - observer r$load_dataset"))
-      
-      shinyjs::delay(100, {
-        dataset_id <- r$selected_dataset
-        load_dataset(r, m, d, dataset_id, main_tables, m$selected_study)
-      })
-    })
+    # observeEvent(input$load_dataset, {
+    #   if (debug) cat(paste0("\n", now(), " - mod_data - observer r$load_dataset"))
+    #   
+    #   shinyjs::delay(100, {
+    #     dataset_id <- r$selected_dataset
+    #     load_dataset(id, output, r, m, d, dataset_id, main_tables, m$selected_study)
+    #   })
+    # })
     
     ## Subset ----
     observeEvent(m$selected_subset, {

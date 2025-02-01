@@ -396,6 +396,7 @@ subsets,Subsets
 success,Success
 success_importing_concepts,Concepts successfully imported
 success_update_remote_git_repo,Remote git successfully updated
+success_loading_data,Data successfully loaded
 summary,Summary
 synchronize_with_git_repo,Git synchronization
 table,Table

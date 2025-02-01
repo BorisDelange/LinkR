@@ -206,7 +206,10 @@ process_widget_code <- function(code, tab_id, widget_id, study_id, patient_id, p
 }
 
 #' @noRd
-load_dataset <- function(r, m, d, dataset_id, main_tables, selected_study){
+load_dataset <- function(id, output, r, m, d, dataset_id, main_tables, selected_study){
+  
+  i18n <- r$i18n
+  ns <- NS(id)
   
   # Reset data vars
   sapply(main_tables, function(table) d[[table]] <- tibble::tibble())
@@ -235,7 +238,10 @@ load_dataset <- function(r, m, d, dataset_id, main_tables, selected_study){
     stringr::str_replace_all("\r", "\n") %>%
     stringr::str_replace_all("%dataset_folder%", dataset_folder)
   
-  tryCatch(capture.output(eval(parse(text = dataset_code))), error = function(e) cat(paste0("\n", now(), " - mod_data - error loading dataset - dataset_id = ", dataset_id)))
+  tryCatch(capture.output(eval(parse(text = dataset_code))), error = function(e){
+    cat(paste0("\n", now(), " - mod_", id, " - error loading dataset - dataset_id = ", dataset_id, " - error = ", toString(e)))
+    show_message_bar(id, output, "error_loading_data", "severeWarning", i18n = i18n, ns = ns)
+  })
   
   # Subsets depending on the selected study
   sql <- glue::glue_sql("SELECT * FROM subsets WHERE study_id = {selected_study}", .con = m$db)
@@ -281,6 +287,9 @@ load_dataset <- function(r, m, d, dataset_id, main_tables, selected_study){
   # Select patients belonging to subsets of this study
   sql <- glue::glue_sql("SELECT * FROM subset_persons WHERE subset_id IN ({subsets_ids*})", .con = m$db)
   m$subsets_persons <- DBI::dbGetQuery(m$db, sql)
+  
+  # Notify user
+  show_message_bar(id, output, "success_loading_data", "success", i18n = i18n, ns = ns)
 }
 
 #' @noRd

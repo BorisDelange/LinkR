@@ -396,6 +396,7 @@ subsets,Subsets
 success,Succès
 success_importing_concepts,Concepts importés avec succès
 success_update_remote_git_repo,Mise à jour du dépôt git avec succès
+success_loading_data,Données chargées avec succès
 summary,Sommaire
 synchronize_with_git_repo,Synchronisation git
 table,Table

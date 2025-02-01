@@ -181,104 +181,100 @@ import_dataset <- function(
     file_names <- list.files(path = data_folder)
     
     if (length(file_names) == 0) return(i18n$t("folder_doesnt_contain_any_file"))
+    
+    if (save_as_duckdb_file) {
       
-    tryCatch({
+      db_path <- file.path(r$app_folder, "datasets_files", dataset_id, "duckdb_data.db")
       
-      if (save_as_duckdb_file) {
-        
-        db_path <- file.path(r$app_folder, "datasets_files", dataset_id, "duckdb_data.db")
-        
-        # Rewrite DuckDB database ?
-        if (rewrite) unlink(db_path)
-        
-        d$con <- DBI::dbConnect(duckdb::duckdb(), dbdir = db_path, read_only = FALSE)
-      } else d$con <- DBI::dbConnect(duckdb::duckdb())
+      # Rewrite DuckDB database ?
+      if (rewrite) unlink(db_path)
       
-      for (file_name in file_names){
+      d$con <- DBI::dbConnect(duckdb::duckdb(), dbdir = db_path, read_only = FALSE)
+    } else d$con <- DBI::dbConnect(duckdb::duckdb())
+    
+    for (file_name in file_names){
+      
+      table <- sub("\\.[^.]*$", "", file_name)
+      file_ext <- sub(".*\\.", "", tolower(file_name))
+      
+      # If no file_ext, consider it is a folder containing parquet or CSV files
+      if (file_ext == table) file_ext <- ""
+      
+      # Check if this is an OMOP table
+      
+      if (table %in% load_tables){
         
-        table <- sub("\\.[^.]*$", "", file_name)
-        file_ext <- sub(".*\\.", "", tolower(file_name))
-        
-        # If no file_ext, consider it is a folder containing parquet or CSV files
-        if (file_ext == table) file_ext <- ""
-        
-        # Check if this is an OMOP table
-        
-        if (table %in% load_tables){
+        if (file_ext %in% c("csv", "parquet", "")){
           
-          if (file_ext %in% c("csv", "parquet", "")){
+          # If no file_ext, consider it is a folder and try to find extension of first file
+          if (file_ext == "") {
+            folder_path <- file.path(data_folder, file_name)
             
-            # If no file_ext, consider it is a folder and try to find extension of first file
-            if (file_ext == "") {
-              folder_path <- file.path(data_folder, file_name)
+            if (dir.exists(folder_path)) {
+              folder_files <- list.files(folder_path)
               
-              if (dir.exists(folder_path)) {
-                folder_files <- list.files(folder_path)
-                
-                if (length(folder_files) > 0) {
-                  # Get extension of first file
-                  first_file_ext <- sub(".*\\.", "", tolower(folder_files[1]))
-                  if (first_file_ext %in% c("csv", "parquet")) {
-                    file_ext <- first_file_ext
-                  }
+              if (length(folder_files) > 0) {
+                # Get extension of first file
+                first_file_ext <- sub(".*\\.", "", tolower(folder_files[1]))
+                if (first_file_ext %in% c("csv", "parquet")) {
+                  file_ext <- first_file_ext
                 }
-              }
-            }
-            
-            if (file_ext %in% c("csv", "parquet")){
-              
-              if (save_as_duckdb_file) {
-                if (!DBI::dbExistsTable(d$con, table)){
-                  
-                  file_path <- file.path(data_folder, file_name)
-                  
-                  if (file_ext == "csv"){
-                    type_codes <- strsplit(col_types[[table]], "")[[1]]
-                    col_names <- data_cols[[table]]
-                    col_types_sql <- paste(
-                      mapply(
-                        function(col, type) {
-                          sprintf('"%s" %s', col, convert_to_duckdb_type(type))
-                        },
-                        col_names,
-                        type_codes
-                      ),
-                      collapse = ", "
-                    )
-                    
-                    DBI::dbExecute(d$con, sprintf("CREATE TABLE %s (%s)", table, col_types_sql))
-                    
-                    DBI::dbExecute(
-                      d$con,
-                      sprintf(
-                        "INSERT INTO %s SELECT * FROM read_%s_auto('%s', nullstr='NA')",
-                        table,
-                        file_ext,
-                        file.path(data_folder, file_name)
-                      )
-                    )
-                  }
-                  else if (file_ext == "parquet") DBI::dbExecute(d$con, paste0("CREATE TABLE ", table, " AS SELECT * FROM read_parquet('", file_path, "')"))
-                }
-              } else {
-              
-                duckdb::duckdb_unregister_arrow(d$con, table)
-                duckdb::duckdb_register_arrow(
-                  d$con, table,
-                  arrow::open_dataset(file.path(data_folder, file_name), format = file_ext)
-                )
               }
             }
           }
           
-          if (DBI::dbExistsTable(d$con, table)){
-            d[[table]] <- dplyr::tbl(d$con, table)
-            loaded_tables <- c(loaded_tables, table)
+          if (file_ext %in% c("csv", "parquet")){
+            
+            if (save_as_duckdb_file) {
+              if (!DBI::dbExistsTable(d$con, table)){
+                
+                file_path <- file.path(data_folder, file_name)
+                
+                if (file_ext == "csv"){
+                  type_codes <- strsplit(col_types[[table]], "")[[1]]
+                  col_names <- data_cols[[table]]
+                  col_types_sql <- paste(
+                    mapply(
+                      function(col, type) {
+                        sprintf('"%s" %s', col, convert_to_duckdb_type(type))
+                      },
+                      col_names,
+                      type_codes
+                    ),
+                    collapse = ", "
+                  )
+                  
+                  DBI::dbExecute(d$con, sprintf("CREATE TABLE %s (%s)", table, col_types_sql))
+                  
+                  DBI::dbExecute(
+                    d$con,
+                    sprintf(
+                      "INSERT INTO %s SELECT * FROM read_%s_auto('%s', nullstr='NA')",
+                      table,
+                      file_ext,
+                      file.path(data_folder, file_name)
+                    )
+                  )
+                }
+                else if (file_ext == "parquet") DBI::dbExecute(d$con, paste0("CREATE TABLE ", table, " AS SELECT * FROM read_parquet('", file_path, "')"))
+              }
+            } else {
+            
+              duckdb::duckdb_unregister_arrow(d$con, table)
+              duckdb::duckdb_register_arrow(
+                d$con, table,
+                arrow::open_dataset(file.path(data_folder, file_name), format = file_ext)
+              )
+            }
           }
         }
+        
+        if (DBI::dbExistsTable(d$con, table)){
+          d[[table]] <- dplyr::tbl(d$con, table)
+          loaded_tables <- c(loaded_tables, table)
+        }
       }
-    },
-    error = function(e) return(paste0(i18n$t("error_loading_data"), " - ", toString(e))))
+    }
   }
   
   ## Import data from database connection ----
@@ -311,13 +307,9 @@ import_dataset <- function(
   
   if (r$current_page == "datasets"){
     for (table in loaded_tables){
+      d[[table]] <- d[[table]] %>% dplyr::select(data_cols[[table]])
       
-      tryCatch({
-        d[[table]] <- d[[table]] %>% dplyr::select(data_cols[[table]])
-        
-        loaded_data <- loaded_data %>% dplyr::bind_rows(tibble::tibble(table = table, n_rows = d[[table]] %>% dplyr::count() %>% dplyr::pull()))
-      },
-      error = function(e) return(paste0(i18n$t("error_transforming_cols"), " - table = ", table, " - ", toString(e))))
+      loaded_data <- loaded_data %>% dplyr::bind_rows(tibble::tibble(table = table, n_rows = d[[table]] %>% dplyr::count() %>% dplyr::pull()))
     }
   }
   

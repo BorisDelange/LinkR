@@ -571,6 +571,17 @@ mod_projects_server <- function(id, r, d, m, language, i18n, debug, user_accesse
         dplyr::mutate(dataset_id = dplyr::case_when(id == input$selected_element ~ input$project_dataset, TRUE ~ dataset_id))
     })
     
+    ## Load dataset ----
+    
+    observeEvent(input$load_dataset, {
+      if (debug) cat(paste0("\n", now(), " - mod_projects - observer input$load_dataset"))
+      
+      shinyjs::delay(100, {
+        dataset_id <- r$selected_dataset
+        load_dataset(id, output, r, m, d, dataset_id, r$main_tables, m$selected_study)
+      })
+    })
+    
     ## Reload dataset ----
     
     observeEvent(input$reload_dataset, {
@@ -583,7 +594,7 @@ mod_projects_server <- function(id, r, d, m, language, i18n, debug, user_accesse
       sapply(c("dataset_care_sites_details", "dataset_patients_details", "dataset_stays_details"), shinyjs::hide)
       
       # Load dataset
-      load_dataset(r, m, d, input$project_dataset, r$main_tables, m$selected_study)
+      load_dataset(id, output, r, m, d, input$project_dataset, r$main_tables, m$selected_study)
     })
     
     ## Dataset details ----
