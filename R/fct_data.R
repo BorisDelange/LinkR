@@ -502,6 +502,8 @@ load_dataset_concepts <- function(r, d, m){
   
   for (table in c("concept", "concept_ancestor", "concept_relationship", "concept_synonym", "drug_strength", "vocabulary", "concept_class", "relationship", "domain")){
     
+    file_path <- file.path(dataset_folder, paste0(table, ".parquet"))
+    
     if (r$import_dataset_source == "disk" && r$import_dataset_save_as_duckdb_file){
       if (length(d$con) > 0){
         

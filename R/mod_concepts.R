@@ -261,8 +261,8 @@ mod_concepts_server <- function(id, r, d, m, language, i18n, debug, user_accesse
         if (r$import_dataset_source == "disk" && r$import_dataset_save_as_duckdb_file){
           if (length(d$con) > 0){
             if (DBI::dbExistsTable(d$con, table)){
-              sql <- glue::glue_sql("DROP TABLE {table}", .con = m$db)
-              DBI::dbExecute(d$con, sql)
+              # sql <- glue::glue_sql("DROP TABLE {table}", .con = d$con)
+              DBI::dbExecute(d$con, paste0("DROP TABLE ", table))
             }
           }
         }
