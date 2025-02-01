@@ -397,8 +397,11 @@ mod_widgets_server <- function(id, r, d, m, language, i18n, all_divs, debug, use
         patient_lvl_tab_group_id <- get_last_row(con, "tabs_groups") + 1
         aggregated_tab_group_id <- get_last_row(con, "tabs_groups") + 2
         
+        dataset_id <- NA_integer_
+        if (length(input$element_creation_dataset) > 0) dataset_id <- input$element_creation_dataset
+        
         new_data <- tibble::tibble(
-          id = element_id, name = element_name, dataset_id = NA_integer_, 
+          id = element_id, name = element_name, dataset_id = dataset_id, 
           patient_lvl_tab_group_id = patient_lvl_tab_group_id, aggregated_tab_group_id = aggregated_tab_group_id,
           creator_id = r$user_id, creation_datetime = now(), update_datetime = now(), deleted = FALSE)
         
@@ -524,6 +527,7 @@ mod_widgets_server <- function(id, r, d, m, language, i18n, all_divs, debug, use
         shiny.fluent::updateDropdown.shinyInput(session, "plugin_to_copy", options = plugin_to_copy_options, errorMessage = i18n$t("field_cant_be_empty"))
         shiny.fluent::updateToggle.shinyInput(session, "plugin_copy_existing_plugin", value = FALSE)
       }
+      else if (id == "projects") shiny.fluent::updateDropdown.shinyInput(session, "element_creation_dataset", options = convert_tibble_to_list(r$datasets_wide, key_col = "id", text_col = "name"), value = NULL)
       
       # Update elements widgets
       shinyjs::runjs(paste0("Shiny.setInputValue('", id, "-reload_elements_var', Math.random());"))

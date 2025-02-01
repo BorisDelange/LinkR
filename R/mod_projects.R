@@ -375,6 +375,7 @@ mod_projects_ui <- function(id, language, languages, i18n){
           ),
           div(
             div(shiny.fluent::TextField.shinyInput(ns("element_creation_name"), label = i18n$t("name")), style = "width: 200px;"),
+            div(shiny.fluent::Dropdown.shinyInput(ns("element_creation_dataset"), label = i18n$t("dataset")), style = "width: 200px;"),
             div(
               shiny.fluent::PrimaryButton.shinyInput(ns("add_element"), i18n$t("add")),
               class = "create_element_modal_buttons"
@@ -440,6 +441,14 @@ mod_projects_server <- function(id, r, d, m, language, i18n, debug, user_accesse
         shinyjs::hide(paste0(type, "_forbidden_access"))
       }
     }
+    
+    # Update project creation dataset
+    
+    observeEvent(r$datasets_wide, {
+      if (debug) cat(paste0("\n", now(), " - mod_projects - observer r$datasets_wide"))
+      
+      shiny.fluent::updateDropdown.shinyInput(session, "element_creation_dataset", options = convert_tibble_to_list(r$datasets_wide, key_col = "id", text_col = "name"), value = NULL)
+    })
     
     # --- --- --- --- ---
     # Load a project ----
