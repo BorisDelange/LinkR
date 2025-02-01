@@ -427,23 +427,13 @@ mod_data_server <- function(id, r, d, m, language, i18n, debug, user_accesses){
     # Load data ----
     # --- --- --- --
     
-    ## Dataset ----
-    # observeEvent(input$load_dataset, {
-    #   if (debug) cat(paste0("\n", now(), " - mod_data - observer r$load_dataset"))
-    #   
-    #   shinyjs::delay(100, {
-    #     dataset_id <- r$selected_dataset
-    #     load_dataset(id, output, r, m, d, dataset_id, main_tables, m$selected_study)
-    #   })
-    # })
-    
     ## Subset ----
     observeEvent(m$selected_subset, {
       if (debug) cat(paste0("\n", now(), " - mod_data - observer m$selected_subset"))
       
       req(!is.na(m$selected_subset))
       
-      if (nrow(m$subset_persons) == 0) for(table in tables) d$data_subset[[table]] <- tibble::tibble()
+      if (nrow(m$subset_persons) == 0) for(table in subset_tables) d$data_subset[[table]] <- tibble::tibble()
       
       else {
         
@@ -468,17 +458,19 @@ mod_data_server <- function(id, r, d, m, language, i18n, debug, user_accesses){
       
       # Update date sliderInput and DatePicker
       
-      dates_range <-
-        d$data_subset$visit_occurrence %>%
-        dplyr::summarize(
-          min_date = min(visit_start_datetime, na.rm = TRUE),
-          max_date = max(visit_end_datetime, na.rm = TRUE)
-        ) %>%
-        dplyr::collect() %>%
-        dplyr::mutate_at(c("min_date", "max_date"), as.Date)
-      
-      subset_dates_range(c(dates_range$min_date, dates_range$max_date))
-      subset_dates(c(dates_range$min_date, dates_range$max_date))
+      if (nrow(d$data_subset$visit_occurrence) > 0){
+        dates_range <-
+          d$data_subset$visit_occurrence %>%
+          dplyr::summarize(
+            min_date = min(visit_start_datetime, na.rm = TRUE),
+            max_date = max(visit_end_datetime, na.rm = TRUE)
+          ) %>%
+          dplyr::collect() %>%
+          dplyr::mutate_at(c("min_date", "max_date"), as.Date)
+        
+        subset_dates_range(c(dates_range$min_date, dates_range$max_date))
+        subset_dates(c(dates_range$min_date, dates_range$max_date))
+      }
     })
     
     ## Patient ----
