@@ -19,7 +19,7 @@ mod_page_header_ui <- function(id, language, i18n){
         
         # Main pages
         shiny.fluent::CommandBarItem(
-          "", "CustomList", title = i18n$t("projects"), href = shiny.router::route_link("projects"),
+          "", "OpenFolderHorizontal", title = i18n$t("projects"), href = shiny.router::route_link("projects"),
           onClick = htmlwidgets::JS(paste0("item => {Shiny.setInputValue('", id, "-show_home', Math.random());}"))
         ),
         shiny.fluent::CommandBarItem("", "Code", title = i18n$t("console"), href = shiny.router::route_link("console")),
@@ -30,7 +30,7 @@ mod_page_header_ui <- function(id, language, i18n){
           text = "", "More",
           subMenuProps = list(items = list(
             list(
-              text = i18n$t("plugins"), iconProps = list(iconName = "Code"), href = shiny.router::route_link("plugins"),
+              text = i18n$t("plugins"), iconProps = list(iconName = "Puzzle"), href = shiny.router::route_link("plugins"),
               onClick = htmlwidgets::JS(paste0("item => {Shiny.setInputValue('", id, "-show_home', Math.random());}"))
             ),
             list(
@@ -38,11 +38,11 @@ mod_page_header_ui <- function(id, language, i18n){
               onClick = htmlwidgets::JS(paste0("item => {Shiny.setInputValue('", id, "-show_home', Math.random());}"))
             ),
             list(
-              text = i18n$t("vocabularies"), iconProps = list(iconName = "AllApps"), href = shiny.router::route_link("vocabularies"),
+              text = i18n$t("vocabularies"), iconProps = list(iconName = "LocaleLanguage"), href = shiny.router::route_link("vocabularies"),
               onClick = htmlwidgets::JS(paste0("item => {Shiny.setInputValue('", id, "-show_home', Math.random());}"))
             ),
             list(
-              text = i18n$t("data_cleaning"), iconProps = list(iconName = "CodeEdit"), href = shiny.router::route_link("data_cleaning"),
+              text = i18n$t("data_cleaning"), iconProps = list(iconName = "Broom"), href = shiny.router::route_link("data_cleaning"),
               onClick = htmlwidgets::JS(paste0("item => {Shiny.setInputValue('", id, "-show_home', Math.random());}"))
             )
           )),
@@ -125,7 +125,7 @@ mod_page_header_ui <- function(id, language, i18n){
                 "", "Settings",
                 subMenuProps = list(items = list(
                   list(text = i18n$t("user_settings"), iconProps = list(iconName = "Settings"), href = shiny.router::route_link("user_settings")),
-                  list(text = i18n$t("users"), iconProps = list(iconName = "Contact"), href = shiny.router::route_link("users")),
+                  list(text = i18n$t("users"), iconProps = list(iconName = "People"), href = shiny.router::route_link("users")),
                   list(text = i18n$t("app_db"), iconProps = list(iconName = "OfflineStorage"), href = shiny.router::route_link("app_db")),
                   list(text = i18n$t("log"), iconProps = list(iconName = "KnowledgeArticle"), href = shiny.router::route_link("log"))
                 )),
