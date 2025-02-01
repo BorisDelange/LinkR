@@ -499,12 +499,12 @@ load_dataset_concepts <- function(r, d, m){
   # If dataset is imported in a duckdb database, add these tables in the database
   # In all cases, add these tables in d$...
   
-  
   for (table in c("concept", "concept_ancestor", "concept_relationship", "concept_synonym", "drug_strength", "vocabulary", "concept_class", "relationship", "domain")){
     
     file_path <- file.path(dataset_folder, paste0(table, ".parquet"))
     
-    if (r$import_dataset_source == "disk" && r$import_dataset_save_as_duckdb_file){
+    # Case 1: a duckdb DB has been created from files or from an existing database
+    if (r$import_dataset_save_as_duckdb_file){
       if (length(d$con) > 0){
         
         if (!DBI::dbExistsTable(d$con, table)){
@@ -514,9 +514,12 @@ load_dataset_concepts <- function(r, d, m){
         d[[table]] <- dplyr::tbl(d$con, table)
       }
     }
-    else {
-      d[[table]] <- arrow::read_parquet(file_path)
-    }
+    
+    # Case 2: vocabulary tables exist in DB connection
+    else if (DBI::dbExistsTable(d$con, table)) d[[table]] <- dplyr::tbl(d$con, table)
+    
+    # Case 3: dataset is created from files without creating a DuckDB file or it is a database connection without vocabulary tables
+    else d[[table]] <- arrow::read_parquet(file_path)
   }
 }
 

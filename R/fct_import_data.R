@@ -21,7 +21,6 @@ import_dataset <- function(
   
   i18n <- r$i18n
   
-  r$import_dataset_source <- "disk"
   r$import_dataset_save_as_duckdb_file <- save_as_duckdb_file
   
   # Check arguments ----
