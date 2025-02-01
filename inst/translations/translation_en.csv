@@ -503,6 +503,7 @@ admissions_number,Admissions number
 folder_doesnt_exist,Provided folder doesn't exist
 install_study,Install project
 error_loading_data,Error loading data
+error_loading_data_details,Error loading data details
 create_data_cleaning_script,Create a script for data cleaning
 error_update_remote_git_repo,Error updating remote git repo
 invalid_filename,Invalid file name

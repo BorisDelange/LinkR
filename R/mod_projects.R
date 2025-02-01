@@ -629,27 +629,32 @@ mod_projects_server <- function(id, r, d, m, language, i18n, debug, user_accesse
       
       if (input$dataset_details == "care_sites"){
         
-        num_care_sites <- 0
-        
-        if (d$location %>% dplyr::count() %>% dplyr::pull() > 0 & d$care_site %>% dplyr::count() %>% dplyr::pull() > 0){
-          care_sites <-
-            d$location %>%
-            dplyr::inner_join(d$care_site, by = "location_id")
+        tryCatch({
+          num_care_sites <- 0
           
-          num_care_sites <- care_sites %>% dplyr::distinct(location_id) %>% dplyr::count() %>% dplyr::pull()
-        }
-        
-        if (num_care_sites == 0){
+          if (d$location %>% dplyr::count() %>% dplyr::pull() > 0 & d$care_site %>% dplyr::count() %>% dplyr::pull() > 0){
+            care_sites <-
+              d$location %>%
+              dplyr::inner_join(d$care_site, by = "location_id")
+            
+            num_care_sites <- care_sites %>% dplyr::distinct(location_id) %>% dplyr::count() %>% dplyr::pull()
+          }
           
-        }
-        
-        req(num_care_sites > 0)
-        
-        output$dataset_care_sites_locations_table <- renderTable(
-          care_sites %>%
-            dplyr::distinct(location_source_value) %>%
-            dplyr::rename(!!i18n$t("care_site") := location_source_value)
-        )
+          if (num_care_sites == 0){
+            
+          }
+          
+          req(num_care_sites > 0)
+          
+          output$dataset_care_sites_locations_table <- renderTable(
+            care_sites %>%
+              dplyr::distinct(location_source_value) %>%
+              dplyr::rename(!!i18n$t("care_site") := location_source_value)
+          )
+        }, error = function(e){
+          cat(paste0("\n", now(), " - mod_projects - error loading care_sites details - error = ", toString(e)))
+          show_message_bar(id, output, "error_loading_data_details", "severeWarning", i18n = i18n, ns = ns)
+        })
       }
       
       ## Patients details ----
@@ -664,117 +669,122 @@ mod_projects_server <- function(id, r, d, m, language, i18n, debug, user_accesse
         
         req(num_rows > 0)
         
-        age_data <-
-          d$visit_occurrence %>%
-          dplyr::left_join(
-            d$person %>% dplyr::select(person_id, birth_datetime),
-            by = "person_id"
-          ) %>%
-          dplyr::collect() %>%
-          dplyr::group_by(person_id) %>%
-          dplyr::summarise(
-            first_admission = min(visit_start_datetime, na.rm = TRUE),
-            birth_datetime = dplyr::first(birth_datetime),
-            .groups = "drop"
-          ) %>%
-          dplyr::mutate(
-            age = round(as.numeric(difftime(first_admission, birth_datetime, units = "days")) / 365.25, 1)
-          )
-        
-        gender_data <-
-          d$person %>%
-          dplyr::collect() %>%
-          dplyr::select(person_id, gender_concept_id) %>%
-          dplyr::filter(gender_concept_id %in% c(8507, 8532)) %>%
-          dplyr::mutate(gender = dplyr::case_when(
-            gender_concept_id == 8507 ~ i18n$t("male"),
-            gender_concept_id == 8532 ~ i18n$t("female")
-          ))
-        
-        age_gender_data <- age_data %>% dplyr::left_join(gender_data, by = "person_id")
-        
-        output$dataset_patients_age_plot <- renderPlot(
-          age_data %>%
-            ggplot2::ggplot(ggplot2::aes(x = age)) +
-            ggplot2::geom_histogram(bins = 40, color = "white", fill = "#2874A6") +
-            ggplot2::theme_minimal() +
-            ggplot2::labs(title = i18n$t("age_at_first_hospit"), x = i18n$t("age"), y = i18n$t("occurrences")) +
-            ggplot2::scale_x_continuous(breaks = seq(0, max(age_data$age, na.rm = TRUE), by = 10), limits = c(0, max(age_data$age, na.rm = TRUE))) +
-            ggplot2::theme(
-              plot.title = ggplot2::element_text(hjust = 0.5, face = "bold")
-            )
-        )
-        
-        output$dataset_patients_age_table <- renderTable({
-          age_data %>%
-          dplyr::mutate(age_group = cut(
-            age,
-            breaks = c(0, 2, 10, 18, 25, seq(35, 75, by = 10), Inf),
-            labels = c(
-              paste0("0 - 2 ", tolower(i18n$t("years"))),
-              paste0("2 - 10 ", tolower(i18n$t("years"))),
-              paste0("10 - 18 ", tolower(i18n$t("years"))),
-              paste0("18 - 25 ", tolower(i18n$t("years"))),
-              paste0("25 - 35 ", tolower(i18n$t("years"))),
-              paste0("35 - 45 ", tolower(i18n$t("years"))),
-              paste0("45 - 55 ", tolower(i18n$t("years"))),
-              paste0("55 - 65 ", tolower(i18n$t("years"))),
-              paste0("65 - 75 ", tolower(i18n$t("years"))),
-              paste0("75 ", tolower(i18n$t("years_and_over")))
-            ),
-            right = FALSE
-          )) %>%
-          dplyr::group_by(age_group) %>%
-          dplyr::summarise(
-            !!i18n$t("num_patients") := dplyr::n(),
-            .groups = "drop"
-          ) %>%
-            dplyr::rename(!!i18n$t("age_class") := age_group)
-        }, sanitize.text.function = identity, rownames = FALSE)
-        
-        output$dataset_patients_gender_plot <- renderPlot(
-          gender_data %>%
-          dplyr::count(gender) %>%
-          dplyr::mutate(percentage = n / sum(n) * 100) %>%
-          dplyr::mutate(label = paste0(gender, "\n", round(percentage, 1), "%")) %>%
-          ggplot2::ggplot(ggplot2::aes(x = "", y = percentage, fill = gender)) +
-          ggplot2::geom_bar(width = 1, stat = "identity", color = "white") +
-          ggplot2::coord_polar("y", start = 0) +
-          ggplot2::theme_void() +
-          ggplot2::scale_fill_manual(values = setNames(c("#1f77b4", "#6baed6"), c(i18n$t("female"), i18n$t("male")))) +
-          ggplot2::labs(fill = i18n$t("gender"), title = i18n$t("gender_distribution")) +
-          ggplot2::theme(plot.title = ggplot2::element_text(hjust = 0.5, face = "bold"), legend.position = "none") +
-          ggplot2::geom_text(
-            ggplot2::aes(label = label),
-            position = ggplot2::position_stack(vjust = 0.5),
-            color = "white",
-            size = 5,
-            fontface = "bold"
-          )
-        )
-        
-        calculate_stats <- function(data) {
-          data %>%
+        tryCatch({
+          age_data <-
+            d$visit_occurrence %>%
+            dplyr::left_join(
+              d$person %>% dplyr::select(person_id, birth_datetime),
+              by = "person_id"
+            ) %>%
+            dplyr::collect() %>%
+            dplyr::group_by(person_id) %>%
             dplyr::summarise(
-              !!i18n$t("number") := dplyr::n(),
-              !!i18n$t("min") := min(age, na.rm = TRUE),
-              !!i18n$t("iq1") := quantile(age, 0.25, na.rm = TRUE),
-              !!i18n$t("mean") := mean(age, na.rm = TRUE),
-              !!i18n$t("std") := sd(age, na.rm = TRUE),
-              !!i18n$t("median") := median(age, na.rm = TRUE),
-              !!i18n$t("iq3") := quantile(age, 0.75, na.rm = TRUE),
-              !!i18n$t("max") := max(age, na.rm = TRUE)
+              first_admission = min(visit_start_datetime, na.rm = TRUE),
+              birth_datetime = dplyr::first(birth_datetime),
+              .groups = "drop"
+            ) %>%
+            dplyr::mutate(
+              age = round(as.numeric(difftime(first_admission, birth_datetime, units = "days")) / 365.25, 1)
             )
-        }
-        
-        output$dataset_patients_age_gender_table <- renderTable({
-          dplyr::bind_rows(
-            !!i18n$t("all_patients") := calculate_stats(age_gender_data),
-            !!i18n$t("male") := calculate_stats(age_gender_data %>% dplyr::filter(gender == i18n$t("male"))),
-            !!i18n$t("female") := calculate_stats(age_gender_data %>% dplyr::filter(gender == i18n$t("female"))),
-            .id = "Groupe"
+          
+          gender_data <-
+            d$person %>%
+            dplyr::collect() %>%
+            dplyr::select(person_id, gender_concept_id) %>%
+            dplyr::filter(gender_concept_id %in% c(8507, 8532)) %>%
+            dplyr::mutate(gender = dplyr::case_when(
+              gender_concept_id == 8507 ~ i18n$t("male"),
+              gender_concept_id == 8532 ~ i18n$t("female")
+            ))
+          
+          age_gender_data <- age_data %>% dplyr::left_join(gender_data, by = "person_id")
+          
+          output$dataset_patients_age_plot <- renderPlot(
+            age_data %>%
+              ggplot2::ggplot(ggplot2::aes(x = age)) +
+              ggplot2::geom_histogram(bins = 40, color = "white", fill = "#2874A6") +
+              ggplot2::theme_minimal() +
+              ggplot2::labs(title = i18n$t("age_at_first_hospit"), x = i18n$t("age"), y = i18n$t("occurrences")) +
+              ggplot2::scale_x_continuous(breaks = seq(0, max(age_data$age, na.rm = TRUE), by = 10), limits = c(0, max(age_data$age, na.rm = TRUE))) +
+              ggplot2::theme(
+                plot.title = ggplot2::element_text(hjust = 0.5, face = "bold")
+              )
           )
-        }, sanitize.text.function = identity, rownames = FALSE)
+          
+          output$dataset_patients_age_table <- renderTable({
+            age_data %>%
+            dplyr::mutate(age_group = cut(
+              age,
+              breaks = c(0, 2, 10, 18, 25, seq(35, 75, by = 10), Inf),
+              labels = c(
+                paste0("0 - 2 ", tolower(i18n$t("years"))),
+                paste0("2 - 10 ", tolower(i18n$t("years"))),
+                paste0("10 - 18 ", tolower(i18n$t("years"))),
+                paste0("18 - 25 ", tolower(i18n$t("years"))),
+                paste0("25 - 35 ", tolower(i18n$t("years"))),
+                paste0("35 - 45 ", tolower(i18n$t("years"))),
+                paste0("45 - 55 ", tolower(i18n$t("years"))),
+                paste0("55 - 65 ", tolower(i18n$t("years"))),
+                paste0("65 - 75 ", tolower(i18n$t("years"))),
+                paste0("75 ", tolower(i18n$t("years_and_over")))
+              ),
+              right = FALSE
+            )) %>%
+            dplyr::group_by(age_group) %>%
+            dplyr::summarise(
+              !!i18n$t("num_patients") := dplyr::n(),
+              .groups = "drop"
+            ) %>%
+              dplyr::rename(!!i18n$t("age_class") := age_group)
+          }, sanitize.text.function = identity, rownames = FALSE)
+          
+          output$dataset_patients_gender_plot <- renderPlot(
+            gender_data %>%
+            dplyr::count(gender) %>%
+            dplyr::mutate(percentage = n / sum(n) * 100) %>%
+            dplyr::mutate(label = paste0(gender, "\n", round(percentage, 1), "%")) %>%
+            ggplot2::ggplot(ggplot2::aes(x = "", y = percentage, fill = gender)) +
+            ggplot2::geom_bar(width = 1, stat = "identity", color = "white") +
+            ggplot2::coord_polar("y", start = 0) +
+            ggplot2::theme_void() +
+            ggplot2::scale_fill_manual(values = setNames(c("#1f77b4", "#6baed6"), c(i18n$t("female"), i18n$t("male")))) +
+            ggplot2::labs(fill = i18n$t("gender"), title = i18n$t("gender_distribution")) +
+            ggplot2::theme(plot.title = ggplot2::element_text(hjust = 0.5, face = "bold"), legend.position = "none") +
+            ggplot2::geom_text(
+              ggplot2::aes(label = label),
+              position = ggplot2::position_stack(vjust = 0.5),
+              color = "white",
+              size = 5,
+              fontface = "bold"
+            )
+          )
+          
+          calculate_stats <- function(data) {
+            data %>%
+              dplyr::summarise(
+                !!i18n$t("number") := dplyr::n(),
+                !!i18n$t("min") := min(age, na.rm = TRUE),
+                !!i18n$t("iq1") := quantile(age, 0.25, na.rm = TRUE),
+                !!i18n$t("mean") := mean(age, na.rm = TRUE),
+                !!i18n$t("std") := sd(age, na.rm = TRUE),
+                !!i18n$t("median") := median(age, na.rm = TRUE),
+                !!i18n$t("iq3") := quantile(age, 0.75, na.rm = TRUE),
+                !!i18n$t("max") := max(age, na.rm = TRUE)
+              )
+          }
+          
+          output$dataset_patients_age_gender_table <- renderTable({
+            dplyr::bind_rows(
+              !!i18n$t("all_patients") := calculate_stats(age_gender_data),
+              !!i18n$t("male") := calculate_stats(age_gender_data %>% dplyr::filter(gender == i18n$t("male"))),
+              !!i18n$t("female") := calculate_stats(age_gender_data %>% dplyr::filter(gender == i18n$t("female"))),
+              .id = "Groupe"
+            )
+          }, sanitize.text.function = identity, rownames = FALSE)
+        }, error = function(e){
+          cat(paste0("\n", now(), " - mod_projects - error loading patients details - error = ", toString(e)))
+          show_message_bar(id, output, "error_loading_data_details", "severeWarning", i18n = i18n, ns = ns)
+        })
         
       }
       
@@ -782,48 +792,53 @@ mod_projects_server <- function(id, r, d, m, language, i18n, debug, user_accesse
       
       else if (input$dataset_details == "stays"){
         
-        admissions_data <- d$visit_occurrence %>%
-          dplyr::select(visit_start_date) %>%
-          dplyr::collect() %>%
-          dplyr::mutate(visit_start_date = as.Date(visit_start_date)) %>%
-          dplyr::mutate(month = lubridate::floor_date(visit_start_date, "month")) %>%
-          dplyr::group_by(month) %>%
-          dplyr::summarize(admissions_count = dplyr::n()) %>%
-          dplyr::ungroup()
-        
-        filtered_admissions_data <- admissions_data %>%
-          dplyr::arrange(desc(month)) %>%
-          dplyr::slice(1:30) %>%
-          dplyr::arrange(month)
-        
-        output$dataset_admissions_plot <- renderPlot(
-          ggplot2::ggplot(filtered_admissions_data, ggplot2::aes(x = month, y = admissions_count)) +
-            ggplot2::geom_col(fill = "#2874A6", alpha = 0.7) +
-            ggplot2::scale_x_date(breaks = scales::breaks_pretty(n = 10), date_labels = "%b %Y") +
-            ggplot2::theme_minimal() +
-            ggplot2::labs(
-              x = "Date",
-              y = "Number of admissions",
-              title = "Number of admissions over time"
-            ) +
-            ggplot2::theme(
-              plot.title = ggplot2::element_text(hjust = 0.5, face = "bold")
-            )
-        )
-        
-        care_site_visits <-
-          d$visit_detail %>%
-          dplyr::left_join(d$care_site, by = "care_site_id") %>%
-          dplyr::group_by(care_site_name) %>%
-          dplyr::summarise(num = as.integer(dplyr::n())) %>%
-          dplyr::ungroup() %>%
-          dplyr::collect() %>%
-          dplyr::arrange(desc(num)) %>%
-          dplyr::slice_head(n = 20)
-        
-        colnames(care_site_visits) <- c(i18n$t("hospital_unit_name"), i18n$t("admissions_number"))
-        
-        output$dataset_care_sites_table <- renderTable(care_site_visits)
+        tryCatch({
+          admissions_data <- d$visit_occurrence %>%
+            dplyr::select(visit_start_date) %>%
+            dplyr::collect() %>%
+            dplyr::mutate(visit_start_date = as.Date(visit_start_date)) %>%
+            dplyr::mutate(month = lubridate::floor_date(visit_start_date, "month")) %>%
+            dplyr::group_by(month) %>%
+            dplyr::summarize(admissions_count = dplyr::n()) %>%
+            dplyr::ungroup()
+          
+          filtered_admissions_data <- admissions_data %>%
+            dplyr::arrange(desc(month)) %>%
+            dplyr::slice(1:30) %>%
+            dplyr::arrange(month)
+          
+          output$dataset_admissions_plot <- renderPlot(
+            ggplot2::ggplot(filtered_admissions_data, ggplot2::aes(x = month, y = admissions_count)) +
+              ggplot2::geom_col(fill = "#2874A6", alpha = 0.7) +
+              ggplot2::scale_x_date(breaks = scales::breaks_pretty(n = 10), date_labels = "%b %Y") +
+              ggplot2::theme_minimal() +
+              ggplot2::labs(
+                x = "Date",
+                y = "Number of admissions",
+                title = "Number of admissions over time"
+              ) +
+              ggplot2::theme(
+                plot.title = ggplot2::element_text(hjust = 0.5, face = "bold")
+              )
+          )
+          
+          care_site_visits <-
+            d$visit_detail %>%
+            dplyr::left_join(d$care_site, by = "care_site_id") %>%
+            dplyr::group_by(care_site_name) %>%
+            dplyr::summarise(num = as.integer(dplyr::n())) %>%
+            dplyr::ungroup() %>%
+            dplyr::collect() %>%
+            dplyr::arrange(desc(num)) %>%
+            dplyr::slice_head(n = 20)
+          
+          colnames(care_site_visits) <- c(i18n$t("hospital_unit_name"), i18n$t("admissions_number"))
+          
+          output$dataset_care_sites_table <- renderTable(care_site_visits)
+        }, error = function(e){
+          cat(paste0("\n", now(), " - mod_projects - error loading stays details - error = ", toString(e)))
+          show_message_bar(id, output, "error_loading_data_details", "severeWarning", i18n = i18n, ns = ns)
+        })
       }
       
       shinyjs::show(paste0("dataset_", input$dataset_details, "_details"))

@@ -503,6 +503,7 @@ admissions_number,Nombre d'admissions
 folder_doesnt_exist,Le dossier renseigné n'existe pas
 install_study,Installer le projet
 error_loading_data,Erreur lors du chargement des données
+error_loading_data_details,Erreur lors du chargement des détails
 create_data_cleaning_script,Créer un script de data cleaning
 error_update_remote_git_repo,Erreur lors de la mise à jour du dépôt git distant
 invalid_filename,Nom du fichier non valide
