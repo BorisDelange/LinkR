@@ -122,9 +122,6 @@ mod_user_settings_server <- function(id, r, d, m, language, i18n, debug, user_ac
       req(shiny.router::get_page() == id)
       if (debug) cat(paste0("\n", now(), " - mod_user_settings - observer shiny.router::get_page()"))
       
-      # Prevent a bug with scroll into ace editor
-      shinyjs::runjs("var event = new Event('resize'); window.dispatchEvent(event);")
-      
       # Show a default text output
       captured_output <- capture.output(iris %>% tibble::as_tibble() %>% head(10)) %>% paste(collapse = "\n")
       output$ace_editor_output <- renderText(captured_output)

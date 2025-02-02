@@ -245,6 +245,9 @@ app_server <- function(
       }
       
       if (length(r$loaded_pages[[current_page]]) == 0) r$load_page <- current_page
+      
+      # Prevent a bug with scroll into ace editor
+      shinyjs::runjs("var event = new Event('resize'); window.dispatchEvent(event);")
     })
     
     observeEvent(r$load_page, {

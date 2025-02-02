@@ -699,19 +699,23 @@ mod_page_sidenav_ui <- function(id, language, i18n){
         div(
           div(
             id = ns("edit_code_buttons"),
-            class = "sidenav_top",
+            class = "sidenav_top", style = "display: flex; justify-content: space-between;",
             div(
-              create_hover_card(ui = shiny.fluent::IconButton.shinyInput(ns("add_file"), iconProps = list(iconName = "Add")), text = i18n$t("add_file")),
-              class = "small_icon_button"
+              div(
+                create_hover_card(ui = shiny.fluent::IconButton.shinyInput(ns("add_file"), iconProps = list(iconName = "Add")), text = i18n$t("add_file")),
+                class = "small_icon_button"
+              ),
+              div(
+                create_hover_card(ui = shiny.fluent::IconButton.shinyInput(ns("save_file_code"), iconProps = list(iconName = "Save")), text = i18n$t("save_current_file")),
+                class = "small_icon_button"
+              ),
+              div(
+                create_hover_card(ui = shiny.fluent::IconButton.shinyInput(ns("run_code"), iconProps = list(iconName = "Play")), text = i18n$t("run_code")),
+                class = "small_icon_button"
+              ),
+              style = "display: flex;"
             ),
-            div(
-              create_hover_card(ui = shiny.fluent::IconButton.shinyInput(ns("save_file_code"), iconProps = list(iconName = "Save")), text = i18n$t("save_current_file")),
-              class = "small_icon_button"
-            ),
-            div(
-              create_hover_card(ui = shiny.fluent::IconButton.shinyInput(ns("run_code"), iconProps = list(iconName = "Play")), text = i18n$t("run_code")),
-              class = "small_icon_button"
-            )
+            div(shiny.fluent::Dropdown.shinyInput(ns("code_output"), i18n$t("output")), style = "width: 50%;")
           ),
           div(id = ns("files_browser_div"), uiOutput(ns("files_browser")))
         )
