@@ -240,7 +240,6 @@ invalid_col_names,Invalid column names
 invalid_data_folder,Invalid data_folder argument
 invalid_dataset_id_value,Variable dataset_id must be of integer type
 invalid_omop_version,"Invalid OMOP version, valid versions are 5.3, 5.4 & 6.0.,"
-invalid_patients_not_tibble,Invalid patients value: patients must be a dataframe
 invalid_reason,Invalid reason
 invalid_subset_id_value,Invalid subset_id value
 invalid_vocabulary_table,Invalid vocabulary table
@@ -468,6 +467,7 @@ start_date,Start date
 end_date,End date
 add_patients_subset_success,Patients successfully added to subset
 remove_patients_subset_success,Patients successfully removed from the subset
+no_patients_to_remove_from_subset,No patients to remove from subset
 add_concept_input,Action
 subset_added,New subset added
 tab_deleted,Tab removed
@@ -538,3 +538,7 @@ download_project,Download project
 download_dataset,Download dataset
 download_data_cleaning,Download data cleaning script
 download,Download
+hospital_stays,Hospital stays
+unit_stays,Unit stays
+invalid_visit_occurrence_without_person,visit_occurrence_id provided without corresponding person_id
+invalid_visit_detail_without_visit_occurrence,visit_detail_id provided without corresponding visit_occurrence_id
