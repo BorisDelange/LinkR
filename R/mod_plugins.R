@@ -87,6 +87,8 @@ mod_plugins_ui <- function(id, language, languages, i18n){
                     if (row$code != language) result <- shinyjs::hidden(result)
                     result
                   }),
+                  div(shiny.fluent::TextField.shinyInput(ns("author"), label = i18n$t("authors")), style = "width: 200px;"),
+                  div(shiny.fluent::TextField.shinyInput(ns("version"), label = i18n$t("version")), style = "width: 200px;"),
                   div(
                     shiny.fluent::Dropdown.shinyInput(
                       ns("tab_type_id"), label = i18n$t("plugin_for"), multiSelect = TRUE,
@@ -95,9 +97,8 @@ mod_plugins_ui <- function(id, language, languages, i18n){
                         list(key = 2, text = i18n$t("aggregated_data"))
                       )
                     ),
-                    style = "width: 300px;"
+                    style = "width: 400px;"
                   ),
-                  div(shiny.fluent::TextField.shinyInput(ns("author"), label = i18n$t("authors")), style = "width: 400px;"),
                   lapply(1:nrow(languages), function(i) {
                     row <- languages[i, ]
                     result <- div(

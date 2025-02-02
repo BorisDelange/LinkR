@@ -5,7 +5,7 @@ add_a_tab,Add a tab
 add_a_widget,Add a widget
 add_file,Add a new file
 add_folder,Add a new folder
-add_to_saved_git_repos,Add to saved git repos
+add_to_saved_git_repos,Add to saved Git repos
 admin,Admin
 admin_access,Admin access
 age,Age
@@ -62,7 +62,7 @@ count_concepts_rows,Rows
 count_persons_rows,Patients
 create_data_cleaning,Create a data cleaning script
 create_dataset,Create a dataset
-create_git_repo,Add a git repository
+create_git_repo,Add a Git repository
 create_plugin,Create a plugin
 create_project,Create a project
 create_subset,Create a subset
@@ -78,7 +78,7 @@ data_cleaning_import_user_access_description,Import a data cleaning script
 data_cleaning_management_user_access_description,"Manage data cleaning scripts (add, edit and delete)"
 data_cleaning_scripts,Data cleaning scripts
 data_cleaning_see_all_data_user_access_description,Access to all data cleaning scripts
-data_cleaning_share_user_access_description,Share data cleaning script (zip and git)
+data_cleaning_share_user_access_description,Share data cleaning script (zip and Git)
 data_cleaning_widget_text,"Organize your data cleaning scripts, which improve the quality of the data you will use in your projects."
 data_scientist,Data scientist
 data_type,Data type
@@ -93,7 +93,7 @@ datasets_edit_code_user_access_description,Edit and test dataset's code
 datasets_import_user_access_description,Import a dataset
 datasets_management_user_access_description,"Manage datasets (add, edit and delete)"
 datasets_see_all_data_user_access_description,Access to all datasets
-datasets_share_user_access_description,Share datasets (zip and git)
+datasets_share_user_access_description,Share datasets (zip and Git)
 datasets_widget_text,"Manage your datasets here, which will be imported into projects."
 datatable_output,DataTable
 date,Date
@@ -104,25 +104,25 @@ delete_data_cleaning_text,Confirm deletion of this script?
 delete_data_cleaning_title,Delete a data cleaning script
 delete_dataset_text,Confirm deletion of this dataset?
 delete_dataset_title,Delete a dataset
-delete_element_from_remote_git,Delete element from git
+delete_element_from_remote_git,Delete element from Git
 delete_file_text,Confirm deletion of this file?
 delete_file_title,Delete a file
-delete_git_element_data_cleaning_text,Delete this data cleaning script from the git repository?
-delete_git_element_data_cleaning_title,Delete git element
-delete_git_element_dataset_text,Delete this dataset from the git repository?
-delete_git_element_dataset_title,Delete git element
-delete_git_element_plugin_text,Delete this plugin from the git repository?
-delete_git_element_plugin_title,Delete git element
-delete_git_element_project_text,Delete this project from the git repository?
-delete_git_element_project_title,Delete git element
-delete_git_element_subset_text,Delete this subset from the git repository?
-delete_git_element_subset_title,Delete git element
-delete_git_element_text,Delete this element from remote git?
-delete_git_element_title,Delete git element
-delete_git_element_vocabulary_text,Delete this vocabulary from the git repository?
-delete_git_element_vocabulary_title,Delete git element
-delete_git_repo_text,"Delete this git repo? This removes the local link to this git repository, which can always be added again later."
-delete_git_repo_title,Delete git repo
+delete_git_element_data_cleaning_text,Delete this data cleaning script from the Git repository?
+delete_git_element_data_cleaning_title,Delete Git element
+delete_git_element_dataset_text,Delete this dataset from the Git repository?
+delete_git_element_dataset_title,Delete Git element
+delete_git_element_plugin_text,Delete this plugin from the Git repository?
+delete_git_element_plugin_title,Delete Git element
+delete_git_element_project_text,Delete this project from the Git repository?
+delete_git_element_project_title,Delete Git element
+delete_git_element_subset_text,Delete this subset from the Git repository?
+delete_git_element_subset_title,Delete Git element
+delete_git_element_text,Delete this element from remote Git?
+delete_git_element_title,Delete Git element
+delete_git_element_vocabulary_text,Delete this vocabulary from the Git repository?
+delete_git_element_vocabulary_title,Delete Git element
+delete_git_repo_text,"Delete this Git repo? This removes the local link to this Git repository, which can always be added again later."
+delete_git_repo_title,Delete Git repo
 delete_plugin_text,Confirm deletion of this plugin?
 delete_plugin_title,Delete a plugin
 delete_project_text,Confirm deletion of this project?
@@ -164,8 +164,8 @@ edit_description,Edit description
 edit_informations,Edit informations
 edit_page,Edit page
 edit_readme,Edit readme
-element_git_and_local_versions_are_the_same,Local and remote git versions are the same
-element_git_version_more_recent,Remote git version is newer
+element_git_and_local_versions_are_the_same,Local and remote Git versions are the same
+element_git_version_more_recent,Remote Git version is newer
 element_local_version_more_recent,Local version is newer
 english,English
 folder_doesnt_contain_any_file,The provided folder doesn't contain any file
@@ -173,9 +173,9 @@ error_inserting_data,Error inserting data in database
 error_loading_category_xml_file,Error loading selected repo category XML file
 error_loading_csv_files,Error loading CSV files
 error_loading_duckdb,Error loading data with duckdb
-error_loading_git_infos,Error loading git repo informations
-error_loading_git_readme,Error loading git repo description
-error_loading_git_repo,Error loading git repo
+error_loading_git_infos,Error loading Git repo informations
+error_loading_git_readme,Error loading Git repo description
+error_loading_git_repo,Error loading Git repo
 error_run_plugin_ui_code,Error running plugin's UI code
 error_run_plugin_server_code,Error running plugin's server code
 error_transforming_cols,Error transforming columns
@@ -200,11 +200,11 @@ gender,Gender
 gender_distribution,Gender distribution
 generate_readme,Generate readme content
 git_repo,Git repository
-git_repo_url_address_already_used,There is already a git repository registered with this URL
+git_repo_url_address_already_used,There is already a Git repository registered with this URL
 git_repos,Git repositories
-git_repos_install_remote_git_element_user_access_description,Install items from a remote git repository
-git_repos_management_user_access_description,"Manage git repos (add, edit and delete)"
-git_repos_remote_git_repo_management_user_access_description,"Modify the content of git repositories (edit readme, delete items)"
+git_repos_install_remote_git_element_user_access_description,Install items from a remote Git repository
+git_repos_management_user_access_description,"Manage Git repos (add, edit and delete)"
+git_repos_remote_git_repo_management_user_access_description,"Modify the content of Git repositories (edit readme, delete items)"
 give_access_to,Give access to
 height,Height
 help,Help
@@ -312,7 +312,7 @@ plugins_edit_code_user_access_description,Edit and test plugin's code
 plugins_import_user_access_description,Import a plugin
 plugins_management_user_access_description,"Manage plugins (add, edit and delete)"
 plugins_see_all_data_user_access_description,Access to all plugins
-plugins_share_user_access_description,Share plugins (zip and git)
+plugins_share_user_access_description,Share plugins (zip and Git)
 plugins_widget_text,"Plugins are R or Python scripts that add features to LinkR. They are the building blocks of projects, enabling the visualization and analysis of data."
 port,Port
 programming_language,Language
@@ -325,7 +325,7 @@ projects_dataset_user_access_description,Set up project's dataset
 projects_import_user_access_description,Import a project
 projects_management_user_access_description,"Manage projects (add, edit and delete)"
 projects_see_all_data_user_access_description,Access to all projects
-projects_share_user_access_description,Share projects (zip and git)
+projects_share_user_access_description,Share projects (zip and Git)
 projects_subsets_management_user_access_description,"Manage subsets (add, edit and delete)"
 projects_widget_text,Projects enable collaborative work on healthcare data in OMOP format using a customizable graphical interface.
 projects_widgets_settings_user_access_description,Save widgets settings (code and figure settings)
@@ -346,7 +346,7 @@ reload_dataset,Reload dataset
 reload_concepts_count,Reload dataset concepts count
 reload_concepts_count_text,Reload count of current dataset concepts? This operation may take a few minutes.
 reload_concepts_count_title,Reload concepts
-reload_git_repo,Reload git
+reload_git_repo,Reload Git
 reload_list,Reload list
 reload_plugin_code,Reload plugin code
 remote,Remote
@@ -376,8 +376,8 @@ shell,Shell
 short_description,Short description
 show_catalog,Show catalog
 show_content,Show content
-show_git_repos_list,Show list (locally saved git repositories)
-show_git_repos_map,Show map (catalog of git repositories)
+show_git_repos_list,Show list (locally saved Git repositories)
+show_git_repos_map,Show map (catalog of Git repositories)
 show_plugins,Show plugins
 show_projects,Show projects
 some_users,Some users
@@ -391,7 +391,7 @@ subset_all_patients,All patients
 subsets,Subsets
 success,Success
 success_importing_concepts,Concepts successfully imported
-success_update_remote_git_repo,Remote git successfully updated
+success_update_remote_git_repo,Remote Git successfully updated
 success_loading_data,Data successfully loaded
 summary,Summary
 synchronize_with_git_repo,Git synchronization
@@ -409,18 +409,18 @@ unauthorized_access_area,Unauthorized access to this area
 ui_output,UI
 unselect_all_tables,Unselect all tables
 update,Update
-update_git_element_data_cleaning_text,Update git data cleaning script? This will erase and replace actual data cleaning script in the git repository.
-update_git_element_data_cleaning_title,Update git element
-update_git_element_dataset_text,Update git dataset? This will erase and replace actual dataset in the git repository.
-update_git_element_dataset_title,Update git element
-update_git_element_plugin_text,Update git plugin? This will erase and replace actual plugin in the git repository.
-update_git_element_plugin_title,Update git element
-update_git_element_project_text,Update git project? This will erase and replace actual project in the git repository.
-update_git_element_project_title,Update git element
-update_git_element_subset_text,Update git subset? This will erase and replace actual subset in the git repository.
-update_git_element_subset_title,Update git element
-update_git_element_vocabulary_text,Update git vocabulary? This will erase and replace actual vocabulary in the git repository.
-update_git_element_vocabulary_title,Update git element
+update_git_element_data_cleaning_text,Update Git data cleaning script? This will erase and replace actual data cleaning script in the Git repository.
+update_git_element_data_cleaning_title,Update Git element
+update_git_element_dataset_text,Update Git dataset? This will erase and replace actual dataset in the Git repository.
+update_git_element_dataset_title,Update Git element
+update_git_element_plugin_text,Update Git plugin? This will erase and replace actual plugin in the Git repository.
+update_git_element_plugin_title,Update Git element
+update_git_element_project_text,Update Git project? This will erase and replace actual project in the Git repository.
+update_git_element_project_title,Update Git element
+update_git_element_subset_text,Update Git subset? This will erase and replace actual subset in the Git repository.
+update_git_element_subset_title,Update Git element
+update_git_element_vocabulary_text,Update Git vocabulary? This will erase and replace actual vocabulary in the Git repository.
+update_git_element_vocabulary_title,Update Git element
 update_project_plugins_text,Update plugins included in the project? This will erase old versions of local plugins which are not up to date.
 update_project_plugins_title,Update project plugins
 updated_on,Updated on
@@ -473,10 +473,10 @@ subset_added,New subset added
 tab_deleted,Tab removed
 widget_deleted,Widget removed
 plugin_no_selected_project,Load a project to get the plugin code working
-plugin_doesnt_exist_in_git_repo,This plugin does not exist in this git repository
-dataset_doesnt_exist_in_git_repo,This dataset does not exist in this git repository
-data_cleaning_doesnt_exist_in_git_repo,This data cleaning script does not exist in this git repository
-project_doesnt_exist_in_git_repo,This project does not exist in this git repository
+plugin_doesnt_exist_in_git_repo,This plugin does not exist in this Git repository
+dataset_doesnt_exist_in_git_repo,This dataset does not exist in this Git repository
+data_cleaning_doesnt_exist_in_git_repo,This data cleaning script does not exist in this Git repository
+project_doesnt_exist_in_git_repo,This project does not exist in this Git repository
 plugin_doesnt_exist_locally,This plugin does not exist in local LinkR instance
 dataset_doesnt_exist_locally,This dataset does not exist in local LinkR instance
 data_cleaning_doesnt_exist_locally,This data cleaning script does not exist in local LinkR instance
@@ -504,7 +504,7 @@ install_study,Install project
 error_loading_data,Error loading data
 error_loading_data_details,Error loading data details
 create_data_cleaning_script,Create a script for data cleaning
-error_update_remote_git_repo,Error updating remote git repo
+error_update_remote_git_repo,Error updating remote Git repo
 invalid_filename,Invalid file name
 invalid_file_extension,Invalid file extension
 project_files,Project files
@@ -524,10 +524,10 @@ install_plugin,Install plugin
 install_project,Install project
 install_data_cleaning_script,Install data cleaning script
 install_dataset,Install dataset
-error_install_remote_git_plugin,Error installing a plugin from remote git
-error_install_remote_git_data_cleaning,Error installing a data cleaning script from remote git
-error_install_remote_git_project,Error installing a project from remote git
-error_install_remote_git_dataset,Error installing a dataset from remote git
+error_install_remote_git_plugin,Error installing a plugin from remote Git
+error_install_remote_git_data_cleaning,Error installing a data cleaning script from remote Git
+error_install_remote_git_project,Error installing a project from remote Git
+error_install_remote_git_dataset,Error installing a dataset from remote Git
 dataset_added,New dataset added
 data_cleaning_added,New data cleaning script added
 plugin_added,New plugin added
@@ -543,3 +543,6 @@ unit_stays,Unit stays
 invalid_visit_occurrence_without_person,visit_occurrence_id provided without corresponding person_id
 invalid_visit_detail_without_visit_occurrence,visit_detail_id provided without corresponding visit_occurrence_id
 no_description_available,No description available
+version,Version
+local_version,Local version
+remote_git_version,Remote Git version

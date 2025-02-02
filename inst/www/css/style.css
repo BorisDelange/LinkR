@@ -850,12 +850,6 @@ a.no-hover-effect:hover {
   box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 3px 6px 0 rgba(0, 0, 0, 0.19);
 }
 
-.markdown_widget {
-  height: calc(100% - 25px);
-  padding: 1px 20px 10px 20px;
-  overflow: auto;
-}
-
 .widget h1 {
   font-size: 14px;
 }
@@ -1067,18 +1061,9 @@ button.ms-UpButton, button.ms-DownButton {
   font-size: 11px;
 }
 
-/* ------------ */
-/* INPUTS       */
-/* ------------ */
-
-/*
-.selectize-input {
-  height: 25px;
-  line-height: 25px;
-  padding: 0 8px;
-  font-size: 12px;
+.git-table td {
+  padding-right: 20px;
 }
-*/
 
 /* ------------------- */
 /* FILES BROWSER       */
@@ -1480,7 +1465,7 @@ button.ms-UpButton, button.ms-DownButton {
 .plugins_summary_container, .plugins_share_container, .plugins_test_container {
   display: flex;
   justify-content: space-between;
-  height: 100%;
+  height: calc(100% - 35px);
   padding-left: 2px;
 }
 
@@ -1552,7 +1537,7 @@ button.ms-UpButton, button.ms-DownButton {
 .git_repos_summary_container {
   display: flex;
   justify-content: space-between;
-  height: calc(100% - 40px);
+  height: calc(100% - 35px);
 }
 
 .git_element_details_left {
@@ -1609,7 +1594,7 @@ button.ms-UpButton, button.ms-DownButton {
 .datasets_summary_container, .datasets_share_container {
   display: flex;
   justify-content: space-between;
-  height: 100%;
+  height: calc(100% - 35px);
 }
 
 .datasets_summary_left, .datasets_share_left {
@@ -1631,7 +1616,7 @@ button.ms-UpButton, button.ms-DownButton {
 .data_cleaning_summary_container, .data_cleaning_share_container {
   display: flex;
   justify-content: space-between;
-  height: 100%;
+  height: calc(100% - 35px);
 }
 
 .data_cleaning_summary_left, .data_cleaning_share_left {
@@ -1717,7 +1702,7 @@ button.ms-UpButton, button.ms-DownButton {
 .projects_summary_container, .projects_share_container {
   display: flex;
   justify-content: space-between;
-  height: 100%;
+  height: calc(100% - 35px);
 }
 
 .projects_dataset_container {

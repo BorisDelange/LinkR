@@ -697,6 +697,8 @@ mod_widgets_server <- function(id, r, d, m, language, i18n, all_divs, debug, use
         shiny.fluent::updateDropdown.shinyInput(session, "users_allowed_read_group", value = element_long %>% dplyr::filter(name == "users_allowed_read_group") %>% dplyr::pull(value))
       }
       
+      if (id %not_in% c("vocabularies", "subsets")) shiny.fluent::updateTextField.shinyInput(session, "version", value = element_long %>% dplyr::filter(name == "version") %>% dplyr::pull(value))
+      
       ## Description
       
       if (id != "vocabularies"){
@@ -858,7 +860,7 @@ mod_widgets_server <- function(id, r, d, m, language, i18n, all_divs, debug, use
       sapply(c("summary_edit_informations_div", "save_summary_div", "edit_description_button"), shinyjs::show)
     })
     
-    ## Reload description UI ----
+    ## Reload informations UI ----
     
     observeEvent(input$reload_informations_ui, {
       if (debug) cat(paste0("\n", now(), " - mod_widgets - (", id, ") - observer input$reload_informations_ui"))
@@ -903,10 +905,11 @@ mod_widgets_server <- function(id, r, d, m, language, i18n, all_divs, debug, use
           div(
             tags$table(
               tags$tr(tags$td(strong(i18n$t("name"))), tags$td(element_wide$name)),
+              tags$tr(tags$td(strong(i18n$t("author_s"))), tags$td(element_long %>% dplyr::filter(name == "author") %>% dplyr::pull(value))),
               tags$tr(tags$td(strong(i18n$t("created_on"))), tags$td(format_datetime(element_wide$creation_datetime, language = language, sec = FALSE))),
               tags$tr(tags$td(strong(i18n$t("updated_on"))), tags$td(format_datetime(element_wide$update_datetime, language = language, sec = FALSE))),
+              tags$tr(tags$td(strong(i18n$t("version"))), tags$td(element_long %>% dplyr::filter(name == "version") %>% dplyr::pull(value))),
               specific_row,
-              tags$tr(tags$td(strong(i18n$t("author_s"))), tags$td(element_long %>% dplyr::filter(name == "author") %>% dplyr::pull(value))),
               tags$tr(tags$td(strong(i18n$t("short_description")), style = "min-width: 150px;"), tags$td(element_long %>% dplyr::filter(name == paste0("short_description_", language)) %>% dplyr::pull(value)))
             )
           )
@@ -1088,6 +1091,9 @@ mod_widgets_server <- function(id, r, d, m, language, i18n, all_divs, debug, use
           paste0("short_description_", r$languages$code),
           "author", "users_allowed_read_group"
         )
+        
+        # Version
+        if (id != "subsets") fields <- c(fields, "version")
         
         # OMOP version field
         if (id == "datasets") fields <- c(fields, "omop_version")
@@ -1438,32 +1444,31 @@ mod_widgets_server <- function(id, r, d, m, language, i18n, all_divs, debug, use
           
           else {
             
-            datetimes_comparison <- compare_git_elements_datetimes("push", i18n, local_element, git_element)
-            diff_time <- datetimes_comparison[[1]]
-            diff_time_text <- datetimes_comparison[[2]]
+            element_version <- element_long %>% dplyr::filter(name == "version") %>% dplyr::pull(value)
+            local_version <- package_version(element_version)
+            git_version <- package_version(git_element$version)
+            
+            update_needed <- FALSE
+            if (local_version > git_version) update_needed <- TRUE
             
             git_element_ui <- div(
               tags$table(
                 tags$tr(tags$td(strong(i18n$t("name")), style = "min-width: 80px;"), tags$td(git_element[[paste0("name_", language)]])),
                 tags$tr(tags$td(strong(i18n$t("author_s"))), tags$td(git_element$authors)),
                 tags$tr(tags$td(strong(i18n$t("created_on"))), tags$td(git_element$creation_datetime)),
-                tags$tr(
-                  tags$td(strong(i18n$t("updated_on"))),
-                  tags$td(git_element$update_datetime, " -", diff_time_text)
-                )
-              )
+                tags$tr(tags$td(strong(i18n$t("updated_on"))), tags$td(git_element$update_datetime)),
+                tags$tr(tags$td(strong(i18n$t("local_version"))), tags$td(element_version)),
+                tags$tr(tags$td(strong(i18n$t("remote_git_version"))), tags$td(git_element$version))
+              ),
+              class = "git-table"
             )
 
             # Update synchronize buttons
             
-            if (diff_time < 0 | diff_time == 0) update_button <- ""
-            else update_button <- shiny.fluent::PrimaryButton.shinyInput(ns("git_repo_update_element"), i18n$t("update"))
+            if (update_needed) update_button <- shiny.fluent::PrimaryButton.shinyInput(ns("git_repo_update_element"), i18n$t("update"))
+            else update_button <- ""
             
-            synchronize_git_buttons <- div(
-              div(shiny.fluent::PrimaryButton.shinyInput(ns("git_repo_delete_element"), i18n$t("delete")), class = "delete_button"),
-              update_button,
-              style = "display: flex; gap: 5px;"
-            )
+            synchronize_git_buttons <- div(update_button, style = "display: flex; gap: 5px;")
           }
         }
         
@@ -1492,32 +1497,32 @@ mod_widgets_server <- function(id, r, d, m, language, i18n, all_divs, debug, use
       shinyjs::show("update_or_delete_git_element_modal")
     })
     
-    observeEvent(input$git_repo_delete_element, {
-      if (debug) cat(paste0("\n", now(), " - mod_widgets - (", id, ") - observer input$git_repo_update_element"))
-      
-      sapply(c("delete_git_element_text_div", "confirm_git_element_deletion_div"), shinyjs::show)
-      sapply(c("update_git_element_text_div", "confirm_git_element_update_div"), shinyjs::hide)
-      shinyjs::show("update_or_delete_git_element_modal")
-    })
-    
+    # observeEvent(input$git_repo_delete_element, {
+    #   if (debug) cat(paste0("\n", now(), " - mod_widgets - (", id, ") - observer input$git_repo_update_element"))
+    #   
+    #   sapply(c("delete_git_element_text_div", "confirm_git_element_deletion_div"), shinyjs::show)
+    #   sapply(c("update_git_element_text_div", "confirm_git_element_update_div"), shinyjs::hide)
+    #   shinyjs::show("update_or_delete_git_element_modal")
+    # })
+
     observeEvent(input$close_update_or_delete_git_element_modal, {
       if (debug) cat(paste0("\n", now(), " - mod_widgets - (", id, ") - observer input$close_update_or_delete_git_element_modal"))
       shinyjs::hide("update_or_delete_git_element_modal")
     })
-    
+
     observeEvent(input$confirm_git_element_update, {
       if (debug) cat(paste0("\n", now(), " - mod_widgets - (", id, ") - observer input$confirm_git_element_update"))
-      
+
       shinyjs::runjs(paste0("Shiny.setInputValue('", id, "-update_git_type', 'update');"))
       shinyjs::runjs(paste0("Shiny.setInputValue('", id, "-update_git', Math.random());"))
     })
-    
-    observeEvent(input$confirm_git_element_deletion, {
-      if (debug) cat(paste0("\n", now(), " - mod_widgets - (", id, ") - observer input$confirm_git_element_deletion"))
-      
-      shinyjs::runjs(paste0("Shiny.setInputValue('", id, "-update_git_type', 'deletion');"))
-      shinyjs::runjs(paste0("Shiny.setInputValue('", id, "-update_git', Math.random());"))
-    })
+
+    # observeEvent(input$confirm_git_element_deletion, {
+    #   if (debug) cat(paste0("\n", now(), " - mod_widgets - (", id, ") - observer input$confirm_git_element_deletion"))
+    #   
+    #   shinyjs::runjs(paste0("Shiny.setInputValue('", id, "-update_git_type', 'deletion');"))
+    #   shinyjs::runjs(paste0("Shiny.setInputValue('", id, "-update_git', Math.random());"))
+    # })
     
     # Update / delete git element confirmed
     observeEvent(input$update_git, {

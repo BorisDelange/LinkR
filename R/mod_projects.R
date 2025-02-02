@@ -127,6 +127,7 @@ mod_projects_ui <- function(id, language, languages, i18n){
                     result
                   }),
                   div(shiny.fluent::TextField.shinyInput(ns("author"), label = i18n$t("authors")), style = "width: 200px;"),
+                  div(shiny.fluent::TextField.shinyInput(ns("version"), label = i18n$t("version")), style = "width: 200px;"),
                   lapply(1:nrow(languages), function(i) {
                     row <- languages[i, ]
                     result <- div(

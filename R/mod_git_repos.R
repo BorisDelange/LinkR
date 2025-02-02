@@ -159,7 +159,7 @@ mod_git_repos_ui <- function(id = character(), language = "en", languages = tibb
           ),
           uiOutput(ns("map_git_readme")),
           shinyjs::hidden(uiOutput(ns("list_git_readme"))),
-          class = "widget markdown_widget markdown",
+          class = "widget markdown",
           style = "height: calc(100% - 20px);"
         ),
         class = "git_repos_right"
@@ -215,7 +215,8 @@ mod_git_repos_ui <- function(id = character(), language = "en", languages = tibb
               div(
                 tags$h1(i18n$t("description")),
                 uiOutput(ns("element_details_description")),
-                class = "widget markdown_widget markdown",
+                class = "widget markdown",
+                style = "height: calc(100% - 20px);"
               ),
               class = "git_element_details_right"
             ),
@@ -1019,8 +1020,11 @@ mod_git_repos_server <- function(id, r, d, m, language, i18n, debug, user_access
         }
        
         # Reload markdown
-        output_file <- create_rmarkdown_file(r, input$readme_code, interpret_code = FALSE)
-        output$readme_ui <- renderUI(div(class = "markdown", withMathJax(includeMarkdown(output_file))))
+        if (input$readme_code == "") output$readme_ui <- renderUI(div(shiny.fluent::MessageBar(i18n$t("no_description_available"), messageBarType = 5) ,style = "display: inline-block;"))
+        else {
+          output_file <- create_rmarkdown_file(r, input$readme_code, interpret_code = FALSE)
+          output$readme_ui <- renderUI(div(class = "markdown", withMathJax(includeMarkdown(output_file))))
+        }
       })
       
       ### Close git push modal
@@ -1095,8 +1099,11 @@ mod_git_repos_server <- function(id, r, d, m, language, i18n, debug, user_access
         
         shinyAce::updateAceEditor(session, "readme_code", value = code)
         
-        output_file <- create_rmarkdown_file(r, code, interpret_code = FALSE)
-        output$readme_ui <- renderUI(div(class = "markdown", withMathJax(includeMarkdown(output_file))))
+        if (code == "") output$readme_ui <- renderUI(div(shiny.fluent::MessageBar(i18n$t("no_description_available"), messageBarType = 5) ,style = "display: inline-block;"))
+        else {
+          output_file <- create_rmarkdown_file(r, code, interpret_code = FALSE)
+          output$readme_ui <- renderUI(div(class = "markdown", withMathJax(includeMarkdown(output_file))))
+        }
       })
       
       # |-------------------------------- -----
@@ -1299,12 +1306,14 @@ mod_git_repos_server <- function(id, r, d, m, language, i18n, debug, user_access
         output$breadcrumb <- renderUI(create_breadcrumb(c(1, 2, 3, 4), i18n, current_tab, git_element_name))
         
         # Show element description
-        if (paste0("description_", language) %in% colnames(git_element)) description <-
-          git_element %>% dplyr::select(!!rlang::sym(paste0("description_", language))) %>% dplyr::pull()
+        if (paste0("description_", language) %in% colnames(git_element)) description <- git_element %>% dplyr::select(!!rlang::sym(paste0("description_", language))) %>% dplyr::pull()
         else description <- git_element$description_en
         
-        description <- description %>% includeMarkdown()
-        output$element_details_description <- renderUI(div(description))
+        if (description == "") output$element_details_description <- renderUI(div(shiny.fluent::MessageBar(i18n$t("no_description_available"), messageBarType = 5) ,style = "display: inline-block;"))
+        else {
+          description <- description %>% includeMarkdown()
+          output$element_details_description <- renderUI(div(description))
+        }
         
         # Update installation UI
         output$element_details_title <- renderUI(tags$h1(i18n$t(paste0("install_", current_tab_single))))
@@ -1319,25 +1328,26 @@ mod_git_repos_server <- function(id, r, d, m, language, i18n, debug, user_access
         
         if (nrow(local_element) > 0){
           
-          datetimes_comparison <- compare_git_elements_datetimes("pull", i18n, local_element, git_element)
-          diff_time <- datetimes_comparison[[1]]
-          diff_time_text <- datetimes_comparison[[2]]
+          sql <- glue::glue_sql("SELECT value FROM options WHERE category = {current_tab_single} AND link_id = {local_element$id} AND name = 'version'", .con = r$db)
+          element_version <- DBI::dbGetQuery(r$db, sql) %>% dplyr::pull()
+          local_version <- package_version(element_version)
+          git_version <- package_version(git_element$version)
           
           git_element_ui <- div(
             tags$table(
               tags$tr(tags$td(strong(i18n$t("name")), style = "min-width: 80px;"), tags$td(git_element_name)),
               tags$tr(tags$td(strong(i18n$t("author_s"))), tags$td(git_element$authors)),
               tags$tr(tags$td(strong(i18n$t("created_on"))), tags$td(git_element$creation_datetime)),
-              tags$tr(
-                tags$td(strong(i18n$t("updated_on"))),
-                tags$td(git_element$update_datetime, " -", diff_time_text)
-              )
-            )
+              tags$tr(tags$td(strong(i18n$t("updated_on"))), tags$td(git_element$update_datetime)),
+              tags$tr(tags$td(strong(i18n$t("local_version"))), tags$td(element_version)),
+              tags$tr(tags$td(strong(i18n$t("remote_git_version"))), tags$td(git_element$version))
+            ),
+            class = "git-table"
           )
           
           # Update synchronize buttons
-          if (diff_time == 0) install_button <- shiny.fluent::DefaultButton.shinyInput(ns("git_repo_element_already_installed"), i18n$t("local_version_up_to_date"), disabled = TRUE)
-          else if (diff_time > 0) install_button <- shiny.fluent::DefaultButton.shinyInput(ns("git_repo_element_local_version_more_recent"), i18n$t("element_local_version_more_recent"), disabled = TRUE)
+          if (local_version == git_version) install_button <- shiny.fluent::DefaultButton.shinyInput(ns("git_repo_element_already_installed"), i18n$t("local_version_up_to_date"), disabled = TRUE)
+          else if (local_version > git_version) install_button <- shiny.fluent::DefaultButton.shinyInput(ns("git_repo_element_local_version_more_recent"), i18n$t("element_local_version_more_recent"), disabled = TRUE)
           else install_button <- shiny.fluent::PrimaryButton.shinyInput(ns("git_install_element"), i18n$t("update"))
         }
         else {

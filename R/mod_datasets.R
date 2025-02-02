@@ -86,6 +86,8 @@ mod_datasets_ui <- function(id, language, languages, i18n, code_hotkeys, auto_co
                     if (row$code != language) result <- shinyjs::hidden(result)
                     result
                   }),
+                  div(shiny.fluent::TextField.shinyInput(ns("author"), label = i18n$t("authors")), style = "width: 200px;"),
+                  div(shiny.fluent::TextField.shinyInput(ns("version"), label = i18n$t("version")), style = "width: 200px;"),
                   div(
                     shiny.fluent::Dropdown.shinyInput(
                       ns("omop_version"), label = i18n$t("omop_version"),
@@ -97,7 +99,6 @@ mod_datasets_ui <- function(id, language, languages, i18n, code_hotkeys, auto_co
                     ),
                     style = "width: 200px;"
                   ),
-                  div(shiny.fluent::TextField.shinyInput(ns("author"), label = i18n$t("authors")), style = "width: 200px;"),
                   lapply(1:nrow(languages), function(i) {
                     row <- languages[i, ]
                     result <- div(
