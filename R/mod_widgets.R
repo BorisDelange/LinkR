@@ -673,8 +673,8 @@ mod_widgets_server <- function(id, r, d, m, language, i18n, all_divs, debug, use
       output$git_repo_element_ui <- renderUI(div())
       output$synchronize_git_buttons <- renderUI(div())
       
-      # Reload description UI ----
-      shinyjs::runjs(paste0("Shiny.setInputValue('", id, "-reload_description_ui', Math.random());"))
+      # Reload informations UI ----
+      shinyjs::runjs(paste0("Shiny.setInputValue('", id, "-reload_informations_ui', Math.random());"))
       
       # Change border of selected element
       sapply(r[[wide_var]]$id, function(i) shinyjs::removeClass(class = paste0("selected_", single_id, "_widget"), selector = paste0("#", id, "-", single_id, "_widget_", i)))
@@ -702,8 +702,12 @@ mod_widgets_server <- function(id, r, d, m, language, i18n, all_divs, debug, use
       if (id != "vocabularies"){
         description_code <- element_long %>% dplyr::filter(name == paste0("description_", language)) %>% dplyr::pull(value)
         shinyAce::updateAceEditor(session, "description_code", value = description_code)
-        output_file <- create_rmarkdown_file(r, description_code, interpret_code = FALSE)
-        output$description_ui <- renderUI(div(class = "markdown", withMathJax(includeMarkdown(output_file))))
+        
+        if (description_code == "") output$description_ui <- renderUI(div(shiny.fluent::MessageBar(i18n$t("no_description_available"), messageBarType = 5) ,style = "display: inline-block;"))
+        else {
+          output_file <- create_rmarkdown_file(r, description_code, interpret_code = FALSE)
+          output$description_ui <- renderUI(div(class = "markdown", withMathJax(includeMarkdown(output_file))))
+        }
       }
       
       ## Load users UI
@@ -843,8 +847,12 @@ mod_widgets_server <- function(id, r, d, m, language, i18n, all_divs, debug, use
       # Reload markdown
       element_long <- r[[long_var]] %>% dplyr::filter(id == input$selected_element)
       description_code <- element_long %>% dplyr::filter(name == paste0("description_", input$language)) %>% dplyr::pull(value)
-      output_file <- create_rmarkdown_file(r, description_code, interpret_code = FALSE)
-      output$description_ui <- renderUI(div(class = "markdown", withMathJax(includeMarkdown(output_file))))
+      
+      if (description_code == "") output$description_ui <- renderUI(div(shiny.fluent::MessageBar(i18n$t("no_description_available"), messageBarType = 5) ,style = "display: inline-block;"))
+      else {
+        output_file <- create_rmarkdown_file(r, description_code, interpret_code = FALSE)
+        output$description_ui <- renderUI(div(class = "markdown", withMathJax(includeMarkdown(output_file))))
+      }
       
       sapply(c("summary_view_informations_div", "edit_summary_div"), shinyjs::hide)
       sapply(c("summary_edit_informations_div", "save_summary_div", "edit_description_button"), shinyjs::show)
@@ -852,8 +860,8 @@ mod_widgets_server <- function(id, r, d, m, language, i18n, all_divs, debug, use
     
     ## Reload description UI ----
     
-    observeEvent(input$reload_description_ui, {
-      if (debug) cat(paste0("\n", now(), " - mod_widgets - (", id, ") - observer input$reload_description_ui"))
+    observeEvent(input$reload_informations_ui, {
+      if (debug) cat(paste0("\n", now(), " - mod_widgets - (", id, ") - observer input$reload_informations_ui"))
       
       element_wide <- r[[wide_var]] %>% dplyr::filter(id == input$selected_element)
       element_long <- r[[long_var]] %>% dplyr::filter(id == input$selected_element)
@@ -934,8 +942,12 @@ mod_widgets_server <- function(id, r, d, m, language, i18n, all_divs, debug, use
       shinyAce::updateAceEditor(session, "description_code", value = description_code)
       
       # Reload markdown
-      output_file <- create_rmarkdown_file(r, description_code, interpret_code = FALSE)
-      output$description_ui <- renderUI(div(class = "markdown", withMathJax(includeMarkdown(output_file))))
+      
+      if (description_code == "") output$description_ui <- renderUI(div(shiny.fluent::MessageBar(i18n$t("no_description_available"), messageBarType = 5) ,style = "display: inline-block;"))
+      else {
+        output_file <- create_rmarkdown_file(r, description_code, interpret_code = FALSE)
+        output$description_ui <- renderUI(div(class = "markdown", withMathJax(includeMarkdown(output_file))))
+      }
       
       sapply(c("name", "short_description"), function(field) shinyjs::show(paste0(field, "_", input$language, "_div")))
     })
@@ -964,8 +976,11 @@ mod_widgets_server <- function(id, r, d, m, language, i18n, all_divs, debug, use
     observeEvent(input$run_description_code_trigger, {
       if (debug) cat(paste0("\n", now(), " - mod_widgets - (", id, ") - observer input$run_description_code_trigger"))
       
-      output_file <- create_rmarkdown_file(r, input$description_code, interpret_code = FALSE)
-      output$description_ui <- renderUI(div(class = "markdown", withMathJax(includeMarkdown(output_file))))
+      if (input$description_code == "") output$description_ui <- renderUI(div(shiny.fluent::MessageBar(i18n$t("no_description_available"), messageBarType = 5) ,style = "display: inline-block;"))
+      else {
+        output_file <- create_rmarkdown_file(r, input$description_code, interpret_code = FALSE)
+        output$description_ui <- renderUI(div(class = "markdown", withMathJax(includeMarkdown(output_file))))
+      }
     })
     
     ## Save description updates ----
@@ -999,8 +1014,11 @@ mod_widgets_server <- function(id, r, d, m, language, i18n, all_divs, debug, use
       )
       
       # Reload markdown
-      output_file <- create_rmarkdown_file(r, input$description_code, interpret_code = FALSE)
-      output$description_ui <- renderUI(div(class = "markdown", withMathJax(includeMarkdown(output_file))))
+      if (input$description_code == "") output$description_ui <- renderUI(div(shiny.fluent::MessageBar(i18n$t("no_description_available"), messageBarType = 5) ,style = "display: inline-block;"))
+      else {
+        output_file <- create_rmarkdown_file(r, input$description_code, interpret_code = FALSE)
+        output$description_ui <- renderUI(div(class = "markdown", withMathJax(includeMarkdown(output_file))))
+      }
       
       show_message_bar(id, output, "modif_saved", "success", i18n = i18n, ns = ns)
     })
@@ -1019,8 +1037,11 @@ mod_widgets_server <- function(id, r, d, m, language, i18n, all_divs, debug, use
       shinyAce::updateAceEditor(session, "description_code", value = description_code)
       
       # Reload markdown UI
-      output_file <- create_rmarkdown_file(r, description_code, interpret_code = FALSE)
-      output$description_ui <- renderUI(div(class = "markdown", withMathJax(includeMarkdown(output_file))))
+      if (description_code == "") output$description_ui <- renderUI(div(shiny.fluent::MessageBar(i18n$t("no_description_available"), messageBarType = 5) ,style = "display: inline-block;"))
+      else {
+        output_file <- create_rmarkdown_file(r, description_code, interpret_code = FALSE)
+        output$description_ui <- renderUI(div(class = "markdown", withMathJax(includeMarkdown(output_file))))
+      }
     })
     
     ## Save summary updates ----
@@ -1152,8 +1173,8 @@ mod_widgets_server <- function(id, r, d, m, language, i18n, all_divs, debug, use
       
       show_message_bar(id, output, "modif_saved", "success", i18n = i18n, ns = ns)
       
-      # Reload description UI
-      shinyjs::runjs(paste0("Shiny.setInputValue('", id, "-reload_description_ui', Math.random());"))
+      # Reload informations UI
+      shinyjs::runjs(paste0("Shiny.setInputValue('", id, "-reload_informations_ui', Math.random());"))
       
       # Hide edit description buttons
       sapply(c("save_and_cancel_description_buttons", "edit_description_div"), shinyjs::hide)
@@ -1162,8 +1183,12 @@ mod_widgets_server <- function(id, r, d, m, language, i18n, all_divs, debug, use
       # Reload description depending on app language
       element_long <- r[[long_var]] %>% dplyr::filter(id == input$selected_element)
       description_code <- element_long %>% dplyr::filter(name == paste0("description_", language)) %>% dplyr::pull(value)
-      output_file <- create_rmarkdown_file(r, description_code, interpret_code = FALSE)
-      output$description_ui <- renderUI(div(class = "markdown", withMathJax(includeMarkdown(output_file))))
+      
+      if (description_code == "") output$description_ui <- renderUI(div(shiny.fluent::MessageBar(i18n$t("no_description_available"), messageBarType = 5) ,style = "display: inline-block;"))
+      else {
+        output_file <- create_rmarkdown_file(r, description_code, interpret_code = FALSE)
+        output$description_ui <- renderUI(div(class = "markdown", withMathJax(includeMarkdown(output_file))))
+      }
       
       # Close edition mode
       sapply(c("summary_edit_informations_div", "save_summary_div", "edit_description_button"), shinyjs::hide)

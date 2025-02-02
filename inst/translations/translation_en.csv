@@ -542,3 +542,4 @@ hospital_stays,Hospital stays
 unit_stays,Unit stays
 invalid_visit_occurrence_without_person,visit_occurrence_id provided without corresponding person_id
 invalid_visit_detail_without_visit_occurrence,visit_detail_id provided without corresponding visit_occurrence_id
+no_description_available,No description available
