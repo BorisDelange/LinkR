@@ -888,40 +888,54 @@ mod_git_repos_server <- function(id, r, d, m, language, i18n, debug, user_access
             
             tryCatch({
               
-              # Load XML
-              xml_path <- paste0(local_path, "/", category, "/", category, ".xml")
+              category_path <- file.path(local_path, category)
+              subdirs <- list.dirs(category_path, full.names = TRUE, recursive = FALSE)
               
-              category_elements <-
-                xml2::read_xml(xml_path) %>%
-                XML::xmlParse() %>%
-                XML::xmlToDataFrame(nodes = XML::getNodeSet(., paste0("//", single_id)), stringsAsFactors = FALSE) %>%
-                tibble::as_tibble()
+              category_elements <- tibble::tibble()
               
-              if (nrow(category_elements) > 0){
+              for (subdir in subdirs) {
+                
+                xml_path <- file.path(subdir, paste0(single_id, ".xml"))
+                
+                if (file.exists(xml_path)) {
+                  
+                  element_data <-
+                    xml2::read_xml(xml_path) %>%
+                    XML::xmlParse() %>%
+                    XML::xmlToDataFrame(stringsAsFactors = FALSE) %>%
+                    tibble::as_tibble()
+                  
+                  category_elements <- dplyr::bind_rows(category_elements, element_data)
+                }
+              }
+              
+              if (nrow(category_elements) > 0) {
                 
                 category_elements <- category_elements %>% dplyr::arrange(name_en)
                 
-                for (i in 1:nrow(category_elements)){
-  
+                for (i in 1:nrow(category_elements)) {
                   category_element <- category_elements[i, ]
-  
-                  # category_folder <- paste0(local_path "/", category, "/")
-                  # category_folder <- paste0(category_folder, category_element$unique_id)
-                  
-                  description <- category_element$description_en #%>%
-                  #   stringr::str_replace_all("%element_folder%", category_folder)
+                  description <- category_element$description_en
+                  if (description != "") description <- paste0("\n", description)
                   
                   readme_category <- paste0(
                     readme_category, "\n\n",
                     "<details style = 'border: solid 1px #c0c0c0; padding: 5px 10px; margin: 5px 0;'>\n",
-                    "<summary><span style = 'font-size:13px;'>", category_element$name_en, "</summary>\n\n",
-                    description, "\n\n",
+                    "<summary><span style = 'font-size:13px;'>", category_element$name_en, "</summary>\n",
+                    description,
                     "</details>"
                   )
                 }
               }
               
-              if (nrow(category_elements) == 0) readme_category <- paste0(readme_category, "\n\nNo ", stringr::str_replace_all(category, "_", " "), " available.")
+              if (nrow(category_elements) == 0) {
+                readme_category <- paste0(
+                  readme_category, 
+                  "\n\nNo ", 
+                  stringr::str_replace_all(category, "_", " "),
+                  " available."
+                )
+              }
               
               automatic_code <- paste0(automatic_code, readme_category)
               
@@ -933,13 +947,45 @@ mod_git_repos_server <- function(id, r, d, m, language, i18n, debug, user_access
         }
         
         # Add span to identity automatically generated code
-        automatic_code <- paste0(
+        # automatic_code <- paste0(
+        #   "\n\n<span id='generated_code_start'></span>",
+        #   automatic_code,
+        #   "\n\n<span id='generated_code_end'></span>"
+        # )
+        
+        current_content <- input$readme_code
+        
+        extract_section <- function(content, start_marker, end_marker) {
+          pattern <- paste0(start_marker, "(.*?)", end_marker)
+          matches <- regmatches(content, regexec(pattern, content, dotall = TRUE))[[1]]
+          if (length(matches) > 1) {
+            return(matches[2])
+          }
+          return("")
+        }
+        
+        get_content_before <- function(content, marker) {
+          parts <- strsplit(content, marker)[[1]]
+          if (length(parts) > 0) return(parts[1])
+          return("")
+        }
+        
+        get_content_after <- function(content, marker) {
+          parts <- strsplit(content, marker)[[1]]
+          if (length(parts) > 1) return(parts[2])
+          return("")
+        }
+        
+        content_before <- get_content_before(current_content, "<span id='generated_code_start'></span>")
+        content_after <- get_content_after(current_content, "<span id='generated_code_end'></span>")
+        
+        code <- paste0(
+          if (nchar(trimws(content_before)) == 0) paste0("# ", git_repo$name) else trimws(content_before),
           "\n\n<span id='generated_code_start'></span>",
           automatic_code,
-          "\n\n<span id='generated_code_end'></span>"
+          "\n\n<span id='generated_code_end'></span>",
+          if (nchar(trimws(content_after)) > 0) paste0("\n\n", trimws(content_after)) else ""
         )
-        
-        code <- paste0("# ", git_repo$name, automatic_code)
 
         shinyAce::updateAceEditor(session, "readme_code", value = code)
         
