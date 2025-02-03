@@ -434,12 +434,15 @@ mod_data_server <- function(id, r, d, m, language, i18n, debug, user_accesses){
       req(!is.na(m$selected_subset))
       
       if (nrow(m$subset_persons) == 0) for(table in subset_tables) d$data_subset[[table]] <- tibble::tibble()
-      
       else {
         
         person_ids <- m$subset_persons$person_id
+        visit_occurrence_ids <- m$subset_persons$visit_occurrence_id[!is.na(m$subset_persons$visit_occurrence_id)]
+        visit_detail_ids <- m$subset_persons$visit_detail_id[!is.na(m$subset_persons$visit_detail_id)]
         
         for(table in subset_tables){
+          
+          # Filter data on person_id, visit_occurrence_id and visit_detail_id
           
           if (d[[table]] %>% dplyr::count() %>% dplyr::pull() > 0){
             
@@ -447,7 +450,14 @@ mod_data_server <- function(id, r, d, m, language, i18n, debug, user_accesses){
               note_ids <- d$data_subset$note %>% dplyr::distinct(note_id) %>% dplyr::pull()
               d$data_subset$note_nlp <- d$note_nlp %>% dplyr::filter(note_id %in% note_ids)
             }
-            else d$data_subset[[table]] <- d[[table]] %>% dplyr::filter(person_id %in% person_ids)
+            else {
+              base_filter <- dplyr::quo(person_id %in% !!person_ids)
+             
+              if ("visit_occurrence_id" %in% colnames(d[[table]])) if (length(visit_occurrence_ids) > 0) base_filter <- dplyr::quo(!!base_filter & (!is.na(visit_occurrence_id)) & (visit_occurrence_id %in% !!visit_occurrence_ids))
+              if ("visit_detail_id" %in% colnames(d[[table]])) if (length(visit_detail_ids) > 0) base_filter <- dplyr::quo(!!base_filter & (!is.na(visit_detail_id)) & (visit_detail_id %in% !!visit_detail_ids))
+              
+              d$data_subset[[table]] <- d[[table]] %>% dplyr::filter(!!base_filter)
+            }
           }
           else d$data_subset[[table]] <- tibble::tibble()
         }
@@ -457,8 +467,7 @@ mod_data_server <- function(id, r, d, m, language, i18n, debug, user_accesses){
       r$subset_updated_data <- Sys.time()
       
       # Update date sliderInput and DatePicker
-      
-      if (nrow(d$data_subset$visit_occurrence) > 0){
+      if (d$data_subset$visit_occurrence %>% dplyr::count() %>% dplyr::pull() > 0){
         dates_range <-
           d$data_subset$visit_occurrence %>%
           dplyr::summarize(
@@ -748,45 +757,61 @@ mod_data_server <- function(id, r, d, m, language, i18n, debug, user_accesses){
         end_date <- subset_dates()[2]
         
         tables <- c(
-          "visit_occurrence", "visit_detail", "person", "observation_period",
+          "observation_period",
           "condition_occurrence", "drug_exposure", "procedure_occurrence", "device_exposure", "measurement", "observation", "note",
           "payer_plan_period", "specimen", "death", "drug_era", "dose_era", "condition_era",
           "note_nlp"
         )
-        
-        r$subset_dates_range_person_ids <- c()
-        r$subset_dates_range_visit_occurrence_ids <- c()
         
         if (nrow(m$subset_persons) == 0) for(table in tables) d$data_subset[[table]] <- tibble::tibble()
         
         else {
           
           person_ids <- m$subset_persons$person_id
+          visit_occurrence_ids <- m$subset_persons$visit_occurrence_id[!is.na(m$subset_persons$visit_occurrence_id)]
+          visit_detail_ids <- m$subset_persons$visit_detail_id[!is.na(m$subset_persons$visit_detail_id)]
+
+          for(table in c("person", "visit_occurrence", "visit_detail")){
+
+            # Filter data on person_id, visit_occurrence_id and visit_detail_id
+
+            if (d[[table]] %>% dplyr::count() %>% dplyr::pull() > 0){
+              
+              base_filter <- dplyr::quo(person_id %in% !!person_ids)
+              if ("visit_occurrence_id" %in% colnames(d[[table]])) if (length(visit_occurrence_ids) > 0) base_filter <- dplyr::quo(!!base_filter & (!is.na(visit_occurrence_id)) & (visit_occurrence_id %in% !!visit_occurrence_ids))
+              if ("visit_detail_id" %in% colnames(d[[table]])) if (length(visit_detail_ids) > 0) base_filter <- dplyr::quo(!!base_filter & (!is.na(visit_detail_id)) & (visit_detail_id %in% !!visit_detail_ids))
+
+              if (table == "person") d$data_subset[[table]] <- d[[table]] %>% dplyr::filter(!!base_filter)
+              else if (table == "visit_occurrence"){
+                d$data_subset[[table]] <- d[[table]] %>% dplyr::filter(!!base_filter, visit_start_date >= start_date, visit_end_date <= end_date)
+                person_ids <- d$data_subset$visit_occurrence %>% dplyr::pull(person_id)
+              }
+              else if (table == "visit_detail") d$data_subset[[table]] <- d[[table]] %>% dplyr::filter(!!base_filter, visit_detail_start_date >= start_date, visit_detail_end_date <= end_date)
+              
+              if (table == "person") person_ids <- d$data_subset$person %>% dplyr::pull(person_id)
+              else if (table == "visit_occurrence") visit_occurrence_ids <- d$data_subset$visit_occurrence %>% dplyr::pull(visit_occurrence_id)
+              else if (table == "visit_detail") visit_detail_ids <- d$data_subset$visit_detail %>% dplyr::pull(visit_detail_id)
+            }
+            else d$data_subset[[table]] <- tibble::tibble()
+          }
+          
+          if (d$person %>% dplyr::count() %>% dplyr::pull() > 0) d$data_subset$person <- d$data_subset$person %>% dplyr::filter(person_id %in% person_ids)
           
           for(table in tables){
             
             if (d[[table]] %>% dplyr::count() %>% dplyr::pull() > 0){
               
-              if (table == "visit_occurrence"){
-                
-                # Filter on patients from selected subset and dates range
-                d$data_subset$visit_occurrence <- d$visit_occurrence %>% dplyr::filter(person_id %in% person_ids, visit_start_date >= start_date & visit_end_date <= end_date)
-                
-                r$subset_dates_range_person_ids <- d$data_subset$visit_occurrence %>% dplyr::distinct(person_id) %>% dplyr::pull()
-                r$subset_dates_range_visit_occurrence_ids <- d$data_subset$visit_occurrence %>% dplyr::distinct(visit_occurrence_id) %>% dplyr::pull()
-              }
-              
               # Filter with person_id
-              else if (table %in% c(
+              if (table %in% c(
                 "person", "observation_period", "payer_plan_period", "specimen", "death",
                 "drug_era", "dose_era", "condition_era"
-              )) d$data_subset[[table]] <- d[[table]] %>% dplyr::filter(person_id %in% r$subset_dates_range_person_ids)
+              )) d$data_subset[[table]] <- d[[table]] %>% dplyr::filter(person_id %in% person_ids)
               
               # Filter with visit_occurrence_id
               else if (table %in% c(
                 "visit_detail", "condition_occurrence", "drug_exposure", "procedure_occurrence", "device_exposure", 
                 "measurement", "observation", "note"
-              )) d$data_subset[[table]] <- d[[table]] %>% dplyr::filter(visit_occurrence_id %in% r$subset_dates_range_visit_occurrence_ids)
+              )) d$data_subset[[table]] <- d[[table]] %>% dplyr::filter(visit_occurrence_id %in% visit_occurrence_ids)
               
               # Filter with note_id
               else if (table == "note_nlp"){
