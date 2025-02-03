@@ -37,4 +37,4 @@ RUN R -e "remotes::install_gitlab('interhop/linkr/linkr', host = 'framagit.org')
 EXPOSE 3838
 
 # Run LinkR
-CMD ["R", "-e", "linkr::linkr(language = 'fr', app_folder = '/root', debug = TRUE)"]
+CMD ["R", "-e", "linkr::linkr(language = 'fr', app_folder = '/root', debug = TRUE, log_file = TRUE)"]
