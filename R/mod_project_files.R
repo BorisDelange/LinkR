@@ -25,7 +25,13 @@ mod_project_files_ui <- function(id, language, languages, i18n){
           id = ns("code_result_div"),
           textOutput(ns("datetime_code_execution")),
           verbatimTextOutput(ns("verbatim_code_output")),
-          shinyjs::hidden(div(id = ns("plot_output_div"), plotOutput(ns("plot_output")), style = "padding-top: 10px;")),
+          shinyjs::hidden(
+            div(
+              id = ns("plot_output_div"),
+              div(plotOutput(ns("plot_output"))), div(verbatimTextOutput(ns("plot_text_output")), style = "height: 100%;"),
+              style = "padding-top: 10px; height: calc(100% - 10px); display: flex; flex-direction: column;"
+            )
+          ),
           shinyjs::hidden(uiOutput(ns("rmarkdown_output"))),
           shinyjs::hidden(uiOutput(ns("ui_output"), style = "padding-top: 10px;")),
           shinyjs::hidden(div(id = ns("table_output_div"), tableOutput(ns("table_output")), style = "padding-top: 10px;")),
@@ -64,6 +70,19 @@ mod_project_files_ui <- function(id, language, languages, i18n){
 mod_project_files_server <- function(id, r, d, m, language, i18n, debug, user_accesses, user_settings){
   moduleServer(id, function(input, output, session){
     ns <- session$ns
+    
+    # Current user accesses ----
+    
+    # if ("console_execute_code" %in% user_accesses){
+    #   sapply(c("console_sidenav_buttons", "reduced_sidenav_execute_code_button", "console_div"), shinyjs::show) 
+    #   shinyjs::hide("console_forbidden_access")
+    # }
+    
+    # Apply user settings ----
+    
+    text_output_theme <- gsub("_", "-", user_settings$ace_theme)
+    if (text_output_theme == "terminal") text_output_theme <- paste0(text_output_theme, "-theme")
+    shinyjs::addClass("code_result_div", paste0("ace-", text_output_theme))
     
     # Initiate vars ----
     
@@ -171,7 +190,7 @@ mod_project_files_server <- function(id, r, d, m, language, i18n, debug, user_ac
         element_id = m$selected_project, file_id = input$selected_file, code_hotkeys = code_hotkeys, user_settings = user_settings
       )
       
-      shinyjs::runjs(paste0("Shiny.setInputValue('", id, "-update_code_output_dropdown', Math.random());"))
+      shinyjs::delay(100, shinyjs::runjs(paste0("Shiny.setInputValue('", id, "-update_code_output_dropdown', Math.random());")))
     })
     
     # Update code output dropdown ----
@@ -182,8 +201,19 @@ mod_project_files_server <- function(id, r, d, m, language, i18n, debug, user_ac
       file_name <- r$project_files_list %>% dplyr::filter(id == input$selected_file) %>% dplyr::pull(filename)
       extension <- tolower(sub(".*\\.", "", file_name))
       
+      editor_id <- paste0("editor_", input$selected_file)
+      current_content <- input[[editor_id]]
+      output_value <- "console"
+      
+      if (!is.null(current_content)) {
+        first_line <- strsplit(current_content, "\n")[[1]][1]
+        if (grepl("^#\\s*output:", first_line)) {
+          output_value <- trimws(sub("^#\\s*output:\\s*", "", first_line))
+        }
+      }
+      
       output_options <- list()
-      output_value <- ""
+      output_keys <- c()
       
       if (extension == "r"){
         output_options <- list(
@@ -194,15 +224,16 @@ mod_project_files_server <- function(id, r, d, m, language, i18n, debug, user_ac
           list(key = "datatable", text = i18n$t("datatable_output")),
           list(key = "rmarkdown", text = i18n$t("rmarkdown"))
         )
-        output_value <- "console"
       }
       else if (extension == "py"){
         output_options <- list(
           list(key = "console", text = i18n$t("console")),
           list(key = "matplotlib", text = i18n$t("matplotlib"))
         )
-        output_value <- "console"
       }
+      
+      output_keys <- sapply(output_options, function(x) x$key)
+      if (output_value %not_in% output_keys) output_value <- "console"
       
       shiny.fluent::updateDropdown.shinyInput(session, "code_output", options = output_options, value = output_value)
       shinyjs::runjs(paste0("Shiny.setInputValue('", id, "-update_ace_mode', Math.random());"))
@@ -213,7 +244,25 @@ mod_project_files_server <- function(id, r, d, m, language, i18n, debug, user_ac
     observeEvent(input$code_output, {
       if (debug) cat(paste0("\n", now(), " - mod_project_files - observer input$code_output"))
       
+      # Output style
+      if (input$code_output %in% c("console", "terminal")) shinyjs::addClass("code_result_div", paste0("ace-", text_output_theme))
+      else shinyjs::removeClass("code_result_div", paste0("ace-", text_output_theme))
+      
       shinyjs::runjs(paste0("Shiny.setInputValue('", id, "-update_ace_mode', Math.random());"))
+      
+      editor_id <- paste0("editor_", input$selected_file)
+      current_content <- input[[editor_id]]
+      
+      if (!grepl("^#\\s*output:", current_content)) {
+        new_content <- paste0("# output: ", input$code_output, "\n\n", current_content)
+        shinyAce::updateAceEditor(session, editor_id, value = new_content)
+      } else {
+        lines <- strsplit(current_content, "\n")[[1]]
+        output_line_idx <- which(grepl("^#\\s*output:", lines))[1]
+        lines[output_line_idx] <- paste0("# output: ", input$code_output)
+        new_content <- paste(lines, collapse = "\n")
+        shinyAce::updateAceEditor(session, editor_id, value = new_content)
+      }
     })
     
     observeEvent(input$update_ace_mode, {
@@ -229,22 +278,38 @@ mod_project_files_server <- function(id, r, d, m, language, i18n, debug, user_ac
       
       shinyAce::updateAceEditor(session, paste0("editor_", input$selected_file), mode = ace_mode)
       
+      # Reset outputs
+      shinyjs::runjs(paste0("Shiny.setInputValue('", id, "-reset_code_outputs', Math.random());"))
+      
       # Show / hide output divs
       
       if (length(input$code_output) > 0){
         sapply(c("verbatim_code_output", "rmarkdown_output", "ui_output", "plot_output_div", "table_output_div", "datatable_output_div", "image_output"), shinyjs::hide)
-        if (input$code_output == "console") shinyjs::show("verbatim_code_output")
-        else if (input$code_output == "figure") shinyjs::show("plot_output_div")
-        else if (input$code_output == "rmarkdown") shinyjs::show("rmarkdown_output")
-        else if (input$code_output == "ui") shinyjs::show("ui_output")
-        else if (input$code_output == "table") shinyjs::show("table_output_div")
-        else if (input$code_output == "datatable") shinyjs::show("datatable_output_div")
-        else if (input$code_output == "matplotlib") shinyjs::show("image_output")
+        
+        shinyjs::delay(10, {
+          if (input$code_output == "console") shinyjs::show("verbatim_code_output")
+          else if (input$code_output == "figure") shinyjs::show("plot_output_div")
+          else if (input$code_output == "rmarkdown") shinyjs::show("rmarkdown_output")
+          else if (input$code_output == "ui") shinyjs::show("ui_output")
+          else if (input$code_output == "table") shinyjs::show("table_output_div")
+          else if (input$code_output == "datatable") shinyjs::show("datatable_output_div")
+          else if (input$code_output == "matplotlib") shinyjs::show("image_output")
+        })
       }
+    })
+    
+    ## Reset outputs
+    
+    observeEvent(input$reset_code_outputs, {
+      if (debug) cat(paste0("\n", now(), " - mod_project_files - observer input$reset_code_outputs"))
       
-      # Output style
-      # if (input$output == "console") shinyjs::addClass("console_output", paste0("ace-", text_output_theme))
-      # else shinyjs::removeClass("console_output", paste0("ace-", text_output_theme))
+      output$verbatim_code_output <- renderText("")
+      output$plot_output <- renderPlot(NULL)
+      output$rmarkdown_output <- renderUI("")
+      output$ui_output <- renderUI("")
+      output$table_output <- renderTable(NULL)
+      output$datatable_output <- DT::renderDT(NULL)
+      output$image_output <- renderImage(NULL)
     })
     
     # Close a file ----
@@ -277,16 +342,6 @@ mod_project_files_server <- function(id, r, d, m, language, i18n, debug, user_ac
       
       file_id <- input$add_code_editor_hotkeys
       editor_id <- paste0("editor_", file_id)
-      
-      # observeEvent(input[[paste0(editor_id, "_run_all")]], {
-      #   if (debug) cat(paste0("\n", now(), " - mod_project_files - observer input$editor..run_all"))
-      #   r$run_project_code <- now()
-      # })
-      # 
-      # observeEvent(input[[paste0(editor_id, "_run_selection")]], {
-      #   if (debug) cat(paste0("\n", now(), " - mod_project_files - observer input$editor..run_selection"))
-      #   r$run_project_code <- now()
-      # })
       
       observeEvent(input[[paste0(editor_id, "_comment")]], {
         if (debug) cat(paste0("\n", now(), " - mod_project_files - observer input$editor..comment"))
@@ -455,8 +510,6 @@ mod_project_files_server <- function(id, r, d, m, language, i18n, debug, user_ac
 
         # Capture console output of our code
         captured_output <- capture.output(tryCatch(eval(parse(text = code)), error = function(e) print(e), warning = function(w) print(w))) %>% paste(collapse = "\n")
-
-        # Restore normal value
         options('cli.num_colors' = NULL)
 
         # Render result
@@ -464,13 +517,23 @@ mod_project_files_server <- function(id, r, d, m, language, i18n, debug, user_ac
       }
 
       # Plot output
-      else if (input$code_output == "figure") shinyjs::delay(
-        100,
-        output$plot_output <- renderPlot(
-          tryCatch(eval(parse(text = code)), error = function(e) cat(paste0("\n", toString(e))), warning = function(w) cat(paste0("\n", toString(w))))#,
-          # width = isolate(input$plot_width), height = isolate(input$plot_height), res = isolate(input$plot_dpi)
-        )
-      )
+      else if (input$code_output == "figure"){
+        
+        captured_output <- capture.output(plot_output <- tryCatch(eval(parse(text = code)), error = function(e) print(e), warning = function(w) print(w))) %>% paste(collapse = "\n")
+        
+        if (nchar(captured_output) > 0) {
+          output$plot_text_output <- renderText(captured_output)
+          shinyjs::hide("plot_output")
+        }
+        else {
+          output$plot_text_output <- renderText("")
+          output$plot_output <- renderPlot(
+            plot_output#,
+            # width = isolate(input$plot_width), height = isolate(input$plot_height), res = isolate(input$plot_dpi)
+          )
+          shinyjs::show("plot_output")
+        }
+      }
 
       # UI
       else if (input$code_output == "ui") output$ui_output <- renderUI(tryCatch(eval(parse(text = code)), error = function(e) print(e), warning = function(w) print(w)))
@@ -557,8 +620,8 @@ mod_project_files_server <- function(id, r, d, m, language, i18n, debug, user_ac
     #   # Render result
     #   output$code_output <- renderText(result)
     # }
-    # 
-    # output$datetime_code_execution <- renderText(format_datetime(now(), language))
+    
+    output$datetime_code_execution <- renderText(format_datetime(now(), language))
     })
   })
 }
