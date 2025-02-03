@@ -309,7 +309,12 @@ mod_project_files_server <- function(id, r, d, m, language, i18n, debug, user_ac
       output$ui_output <- renderUI("")
       output$table_output <- renderTable(NULL)
       output$datatable_output <- DT::renderDT(NULL)
-      output$image_output <- renderImage(NULL)
+      output$image_output <- renderImage({ 
+        list(src = "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7", 
+             contentType = 'image/gif', 
+             width = 1, 
+             height = 1)
+      }, deleteFile = FALSE)
     })
     
     # Close a file ----
@@ -491,137 +496,139 @@ mod_project_files_server <- function(id, r, d, m, language, i18n, debug, user_ac
     observeEvent(input$run_code_trigger, {
       if (debug) cat(paste0("\n", now(), " - mod_project_files - observer input$run_code_trigger"))
 
-    # req("console_execute_code" %in% user_accesses)
-
-    code <- gsub("\r", "\n", r$project_file_code)
-    
-    file_name <- r$project_files_list %>% dplyr::filter(id == input$selected_file) %>% dplyr::pull(filename)
-    extension <- tolower(sub(".*\\.", "", file_name))
-
-    ## Run R code ----
-    
-    if (extension == "r"){
-
-      # Console output
-      if (input$code_output == "console"){
-
-        # Change this option to display correctly tibble in textbox
-        options('cli.num_colors' = 1)
-
-        # Capture console output of our code
-        captured_output <- capture.output(tryCatch(eval(parse(text = code)), error = function(e) print(e), warning = function(w) print(w))) %>% paste(collapse = "\n")
-        options('cli.num_colors' = NULL)
-
-        # Render result
-        output$verbatim_code_output <- renderText(captured_output)
-      }
-
-      # Plot output
-      else if (input$code_output == "figure"){
-        
-        captured_output <- capture.output(plot_output <- tryCatch(eval(parse(text = code)), error = function(e) print(e), warning = function(w) print(w))) %>% paste(collapse = "\n")
-        
-        if (nchar(captured_output) > 0) {
-          output$plot_text_output <- renderText(captured_output)
-          shinyjs::hide("plot_output")
+      # req("console_execute_code" %in% user_accesses)
+  
+      code <- gsub("\r", "\n", r$project_file_code)
+      
+      file_name <- r$project_files_list %>% dplyr::filter(id == input$selected_file) %>% dplyr::pull(filename)
+      extension <- tolower(sub(".*\\.", "", file_name))
+  
+      ## Run R code ----
+      
+      if (extension == "r"){
+  
+        # Console output
+        if (input$code_output == "console"){
+  
+          # Change this option to display correctly tibble in textbox
+          options('cli.num_colors' = 1)
+  
+          # Capture console output of our code
+          captured_output <- capture.output(tryCatch(eval(parse(text = code)), error = function(e) print(e), warning = function(w) print(w))) %>% paste(collapse = "\n")
+          options('cli.num_colors' = NULL)
+  
+          # Render result
+          output$verbatim_code_output <- renderText(captured_output)
         }
-        else {
-          output$plot_text_output <- renderText("")
-          output$plot_output <- renderPlot(
-            plot_output#,
-            # width = isolate(input$plot_width), height = isolate(input$plot_height), res = isolate(input$plot_dpi)
-          )
-          shinyjs::show("plot_output")
+  
+        # Plot output
+        else if (input$code_output == "figure"){
+          
+          captured_output <- capture.output(plot_output <- tryCatch(eval(parse(text = code)), error = function(e) print(e), warning = function(w) print(w))) %>% paste(collapse = "\n")
+          
+          if (nchar(captured_output) > 0) {
+            output$plot_text_output <- renderText(captured_output)
+            shinyjs::hide("plot_output")
+          }
+          else {
+            output$plot_text_output <- renderText("")
+            output$plot_output <- renderPlot(
+              plot_output#,
+              # width = isolate(input$plot_width), height = isolate(input$plot_height), res = isolate(input$plot_dpi)
+            )
+            shinyjs::show("plot_output")
+          }
         }
-      }
-
-      # UI
-      else if (input$code_output == "ui") output$ui_output <- renderUI(tryCatch(eval(parse(text = code)), error = function(e) print(e), warning = function(w) print(w)))
-
-      # RMarkdown
-      else if (input$code_output == "rmarkdown"){
-
-        output_file <- create_rmarkdown_file(r, code)
-        output$rmarkdown_output <- renderUI(div(class = "markdown", withMathJax(includeMarkdown(output_file))))
-      }
-
-      # Table
-      else if (input$code_output == "table") output$table_output <- renderTable(tryCatch(eval(parse(text = code)), error = function(e) print(e), warning = function(w) print(w)))
-
-      # DataTable
-      else if (input$code_output == "datatable") output$datatable_output <- DT::renderDT(
-        DT::datatable(
-          tryCatch(eval(parse(text = code)), error = function(e) print(e), warning = function(w) print(w)),
-
-          rownames = FALSE,
-          options = list(
-            dom = "<'datatable_length'l><'top't><'bottom'p>",
-            compact = TRUE, hover = TRUE,
-            pageLength = 25
-          ),
-          selection = "single",
-
-          # CSS for datatable
-          callback = htmlwidgets::JS(
-            "table.on('draw.dt', function() {",
-            "  $('.dataTable tbody tr td').css({",
-            "    'height': '12px',",
-            "    'padding': '2px 5px'",
-            "  });",
-            "  $('.dataTable thead tr td div .form-control').css('font-size', '12px');",
-            "  $('.dataTable thead tr td').css('padding', '5px');",
-            "});"
+  
+        # UI
+        else if (input$code_output == "ui") output$ui_output <- renderUI(tryCatch(eval(parse(text = code)), error = function(e) print(e), warning = function(w) print(w)))
+  
+        # RMarkdown
+        else if (input$code_output == "rmarkdown"){
+  
+          output_file <- create_rmarkdown_file(r, code)
+          output$rmarkdown_output <- renderUI(div(class = "markdown", withMathJax(includeMarkdown(output_file))))
+        }
+  
+        # Table
+        else if (input$code_output == "table") output$table_output <- renderTable(tryCatch(eval(parse(text = code)), error = function(e) print(e), warning = function(w) print(w)))
+  
+        # DataTable
+        else if (input$code_output == "datatable") output$datatable_output <- DT::renderDT(
+          DT::datatable(
+            tryCatch(eval(parse(text = code)), error = function(e) print(e), warning = function(w) print(w)),
+  
+            rownames = FALSE,
+            options = list(
+              dom = "<'datatable_length'l><'top't><'bottom'p>",
+              compact = TRUE, hover = TRUE,
+              pageLength = 25
+            ),
+            selection = "single",
+  
+            # CSS for datatable
+            callback = htmlwidgets::JS(
+              "table.on('draw.dt', function() {",
+              "  $('.dataTable tbody tr td').css({",
+              "    'height': '12px',",
+              "    'padding': '2px 5px'",
+              "  });",
+              "  $('.dataTable thead tr td div .form-control').css('font-size', '12px');",
+              "  $('.dataTable thead tr td').css('padding', '5px');",
+              "});"
+            )
           )
         )
-      )
-    }
-
-    # # Run Python code ----
-    # 
-    # else if (input$programming_language == "python"){
-    # 
-    #   # reticulate::py_run_string("sys.stdout = original_stdout\nsys.stderr = original_stderr\n")
-    # 
-    #   # Console output
-    #   if (input$output == "console") output$code_output <- renderText(capture_python_output(code))
-    # 
-    #   # Plot output
-    #   else if (input$output == "matplotlib"){
-    # 
-    #     # Create a file with plot image
-    #     dir <- paste0(r$app_folder, "/temp_files/", r$user_id, "/images")
-    #     output_file <- paste0(dir, "/", paste0(sample(c(0:9, letters[1:6]), 8, TRUE), collapse = ''), "_", now() %>% stringr::str_replace_all(":", "_") %>% stringr::str_replace_all(" ", "_"), ".png")
-    #     if (!dir.exists(dir)) dir.create(dir)
-    # 
-    #     code <- paste0(
-    #       "import matplotlib.pyplot as plt\n",
-    #       "plt.close('all')\n",
-    #       code, "\n",
-    #       "plt.savefig('", output_file, "', dpi = ", input$plot_dpi, ")"
-    #     )
-    # 
-    #     capture_python_output(code)
-    # 
-    #     shinyjs::delay(100,
-    #                    output$image_output <- renderImage({
-    #                      list(src = output_file, contentType = 'image/png', width = isolate(input$plot_width), height = isolate(input$plot_height))
-    #                    }, deleteFile = FALSE)
-    #     )
-    #   }
-    # }
-    # 
-    # # Run shell code ----
-    # 
-    # else if (input$programming_language == "shell"){
-    # 
-    #   # Use R system fct
-    #   result <- capture.output(tryCatch(eval(parse(text = paste0("system('", code, "', intern = TRUE)"))), error = function(e) print(e), warning = function(w) print(w))) %>% paste(collapse = "\n")
-    # 
-    #   # Render result
-    #   output$code_output <- renderText(result)
-    # }
+      }
+  
+      # Run Python code ----
+  
+      else if (extension == "py"){
+  
+        # Console output
+        if (input$code_output == "console") output$verbatim_code_output <- renderText(capture_python_output(code))
+  
+        # Plot output
+        else if (input$code_output == "matplotlib"){
+  
+          # Create a file with plot image
+          dir <- paste0(r$app_folder, "/temp_files/", r$user_id, "/images")
+          output_file <- paste0(dir, "/", paste0(sample(c(0:9, letters[1:6]), 8, TRUE), collapse = ''), "_", now() %>% stringr::str_replace_all(":", "_") %>% stringr::str_replace_all(" ", "_"), ".png")
+          if (!dir.exists(dir)) dir.create(dir)
+  
+          code <- paste0(
+            "import matplotlib.pyplot as plt\n",
+            "plt.close('all')\n",
+            code, "\n",
+            # "plt.savefig('", output_file, "', dpi = ", input$plot_dpi, ")"
+            "plt.savefig('", output_file, "')"
+          )
+  
+          capture_python_output(code)
+          
+          shinyjs::runjs(paste0("Shiny.setInputValue('", id, "-render_image_trigger', Math.random());"))
+          shinyjs::runjs(paste0("Shiny.setInputValue('", id, "-render_image', '", output_file, "');"))
+  
+          # shinyjs::delay(
+          #   100,
+          #   output$image_output <- renderImage({
+          #     # list(src = output_file, contentType = 'image/png', width = isolate(input$plot_width), height = isolate(input$plot_height))
+          #     list(src = output_file, contentType = 'image/png')
+          #   }, deleteFile = FALSE)
+          # )
+        }
+      }
+      
+      output$datetime_code_execution <- renderText(format_datetime(now(), language))
+    })
     
-    output$datetime_code_execution <- renderText(format_datetime(now(), language))
+    observeEvent(input$render_image_trigger, {
+      if (debug) cat(paste0("\n", now(), " - mod_project_files - observer input$render_image_trigger"))
+      
+      output$image_output <- renderImage({
+        # list(src = output_file, contentType = 'image/png', width = isolate(input$plot_width), height = isolate(input$plot_height))
+        list(src = input$render_image, contentType = 'image/png')
+      }, deleteFile = FALSE)
     })
   })
 }

@@ -343,6 +343,9 @@ files_browser_open_file <- function(id, input_prefix, r, r_prefix, folder, eleme
     shinyjs::runjs(paste0("Shiny.setInputValue('", id, "-add_code_editor_hotkeys', ", file_id, ");"))
   }
   else shinyjs::delay(50, shinyjs::show(paste0(input_prefix, "editor_div_", file_id)))
+  
+  # Update selected_file
+  shinyjs::runjs(paste0("Shiny.setInputValue('", id, "-", input_prefix, "selected_file', ", file_id, ");"))
 }
 
 files_browser_change_tab <- function(id, input_prefix, r, r_prefix, file_id){
@@ -422,7 +425,7 @@ files_browser_edit_filename <- function(id, i18n, output, input_prefix, r, r_pre
   req(check_special_char)
   
   # Check if name is already used
-  if (new_name == old_name) check_used_name <- TRUE
+  if (tolower(new_name) == tolower(old_name)) check_used_name <- TRUE
   else check_used_name <- !file.exists(paste0(folder, "/", new_name))
   if (!check_used_name) show_message_bar(id, output, "name_already_used", "severeWarning", i18n = i18n, ns = ns)
   req(check_used_name)
