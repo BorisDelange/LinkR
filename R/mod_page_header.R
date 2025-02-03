@@ -22,7 +22,7 @@ mod_page_header_ui <- function(id, language, i18n){
           "", "OpenFolderHorizontal", title = i18n$t("projects"), href = shiny.router::route_link("projects"),
           onClick = htmlwidgets::JS(paste0("item => {Shiny.setInputValue('", id, "-show_home', Math.random());}"))
         ),
-        shiny.fluent::CommandBarItem("", "Code", title = i18n$t("console"), href = shiny.router::route_link("console")),
+        shiny.fluent::CommandBarItem("", "OfflineStorage", title = i18n$t("datasets"), href = shiny.router::route_link("datasets")),
         shiny.fluent::CommandBarItem("", "World", title = i18n$t("content_catalog"), href = shiny.router::route_link("git_repos")),
         
         # Other pages
@@ -30,7 +30,7 @@ mod_page_header_ui <- function(id, language, i18n){
           text = "", "More",
           subMenuProps = list(items = list(
             list(
-              text = i18n$t("datasets"), iconProps = list(iconName = "OfflineStorage"), href = shiny.router::route_link("datasets"),
+              text = i18n$t("console"), iconProps = list(iconName = "Code"), href = shiny.router::route_link("console"),
               onClick = htmlwidgets::JS(paste0("item => {Shiny.setInputValue('", id, "-show_home', Math.random());}"))
             ),
             list(
