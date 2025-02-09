@@ -468,6 +468,7 @@ end_date,End date
 add_patients_subset_success,Patients successfully added to subset
 remove_patients_subset_success,Patients successfully removed from the subset
 no_patients_to_remove_from_subset,No patients to remove from subset
+no_patients_to_add_to_subset,No patients to add to subset
 add_concept_input,Action
 subset_added,New subset added
 tab_deleted,Tab removed

@@ -184,7 +184,7 @@ a.no-hover-effect:hover {
 .button_sidenav {
   transition: left 0.3s ease-in-out, border 0.3s ease-in-out;
   position: fixed;
-  top: 50%;
+  top: 45%;
   cursor: pointer;
   border-top: 30px solid transparent;
   border-bottom: 30px solid transparent;
@@ -201,7 +201,7 @@ a.no-hover-effect:hover {
 
 .button_show_sidenav {
   border-left: 13px solid #D8D8D8;
-  left: 40px;
+  left: 0;
 }
 
 .button_show_sidenav:hover {
@@ -1253,9 +1253,9 @@ button.ms-UpButton, button.ms-DownButton {
   font-size: 12px;
 }
 
-/* ------------------- */
-/* OTHER INPUTS        */
-/* ------------------- */
+/* ----------------------- */
+/* OTHER INPUTS / OUTPUTS  */
+/* ----------------------- */
 
 .input_title_first {
   margin: 0px 0px 10px 0px;
@@ -1302,6 +1302,10 @@ button.ms-UpButton, button.ms-DownButton {
 
 .close-tab:hover .fa-times {
   color: #333;
+}
+
+.shiny-text-output {
+  margin: 0;
 }
 
 /* --------------------- */
@@ -1585,7 +1589,6 @@ button.ms-UpButton, button.ms-DownButton {
   width: 50%;
   height: 100%;
 }
-
 
 /* ---------------------- */
 /* DATASETS PAGE          */
