@@ -322,6 +322,11 @@ mod_projects_ui <- function(id, language, languages, i18n){
                 h1(i18n$t("download_project")),
                 div(
                   id = ns("download_content_div"),
+                  tags$p(
+                    i18n$t("download_project_help_1"), tags$br(),
+                    i18n$t("download_project_help_2"),
+                    style = "color: #5e5d5d"
+                  ),
                   div(
                     shiny.fluent::PrimaryButton.shinyInput(ns("export_element"), i18n$t("download")),
                     style = "position: absolute; right: 8px; bottom: 8px;"
@@ -343,6 +348,10 @@ mod_projects_ui <- function(id, language, languages, i18n){
                 shinyjs::hidden(
                   div(
                     id = ns("share_content_div"),
+                    tags$p(
+                      i18n$t("project_git_synchro_help_1"),
+                      style = "color: #5e5d5d"
+                    ),
                     div(shiny.fluent::Dropdown.shinyInput(ns("git_repo"), label = i18n$t("git_repo")), style = "width: 200px;"),
                     div(uiOutput(ns("git_repo_element_ui")), style = "margin-top:10px;"),
                     div(

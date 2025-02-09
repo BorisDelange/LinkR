@@ -545,3 +545,15 @@ no_description_available,Pas de description disponible
 version,Version
 local_version,Version locale
 remote_git_version,Version sur le Git distant
+download_project_help_1,"En cliquant sur 'Télécharger', vous téléchargerez le projet au format zip."
+download_project_help_2,"Retournez sur la page 'Projets' pour importer un projet depuis un fichier zip."
+project_git_synchro_help_1,"Choisissez un dépôt Git sur lequel vous souhaitez synchroniser ce projet."
+download_dataset_help_1,"En cliquant sur 'Télécharger', vous téléchargerez le set de données au format zip."
+download_dataset_help_2,"Retournez sur la page 'Sets de données' pour importer un set de données depuis un fichier zip."
+dataset_git_synchro_help_1,"Choisissez un dépôt Git sur lequel vous souhaitez synchroniser ce set de données."
+download_plugin_help_1,"En cliquant sur 'Télécharger', vous téléchargerez le plugin au format zip."
+download_plugin_help_2,"Retournez sur la page 'Plugins' pour importer un plugin depuis un fichier zip."
+plugin_git_synchro_help_1,"Choisissez un dépôt Git sur lequel vous souhaitez synchroniser ce plugin."
+download_data_cleaning_help_1,"En cliquant sur 'Télécharger', vous téléchargerez le script de data cleaning au format zip."
+download_data_cleaning_help_2,"Retournez sur la page 'Scripts de data cleaning' pour importer un script de data cleaning depuis un fichier zip."
+data_cleaning_git_synchro_help_1,"Choisissez un dépôt Git sur lequel vous souhaitez synchroniser ce script de data cleaning."

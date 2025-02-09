@@ -198,6 +198,11 @@ mod_data_cleaning_ui <- function(id, language, languages, i18n, code_hotkeys, au
                 h1(i18n$t("download_data_cleaning")),
                 div(
                   id = ns("download_content_div"),
+                  tags$p(
+                    i18n$t("download_data_cleaning_help_1"), tags$br(),
+                    i18n$t("download_data_cleaning_help_2"),
+                    style = "color: #5e5d5d"
+                  ),
                   div(
                     shiny.fluent::PrimaryButton.shinyInput(ns("export_element"), i18n$t("download")),
                     style = "position: absolute; right: 8px; bottom: 8px;"
@@ -211,11 +216,25 @@ mod_data_cleaning_ui <- function(id, language, languages, i18n, code_hotkeys, au
             div(
               div(
                 h1(i18n$t("synchronize_with_git_repo")),
-                div(shiny.fluent::Dropdown.shinyInput(ns("git_repo"), label = i18n$t("git_repo")), style = "width: 200px;"),
-                div(uiOutput(ns("git_repo_element_ui")), style = "margin-top:10px;"),
                 div(
-                  uiOutput(ns("synchronize_git_buttons")),
-                  class = "data_cleaning_share_buttons"
+                  id = ns("share_forbidden_access"),
+                  shiny.fluent::MessageBar(i18n$t("unauthorized_access_area"), messageBarType = 5),
+                  style = "display: inline-block; margin-top: 5px;"
+                ),
+                shinyjs::hidden(
+                  div(
+                    id = ns("share_content_div"),
+                    tags$p(
+                      i18n$t("data_cleaning_git_synchro_help_1"),
+                      style = "color: #5e5d5d"
+                    ),
+                    div(shiny.fluent::Dropdown.shinyInput(ns("git_repo"), label = i18n$t("git_repo")), style = "width: 200px;"),
+                    div(uiOutput(ns("git_repo_element_ui")), style = "margin-top:10px;"),
+                    div(
+                      uiOutput(ns("synchronize_git_buttons")),
+                      class = "data_cleaning_share_buttons"
+                    )
+                  )
                 ),
                 class = "widget", style = "height: 50%; padding-top: 1px;"
               ),

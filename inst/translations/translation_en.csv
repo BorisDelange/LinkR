@@ -547,3 +547,15 @@ no_description_available,No description available
 version,Version
 local_version,Local version
 remote_git_version,Remote Git version
+download_project_help_1,"By clicking on 'Download', you will download the project in ZIP format."
+download_project_help_2,"Go back to the 'Projects' page to import a project from a ZIP file."
+project_git_synchro_help_1,"Select a Git repository where you want to synchronize this project."
+download_dataset_help_1,"By clicking on 'Download', you will download the dataset in ZIP format."
+download_dataset_help_2,"Go back to the 'Datasets' page to import a dataset from a ZIP file."
+dataset_git_synchro_help_1,"Select a Git repository where you want to synchronize this dataset."
+download_plugin_help_1,"By clicking on 'Download', you will download the plugin in ZIP format."
+download_plugin_help_2,"Go back to the 'Plugins' page to import a plugin from a ZIP file."
+plugin_git_synchro_help_1,"Select a Git repository where you want to synchronize this plugin."
+download_data_cleaning_help_1,"By clicking on 'Download', you will download the data cleaning script in ZIP format."
+download_data_cleaning_help_2,"Go back to the 'Data cleaning scripts' page to import a data cleaning script from a ZIP file."
+data_cleaning_git_synchro_help_1,"Select a Git repository where you want to synchronize this data cleaning script."
