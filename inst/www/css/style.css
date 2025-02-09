@@ -708,6 +708,11 @@ a.no-hover-effect:hover {
   transition: transform 0.3s ease, box-shadow 0.3s ease;
 }
 
+.dataset_details_widget:hover, .data_page_widget:hover {
+  box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.2);
+  transform: translateY(-5px);
+}
+
 .dataset_details_widget {
   text-align: center;
   justify-content: center;
