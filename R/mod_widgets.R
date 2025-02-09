@@ -1553,11 +1553,14 @@ mod_widgets_server <- function(id, r, d, m, language, i18n, all_divs, debug, use
         
         if (!dir.exists(input$git_repo_elements_folder)) dir.create(input$git_repo_elements_folder)
         
-        new_dir <- file.path(input$git_repo_elements_folder, input$git_repo_element_name_en %>% remove_special_chars())
+        new_dir <- file.path(input$git_repo_elements_folder)
         
-        dir.create(new_dir)
+        # Reload subsets var
+        reload_elements_var(page_id = "subsets", id = "subsets", con = m$db, r = r, m = m, long_var_filtered = "filtered_subsets_long", user_accesses = user_accesses)
         
         # Create element files
+        
+        element_wide <- r$projects_wide %>% dplyr::filter(id == input$selected_element)
         
         temp_zip_dir <- create_element_files(
           id = id, r = r, m = m, sql_category = sql_category, con = con, single_id = single_id,
@@ -1567,7 +1570,14 @@ mod_widgets_server <- function(id, r, d, m, language, i18n, all_divs, debug, use
         # Copy files
         
         files <- list.files(temp_zip_dir, full.names = TRUE, recursive = TRUE)
-        file.copy(files, new_dir, overwrite = TRUE)
+        
+        # Recreate folders hierarchy
+        for (file in files) {
+          relative_path <- gsub(paste0("^", temp_zip_dir, "/"), "", file)
+          target_path <- file.path(new_dir, relative_path)
+          dir.create(dirname(target_path), recursive = TRUE, showWarnings = FALSE)
+          file.copy(file, target_path, overwrite = TRUE)
+        }
       }
       
       # Commit and push

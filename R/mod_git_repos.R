@@ -1543,9 +1543,6 @@ mod_git_repos_server <- function(id, r, d, m, language, i18n, debug, user_access
           
           unlink(git_element_folder, recursive = TRUE)
           
-          # Update global XML file
-          create_elements_xml(current_tab, git_folder)
-          
           # Return to elements page
           shinyjs::runjs(paste0(
             "Shiny.setInputValue('", id, "-current_tab', '", current_tab, "');",
