@@ -12,21 +12,14 @@ load_git_repo <- function(id, r, git_repo){
     credentials <- git2r::cred_user_pass("linkr_user", "")
     
     repo <- git2r::clone(repo_url, local_path, credentials = credentials, progress = FALSE)
-    # git2r::config(repo, user.name = "username", user.email = "")
     
     # Create dirs & files that don't exist
     for (dir in c("datasets", "plugins", "data_cleaning_scripts", "projects")){
       dir_path <- paste0(local_path, "/", dir)
       file_path <- paste0(local_path, "/", dir, "/.gitkeep")
-      xml_file_path <- paste0(dir_path, "/", dir, ".xml")
       
       if (!dir.exists(dir_path)) dir.create(dir_path)
       if (!file.exists(file_path)) file.create(file_path)
-      if (!file.exists(xml_file_path)){
-        xml <- XML::newXMLDoc()
-        XML::newXMLNode(dir, doc = xml)
-        XML::saveXML(xml, file = xml_file_path)
-      }
     }
     
     readme_file_path <- paste0(local_path, "/README.md")

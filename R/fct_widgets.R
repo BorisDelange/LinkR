@@ -261,8 +261,9 @@ create_element_files <- function(id, r, m, sql_category, con, single_id, element
                 for (i in 1:nrow(scripts)){
                   script <- scripts[i, ]
                   
-                  script_path <- file.path(widget_path, paste0(script$name, ".R"))
-                  writeLines(script$code, script_path)
+                  script_path <- file.path(widget_path, paste0(remove_special_chars(script$name), ".R"))
+                  if (!is.na(script$code)) writeLines(script$code, script_path)
+                  else file.create(script_path)
                 }
               }
             } 

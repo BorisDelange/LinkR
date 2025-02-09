@@ -1465,7 +1465,14 @@ mod_widgets_server <- function(id, r, d, m, language, i18n, all_divs, debug, use
             # Update synchronize buttons
             
             if (update_needed) update_button <- shiny.fluent::PrimaryButton.shinyInput(ns("git_repo_update_element"), i18n$t("update"))
-            else update_button <- ""
+            else update_button <- div(
+              div(
+                create_hover_card(ui = shiny.fluent::IconButton.shinyInput(ns("reload_git_repo"), iconProps = list(iconName = "SyncOccurence")), text = i18n$t("reload_git_repo")),
+                onclick = paste0("Shiny.setInputValue('", id, "-reload_git_repo', Math.random());")
+              ),
+              shiny.fluent::PrimaryButton.shinyInput(ns("git_repo_update_element"), i18n$t("update"), disabled = TRUE),
+              style = "display: flex; gap: 2px;"
+            )
             
             synchronize_git_buttons <- div(update_button, style = "display: flex; gap: 5px;")
           }
@@ -1583,6 +1590,9 @@ mod_widgets_server <- function(id, r, d, m, language, i18n, all_divs, debug, use
       }
       
       # Commit and push
+      
+      error_update_remote_git_repo <- TRUE
+      
       if (length(r$loaded_git_repos_objects[[git_repo$unique_id]]) > 0){
         tryCatch({
           repo <- r$loaded_git_repos_objects[[git_repo$unique_id]]
@@ -1615,14 +1625,19 @@ mod_widgets_server <- function(id, r, d, m, language, i18n, all_divs, debug, use
 
             # Reload git element UI
             shinyjs::runjs(paste0("Shiny.setInputValue('", id, "-reload_git_element_ui', Math.random());"))
+
+            error_update_remote_git_repo <- FALSE
           }
         }, error = function(e){
           show_message_bar(id, output, message = "error_update_remote_git_repo", type = "severeWarning", i18n = i18n, ns = ns)
           cat(paste0("\n", now(), " - mod_widgets - (", id, ") - update remot git error - ", toString(e)))
         })
-
-        shinyjs::hide("update_or_delete_git_element_modal")
       }
+      
+      if (error_update_remote_git_repo) show_message_bar(id, output, message = "error_update_remote_git_repo", type = "severeWarning", i18n = i18n, ns = ns)
+      
+      # Close modal
+      shinyjs::hide("update_or_delete_git_element_modal")
     })
     
     ## Export element ----

@@ -87,20 +87,6 @@ mod_page_sidenav_ui <- function(id, language, i18n){
     )
   }
   
-  share_buttons <- function(type){
-    div(
-      shinyjs::hidden(
-        div(
-          id = ns("reload_git_repo_div"),
-          create_hover_card(ui = shiny.fluent::IconButton.shinyInput(ns("reload_git_repo"), iconProps = list(iconName = "SyncOccurence")), text = i18n$t("reload_git_repo")),
-          onclick = paste0("Shiny.setInputValue('", id, "-reload_git_repo', Math.random());"),
-          class = "reduced_sidenav_buttons"
-        )
-      ),
-      class = "reduced_sidenav_buttons"
-    )
-  }
-  
   # App database ----
   
   if (id == "app_db") {
@@ -402,8 +388,7 @@ mod_page_sidenav_ui <- function(id, language, i18n){
         ),
         shinyjs::hidden(
           div(
-            id = ns("share_reduced_sidenav"),
-            share_buttons("dataset")
+            id = ns("share_reduced_sidenav")
           )
         )
       ),
@@ -441,8 +426,7 @@ mod_page_sidenav_ui <- function(id, language, i18n){
         ),
         shinyjs::hidden(
           div(
-            id = ns("share_reduced_sidenav"),
-            share_buttons("data_cleaning_script")
+            id = ns("share_reduced_sidenav")
           )
         )
       )
@@ -634,8 +618,7 @@ mod_page_sidenav_ui <- function(id, language, i18n){
         ),
         shinyjs::hidden(
           div(
-            id = ns("share_reduced_sidenav"),
-            share_buttons("plugin")
+            id = ns("share_reduced_sidenav")
           )
         )
       ),
@@ -680,8 +663,7 @@ mod_page_sidenav_ui <- function(id, language, i18n){
         ),
         shinyjs::hidden(
           div(
-            id = ns("share_reduced_sidenav"),
-            share_buttons("project")
+            id = ns("share_reduced_sidenav")
           )
         )
       )
