@@ -143,7 +143,7 @@ mod_concepts_server <- function(id, r, d, m, language, i18n, debug, user_accesse
           else data <- d$dataset_concept %>% dplyr::filter(vocabulary_id == input$vocabulary)
           data <- 
             data %>% 
-            dplyr::select(-id, -add_concept_input) %>%
+            dplyr::select(-add_concept_input) %>%
             dplyr::mutate_at("concept_id", as.character)
         }
       }
@@ -267,7 +267,10 @@ mod_concepts_server <- function(id, r, d, m, language, i18n, debug, user_accesse
       }
 
       # Reload concepts count
-      load_dataset_concepts(r, d, m)
+      tryCatch(load_dataset_concepts(r, d, m), error = function(e){
+        cat(paste0("\n", now(), " - mod_concepts - error loading dataset concepts - error = ", toString(e)))
+        show_message_bar(id, output, "error_loading_dataset_concepts", "severeWarning", i18n = i18n, ns = ns)
+      })
       
       # Reset fields
       shinyjs::runjs(paste0("Shiny.setInputValue('", id, "-reload_vocabulary_dropdown', Math.random());"))

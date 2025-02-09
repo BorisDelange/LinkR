@@ -256,11 +256,16 @@ load_dataset_concepts <- function(r, d, m){
   dataset_folder <- paste0(r$app_folder, "/datasets_files/", r$selected_dataset)
   if (!dir.exists(dataset_folder)) dir.create(dataset_folder)
   
-  # Load Parquet file if it exists
-  concept_filename <- paste0(dataset_folder, "/concept.parquet")
-  if (file.exists(concept_filename)) d$dataset_concept <- arrow::read_parquet(concept_filename)
+  # Load Parquet files
+  dataset_concept_filename <- paste0(dataset_folder, "/dataset_concept.parquet")
+  if (file.exists(dataset_concept_filename)) d$dataset_concept <- arrow::read_parquet(dataset_concept_filename)
   
-  if (!file.exists(concept_filename)){
+  dataset_drug_strength_filename <- paste0(dataset_folder, "/dataset_drug_strength.parquet")
+  if (file.exists(dataset_drug_strength_filename)) d$dataset_drug_strength <- arrow::read_parquet(dataset_drug_strength_filename)
+  
+  ## dataset_concept & dataset_drug_strength ----
+  
+  if (!file.exists(dataset_concept_filename) | !file.exists(dataset_drug_strength_filename)){
     
     # Load all concepts for this dataset, with rows count
     omop_version <- DBI::dbGetQuery(r$db, glue::glue_sql("SELECT value FROM options WHERE category = 'dataset' AND link_id = {r$selected_dataset} AND name = 'omop_version'", .con = r$db)) %>% dplyr::pull()
@@ -316,8 +321,35 @@ load_dataset_concepts <- function(r, d, m){
       dataset_concept_ids <- unique(c(dataset_concept_ids, concept_ids))
     }
     
+    # Get concepts from app database
     sql <- glue::glue_sql("SELECT * FROM concept WHERE concept_id IN ({dataset_concept_ids*}) AND concept_id != 0 ORDER BY concept_id", .con = m$db)
-    concept <- DBI::dbGetQuery(m$db, sql) %>% tibble::as_tibble() %>% dplyr::mutate(concept_display_name = NA_character_, .after = "concept_name")
+    concept <- DBI::dbGetQuery(m$db, sql) %>% tibble::as_tibble() %>% dplyr::select(-id)
+    
+    sql <- glue::glue_sql("SELECT * FROM drug_strength WHERE drug_concept_id IN ({dataset_concept_ids*}) AND drug_concept_id != 0 ORDER BY drug_concept_id", .con = m$db)
+    drug_strength <- DBI::dbGetQuery(m$db, sql) %>% tibble::as_tibble() %>% dplyr::select(-id)
+    
+    # Get concepts from data (if the user loads a dataset from a database, it can contain concepts not imported in app database)
+    if (!r$import_dataset_save_as_duckdb_file & "concept" %in% DBI::dbListTables(d$con)){
+      sql <- glue::glue_sql("
+        SELECT
+          concept_id, concept_name, domain_id, vocabulary_id, concept_class_id,
+          standard_concept, concept_code, valid_start_date, valid_end_date, invalid_reason
+        FROM concept WHERE concept_id IN ({dataset_concept_ids*}) AND concept_id != 0 ORDER BY concept_id", .con = d$con)
+      new_concepts <- DBI::dbGetQuery(d$con, sql)
+      if (nrow(new_concepts) > 0) concept <- concept %>% dplyr::bind_rows(new_concepts %>% dplyr::anti_join(concept, by = "concept_id"))
+    }
+    
+    if (!r$import_dataset_save_as_duckdb_file & "drug_strength" %in% DBI::dbListTables(d$con)){
+      sql <- glue::glue_sql("
+        SELECT
+          drug_concept_id, ingredient_concept_id, amount_value, amount_unit_concept_id, numerator_value, numerator_unit_concept_id,
+          denominator_value, denominator_unit_concept_id, box_size, valid_start_date, valid_end_date, invalid_reason
+        FROM drug_strength WHERE drug_concept_id IN ({dataset_concept_ids*}) AND drug_concept_id != 0 ORDER BY drug_concept_id", .con = d$con)
+      new_drug_strength <- DBI::dbGetQuery(d$con, sql)
+      if (nrow(new_drug_strength) > 0) drug_strength <- drug_strength %>% dplyr::bind_rows(new_drug_strength %>% dplyr::anti_join(drug_strength, by = "drug_concept_id"))
+    }
+    
+    concept <- concept %>% dplyr::mutate(concept_display_name = NA_character_, .after = "concept_name")
     
     # Count rows
     
@@ -447,18 +479,22 @@ load_dataset_concepts <- function(r, d, m){
           count_persons_rows, count_concepts_rows, count_secondary_concepts_rows = as.numeric(0)))
     
     # Save data as csv
-    arrow::write_parquet(concept, concept_filename)
+    arrow::write_parquet(concept, dataset_concept_filename)
+    arrow::write_parquet(drug_strength, dataset_drug_strength_filename)
     
     # Update d var
     d$dataset_concept <- concept
+    d$dataset_drug_strength <- drug_strength
   }
   
-  r$dataset_vocabularies <-
-    r$vocabularies_wide %>%
-    dplyr::inner_join(d$dataset_concept %>% dplyr::distinct(vocabulary_id), by = "vocabulary_id") %>%
-    dplyr::arrange(vocabulary_id)
+  # r$dataset_vocabularies <-
+  #   r$vocabularies_wide %>%
+  #   dplyr::inner_join(d$dataset_concept %>% dplyr::distinct(vocabulary_id), by = "vocabulary_id") %>%
+  #   dplyr::arrange(vocabulary_id)
   
-  # Save all concept tables as Parquet files
+  r$dataset_vocabularies <- d$dataset_concept %>% dplyr::distinct(vocabulary_id) %>% dplyr::arrange(vocabulary_id)
+  
+  # Save all concept tables as Parquet files ----
   
   dataset_concept_ids <- d$dataset_concept %>% dplyr::pull(concept_id)
   
@@ -470,6 +506,7 @@ load_dataset_concepts <- function(r, d, m){
       
       sql <- switch(
         table,
+        "concept" = glue::glue_sql("SELECT * FROM concept WHERE concept_id IN ({dataset_concept_ids*})", .con = m$db),
         "concept_ancestor" = glue::glue_sql("SELECT * FROM concept_ancestor WHERE ancestor_concept_id IN ({dataset_concept_ids*}) OR descendant_concept_id IN ({dataset_concept_ids*})", .con = m$db),
         "concept_relationship" = glue::glue_sql("SELECT * FROM concept_relationship WHERE concept_id_1 IN ({dataset_concept_ids*}) OR concept_id_2 IN ({dataset_concept_ids*})", .con = m$db),
         "concept_synonym" = glue::glue_sql("SELECT * FROM concept_synonym WHERE concept_id IN ({dataset_concept_ids*})", .con = m$db),
@@ -520,11 +557,6 @@ load_dataset_concepts <- function(r, d, m){
     # Case 3: dataset is created from files without creating a DuckDB file or it is a database connection without vocabulary tables
     else d[[table]] <- arrow::read_parquet(file_path)
   }
-  
-  # Load dataset_drug_strength
-  drug_strength_filename <- paste0(dataset_folder, "/drug_strength.parquet")
-  if (file.exists(drug_strength_filename)) d$dataset_drug_strength <- arrow::read_parquet(drug_strength_filename)
-  else d$dataset_drug_strength <- tibble::tibble()
 }
 
 #' @noRd
