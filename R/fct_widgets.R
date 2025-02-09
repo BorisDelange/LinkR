@@ -671,7 +671,7 @@ get_plugin_buttons <- function(id, buttons, plugin_type, plugin_id, i18n){
 }
 
 #' @noRd
-import_element <- function(id, input, output, r, m, con, sql_table, sql_category, single_id, unique_id, element, element_type, temp_dir, user_accesses){
+import_element <- function(id, input, output, r, m, con, sql_table, sql_category, single_id, element, element_type, temp_dir, user_accesses){
   
   ns <- NS(id)
   i18n <- r$i18n
@@ -775,7 +775,7 @@ import_element <- function(id, input, output, r, m, con, sql_table, sql_category
     
     import_project(
       r = r, m = m, temp_dir = temp_dir,
-      update_plugins = update_plugins, project_id = element$id, user_accesses = user_accesses
+      update_plugins = update_plugins, project_id = element$id, unique_id = element$unique_id, user_accesses = user_accesses
     )
   }
   
@@ -792,7 +792,7 @@ import_element <- function(id, input, output, r, m, con, sql_table, sql_category
 }
 
 #' @noRd
-import_project <- function(r, m, temp_dir, update_plugins, project_id, user_accesses){
+import_project <- function(r, m, temp_dir, update_plugins, project_id, unique_id, user_accesses){
   
   # Tables :
   # - tabs_groups
@@ -1034,7 +1034,7 @@ import_project <- function(r, m, temp_dir, update_plugins, project_id, user_acce
   projects_files_source_folder <- paste0(temp_dir, "/projects_files")
   files_list <- list.files(projects_files_source_folder, full.names = TRUE)
   
-  projects_files_target_folder <- file.path(r$app_folder, "projects_files", r$imported_element$unique_id)
+  projects_files_target_folder <- file.path(r$app_folder, "projects_files", unique_id)
   if (!dir.exists(projects_files_target_folder)) dir.create(projects_files_target_folder)
   
   file.copy(files_list, projects_files_target_folder, overwrite = TRUE)

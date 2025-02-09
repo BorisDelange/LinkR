@@ -620,7 +620,7 @@ mod_widgets_server <- function(id, r, d, m, language, i18n, all_divs, debug, use
         
         import_element(
           id = id, input = input, output = output, r = r, m = m, con = con, sql_table = sql_table, sql_category = sql_category, single_id = single_id,
-          unique_id = r$imported_element$unique_id, element = r$imported_element, element_type = id, temp_dir = r$imported_element_temp_dir,
+          element = r$imported_element, element_type = id, temp_dir = r$imported_element_temp_dir,
           user_accesses = user_accesses
         )
       }, error = function(e){

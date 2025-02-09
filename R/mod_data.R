@@ -374,7 +374,7 @@ mod_data_server <- function(id, r, d, m, language, i18n, debug, user_accesses){
         r$data_tabs <- DBI::dbGetQuery(r$db, sql)
         
         sql <- glue::glue_sql("SELECT * FROM widgets WHERE tab_id IN ({r$data_tabs$id*})", .con = r$db)
-        r$data_widgets <- DBI::dbGetQuery(r$db, sql)
+        r$data_widgets <- DBI::dbGetQuery(r$db, sql) %>% dplyr::mutate(plugin_id = dplyr::if_else(is.na(plugin_id), 0, plugin_id))
         
         sql <- glue::glue_sql("SELECT * FROM widgets_concepts WHERE widget_id IN ({r$data_widgets$id*})", .con = m$db)
         r$data_widgets_concepts <- DBI::dbGetQuery(m$db, sql)

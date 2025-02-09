@@ -1504,7 +1504,7 @@ mod_git_repos_server <- function(id, r, d, m, language, i18n, debug, user_access
           
           import_element(
             id = id, input = input, output = output, r = r, m = m, con = r$db, sql_table = sql_table, sql_category = sql_category, single_id = single_id,
-            unique_id = input$selected_element, element = git_element, element_type = current_tab, temp_dir = git_element_folder,
+            element = git_element, element_type = current_tab, temp_dir = git_element_folder,
             user_accesses = user_accesses
           )
         },
