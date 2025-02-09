@@ -344,10 +344,12 @@ mod_widgets_server <- function(id, r, d, m, language, i18n, all_divs, debug, use
       req(!empty_name)
 
       # Check if name is not already used
-      if (sql_table == "subsets") sql <- glue::glue_sql("SELECT name FROM subsets WHERE LOWER(name) = {tolower(element_name)} AND study_id = {m$selected_study}", .con = con)
-      else if (sql_table == "vocabulary") sql <- glue::glue_sql("SELECT vocabulary_id FROM vocabulary WHERE LOWER(vocabulary_id) = {tolower(element_name)}", .con = con)
-      else sql <- glue::glue_sql("SELECT name FROM {sql_table} WHERE LOWER(name) = {tolower(element_name)}", .con = con)
-      name_already_used <- nrow(DBI::dbGetQuery(con, sql) > 0)
+      if (sql_table == "subsets") sql <- glue::glue_sql("SELECT name FROM subsets WHERE study_id = {m$selected_study}", .con = con)
+      else if (sql_table == "vocabulary") sql <- glue::glue_sql("SELECT vocabulary_id FROM vocabulary", .con = con)
+      else sql <- glue::glue_sql("SELECT name FROM {sql_table}", .con = con)
+      
+      elements_names <- DBI::dbGetQuery(con, sql) %>% dplyr::pull()
+      name_already_used <- remove_special_chars(element_name) %in% remove_special_chars(elements_names)
 
       if (name_already_used) shiny.fluent::updateTextField.shinyInput(session, "element_creation_name", errorMessage = i18n$t("name_already_used"))
       req(!name_already_used)
