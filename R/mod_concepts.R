@@ -138,9 +138,9 @@ mod_concepts_server <- function(id, r, d, m, language, i18n, debug, user_accesse
       )
       
       if (length(input$vocabulary) > 0){
-        if (nrow(d$dataset_concepts) > 0){
-          if (input$vocabulary == "all_vocabularies") data <- d$dataset_concepts
-          else data <- d$dataset_concepts %>% dplyr::filter(vocabulary_id == input$vocabulary)
+        if (nrow(d$dataset_concept) > 0){
+          if (input$vocabulary == "all_vocabularies") data <- d$dataset_concept
+          else data <- d$dataset_concept %>% dplyr::filter(vocabulary_id == input$vocabulary)
           data <- 
             data %>% 
             dplyr::select(-id, -add_concept_input) %>%

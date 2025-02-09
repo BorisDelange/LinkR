@@ -123,13 +123,13 @@ mod_select_concepts_server <- function(id, r, d, m, language, i18n, debug, user_
 
       if (debug) cat(paste0("\n", now(), " - mod_select_concepts - (", id, ") - observer input$vocabulary"))
       
-      req(length(d$dataset_concepts) > 0, nrow(d$dataset_concepts) > 0)
+      req(length(d$dataset_concept) > 0, nrow(d$dataset_concept) > 0)
       
       shinyjs::show("vocabulary_concepts")
       req(length(input$vocabulary) > 0)
       
-      if (input$vocabulary == "all_vocabularies") data <- d$dataset_concepts
-      else data <- d$dataset_concepts %>% dplyr::filter(vocabulary_id == input$vocabulary)
+      if (input$vocabulary == "all_vocabularies") data <- d$dataset_concept
+      else data <- d$dataset_concept %>% dplyr::filter(vocabulary_id == input$vocabulary)
 
       widget_vocabulary_concepts <- 
         data %>%

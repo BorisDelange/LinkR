@@ -258,8 +258,7 @@ load_dataset_concepts <- function(r, d, m){
   
   # Load Parquet file if it exists
   concept_filename <- paste0(dataset_folder, "/concept.parquet")
-  
-  if (file.exists(concept_filename)) d$dataset_concepts <- arrow::read_parquet(concept_filename)
+  if (file.exists(concept_filename)) d$dataset_concept <- arrow::read_parquet(concept_filename)
   
   if (!file.exists(concept_filename)){
     
@@ -451,17 +450,17 @@ load_dataset_concepts <- function(r, d, m){
     arrow::write_parquet(concept, concept_filename)
     
     # Update d var
-    d$dataset_concepts <- concept
+    d$dataset_concept <- concept
   }
   
   r$dataset_vocabularies <-
     r$vocabularies_wide %>%
-    dplyr::inner_join(d$dataset_concepts %>% dplyr::distinct(vocabulary_id), by = "vocabulary_id") %>%
+    dplyr::inner_join(d$dataset_concept %>% dplyr::distinct(vocabulary_id), by = "vocabulary_id") %>%
     dplyr::arrange(vocabulary_id)
   
   # Save all concept tables as Parquet files
   
-  dataset_concept_ids <- d$dataset_concepts %>% dplyr::pull(concept_id)
+  dataset_concept_ids <- d$dataset_concept %>% dplyr::pull(concept_id)
   
   for (table in c("concept", "concept_ancestor", "concept_relationship", "concept_synonym", "drug_strength")){
     
@@ -521,6 +520,11 @@ load_dataset_concepts <- function(r, d, m){
     # Case 3: dataset is created from files without creating a DuckDB file or it is a database connection without vocabulary tables
     else d[[table]] <- arrow::read_parquet(file_path)
   }
+  
+  # Load dataset_drug_strength
+  drug_strength_filename <- paste0(dataset_folder, "/drug_strength.parquet")
+  if (file.exists(drug_strength_filename)) d$dataset_drug_strength <- arrow::read_parquet(drug_strength_filename)
+  else d$dataset_drug_strength <- tibble::tibble()
 }
 
 #' @noRd

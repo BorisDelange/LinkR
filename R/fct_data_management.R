@@ -123,7 +123,12 @@ add_patients_to_subset <- function(
     DBI::dbAppendTable(m$db, "subset_persons", patients)
   }
   
-  return(paste0(i18n$t("add_patients_subset_success"), " (n = ", nrow(patients), ")"))
+  n_rows <- list()
+  n_rows$patients <- patients %>% dplyr::distinct(person_id) %>% dplyr::count()
+  
+  if (n_rows$patients > 0) return(paste0(
+    i18n$t("add_patients_subset_success"), " (", n_rows$patients, " ", tolower(i18n$t("patients")), ")"))
+  else return(i18n$t("no_patients_to_add_to_subset"))
 }
 
 #' Remove entries from a subset
