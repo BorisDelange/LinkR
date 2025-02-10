@@ -776,7 +776,7 @@ mod_data_server <- function(id, r, d, m, language, i18n, debug, user_accesses){
           for(table in tables){
             
             # Filter data on person_id, visit_occurrence_id and visit_detail_id
-            print(table)
+            
             if (d$data_subset_source[[table]] %>% dplyr::count() %>% dplyr::pull() > 0){
               if (table %in% c("condition_occurrence", "drug_exposure", "procedure_occurrence", "device_exposure", "measurement", "observation", "note", "payer_plan_period", "cost")){
                 d$data_subset[[table]] <- d$data_subset_source[[table]] %>% dplyr::inner_join(d$data_subset$visit_detail %>% dplyr::distinct(visit_detail_id), by = "visit_detail_id")
