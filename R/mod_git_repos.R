@@ -1538,8 +1538,7 @@ mod_git_repos_server <- function(id, r, d, m, language, i18n, debug, user_access
           
           # Delete git element files
           git_folder <- r$loaded_git_repos %>% dplyr::filter(unique_id == r$git_repo$unique_id) %>% dplyr::pull(local_path)
-          git_category_folder <- paste0(git_folder, "/", current_tab)
-          for (file in list.files(git_category_folder, full.names = TRUE)) if (grepl(git_element$unique_id, file)) git_element_folder <- file
+          git_element_folder <- file.path(git_folder, current_tab, remove_special_chars(git_element$name_en))
           
           unlink(git_element_folder, recursive = TRUE)
           

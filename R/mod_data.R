@@ -444,7 +444,7 @@ mod_data_server <- function(id, r, d, m, language, i18n, debug, user_accesses){
         visit_detail_ids <- m$subset_persons %>% dplyr::filter(!is.na(visit_detail_id)) %>% dplyr::distinct(visit_detail_id) %>% dplyr::pull()
         
         for (table in c("person", "visit_occurrence", "visit_detail")){
-          if (d[[table]] %>% dplyr::count() %>% dplyr::pull() > 0){
+          if ("person_id" %in% colnames(d[[table]])){
             if (table == "person") d$data_subset$person <- d$person %>% dplyr::filter(person_id %in% person_ids)
             else if (table == "visit_occurrence") d$data_subset$visit_occurrence <- d$visit_occurrence %>% 
               dplyr::filter(visit_occurrence_id %in% visit_occurrence_ids | person_id %in% person_ids_only)
@@ -464,7 +464,7 @@ mod_data_server <- function(id, r, d, m, language, i18n, debug, user_accesses){
           
           # Filter data on person_id, visit_occurrence_id and visit_detail_id
 
-          if (d[[table]] %>% dplyr::count() %>% dplyr::pull() > 0){
+          if ("person_id" %in% d[[table]]){
             if (table %in% c("condition_occurrence", "drug_exposure", "procedure_occurrence", "device_exposure", "measurement", "observation", "note", "payer_plan_period", "cost")){
               d$data_subset[[table]] <- d[[table]] %>% dplyr::inner_join(d$data_subset$visit_detail %>% dplyr::distinct(visit_detail_id), by = "visit_detail_id")
             }
@@ -482,7 +482,7 @@ mod_data_server <- function(id, r, d, m, language, i18n, debug, user_accesses){
       r$subset_updated_data <- Sys.time()
       
       # Update date sliderInput and DatePicker
-      if (d$data_subset$visit_occurrence %>% dplyr::count() %>% dplyr::pull() > 0){
+      if ("visit_occurrence_id" %in% colnames(d$data_subset$visit_occurrence)){
         dates_range <-
           d$data_subset$visit_occurrence %>%
           dplyr::summarize(
@@ -506,7 +506,7 @@ mod_data_server <- function(id, r, d, m, language, i18n, debug, user_accesses){
       selected_person <- m$selected_person
       
       for(table in person_tables){
-        if (d[[table]] %>% dplyr::count() %>% dplyr::pull() > 0){
+        if ("person_id" %in% colnames(d$data_subset[[table]])){
           d$data_person[[table]] <- d$data_subset[[table]] %>% dplyr::filter(person_id == selected_person)
         }
         else d[[table]] <- tibble::tibble()
@@ -522,7 +522,7 @@ mod_data_server <- function(id, r, d, m, language, i18n, debug, user_accesses){
       selected_visit_detail <- m$selected_visit_detail
       
       for(table in visit_detail_tables){
-        if (d$data_person[[table]] %>% dplyr::count() %>% dplyr::pull() > 0){
+        if ("visit_detail_id" %in% colnames(d$data_person[[table]])){
           d$data_visit_detail[[table]] <- d$data_person[[table]] %>% dplyr::filter(visit_detail_id == selected_visit_detail)
         }
         else d$data_visit_detail[[table]] <- tibble::tibble()
@@ -760,12 +760,11 @@ mod_data_server <- function(id, r, d, m, language, i18n, debug, user_accesses){
         
         else {
           
-          if (d$data_subset_source$visit_occurrence %>% dplyr::count() %>% dplyr::pull() > 0){
-            d$data_subset$visit_occurrence <- d$data_subset_source$visit_occurrence %>% dplyr::filter(visit_start_date >= start_date & visit_start_date <= end_date)
-          }
-          if (d$data_subset_source$visit_detail %>% dplyr::count() %>% dplyr::pull() > 0) d$data_subset$visit_detail <-
-            d$data_subset_source$visit_detail %>% dplyr::inner_join(d$data_subset$visit_occurrence %>% dplyr::distinct(visit_occurrence_id), by = "visit_occurrence_id")
-          if (d$data_subset_source$person %>% dplyr::count() %>% dplyr::pull() > 0) d$data_subset$person <-
+          if ("visit_occurrence_id" %in% colnames(d$data_subset_source$visit_occurrence)) d$data_subset$visit_occurrence <-
+              d$data_subset_source$visit_occurrence %>% dplyr::filter(visit_start_date >= start_date & visit_start_date <= end_date)
+          if ("visit_detail_id" %in% colnames(d$data_subset_source$visit_detail)) d$data_subset$visit_detail <-
+              d$data_subset_source$visit_detail %>% dplyr::inner_join(d$data_subset$visit_occurrence %>% dplyr::distinct(visit_occurrence_id), by = "visit_occurrence_id")
+          if ("person_id" %in% colnames(d$data_subset_source$person)) d$data_subset$person <-
               d$data_subset_source$person %>% dplyr::inner_join(d$data_subset$visit_occurrence %>% dplyr::distinct(person_id), by = "person_id")
           
           tables <- c(
@@ -777,7 +776,7 @@ mod_data_server <- function(id, r, d, m, language, i18n, debug, user_accesses){
             
             # Filter data on person_id, visit_occurrence_id and visit_detail_id
             
-            if (d$data_subset_source[[table]] %>% dplyr::count() %>% dplyr::pull() > 0){
+            if ("person_id" %in% colnames(d$data_subset_source[[table]])){
               if (table %in% c("condition_occurrence", "drug_exposure", "procedure_occurrence", "device_exposure", "measurement", "observation", "note", "payer_plan_period", "cost")){
                 d$data_subset[[table]] <- d$data_subset_source[[table]] %>% dplyr::inner_join(d$data_subset$visit_detail %>% dplyr::distinct(visit_detail_id), by = "visit_detail_id")
               }
@@ -820,7 +819,7 @@ mod_data_server <- function(id, r, d, m, language, i18n, debug, user_accesses){
         
         persons <- tibble::tibble()
         
-        if (nrow(m$subset_persons) > 0 & d$person %>% dplyr::count() %>% dplyr::pull() > 0){
+        if (nrow(m$subset_persons) > 0 & "person_id" %in% colnames(d$person)){
           person_ids <- m$subset_persons$person_id
           
           persons <-
@@ -914,8 +913,8 @@ mod_data_server <- function(id, r, d, m, language, i18n, debug, user_accesses){
         m$selected_visit_detail <- NA_integer_
         
         no_stay_available <- FALSE
-        if (d$visit_detail %>% dplyr::count() %>% dplyr::pull() == 0) no_stay_available <- TRUE
-        if (d$visit_detail %>% dplyr::count() %>% dplyr::pull() > 0) if (d$visit_detail %>% dplyr::filter(person_id == !!person_id) %>% dplyr::count() %>% dplyr::pull() == 0) no_stay_available <- TRUE
+        if ("visit_detail_id" %not_in% colnames(d$visit_detail)) no_stay_available <- TRUE
+        if ("visit_detail_id" %in% colnames(d$visit_detail)) if (d$visit_detail %>% dplyr::filter(person_id == !!person_id) %>% dplyr::count() %>% dplyr::pull() == 0) no_stay_available <- TRUE
         
         if (no_stay_available) updateSelectizeInput(
           session, "visit_detail", choices = NULL, server = TRUE,
@@ -1039,9 +1038,10 @@ mod_data_server <- function(id, r, d, m, language, i18n, debug, user_accesses){
         style <- "display:inline-block; width:80px; font-weight:bold;"
         
         person_id <- m$selected_person
+        
         person <- 
           d$person %>%
-          dplyr::mutate_at("person_id", as.integer) %>%
+          # dplyr::mutate_at("person_id", as.integer) %>%
           dplyr::filter(person_id == !!person_id) %>% 
           dplyr::collect() %>%
           dplyr::left_join(d$dataset_concept %>% dplyr::select(gender_concept_id = concept_id, gender_concept_name = concept_name), by = "gender_concept_id")
@@ -1049,7 +1049,7 @@ mod_data_server <- function(id, r, d, m, language, i18n, debug, user_accesses){
         visit_detail_id <- selected_visit_detail
         visit_detail <- 
           d$visit_detail %>% 
-          dplyr::mutate_at("visit_detail_id", as.integer) %>%
+          # dplyr::mutate_at("visit_detail_id", as.integer) %>%
           dplyr::filter(visit_detail_id == !!visit_detail_id) %>% 
           dplyr::collect() %>%
           dplyr::left_join(d$dataset_concept %>% dplyr::select(visit_detail_concept_id = concept_id, visit_detail_concept_name = concept_name), by = "visit_detail_concept_id")
@@ -1087,14 +1087,6 @@ mod_data_server <- function(id, r, d, m, language, i18n, debug, user_accesses){
             span(i18n$t("duration"), style = style), tags$span(los, " ", tolower(days_trad))
           )
         })
-        
-        sapply(visit_detail_tables, function(table) d$data_visit_detail[[table]] <- tibble::tibble())
-        
-        for(table in visit_detail_tables){
-          if (d$data_person[[table]] %>% dplyr::count() %>% dplyr::pull() > 0){
-            d$data_visit_detail[[table]] <- d$data_person[[table]] %>% dplyr::filter(visit_detail_id == selected_visit_detail)
-          }
-        }
       })
       
       ## Patients switching ----
