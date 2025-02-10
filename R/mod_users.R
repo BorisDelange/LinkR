@@ -118,7 +118,7 @@ mod_users_ui <- function(id, language, languages, i18n, users_accesses_toggles_o
           div(
             id = ns("users_management_forbidden_access"),
             shiny.fluent::MessageBar(i18n$t("unauthorized_access_area"), messageBarType = 5),
-            style = "display: inline-block; margin-top: 5px;"
+            style = "display: inline-block; margin: 5px;"
           ),
           shinyjs::hidden(
             div(
@@ -165,7 +165,7 @@ mod_users_ui <- function(id, language, languages, i18n, users_accesses_toggles_o
           div(
             id = ns("users_statuses_management_forbidden_access"),
             shiny.fluent::MessageBar(i18n$t("unauthorized_access_area"), messageBarType = 5),
-            style = "display: inline-block; margin-top: 5px;"
+            style = "display: inline-block; margin: 5px;"
           ),
           shinyjs::hidden(
             div(
@@ -209,7 +209,7 @@ mod_users_ui <- function(id, language, languages, i18n, users_accesses_toggles_o
           div(
             id = ns("users_accesses_management_forbidden_access"),
             shiny.fluent::MessageBar(i18n$t("unauthorized_access_area"), messageBarType = 5),
-            style = "display: inline-block; margin-top: 5px;"
+            style = "display: inline-block; margin: 5px;"
           ),
           shinyjs::hidden(
             div(

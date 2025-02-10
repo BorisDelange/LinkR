@@ -9,7 +9,7 @@ mod_log_ui <- function(id, language, languages, i18n){
     div(
       id = ns("user_log_forbidden_access"),
       shiny.fluent::MessageBar(i18n$t("unauthorized_access_area"), messageBarType = 5),
-      style = "display: inline-block; margin-top: 5px;"
+      style = "display: inline-block; margin: 5px;"
     ),
     shinyjs::hidden(
       div(

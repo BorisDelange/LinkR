@@ -173,7 +173,7 @@ mod_plugins_ui <- function(id, language, languages, i18n){
           div(
             id = ns("edit_code_forbidden_access"),
             shiny.fluent::MessageBar(i18n$t("unauthorized_access_area"), messageBarType = 5),
-            style = "display: inline-block; margin-top: 15px;"
+            style = "display: inline-block; margin: 5px;"
           ),
           shinyjs::hidden(div(id = ns("edit_code_tabs_div"), uiOutput(ns("edit_code_tabs_ui")), style = "height: 24px; position: relative;")),
           shinyjs::hidden(div(id = ns("edit_code_editors_div"), style = "height: calc(100% - 30px);")),
@@ -187,7 +187,7 @@ mod_plugins_ui <- function(id, language, languages, i18n){
             div(
               id = ns("run_code_forbidden_access"),
               shiny.fluent::MessageBar(i18n$t("unauthorized_access_area"), messageBarType = 5),
-              style = "display: inline-block; margin-top: 15px;"
+              style = "display: inline-block; margin: 5px;"
             ),
             div(
               id = ns("run_code_content_div"),
@@ -230,7 +230,7 @@ mod_plugins_ui <- function(id, language, languages, i18n){
                 div(
                   id = ns("share_forbidden_access"),
                   shiny.fluent::MessageBar(i18n$t("unauthorized_access_area"), messageBarType = 5),
-                  style = "display: inline-block; margin-top: 5px;"
+                  style = "display: inline-block; margin: 5px;"
                 ),
                 shinyjs::hidden(
                   div(

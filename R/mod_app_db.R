@@ -34,7 +34,7 @@ mod_app_db_ui <- function(id, language, languages, i18n, code_hotkeys, db_col_ty
           div(
             id = ns("connection_settings_forbidden_access"),
             shiny.fluent::MessageBar(i18n$t("unauthorized_access_area"), messageBarType = 5),
-            style = "display: inline-block; margin-top: 5px;"
+            style = "display: inline-block; margin: 5px;"
           ),
           shinyjs::hidden(
             div(
@@ -94,7 +94,7 @@ mod_app_db_ui <- function(id, language, languages, i18n, code_hotkeys, db_col_ty
         div(
           id = ns("request_db_forbidden_access"),
           shiny.fluent::MessageBar(i18n$t("unauthorized_access_area"), messageBarType = 5),
-          style = "display: inline-block; margin-top: 5px;"
+          style = "display: inline-block; margin: 5px;"
         ),
         shinyjs::hidden(
           div(
@@ -145,7 +145,7 @@ mod_app_db_ui <- function(id, language, languages, i18n, code_hotkeys, db_col_ty
             div(
               id = ns("export_db_forbidden_access"),
               shiny.fluent::MessageBar(i18n$t("unauthorized_access_area"), messageBarType = 5),
-              style = "display: inline-block; margin-top: 5px;"
+              style = "display: inline-block; margin: 5px;"
             ),
             shinyjs::hidden(
               div(
@@ -205,7 +205,7 @@ mod_app_db_ui <- function(id, language, languages, i18n, code_hotkeys, db_col_ty
             div(
               id = ns("restore_db_forbidden_access"),
               shiny.fluent::MessageBar(i18n$t("unauthorized_access_area"), messageBarType = 5),
-              style = "display: inline-block; margin-top: 5px;"
+              style = "display: inline-block; margin: 5px;"
             ),
             shinyjs::hidden(
               div(

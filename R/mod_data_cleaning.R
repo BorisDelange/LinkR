@@ -159,7 +159,7 @@ mod_data_cleaning_ui <- function(id, language, languages, i18n, code_hotkeys, au
             div(
               id = ns("edit_code_forbidden_access"),
               shiny.fluent::MessageBar(i18n$t("unauthorized_access_area"), messageBarType = 5),
-              style = "display: inline-block; margin-top: 15px;"
+              style = "display: inline-block; margin: 5px;"
             ),
             shinyjs::hidden(
               div(
@@ -219,7 +219,7 @@ mod_data_cleaning_ui <- function(id, language, languages, i18n, code_hotkeys, au
                 div(
                   id = ns("share_forbidden_access"),
                   shiny.fluent::MessageBar(i18n$t("unauthorized_access_area"), messageBarType = 5),
-                  style = "display: inline-block; margin-top: 5px;"
+                  style = "display: inline-block; margin: 5px;"
                 ),
                 shinyjs::hidden(
                   div(

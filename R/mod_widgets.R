@@ -239,7 +239,7 @@ mod_widgets_server <- function(id, r, d, m, language, i18n, all_divs, debug, use
       }
       else {
         shinyjs::hide("search_element_div")
-        output$elements <- renderUI(div(shiny.fluent::MessageBar(i18n$t("unauthorized_access_area"), messageBarType = 5), style = "display: inline-block; margin-top: 5px;"))
+        output$elements <- renderUI(div(shiny.fluent::MessageBar(i18n$t("unauthorized_access_area"), messageBarType = 5), style = "display: inline-block; margin: 5px;"))
       }
         
       # Unlock reactivity
