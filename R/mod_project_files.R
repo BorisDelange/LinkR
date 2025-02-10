@@ -6,42 +6,46 @@ mod_project_files_ui <- function(id, language, languages, i18n){
     class = "main",
     
     div(
+      div(
+        id = ns("forbidden_access"),
+        shiny.fluent::MessageBar(i18n$t("unauthorized_access_area"), messageBarType = 5),
+        style = "display: inline-block; margin: 5px;"
+      ),
       shinyjs::hidden(
         div(
-          id = ns("forbidden_access"),
-          shiny.fluent::MessageBar(i18n$t("unauthorized_access_area"), messageBarType = 5),
-          style = "display: inline-block; margin-top: 15px;"
-        )
-      ),
-      div(id = ns("tabs_div"), uiOutput(ns("tabs_ui")), style = "height: 24px;"),
-      div(
-        div(
-          id = ns("editors_div"),
-          class = "resizable-panel left-panel",
-          style = "width: 50%;"
-        ),
-        div(class = "resizer"),
-        div(
-          id = ns("code_result_div"),
-          textOutput(ns("datetime_code_execution")),
-          verbatimTextOutput(ns("verbatim_code_output")),
-          shinyjs::hidden(
+          id = ns("project_scripts_div"),
+          div(id = ns("tabs_div"), uiOutput(ns("tabs_ui")), style = "height: 24px;"),
+          div(
             div(
-              id = ns("plot_output_div"),
-              div(plotOutput(ns("plot_output"))), div(verbatimTextOutput(ns("plot_text_output")), style = "height: 100%;"),
-              style = "padding-top: 10px; height: calc(100% - 10px); display: flex; flex-direction: column;"
-            )
+              id = ns("editors_div"),
+              class = "resizable-panel left-panel",
+              style = "width: 50%;"
+            ),
+            div(class = "resizer"),
+            div(
+              id = ns("code_result_div"),
+              div(textOutput(ns("datetime_code_execution")), style = "margin-bottom: 8px;"),
+              verbatimTextOutput(ns("verbatim_code_output")),
+              shinyjs::hidden(
+                div(
+                  id = ns("plot_output_div"),
+                  div(plotOutput(ns("plot_output"))), div(verbatimTextOutput(ns("plot_text_output")), style = "height: 100%;"),
+                  style = "padding-top: 10px; height: calc(100% - 10px); display: flex; flex-direction: column;"
+                )
+              ),
+              shinyjs::hidden(uiOutput(ns("rmarkdown_output"))),
+              shinyjs::hidden(uiOutput(ns("ui_output"), style = "padding-top: 10px;")),
+              shinyjs::hidden(div(id = ns("table_output_div"), tableOutput(ns("table_output")), style = "padding-top: 10px;")),
+              shinyjs::hidden(div(id = ns("datatable_output_div"), DT::DTOutput(ns("datatable_output")), style = "padding-top: 10px;")),
+              shinyjs::hidden(imageOutput(ns("image_output"))),
+              class = "resizable-panel right-panel",
+              style = "width: 50%; padding: 5px 15px; font-size: 12px; overflow-y: auto;"
+            ),
+            class = "resizable-container",
+            style = "height: calc(100% - 10px); display: flex;"
           ),
-          shinyjs::hidden(uiOutput(ns("rmarkdown_output"))),
-          shinyjs::hidden(uiOutput(ns("ui_output"), style = "padding-top: 10px;")),
-          shinyjs::hidden(div(id = ns("table_output_div"), tableOutput(ns("table_output")), style = "padding-top: 10px;")),
-          shinyjs::hidden(div(id = ns("datatable_output_div"), DT::DTOutput(ns("datatable_output")), style = "padding-top: 10px;")),
-          shinyjs::hidden(imageOutput(ns("image_output"))),
-          class = "resizable-panel right-panel",
-          style = "width: 50%; padding: 5px 15px; font-size: 12px; overflow-y: auto;"
-        ),
-        class = "resizable-container",
-        style = "height: calc(100% - 10px); display: flex;"
+          style = "height: 100%;"
+        )
       ),
       style = "height: calc(100% - 14px);"
     ),
@@ -73,10 +77,10 @@ mod_project_files_server <- function(id, r, d, m, language, i18n, debug, user_ac
     
     # Current user accesses ----
     
-    # if ("console_execute_code" %in% user_accesses){
-    #   sapply(c("console_sidenav_buttons", "reduced_sidenav_execute_code_button", "console_div"), shinyjs::show) 
-    #   shinyjs::hide("console_forbidden_access")
-    # }
+    if ("projects_scripts" %in% user_accesses){
+      sapply(c("edit_code_buttons", "project_scripts_div", "files_browser_div"), shinyjs::show)
+      shinyjs::hide("forbidden_access")
+    }
     
     # Apply user settings ----
     
@@ -103,7 +107,7 @@ mod_project_files_server <- function(id, r, d, m, language, i18n, debug, user_ac
     observeEvent(m$selected_project, {
       if (debug) cat(paste0("\n", now(), " - mod_project_files - observer m$selected_project"))
       
-      # req("projects_edit_code" %in% user_accesses)
+      req("projects_scripts" %in% user_accesses)
       req(!is.na(m$selected_project))
       
       # Unique ID
@@ -333,7 +337,7 @@ mod_project_files_server <- function(id, r, d, m, language, i18n, debug, user_ac
     observeEvent(input$add_file, {
       if (debug) cat(paste0("\n", now(), " - mod_project_files - observer input$add_file"))
       
-      # req("projects_edit_code" %in% user_accesses)
+      req("projects_scripts" %in% user_accesses)
       
       files_browser_create_file(
         id = id, input_prefix = "", r = r, r_prefix = "project", folder = input$selected_project_folder,
@@ -365,7 +369,7 @@ mod_project_files_server <- function(id, r, d, m, language, i18n, debug, user_ac
     observeEvent(input$save_file_code, {
       if (debug) cat(paste0("\n", now(), " - mod_plugins - observer input$save_file_code"))
       
-      # req("plugins_edit_code" %in% user_accesses)
+      req("projects_scripts" %in% user_accesses)
       
       file <- r$project_files_list %>% dplyr::filter(id == input$selected_file)
       
@@ -461,7 +465,7 @@ mod_project_files_server <- function(id, r, d, m, language, i18n, debug, user_ac
     observeEvent(input$confirm_file_deletion, {
       if (debug) cat(paste0("\n", now(), " - mod_project_files - observer input$confirm_file_deletion"))
       
-      # req("plugins_edit_code" %in% user_accesses)
+      req("projects_scripts" %in% user_accesses)
       
       files_browser_delete_file(
         id = id, i18n = i18n, output = output, input_prefix = "", r = r, r_prefix = "project",
@@ -496,7 +500,7 @@ mod_project_files_server <- function(id, r, d, m, language, i18n, debug, user_ac
     observeEvent(input$run_code_trigger, {
       if (debug) cat(paste0("\n", now(), " - mod_project_files - observer input$run_code_trigger"))
 
-      # req("console_execute_code" %in% user_accesses)
+      req("projects_scripts" %in% user_accesses)
   
       code <- gsub("\r", "\n", r$project_file_code)
       

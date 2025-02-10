@@ -129,7 +129,7 @@ linkr <- function(
       "projects_import",
       "projects_content_management",
       'projects_widgets_settings',
-      "projects_console_access",
+      "projects_scripts",
       "projects_dataset",
       "projects_data_cleaning",
       "projects_subsets_management",
