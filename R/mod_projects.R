@@ -491,6 +491,14 @@ mod_projects_server <- function(id, r, d, m, language, i18n, debug, user_accesse
       }
     })
     
+    # Reload sidenav values
+    
+    observeEvent(m$selected_study, {
+      if (debug) cat(paste0("\n", now(), " - mod_projects - observer m$selected_study"))
+      
+      
+    })
+    
     # Reload data rows UI
     observeEvent(d$care_site, {
       if (debug) cat(paste0("\n", now(), " - mod_projects - observer d$person"))

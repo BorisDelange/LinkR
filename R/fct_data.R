@@ -329,7 +329,7 @@ load_dataset_concepts <- function(r, d, m){
     drug_strength <- DBI::dbGetQuery(m$db, sql) %>% tibble::as_tibble() %>% dplyr::select(-id)
     
     # Get concepts from data (if the user loads a dataset from a database, it can contain concepts not imported in app database)
-    if (!r$import_dataset_save_as_duckdb_file & "concept" %in% DBI::dbListTables(d$con)){
+    if ("concept" %in% DBI::dbListTables(d$con)){
       sql <- glue::glue_sql("
         SELECT
           concept_id, concept_name, domain_id, vocabulary_id, concept_class_id,
@@ -339,7 +339,7 @@ load_dataset_concepts <- function(r, d, m){
       if (nrow(new_concepts) > 0) concept <- concept %>% dplyr::bind_rows(new_concepts %>% dplyr::anti_join(concept, by = "concept_id"))
     }
     
-    if (!r$import_dataset_save_as_duckdb_file & "drug_strength" %in% DBI::dbListTables(d$con)){
+    if ("drug_strength" %in% DBI::dbListTables(d$con)){
       sql <- glue::glue_sql("
         SELECT
           drug_concept_id, ingredient_concept_id, amount_value, amount_unit_concept_id, numerator_value, numerator_unit_concept_id,
@@ -487,11 +487,6 @@ load_dataset_concepts <- function(r, d, m){
     d$dataset_drug_strength <- drug_strength
   }
   
-  # r$dataset_vocabularies <-
-  #   r$vocabularies_wide %>%
-  #   dplyr::inner_join(d$dataset_concept %>% dplyr::distinct(vocabulary_id), by = "vocabulary_id") %>%
-  #   dplyr::arrange(vocabulary_id)
-  
   r$dataset_vocabularies <- d$dataset_concept %>% dplyr::distinct(vocabulary_id) %>% dplyr::arrange(vocabulary_id)
   
   # Save all concept tables as Parquet files ----
@@ -555,7 +550,10 @@ load_dataset_concepts <- function(r, d, m){
     else if (DBI::dbExistsTable(d$con, table)) d[[table]] <- dplyr::tbl(d$con, table)
     
     # Case 3: dataset is created from files without creating a DuckDB file or it is a database connection without vocabulary tables
-    else d[[table]] <- arrow::read_parquet(file_path)
+    else {
+      con <- DBI::dbConnect(duckdb::duckdb(), dbdir = ":memory:")
+      d[[table]] <- dplyr::tbl(con, paste0("read_parquet('", file_path, "')"))
+    }
   }
 }
 

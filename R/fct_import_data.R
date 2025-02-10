@@ -78,7 +78,15 @@ import_dataset <- function(
     "cost" = "iiiiiiicinDDDiicci",
     "drug_era" = "iiiTTii",
     "dose_era" = "iiiinTT",
-    "condition_era" = "iiiTTi"
+    "condition_era" = "iiiTTi",
+    "concept" = "iccccccDDc",
+    "vocabulary" = "cccci",
+    "domain" = "cci",
+    "concept_class" = "cci",
+    "concept_relationship" = "iicDDc",
+    "relationship" = "ccccci",
+    "concept_synonym" = "ici",
+    "concept_ancestor" = "iiii"
   )
 
   if (omop_version == "5.3"){
@@ -126,7 +134,15 @@ import_dataset <- function(
     care_site = c("care_site_id", "care_site_name", "place_of_service_concept_id", "location_id", "care_site_source_value", "place_of_service_source_value"),
     provider = c("provider_id", "provider_name", "npi", "dea", "specialty_concept_id", "care_site_id", "year_of_birth", "gender_concept_id", "provider_source_value", "specialty_source_value", "specialty_source_concept_id", "gender_source_value", "gender_source_concept_id"),
     payer_plan_period = c("payer_plan_period_id", "person_id", "payer_plan_period_start_date", "payer_plan_period_end_date", "payer_concept_id", "payer_source_value", "payer_source_concept_id", "plan_concept_id", "plan_source_value", "plan_source_concept_id", "sponsor_concept_id", "sponsor_source_value", "sponsor_source_concept_id", "family_source_value", "stop_reason_concept_id", "stop_reason_source_value", "stop_reason_source_concept_id"),
-    cost = c("cost_id", "person_id", "cost_event_id", "cost_event_field_concept_id", "cost_concept_id", "cost_type_concept_id", "cost_source_concept_id", "cost_source_value", "currency_concept_id", "cost", "incurred_date", "billed_date", "paid_date", "revenue_code_concept_id", "drg_concept_id", "revenue_code_source_value", "drg_source_value", "payer_plan_period_id")
+    cost = c("cost_id", "person_id", "cost_event_id", "cost_event_field_concept_id", "cost_concept_id", "cost_type_concept_id", "cost_source_concept_id", "cost_source_value", "currency_concept_id", "cost", "incurred_date", "billed_date", "paid_date", "revenue_code_concept_id", "drg_concept_id", "revenue_code_source_value", "drg_source_value", "payer_plan_period_id"),
+    concept = c("concept_id", "concept_name", "domain_id", "vocabulary_id", "concept_class_id", "standard_concept", "concept_code", "valid_start_date", "valid_end_date", "invalid_reason"),
+    vocabulary = c("vocabulary_id", "vocabulary_name", "vocabulary_reference", "vocabulary_version", "vocabulary_concept_id"),
+    domain = c("domain_id", "domain_name", "domain_concept_id"),
+    concept_class = c("concept_class_id", "concept_class_name", "concept_class_concept_id"),
+    concept_relationship = c("concept_id_1", "concept_id_2", "relationship_id", "valid_start_date", "valid_end_date", "invalid_reason"),
+    relationship = c("relationship_id", "relationship_name", "is_hierarchical", "defines_ancestry", "reverse_relationship_id", "relationship_concept_id"),
+    concept_synonym = c("concept_id", "concept_synonym_name", "language_concept_id"),
+    concept_ancestor = c("ancestor_concept_id", "descendant_concept_id", "min_levels_of_separation", "max_levels_of_separation")
   )
   
   if (omop_version == "5.3"){
@@ -260,9 +276,8 @@ import_dataset <- function(
                   DBI::dbExecute(
                     d$con,
                     sprintf(
-                      "INSERT INTO %s SELECT * FROM read_%s_auto('%s', nullstr='NA')",
+                      "INSERT INTO %s SELECT * FROM read_csv_auto('%s', nullstr='NA')",
                       table,
-                      file_ext,
                       file.path(data_folder, file_name)
                     )
                   )

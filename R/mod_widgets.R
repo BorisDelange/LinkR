@@ -704,7 +704,7 @@ mod_widgets_server <- function(id, r, d, m, language, i18n, all_divs, debug, use
         description_code <- element_long %>% dplyr::filter(name == paste0("description_", language)) %>% dplyr::pull(value)
         shinyAce::updateAceEditor(session, "description_code", value = description_code)
         
-        if (description_code == "") output$description_ui <- renderUI(div(shiny.fluent::MessageBar(i18n$t("no_description_available"), messageBarType = 5) ,style = "display: inline-block;"))
+        if (description_code == "" | is.na(description_code)) output$description_ui <- renderUI(div(shiny.fluent::MessageBar(i18n$t("no_description_available"), messageBarType = 5) ,style = "display: inline-block;"))
         else {
           output_file <- create_rmarkdown_file(r, description_code, interpret_code = FALSE)
           output$description_ui <- renderUI(div(class = "markdown", withMathJax(includeMarkdown(output_file))))
@@ -796,8 +796,7 @@ mod_widgets_server <- function(id, r, d, m, language, i18n, all_divs, debug, use
         )
         
         # Load data page if not already loaded
-        
-        if (length(r$loaded_pages$data) == 0){
+        if ("data" %not_in% names(r$loaded_pages)){
           r$load_page <- "data"
           r$data_page <- "patient_lvl"
         }
@@ -849,7 +848,7 @@ mod_widgets_server <- function(id, r, d, m, language, i18n, all_divs, debug, use
       element_long <- r[[long_var]] %>% dplyr::filter(id == input$selected_element)
       description_code <- element_long %>% dplyr::filter(name == paste0("description_", input$language)) %>% dplyr::pull(value)
       
-      if (description_code == "") output$description_ui <- renderUI(div(shiny.fluent::MessageBar(i18n$t("no_description_available"), messageBarType = 5) ,style = "display: inline-block;"))
+      if (description_code == "" | is.na(description_code)) output$description_ui <- renderUI(div(shiny.fluent::MessageBar(i18n$t("no_description_available"), messageBarType = 5) ,style = "display: inline-block;"))
       else {
         output_file <- create_rmarkdown_file(r, description_code, interpret_code = FALSE)
         output$description_ui <- renderUI(div(class = "markdown", withMathJax(includeMarkdown(output_file))))
@@ -945,7 +944,7 @@ mod_widgets_server <- function(id, r, d, m, language, i18n, all_divs, debug, use
       
       # Reload markdown
       
-      if (description_code == "") output$description_ui <- renderUI(div(shiny.fluent::MessageBar(i18n$t("no_description_available"), messageBarType = 5) ,style = "display: inline-block;"))
+      if (description_code == "" | is.na(description_code)) output$description_ui <- renderUI(div(shiny.fluent::MessageBar(i18n$t("no_description_available"), messageBarType = 5) ,style = "display: inline-block;"))
       else {
         output_file <- create_rmarkdown_file(r, description_code, interpret_code = FALSE)
         output$description_ui <- renderUI(div(class = "markdown", withMathJax(includeMarkdown(output_file))))
@@ -978,7 +977,7 @@ mod_widgets_server <- function(id, r, d, m, language, i18n, all_divs, debug, use
     observeEvent(input$run_description_code_trigger, {
       if (debug) cat(paste0("\n", now(), " - mod_widgets - (", id, ") - observer input$run_description_code_trigger"))
       
-      if (input$description_code == "") output$description_ui <- renderUI(div(shiny.fluent::MessageBar(i18n$t("no_description_available"), messageBarType = 5) ,style = "display: inline-block;"))
+      if (input$description_code == "" | is.na(input$description_code)) output$description_ui <- renderUI(div(shiny.fluent::MessageBar(i18n$t("no_description_available"), messageBarType = 5) ,style = "display: inline-block;"))
       else {
         output_file <- create_rmarkdown_file(r, input$description_code, interpret_code = FALSE)
         output$description_ui <- renderUI(div(class = "markdown", withMathJax(includeMarkdown(output_file))))
@@ -1016,7 +1015,7 @@ mod_widgets_server <- function(id, r, d, m, language, i18n, all_divs, debug, use
       )
       
       # Reload markdown
-      if (input$description_code == "") output$description_ui <- renderUI(div(shiny.fluent::MessageBar(i18n$t("no_description_available"), messageBarType = 5) ,style = "display: inline-block;"))
+      if (input$description_code == "" | is.na(input$description_code)) output$description_ui <- renderUI(div(shiny.fluent::MessageBar(i18n$t("no_description_available"), messageBarType = 5) ,style = "display: inline-block;"))
       else {
         output_file <- create_rmarkdown_file(r, input$description_code, interpret_code = FALSE)
         output$description_ui <- renderUI(div(class = "markdown", withMathJax(includeMarkdown(output_file))))
@@ -1039,7 +1038,7 @@ mod_widgets_server <- function(id, r, d, m, language, i18n, all_divs, debug, use
       shinyAce::updateAceEditor(session, "description_code", value = description_code)
       
       # Reload markdown UI
-      if (description_code == "") output$description_ui <- renderUI(div(shiny.fluent::MessageBar(i18n$t("no_description_available"), messageBarType = 5) ,style = "display: inline-block;"))
+      if (description_code == "" | is.na(description_code)) output$description_ui <- renderUI(div(shiny.fluent::MessageBar(i18n$t("no_description_available"), messageBarType = 5) ,style = "display: inline-block;"))
       else {
         output_file <- create_rmarkdown_file(r, description_code, interpret_code = FALSE)
         output$description_ui <- renderUI(div(class = "markdown", withMathJax(includeMarkdown(output_file))))
@@ -1189,7 +1188,7 @@ mod_widgets_server <- function(id, r, d, m, language, i18n, all_divs, debug, use
       element_long <- r[[long_var]] %>% dplyr::filter(id == input$selected_element)
       description_code <- element_long %>% dplyr::filter(name == paste0("description_", language)) %>% dplyr::pull(value)
       
-      if (description_code == "") output$description_ui <- renderUI(div(shiny.fluent::MessageBar(i18n$t("no_description_available"), messageBarType = 5) ,style = "display: inline-block;"))
+      if (description_code == "" | is.na(description_code)) output$description_ui <- renderUI(div(shiny.fluent::MessageBar(i18n$t("no_description_available"), messageBarType = 5) ,style = "display: inline-block;"))
       else {
         output_file <- create_rmarkdown_file(r, description_code, interpret_code = FALSE)
         output$description_ui <- renderUI(div(class = "markdown", withMathJax(includeMarkdown(output_file))))

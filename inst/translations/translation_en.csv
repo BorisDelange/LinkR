@@ -239,7 +239,7 @@ install,Install
 invalid_col_names,Invalid column names
 invalid_data_folder,Invalid data_folder argument
 invalid_dataset_id_value,Variable dataset_id must be of integer type
-invalid_omop_version,"Invalid OMOP version, valid versions are 5.3, 5.4 & 6.0.,"
+invalid_omop_version,"Invalid OMOP version, valid versions are: 5.3, 5.4 & 6.0"
 invalid_reason,Invalid reason
 invalid_subset_id_value,Invalid subset_id value
 invalid_vocabulary_table,Invalid vocabulary table

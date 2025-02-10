@@ -349,6 +349,7 @@ mod_data_server <- function(id, r, d, m, language, i18n, debug, user_accesses){
         m$selected_visit_detail <- NA_integer_
 
         shinyjs::show("study_menu")
+        shinyjs::hide("patient_switching_buttons")
         
         # Reset selected plugin and selected concepts
         shinyjs::runjs(update_selected_concepts_css)
@@ -406,7 +407,7 @@ mod_data_server <- function(id, r, d, m, language, i18n, debug, user_accesses){
           output$person_info <- renderUI("")
           output$subset_info <- renderUI("")
           
-          sapply(c("patient_switching_buttons"), shinyjs::hide)
+          shinyjs::hide("patient_switching_buttons")
           m$selected_subset <- NA_integer_
           m$selected_person <- NA_integer_
           m$selected_visit_detail <- NA_integer_
@@ -614,8 +615,7 @@ mod_data_server <- function(id, r, d, m, language, i18n, debug, user_accesses){
           subset_code <- readLines(file_path, warn = FALSE) %>% paste(collapse = "\n")
 
           subset_code <-
-            DBI::dbGetQuery(m$db, sql) %>%
-            dplyr::pull() %>%
+            subset_code %>%
             stringr::str_replace_all("\r", "\n") %>%
             stringr::str_replace_all("%dataset_id%", as.character(r$selected_dataset)) %>%
             stringr::str_replace_all("%subset_id%", as.character(selected_subset))

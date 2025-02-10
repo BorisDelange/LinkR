@@ -255,15 +255,15 @@ mod_concepts_server <- function(id, r, d, m, language, i18n, debug, user_accesse
       # Also remove duckDB tables
       dataset_folder <- paste0(r$app_folder, "/datasets_files/", r$selected_dataset)
       
-      for (table in c("concept", "concept_ancestor", "concept_relationship", "concept_synonym", "drug_strength", "vocabulary", "concept_class", "relationship", "domain")){
+      for (table in c("concept", "concept_ancestor", "concept_relationship", "concept_synonym", "drug_strength", "vocabulary", "concept_class", "relationship", "domain", "dataset_concept", "dataset_drug_strength")){
         file_path <- file.path(dataset_folder, paste0(table, ".parquet"))
         if (file.exists(file_path)) unlink(file_path)
-        
-        if (r$import_dataset_save_as_duckdb_file){
-          if (length(d$con) > 0){
-            if (DBI::dbExistsTable(d$con, table)) DBI::dbExecute(d$con, paste0("DROP TABLE ", table))
-          }
-        }
+
+        # if (r$import_dataset_save_as_duckdb_file){
+        #   if (length(d$con) > 0){
+        #     if (DBI::dbExistsTable(d$con, table)) DBI::dbExecute(d$con, paste0("DROP TABLE ", table))
+        #   }
+        # }
       }
 
       # Reload concepts count

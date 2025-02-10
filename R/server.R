@@ -244,7 +244,7 @@ app_server <- function(
         if (length(shiny.router::get_query_param()$create_element) > 0) shinyjs::runjs(paste0("Shiny.setInputValue('", current_page, "-create_element', Math.random());"))
       }
       
-      if (length(r$loaded_pages[[current_page]]) == 0) r$load_page <- current_page
+      if (current_page %not_in% names(r$loaded_pages)) r$load_page <- current_page
       
       # Prevent a bug with scroll into ace editor
       shinyjs::runjs("var event = new Event('resize'); window.dispatchEvent(event);")
