@@ -1105,7 +1105,7 @@ reload_elements_var <- function(page_id, id, con, r, m, long_var_filtered, user_
   long_var <- paste0(id, "_long")
   wide_var <- paste0(id, "_wide")
   
-  # See all element s?
+  # See all elements ?
   if (paste0(id, "_see_all_data") %in% user_accesses) sql_join <- "LEFT JOIN" else sql_join <- "INNER JOIN"
   
   if (sql_table == "plugins"){
@@ -1158,4 +1158,7 @@ reload_elements_var <- function(page_id, id, con, r, m, long_var_filtered, user_
   
   # Reload home widgets
   r[[paste0("reload_home_", id)]] <- now()
+  
+  # Reload project subsets
+  if (sql_table == "subsets" && !is.na(m$selected_study)) m$subsets <- r$subsets_wide %>% dplyr::filter(study_id == m$selected_study)
 }
