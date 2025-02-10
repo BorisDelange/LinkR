@@ -316,8 +316,8 @@ mod_data_server <- function(id, r, d, m, language, i18n, debug, user_accesses){
     # A project is selected ----
     # --- --- --- --- --- --- --
     
-    visit_detail_tables <- c("condition_occurrence", "drug_exposure", "procedure_occurrence", "device_exposure", "measurement", "observation", "note", "payer_plan_period", "cost")
-    person_tables <- c(visit_detail_tables, "specimen", "death", "drug_era", "dose_era", "condition_era", "observation_period", "visit_occurrence", "visit_detail")
+    visit_detail_tables <- c("condition_occurrence", "drug_exposure", "procedure_occurrence", "device_exposure", "measurement", "observation", "note")
+    person_tables <- c(visit_detail_tables, "specimen", "death", "drug_era", "dose_era", "condition_era", "observation_period", "visit_occurrence", "visit_detail", "payer_plan_period")
     subset_tables <- c(person_tables, "person")
     main_tables <- c(subset_tables, "location", "care_site", "provider")
     
@@ -456,7 +456,7 @@ mod_data_server <- function(id, r, d, m, language, i18n, debug, user_accesses){
         }
         
         tables <- c(
-          "condition_occurrence", "drug_exposure", "procedure_occurrence", "device_exposure", "measurement", "observation", "note", "payer_plan_period", "cost",
+          "condition_occurrence", "drug_exposure", "procedure_occurrence", "device_exposure", "measurement", "observation", "note", "payer_plan_period",
           "specimen", "death", "drug_era", "dose_era", "condition_era", "observation_period"
         )
         
@@ -464,11 +464,11 @@ mod_data_server <- function(id, r, d, m, language, i18n, debug, user_accesses){
           
           # Filter data on person_id, visit_occurrence_id and visit_detail_id
 
-          if ("person_id" %in% d[[table]]){
-            if (table %in% c("condition_occurrence", "drug_exposure", "procedure_occurrence", "device_exposure", "measurement", "observation", "note", "payer_plan_period", "cost")){
+          if ("person_id" %in% colnames(d[[table]])){
+            if (table %in% c("condition_occurrence", "drug_exposure", "procedure_occurrence", "device_exposure", "measurement", "observation", "note")){
               d$data_subset[[table]] <- d[[table]] %>% dplyr::inner_join(d$data_subset$visit_detail %>% dplyr::distinct(visit_detail_id), by = "visit_detail_id")
             }
-            else if (table %in% c("specimen", "death", "drug_era", "dose_era", "condition_era", "observation_period")){
+            else if (table %in% c("specimen", "death", "drug_era", "dose_era", "condition_era", "observation_period", "payer_plan_period")){
               d$data_subset[[table]] <- d[[table]] %>% dplyr::inner_join(d$data_subset$person %>% dplyr::distinct(person_id), by = "person_id")
             }
           }
@@ -509,7 +509,7 @@ mod_data_server <- function(id, r, d, m, language, i18n, debug, user_accesses){
         if ("person_id" %in% colnames(d$data_subset[[table]])){
           d$data_person[[table]] <- d$data_subset[[table]] %>% dplyr::filter(person_id == selected_person)
         }
-        else d[[table]] <- tibble::tibble()
+        else d$data_person[[table]] <- tibble::tibble()
       }
     })
     
@@ -768,7 +768,7 @@ mod_data_server <- function(id, r, d, m, language, i18n, debug, user_accesses){
               d$data_subset_source$person %>% dplyr::inner_join(d$data_subset$visit_occurrence %>% dplyr::distinct(person_id), by = "person_id")
           
           tables <- c(
-            "condition_occurrence", "drug_exposure", "procedure_occurrence", "device_exposure", "measurement", "observation", "note", "payer_plan_period", "cost",
+            "condition_occurrence", "drug_exposure", "procedure_occurrence", "device_exposure", "measurement", "observation", "note", "payer_plan_period",
             "specimen", "death", "drug_era", "dose_era", "condition_era", "observation_period"
           )
           
@@ -777,10 +777,10 @@ mod_data_server <- function(id, r, d, m, language, i18n, debug, user_accesses){
             # Filter data on person_id, visit_occurrence_id and visit_detail_id
             
             if ("person_id" %in% colnames(d$data_subset_source[[table]])){
-              if (table %in% c("condition_occurrence", "drug_exposure", "procedure_occurrence", "device_exposure", "measurement", "observation", "note", "payer_plan_period", "cost")){
+              if (table %in% c("condition_occurrence", "drug_exposure", "procedure_occurrence", "device_exposure", "measurement", "observation", "note")){
                 d$data_subset[[table]] <- d$data_subset_source[[table]] %>% dplyr::inner_join(d$data_subset$visit_detail %>% dplyr::distinct(visit_detail_id), by = "visit_detail_id")
               }
-              else if (table %in% c("specimen", "death", "drug_era", "dose_era", "condition_era", "observation_period")){
+              else if (table %in% c("specimen", "death", "drug_era", "dose_era", "condition_era", "observation_period", "payer_plan_period")){
                 d$data_subset[[table]] <- d$data_subset_source[[table]] %>% dplyr::inner_join(d$data_subset$person %>% dplyr::distinct(person_id), by = "person_id")
               }
             }

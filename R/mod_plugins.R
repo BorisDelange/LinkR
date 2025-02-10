@@ -606,12 +606,12 @@ mod_plugins_server <- function(id, r, d, m, language, i18n, debug, user_accesses
       
       observeEvent(input[[paste0(editor_id, "_run_all")]], {
         if (debug) cat(paste0("\n", now(), " - mod_plugins - observer input$edit_code_editor..run_all"))
-        shinyjs::runjs(paste0("Shiny.setInputValue('", id, "-run_plugin_code', Math.random());"))
+        shinyjs::runjs(paste0("Shiny.setInputValue('", id, "-run_plugin_code_trigger', Math.random());"))
       })
       
       observeEvent(input[[paste0(editor_id, "_run_selection")]], {
         if (debug) cat(paste0("\n", now(), " - mod_plugins - observer input$edit_code_editor..run_selection"))
-        shinyjs::runjs(paste0("Shiny.setInputValue('", id, "-run_plugin_code', Math.random());"))
+        shinyjs::runjs(paste0("Shiny.setInputValue('", id, "-run_plugin_code_trigger', Math.random());"))
       })
       
       observeEvent(input[[paste0(editor_id, "_comment")]], {
@@ -747,23 +747,23 @@ mod_plugins_server <- function(id, r, d, m, language, i18n, debug, user_accesses
     
     observeEvent(input$run_plugin_code, {
       if (debug) cat(paste0("\n", now(), " - mod_plugins - observer input$run_plugin_code"))
-      shinyjs::runjs(paste0("Shiny.setInputValue('", id, "-run_plugin_code', Math.random());"))
+      shinyjs::runjs(paste0("Shiny.setInputValue('", id, "-run_plugin_code_trigger', Math.random());"))
     })
     
     observeEvent(input$reload_plugin_code, {
       if (debug) cat(paste0("\n", now(), " - mod_plugins - observer input$reload_plugin_code"))
-      shinyjs::runjs(paste0("Shiny.setInputValue('", id, "-run_plugin_code', Math.random());"))
+      shinyjs::runjs(paste0("Shiny.setInputValue('", id, "-run_plugin_code_trigger', Math.random());"))
     })
     
     # Initiate widgets var
-    r$run_plugin_last_widget_id <- get_last_row(r$db, "widgets") + 10^6 %>% as.integer()
-    r$run_plugin_tab_id <- get_last_row(r$db, "tabs") + 10^6 %>% as.integer()
+    r$run_plugin_last_widget_id <- get_last_row(r$db, "widgets") + 10^9 %>% as.integer()
+    r$run_plugin_tab_id <- get_last_row(r$db, "tabs") + 10^9 %>% as.integer()
     
     # Initiate gridstack instance
     create_gridstack_instance(id, "plugin_run_code")
     
-    observeEvent(input$run_plugin_code, {
-      if (debug) cat(paste0("\n", now(), " - mod_plugins - observer input$run_plugin_code"))
+    observeEvent(input$run_plugin_code_trigger, {
+      if (debug) cat(paste0("\n", now(), " - mod_plugins - observer input$run_plugin_code_trigger"))
 
       req("plugins_edit_code" %in% user_accesses)
       
@@ -813,19 +813,17 @@ mod_plugins_server <- function(id, r, d, m, language, i18n, debug, user_accesses
       code$ui <- input[[paste0("edit_code_editor_", r$edit_plugin_code_files_list %>% dplyr::filter(plugin_id == input$selected_element, filename == "ui.R") %>% dplyr::pull(id))]]
       code$server <- input[[paste0("edit_code_editor_", r$edit_plugin_code_files_list %>% dplyr::filter(plugin_id == input$selected_element, filename == "server.R") %>% dplyr::pull(id))]]
 
-      # previous_widget_id <- r$run_plugin_last_widget_id
-      # widget_id <- r$run_plugin_last_widget_id + 1
-      # r$run_plugin_last_widget_id <- widget_id
+      previous_widget_id <- r$run_plugin_last_widget_id
+      widget_id <- r$run_plugin_last_widget_id + 1
+      r$run_plugin_last_widget_id <- widget_id
       
       # Delete rows of previous tests
       
-      widget_id <- 1000000000
-      
-      sql <- glue::glue_sql("DELETE FROM widgets_options WHERE widget_id = {widget_id}", .con = m$db)
+      sql <- glue::glue_sql("DELETE FROM widgets_options WHERE widget_id >= 1000000000", .con = m$db)
       sql_send_statement(m$db, sql)
       
-      sql <- glue::glue_sql("DELETE FROM widgets_concepts WHERE widget_id = {widget_id}", .con = m$db)
-      sql_send_statement(m$db, sql)
+      # sql <- glue::glue_sql("DELETE FROM widgets_concepts WHERE widget_id >= 1000000000", .con = m$db)
+      # sql_send_statement(m$db, sql)
 
       # Create a session number, to inactivate older observers
       # Reset all older observers
