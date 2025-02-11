@@ -1564,7 +1564,7 @@ mod_widgets_server <- function(id, r, d, m, language, i18n, all_divs, debug, use
         new_dir <- file.path(input$git_repo_elements_folder)
         
         # Reload subsets var
-        reload_elements_var(page_id = "subsets", id = "subsets", con = m$db, r = r, m = m, long_var_filtered = "filtered_subsets_long", user_accesses = user_accesses)
+        if (id == "projects") reload_elements_var(page_id = "subsets", id = "subsets", con = m$db, r = r, m = m, long_var_filtered = "filtered_subsets_long", user_accesses = user_accesses)
         
         # Create element files
         
