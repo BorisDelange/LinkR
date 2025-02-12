@@ -310,6 +310,9 @@ mod_data_server <- function(id, r, d, m, language, i18n, debug, user_accesses){
       # Show / hide "no tabs to display" message
       sapply(categories, function(category) shinyjs::hide(paste0(category, "_no_tabs_to_display")))
       if (r[[paste0(r$data_page, "_no_tabs_to_display")]] & length(m$selected_study) > 0) shinyjs::show(paste0(r$data_page, "_no_tabs_to_display"))
+      
+      # Reload window size (correct bug with some plugins display)
+      shinyjs::runjs("var event = new Event('resize'); window.dispatchEvent(event);")
     })
     
     # --- --- --- --- --- --- --
