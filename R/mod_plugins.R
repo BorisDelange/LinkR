@@ -176,7 +176,7 @@ mod_plugins_ui <- function(id, language, languages, i18n){
             style = "display: inline-block; margin: 5px;"
           ),
           shinyjs::hidden(div(id = ns("edit_code_tabs_div"), uiOutput(ns("edit_code_tabs_ui")), style = "height: 24px; position: relative;")),
-          shinyjs::hidden(div(id = ns("edit_code_editors_div"), style = "height: calc(100% - 30px);")),
+          shinyjs::hidden(div(id = ns("edit_code_editors_div"), style = "height: calc(100% - 24px);")),
           style = "height: 100%;"
         ),
         
@@ -191,9 +191,9 @@ mod_plugins_ui <- function(id, language, languages, i18n){
             ),
             div(
               id = ns("run_code_content_div"),
-              div(textOutput(ns("run_code_datetime_code_execution")), style = "color:#878787; font-size:12px; margin-left:8px;"),
+              div(textOutput(ns("run_code_datetime_code_execution")), style = "color: #878787; font-size: 12px; margin-left: 8px;"),
               div(id = ns("gridstack_plugin_run_code"), class = "grid-stack"),
-              div(verbatimTextOutput(ns("run_code_result_server")), style = "font-size:12px; margin-left:8px; padding-top:10px;"),
+              div(verbatimTextOutput(ns("run_code_result_server")), style = "font-size: 12px; margin-left: 8px; padding-top: 10px;"),
               style = "margin-top: 10px; width: 100%;"
             ),
             class = "plugins_test_container"

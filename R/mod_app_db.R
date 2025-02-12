@@ -119,7 +119,7 @@ mod_app_db_ui <- function(id, language, languages, i18n, code_hotkeys, db_col_ty
               div(class = "resizer"),
               div(
                 id = ns("code_result_div"),
-                textOutput(ns("datetime_code_execution")),
+                div(textOutput(ns("datetime_code_execution")), style = "color: #878787; margin-bottom: 8px;"),
                 verbatimTextOutput(ns("sql_result")),
                 class = "resizable-panel right-panel",
                 style = "width: 50%; padding: 0 10px; font-size: 12px; overflow-y: auto;"

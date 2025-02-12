@@ -24,7 +24,7 @@ mod_project_files_ui <- function(id, language, languages, i18n){
             div(class = "resizer"),
             div(
               id = ns("code_result_div"),
-              div(textOutput(ns("datetime_code_execution")), style = "margin-bottom: 8px;"),
+              div(textOutput(ns("datetime_code_execution")), style = "color: #878787; margin-bottom: 8px;"),
               verbatimTextOutput(ns("verbatim_code_output")),
               shinyjs::hidden(
                 div(

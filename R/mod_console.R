@@ -29,7 +29,7 @@ mod_console_ui <- function(id, language, languages, i18n, code_hotkeys, auto_com
         div(class = "resizer"),
         div(
           id = ns("console_output"),
-          textOutput(ns("datetime_code_execution")),
+          div(textOutput(ns("datetime_code_execution")), style = "color: #878787; margin-bottom: 8px;"),
           verbatimTextOutput(ns("code_output")),
           shinyjs::hidden(div(id = ns("plot_output_div"), plotOutput(ns("plot_output")), style = "padding-top: 10px;")),
           shinyjs::hidden(uiOutput(ns("rmarkdown_output"))),
