@@ -5,7 +5,7 @@
 
 <img src = "https://img.shields.io/badge/lifecycle-experimental-orange.svg" alt = "Lifecycle experimental" style = "margin-right:2px;"/>
 <img src = "https://img.shields.io/badge/License-GPLv3-blue.svg" alt = "License: GPL v3" style = "margin-right:2px;"/>
-<img src = "https://img.shields.io/badge/version-0.3.0.9022-blue" alt = "version" style = "margin-right:2px;" />
+<img src = "https://img.shields.io/badge/version-0.3.1-blue" alt = "version" style = "margin-right:2px;" />
 
 ## Introduction
 
