@@ -250,7 +250,7 @@ load_dataset <- function(id, output, r, m, d, dataset_id, main_tables, selected_
 #' @noRd
 load_dataset_concepts <- function(r, d, m){
   
-  req(!is.na(r$selected_dataset), r$selected_dataset != 0)
+  # req(!is.na(r$selected_dataset), r$selected_dataset != 0)
   
   # Create dataset folder if doesn't exist
   dataset_folder <- paste0(r$app_folder, "/datasets_files/", r$selected_dataset)
@@ -335,7 +335,11 @@ load_dataset_concepts <- function(r, d, m){
           concept_id, concept_name, domain_id, vocabulary_id, concept_class_id,
           standard_concept, concept_code, valid_start_date, valid_end_date, invalid_reason
         FROM concept WHERE concept_id IN ({dataset_concept_ids*}) AND concept_id != 0 ORDER BY concept_id", .con = d$con)
-      new_concepts <- DBI::dbGetQuery(d$con, sql)
+      
+      new_concepts <- 
+        DBI::dbGetQuery(d$con, sql) %>%
+        dplyr::mutate_at(c("valid_start_date", "valid_end_date"), as.character)
+      
       if (nrow(new_concepts) > 0) concept <- concept %>% dplyr::bind_rows(new_concepts %>% dplyr::anti_join(concept, by = "concept_id"))
     }
     
@@ -345,7 +349,11 @@ load_dataset_concepts <- function(r, d, m){
           drug_concept_id, ingredient_concept_id, amount_value, amount_unit_concept_id, numerator_value, numerator_unit_concept_id,
           denominator_value, denominator_unit_concept_id, box_size, valid_start_date, valid_end_date, invalid_reason
         FROM drug_strength WHERE drug_concept_id IN ({dataset_concept_ids*}) AND drug_concept_id != 0 ORDER BY drug_concept_id", .con = d$con)
-      new_drug_strength <- DBI::dbGetQuery(d$con, sql)
+      
+      new_drug_strength <-
+        DBI::dbGetQuery(d$con, sql) %>%
+        dplyr::mutate_at(c("valid_start_date", "valid_end_date"), as.character)
+      
       if (nrow(new_drug_strength) > 0) drug_strength <- drug_strength %>% dplyr::bind_rows(new_drug_strength %>% dplyr::anti_join(drug_strength, by = "drug_concept_id"))
     }
     

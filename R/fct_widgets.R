@@ -990,7 +990,6 @@ import_project <- function(r, m, temp_dir, update_plugins, project_id, unique_id
     for (plugin_unique_id in more_recent_plugins$unique_id){
       plugin_folder <- file.path(r$app_folder, "plugins", plugin_unique_id)
       unlink(plugin_folder, recursive = TRUE)
-      print(plugin_folder)
     }
   }
   

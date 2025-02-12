@@ -74,7 +74,7 @@ import_dataset <- function(
     "location_history" = "iiciDD",
     "care_site" = "iciicc",
     "provider" = "iccciiiiccici",
-    "payer_plan_period" = "iiiDDiciiciiciicicici",
+    "payer_plan_period" = "iiDDiciiciicicici",
     "cost" = "iiiiiiicinDDDiicci",
     "drug_era" = "iiiTTii",
     "dose_era" = "iiiinTT",
@@ -259,6 +259,7 @@ import_dataset <- function(
                 
                 if (file_ext == "csv"){
                   type_codes <- strsplit(col_types[[table]], "")[[1]]
+                  
                   col_names <- data_cols[[table]]
                   col_types_sql <- paste(
                     mapply(
@@ -273,12 +274,24 @@ import_dataset <- function(
                   
                   DBI::dbExecute(d$con, sprintf("CREATE TABLE %s (%s)", table, col_types_sql))
                   
+                  col_types_csv <- paste(
+                    mapply(
+                      function(col, type) {
+                        sprintf("'%s': '%s'", col, convert_to_duckdb_type(type))
+                      },
+                      col_names,
+                      type_codes
+                    ),
+                    collapse = ", "
+                  )
+                  
                   DBI::dbExecute(
                     d$con,
                     sprintf(
-                      "INSERT INTO %s SELECT * FROM read_csv_auto('%s', nullstr='NA')",
+                      "INSERT INTO %s SELECT * FROM read_csv('%s', nullstr='NA', columns={%s})",
                       table,
-                      file.path(data_folder, file_name)
+                      file.path(data_folder, file_name),
+                      col_types_csv
                     )
                   )
                 }
@@ -346,7 +359,7 @@ import_dataset <- function(
             # Copy data from source database
             source_data <-
               dplyr::tbl(con, table) %>%
-              dplyr::select(all_of(data_cols[[table]])) %>%
+              dplyr::select(all_of(col_names)) %>%
               dplyr::collect()
             
             # Insert data into DuckDB
