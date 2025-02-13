@@ -508,12 +508,12 @@ mod_data_server <- function(id, r, d, m, language, i18n, debug, user_accesses){
       
       selected_person <- m$selected_person
       
-      for(table in person_tables){
-        if ("person_id" %in% colnames(d$data_subset[[table]])){
-          d$data_person[[table]] <- d$data_subset[[table]] %>% dplyr::filter(person_id == selected_person)
-        }
-        else d$data_person[[table]] <- tibble::tibble()
-      }
+      # for(table in person_tables){
+      #   if ("person_id" %in% colnames(d$data_subset[[table]])){
+      #     d$data_person[[table]] <- d$data_subset[[table]] %>% dplyr::filter(person_id == selected_person)
+      #   }
+      #   else d$data_person[[table]] <- tibble::tibble()
+      # }
     })
     
     ## Stay ----
@@ -524,12 +524,12 @@ mod_data_server <- function(id, r, d, m, language, i18n, debug, user_accesses){
       
       selected_visit_detail <- m$selected_visit_detail
       
-      for(table in visit_detail_tables){
-        if ("visit_detail_id" %in% colnames(d$data_person[[table]])){
-          d$data_visit_detail[[table]] <- d$data_person[[table]] %>% dplyr::filter(visit_detail_id == selected_visit_detail)
-        }
-        else d$data_visit_detail[[table]] <- tibble::tibble()
-      }
+      # for(table in visit_detail_tables){
+      #   if ("visit_detail_id" %in% colnames(d$data_person[[table]])){
+      #     d$data_visit_detail[[table]] <- d$data_person[[table]] %>% dplyr::filter(visit_detail_id == selected_visit_detail)
+      #   }
+      #   else d$data_visit_detail[[table]] <- tibble::tibble()
+      # }
     })
     
     # --- --- --- --- --- --
