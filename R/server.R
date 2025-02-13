@@ -54,7 +54,7 @@ app_server <- function(
     o <- reactiveValues()
     
     # App version ----
-    r$app_version <- "0.3.1"
+    r$app_version <- "0.3.1.9001"
     
     # Databse col types ----
     
