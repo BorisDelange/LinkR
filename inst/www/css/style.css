@@ -220,7 +220,7 @@ a.no-hover-effect:hover {
 }
 
 .button_show_sidenav {
-  left: 0;
+  left: 20px;
 }
 
 .button_show_sidenav::before,

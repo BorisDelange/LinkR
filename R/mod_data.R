@@ -183,14 +183,15 @@ mod_data_ui <- function(id, language, languages, i18n){
   # Study divs ----
   
   study_divs <- tagList()
-  for (category in c("patient_lvl", "aggregated")) study_divs <- tagList(
+  for (category in c("patient_lvl", "aggregated")) study_divs <- div(
     study_divs, 
     shinyjs::hidden(uiOutput(ns(paste0(category, "_study_menu")))),
     shinyjs::hidden(div(
       id = ns(paste0(category, "_no_tabs_to_display")), shiny.fluent::MessageBar(i18n$t("no_tabs_to_display_click_add_tab"), messageBarType = 5),
       style = "display: inline-block; margin: 5px 8px;"
-    )),
+    ))
   )
+  study_divs <- div(study_divs, style = "min-height: 30px; margin:5px 13px 0px 0px;")
   
   div(
     class = "main",
@@ -1370,7 +1371,7 @@ mod_data_server <- function(id, r, d, m, language, i18n, debug, user_accesses){
           output[[paste0(category, "_study_menu")]] <- renderUI({
             div(
               study_menu_ui,
-              style = "display:flex; justify-content:space-between; margin:5px 13px 0px 0px;"
+              style = "display:flex; justify-content:space-between;"
             )
           })
           
