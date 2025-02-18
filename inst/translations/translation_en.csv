@@ -319,6 +319,7 @@ programming_language,Language
 project_deleted,Project deleted
 projects,Projects
 projects_scripts_user_access_description,Access to project scripts
+projects_widgets_console_user_access_description,Access to widgets console
 projects_content_management_user_access_description,"Manage projects content (add, edit and delete tabs and widgets)"
 projects_data_cleaning_user_access_description,Set up projet's data cleaning scripts
 projects_dataset_user_access_description,Set up project's dataset
