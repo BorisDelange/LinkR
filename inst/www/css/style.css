@@ -182,30 +182,57 @@ a.no-hover-effect:hover {
 }
 
 .button_sidenav {
-  transition: left 0.3s ease-in-out, border 0.3s ease-in-out;
   position: fixed;
   top: 45%;
   cursor: pointer;
-  border-top: 30px solid transparent;
-  border-bottom: 30px solid transparent;
+  transition: all 0.3s ease-in-out;
+  padding: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  background: transparent;
+}
+
+.button_sidenav::before,
+.button_sidenav::after,
+.button_sidenav span {
+  content: "";
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  transition: background-color 0.3s ease-in-out;
 }
 
 .button_hide_sidenav {
-  border-right: 13px solid #D8D8D8;
-  left: 227px;
+  left: 220px;
 }
 
-.button_hide_sidenav:hover {
-  border-right: 13px solid #BDBDBD;
+.button_hide_sidenav::before,
+.button_hide_sidenav::after,
+.button_hide_sidenav span {
+  background-color: #D8D8D8;
+}
+
+.button_hide_sidenav:hover::before,
+.button_hide_sidenav:hover::after,
+.button_hide_sidenav:hover span {
+  background-color: #428BCA;
 }
 
 .button_show_sidenav {
-  border-left: 13px solid #D8D8D8;
   left: 0;
 }
 
-.button_show_sidenav:hover {
-  border-left: 13px solid #BDBDBD;
+.button_show_sidenav::before,
+.button_show_sidenav::after,
+.button_show_sidenav span {
+  background-color: #D8D8D8;
+}
+
+.button_show_sidenav:hover::before,
+.button_show_sidenav:hover::after,
+.button_show_sidenav:hover span {
+  background-color: #428BCA;
 }
 
 .reduced_sidenav_buttons .ms-Button, .reduced_sidenav_buttons_11 .ms-Button {

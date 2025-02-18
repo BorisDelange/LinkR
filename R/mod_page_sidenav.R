@@ -7,12 +7,14 @@ mod_page_sidenav_ui <- function(id, language, i18n){
     id = ns("show_hide_sidenav"),
     class = "button_sidenav button_hide_sidenav",
     onclick = paste0("Shiny.setInputValue('", id, "-show_hide_sidenav', Math.random());"),
+    span()
   )
   
   show_sidenav <- div(
     id = ns("show_hide_sidenav"),
     class = "button_sidenav button_show_sidenav",
     onclick = paste0("Shiny.setInputValue('", id, "-show_hide_sidenav', Math.random());"),
+    span()
   )
   
   reduced_sidenav_style <- "width: 40px; min-width: 40px; padding: 0;"
