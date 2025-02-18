@@ -559,3 +559,5 @@ plugin_git_synchro_help_1,"Choisissez un dépôt Git sur lequel vous souhaitez s
 download_data_cleaning_help_1,"En cliquant sur 'Télécharger', vous téléchargerez le script de data cleaning au format zip."
 download_data_cleaning_help_2,"Retournez sur la page 'Scripts de data cleaning' pour importer un script de data cleaning depuis un fichier zip."
 data_cleaning_git_synchro_help_1,"Choisissez un dépôt Git sur lequel vous souhaitez synchroniser ce script de data cleaning."
+show_widgets_buttons,Afficher les boutons des widgets
+hide_widgets_buttons,Masquer les boutons des widgets

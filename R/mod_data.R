@@ -2328,6 +2328,34 @@ mod_data_server <- function(id, r, d, m, language, i18n, debug, user_accesses){
       }
     })
     
+    # --- --- --- --- --- --- --- -- -
+    # Show / hide widgets buttons ----
+    # --- --- --- --- --- --- --- -- -
+    
+    r$data_show_widgets_buttons <- TRUE
+    
+    observeEvent(input$show_hide_widgets_buttons, {
+      if (debug) cat(paste0("\n", now(), " - mod_data - observer input$show_hide_widgets_buttons"))
+      
+      # Hide all data widgets buttons
+      if (r$data_show_widgets_buttons){
+        r$data_show_widgets_buttons <- FALSE
+        shiny.fluent::updateDefaultButton.shinyInput(session, "show_hide_widgets_buttons", text = i18n$t("show_widgets_buttons"), iconProps = list(iconName = "RedEye"))
+        shinyjs::runjs("$('.data_widget_top_icons').hide()");
+        shinyjs::runjs("$('.data_widget_settings_code_panel').css('height', '100%');")
+        shinyjs::runjs("var event = new Event('resize'); window.dispatchEvent(event);")
+      }
+      
+      # Show all data widgets buttons
+      else {
+        r$data_show_widgets_buttons <- TRUE
+        shiny.fluent::updateDefaultButton.shinyInput(session, "show_hide_widgets_buttons", text = i18n$t("hide_widgets_buttons"), iconProps = list(iconName = "Hide"))
+        shinyjs::runjs("$('.data_widget_top_icons').show()");
+        shinyjs::runjs("$('.data_widget_settings_code_panel').css('height', 'calc(100% - 34px)');")
+        shinyjs::runjs("var event = new Event('resize'); window.dispatchEvent(event);")
+      }
+    })
+    
     # |-------------------------------- -----
     
     # --- --- --- --- --- -
