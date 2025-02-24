@@ -1822,7 +1822,7 @@ mod_data_server <- function(id, r, d, m, language, i18n, debug, user_accesses){
         dplyr::filter(id == input$show_plugin_description) %>%
         dplyr::pull(name)
       
-      if (description_code == "") output$plugin_description <- renderUI(div(shiny.fluent::MessageBar(i18n$t("no_description_available"), messageBarType = 5) ,style = "display: inline-block;"))
+      if (description_code == "" | is.na(description_code)) output$plugin_description <- renderUI(div(shiny.fluent::MessageBar(i18n$t("no_description_available"), messageBarType = 5) ,style = "display: inline-block;"))
       else {
         output_file <- create_rmarkdown_file(r, description_code, interpret_code = FALSE)
         output$plugin_description <- renderUI(div(class = "markdown", withMathJax(includeMarkdown(output_file))))
