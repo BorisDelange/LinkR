@@ -216,8 +216,8 @@ mod_concepts_server <- function(id, r, d, m, language, i18n, debug, user_accesse
         
         data <-
           d$measurement %>%
-          dplyr::select(measurement_concept_id, value_as_number) %>%
-          dplyr::filter(measurement_concept_id == concept_id, !is.na(value_as_number)) %>%
+          dplyr::select(measurement_concept_id, measurement_source_concept_id, value_as_number) %>%
+          dplyr::filter(measurement_concept_id == concept_id | measurement_source_concept_id == concept_id, !is.na(value_as_number)) %>%
           dplyr::collect()
         
         # binwidth <- (max(data$value_as_number) - min(data$value_as_number)) / (1 + log2(nrow(data)))
@@ -225,7 +225,7 @@ mod_concepts_server <- function(id, r, d, m, language, i18n, debug, user_accesse
         plot <- 
           data %>%
           ggplot2::ggplot(ggplot2::aes(x = value_as_number)) +
-          ggplot2::geom_histogram(color = "white", fill = "#0084D8", bins = 30) +
+          ggplot2::geom_histogram(color = "white", fill = "#0084D8", bins = 50) +
           ggplot2::theme_minimal() +
           ggplot2::labs(x = i18n$t("value"), y = i18n$t("occurrences"))
         
