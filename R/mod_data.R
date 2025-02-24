@@ -2120,6 +2120,9 @@ mod_data_server <- function(id, r, d, m, language, i18n, debug, user_accesses){
           grid.setStatic(true);  
         "))
       }
+      
+      # Reload window size (correct bug with Ace editor display)
+      shinyjs::delay(300, shinyjs::runjs("var event = new Event('resize'); window.dispatchEvent(event);"))
     })
     
     observeEvent(input$full_screen_widget_position_trigger, {
@@ -2127,7 +2130,7 @@ mod_data_server <- function(id, r, d, m, language, i18n, debug, user_accesses){
       
       widget <- input$full_screen_widget_position
       
-      r$data_tabs_full_screen <- r$data_tabs_full_screen <- r$data_tabs_full_screen %>% dplyr::bind_rows(
+      r$data_tabs_full_screen <- r$data_tabs_full_screen %>% dplyr::bind_rows(
         tibble::tibble(
           widget_id = as.integer(widget$id),
           tab_id = as.integer(widget$tab_id),
