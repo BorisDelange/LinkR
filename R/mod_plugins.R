@@ -505,7 +505,10 @@ mod_plugins_server <- function(id, r, d, m, language, i18n, debug, user_accesses
       
       else {
         first_file_id <- r$edit_plugin_code_tabs %>% dplyr::filter(plugin_id == input$selected_element) %>% dplyr::arrange(position) %>% dplyr::slice(1) %>% dplyr::pull(id)
-        shinyjs::show(paste0("edit_code_editor_div_", first_file_id))
+        plugin_editors_ids <- r$edit_plugin_code_editors %>% dplyr::filter(plugin_id == input$selected_element) %>% dplyr::pull(id)
+        
+        if (input$edit_code_selected_file %in% plugin_editors_ids) shinyjs::show(paste0("edit_code_editor_div_", input$edit_code_selected_file))
+        else shinyjs::show(paste0("edit_code_editor_div_", first_file_id))
       }
     })
     
