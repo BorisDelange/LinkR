@@ -9,9 +9,7 @@ add_patients_to_subset(
   r = shiny::reactiveValues(),
   m = shiny::reactiveValues(),
   patients = tibble::tibble(),
-  subset_id = integer(),
-  i18n = character(),
-  ns = character()
+  subset_id = integer()
 )
 }
 \arguments{
@@ -21,20 +19,63 @@ add_patients_to_subset(
 
 \item{m}{A shiny::reactiveValues object, used to communicate between modules}
 
-\item{patients}{numeric vector containing patients / persons (numeric)}
+\item{patients}{Either:
+- A numeric vector of person_ids
+- A data.frame/tibble containing at least one of these columns:
+  - person_id: Patient identifier
+  - visit_occurrence_id: Visit identifier (optional, requires person_id)
+  - visit_detail_id: Visit detail identifier (optional, requires visit_occurrence_id)}
 
-\item{subset_id}{ID of the subset (integer)}
-
-\item{i18n}{Translator object from shiny.i18n library}
-
-\item{ns}{Shiny namespace}
+\item{subset_id}{An integer representing the ID of the subset to which the patients will be added.
+The subset ID must be positive and valid.}
+}
+\value{
+A character string indicating the success or failure of the operation. If successful, the message includes
+the number of patients added to the subset. If an error occurs, it returns an error message.
 }
 \description{
-Add patients to a subset
+This function adds patients to a specific subset in the database table subset_persons.
+It can handle person identifiers alone or combined with visit identifiers.
+It ensures the validity of the input parameters and prevents duplicate entries.
+}
+\details{
+The function performs several checks:
+- Validates subset_id to ensure it is a positive integer
+- Validates patients to ensure it is either a numeric vector or a data.frame/tibble with a person_id column
+- If visit identifiers are provided, ensures they are properly structured
+- Removes duplicate entries based on the provided identification columns
+- Removes patients that are already in the subset to avoid duplicates
+
+The function handles three cases:
+1. Basic: Only person_id provided
+2. Visits: person_id and visit_occurrence_id provided
+3. Detailed visits: person_id, visit_occurrence_id and visit_detail_id provided
+
+If the inputs are valid, the function inserts the new patients into the subset_persons table in the database.
 }
 \examples{
 \dontrun{
+# Example with a numeric vector of person IDs
 patients <- c(123, 456, 789)
-add_patients_to_subset(output = output, r = r, m = m, patients = patients, subset_id = 3, i18n = i18n, ns = ns)
+add_patients_to_subset(output = output, r = r, m = m, patients = patients, subset_id = 3)
+
+# Example with person_ids in a tibble
+patients <- tibble::tibble(person_id = c(123, 456, 789))
+add_patients_to_subset(output = output, r = r, m = m, patients = patients, subset_id = 3)
+
+# Example with visit_occurrence_ids
+patients <- tibble::tibble(
+  person_id = c(123, 456),
+  visit_occurrence_id = c(1001, 1002)
+)
+add_patients_to_subset(output = output, r = r, m = m, patients = patients, subset_id = 3)
+
+# Example with visit_detail_ids
+patients <- tibble::tibble(
+  person_id = c(123, 456),
+  visit_occurrence_id = c(1001, 1002),
+  visit_detail_id = c(2001, 2002)
+)
+add_patients_to_subset(output = output, r = r, m = m, patients = patients, subset_id = 3)
 }
 }

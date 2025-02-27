@@ -6,14 +6,17 @@
 \usage{
 import_dataset(
   r,
+  m,
   d,
   dataset_id = integer(),
   omop_version = "5.4",
   data_source = "disk",
   data_folder = character(),
+  save_as_duckdb_file = FALSE,
+  rewrite = FALSE,
   con,
   load_tables = character(),
-  ...
+  import_vocabulary_tables = FALSE
 )
 }
 \arguments{
@@ -29,11 +32,15 @@ import_dataset(
 
 \item{data_folder}{The folder containing the data. Must be a character string.}
 
+\item{save_as_duckdb_file}{A logical value indicating whether to save the data as a DuckDB database file (.db). If TRUE, the data will be persistently stored in a DuckDB file in the dataset folder. Defaults to FALSE.}
+
+\item{rewrite}{A logical value indicating whether to rewrite DuckDB database.}
+
 \item{con}{A `DBI::dbConnect` object representing the database connection, required if `data_source` is `"db"`.}
 
-\item{load_tables}{A character vector specifying which OMOP tables to load.}
+\item{load_tables}{A character vector specifying which OMOP tables to load}
 
-\item{...}{Additional arguments to be passed to the `vroom` function (e.g., `delim`).}
+\item{import_vocabulary_tables}{A logical value indicating whether to import OMOP vocabulary tables (concept, vocabulary, concept_relationship, etc.) into LinkR. If TRUE, terminology tables will be uploaded into app database. Defaults to FALSE.}
 }
 \description{
 Imports a dataset into the application using the OMOP Common Data Model.

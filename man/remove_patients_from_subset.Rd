@@ -2,39 +2,72 @@
 % Please edit documentation in R/fct_data_management.R
 \name{remove_patients_from_subset}
 \alias{remove_patients_from_subset}
-\title{Remove patients from a subset}
+\title{Remove entries from a subset}
 \usage{
 remove_patients_from_subset(
   output,
   r = shiny::reactiveValues(),
   m = shiny::reactiveValues(),
-  persons = tibble::tibble(),
-  subset_id = integer(),
-  i18n = character(),
-  ns = character()
+  patients = tibble::tibble(),
+  subset_id = integer()
 )
 }
 \arguments{
-\item{output}{Shiny output variable}
+\item{output}{Shiny output variable, used for displaying outputs in a Shiny application.}
 
-\item{r}{A shiny::reactiveValues object, used to communicate between modules}
+\item{r}{A `shiny::reactiveValues` object, used to communicate between modules in the Shiny app.}
 
-\item{m}{A shiny::reactiveValues object, used to communicate between modules}
+\item{m}{A `shiny::reactiveValues` object, used to communicate between modules in the Shiny app.}
 
-\item{persons}{data variable containing patients / persons (data.frame / tibble)}
+\item{patients}{A numeric vector of person_ids or a `data.frame`/`tibble` that can contain any of these columns:
+- person_id: Patient identifier
+- visit_occurrence_id: Visit identifier (optional, requires person_id)
+- visit_detail_id: Visit detail identifier (optional, requires visit_occurrence_id)}
 
-\item{subset_id}{ID of subset (integer)}
-
-\item{i18n}{Translator object from shiny.i18n library}
-
-\item{ns}{Shiny namespace}
+\item{subset_id}{An integer representing the ID of the subset from which the entries will be removed.
+The subset ID must be positive and valid.}
+}
+\value{
+A character string indicating the success or failure of the operation. If successful, the message includes
+the number of patients, hospital stays, and unit stays removed from the subset. If an error occurs
+(e.g., invalid ID combinations), it returns an error message.
 }
 \description{
-Remove patients from a subset
+This function removes entries from a specific subset in the database table subset_persons.
+Entries can be identified by person_id, visit_occurrence_id (hospital stay), visit_detail_id (unit stay) 
+or any valid combination of these. The removal is hierarchical: removing a person_id removes all associated 
+visits and units, removing a visit removes all associated units.
+}
+\details{
+The function handles three cases:
+1. Remove by person_id: Removes all entries for specified patients, including their hospital and unit stays
+2. Remove by visit_occurrence_id: Removes specific hospital stays and their associated unit stays
+3. Remove by visit_detail_id: Removes only specific unit stays
+
+The function performs several validations:
+- Ensures subset_id is a positive integer
+- Verifies that visit_occurrence_ids are provided with corresponding person_ids
+- Verifies that visit_detail_ids are provided with corresponding visit_occurrence_ids
 }
 \examples{
 \dontrun{
-persons <- tibble::tribble(~patient_id, 123L, 456L, 789L)
-remove_persons_from_subset(output = output, r = r, m = m, persons = persons, subset_id = 3, i18n = i18n, ns = ns)
+# Remove by person_ids only
+patients <- tibble::tibble(person_id = c(123, 456))
+remove_patients_from_subset(output = output, r = r, m = m, patients = patients, subset_id = 3)
+
+# Remove specific hospital stays
+patients <- tibble::tibble(
+  person_id = c(123, 456),
+  visit_occurrence_id = c(1001, 1002)
+)
+remove_patients_from_subset(output = output, r = r, m = m, patients = patients, subset_id = 3)
+
+# Remove specific unit stays
+patients <- tibble::tibble(
+  person_id = c(123, 456),
+  visit_occurrence_id = c(1001, 1002),
+  visit_detail_id = c(2001, 2002)
+)
+remove_patients_from_subset(output = output, r = r, m = m, patients = patients, subset_id = 3)
 }
 }
