@@ -103,6 +103,7 @@ import_dataset <- function(
   else if (omop_version == "5.4"){
     col_types$person <- "iiiiiTiiiiiccicici"
     col_types$observation <-  "iiiDTinciiiiiicicccii"
+    col_types$measurement <- "iiiDTciiniinniiicicicii"
     col_types$drug_era <- "iiiDDii"
     col_types$dose_era <- "iiiinDD"
     col_types$condition_era <- "iiiDDi"
@@ -162,6 +163,7 @@ import_dataset <- function(
     data_cols$person <- c("person_id", "gender_concept_id", "year_of_birth", "month_of_birth", "day_of_birth", "birth_datetime", "race_concept_id", "ethnicity_concept_id", "location_id", "provider_id", "care_site_id", "person_source_value", "gender_source_value", "gender_source_concept_id", "race_source_value", "race_source_concept_id", "ethnicity_source_value", "ethnicity_source_concept_id")
     data_cols$visit_detail <- c("visit_detail_id", "person_id", "visit_detail_concept_id", "visit_detail_start_date", "visit_detail_start_datetime", "visit_detail_end_date", "visit_detail_end_datetime", "visit_detail_type_concept_id", "provider_id", "care_site_id", "visit_detail_source_value", "visit_detail_source_concept_id", "admitted_from_concept_id", "admitted_from_source_value", "discharged_to_source_value", "discharged_to_concept_id", "preceding_visit_detail_id", "parent_visit_detail_id", "visit_occurrence_id")
     data_cols$observation <- c("observation_id", "person_id", "observation_concept_id", "observation_date", "observation_datetime", "observation_type_concept_id", "value_as_number", "value_as_string", "value_as_concept_id", "qualifier_concept_id", "unit_concept_id", "provider_id", "visit_occurrence_id", "visit_detail_id", "observation_source_value", "observation_source_concept_id", "unit_source_value", "qualifier_source_value", "value_source_value", "observation_event_id", "obs_event_field_concept_id")
+    data_cols$measurement = c("measurement_id", "person_id", "measurement_concept_id", "measurement_date", "measurement_datetime", "measurement_time", "measurement_type_concept_id", "operator_concept_id", "value_as_number", "value_as_concept_id", "unit_concept_id", "range_low", "range_high", "provider_id", "visit_occurrence_id", "visit_detail_id", "measurement_source_value", "measurement_source_concept_id", "unit_source_value", "unit_source_concept_id", "value_source_value", "measurement_event_id", "meas_event_field_concept_id")
     data_cols$location = c("location_id", "address_1", "address_2", "city", "state", "zip", "county", "location_source_value", "country_concept_id", "latitude", "longitude")
     data_cols$drug_era <- c("drug_era_id", "person_id", "drug_concept_id", "drug_era_start_date", "drug_era_end_date", "drug_exposure_count", "gap_days")
     data_cols$dose_era <- c("dose_era_id", "person_id", "drug_concept_id", "unit_concept_id", "dose_value", "dose_era_start_date", "dose_era_end_date")
@@ -224,35 +226,36 @@ import_dataset <- function(
       table <- sub("\\.[^.]*$", "", file_name)
       file_ext <- sub(".*\\.", "", tolower(file_name))
       
-      # If no file_ext, consider it is a folder containing parquet or CSV files
-      if (file_ext == table) file_ext <- ""
-      
-      # Check if this is an OMOP table
-      
-      if (table %in% load_tables){
+      if (table %not_in% loaded_tables){
         
-        if (file_ext %in% c("csv", "parquet", "")){
+        # If no file_ext, consider it is a folder containing parquet or CSV files
+        if (file_ext == table) file_ext <- ""
+        
+        # Check if this is an OMOP table
+        
+        if (table %in% load_tables){
           
-          # If no file_ext, consider it is a folder and try to find extension of first file
-          if (file_ext == "") {
-            folder_path <- file.path(data_folder, file_name)
+          if (file_ext %in% c("csv", "parquet", "")){
             
-            if (dir.exists(folder_path)) {
-              folder_files <- list.files(folder_path)
+            # If no file_ext, consider it is a folder and try to find extension of first file
+            if (file_ext == "") {
+              folder_path <- file.path(data_folder, file_name)
               
-              if (length(folder_files) > 0) {
-                # Get extension of first file
-                first_file_ext <- sub(".*\\.", "", tolower(folder_files[1]))
-                if (first_file_ext %in% c("csv", "parquet")) {
-                  file_ext <- first_file_ext
+              if (dir.exists(folder_path)) {
+                folder_files <- list.files(folder_path)
+                
+                if (length(folder_files) > 0) {
+                  # Get extension of first file
+                  first_file_ext <- sub(".*\\.", "", tolower(folder_files[1]))
+                  if (first_file_ext %in% c("csv", "parquet")) {
+                    file_ext <- first_file_ext
+                  }
                 }
               }
             }
-          }
-          
-          if (file_ext %in% c("csv", "parquet")){
             
-            if (save_as_duckdb_file) {
+            if (file_ext %in% c("csv", "parquet")){
+              
               if (!DBI::dbExistsTable(d$con, table)){
                 
                 file_path <- file.path(data_folder, file_name)
@@ -297,20 +300,13 @@ import_dataset <- function(
                 }
                 else if (file_ext == "parquet") DBI::dbExecute(d$con, paste0("CREATE TABLE ", table, " AS SELECT * FROM read_parquet('", file_path, "')"))
               }
-            } else {
-            
-              duckdb::duckdb_unregister_arrow(d$con, table)
-              duckdb::duckdb_register_arrow(
-                d$con, table,
-                arrow::open_dataset(file.path(data_folder, file_name), format = file_ext)
-              )
             }
           }
-        }
-        
-        if (DBI::dbExistsTable(d$con, table)){
-          d[[table]] <- dplyr::tbl(d$con, table)
-          loaded_tables <- c(loaded_tables, table)
+          
+          if (DBI::dbExistsTable(d$con, table)){
+            d[[table]] <- dplyr::tbl(d$con, table)
+            loaded_tables <- c(loaded_tables, table)
+          }
         }
       }
     }
