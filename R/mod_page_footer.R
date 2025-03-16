@@ -8,7 +8,7 @@ mod_page_footer_ui <- function(i18n, language){
         tags$a("LinkR", href = paste0("https://linkr.interhop.org/", language, "/"), target = "_blank"), " | ",
         tags$a("InterHop", href = "https://interhop.org/", target = "_blank"), " | 2019 - 2024"
       ),
-      div("v0.3.1.9003"),
+      div("v0.3.1.9004"),
       class = "footer_content"
     )
   )
