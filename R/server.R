@@ -154,7 +154,7 @@ app_server <- function(
             if (row$db == "main") db <- r$db
             else db <- m$db
             
-            sql <- glue::glue_sql("DELETE FROM {row$table} WHERE deleted = TRUE", .con = db)
+            sql <- glue::glue_sql("DELETE FROM {`row$table`} WHERE deleted = TRUE", .con = db)
             query <- DBI::dbSendStatement(db, sql)
             DBI::dbClearResult(query)
           }

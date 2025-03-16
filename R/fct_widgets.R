@@ -730,7 +730,7 @@ import_element <- function(id, input, output, r, m, con, sql_table, sql_category
     element <- element %>% dplyr::mutate(id = element_id)
     
     # Delete element in db
-    sql_send_statement(con, glue::glue_sql("DELETE FROM {sql_table} WHERE id = {element_id}", .con = con))
+    sql_send_statement(con, glue::glue_sql("DELETE FROM {`sql_table`} WHERE id = {element_id}", .con = con))
     
     # For projects, delete all rows in associated tables
     delete_project(r, m, element_id)
@@ -1152,7 +1152,7 @@ reload_elements_var <- function(page_id, id, con, r, m, long_var_filtered, user_
   }
   else r[[long_var_filtered]] <- r[[long_var]]
   
-  sql <- glue::glue_sql("SELECT * FROM {sql_table} WHERE id IN ({unique(r[[long_var]]$id)*})", .con = con)
+  sql <- glue::glue_sql("SELECT * FROM {`sql_table`} WHERE id IN ({unique(r[[long_var]]$id)*})", .con = con)
   r[[wide_var]] <- DBI::dbGetQuery(con, sql) %>% tibble::as_tibble()
   
   # Reload home widgets

@@ -346,7 +346,7 @@ mod_widgets_server <- function(id, r, d, m, language, i18n, all_divs, debug, use
       # Check if name is not already used
       if (sql_table == "subsets") sql <- glue::glue_sql("SELECT name FROM subsets WHERE study_id = {m$selected_study}", .con = con)
       else if (sql_table == "vocabulary") sql <- glue::glue_sql("SELECT vocabulary_id FROM vocabulary", .con = con)
-      else sql <- glue::glue_sql("SELECT name FROM {sql_table}", .con = con)
+      else sql <- glue::glue_sql("SELECT name FROM {`sql_table`}", .con = con)
       
       elements_names <- DBI::dbGetQuery(con, sql) %>% dplyr::pull()
       name_already_used <- remove_special_chars(element_name) %in% remove_special_chars(elements_names)
@@ -1272,7 +1272,7 @@ mod_widgets_server <- function(id, r, d, m, language, i18n, all_divs, debug, use
       else if (id == "projects") delete_project(r, m, element_id)
       
       # Delete element in db
-      sql_send_statement(con, glue::glue_sql("DELETE FROM {sql_table} WHERE id = {element_id}", .con = con))
+      sql_send_statement(con, glue::glue_sql("DELETE FROM {`sql_table`} WHERE id = {element_id}", .con = con))
       
       # Delete code in db
       sql_send_statement(con, glue::glue_sql("DELETE FROM code WHERE category = {sql_category} AND link_id = {element_id}", .con = con))
