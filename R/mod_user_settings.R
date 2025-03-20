@@ -136,7 +136,15 @@ mod_user_settings_server <- function(id, r, d, m, language, i18n, debug, user_ac
       if (debug) cat(paste0("\n", now(), " - mod_user_settings - observer shiny.router::get_page()"))
       
       # Show a default text output
-      captured_output <- capture.output(iris %>% tibble::as_tibble() %>% head(10)) %>% paste(collapse = "\n")
+      captured_output <- capture.output(tibble::tibble(
+        firstname = c("John", "Sarah", "Michael", "Emma", "David", "Lisa", "Robert", "Jennifer", "Thomas", "Maria"),
+        lastname = c("Smith", "Johnson", "Williams", "Brown", "Jones", "Garcia", "Miller", "Davis", "Rodriguez", "Martinez"),
+        birth_date = c("1975-03-15", "1982-07-22", "1968-11-04", "1990-05-18", "1956-09-30", 
+                       "1988-01-12", "1972-06-25", "1985-04-07", "1963-12-21", "1978-08-09"),
+        death_date = c(NA, NA, "2022-06-15", NA, "2020-11-09", NA, NA, NA, "2021-03-25", NA),
+        gender = c("M", "F", "M", "F", "M", "F", "M", "F", "M", "F")
+      ) %>% tibble::as_tibble() %>% head(10)) %>% paste(collapse = "\n")
+      
       output$ace_editor_output <- renderText(captured_output)
     })
     
