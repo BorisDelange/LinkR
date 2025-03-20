@@ -563,3 +563,5 @@ download_data_cleaning_help_2,"Go back to the 'Data cleaning scripts' page to im
 data_cleaning_git_synchro_help_1,"Select a Git repository where you want to synchronize this data cleaning script."
 show_widgets_buttons,Show widgets buttons
 hide_widgets_buttons,Hide widgets buttons
+submit_login,Login
+invalid_login_or_password,Invalid username or password

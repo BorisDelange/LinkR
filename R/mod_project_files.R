@@ -596,7 +596,7 @@ mod_project_files_server <- function(id, r, d, m, language, i18n, debug, user_ac
         else if (input$code_output == "matplotlib"){
   
           # Create a file with plot image
-          dir <- paste0(r$app_folder, "/temp_files/", r$user_id, "/images")
+          dir <- paste0(r$app_folder, "/temp_files/", r$user_id, "/img")
           output_file <- paste0(dir, "/", paste0(sample(c(0:9, letters[1:6]), 8, TRUE), collapse = ''), "_", now() %>% stringr::str_replace_all(":", "_") %>% stringr::str_replace_all(" ", "_"), ".png")
           if (!dir.exists(dir)) dir.create(dir)
   

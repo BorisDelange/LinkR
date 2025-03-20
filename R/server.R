@@ -1,6 +1,6 @@
 #' @noRd
 app_server <- function(
-    pages, language, languages, i18n, app_folder, username, debug, log_file, local, 
+    pages, language, languages, i18n, app_folder, authentication, username, debug, log_file, local, 
     users_accesses_toggles_options, db_col_types, dropdowns, auto_complete_list, loading_options
   ){
   
@@ -109,10 +109,12 @@ app_server <- function(
       insert_default_data(output = output, r = r, m = m, i18n = i18n, language = language, db_col_types = db_col_types, users_accesses_toggles_options = users_accesses_toggles_options)
       
       # Connection with username
-      sql <- glue::glue_sql("SELECT id FROM users WHERE username = {username}", .con = local_db)
-      user_id <- DBI::dbGetQuery(local_db, sql)
-      if (nrow(user_id) > 0) r$user_id <- user_id %>% dplyr::pull()
-      else stop("Username not found in app database")
+      if (!authentication){
+        sql <- glue::glue_sql("SELECT id FROM users WHERE username = {username}", .con = local_db)
+        user_id <- DBI::dbGetQuery(local_db, sql)
+        if (nrow(user_id) > 0) r$user_id <- user_id %>% dplyr::pull()
+        else stop("Username not found in app database")
+      }
       
       # Load datasets
       sql <- glue::glue_sql("SELECT * FROM datasets", .con = r$db)
@@ -225,27 +227,27 @@ app_server <- function(
     r$loaded_pages <- list()
     
     observeEvent(shiny.router::get_page(), {
-      
+
       if (debug) cat(paste0("\n", now(), " - server - observer shiny.router::get_page()"))
-      
+
       current_page <- shiny.router::get_page()
       r$current_page <- current_page
-      
+
       req(current_page %in% pages)
-      
+
       if (current_page == "/") current_page <- "home"
-      
+
       else if (current_page == "data"){
         if (length(shiny.router::get_query_param()$type) > 0) r$data_page <- shiny.router::get_query_param()$type
         else r$data_page <- "patient_lvl"
       }
-      
+
       else if (current_page %in% c("datasets", "data_cleaning", "datasets", "plugins", "subsets", "projects")){
         if (length(shiny.router::get_query_param()$create_element) > 0) shinyjs::runjs(paste0("Shiny.setInputValue('", current_page, "-create_element', Math.random());"))
       }
-      
+
       if (current_page %not_in% names(r$loaded_pages)) r$load_page <- current_page
-      
+
       # Prevent a bug with scroll into ace editor
       shinyjs::runjs("var event = new Event('resize'); window.dispatchEvent(event);")
     })
@@ -254,6 +256,15 @@ app_server <- function(
       if (debug) cat(paste0("\n", now(), " - server - observer r$load_page"))
       
       page <- r$load_page
+      
+      if (page == "login"){
+        mod_login_server("login", r, i18n, debug)
+        r$loaded_pages$login <- TRUE
+      }
+      
+      if (length(r$user_id) == 0) if (shiny.router::get_page() != "login") shinyjs::delay(50, shiny.router::change_page("login"))
+      
+      req(r$user_id)
       
       # Get user accesses
       user_access_id <- r$users %>% dplyr::filter(id == r$user_id) %>% dplyr::pull(user_access_id) 

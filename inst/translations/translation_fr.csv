@@ -561,3 +561,5 @@ download_data_cleaning_help_2,"Retournez sur la page 'Scripts de data cleaning' 
 data_cleaning_git_synchro_help_1,"Choisissez un dépôt Git sur lequel vous souhaitez synchroniser ce script de data cleaning."
 show_widgets_buttons,Afficher boutons des widgets
 hide_widgets_buttons,Masquer boutons des widgets
+submit_login,Connexion
+invalid_login_or_password,Identifiant ou mot de passe invalide

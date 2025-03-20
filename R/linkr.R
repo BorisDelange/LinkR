@@ -7,6 +7,7 @@
 #' a 'linkr' folder will be created in the folder returned by path.expand("~").\cr
 #' @param language Default language to use in the App (character)
 #' @param app_folder Location of the application folder (character).
+#' @param authentication Requires an authentication to access the app? (logical)
 #' @param username Username used for connection. Default username is "admin". (character)
 #' @param local Run the app in local mode, do not load files on the internet (logical)
 #' @param debug Debug mode : steps and errors will by displayed in the console (logical)
@@ -24,6 +25,7 @@
 linkr <- function(
   language = "en",
   app_folder = character(),
+  authentication = FALSE,
   username = "admin",
   local = FALSE,
   debug = FALSE,
@@ -54,10 +56,13 @@ linkr <- function(
   
   if (!is.logical(debug)) stop("'debug' argument is not of logical type")
   if (!is.logical(local)) stop("'local' argument is not of logical type")
+  if (!is.logical(authentication)) stop("'authentication' argument is not of logical type")
   
-  error_username <- TRUE
-  if (length(username) > 0) if (!is.na(username) & username != "") error_username <- FALSE
-  if (error_username) stop("'username' argument is invalid")
+  if (!authentication){
+    error_username <- TRUE
+    if (length(username) > 0) if (!is.na(username) & username != "") error_username <- FALSE
+    if (error_username) stop("'username' argument is invalid")
+  }
   
   # Create app folder if it doesn't exist
   if (debug) cat(paste0("\n", now(), " - linkr - app_folder"))
@@ -77,14 +82,14 @@ linkr <- function(
     "data_cleaning",
     "datasets",
     "datasets_files",
+    "log",
     "messages",
     "plugins",
     "projects",
     "projects_files",
     "subsets",
     "temp_files",
-    "translations",
-    "log"
+    "translations"
   )
   for (sub_dir in sub_dirs) if (!dir.exists(paste0(app_folder, "/", sub_dir))) dir.create(paste0(app_folder, "/", sub_dir))
   
@@ -190,6 +195,7 @@ linkr <- function(
     "data_cleaning",
     "git_repos",
     "log",
+    "login",
     "project_files",
     "plugins",
     "projects",
@@ -326,7 +332,7 @@ linkr <- function(
   if (debug) cat(paste0("\n", now(), " - linkr - load UI & server"))
   shinyApp(
     ui = app_ui(pages, language, languages, i18n, users_accesses_toggles_options, db_col_types, dropdowns, auto_complete_list, debug),
-    server = app_server(pages, language, languages, i18n, app_folder, username, debug, log_file, local, users_accesses_toggles_options, db_col_types, dropdowns, auto_complete_list, loading_options),
+    server = app_server(pages, language, languages, i18n, app_folder, authentication, username, debug, log_file, local, users_accesses_toggles_options, db_col_types, dropdowns, auto_complete_list, loading_options),
     options = options
   )
 }

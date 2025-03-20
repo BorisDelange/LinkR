@@ -66,7 +66,7 @@ app_ui <- function(
       tags$title("LinkR"),
       
       # Favicon
-      tags$link(rel = "shortcut icon", href = "www/images/favicon.png"),
+      tags$link(rel = "shortcut icon", href = "www/img/favicon.png"),
       
       # CSS files
       tags$link(rel = "stylesheet", href = "www/css/style.css", type = "text/css"),

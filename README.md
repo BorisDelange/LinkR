@@ -1,7 +1,7 @@
 
 <!-- README.md is generated from README.Rmd. Please edit that file -->
 
-# LinkR <a href="https://linkr.interhop.org/"><img src="inst/www/images/hex.png" align="right" width = "123" height="140" /></a>
+# LinkR <a href="https://linkr.interhop.org/"><img src="inst/www/img/hex.png" align="right" width = "123" height="140" /></a>
 
 <img src = "https://img.shields.io/badge/lifecycle-experimental-orange.svg" alt = "Lifecycle experimental" style = "margin-right:2px;"/>
 <img src = "https://img.shields.io/badge/License-GPLv3-blue.svg" alt = "License: GPL v3" style = "margin-right:2px;"/>
@@ -40,8 +40,8 @@ Easily create a **custom patient record** tailored to the specific needs
 of your research project.<br /> As you switch between patients, the
 figures **dynamically update** to reflect each patient’s specific data.
 
-<br /> <a href="inst/www/images/patient_level_data.gif">
-<img src="inst/www/images/patient_level_data.gif" style="border: solid 1px #ccc; border-radius: 10px; padding: 10px;" alt="Patient-level data page example"/>
+<br /> <a href="inst/www/img/patient_level_data.gif">
+<img src="inst/www/img/patient_level_data.gif" style="border: solid 1px #ccc; border-radius: 10px; padding: 10px;" alt="Patient-level data page example"/>
 </a> <br /><br />
 
 #### Create interactive dashboards
@@ -51,8 +51,8 @@ an intuitive **graphical interface** to **visualize aggregated patient
 data**.<br /> **Generate** and, if required, **modify** the
 corresponding R or Python **code** directly from the figures you create.
 
-<br /> <a href="inst/www/images/aggregated_data.gif">
-<img src="inst/www/images/aggregated_data.gif" style="border: solid 1px #ccc; border-radius: 10px; padding: 10px;" alt="Aggregated data page example"/>
+<br /> <a href="inst/www/img/aggregated_data.gif">
+<img src="inst/www/img/aggregated_data.gif" style="border: solid 1px #ccc; border-radius: 10px; padding: 10px;" alt="Aggregated data page example"/>
 </a> <br /><br />
 
 #### An intuitive graphical interface
@@ -62,8 +62,8 @@ what format.
 
 *“I’d like to display respiratory rate and saturation as a timeline”*
 
-<br /> <a href="inst/www/images/create_tab_and_widget.gif">
-<img src="inst/www/images/create_tab_and_widget.gif" style="border: solid 1px #ccc; border-radius: 10px; padding: 10px;" alt="An example of how yo create tabs and widgets"/>
+<br /> <a href="inst/www/img/create_tab_and_widget.gif">
+<img src="inst/www/img/create_tab_and_widget.gif" style="border: solid 1px #ccc; border-radius: 10px; padding: 10px;" alt="An example of how yo create tabs and widgets"/>
 </a> <br /><br />
 
 ## Sharing and open science
