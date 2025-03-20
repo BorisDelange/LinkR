@@ -277,29 +277,30 @@ load_dataset_concepts <- function(r, d, m){
     if (omop_version %in% c("5.3", "5.0")) tables <- c(tables, "death")
     
     main_cols <- c(
+      "condition_era" = "condition",
       "condition_occurrence" = "condition",
-      "drug_exposure" = "drug",
-      "procedure_occurrence" = "procedure",
       "device_exposure" = "device",
+      "dose_era" = "drug",
+      "drug_era" = "drug",
+      "drug_exposure" = "drug",
       "measurement" = "measurement",
       "observation" = "observation",
-      "specimen" = "specimen",
-      "drug_era" = "drug",
-      "dose_era" = "drug",
-      "condition_era" = "condition"
+      "procedure_occurrence" = "procedure",
+      "specimen" = "specimen"
     )
     
     secondary_cols <- list(
-      "person" = c("gender", "race", "ethnicity"),
       "condition_occurrence" = c("condition_type", "condition_status"),
-      "drug_exposure" = c("drug_type", "route"),
-      "procedure_occurrence" = "procedure_type",
+      "death" = c("death_type", "cause"),
       "device_exposure" = "device_type",
+      "dose_era" = "unit",
+      "drug_exposure" = c("drug_type", "route"),
       "measurement" = c("measurement_type", "value_as", "unit"),
-      "observation" = c("observation_type", "qualifier", "value_as", "unit"),
       "note" = c("note_type", "note_class", "encoding", "language"),
-      "specimen" = c("specimen_type", "unit", "anatomic_site", "disease_status"),
-      "dose_era" = "unit"
+      "observation" = c("observation_type", "qualifier", "value_as", "unit"),
+      "person" = c("gender", "race", "ethnicity"),
+      "procedure_occurrence" = "procedure_type",
+      "specimen" = c("specimen_type", "unit", "anatomic_site", "disease_status")
     )
     
     # Get all concept_ids for this dataset
@@ -367,12 +368,10 @@ load_dataset_concepts <- function(r, d, m){
       secondary_cols <- rlist::list.append(secondary_cols, "visit_occurrence" = c("visit", "visit_type", "visit_source", "admitting_source", "discharge_to"))
       secondary_cols <- rlist::list.append(secondary_cols, "visit_detail" = c("visit_detail", "visit_detail_type", "visit_detail_source", "admitting_source", "discharge_to"))
     }
-    else if (omop_version %in% c("5.4", "6.0")){
+    else if (omop_version == "5.4"){
       secondary_cols <- rlist::list.append(secondary_cols, "visit_occurrence" = c("visit", "visit_type", "visit_source", "admitted_from", "discharge_to"))
       secondary_cols <- rlist::list.append(secondary_cols, "visit_detail" = c("visit_detail", "visit_detail_type", "visit_detail_source", "admitted_from", "discharge_to"))
     }
-    
-    if (omop_version %in% c("5.3", "5.0")) secondary_cols <- rlist::list.append(secondary_cols, "death" = c("death_type", "cause"))
     
     for(table in tables){
       

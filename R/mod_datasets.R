@@ -93,8 +93,7 @@ mod_datasets_ui <- function(id, language, languages, i18n, code_hotkeys, auto_co
                       ns("omop_version"), label = i18n$t("omop_version"),
                       options = list(
                         list(key = "5.3", text = "5.3"),
-                        list(key = "5.4", text = "5.4"),
-                        list(key = "6.0", text = "6.0")
+                        list(key = "5.4", text = "5.4")
                       )
                     ),
                     style = "width: 200px;"

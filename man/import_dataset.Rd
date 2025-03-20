@@ -26,7 +26,7 @@ import_dataset(
 
 \item{dataset_id}{The ID of the dataset, used to create a specific dataset folder in the application directories. Must be an integer.}
 
-\item{omop_version}{The OMOP version of the imported data. Accepted values are `"5.3"`, `"5.4"`, and `"6.0"`. Defaults to `"5.4"`.}
+\item{omop_version}{The OMOP version of the imported data. Accepted values are `"5.3"` and `"5.4"`. Defaults to `"5.4"`.}
 
 \item{data_source}{The source of the data. Accepted values are `"db"` for a database connection or `"disk"` for disk storage. Defaults to `"disk"`.}
 
