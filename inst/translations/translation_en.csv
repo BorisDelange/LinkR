@@ -565,3 +565,5 @@ show_widgets_buttons,Show widgets buttons
 hide_widgets_buttons,Hide widgets buttons
 submit_login,Login
 invalid_login_or_password,Invalid username or password
+user_profile,Profile
+change_password,Change password

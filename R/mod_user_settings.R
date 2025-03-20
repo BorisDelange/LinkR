@@ -56,55 +56,68 @@ mod_user_settings_ui <- function(id, language, languages, i18n, code_hotkeys, au
       div(),
       div(
         id = ns("user_settings_pivot"),
-        tags$button(id = ns("code_editor"), i18n$t("code_editor"), class = "pivot_item selected_pivot_item", onclick = pivot_item_js),
+        tags$button(id = ns("user_profile"), i18n$t("user_profile"), class = "pivot_item selected_pivot_item", onclick = pivot_item_js),
+        tags$button(id = ns("code_editor"), i18n$t("code_editor"), class = "pivot_item", onclick = pivot_item_js),
         class = "pivot"
       ),
       style = "display:flex; justify-content:space-between;"
     ),
-    div(
-      id = ns("code_editor_div"),
+    shinyjs::hidden(
       div(
+        id = ns("code_editor_div"),
         div(
-          shiny.fluent::Dropdown.shinyInput(
-            ns("ace_theme"), label = i18n$t("ace_theme"),
-            options = convert_tibble_to_list(ace_themes, key_col = "id", text_col = "text"), value = "textmate"
-          ),
-          style = "width: 200px;"
-        ),
-        div(
-          div(tags$strong(i18n$t("ace_font_size"), style = "font-weight: 600;"), style = "margin-bottom: 6px;"),
           div(
-            shiny.fluent::SpinButton.shinyInput(
-              ns("ace_font_size"), value = 11, min = 1, max = 100
+            shiny.fluent::Dropdown.shinyInput(
+              ns("ace_theme"), label = i18n$t("ace_theme"),
+              options = convert_tibble_to_list(ace_themes, key_col = "id", text_col = "text"), value = "textmate"
             ),
             style = "width: 200px;"
           ),
-          style = "margin-top: 4px;"
-        ),
-        style = "display: flex; gap: 20px;"
-      ),
-      div(
-        div(
-          shinyAce::aceEditor(
-            ns("ace_editor"), value = "", mode = "r",
-            code_hotkeys = list("r", code_hotkeys),
-            autoComplete = "live", autoCompleters = c("static", "text"), autoCompleteList = auto_complete_list,
-            autoScrollEditorIntoView = TRUE, height = "100%", debounce = 100, fontSize = 11, showPrintMargin = FALSE
+          div(
+            div(tags$strong(i18n$t("ace_font_size"), style = "font-weight: 600;"), style = "margin-bottom: 6px;"),
+            div(
+              shiny.fluent::SpinButton.shinyInput(
+                ns("ace_font_size"), value = 11, min = 1, max = 100
+              ),
+              style = "width: 200px;"
+            ),
+            style = "margin-top: 4px;"
           ),
-          class = "resizable-panel left-panel",
-          style = "width: 50%;"
+          style = "display: flex; gap: 20px;"
         ),
-        div(class = "resizer"),
         div(
-          id = ns("console_output"),
-          verbatimTextOutput(ns("ace_editor_output")),
-          class = "resizable-panel right-panel",
-          style = "width: 50%; padding: 0 15px; font-size: 12px; overflow-y: auto;"
+          div(
+            shinyAce::aceEditor(
+              ns("ace_editor"), value = "", mode = "r",
+              code_hotkeys = list("r", code_hotkeys),
+              autoComplete = "live", autoCompleters = c("static", "text"), autoCompleteList = auto_complete_list,
+              autoScrollEditorIntoView = TRUE, height = "100%", debounce = 100, fontSize = 11, showPrintMargin = FALSE
+            ),
+            class = "resizable-panel left-panel",
+            style = "width: 50%;"
+          ),
+          div(class = "resizer"),
+          div(
+            id = ns("console_output"),
+            verbatimTextOutput(ns("ace_editor_output")),
+            class = "resizable-panel right-panel",
+            style = "width: 50%; padding: 0 15px; font-size: 12px; overflow-y: auto;"
+          ),
+          class = "resizable-container",
+          style = "height: calc(100% - 32px); margin-top: 10px; display: flex;"
         ),
-        class = "resizable-container",
-        style = "height: calc(100% - 32px); margin-top: 10px; display: flex;"
+        style = "height: calc(100% - 50px);"
+      )
+    ),
+    div(
+      id = ns("user_profile_div"),
+      div(shiny.fluent::TextField.shinyInput(ns("username"), label = i18n$t("username")), style = "width: 200px;"),
+      div(
+        div(shiny.fluent::TextField.shinyInput(ns("firstname"), label = i18n$t("firstname")), style = "width: 200px;"),
+        div(shiny.fluent::TextField.shinyInput(ns("lastname"), label = i18n$t("lastname")), style = "width: 200px;"),
+        style = "display: flex; gap: 10px;"
       ),
-      style = "height: calc(100% - 50px);"
+      div(shiny.fluent::DefaultButton.shinyInput(ns("change_password"), i18n$t("change_password"), style = "width: 200px; margin-top: 20px;"))
     )
   )
 }
@@ -114,7 +127,7 @@ mod_user_settings_server <- function(id, r, d, m, language, i18n, debug, user_ac
   moduleServer(id, function(input, output, session){
     ns <- session$ns
     
-    all_divs <- c("code_editor")
+    all_divs <- c("user_profile", "code_editor")
     
     # Page change observer ----
     observeEvent(shiny.router::get_page(), {
@@ -161,20 +174,63 @@ mod_user_settings_server <- function(id, r, d, m, language, i18n, debug, user_ac
     observeEvent(input$save_settings, {
       if (debug) cat(paste0("\n", now(), " - mod_user_settings - observer input$save_settings"))
       
-      sql <- glue::glue_sql("DELETE FROM options WHERE category = 'user_settings' AND link_id = {r$user_id}", .con = r$db)
-      sql_send_statement(r$db, sql)
+      current_tab <- "user_profile"
+      if (length(input$current_tab) > 0) current_tab <- gsub(paste0(id, "-"), "", input$current_tab, fixed = FALSE)
       
-      last_row <- get_last_row(r$db, "options")
+      if (current_tab == "user_profile"){
+        
+        # Check if a textfield is empty
+        empty_fields <- list()
+        
+        for (field in c("username", "firstname", "lastname")){
+          empty_fields[[field]] <- TRUE
+          field_name <- input[[field]]
+          if (length(field_name) > 0) if (!is.na(field_name) & field_name != "") empty_fields[[field]] <- FALSE
+          if (empty_fields[[field]]) shiny.fluent::updateTextField.shinyInput(session, field, errorMessage = i18n$t("provide_valid_value"))
+          else shiny.fluent::updateTextField.shinyInput(session, field, errorMessage = NULL)
+        }
+        req(!TRUE %in% empty_fields)
+        
+        sql_username <- glue::glue_sql("SELECT id FROM users WHERE LOWER(username) = {tolower(input$username)} AND id != {r$user_id}", .con = r$db)
+        username_already_used <- nrow(DBI::dbGetQuery(r$db, sql_username)) > 0
+        
+        if (username_already_used) shiny.fluent::updateTextField.shinyInput(session, "username", errorMessage = i18n$t("username_already_used"))
+        
+        sql_fullname <- glue::glue_sql(
+          "SELECT id FROM users WHERE LOWER(firstname) = {tolower(input$firstname)} AND LOWER(lastname) = {tolower(input$lastname)} AND id != {r$user_id}", 
+          .con = r$db
+        )
+        fullname_already_used <- nrow(DBI::dbGetQuery(r$db, sql_fullname)) > 0
+        
+        if (fullname_already_used) {
+          shiny.fluent::updateTextField.shinyInput(session, "firstname", errorMessage = i18n$t("firstname_and_lastname_already_used"))
+          shiny.fluent::updateTextField.shinyInput(session, "lastname", errorMessage = i18n$t("firstname_and_lastname_already_used"))
+        }
+        
+        req(!username_already_used, !fullname_already_used)
+        
+        sql <- glue::glue_sql("UPDATE users SET username = {input$username}, firstname = {input$firstname}, lastname = {input$lastname} WHERE id = {r$user_id}", .con = r$db)
+        DBI::dbExecute(r$db, sql)
+        
+        show_message_bar(id, output, "modif_saved", "success", i18n = i18n, ns = ns)
+      }
       
-      new_data <- tibble::tribble(
-        ~id, ~category, ~link_id, ~name, ~value, ~value_num, ~creator_id, ~datetime, ~deleted,
-        last_row + 1, "user_settings", r$user_id, "ace_theme", input$ace_theme, NA_real_, NA_real_, now(), FALSE,
-        last_row + 2, "user_settings", r$user_id, "ace_font_size", NA_character_, input$ace_font_size, NA_real_, now(), FALSE
-      )
-      
-      DBI::dbAppendTable(r$db, "options", new_data)
-      
-      show_message_bar(id, output, "modif_saved", "success", i18n = i18n, ns = ns)
+      else if (current_tab == "code_editor"){
+        sql <- glue::glue_sql("DELETE FROM options WHERE category = 'user_settings' AND link_id = {r$user_id}", .con = r$db)
+        sql_send_statement(r$db, sql)
+        
+        last_row <- get_last_row(r$db, "options")
+        
+        new_data <- tibble::tribble(
+          ~id, ~category, ~link_id, ~name, ~value, ~value_num, ~creator_id, ~datetime, ~deleted,
+          last_row + 1, "user_settings", r$user_id, "ace_theme", input$ace_theme, NA_real_, NA_real_, now(), FALSE,
+          last_row + 2, "user_settings", r$user_id, "ace_font_size", NA_character_, input$ace_font_size, NA_real_, now(), FALSE
+        )
+        
+        DBI::dbAppendTable(r$db, "options", new_data)
+        
+        show_message_bar(id, output, "modif_saved", "success", i18n = i18n, ns = ns)
+      }
     })
     
     # Code editor settings ----
@@ -198,6 +254,17 @@ mod_user_settings_server <- function(id, r, d, m, language, i18n, debug, user_ac
       if (debug) cat(paste0("\n", now(), " - mod_user_settings - observer input$ace_font_size"))
       
       shinyAce::updateAceEditor(session, "ace_editor", fontSize = input$ace_font_size)
+    })
+    
+    # User profile ----
+    
+    observeEvent(r$user_id, {
+      if (debug) cat(paste0("\n", now(), " - mod_user_settings - observer r$user_id"))
+      
+      sql <- glue::glue_sql("SELECT username, firstname, lastname FROM users WHERE id = {r$user_id}", .con = r$db)
+      user_infos <- DBI::dbGetQuery(r$db, sql)
+      
+      for (field in c("username", "firstname", "lastname")) shiny.fluent::updateTextField.shinyInput(session, field, value = user_infos[[field]])
     })
   })
 }
