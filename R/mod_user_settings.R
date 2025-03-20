@@ -62,6 +62,9 @@ mod_user_settings_ui <- function(id, language, languages, i18n, code_hotkeys, au
       ),
       style = "display:flex; justify-content:space-between;"
     ),
+    
+    # Code editor ----
+    
     shinyjs::hidden(
       div(
         id = ns("code_editor_div"),
@@ -109,6 +112,9 @@ mod_user_settings_ui <- function(id, language, languages, i18n, code_hotkeys, au
         style = "height: calc(100% - 50px);"
       )
     ),
+    
+    # User profile ----
+    
     div(
       id = ns("user_profile_div"),
       div(shiny.fluent::TextField.shinyInput(ns("username"), label = i18n$t("username")), style = "width: 200px;"),
@@ -118,6 +124,35 @@ mod_user_settings_ui <- function(id, language, languages, i18n, code_hotkeys, au
         style = "display: flex; gap: 10px;"
       ),
       div(shiny.fluent::DefaultButton.shinyInput(ns("change_password"), i18n$t("change_password"), style = "width: 200px; margin-top: 20px;"))
+    ),
+    
+    # Update password modal ----
+    
+    shinyjs::hidden(
+      div(
+        id = ns("change_password_modal"),
+        div(
+          div(
+            tags$h1(i18n$t("change_password")),
+            shiny.fluent::IconButton.shinyInput(ns("close_change_password_modal"), iconProps = list(iconName = "ChromeClose")),
+            class = "change_password_modal_head small_close_button"
+          ),
+          div(
+            div(shiny.fluent::TextField.shinyInput(ns("current_password"), label = i18n$t("current_password"), type = "password", canRevealPassword = TRUE), style = "width: 200px;"),
+            div(
+              div(shiny.fluent::TextField.shinyInput(ns("new_password_1"), label = i18n$t("new_password"), type = "password", canRevealPassword = TRUE), style = "width: 200px;"),
+              div(shiny.fluent::TextField.shinyInput(ns("new_password_2"), label = i18n$t("repeat_new_password"), type = "password", canRevealPassword = TRUE), style = "width: 200px;"),
+              style = "display: flex; gap: 20px;"
+            ),
+            div(
+              shiny.fluent::PrimaryButton.shinyInput(ns("confirm_password_update"), i18n$t("confirm")),
+              class = "change_password_modal_buttons"
+            ),
+          ),
+          class = "change_password_modal_content"
+        ),
+        class = "change_password_modal"
+      )
     )
   )
 }
@@ -274,5 +309,65 @@ mod_user_settings_server <- function(id, r, d, m, language, i18n, debug, user_ac
       
       for (field in c("username", "firstname", "lastname")) shiny.fluent::updateTextField.shinyInput(session, field, value = user_infos[[field]])
     })
+    
+    observeEvent(input$change_password, {
+      if (debug) cat(paste0("\n", now(), " - mod_user_settings - observer input$change_password"))
+      
+      shinyjs::show("change_password_modal")
+    })
+    
+    observeEvent(input$close_change_password_modal, {
+      if (debug) cat(paste0("\n", now(), " - mod_user_settings - observer input$close_change_password_modal"))
+      
+      shinyjs::hide("change_password_modal")
+    })
+    
+    observeEvent(input$confirm_password_update, {
+      if (debug) cat(paste0("\n", now(), " - mod_profile - observer input$confirm_password_update"))
+      
+      empty_fields <- list()
+      for (field in c("current_password", "new_password_1", "new_password_2")) {
+        empty_fields[[field]] <- TRUE
+        field_value <- input[[field]]
+        if (length(field_value) > 0) if (!is.na(field_value) & field_value != "") empty_fields[[field]] <- FALSE
+        if (empty_fields[[field]]) shiny.fluent::updateTextField.shinyInput(session, field, errorMessage = i18n$t("provide_valid_value"))
+        else shiny.fluent::updateTextField.shinyInput(session, field, errorMessage = NULL)
+      }
+      req(!TRUE %in% empty_fields)
+      
+      sql <- glue::glue_sql("SELECT password FROM users WHERE id = {r$user_id}", .con = r$db)
+      result <- DBI::dbGetQuery(r$db, sql)
+      
+      current_password_correct <- FALSE
+      if (nrow(result) > 0) {
+        current_password_correct <- tryCatch({
+          bcrypt::checkpw(input$current_password, result$password)
+        }, error = function(e) FALSE)
+      }
+      
+      if (!current_password_correct) {
+        shiny.fluent::updateTextField.shinyInput(session, "current_password", errorMessage = i18n$t("incorrect_password"))
+        req(FALSE)
+      }
+      
+      # Vérifier que les deux nouveaux mots de passe correspondent
+      passwords_match <- input$new_password_1 == input$new_password_2
+      if (!passwords_match) {
+        shiny.fluent::updateTextField.shinyInput(session, "new_password_2", errorMessage = i18n$t("passwords_dont_match"))
+        req(FALSE)
+      }
+      
+      hashed_password <- bcrypt::hashpw(input$new_password_1)
+      
+      sql <- glue::glue_sql("UPDATE users SET password = {hashed_password} WHERE id = {r$user_id}", .con = r$db)
+      DBI::dbExecute(r$db, sql)
+      
+      for (field in c("current_password", "new_password_1", "new_password_2")) shiny.fluent::updateTextField.shinyInput(session, field, value = "")
+      
+      shinyjs::hide("change_password_modal")
+      
+      show_message_bar(id, output, "password_successfully_updated", "success", i18n = i18n, ns = ns)
+    })
+    
   })
 }
