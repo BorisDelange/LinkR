@@ -51,7 +51,6 @@ mod_user_settings_ui <- function(id, language, languages, i18n, code_hotkeys, au
   div(
     id = ns("main"),
     class = "main",
-    style = "padding: 10px;",
     div(
       div(),
       div(
@@ -68,6 +67,7 @@ mod_user_settings_ui <- function(id, language, languages, i18n, code_hotkeys, au
     shinyjs::hidden(
       div(
         id = ns("code_editor_div"),
+        tags$h1(i18n$t("code_editor")),
         div(
           div(
             shiny.fluent::Dropdown.shinyInput(
@@ -104,12 +104,13 @@ mod_user_settings_ui <- function(id, language, languages, i18n, code_hotkeys, au
             id = ns("console_output"),
             verbatimTextOutput(ns("ace_editor_output")),
             class = "resizable-panel right-panel",
-            style = "width: 50%; padding: 0 15px; font-size: 12px; overflow-y: auto;"
+            style = "width: 50%; padding: 10px 15px; font-size: 12px; overflow-y: auto;"
           ),
           class = "resizable-container",
-          style = "height: calc(100% - 32px); margin-top: 10px; display: flex;"
+          style = "height: calc(100% - 100px); margin-top: 10px; display: flex;"
         ),
-        style = "height: calc(100% - 50px);"
+        class = "widget",
+        style = "height: calc(100% - 50px); padding: 0 15px;"
       )
     ),
     
@@ -117,13 +118,16 @@ mod_user_settings_ui <- function(id, language, languages, i18n, code_hotkeys, au
     
     div(
       id = ns("user_profile_div"),
+      tags$h1(i18n$t("user_profile")),
       div(shiny.fluent::TextField.shinyInput(ns("username"), label = i18n$t("username")), style = "width: 200px;"),
       div(
         div(shiny.fluent::TextField.shinyInput(ns("firstname"), label = i18n$t("firstname")), style = "width: 200px;"),
         div(shiny.fluent::TextField.shinyInput(ns("lastname"), label = i18n$t("lastname")), style = "width: 200px;"),
         style = "display: flex; gap: 10px;"
       ),
-      div(shiny.fluent::DefaultButton.shinyInput(ns("change_password"), i18n$t("change_password"), style = "width: 200px; margin-top: 20px;"))
+      div(shiny.fluent::DefaultButton.shinyInput(ns("change_password"), i18n$t("change_password"), style = "width: 200px; margin-top: 20px;")),
+      class = "widget",
+      style = "height: calc(100% - 50px); padding: 0 15px;"
     ),
     
     # Update password modal ----
@@ -323,7 +327,7 @@ mod_user_settings_server <- function(id, r, d, m, language, i18n, debug, user_ac
     })
     
     observeEvent(input$confirm_password_update, {
-      if (debug) cat(paste0("\n", now(), " - mod_profile - observer input$confirm_password_update"))
+      if (debug) cat(paste0("\n", now(), " - mod_user_settings - observer input$confirm_password_update"))
       
       empty_fields <- list()
       for (field in c("current_password", "new_password_1", "new_password_2")) {
@@ -350,7 +354,6 @@ mod_user_settings_server <- function(id, r, d, m, language, i18n, debug, user_ac
         req(FALSE)
       }
       
-      # Vérifier que les deux nouveaux mots de passe correspondent
       passwords_match <- input$new_password_1 == input$new_password_2
       if (!passwords_match) {
         shiny.fluent::updateTextField.shinyInput(session, "new_password_2", errorMessage = i18n$t("passwords_dont_match"))

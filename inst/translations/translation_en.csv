@@ -565,7 +565,7 @@ show_widgets_buttons,Show widgets buttons
 hide_widgets_buttons,Hide widgets buttons
 submit_login,Login
 invalid_login_or_password,Invalid username or password
-user_profile,Profile
+user_profile,User profile
 change_password,Change password
 current_password,Current password
 new_password,New password
@@ -573,3 +573,4 @@ repeat_new_password,Repeat new password
 incorrect_password,Incorrect password
 passwords_dont_match,Passwords don't match
 password_successfully_updated,Password successfully updated
+user_added,New user added

@@ -123,7 +123,11 @@ mod_users_ui <- function(id, language, languages, i18n, users_accesses_toggles_o
           shinyjs::hidden(
             div(
               id = ns("user_edition_div"),
-              div(shiny.fluent::TextField.shinyInput(ns("edit_user_username"), label = i18n$t("login")), style = "width: 200px;"),
+              div(
+                div(shiny.fluent::TextField.shinyInput(ns("edit_user_username"), label = i18n$t("login")), style = "width: 200px;"),
+                div(shiny.fluent::DefaultButton.shinyInput(ns("edit_user_password"), i18n$t("change_password"), style = "width: 200px; margin-top: 26px;")),
+                style = "display: flex; gap: 10px;"
+              ),
               div(
                 div(shiny.fluent::TextField.shinyInput(ns("edit_user_firstname"), label = i18n$t("firstname")), style = "width: 200px;"),
                 div(shiny.fluent::TextField.shinyInput(ns("edit_user_lastname"), label = i18n$t("lastname")), style = "width: 200px;"),
@@ -241,7 +245,11 @@ mod_users_ui <- function(id, language, languages, i18n, users_accesses_toggles_o
           ),
           div(
             div(
-              div(shiny.fluent::TextField.shinyInput(ns("create_user_username"), label = i18n$t("username")), style = "width: 200px;"),
+              div(
+                div(shiny.fluent::TextField.shinyInput(ns("create_user_username"), label = i18n$t("username")), style = "width: 200px;"),
+                div(shiny.fluent::TextField.shinyInput(ns("create_user_password"), label = i18n$t("password"), type = "password", canRevealPassword = TRUE), style = "width: 200px;"),
+                style = "display: flex; gap: 10px;"
+              ),
               div(
                 div(shiny.fluent::TextField.shinyInput(ns("create_user_firstname"), label = i18n$t("firstname")), style = "width: 200px;"),
                 div(shiny.fluent::TextField.shinyInput(ns("create_user_lastname"), label = i18n$t("lastname")), style = "width: 200px;"),
@@ -261,6 +269,31 @@ mod_users_ui <- function(id, language, languages, i18n, users_accesses_toggles_o
       )
     ),
     
+    # Update password modal
+    
+    shinyjs::hidden(
+      div(
+        id = ns("edit_user_password_modal"),
+        div(
+          div(
+            tags$h1(i18n$t("change_password")),
+            shiny.fluent::IconButton.shinyInput(ns("close_edit_user_password_modal"), iconProps = list(iconName = "ChromeClose")),
+            class = "change_password_modal_head small_close_button"
+          ),
+          div(
+            div(shiny.fluent::TextField.shinyInput(ns("new_password_1"), label = i18n$t("new_password"), type = "password", canRevealPassword = TRUE), style = "width: 200px;"),
+            div(shiny.fluent::TextField.shinyInput(ns("new_password_2"), label = i18n$t("repeat_new_password"), type = "password", canRevealPassword = TRUE), style = "width: 200px;"),
+            div(
+              shiny.fluent::PrimaryButton.shinyInput(ns("confirm_password_update"), i18n$t("confirm")),
+              class = "change_password_modal_buttons"
+            ),
+          ),
+          class = "change_password_modal_content"
+        ),
+        class = "change_password_modal"
+      )
+    ),
+    
     # Delete a user modal
     modals$delete_user_modal,
     
@@ -274,7 +307,7 @@ mod_users_ui <- function(id, language, languages, i18n, users_accesses_toggles_o
     modals$create_user_access_modal,
     
     # Delete a user access modal
-    modals$delete_user_access_modal,
+    modals$delete_user_access_modal
   )
 }
 
@@ -371,7 +404,7 @@ mod_users_server <- function(id, r, d, m, language, i18n, debug, users_accesses_
       # Check if textfields are not empty
       empty <- list()
       
-      for (field in c("username", "firstname", "lastname")){
+      for (field in c("username", "password", "firstname", "lastname")){
         empty[[field]] <- TRUE
         name <- input[[paste0("create_user_", field)]]
         if (length(name) > 0) if (!is.na(name) & name != "") empty[[field]] <- FALSE
@@ -379,7 +412,7 @@ mod_users_server <- function(id, r, d, m, language, i18n, debug, users_accesses_
         else shiny.fluent::updateTextField.shinyInput(session, paste0("create_user_", field), errorMessage = NULL)
       }
       
-      req(!empty$username, !empty$firstname, !empty$lastname)
+      req(!empty$username, !empty$password, !empty$firstname, !empty$lastname)
       
       # Check if username is not already used
       sql <- glue::glue_sql("SELECT id FROM users WHERE LOWER(username) = {tolower(input$create_user_username)}", .con = r$db)
@@ -414,13 +447,13 @@ mod_users_server <- function(id, r, d, m, language, i18n, debug, users_accesses_
       
       new_data <- tibble::tibble(
         id = get_last_row(r$db, "users") + 1, username = input$create_user_username,
-        firstname = input$create_user_firstname, lastname = input$create_user_lastname, password = "",
+        firstname = input$create_user_firstname, lastname = input$create_user_lastname, password = bcrypt::hashpw(input$create_user_password),
         user_access_id = input$create_user_user_access, user_status_id = input$create_user_user_status, datetime = now(), deleted = FALSE
       )
       DBI::dbAppendTable(r$db, "users", new_data)
       
       # Reload textfields
-      for (field in c("username", "firstname", "lastname")) shiny.fluent::updateTextField.shinyInput(session, paste0("create_user_", field), value = "")
+      for (field in c("username", "password", "firstname", "lastname")) shiny.fluent::updateTextField.shinyInput(session, paste0("create_user_", field), value = "")
       
       # Reload users var and DT
       shinyjs::runjs(paste0("Shiny.setInputValue('", id, "-reload_users', Math.random());"))
@@ -451,6 +484,49 @@ mod_users_server <- function(id, r, d, m, language, i18n, debug, users_accesses_
       
       sapply(c("users_dt", "add_user_icon"), shinyjs::hide)
       sapply(c("user_edition_div", "edit_user_icons"), shinyjs::show)
+    })
+    
+    observeEvent(input$edit_user_password, {
+      if (debug) cat(paste0("\n", now(), " - mod_users - observer input$edit_user_password"))
+      
+      shinyjs::show("edit_user_password_modal")
+    })
+    
+    observeEvent(input$close_edit_user_password_modal, {
+      if (debug) cat(paste0("\n", now(), " - mod_users - observer input$close_edit_user_password_modal"))
+      
+      shinyjs::hide("edit_user_password_modal")
+    })
+    
+    observeEvent(input$confirm_password_update, {
+      if (debug) cat(paste0("\n", now(), " - mod_users - observer input$confirm_password_update"))
+      
+      empty_fields <- list()
+      for (field in c("new_password_1", "new_password_2")) {
+        empty_fields[[field]] <- TRUE
+        field_value <- input[[field]]
+        if (length(field_value) > 0) if (!is.na(field_value) & field_value != "") empty_fields[[field]] <- FALSE
+        if (empty_fields[[field]]) shiny.fluent::updateTextField.shinyInput(session, field, errorMessage = i18n$t("provide_valid_value"))
+        else shiny.fluent::updateTextField.shinyInput(session, field, errorMessage = NULL)
+      }
+      req(!TRUE %in% empty_fields)
+      
+      passwords_match <- input$new_password_1 == input$new_password_2
+      if (!passwords_match) {
+        shiny.fluent::updateTextField.shinyInput(session, "new_password_2", errorMessage = i18n$t("passwords_dont_match"))
+        req(FALSE)
+      }
+      
+      hashed_password <- bcrypt::hashpw(input$new_password_1)
+      
+      sql <- glue::glue_sql("UPDATE users SET password = {hashed_password} WHERE id = {input$edit_user_id}", .con = r$db)
+      DBI::dbExecute(r$db, sql)
+      
+      for (field in c("new_password_1", "new_password_2")) shiny.fluent::updateTextField.shinyInput(session, field, value = "")
+      
+      shinyjs::hide("edit_user_password_modal")
+      
+      show_message_bar(id, output, "password_successfully_updated", "success", i18n = i18n, ns = ns)
     })
     
     # Save updates

@@ -563,7 +563,7 @@ show_widgets_buttons,Afficher boutons des widgets
 hide_widgets_buttons,Masquer boutons des widgets
 submit_login,Connexion
 invalid_login_or_password,Identifiant ou mot de passe invalide
-user_profile,Profil
+user_profile,Profil de l'utilisateur
 change_password,Changer le mot de passe
 current_password,Mot de passe actuel
 new_password,Nouveau mot de passe
@@ -571,3 +571,4 @@ repeat_new_password,Répéter le nouveau mot de passe
 incorrect_password,Mot de passe incorrect
 passwords_dont_match,Les deux mots de passe ne sont pas identiques
 password_successfully_updated,Mot de passe mis à jour
+user_added,Nouvel utilisateur ajouté
