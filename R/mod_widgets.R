@@ -490,8 +490,13 @@ mod_widgets_server <- function(id, r, d, m, language, i18n, all_divs, debug, use
       
       DBI::dbAppendTable(con, "options", new_options)
       
+      new_element_unique_id <- new_options %>% dplyr::filter(name == "unique_id") %>% dplyr::pull(value)
+      new_element_dir <- paste0(r$app_folder, "/", id, "/", new_element_unique_id)
+      
       # Copy existing plugin
       if (id == "plugins" && copy_existing_plugin){
+        
+        if (!dir.exists(new_element_dir)) dir.create(new_element_dir)
         
         sql <- glue::glue_sql("SELECT value FROM options WHERE category = 'plugin' AND name = 'unique_id' AND link_id = {input$plugin_to_copy}", .con = r$db)
         plugin_to_copy_unique_id <- DBI::dbGetQuery(r$db, sql) %>% dplyr::pull()
@@ -502,14 +507,10 @@ mod_widgets_server <- function(id, r, d, m, language, i18n, all_divs, debug, use
         
         for (file in files_to_copy){
           file_name <- basename(file)
-          file.copy(file, paste0(element_dir, "/", file_name), overwrite = TRUE)
+          file.copy(file, paste0(new_element_dir, "/", file_name), overwrite = TRUE)
         }
       }
-      else {
-        new_element_unique_id <- new_options %>% dplyr::filter(name == "unique_id") %>% dplyr::pull(value)
-        new_element_dir <- paste0(r$app_folder, "/", id, "/", new_element_unique_id)
-        create_element_scripts(id = id, language = language, element_dir = new_element_dir)
-      }
+      else create_element_scripts(id = id, language = language, element_dir = new_element_dir)
       
       # For a new study, create default subset code
       if (id == "projects"){
