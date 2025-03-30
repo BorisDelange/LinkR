@@ -13,6 +13,14 @@ load_git_repo <- function(id, r, git_repo){
     
     repo <- git2r::clone(repo_url, local_path, credentials = credentials, progress = FALSE)
     
+    # Fix permissions after clone
+    all_files <- list.files(local_path, recursive = TRUE, full.names = TRUE)
+    file_paths <- all_files[file.info(all_files)$isdir == FALSE]
+    dir_paths <- unique(c(local_path, dirname(file_paths[file.info(file_paths)$isdir == FALSE])))
+    
+    if (length(file_paths) > 0) Sys.chmod(file_paths, mode = "0664")
+    if (length(dir_paths) > 0) Sys.chmod(dir_paths, mode = "0775")
+    
     # Create dirs & files that don't exist
     for (dir in c("datasets", "plugins", "data_cleaning_scripts", "projects")){
       dir_path <- paste0(local_path, "/", dir)

@@ -85,9 +85,15 @@ get_db <- function(r, m, app_db_folder, db_col_types){
   r$db_connection <- "local"
   
   db <- list()
-  db$local_main <- DBI::dbConnect(RSQLite::SQLite(), paste0(app_db_folder, "/linkr_main"))
+  
+  local_main_sqlite_file <- paste0(app_db_folder, "/linkr_main")
+  db$local_main <- DBI::dbConnect(RSQLite::SQLite(), local_main_sqlite_file)
+  Sys.chmod(local_main_sqlite_file, mode = "0664")
   r$db <- db$local_main
-  db$local_public <- DBI::dbConnect(RSQLite::SQLite(), paste0(app_db_folder, "/linkr_public"))
+  
+  local_public_sqlite_file <- paste0(app_db_folder, "/linkr_public")
+  db$local_public <- DBI::dbConnect(RSQLite::SQLite(), local_public_sqlite_file)
+  Sys.chmod(local_public_sqlite_file, mode = "0664")
   m$db <- db$local_public
   
   # Create tables for local databases
