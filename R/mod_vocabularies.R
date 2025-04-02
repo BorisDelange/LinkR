@@ -207,7 +207,7 @@ mod_vocabularies_ui <- function(id, language, languages, i18n, code_hotkeys, dro
 mod_vocabularies_server <- function(id, r, d, m, language, i18n, debug, user_accesses, user_settings){
   # |-------------------------------- -----
   
-  if (debug) cat(paste0("\n", now(), " - mod_vocabularies - ", id, " - start"))
+  if (debug) cat(paste0("\n", now(), " - mod_vocabularies - start"))
   
   # Initiate vars ----
   authorized_concept_files <- c("concept", "domain", "concept_class", "concept_relationship", "relationship", "concept_synonym", "concept_ancestor", "drug_strength", "vocabulary")
@@ -242,7 +242,7 @@ mod_vocabularies_server <- function(id, r, d, m, language, i18n, debug, user_acc
     ## Load vocabulary tables ----
     
     observeEvent(input$load_vocabulary_tables, {
-      if (debug) cat(paste0("\n", now(), " - mod_vocabularies - ", id, " - observer input$load_vocabulary_tables"))
+      if (debug) cat(paste0("\n", now(), " - mod_vocabularies - observer input$load_vocabulary_tables"))
       
       vocabulary_id <- r$vocabularies_wide %>% dplyr::filter(id == input$selected_element) %>% dplyr::pull(vocabulary_id)
       shinyjs::runjs(paste0("Shiny.setInputValue('", id, "-selected_vocabulary_id', '", vocabulary_id, "');"))
@@ -253,7 +253,7 @@ mod_vocabularies_server <- function(id, r, d, m, language, i18n, debug, user_acc
     ## Concepts main table ----
     
     observeEvent(input$vocabulary_table, {
-      if (debug) cat(paste0("\n", now(), " - mod_vocabularies - ", id, " - observer input$vocabulary_table"))
+      if (debug) cat(paste0("\n", now(), " - mod_vocabularies - observer input$vocabulary_table"))
       
       table <- input$vocabulary_table
       vocabulary_id <- input$selected_vocabulary_id

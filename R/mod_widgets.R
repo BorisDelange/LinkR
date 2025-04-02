@@ -235,7 +235,7 @@ mod_widgets_server <- function(id, r, d, m, language, i18n, all_divs, debug, use
         output$elements <- renderUI(elements_ui)
         
         # For plugins page, reload copy plugin dropdown
-        if (id == "plugins") shiny.fluent::updateDropdown.shinyInput(session, "plugin_to_copy", options = convert_tibble_to_list(r$plugins_wide, key_col = "id", text_col = "name"))
+        if (id == "plugins") shiny.fluent::updateDropdown.shinyInput(session, "plugin_to_copy", options = convert_tibble_to_list(r$plugins_wide %>% dplyr::arrange(name), key_col = "id", text_col = "name"))
       }
       else {
         shinyjs::hide("search_element_div")
@@ -772,6 +772,7 @@ mod_widgets_server <- function(id, r, d, m, language, i18n, all_divs, debug, use
       if (id == "vocabularies"){
         shiny.fluent::updateTextField.shinyInput(session, "vocabulary_id", value = element_wide %>% dplyr::pull(vocabulary_id))
         shiny.fluent::updateTextField.shinyInput(session, "vocabulary_name", value = element_wide %>% dplyr::pull(vocabulary_name))
+        shinyjs::runjs(paste0("Shiny.setInputValue('", id, "-load_vocabulary_tables', Math.random());"))
       }
       
       # Load project ----
@@ -817,12 +818,6 @@ mod_widgets_server <- function(id, r, d, m, language, i18n, all_divs, debug, use
       else if (id == "subsets"){
         
         shinyjs::runjs(paste0("Shiny.setInputValue('", id, "-load_subset_code', Math.random());"))
-      }
-      
-      # Load vocabulary ----
-      else if (id == "vocabularies"){
-        
-        shinyjs::runjs(paste0("Shiny.setInputValue('", id, "-load_vocabulary_tables', Math.random());"))
       }
       
       # Load data cleaning scripts ----
