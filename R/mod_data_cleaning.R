@@ -339,6 +339,8 @@ mod_data_cleaning_server <- function(id, r, d, m, language, i18n, debug, user_ac
     
     observeEvent(input$run_code, {
       if (debug) cat(paste0("\n", now(), " - mod_data_cleaning - observer input$run_code"))
+      
+      r$data_cleaning_code <- input$data_cleaning_code
       shinyjs::runjs(paste0("Shiny.setInputValue('", id, "-run_code_trigger', Math.random());"))
     })
     
@@ -346,13 +348,20 @@ mod_data_cleaning_server <- function(id, r, d, m, language, i18n, debug, user_ac
       
       if (debug) cat(paste0("\n", now(), " - mod_data_cleaning - observer input$data_cleaning_code_run_selection"))
       
-      if(!shinyAce::is.empty(input$data_cleaning_code_run_selection$selection)) shinyjs::runjs(paste0("Shiny.setInputValue('", id, "-data_cleaning_code', '", input$data_cleaning_code_run_selection$selection, "');"))
-      else shinyjs::runjs(paste0("Shiny.setInputValue('", id, "-data_cleaning_code', '", input$data_cleaning_code_run_selection$line, "');"))
+      editor_id <- "data_cleaning_code"
+      editor_input <- input[[paste0(editor_id, "_run_selection")]]
+      full_code <- input[[editor_id]]
+      code_store_var <- "data_cleaning_code"
+      
+      execute_ace_code(r = r, id = id, editor_id = editor_id, full_code = full_code, editor_input = editor_input, code_store_var = code_store_var)
+      
       shinyjs::runjs(paste0("Shiny.setInputValue('", id, "-run_code_trigger', Math.random());"))
     })
     
     observeEvent(input$data_cleaning_code_run_all, {
       if (debug) cat(paste0("\n", now(), " - mod_data_cleaning - observer input$code_run_all"))
+      
+      r$data_cleaning_code <- input$data_cleaning_code
       shinyjs::runjs(paste0("Shiny.setInputValue('", id, "-run_code_trigger', Math.random());"))
     })
     
@@ -361,7 +370,7 @@ mod_data_cleaning_server <- function(id, r, d, m, language, i18n, debug, user_ac
       
       data_cleaning_script_id <- input$selected_element
       
-      code <- input$data_cleaning_code %>% gsub("\r", "\n", .)
+      code <- gsub("\r", "\n", r$data_cleaning_code )
       
       result <- capture.output(tryCatch(eval(parse(text = code)), error = function(e) print(e), warning = function(w) print(w)))
       

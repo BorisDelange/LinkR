@@ -612,10 +612,10 @@ mod_plugins_server <- function(id, r, d, m, language, i18n, debug, user_accesses
         shinyjs::runjs(paste0("Shiny.setInputValue('", id, "-run_plugin_code_trigger', Math.random());"))
       })
       
-      observeEvent(input[[paste0(editor_id, "_run_selection")]], {
-        if (debug) cat(paste0("\n", now(), " - mod_plugins - observer input$edit_code_editor..run_selection"))
-        shinyjs::runjs(paste0("Shiny.setInputValue('", id, "-run_plugin_code_trigger', Math.random());"))
-      })
+      # observeEvent(input[[paste0(editor_id, "_run_selection")]], {
+      #   if (debug) cat(paste0("\n", now(), " - mod_plugins - observer input$edit_code_editor..run_selection"))
+      #   shinyjs::runjs(paste0("Shiny.setInputValue('", id, "-run_plugin_code_trigger', Math.random());"))
+      # })
       
       observeEvent(input[[paste0(editor_id, "_comment")]], {
         if (debug) cat(paste0("\n", now(), " - mod_plugins - observer input$edit_code_editor..comment"))

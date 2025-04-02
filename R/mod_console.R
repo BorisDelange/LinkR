@@ -211,26 +211,31 @@ mod_console_server <- function(id, r, d, m, language, i18n, debug, user_accesses
       if (debug) cat(paste0("\n", now(), " - mod_console - observer input$execute_code"))
       
       r$console_code <- input$code
-      r$console_code_trigger <- runif(1)
+      shinyjs::runjs(paste0("Shiny.setInputValue('", id, "-run_code_trigger', Math.random());"))
     })
 
     observeEvent(input$code_run_selection, {
       if (debug) cat(paste0("\n", now(), " - mod_console - observer input$code_run_selection"))
-
-      if(!shinyAce::is.empty(input$code_run_selection$selection)) r$console_code <- input$code_run_selection$selection
-      else r$console_code <- input$code_run_selection$line
-      r$console_code_trigger <- runif(1)
+      
+      editor_id <- "code"
+      editor_input <- input[[paste0(editor_id, "_run_selection")]]
+      full_code <- input[[editor_id]]
+      code_store_var <- "console_code"
+      
+      execute_ace_code(r = r, id = id, editor_id = editor_id, full_code = full_code, editor_input = editor_input, code_store_var = code_store_var)
+      
+      shinyjs::runjs(paste0("Shiny.setInputValue('", id, "-run_code_trigger', Math.random());"))
     })
 
     observeEvent(input$code_run_all, {
       if (debug) cat(paste0("\n", now(), " - mod_console - observer input$code_run_all"))
 
       r$console_code <- input$code
-      r$console_code_trigger <- runif(1)
+      shinyjs::runjs(paste0("Shiny.setInputValue('", id, "-run_code_trigger', Math.random());"))
     })
     
-    observeEvent(r$console_code_trigger, {
-      if (debug) cat(paste0("\n", now(), " - mod_console - observer r$console_code_trigger"))
+    observeEvent(input$run_code_trigger, {
+      if (debug) cat(paste0("\n", now(), " - mod_console - observer input$run_code_trigger"))
       
       req("console_execute_code" %in% user_accesses)
       

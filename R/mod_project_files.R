@@ -483,10 +483,13 @@ mod_project_files_server <- function(id, r, d, m, language, i18n, debug, user_ac
     })
     
     observeEvent(input[[paste0("editor_", input$selected_file, "_run_selection")]], {
-      if (debug) cat(paste0("\n", now(), " - mod_project_files - observer input$editor_..._run_selection"))
+      editor_id <- paste0("editor_", input$selected_file)
+      editor_input <- input[[paste0(editor_id, "_run_selection")]]
+      full_code <- input[[editor_id]]
+      code_store_var <- "project_file_code"
       
-      if(!shinyAce::is.empty(input[[paste0("editor_", input$selected_file, "_run_selection")]]$selection)) r$project_file_code <- input[[paste0("editor_", input$selected_file, "_run_selection")]]$selection
-      else r$project_file_code <- input[[paste0("editor_", input$selected_file, "_run_selection")]]$line
+      execute_ace_code(r = r, id = id, editor_id = editor_id, full_code = full_code, editor_input = editor_input, code_store_var = code_store_var)
+      
       shinyjs::runjs(paste0("Shiny.setInputValue('", id, "-run_code_trigger', Math.random());"))
     })
     

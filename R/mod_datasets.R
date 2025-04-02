@@ -356,6 +356,8 @@ mod_datasets_server <- function(id, r, d, m, language, i18n, debug, user_accesse
     
     observeEvent(input$run_code, {
       if (debug) cat(paste0("\n", now(), " - mod_datasets - observer input$run_code"))
+      
+      r$dataset_code <- input$dataset_code
       shinyjs::runjs(paste0("Shiny.setInputValue('", id, "-run_code_trigger', Math.random());"))
     })
     
@@ -363,13 +365,28 @@ mod_datasets_server <- function(id, r, d, m, language, i18n, debug, user_accesse
       
       if (debug) cat(paste0("\n", now(), " - mod_datasets - observer input$dataset_code_run_selection"))
       
-      if(!shinyAce::is.empty(input$dataset_code_run_selection$selection)) shinyjs::runjs(paste0("Shiny.setInputValue('", id, "-dataset_code', '", input$dataset_code_run_selection$selection, "');"))
-      else shinyjs::runjs(paste0("Shiny.setInputValue('", id, "-dataset_code', '", input$dataset_code_run_selection$line, "');"))
+      dataset_id <- input$selected_element
+      omop_version <- DBI::dbGetQuery(r$db, glue::glue_sql("SELECT value FROM options WHERE category = 'dataset' AND name = 'omop_version' AND link_id = {dataset_id}", .con = r$db)) %>% dplyr::pull()
+      dataset_folder <- paste0(r$app_folder, "/datasets_files/", dataset_id)
+      
+      editor_id <- "dataset_code"
+      editor_input <- input[[paste0(editor_id, "_run_selection")]]
+      code_store_var <- "dataset_code"
+      full_code <-
+        input[[editor_id]] %>%
+        stringr::str_replace_all("%dataset_id%", as.character(dataset_id)) %>%
+        stringr::str_replace_all("%omop_version%", paste0("'", omop_version, "'")) %>%
+        stringr::str_replace_all("%dataset_folder%", paste0(r$app_folder, "/datasets_files/", dataset_id))
+      
+      execute_ace_code(r = r, id = id, editor_id = editor_id, full_code = full_code, editor_input = editor_input, code_store_var = code_store_var)
+      
       shinyjs::runjs(paste0("Shiny.setInputValue('", id, "-run_code_trigger', Math.random());"))
     })
     
     observeEvent(input$dataset_code_run_all, {
       if (debug) cat(paste0("\n", now(), " - mod_datasets - observer input$code_run_all"))
+      
+      r$dataset_code <- input$dataset_code
       shinyjs::runjs(paste0("Shiny.setInputValue('", id, "-run_code_trigger', Math.random());"))
     })
     
@@ -384,7 +401,7 @@ mod_datasets_server <- function(id, r, d, m, language, i18n, debug, user_accesse
       if (!dir.exists(dataset_folder)) dir.create(dataset_folder)
       
       code <- 
-        input$dataset_code %>%
+        r$dataset_code %>%
         stringr::str_replace_all("%dataset_id%", as.character(dataset_id)) %>%
         stringr::str_replace_all("%omop_version%", paste0("'", omop_version, "'")) %>%
         stringr::str_replace_all("\r", "\n") %>%
