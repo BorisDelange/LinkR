@@ -457,7 +457,9 @@ create_elements_ui <- function(page_id, id, elements, selected_element = NA_inte
   
   elements_ui <- tagList()
   
-  for (i in unique(elements$id)){
+  elements_ids <- elements %>% dplyr::filter(name == paste0("name_", language)) %>% dplyr::arrange(value) %>% dplyr::pull(id)
+  
+  for (i in unique(elements_ids)){
     row <- elements %>% dplyr::filter(id == i)
     
     users_ui <- create_authors_ui(row %>% dplyr::filter(name == "author") %>% dplyr::pull(value))
@@ -494,8 +496,8 @@ create_elements_ui <- function(page_id, id, elements, selected_element = NA_inte
     else is_selected_element <- FALSE
     
     elements_ui <- tagList(
-      create_element_ui(ns, page_id, i, single_id, element_name, users_ui, widget_buttons, onclick, short_description, is_selected_element),
-      elements_ui
+      elements_ui,
+      create_element_ui(ns, page_id, i, single_id, element_name, users_ui, widget_buttons, onclick, short_description, is_selected_element)
     )
   }
   
