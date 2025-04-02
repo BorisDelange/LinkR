@@ -112,8 +112,41 @@ create_widget <- function(id, widget_id, ui_code, w = 6, h = 20, x = 0, y = 0){
   )
 }
 
-data_query <- function(con, query){
-  DBI::dbGetQuery(con, query) %>% tibble::as_tibble()
+#' Query OMOP data from a database connection
+#'
+#' This function executes SQL queries against an OMOP CDM database using the connection
+#' stored in the global 'd' object (d$con).
+#'
+#' @param query A string containing the SQL query to execute
+#'
+#' @return A tibble containing the query results
+#'
+#' @examples
+#' get_query("SELECT * FROM person")
+#'
+#' @export
+get_query <- function(query) {
+  # Get the connection from the 'd' object in the parent environment
+  if(exists("d", envir = parent.frame())) {
+    d_obj <- get("d", envir = parent.frame())
+    
+    # Check if d$con exists
+    if(is.null(d_obj$con)) {
+      stop("The 'd' object exists but 'd$con' is NULL. Please ensure 'd$con' contains a valid database connection.")
+    }
+    
+    con <- d_obj$con
+    
+    # Verify that con is a valid connection object
+    if(!DBI::dbIsValid(con)) {
+      stop("The connection in 'd$con' is not valid. Please provide a valid database connection.")
+    }
+    
+    # Execute the query and convert the result to a tibble
+    DBI::dbGetQuery(con, query) %>% tibble::as_tibble()
+  } else {
+    stop("The 'd' variable is not defined in the parent environment. Please define 'd' with a 'con' element before using this function.")
+  }
 }
 
 #' @noRd
