@@ -111,7 +111,8 @@ make_card <- function(title = character(), content = character(), size = 12, sty
 #' @noRd
 render_datatable <- function(output, ns = character(), i18n = character(), data = tibble::tibble(),
   output_name = character(), col_names = character(), datatable_dom = "<'datatable_length'l><'top't><'bottom'p>", page_length = 10,
-  editable_cols = character(), sortable_cols = character(), centered_cols = character(), searchable_cols = character(), filter = FALSE, 
+  editable_cols = character(), sortable_cols = character(), centered_cols = character(),
+  searchable_cols = character(), search_filters = NULL, filter = FALSE, 
   factorize_cols = character(), column_widths = character(), hidden_cols = character(), selection = "single",
   bold_rows = character(), shortened_cols = character(), enable_keyboard_navigation = TRUE
 ){
@@ -567,6 +568,42 @@ render_datatable <- function(output, ns = character(), i18n = character(), data 
     )
   
     dt_options$initComplete <- htmlwidgets::JS(keyboard_js)
+  }
+  
+  if (!is.null(search_filters)) {
+    # Initialize the list for column search filters
+    column_searches <- list()
+    
+    # Loop through each filter in the search_filters vector
+    for (i in seq_along(search_filters)) {
+      if (search_filters[i] != "") {
+        # Add the column index (0-based for JavaScript) and the filter value
+        # to our column_searches list
+        column_searches[[length(column_searches) + 1]] <- list(
+          column = i - 1,  # Use 0-based index for JavaScript
+          search = search_filters[i]
+        )
+      }
+    }
+    
+    # Add column filters to the options if any exist
+    if (length(column_searches) > 0) {
+      # Create a searchCols array with entries for each column
+      dt_options$searchCols <- lapply(1:length(names(data)), function(i) {
+        col_idx <- i - 1  # Convert to 0-based index for JavaScript
+        
+        # Find if this column has a filter specification
+        filter_idx <- which(sapply(column_searches, function(x) x$column == col_idx))
+        
+        if (length(filter_idx) > 0) {
+          # If a filter exists for this column, apply it
+          list(search = column_searches[[filter_idx]]$search)
+        } else {
+          # Otherwise use an empty search
+          list(search = "")
+        }
+      })
+    }
   }
   
   dt <- DT::datatable(

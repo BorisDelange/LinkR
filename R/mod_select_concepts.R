@@ -171,6 +171,7 @@ mod_select_concepts_server <- function(id, r, d, m, language, i18n, debug, user_
         
         shinyjs::delay(50, r[[paste0(id, "_vocabulary_concepts_proxy")]] %>% DT::hideCols(c(3, 4, 5, 6)))
       }
+      # replaceData is safe here since selection = 'none' disables the Select extension, which otherwise conflicts with server-side processing.
       else DT::replaceData(r[[paste0(id, "_vocabulary_concepts_proxy")]], r[[paste0(id, "_vocabulary_concepts")]], resetPaging = FALSE, rownames = FALSE)
     })
 
