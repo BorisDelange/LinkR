@@ -113,7 +113,7 @@ render_datatable <- function(output, ns = character(), i18n = character(), data 
   output_name = character(), col_names = character(), datatable_dom = "<'datatable_length'l><'top't><'bottom'p>", page_length = 10,
   editable_cols = character(), sortable_cols = character(), centered_cols = character(), searchable_cols = character(), filter = FALSE, 
   factorize_cols = character(), column_widths = character(), hidden_cols = character(), selection = "single",
-  bold_rows = character(), shortened_cols = character()
+  bold_rows = character(), shortened_cols = character(), enable_keyboard_navigation = TRUE
 ){
   
   # Translation for datatable
@@ -212,26 +212,351 @@ render_datatable <- function(output, ns = character(), i18n = character(), data 
   # if (length(col_names) == length(names(data))) names(data) <- col_names
   if (length(col_names) != length(names(data))) col_names <- names(data)
   
-  # So data is ready to be rendered in the datatable
+  # Determine if we use the Select extension
+  use_select_extension <- enable_keyboard_navigation
   
-  data <- DT::datatable(
+  # Base options for DataTable
+  dt_options <- list(
+    dom = datatable_dom,
+    pageLength = page_length, 
+    displayStart = 0,
+    columnDefs = column_defs,
+    language = dt_translation,
+    compact = TRUE, 
+    hover = TRUE,
+    rowId = 0,
+    # Base style for cells
+    drawCallback = htmlwidgets::JS("
+      function() {
+        $('.dataTable tbody tr td').css({
+          'height': '12px',
+          'padding': '2px 5px'
+        });
+        $('.dataTable thead tr td div .form-control').css('font-size', '12px');
+        $('.dataTable thead tr td').css('padding', '5px');
+      }
+    ")
+  )
+  
+  extensions <- character(0)
+  if (use_select_extension) {
+    extensions <- c(extensions, "Select")
+    
+    # Configure the Select extension based on the selection parameter
+    dt_options$select <- list(
+      style = selection,  # Use the selection parameter directly (single, multi, none, etc.)
+      info = FALSE,
+      items = 'row'
+    )
+    
+    # If selection is "none", we still need to allow keyboard navigation
+    # but we'll disable user selection via mouse clicks through CSS
+    if (selection == "none") {
+      # More thorough approach to prevent selection
+      dt_options$drawCallback <- htmlwidgets::JS("
+        function() {
+          $('.dataTable tbody tr td').css({
+            'height': '12px',
+            'padding': '2px 5px'
+          });
+          $('.dataTable thead tr td div .form-control').css('font-size', '12px');
+          $('.dataTable thead tr td').css('padding', '5px');
+          
+          // Disable text selection on the table
+          $('.dataTable').css('user-select', 'none');
+          
+          // Complete override of the Select extension's behavior
+          // Unbind all select events first
+          $('.dataTable tbody tr').off('.dt');
+          
+          // Prevent row selection via mouse for everything except buttons
+          $('.dataTable tbody').off('click.dt').on('click.dt', function(e) {
+            // Allow events to propagate only for interactive elements
+            var $target = $(e.target);
+            if (!$target.is('button, .btn, a, input, select') && 
+                $target.closest('button, .btn, a, input, select').length === 0) {
+              e.preventDefault();
+              e.stopPropagation();
+              
+              // Explicitly clear any selections that might have happened
+              setTimeout(function() {
+                var table = $('.dataTable').DataTable();
+                table.rows({selected: true}).deselect();
+              }, 0);
+              
+              return false;
+            }
+          });
+          
+          // Additional insurance: clear any selection after any click
+          $('.dataTable').on('click', '**', function(e) {
+            setTimeout(function() {
+              var table = $('.dataTable').DataTable();
+              if (table.rows({selected: true}).indexes().length > 0) {
+                table.rows({selected: true}).deselect();
+              }
+            }, 10);
+          });
+        }
+      ");
+      
+      # Override the datatable select option to api-only 
+      dt_options$select = list(
+        style = 'api', # Only programmatic selection 
+        info = FALSE,
+        items = 'row'
+      );
+      
+      # Add custom CSS to prevent selection highlight
+      dt_options$initComplete <- paste0(dt_options$initComplete, "; $('<style>.dataTable tr.selected, .dataTable tr.selected td { background-color: transparent !important; }</style>').appendTo('head');");
+      } else {
+        # Normal style for cells without disabling selection
+        dt_options$drawCallback <- htmlwidgets::JS("
+          function() {
+            $('.dataTable tbody tr td').css({
+              'height': '12px',
+              'padding': '2px 5px'
+            });
+            $('.dataTable thead tr td div .form-control').css('font-size', '12px');
+            $('.dataTable thead tr td').css('padding', '5px');
+          }
+        ")
+      }
+  }
+  
+  # Define callback for Click + Select
+  click_callback <- "
+    table.on('select', function(e, dt, type, indexes) {
+      if (type === 'row') {
+        var rowData = table.rows(indexes).data().toArray();
+        var DT_id = table.table().container().parentNode.id;
+        
+        // Ajustement pour l'indexation R (ajouter 1)
+        var r_indexed_indexes = [];
+        for (var i = 0; i < indexes.length; i++) {
+          r_indexed_indexes.push(indexes[i] + 1);
+        }
+        
+        Shiny.setInputValue(DT_id + '_rows_selected', r_indexed_indexes, {priority: 'event'});
+      }
+    });
+    
+    // Add handler for deselect
+    table.on('deselect', function(e, dt, type, indexes) {
+      try {
+        var DT_id = table.table().container().parentNode.id;
+        // Send empty array to indicate that no row is selected
+        Shiny.setInputValue(DT_id + '_rows_selected', [], {priority: 'event'});
+      } catch(err) {
+        console.error('Error in deselect event:', err);
+      }
+    });
+  "
+  
+  # Add code for keyboard navigation if enabled
+  if (enable_keyboard_navigation) {
+  # Create a variable to indicate if selection is disabled
+  selection_disabled <- selection == "none"
+  
+  keyboard_js <- paste0(
+    "function(settings, json) {
+      // Wait for the table to be fully loaded
+      setTimeout(function() {
+        // Find the table
+        var tableEl = settings.nTable;
+        if (!tableEl) return;
+        
+        // Get DataTable instance
+        var table = $(tableEl).DataTable();
+        
+        // Add tabindex for keyboard navigation
+        $(tableEl).attr('tabindex', '0');
+        
+        // Remove focus outline
+        $('<style>#' + tableEl.id + ':focus{outline:0!important}</style>').appendTo('head');
+        
+        // If selection is disabled, add style to hide selection
+        ", 
+        if(selection_disabled) {
+          "$('<style>.dataTable tr.selected, .dataTable tr.selected td { background-color: transparent !important; }</style>').appendTo('head');"
+        } else { 
+          "" 
+        },
+        "
+        
+        // Configure callback for Select
+        ", click_callback, "
+        
+        // Add keyboard navigation
+        $(tableEl).off('keydown').on('keydown', function(e) {
+          try {
+            var totalRows = table.rows().count();
+            
+            // Get the index of the selected row, if any
+            var selectedIndexes = table.rows({selected: true}).indexes();
+            var currentIndex = selectedIndexes.length > 0 ? selectedIndexes[0] : -1;
+            
+            switch(e.keyCode) {
+              // Down arrow
+              case 40:
+                if (currentIndex < totalRows - 1) {
+                  try {
+                    // Deselect all rows first
+                    table.rows().deselect();
+                    
+                    // Select next row (internally only if selection is disabled)
+                    var nextIndex = currentIndex + 1;
+                    var pageInfo = table.page.info();
+                    var newPageNumber = Math.floor(nextIndex / pageInfo.length);
+                    
+                    // Change page if necessary
+                    if (newPageNumber !== pageInfo.page) {
+                      table.page(newPageNumber).draw('page');
+                    }
+                    
+                    ", 
+                    # If selection is disabled, send the index directly to Shiny
+                    # without visually selecting the row
+                    if(selection_disabled) {
+                      paste0("
+                      // With selection disabled, just track the current row without visual selection
+                      var DT_id = table.table().container().parentNode.id;
+                      Shiny.setInputValue(DT_id + '_rows_selected', [nextIndex + 1], {priority: 'event'});
+                      
+                      // Scroll if necessary without selecting
+                      var nextRow = table.row(nextIndex).node();
+                      if (nextRow && nextRow.scrollIntoView) {
+                        nextRow.scrollIntoView({block: 'nearest'});
+                      }
+                      ")
+                    } else {
+                      paste0("
+                      // Normal selection
+                      table.row(nextIndex).select();
+                      
+                      // Scroll if necessary
+                      var nextRow = table.row(nextIndex).node();
+                      if (nextRow && nextRow.scrollIntoView) {
+                        nextRow.scrollIntoView({block: 'nearest'});
+                      }
+                      ")
+                    },
+                    "
+                  } catch(err) {
+                    console.error('Error navigating down:', err);
+                  }
+                } else if (currentIndex === -1 && totalRows > 0) {
+                  // If no row is selected, select the first one
+                  try {
+                    ", 
+                    if(selection_disabled) {
+                      paste0("
+                      // With selection disabled, just track row 0 without visual selection
+                      var DT_id = table.table().container().parentNode.id;
+                      Shiny.setInputValue(DT_id + '_rows_selected', [1], {priority: 'event'});
+                      ")
+                    } else {
+                      "table.row(0).select();"
+                    },
+                    "
+                  } catch(err) {
+                    console.error('Error selecting first row:', err);
+                  }
+                }
+                e.preventDefault();
+                break;
+              
+              // Up arrow
+              case 38:
+                if (currentIndex > 0) {
+                  try {
+                    // Deselect all rows first
+                    table.rows().deselect();
+                    
+                    // Select previous row
+                    var prevIndex = currentIndex - 1;
+                    var pageInfo = table.page.info();
+                    var newPageNumber = Math.floor(prevIndex / pageInfo.length);
+                    
+                    // Change page if necessary
+                    if (newPageNumber !== pageInfo.page) {
+                      table.page(newPageNumber).draw('page');
+                    }
+                    
+                    ", 
+                    if(selection_disabled) {
+                      paste0("
+                      // With selection disabled, just track the current row without visual selection
+                      var DT_id = table.table().container().parentNode.id;
+                      Shiny.setInputValue(DT_id + '_rows_selected', [prevIndex + 1], {priority: 'event'});
+                      
+                      // Scroll if necessary without selecting
+                      var prevRow = table.row(prevIndex).node();
+                      if (prevRow && prevRow.scrollIntoView) {
+                        prevRow.scrollIntoView({block: 'nearest'});
+                      }
+                      ")
+                    } else {
+                      paste0("
+                      // Normal selection
+                      table.row(prevIndex).select();
+                      
+                      // Scroll if necessary
+                      var prevRow = table.row(prevIndex).node();
+                      if (prevRow && prevRow.scrollIntoView) {
+                        prevRow.scrollIntoView({block: 'nearest'});
+                      }
+                      ")
+                    },
+                    "
+                  } catch(err) {
+                    console.error('Error navigating up:', err);
+                  }
+                } else if (currentIndex === -1 && totalRows > 0) {
+                  // If no row is selected, select the first one
+                  try {
+                    ", 
+                    if(selection_disabled) {
+                      paste0("
+                      // With selection disabled, just track row 0 without visual selection
+                      var DT_id = table.table().container().parentNode.id;
+                      Shiny.setInputValue(DT_id + '_rows_selected', [1], {priority: 'event'});
+                      ")
+                    } else {
+                      "table.row(0).select();"
+                    },
+                    "
+                  } catch(err) {
+                    console.error('Error selecting first row:', err);
+                  }
+                }
+                e.preventDefault();
+                break;
+            }
+          } catch(err) {
+            console.error('Error in key handler:', err);
+          }
+        });
+        
+        // Focus on the table
+        $(tableEl).focus();
+      }, 500);
+    }"
+  )
+  
+  dt_options$initComplete <- htmlwidgets::JS(keyboard_js)
+}
+  
+  dt <- DT::datatable(
     data,
     colnames = col_names,
-    options = list(
-      dom = datatable_dom,
-      pageLength = page_length, displayStart = 0,
-      columnDefs = column_defs,
-      language = dt_translation,
-      compact = TRUE, hover = TRUE
-    ),
+    options = dt_options,
     editable = list(target = "cell", disable = list(columns = non_editable_cols_vec)),
     filter = filter_list,
-    selection = selection,
-    
-    # Default options
-    rownames = FALSE, escape = FALSE,
-    
-    # Javascript code allowing to have dropdowns & actionButtons on the DataTable
+    selection = if(use_select_extension) "none" else selection, # Disable native DT selection if using Select
+    rownames = FALSE,
+    escape = FALSE,
+    extensions = extensions,
     callback = htmlwidgets::JS(
       "table.rows().every(function(i, tab, row) {",
       "  var $this = $(this.node());",
@@ -239,16 +564,7 @@ render_datatable <- function(output, ns = character(), i18n = character(), data 
       "  $this.addClass('shiny-input-container');",
       "});",
       "Shiny.unbindAll(table.table().node());",
-      "Shiny.bindAll(table.table().node());",
-      
-      "table.on('draw.dt', function() {",
-      "  $('.dataTable tbody tr td').css({",
-      "    'height': '12px',",
-      "    'padding': '2px 5px'",
-      "  });",
-      "  $('.dataTable thead tr td div .form-control').css('font-size', '12px');",
-      "  $('.dataTable thead tr td').css('padding', '5px');",
-      "});"
+      "Shiny.bindAll(table.table().node());"
     )
   )
   
@@ -256,11 +572,11 @@ render_datatable <- function(output, ns = character(), i18n = character(), data 
   
   if (length(bold_rows) > 0){
     for (col_name in names(bold_rows)){
-      data <- data %>% DT::formatStyle(col_name, target = "row", fontWeight = DT::styleEqual(bold_rows[col_name], "bold"))
+      dt <- dt %>% DT::formatStyle(col_name, target = "row", fontWeight = DT::styleEqual(bold_rows[col_name], "bold"))
     }
   }
   
-  output[[output_name]] <- DT::renderDT(data, server = TRUE)
+  output[[output_name]] <- DT::renderDT(dt, server = !use_select_extension)
 }
 
 #' @noRd
