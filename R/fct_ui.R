@@ -355,197 +355,198 @@ render_datatable <- function(output, ns = character(), i18n = character(), data 
   
   # Add code for keyboard navigation if enabled
   if (enable_keyboard_navigation) {
-  # Create a variable to indicate if selection is disabled
-  selection_disabled <- selection == "none"
-  
-  keyboard_js <- paste0(
-    "function(settings, json) {
-      // Wait for the table to be fully loaded
-      setTimeout(function() {
-        // Find the table
-        var tableEl = settings.nTable;
-        if (!tableEl) return;
-        
-        // Get DataTable instance
-        var table = $(tableEl).DataTable();
-        
-        // Add tabindex for keyboard navigation
-        $(tableEl).attr('tabindex', '0');
-        
-        // Remove focus outline
-        $('<style>#' + tableEl.id + ':focus{outline:0!important}</style>').appendTo('head');
-        
-        // If selection is disabled, add style to hide selection
-        ", 
-        if(selection_disabled) {
-          "$('<style>.dataTable tr.selected, .dataTable tr.selected td { background-color: transparent !important; }</style>').appendTo('head');"
-        } else { 
-          "" 
-        },
-        "
-        
-        // Configure callback for Select
-        ", click_callback, "
-        
-        // Add keyboard navigation
-        $(tableEl).off('keydown').on('keydown', function(e) {
-          try {
-            var totalRows = table.rows().count();
-            
-            // Get the index of the selected row, if any
-            var selectedIndexes = table.rows({selected: true}).indexes();
-            var currentIndex = selectedIndexes.length > 0 ? selectedIndexes[0] : -1;
-            
-            switch(e.keyCode) {
-              // Down arrow
-              case 40:
-                if (currentIndex < totalRows - 1) {
-                  try {
-                    // Deselect all rows first
-                    table.rows().deselect();
-                    
-                    // Select next row (internally only if selection is disabled)
-                    var nextIndex = currentIndex + 1;
-                    var pageInfo = table.page.info();
-                    var newPageNumber = Math.floor(nextIndex / pageInfo.length);
-                    
-                    // Change page if necessary
-                    if (newPageNumber !== pageInfo.page) {
-                      table.page(newPageNumber).draw('page');
-                    }
-                    
-                    ", 
-                    # If selection is disabled, send the index directly to Shiny
-                    # without visually selecting the row
-                    if(selection_disabled) {
-                      paste0("
-                      // With selection disabled, just track the current row without visual selection
-                      var DT_id = table.table().container().parentNode.id;
-                      Shiny.setInputValue(DT_id + '_rows_selected', [nextIndex + 1], {priority: 'event'});
-                      
-                      // Scroll if necessary without selecting
-                      var nextRow = table.row(nextIndex).node();
-                      if (nextRow && nextRow.scrollIntoView) {
-                        nextRow.scrollIntoView({block: 'nearest'});
-                      }
-                      ")
-                    } else {
-                      paste0("
-                      // Normal selection
-                      table.row(nextIndex).select();
-                      
-                      // Scroll if necessary
-                      var nextRow = table.row(nextIndex).node();
-                      if (nextRow && nextRow.scrollIntoView) {
-                        nextRow.scrollIntoView({block: 'nearest'});
-                      }
-                      ")
-                    },
-                    "
-                  } catch(err) {
-                    console.error('Error navigating down:', err);
-                  }
-                } else if (currentIndex === -1 && totalRows > 0) {
-                  // If no row is selected, select the first one
-                  try {
-                    ", 
-                    if(selection_disabled) {
-                      paste0("
-                      // With selection disabled, just track row 0 without visual selection
-                      var DT_id = table.table().container().parentNode.id;
-                      Shiny.setInputValue(DT_id + '_rows_selected', [1], {priority: 'event'});
-                      ")
-                    } else {
-                      "table.row(0).select();"
-                    },
-                    "
-                  } catch(err) {
-                    console.error('Error selecting first row:', err);
-                  }
-                }
-                e.preventDefault();
-                break;
+    
+    # Create a variable to indicate if selection is disabled
+    selection_disabled <- selection == "none"
+    
+    keyboard_js <- paste0(
+      "function(settings, json) {
+        // Wait for the table to be fully loaded
+        setTimeout(function() {
+          // Find the table
+          var tableEl = settings.nTable;
+          if (!tableEl) return;
+          
+          // Get DataTable instance
+          var table = $(tableEl).DataTable();
+          
+          // Add tabindex for keyboard navigation
+          $(tableEl).attr('tabindex', '0');
+          
+          // Remove focus outline
+          $('<style>#' + tableEl.id + ':focus{outline:0!important}</style>').appendTo('head');
+          
+          // If selection is disabled, add style to hide selection
+          ", 
+          if(selection_disabled) {
+            "$('<style>.dataTable tr.selected, .dataTable tr.selected td { background-color: transparent !important; }</style>').appendTo('head');"
+          } else { 
+            "" 
+          },
+          "
+          
+          // Configure callback for Select
+          ", click_callback, "
+          
+          // Add keyboard navigation
+          $(tableEl).off('keydown').on('keydown', function(e) {
+            try {
+              var totalRows = table.rows().count();
               
-              // Up arrow
-              case 38:
-                if (currentIndex > 0) {
-                  try {
-                    // Deselect all rows first
-                    table.rows().deselect();
-                    
-                    // Select previous row
-                    var prevIndex = currentIndex - 1;
-                    var pageInfo = table.page.info();
-                    var newPageNumber = Math.floor(prevIndex / pageInfo.length);
-                    
-                    // Change page if necessary
-                    if (newPageNumber !== pageInfo.page) {
-                      table.page(newPageNumber).draw('page');
+              // Get the index of the selected row, if any
+              var selectedIndexes = table.rows({selected: true}).indexes();
+              var currentIndex = selectedIndexes.length > 0 ? selectedIndexes[0] : -1;
+              
+              switch(e.keyCode) {
+                // Down arrow
+                case 40:
+                  if (currentIndex < totalRows - 1) {
+                    try {
+                      // Deselect all rows first
+                      table.rows().deselect();
+                      
+                      // Select next row (internally only if selection is disabled)
+                      var nextIndex = currentIndex + 1;
+                      var pageInfo = table.page.info();
+                      var newPageNumber = Math.floor(nextIndex / pageInfo.length);
+                      
+                      // Change page if necessary
+                      if (newPageNumber !== pageInfo.page) {
+                        table.page(newPageNumber).draw('page');
+                      }
+                      
+                      ", 
+                      # If selection is disabled, send the index directly to Shiny
+                      # without visually selecting the row
+                      if(selection_disabled) {
+                        paste0("
+                        // With selection disabled, just track the current row without visual selection
+                        var DT_id = table.table().container().parentNode.id;
+                        Shiny.setInputValue(DT_id + '_rows_selected', [nextIndex + 1], {priority: 'event'});
+                        
+                        // Scroll if necessary without selecting
+                        var nextRow = table.row(nextIndex).node();
+                        if (nextRow && nextRow.scrollIntoView) {
+                          nextRow.scrollIntoView({block: 'nearest'});
+                        }
+                        ")
+                      } else {
+                        paste0("
+                        // Normal selection
+                        table.row(nextIndex).select();
+                        
+                        // Scroll if necessary
+                        var nextRow = table.row(nextIndex).node();
+                        if (nextRow && nextRow.scrollIntoView) {
+                          nextRow.scrollIntoView({block: 'nearest'});
+                        }
+                        ")
+                      },
+                      "
+                    } catch(err) {
+                      console.error('Error navigating down:', err);
                     }
-                    
-                    ", 
-                    if(selection_disabled) {
-                      paste0("
-                      // With selection disabled, just track the current row without visual selection
-                      var DT_id = table.table().container().parentNode.id;
-                      Shiny.setInputValue(DT_id + '_rows_selected', [prevIndex + 1], {priority: 'event'});
-                      
-                      // Scroll if necessary without selecting
-                      var prevRow = table.row(prevIndex).node();
-                      if (prevRow && prevRow.scrollIntoView) {
-                        prevRow.scrollIntoView({block: 'nearest'});
-                      }
-                      ")
-                    } else {
-                      paste0("
-                      // Normal selection
-                      table.row(prevIndex).select();
-                      
-                      // Scroll if necessary
-                      var prevRow = table.row(prevIndex).node();
-                      if (prevRow && prevRow.scrollIntoView) {
-                        prevRow.scrollIntoView({block: 'nearest'});
-                      }
-                      ")
-                    },
-                    "
-                  } catch(err) {
-                    console.error('Error navigating up:', err);
+                  } else if (currentIndex === -1 && totalRows > 0) {
+                    // If no row is selected, select the first one
+                    try {
+                      ", 
+                      if(selection_disabled) {
+                        paste0("
+                        // With selection disabled, just track row 0 without visual selection
+                        var DT_id = table.table().container().parentNode.id;
+                        Shiny.setInputValue(DT_id + '_rows_selected', [1], {priority: 'event'});
+                        ")
+                      } else {
+                        "table.row(0).select();"
+                      },
+                      "
+                    } catch(err) {
+                      console.error('Error selecting first row:', err);
+                    }
                   }
-                } else if (currentIndex === -1 && totalRows > 0) {
-                  // If no row is selected, select the first one
-                  try {
-                    ", 
-                    if(selection_disabled) {
-                      paste0("
-                      // With selection disabled, just track row 0 without visual selection
-                      var DT_id = table.table().container().parentNode.id;
-                      Shiny.setInputValue(DT_id + '_rows_selected', [1], {priority: 'event'});
-                      ")
-                    } else {
-                      "table.row(0).select();"
-                    },
-                    "
-                  } catch(err) {
-                    console.error('Error selecting first row:', err);
+                  e.preventDefault();
+                  break;
+                
+                // Up arrow
+                case 38:
+                  if (currentIndex > 0) {
+                    try {
+                      // Deselect all rows first
+                      table.rows().deselect();
+                      
+                      // Select previous row
+                      var prevIndex = currentIndex - 1;
+                      var pageInfo = table.page.info();
+                      var newPageNumber = Math.floor(prevIndex / pageInfo.length);
+                      
+                      // Change page if necessary
+                      if (newPageNumber !== pageInfo.page) {
+                        table.page(newPageNumber).draw('page');
+                      }
+                      
+                      ", 
+                      if(selection_disabled) {
+                        paste0("
+                        // With selection disabled, just track the current row without visual selection
+                        var DT_id = table.table().container().parentNode.id;
+                        Shiny.setInputValue(DT_id + '_rows_selected', [prevIndex + 1], {priority: 'event'});
+                        
+                        // Scroll if necessary without selecting
+                        var prevRow = table.row(prevIndex).node();
+                        if (prevRow && prevRow.scrollIntoView) {
+                          prevRow.scrollIntoView({block: 'nearest'});
+                        }
+                        ")
+                      } else {
+                        paste0("
+                        // Normal selection
+                        table.row(prevIndex).select();
+                        
+                        // Scroll if necessary
+                        var prevRow = table.row(prevIndex).node();
+                        if (prevRow && prevRow.scrollIntoView) {
+                          prevRow.scrollIntoView({block: 'nearest'});
+                        }
+                        ")
+                      },
+                      "
+                    } catch(err) {
+                      console.error('Error navigating up:', err);
+                    }
+                  } else if (currentIndex === -1 && totalRows > 0) {
+                    // If no row is selected, select the first one
+                    try {
+                      ", 
+                      if(selection_disabled) {
+                        paste0("
+                        // With selection disabled, just track row 0 without visual selection
+                        var DT_id = table.table().container().parentNode.id;
+                        Shiny.setInputValue(DT_id + '_rows_selected', [1], {priority: 'event'});
+                        ")
+                      } else {
+                        "table.row(0).select();"
+                      },
+                      "
+                    } catch(err) {
+                      console.error('Error selecting first row:', err);
+                    }
                   }
-                }
-                e.preventDefault();
-                break;
+                  e.preventDefault();
+                  break;
+              }
+            } catch(err) {
+              console.error('Error in key handler:', err);
             }
-          } catch(err) {
-            console.error('Error in key handler:', err);
-          }
-        });
-        
-        // Focus on the table
-        $(tableEl).focus();
-      }, 500);
-    }"
-  )
+          });
+          
+          // Focus on the table
+          $(tableEl).focus();
+        }, 500);
+      }"
+    )
   
-  dt_options$initComplete <- htmlwidgets::JS(keyboard_js)
-}
+    dt_options$initComplete <- htmlwidgets::JS(keyboard_js)
+  }
   
   dt <- DT::datatable(
     data,
