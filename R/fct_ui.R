@@ -391,24 +391,40 @@ render_datatable <- function(output, ns = character(), i18n = character(), data 
           // Add keyboard navigation
           $(tableEl).off('keydown').on('keydown', function(e) {
             try {
-              var totalRows = table.rows().count();
+              // Get only visible (filtered) rows indexes
+              var visibleIndexes = table.rows({search: 'applied'}).indexes();
+              var totalVisibleRows = visibleIndexes.length;
+              
+              if (totalVisibleRows === 0) return; // No visible rows, don't proceed
               
               // Get the index of the selected row, if any
               var selectedIndexes = table.rows({selected: true}).indexes();
               var currentIndex = selectedIndexes.length > 0 ? selectedIndexes[0] : -1;
               
+              // Find the position of the currentIndex in the visibleIndexes array
+              var currentPosition = -1;
+              for (var i = 0; i < visibleIndexes.length; i++) {
+                if (visibleIndexes[i] === currentIndex) {
+                  currentPosition = i;
+                  break;
+                }
+              }
+              
               switch(e.keyCode) {
                 // Down arrow
                 case 40:
-                  if (currentIndex < totalRows - 1) {
+                  if (currentPosition < totalVisibleRows - 1 && currentPosition !== -1) {
                     try {
                       // Deselect all rows first
                       table.rows().deselect();
                       
-                      // Select next row (internally only if selection is disabled)
-                      var nextIndex = currentIndex + 1;
+                      // Get the next visible row index
+                      var nextVisibleIndex = visibleIndexes[currentPosition + 1];
+                      
+                      // Check if we need to change page
                       var pageInfo = table.page.info();
-                      var newPageNumber = Math.floor(nextIndex / pageInfo.length);
+                      var rowPosition = currentPosition + 1;
+                      var newPageNumber = Math.floor(rowPosition / pageInfo.length);
                       
                       // Change page if necessary
                       if (newPageNumber !== pageInfo.page) {
@@ -422,10 +438,10 @@ render_datatable <- function(output, ns = character(), i18n = character(), data 
                         paste0("
                         // With selection disabled, just track the current row without visual selection
                         var DT_id = table.table().container().parentNode.id;
-                        Shiny.setInputValue(DT_id + '_rows_selected', [nextIndex + 1], {priority: 'event'});
+                        Shiny.setInputValue(DT_id + '_rows_selected', [nextVisibleIndex + 1], {priority: 'event'});
                         
                         // Scroll if necessary without selecting
-                        var nextRow = table.row(nextIndex).node();
+                        var nextRow = table.row(nextVisibleIndex).node();
                         if (nextRow && nextRow.scrollIntoView) {
                           nextRow.scrollIntoView({block: 'nearest'});
                         }
@@ -433,10 +449,10 @@ render_datatable <- function(output, ns = character(), i18n = character(), data 
                       } else {
                         paste0("
                         // Normal selection
-                        table.row(nextIndex).select();
+                        table.row(nextVisibleIndex).select();
                         
                         // Scroll if necessary
-                        var nextRow = table.row(nextIndex).node();
+                        var nextRow = table.row(nextVisibleIndex).node();
                         if (nextRow && nextRow.scrollIntoView) {
                           nextRow.scrollIntoView({block: 'nearest'});
                         }
@@ -446,18 +462,19 @@ render_datatable <- function(output, ns = character(), i18n = character(), data 
                     } catch(err) {
                       console.error('Error navigating down:', err);
                     }
-                  } else if (currentIndex === -1 && totalRows > 0) {
-                    // If no row is selected, select the first one
+                  } else if (currentPosition === -1 && totalVisibleRows > 0) {
+                    // If no row is selected, select the first visible one
                     try {
+                      var firstVisibleIndex = visibleIndexes[0];
                       ", 
                       if(selection_disabled) {
                         paste0("
-                        // With selection disabled, just track row 0 without visual selection
+                        // With selection disabled, just track the first visible row without visual selection
                         var DT_id = table.table().container().parentNode.id;
-                        Shiny.setInputValue(DT_id + '_rows_selected', [1], {priority: 'event'});
+                        Shiny.setInputValue(DT_id + '_rows_selected', [firstVisibleIndex + 1], {priority: 'event'});
                         ")
                       } else {
-                        "table.row(0).select();"
+                        "table.row(firstVisibleIndex).select();"
                       },
                       "
                     } catch(err) {
@@ -469,15 +486,18 @@ render_datatable <- function(output, ns = character(), i18n = character(), data 
                 
                 // Up arrow
                 case 38:
-                  if (currentIndex > 0) {
+                  if (currentPosition > 0) {
                     try {
                       // Deselect all rows first
                       table.rows().deselect();
                       
-                      // Select previous row
-                      var prevIndex = currentIndex - 1;
+                      // Get the previous visible row index
+                      var prevVisibleIndex = visibleIndexes[currentPosition - 1];
+                      
+                      // Check if we need to change page
                       var pageInfo = table.page.info();
-                      var newPageNumber = Math.floor(prevIndex / pageInfo.length);
+                      var rowPosition = currentPosition - 1;
+                      var newPageNumber = Math.floor(rowPosition / pageInfo.length);
                       
                       // Change page if necessary
                       if (newPageNumber !== pageInfo.page) {
@@ -489,10 +509,10 @@ render_datatable <- function(output, ns = character(), i18n = character(), data 
                         paste0("
                         // With selection disabled, just track the current row without visual selection
                         var DT_id = table.table().container().parentNode.id;
-                        Shiny.setInputValue(DT_id + '_rows_selected', [prevIndex + 1], {priority: 'event'});
+                        Shiny.setInputValue(DT_id + '_rows_selected', [prevVisibleIndex + 1], {priority: 'event'});
                         
                         // Scroll if necessary without selecting
-                        var prevRow = table.row(prevIndex).node();
+                        var prevRow = table.row(prevVisibleIndex).node();
                         if (prevRow && prevRow.scrollIntoView) {
                           prevRow.scrollIntoView({block: 'nearest'});
                         }
@@ -500,10 +520,10 @@ render_datatable <- function(output, ns = character(), i18n = character(), data 
                       } else {
                         paste0("
                         // Normal selection
-                        table.row(prevIndex).select();
+                        table.row(prevVisibleIndex).select();
                         
                         // Scroll if necessary
-                        var prevRow = table.row(prevIndex).node();
+                        var prevRow = table.row(prevVisibleIndex).node();
                         if (prevRow && prevRow.scrollIntoView) {
                           prevRow.scrollIntoView({block: 'nearest'});
                         }
@@ -513,18 +533,19 @@ render_datatable <- function(output, ns = character(), i18n = character(), data 
                     } catch(err) {
                       console.error('Error navigating up:', err);
                     }
-                  } else if (currentIndex === -1 && totalRows > 0) {
-                    // If no row is selected, select the first one
+                  } else if (currentPosition === -1 && totalVisibleRows > 0) {
+                    // If no row is selected, select the first visible one
                     try {
+                      var firstVisibleIndex = visibleIndexes[0];
                       ", 
                       if(selection_disabled) {
                         paste0("
-                        // With selection disabled, just track row 0 without visual selection
+                        // With selection disabled, just track the first visible row without visual selection
                         var DT_id = table.table().container().parentNode.id;
-                        Shiny.setInputValue(DT_id + '_rows_selected', [1], {priority: 'event'});
+                        Shiny.setInputValue(DT_id + '_rows_selected', [firstVisibleIndex + 1], {priority: 'event'});
                         ")
                       } else {
-                        "table.row(0).select();"
+                        "table.row(firstVisibleIndex).select();"
                       },
                       "
                     } catch(err) {
