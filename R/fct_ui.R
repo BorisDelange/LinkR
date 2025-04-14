@@ -392,8 +392,9 @@ render_datatable <- function(output, ns = character(), i18n = character(), data 
           // Add keyboard navigation
           $(tableEl).off('keydown').on('keydown', function(e) {
             try {
-              // Get only visible (filtered) rows indexes
-              var visibleIndexes = table.rows({search: 'applied'}).indexes();
+              // Get only visible (filtered) rows indexes on the current page
+              var pageInfo = table.page.info();
+              var visibleIndexes = table.rows({search: 'applied', page: 'current'}).indexes();
               var totalVisibleRows = visibleIndexes.length;
               
               if (totalVisibleRows === 0) return; // No visible rows, don't proceed
@@ -422,19 +423,7 @@ render_datatable <- function(output, ns = character(), i18n = character(), data 
                       // Get the next visible row index
                       var nextVisibleIndex = visibleIndexes[currentPosition + 1];
                       
-                      // Check if we need to change page
-                      var pageInfo = table.page.info();
-                      var rowPosition = currentPosition + 1;
-                      var newPageNumber = Math.floor(rowPosition / pageInfo.length);
-                      
-                      // Change page if necessary
-                      if (newPageNumber !== pageInfo.page) {
-                        table.page(newPageNumber).draw('page');
-                      }
-                      
                       ", 
-                      # If selection is disabled, send the index directly to Shiny
-                      # without visually selecting the row
                       if(selection_disabled) {
                         paste0("
                         // With selection disabled, just track the current row without visual selection
@@ -481,6 +470,25 @@ render_datatable <- function(output, ns = character(), i18n = character(), data 
                     } catch(err) {
                       console.error('Error selecting first row:', err);
                     }
+                  } else if (pageInfo.page < pageInfo.pages - 1) {
+                    // If we're at the last row of the current page but not the last page, go to next page
+                    table.page('next').draw('page');
+                    
+                    // Select the first row on the new page
+                    setTimeout(function() {
+                      var newIndexes = table.rows({search: 'applied', page: 'current'}).indexes();
+                      if (newIndexes.length > 0) {
+                        var firstRowIndex = newIndexes[0];
+                        
+                        if (selection_disabled) {
+                          var DT_id = table.table().container().parentNode.id;
+                          Shiny.setInputValue(DT_id + '_rows_selected', [firstRowIndex + 1], {priority: 'event'});
+                        } else {
+                          table.rows().deselect();
+                          table.row(firstRowIndex).select();
+                        }
+                      }
+                    }, 100);
                   }
                   e.preventDefault();
                   break;
@@ -494,16 +502,6 @@ render_datatable <- function(output, ns = character(), i18n = character(), data 
                       
                       // Get the previous visible row index
                       var prevVisibleIndex = visibleIndexes[currentPosition - 1];
-                      
-                      // Check if we need to change page
-                      var pageInfo = table.page.info();
-                      var rowPosition = currentPosition - 1;
-                      var newPageNumber = Math.floor(rowPosition / pageInfo.length);
-                      
-                      // Change page if necessary
-                      if (newPageNumber !== pageInfo.page) {
-                        table.page(newPageNumber).draw('page');
-                      }
                       
                       ", 
                       if(selection_disabled) {
@@ -552,6 +550,83 @@ render_datatable <- function(output, ns = character(), i18n = character(), data 
                     } catch(err) {
                       console.error('Error selecting first row:', err);
                     }
+                  } else if (pageInfo.page > 0) {
+                    // If we're at the first row of the current page but not the first page, go to previous page
+                    table.page('previous').draw('page');
+                    
+                    // Select the last row on the new page
+                    setTimeout(function() {
+                      var newIndexes = table.rows({search: 'applied', page: 'current'}).indexes();
+                      if (newIndexes.length > 0) {
+                        var lastRowIndex = newIndexes[newIndexes.length - 1];
+                        
+                        if (selection_disabled) {
+                          var DT_id = table.table().container().parentNode.id;
+                          Shiny.setInputValue(DT_id + '_rows_selected', [lastRowIndex + 1], {priority: 'event'});
+                        } else {
+                          table.rows().deselect();
+                          table.row(lastRowIndex).select();
+                        }
+                      }
+                    }, 100);
+                  }
+                  e.preventDefault();
+                  break;
+                  
+                // Left arrow - go to previous page
+                case 37:
+                  try {
+                    if (pageInfo.page > 0) {
+                      // Move to previous page
+                      table.page('previous').draw('page');
+                      
+                      // Select the first row on the new page
+                      setTimeout(function() {
+                        var newIndexes = table.rows({search: 'applied', page: 'current'}).indexes();
+                        if (newIndexes.length > 0) {
+                          var firstRowIndex = newIndexes[0];
+                          
+                          if (selection_disabled) {
+                            var DT_id = table.table().container().parentNode.id;
+                            Shiny.setInputValue(DT_id + '_rows_selected', [firstRowIndex + 1], {priority: 'event'});
+                          } else {
+                            table.rows().deselect();
+                            table.row(firstRowIndex).select();
+                          }
+                        }
+                      }, 100);
+                    }
+                  } catch(err) {
+                    console.error('Error navigating to previous page:', err);
+                  }
+                  e.preventDefault();
+                  break;
+                
+                // Right arrow - go to next page
+                case 39:
+                  try {
+                    if (pageInfo.page < pageInfo.pages - 1) {
+                      // Move to next page
+                      table.page('next').draw('page');
+                      
+                      // Select the first row on the new page
+                      setTimeout(function() {
+                        var newIndexes = table.rows({search: 'applied', page: 'current'}).indexes();
+                        if (newIndexes.length > 0) {
+                          var firstRowIndex = newIndexes[0];
+                          
+                          if (selection_disabled) {
+                            var DT_id = table.table().container().parentNode.id;
+                            Shiny.setInputValue(DT_id + '_rows_selected', [firstRowIndex + 1], {priority: 'event'});
+                          } else {
+                            table.rows().deselect();
+                            table.row(firstRowIndex).select();
+                          }
+                        }
+                      }, 100);
+                    }
+                  } catch(err) {
+                    console.error('Error navigating to next page:', err);
                   }
                   e.preventDefault();
                   break;
