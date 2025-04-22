@@ -169,19 +169,27 @@ get_widget_edit_buttons <- function(id, widget_id, show_edit_buttons = FALSE){
         class = "small_icon_button"
       ),
       div(
-        shiny.fluent::IconButton.shinyInput(ns(paste0(id, "_widget_settings_", widget_id)), iconProps = list(iconName = "Settings")),
+        shiny.fluent::IconButton.shinyInput(
+          ns(paste0(id, "_widget_settings_", widget_id)), iconProps = list(iconName = "Settings"),
+          onClick = htmlwidgets::JS(paste0(
+            "item => {",
+            "Shiny.setInputValue('", id, "-edit_widget_trigger', Math.random());",
+            "Shiny.setInputValue('", id, "-edit_widget_id', ", widget_id, ");",
+            "}"
+          ))
+        ),
         class = "small_icon_button"
       ),
       div(
         shiny.fluent::IconButton.shinyInput(
           ns(paste0(id, "_widget_remove_", widget_id)), iconProps = list(iconName = "Delete"),
-            onClick = htmlwidgets::JS(paste0(
-              "item => {",
-                "Shiny.setInputValue('", id, "-remove_widget_trigger', Math.random());",
-                "Shiny.setInputValue('", id, "-remove_widget_id', ", widget_id, ");",
-              "}"
-            ))
-          ),
+          onClick = htmlwidgets::JS(paste0(
+            "item => {",
+              "Shiny.setInputValue('", id, "-remove_widget_trigger', Math.random());",
+              "Shiny.setInputValue('", id, "-remove_widget_id', ", widget_id, ");",
+            "}"
+          ))
+        ),
         class = "small_icon_button"
       ),
       style = "display: flex; gap: 2px;"

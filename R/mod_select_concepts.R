@@ -307,12 +307,25 @@ mod_select_concepts_server <- function(id, r, d, m, language, i18n, debug, user_
         }
       }
       
-      shinyjs::runjs(paste0(
-        "$('#", id, "-selected_concepts').css('height', 'auto');",
-        "$('#", id, "-selected_concepts').css('justify-content', 'left');",
-        "$('#", id, "-selected_concepts').css('align-items', 'flex-wrap;');"
-      ))
-      output$selected_concepts <- renderUI(selected_concepts_ui)
+      if (id == "data"){
+        
+        action <- input$opened_widget_modal
+        
+        shinyjs::runjs(paste0(
+          "$('#", id, "-", action, "_widget_selected_concepts').css('height', 'auto');",
+          "$('#", id, "-", action, "_widget_selected_concepts').css('justify-content', 'left');",
+          "$('#", id, "-", action, "_widget_selected_concepts').css('align-items', 'flex-wrap;');"
+        ))
+        output[[paste0(action, "_widget_selected_concepts")]] <- renderUI(selected_concepts_ui)
+      }
+      else if (id == "plugins"){
+        shinyjs::runjs(paste0(
+          "$('#", id, "-selected_concepts').css('height', 'auto');",
+          "$('#", id, "-selected_concepts').css('justify-content', 'left');",
+          "$('#", id, "-selected_concepts').css('align-items', 'flex-wrap;');"
+        ))
+        output$selected_concepts <- renderUI(selected_concepts_ui) 
+      }
       output$selected_concepts_list <- renderUI(selected_concepts_list_ui)
     })
   })

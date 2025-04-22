@@ -3,6 +3,7 @@ action,Action
 add,Add
 add_a_tab,Add a tab
 add_a_widget,Add a widget
+edit_a_widget,Edit a widget
 add_file,Add a new file
 add_folder,Add a new folder
 add_to_saved_git_repos,Add to saved Git repos

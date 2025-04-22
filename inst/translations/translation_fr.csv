@@ -3,6 +3,7 @@ action,Action
 add,Ajouter
 add_a_tab,Ajouter un onglet
 add_a_widget,Ajouter un widget
+edit_a_widget,Editer un widget
 add_file,Créer un fichier
 add_folder,Créer un dossier
 add_to_saved_git_repos,Ajouter aux dépôts sauvegardés

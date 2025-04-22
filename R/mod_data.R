@@ -98,13 +98,13 @@ mod_data_ui <- function(id, language, languages, i18n){
           div(
             div(shiny.fluent::TextField.shinyInput(ns("widget_creation_name"), label = i18n$t("name")), style = "width: 280px; height: 80px;"),
             div(
-              uiOutput(ns("selected_plugin"), style = "margin-top: 20px;"),
+              uiOutput(ns("add_widget_selected_plugin"), style = "margin-top: 20px;"),
               onclick = paste0("Shiny.setInputValue('", id, "-open_select_a_plugin_modal', Math.random());")
             )
           ),
           div(
             class = "selected_concepts_widget",
-            uiOutput(ns("selected_concepts"), class = "selected_concepts_ui"),
+            uiOutput(ns("add_widget_selected_concepts"), class = "selected_concepts_ui"),
             onclick = paste0("Shiny.setInputValue('", id, "-open_select_concepts_modal', Math.random());"),
             style = "display: inherit; margin-top: 20px; overflow: auto;"
           ),
@@ -113,6 +113,44 @@ mod_data_ui <- function(id, language, languages, i18n){
         ),
         div(
           shiny.fluent::PrimaryButton.shinyInput(ns("widget_creation_save"), i18n$t("add")),
+          style = "display: flex; justify-content: flex-end; margin-right: 10px;"
+        ),
+        class = "create_widget_modal_content"
+      ),
+      class = "create_element_modal"
+    )
+  )
+  
+  # Edit a widget modal ----
+  
+  edit_widget_modal <- shinyjs::hidden(
+    div(
+      id = ns("edit_widget_modal"),
+      div(
+        div(
+          tags$h1(i18n$t("edit_a_widget")),
+          shiny.fluent::IconButton.shinyInput(ns("close_edit_widget_modal"), iconProps = list(iconName = "ChromeClose")),
+          class = "create_element_modal_head small_close_button"
+        ),
+        div(
+          div(
+            div(shiny.fluent::TextField.shinyInput(ns("widget_edition_name"), label = i18n$t("name")), style = "width: 280px; height: 80px;"),
+            div(
+              uiOutput(ns("edit_widget_selected_plugin"), style = "margin-top: 20px;"),
+              onclick = paste0("Shiny.setInputValue('", id, "-open_select_a_plugin_modal', Math.random());")
+            )
+          ),
+          div(
+            class = "selected_concepts_widget",
+            uiOutput(ns("edit_widget_selected_concepts"), class = "selected_concepts_ui"),
+            onclick = paste0("Shiny.setInputValue('", id, "-open_select_concepts_modal', Math.random());"),
+            style = "display: inherit; margin-top: 20px; overflow: auto;"
+          ),
+          class = "create_element_modal_body",
+          style = "display: flex; gap: 10px; padding-right: 10px; height: calc(100% - 70px);"
+        ),
+        div(
+          shiny.fluent::PrimaryButton.shinyInput(ns("widget_edition_save"), i18n$t("save")),
           style = "display: flex; justify-content: flex-end; margin-right: 10px;"
         ),
         class = "create_widget_modal_content"
@@ -199,6 +237,7 @@ mod_data_ui <- function(id, language, languages, i18n){
     edit_tab_modal,
     delete_tab_modal,
     add_widget_modal,
+    edit_widget_modal,
     delete_wigdet_modal,
     select_a_plugin_modal,
     plugin_description_modal,
@@ -265,10 +304,12 @@ mod_data_server <- function(id, r, d, m, language, i18n, debug, user_accesses){
         tags$span(i18n$t("select_a_plugin"), style = "color: #a3a5a6;font-size: 18px;")
       )
     )
-    update_selected_concepts_css <- paste0(
-      "$('#", id, "-selected_concepts').css('height', '100%');",
-      "$('#", id, "-selected_concepts').css('justify-content', 'center');",
-      "$('#", id, "-selected_concepts').css('align-items', 'left;');"
+    
+    update_selected_concepts_css <- list()
+    for (action in c("add", "edit")) update_selected_concepts_css[[action]] <- paste0(
+      "$('#", id, "-", action, "_widget_selected_concepts').css('height', '100%');",
+      "$('#", id, "-", action, "_widget_selected_concepts').css('justify-content', 'center');",
+      "$('#", id, "-", action, "_widget_selected_concepts').css('align-items', 'left;');"
     )
     default_selected_concepts_ui <- div(i18n$t("select_concepts"), class = "default_content_widget")
     
@@ -357,9 +398,12 @@ mod_data_server <- function(id, r, d, m, language, i18n, debug, user_accesses){
         shinyjs::hide("patient_switching_buttons")
         
         # Reset selected plugin and selected concepts
-        shinyjs::runjs(update_selected_concepts_css)
-        output$selected_plugin <- renderUI(default_selected_plugin_ui)
-        output$selected_concepts <- renderUI(default_selected_concepts_ui)
+        shinyjs::runjs(update_selected_concepts_css$add)
+        shinyjs::runjs(update_selected_concepts_css$edit)
+        output$add_widget_selected_plugin <- renderUI(default_selected_plugin_ui)
+        output$edit_widget_selected_plugin <- renderUI(default_selected_plugin_ui)
+        output$add_widget_selected_concepts <- renderUI(default_selected_concepts_ui)
+        output$edit_widget_selected_concepts <- renderUI(default_selected_concepts_ui)
 
         # Reset selected key
         r$patient_lvl_selected_tab <- NA_integer_
@@ -1790,6 +1834,9 @@ mod_data_server <- function(id, r, d, m, language, i18n, debug, user_accesses){
       
       shinyjs::show("add_widget_modal")
       
+      # Set opened widget modal to creation
+      shinyjs::runjs(paste0("Shiny.setInputValue('", id, "-opened_widget_modal', 'add');"))
+      
       # Reload plugins var
       shinyjs::runjs(paste0("Shiny.setInputValue('", id, "-reload_plugins_var', Math.random());"))
     })
@@ -1901,9 +1948,9 @@ mod_data_server <- function(id, r, d, m, language, i18n, debug, user_accesses){
       plugin_buttons <- ""
       element_ui <- create_element_ui(ns, id, input$selected_element, "plugin", plugin_name, users_ui, plugin_buttons, "", short_description, FALSE)
       
-      output$selected_plugin <- renderUI(element_ui)
+      output[[paste0(input$opened_widget_modal, "_widget_selected_plugin")]] <- renderUI(element_ui)
       
-      shinyjs::show("add_widget_modal")
+      shinyjs::show(paste0(input$opened_widget_modal, "_widget_modal"))
       shinyjs::delay(50, shinyjs::hide("select_a_plugin_modal"))
     })
     
@@ -1924,7 +1971,7 @@ mod_data_server <- function(id, r, d, m, language, i18n, debug, user_accesses){
       req(!is.na(widget_name) & widget_name != "")
       
       # Check if a plugin is selected
-      if (length(input$selected_element) == 0) output$selected_plugin <- renderUI(
+      if (length(input$selected_element) == 0) output$add_widget_selected_plugin <- renderUI(
         div(
           class = "element_widget plugin_widget",
           div(
@@ -2008,13 +2055,13 @@ mod_data_server <- function(id, r, d, m, language, i18n, debug, user_accesses){
       shiny.fluent::updateSearchBox.shinyInput(session, "search_plugin", value = "")
       
       # Reset selected plugin and selected concepts
-      shinyjs::runjs(update_selected_concepts_css)
-      output$selected_concepts <- renderUI(default_selected_concepts_ui)
+      shinyjs::runjs(update_selected_concepts_css$add)
+      output$add_widget_selected_concepts <- renderUI(default_selected_concepts_ui)
       
-      output$selected_plugin <- renderUI(default_selected_plugin_ui)
+      output$add_widget_selected_plugin <- renderUI(default_selected_plugin_ui)
       shinyjs::runjs(paste0("Shiny.setInputValue('", id, "-selected_element', null);"))
       
-      output$selected_concepts <- renderUI(default_selected_concepts_ui)
+      output$add_widget_selected_concepts <- renderUI(default_selected_concepts_ui)
       output$selected_concepts_list <- renderUI("")
       
       ## Load front-end & back-end ----
@@ -2034,7 +2081,158 @@ mod_data_server <- function(id, r, d, m, language, i18n, debug, user_accesses){
     # Edit a widget ----
     # --- --- --- --- --
     
-    # ...
+    # observeEvent(input$edit_widget_trigger, {
+    #   if (debug) cat(paste0("\n", now(), " - mod_data - observer input$edit_widget_trigger"))
+    #   
+    #   # Set opened widget modal to creation
+    #   shinyjs::runjs(paste0("Shiny.setInputValue('", id, "-opened_widget_modal', 'edit');"))
+    #   
+    #   # Get widget informations and update fields
+    #   widget <- r$data_widgets %>% dplyr::filter(id == input$edit_widget_id)
+    #   
+    #   ## Widget name
+    #   
+    #   shiny.fluent::updateTextField.shinyInput(session, "widget_edition_name", value = widget$name)
+    #   
+    #   ## Selected plugin
+    #   
+    #   row <- r$filtered_data_plugins_long %>% dplyr::filter(id == widget$plugin_id)
+    #   
+    #   if (nrow(row) > 0){
+    #     plugin_type <- row %>% dplyr::slice(1) %>% dplyr::pull(tab_type_id)
+    #     plugin_name <- row %>% dplyr::filter(name == paste0("name_", language)) %>% dplyr::pull(value)
+    #     short_description <- row %>% dplyr::filter(name == paste0("short_description_", language)) %>% dplyr::pull(value)
+    #     if (length(short_description) == 0) short_description <- ""
+    #     
+    #     users_ui <- create_authors_ui(row %>% dplyr::filter(name == "author") %>% dplyr::pull(value))
+    #     plugin_buttons <- ""
+    #     element_ui <- create_element_ui(ns, id, input$selected_element, "plugin", plugin_name, users_ui, plugin_buttons, "", short_description, FALSE)
+    #     
+    #     output$edit_widget_selected_plugin <- renderUI(element_ui)
+    #   }
+    #   else output$edit_widget_selected_plugin <- renderUI(default_selected_plugin_ui)
+    #   
+    #   ## Selected concepts
+    #   
+    #   r$data_selected_concepts <-
+    #     d$dataset_concept %>%
+    #     dplyr::filter(concept_id %in% r$data_widgets_concepts$concept_id) %>%
+    #     dplyr::transmute(concept_id, concept_name, domain_id, vocabulary_id, mapped_to_concept_id = NA_integer_, merge_mapped_concepts = FALSE)
+    #   
+    #   selected_concepts_ui <- tagList()
+    #   
+    #   if (nrow(r$data_selected_concepts) > 0){
+    #     for (i in 1:nrow(r$data_selected_concepts)){
+    #       row <- r$data_selected_concepts[i, ]
+    #       
+    #       if (row$domain_id %in% c("Drug", "Condition", "Procedure", "Measurement", "Observation")) concept_style <- paste0(tolower(row$domain_id), "_domain_id")
+    #       else concept_style <- "default_domain_id"
+    #       
+    #       concept_style <- paste0("selected_concept ", concept_style)
+    #       concept_name <- paste0(row$vocabulary_id, " - ", row$concept_name)
+    #       
+    #       selected_concepts_ui <- tagList(
+    #         selected_concepts_ui, 
+    #         create_hover_card(ui = div(concept_name, class = concept_style, style = "display: inline-block;"), text = concept_name)
+    #       )
+    #     }
+    #     
+    #     shinyjs::runjs(paste0(
+    #       "$('#", id, "-edit_widget_selected_concepts').css('height', 'auto');",
+    #       "$('#", id, "-edit_widget_selected_concepts').css('justify-content', 'left');",
+    #       "$('#", id, "-edit_widget_selected_concepts').css('align-items', 'flex-wrap;');"
+    #     ))
+    #   }
+    #   else {
+    #     shinyjs::runjs(update_selected_concepts_css$edit)
+    #     selected_concepts_ui <- div(i18n$t("select_concepts"), class = "default_content_widget")
+    #   }
+    #   
+    #   output$edit_widget_selected_concepts <- renderUI(selected_concepts_ui)
+    #   
+    #   shinyjs::show("edit_widget_modal")
+    # })
+    # 
+    # # Close modal
+    # observeEvent(input$close_edit_widget_modal, {
+    #   if (debug) cat(paste0("\n", now(), " - mod_data - observer input$close_edit_widget_modal"))
+    #   shinyjs::hide("edit_widget_modal")
+    # })
+    # 
+    # # Save updates
+    # observeEvent(input$widget_edition_save, {
+    #   if (debug) cat(paste0("\n", now(), " - mod_data - observer input$widget_edition_save"))
+    #   
+    #   # Make sure name and plugins fields aren't empty
+    #   
+    #   req(length(input$widget_edition_name) > 0)
+    #   widget_name <- input$widget_edition_name
+    #   
+    #   # Check if name is not empty
+    #   if (is.na(widget_name) | widget_name == "") shiny.fluent::updateTextField.shinyInput(session, "widget_edition_name", errorMessage = i18n$t("provide_valid_name"))
+    #   req(!is.na(widget_name) & widget_name != "")
+    #   
+    #   # Check if a plugin is selected
+    #   if (length(input$selected_element) == 0) output$edit_widget_selected_plugin <- renderUI(
+    #     div(
+    #       class = "element_widget plugin_widget",
+    #       div(
+    #         class = "element_widget_icon plugin_widget_icon",
+    #         tags$i(class = "fas fa-puzzle-piece")
+    #       ),
+    #       div(
+    #         class = "element_widget_content",
+    #         tags$h1(i18n$t("select_a_plugin"), style = "font-weight: 600; color: #B83137")
+    #       )
+    #     )
+    #   )
+    #   req(length(input$selected_element) > 0)
+    #   
+    #   # Update data in app DB
+    #   
+    #   sql <- glue::glue_sql("UPDATE widgets SET name = {input$widget_edition_name}, plugin_id = {input$selected_element} WHERE id = {input$edit_widget_id}", .con = r$db)
+    #   DBI::dbExecute(r$db, sql)
+    #   
+    #   sql <- glue::glue_sql("DELETE FROM widgets_concepts WHERE widget_id = {input$edit_widget_id}", .con = m$db)
+    #   DBI::dbExecute(m$db, sql)
+    #   
+    #   if (nrow(r$data_selected_concepts) > 0){
+    #     last_row_widgets_concepts <- get_last_row(m$db, "widgets_concepts")
+    #     new_selected_concepts <-
+    #       r$data_selected_concepts %>%
+    #       dplyr::transmute(
+    #         id = 1:dplyr::n() + last_row_widgets_concepts + 1, widget_id = input$edit_widget_id,
+    #         concept_id, concept_name, concept_display_name = "", domain_id, mapped_to_concept_id, merge_mapped_concepts,
+    #         creator_id = r$user_id, datetime = now(), deleted = FALSE
+    #       )
+    #     
+    #     DBI::dbAppendTable(m$db, "widgets_concepts", new_selected_concepts)
+    #   }
+    #   
+    #   # Update r vars
+    #   
+    #   r$data_widgets <- 
+    #     r$data_widgets %>% 
+    #     dplyr::mutate(
+    #       name = ifelse(id == input$edit_widget_id, input$widget_edition_name, name),
+    #       plugin_id = ifelse(id == input$edit_widget_id, input$selected_element, plugin_id)
+    #     )
+    #   
+    #   r$data_widgets_concepts <- r$data_widgets_concepts %>% dplyr::filter(widget_id != input$edit_widget_id)
+    #   if (nrow(r$data_selected_concepts) > 0) r$data_widgets_concepts <- r$data_widgets_concepts %>% dplyr::bind_rows(new_selected_concepts)
+    #   
+    #   # Reset selected concepts
+    #   r$data_selected_concepts <- tibble::tibble(
+    #     concept_id = integer(), concept_name = character(), domain_id = character(), vocabulary_id = character(),
+    #     mapped_to_concept_id = integer(), merge_mapped_concepts = logical()
+    #   )
+    #   
+    #   # Run new UI and server code
+    #   
+    #   
+    #   show_message_bar(id, output, message = "modif_saved", type = "success", i18n = i18n, ns = ns)
+    #   shinyjs::hide("edit_widget_modal")
+    # })
     
     # --- --- --- --- --- --- --
     # Widget in full screen ----
