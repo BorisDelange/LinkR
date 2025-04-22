@@ -119,9 +119,14 @@ mod_select_concepts_server <- function(id, r, d, m, language, i18n, debug, user_
     })
 
     # Reload vocabulary concepts ----
+    
     observeEvent(input$vocabulary, {
-
       if (debug) cat(paste0("\n", now(), " - mod_select_concepts - (", id, ") - observer input$vocabulary"))
+      shinyjs::runjs(paste0("Shiny.setInputValue('", id, "-reload_vocabulary_datatable', Math.random())"))
+    })
+      
+    observeEvent(input$reload_vocabulary_datatable, {
+      if (debug) cat(paste0("\n", now(), " - mod_select_concepts - (", id, ") - observer input$reload_vocabulary_datatable"))
       
       req(length(d$dataset_concept) > 0, nrow(d$dataset_concept) > 0)
       
@@ -173,6 +178,29 @@ mod_select_concepts_server <- function(id, r, d, m, language, i18n, debug, user_
       }
       # replaceData is safe here since selection = 'none' disables the Select extension, which otherwise conflicts with server-side processing.
       else DT::replaceData(r[[paste0(id, "_vocabulary_concepts_proxy")]], r[[paste0(id, "_vocabulary_concepts")]], resetPaging = FALSE, rownames = FALSE)
+      
+      
+      # Update add and remove icons
+      shinyjs::runjs(paste0("Shiny.setInputValue('", id, "-update_add_remove_icons', Math.random())"))
+    })
+    
+    # Reload add/remove icons status ----
+    
+    observeEvent(input$vocabulary_concepts_state, {
+      if (debug) cat(paste0("\n", now(), " - mod_select_concepts - (", id, ") - observer input$vocabulary_concepts_state"))
+      
+      shinyjs::runjs(paste0("Shiny.setInputValue('", id, "-update_add_remove_icons', Math.random())"))
+    })
+    
+    observeEvent(input$update_add_remove_icons, {
+      if (debug) cat(paste0("\n", now(), " - mod_select_concepts - (", id, ") - observer input$update_add_remove_icons"))
+      
+      if (nrow(r[[paste0(id, "_selected_concepts")]]) > 0){
+        sapply(1:nrow(r[[paste0(id, "_selected_concepts")]]), function(i){
+          row <- r[[paste0(id, "_selected_concepts")]][i, ]
+          shinyjs::delay(50, shinyjs::runjs(paste0("$('#", id, "-add_concept_", row$concept_id, " i').removeClass('fa-plus').addClass('fa-minus');")))
+        })
+      }
     })
 
     # Show / hide DT cols ----
