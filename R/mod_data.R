@@ -1180,7 +1180,8 @@ mod_data_server <- function(id, r, d, m, language, i18n, debug, user_accesses){
             id = id, category = category, tab_group_id = tab_group_id, tab_sub_group = dplyr::cur_group_id(), parent_tab_id = parent_tab_id,
             name = name, display_order = display_order, level = level
           ) %>%
-          dplyr::ungroup()
+          dplyr::ungroup() %>%
+          dplyr::arrange(category, display_order)
 
         # Reload menu 
         r$data_reload_menu <- now()
@@ -1201,7 +1202,7 @@ mod_data_server <- function(id, r, d, m, language, i18n, debug, user_accesses){
           tab_group_id <- r$data_tabs_groups %>% dplyr::filter(category == !!category) %>% dplyr::pull(id)
           
           # Create an ID per level / sub_group
-          all_tabs <- r$data_menu_tabs %>% dplyr::filter(tab_group_id == !!tab_group_id)
+          all_tabs <- r$data_menu_tabs %>% dplyr::filter(tab_group_id == !!tab_group_id) %>% dplyr::arrange(display_order)
           
           if (nrow(all_tabs) > 0){
             
@@ -1262,23 +1263,23 @@ mod_data_server <- function(id, r, d, m, language, i18n, debug, user_accesses){
               }
               
               pivot_id <- paste0("study_pivot_", tab_group_id, "_", tab_sub_group)
-              pivot_sub_div_id <- paste0("study_pivot_sub_div_", tab_group_id, "_", tab_sub_group)
               
               pivot <- 
                 div(
                   id = ns(pivot_id),
-                  div(
-                    id = ns(pivot_sub_div_id),
-                    tabs_ui,
-                    class = "pivot"
-                  ),
+                  prepare_sortable_pivot_tabs(ns, category, tab_group_id, tab_sub_group, tabs_ui)
                 )
               
               if (is.na(r[[paste0(category, "_selected_tab")]]) & i > 1) pivot <- shinyjs::hidden(pivot)
               if (!is.na(r[[paste0(category, "_selected_tab")]]) & r[[paste0(category, "_selected_tab")]] %not_in% tabs$id) pivot <- shinyjs::hidden(pivot)
               pivot_tabs <- paste0(category, "_pivot_tabs_", tab_group_id, "_", tab_sub_group)
               
-              pivots <- tagList(pivots, pivot)
+              sortable_id <- paste0("study_pivot_sub_div_", tab_group_id, "_", tab_sub_group)
+              pivots <- tagList(
+                pivots, 
+                pivot,
+                tags$script(HTML(sprintf("$(document).ready(function() { setTimeout(function() { initSortableTabs('%s'); }, 500); });", ns(sortable_id))))
+              )
               
               tab_sub_group_first_tab <- all_tabs %>% dplyr::filter(tab_sub_group == !!tab_sub_group) %>% dplyr::arrange(display_order) %>% dplyr::slice(1)
               nb_levels <- tab_sub_group_first_tab %>% dplyr::slice(1) %>% dplyr::pull(level)
@@ -1468,6 +1469,30 @@ mod_data_server <- function(id, r, d, m, language, i18n, debug, user_accesses){
             shinyjs::show(paste0(category, "_study_", name, "_", first_child$tab_group_id, "_", first_child$tab_sub_group))
           }
         }
+      })
+      
+      # A tab is moved
+      observeEvent(input[[paste0(category, "_tab_positions")]], {
+        if (debug) cat(paste0("\n", now(), " - mod_data - observer input$", category, "_tab_positions"))
+        
+        positions <- input[[paste0(category, "_tab_positions")]]
+        
+        ids <- positions[c(TRUE, FALSE)]
+        new_positions <- positions[c(FALSE, TRUE)]
+        
+        for (i in 1:length(ids)) {
+          tab_id <- ids[i]
+          new_position <- new_positions[i]
+          
+          r$data_menu_tabs <- r$data_menu_tabs %>% dplyr::mutate(display_order = ifelse(id == tab_id, new_position, display_order))
+          r$data_tabs <- r$data_tabs %>% dplyr::mutate(display_order = ifelse(id == tab_id, new_position, display_order))
+          
+          # Update database with the new position
+          sql <- glue::glue_sql("UPDATE tabs SET display_order = {new_position} WHERE id = {tab_id}", .con = r$db)
+          DBI::dbExecute(r$db, sql)
+        }
+        r$data_menu_tabs <- r$data_menu_tabs %>% dplyr::arrange(category, display_order)
+        r$data_tabs <- r$data_tabs %>% dplyr::arrange(category, display_order)
       })
     })
     

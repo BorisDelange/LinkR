@@ -598,6 +598,18 @@ load_dataset_concepts <- function(r, d, m){
 }
 
 #' @noRd
+prepare_sortable_pivot_tabs <- function(ns, category, tab_group_id, tab_sub_group, tabs_ui) {
+  div(
+    id = ns(paste0("study_pivot_sub_div_", tab_group_id, "_", tab_sub_group)),
+    tabs_ui,
+    class = "pivot",
+    `data-id-prefix` = paste0(ns(paste0("tab_"))),
+    `data-input-id` = ns(paste0(category, "_tab_positions")), 
+    `data-draggable-class` = "pivot_item"
+  )
+}
+
+#' @noRd
 load_element_code <- function(id, r, unique_id){
   
   folder <- paste0(r$app_folder, "/", id, "/", unique_id)
