@@ -735,7 +735,7 @@ import_element <- function(id, input, output, r, m, con, sql_table, sql_category
     sql_send_statement(con, glue::glue_sql("DELETE FROM {`sql_table`} WHERE id = {element_id}", .con = con))
     
     # For projects, delete all rows in associated tables
-    delete_project(r, m, element_id)
+    if (sql_category == "study") delete_project(r, m, element_id)
     
     # Delete options in db
     sql_send_statement(con, glue::glue_sql("DELETE FROM options WHERE category = {sql_category} AND link_id = {element_id}", .con = con))
