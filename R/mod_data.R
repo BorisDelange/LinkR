@@ -2252,6 +2252,41 @@ mod_data_server <- function(id, r, d, m, language, i18n, debug, user_accesses){
       
       # Run new UI and server code
       
+      # sql <- glue::glue_sql("SELECT id FROM options WHERE link_id = {input$selected_element} AND name = 'filename' AND value = 'ui.R'", .con = r$db)
+      # code_id <- DBI::dbGetQuery(r$db, sql) %>% dplyr::pull()
+      # 
+      # patient_id <- NA_integer_
+      # if (length(m$selected_person) > 0) patient_id <- m$selected_person
+      # 
+      # tab_id <- r$data_widgets %>% dplyr::filter(id == input$edit_widget_id) %>% dplyr::pull(tab_id)
+      # plugin_unique_id <- r$plugins_long %>% dplyr::filter(id == input$selected_element, name == "unique_id") %>% dplyr::pull(value)
+      # plugin_folder <- paste0(r$app_folder, "/plugins/", plugin_unique_id)
+      # 
+      # # Widget card
+      # 
+      # plugin_translations_dir <- paste0(r$app_folder, "/translations/", plugin_unique_id)
+      # 
+      # tryCatch({
+      #   i18np <- suppressWarnings(shiny.i18n::Translator$new(translation_csvs_path = plugin_translations_dir))
+      #   i18np$set_translation_language(language)},
+      #   error = function(e) cat(paste0("\n", now(), " - mod_data - error creating translator - plugin_id = ", input$selected_element)))
+      # 
+      # ui_code <- tryCatch({
+      #   
+      #   file_path <- file.path(r$app_folder, "plugins", plugin_unique_id, "ui.R")
+      #   ui_code <-
+      #     readLines(file_path, warn = FALSE) %>% paste(collapse = "\n") %>%
+      #     process_widget_code(tab_id, input$edit_widget_id, m$selected_study, patient_id, plugin_folder)
+      #   
+      #   eval(parse(text = ui_code))
+      # },
+      # error = function(e){
+      #   r$widget_ui_last_error <- e
+      #   show_message_bar(id, output,  "error_run_plugin_ui_code", "severeWarning", i18n = i18n, ns = ns)
+      #   cat(paste0("\n", now(), " - mod_data - error loading UI code - widget_id = ", input$edit_widget_id, " - ", toString(e)))
+      # })
+      # 
+      # output[[paste0("ui_", input$edit_widget_id)]] <- renderUI(ui_code)
       
       show_message_bar(id, output, message = "modif_saved", type = "success", i18n = i18n, ns = ns)
       shinyjs::hide("edit_widget_modal")
