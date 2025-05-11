@@ -2119,7 +2119,8 @@ mod_data_server <- function(id, r, d, m, language, i18n, debug, user_accesses){
       
       ## Selected concepts
       
-      r$data_selected_concepts <-
+      r$data_selected_concepts <- tibble::tibble()
+      if (length(d$dataset_concept) > 0) r$data_selected_concepts <-
         d$dataset_concept %>%
         dplyr::filter(concept_id %in% r$data_widgets_concepts$concept_id) %>%
         dplyr::transmute(concept_id, concept_name, domain_id, vocabulary_id, mapped_to_concept_id = NA_integer_, merge_mapped_concepts = FALSE)
