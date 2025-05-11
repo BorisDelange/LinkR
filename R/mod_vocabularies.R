@@ -579,7 +579,7 @@ mod_vocabularies_server <- function(id, r, d, m, language, i18n, debug, user_acc
       
       if ("valid_start_date" %in% names(data)) data <- data %>% dplyr::mutate_at(c("valid_start_date", "valid_end_date"), lubridate::ymd)
       
-      res <- import_vocabulary_table(r = r, m = m, table_name = table_name, data = data)
+      res <- import_vocabulary_table(table_name = table_name, data = data)
       return(tibble::tibble(table_name = table_name, n_rows = res[1], message = res[2]))
     }
   })

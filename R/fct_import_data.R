@@ -8,11 +8,11 @@
 #' @details ...
 import_dataset <- function(omop_version = "5.4", data_folder = character(), con, tables_to_load = character()){
   
-  # Get variables
+  # Get variables from other environments
   
   for (obj_name in c("r", "d")) assign(obj_name, get(obj_name, envir = parent.frame()))
   i18n <- r$i18n
-  if (r$current_page == "datasets") dataset_id <-  eval(parse(text = "input$selected_element"), envir = parent.frame())
+  if (r$current_page == "datasets") dataset_id <- eval(parse(text = "input$selected_element"), envir = parent.frame())
   else if (r$current_page == "projects") dataset_id <- r$selected_dataset
   
   # If a data_folder is provided, then data_source is "disk", else it is "db"
@@ -208,8 +208,11 @@ import_dataset <- function(omop_version = "5.4", data_folder = character(), con,
 }
 
 #' @noRd
-import_vocabulary_table <- function(r = shiny::reactiveValues(), m = shiny::reactiveValues(), table_name = character(), data = tibble::tibble()){
+import_vocabulary_table <- function(table_name = character(), data = tibble::tibble()){
   
+  # Get variables from other environments
+  
+  for (obj_name in c("r", "m")) assign(obj_name, get(obj_name, envir = parent.frame()))
   i18n <- r$i18n
   
   # Reset count rows
