@@ -324,20 +324,17 @@ create_element_scripts <- function(id, language, element_dir, code = ""){
     
     code <- paste0(
       "# See documentation here: https://linkr.interhop.org/", code_language, "docs/import_data/\n\n",
-      "# To import only specific tables, add load_tables argument:\n",
-      "# load_tables = c(\"person\", \"visit_occurrence\", \"visit_detail\", \"measurement\")\n\n",
+      "# To import only specific tables, add tables_to_load argument:\n",
+      "# tables_to_load = c(\"person\", \"visit_occurrence\", \"visit_detail\", \"measurement\")\n\n",
+      "",
       "# 1) Import data from a folder\n\n",
+      "",
       "# Specify a folder: all CSV and Parquet files will be automatically loaded.\n\n",
-      "# You can store data in a DuckDB file (.db) to significantly enhance app performance.\n",
-      "# To do so, set save_as_duckdb_file to TRUE. Set rewrite to TRUE to overwrite an existing DuckDB file.\n\n",
-      "# import_dataset(\n",
-      "    # r, m, d, dataset_id = %dataset_id%, omop_version = \"5.4\",\n",
-      "    # data_source = \"disk\", data_folder = \"/my_data_folder\",\n",
-      "    # save_as_duckdb_file = TRUE, rewrite = FALSE\n",
-      "# )\n\n",
+      "",
+      "# import_dataset(omop_version = \"5.4\", data_folder = \"/my_data_folder\")\n\n",
+      "",
       "# 2) Import data from a database connection\n\n",
-      "# As for import data from a folder, you can save data to a DuckDB file.\n\n",
-      "# Set import_vocabulary_tables = TRUE to import OMOP vocabulary tables (concept, concept_relationship, etc.) in app database.\n\n",
+      "",
       "# con <- DBI::dbConnect(\n",
       "    # RPostgres::Postgres(),\n",
       "    # host = \"localhost\",\n",
@@ -346,12 +343,8 @@ create_element_scripts <- function(id, language, element_dir, code = ""){
       "    # user = \"postgres\",\n",
       "    # password = \"postgres\"\n",
       "# )\n\n",
-      "# import_dataset(\n",
-      "    # r, m, d, dataset_id = %dataset_id%, omop_version = \"5.4\",\n",
-      "    # data_source = \"db\", con = con,\n",
-      "    # save_as_duckdb_file = FALSE, rewrite = FALSE,\n",
-      "    # import_vocabulary_tables = FALSE\n",
-      "# )"
+      "",
+      "# import_dataset(omop_version = \"5.4\", con = con)"
     )
     
     writeLines(code, paste0(element_dir, "/main.R"))

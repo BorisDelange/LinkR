@@ -5,12 +5,8 @@
 #' @param data_folder The folder containing the data. Must be a character string.
 #' @param con A `DBI::dbConnect` object representing the database connection, required if `data_source` is `"db"`.
 #' @param tables_to_load A character vector specifying which OMOP tables to load
-#' @param import_vocabulary_tables A logical value indicating whether to import OMOP vocabulary tables (concept, vocabulary, concept_relationship, etc.) into LinkR. If TRUE, terminology tables will be uploaded into app database. Defaults to FALSE.
 #' @details ...
-import_dataset <- function(
-    omop_version = "5.4", data_source = "disk", data_folder = character(), con,
-    tables_to_load = character(), import_vocabulary_tables = FALSE
-  ){
+import_dataset <- function(omop_version = "5.4", data_folder = character(), con, tables_to_load = character()){
   
   # Get variables
   
@@ -194,26 +190,6 @@ import_dataset <- function(
     }
   }
   
-  # Import vocabulary tables in app database
-  
-  if (import_vocabulary_tables){
-    if (length(intersect(tables, vocabulary_tables)) > 0) {
-      
-      cat("Import vocabulary tables in LinkR database:\n")
-      for (table in vocabulary_tables){
-        if (table %in% tables){
-          
-          sql <- glue::glue_sql("SELECT * FROM {`table`}", .con = d$con)
-          vocabulary_data <- DBI::dbGetQuery(d$con, sql)
-          
-          cat(paste0("\n\nImporting ", table, " table"))
-          import_vocabulary_table(r = r, m = m, table_name = table, data = vocabulary_data)
-        }
-      }
-      cat("\n\n")
-    }
-  }
-  
   # Transform data ----
   
   ## Select cols ----
@@ -224,8 +200,6 @@ import_dataset <- function(
   
   if (r$current_page == "datasets"){
     for (table in loaded_tables){
-      d[[table]] <- d[[table]] %>% dplyr::select(col_names[[table]])
-      
       loaded_data <- loaded_data %>% dplyr::bind_rows(tibble::tibble(table = table, n_rows = d[[table]] %>% dplyr::count() %>% dplyr::pull()))
     }
   }
@@ -234,7 +208,7 @@ import_dataset <- function(
 }
 
 #' @noRd
-import_vocabulary_table <- function(r = shiny::reactiveValues(), m = shiny::reactiveValues(), table_name = character(), data = tibble::tibble(), add_new_vocabularies = FALSE){
+import_vocabulary_table <- function(r = shiny::reactiveValues(), m = shiny::reactiveValues(), table_name = character(), data = tibble::tibble()){
   
   i18n <- r$i18n
   
