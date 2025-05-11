@@ -669,11 +669,7 @@ mod_data_server <- function(id, r, d, m, language, i18n, debug, user_accesses){
           file_path <- file.path(r$app_folder, "subsets", subset_unique_id, "main.R")
           subset_code <- readLines(file_path, warn = FALSE) %>% paste(collapse = "\n")
 
-          subset_code <-
-            subset_code %>%
-            stringr::str_replace_all("\r", "\n") %>%
-            stringr::str_replace_all("%dataset_id%", as.character(r$selected_dataset)) %>%
-            stringr::str_replace_all("%subset_id%", as.character(selected_subset))
+          subset_code <- subset_code %>% stringr::str_replace_all("\r", "\n")
 
           tryCatch(eval(parse(text = subset_code)),
             error = function(e) if (nchar(e[1]) > 0) cat(paste0("\n", now(), " - mod_data - error executing subset code - subset_id = ", selected_subset)))

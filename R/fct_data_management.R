@@ -5,9 +5,6 @@
 #' It can handle person identifiers alone or combined with visit identifiers.
 #' It ensures the validity of the input parameters and prevents duplicate entries.
 #'
-#' @param output Shiny output variable
-#' @param r A shiny::reactiveValues object, used to communicate between modules
-#' @param m A shiny::reactiveValues object, used to communicate between modules
 #' @param patients Either:
 #' - A numeric vector of person_ids
 #' - A data.frame/tibble containing at least one of these columns:
@@ -40,18 +37,18 @@
 #' \dontrun{
 #' # Example with a numeric vector of person IDs
 #' patients <- c(123, 456, 789)
-#' add_patients_to_subset(output = output, r = r, m = m, patients = patients, subset_id = 3)
+#' add_patients_to_subset(patients = patients)
 #'
 #' # Example with person_ids in a tibble
 #' patients <- tibble::tibble(person_id = c(123, 456, 789))
-#' add_patients_to_subset(output = output, r = r, m = m, patients = patients, subset_id = 3)
+#' add_patients_to_subset(patients = patients)
 #'
 #' # Example with visit_occurrence_ids
 #' patients <- tibble::tibble(
 #'   person_id = c(123, 456),
 #'   visit_occurrence_id = c(1001, 1002)
 #' )
-#' add_patients_to_subset(output = output, r = r, m = m, patients = patients, subset_id = 3)
+#' add_patients_to_subset(patients = patients)
 #'
 #' # Example with visit_detail_ids
 #' patients <- tibble::tibble(
@@ -59,13 +56,17 @@
 #'   visit_occurrence_id = c(1001, 1002),
 #'   visit_detail_id = c(2001, 2002)
 #' )
-#' add_patients_to_subset(output = output, r = r, m = m, patients = patients, subset_id = 3)
+#' add_patients_to_subset(patients = patients)
 #' }
-add_patients_to_subset <- function(
-  output, r = shiny::reactiveValues(), m = shiny::reactiveValues(), 
-  patients = tibble::tibble(), subset_id = integer()){
+add_patients_to_subset <- function(patients = tibble::tibble(), subset_id = integer()){
   
+  # Get variables from other environments
+  
+  for (obj_name in c("r", "m", "output")) assign(obj_name, get(obj_name, envir = parent.frame()))
   i18n <- r$i18n
+  
+  # Get subset_id if it is null
+  if (length(subset_id) == 0 && r$current_page == "subsets") subset_id <- eval(parse(text = "input$selected_element"), envir = parent.frame())
   
   # Check subset_id
   
@@ -169,14 +170,14 @@ add_patients_to_subset <- function(
 #' \dontrun{
 #' # Remove by person_ids only
 #' patients <- tibble::tibble(person_id = c(123, 456))
-#' remove_patients_from_subset(output = output, r = r, m = m, patients = patients, subset_id = 3)
+#' remove_patients_from_subset(patients = patients)
 #'
 #' # Remove specific hospital stays
 #' patients <- tibble::tibble(
 #'   person_id = c(123, 456),
 #'   visit_occurrence_id = c(1001, 1002)
 #' )
-#' remove_patients_from_subset(output = output, r = r, m = m, patients = patients, subset_id = 3)
+#' remove_patients_from_subset(patients = patients)
 #'
 #' # Remove specific unit stays
 #' patients <- tibble::tibble(
@@ -184,13 +185,17 @@ add_patients_to_subset <- function(
 #'   visit_occurrence_id = c(1001, 1002),
 #'   visit_detail_id = c(2001, 2002)
 #' )
-#' remove_patients_from_subset(output = output, r = r, m = m, patients = patients, subset_id = 3)
+#' remove_patients_from_subset(patients = patients)
 #' }
-remove_patients_from_subset <- function(
-  output, r = shiny::reactiveValues(), m = shiny::reactiveValues(),
-  patients = tibble::tibble(), subset_id = integer()){
+remove_patients_from_subset <- function(patients = tibble::tibble(), subset_id = integer()){
   
+  # Get variables from other environments
+  
+  for (obj_name in c("r", "m", "output")) assign(obj_name, get(obj_name, envir = parent.frame()))
   i18n <- r$i18n
+  
+  # Get subset_id if it is null
+  if (length(subset_id) == 0 && r$current_page == "subsets") subset_id <- eval(parse(text = "input$selected_element"), envir = parent.frame())
   
   # Check subset_id
   

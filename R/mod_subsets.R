@@ -267,7 +267,7 @@ mod_subsets_server <- function(id, r, d, m, language, i18n, debug, user_accesses
       
       editor_id <- "subset_code"
       editor_input <- input[[paste0(editor_id, "_run_selection")]]
-      full_code <- input[[editor_id]] %>% gsub("%subset_id%", as.character(subset_id), .)
+      full_code <- input[[editor_id]]
       code_store_var <- "subset_code"
       
       execute_ace_code(r = r, id = id, editor_id = editor_id, full_code = full_code, editor_input = editor_input, code_store_var = code_store_var)
@@ -287,10 +287,7 @@ mod_subsets_server <- function(id, r, d, m, language, i18n, debug, user_accesses
       
       subset_id <- input$selected_element
       
-      code <- 
-        r$subset_code %>%
-        gsub("\r", "\n", .) %>%
-        gsub("%subset_id%", as.character(subset_id), .)
+      code <- r$subset_code %>% gsub("\r", "\n", .)
       
       result <- capture.output(tryCatch(eval(parse(text = code)), error = function(e) print(e), warning = function(w) print(w)))
       

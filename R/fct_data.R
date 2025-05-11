@@ -264,13 +264,7 @@ load_dataset <- function(id, output, r, m, d, dataset_id, main_tables, selected_
     
     DBI::dbAppendTable(m$db, "options", new_options)
     
-    code <- paste0(
-      "add_patients_to_subset(\n",
-      "    patients = d$visit_detail %>% dplyr::select(person_id, visit_occurrence_id, visit_detail_id),\n",
-      "    subset_id = %subset_id%,\n",
-      "    output = output, r = r, m = m\n",
-      ")"
-    )
+    code <- paste0("add_patients_to_subset(patients = d$visit_detail %>% dplyr::select(person_id, visit_occurrence_id, visit_detail_id))")
     new_code <- tibble::tibble(
       id = get_last_row(m$db, "code") + 1, category = "subset", link_id = new_subset_id, code = code,
       creator_id = r$user_id, datetime = now(), deleted = FALSE)
