@@ -1345,6 +1345,10 @@ button.ms-UpButton, button.ms-DownButton {
   margin: 0;
 }
 
+.shiny-input-textarea {
+  font-size: 12px;
+}
+
 /* --------------------- */
 /* ALL PAGES             */
 /* --------------------- */
