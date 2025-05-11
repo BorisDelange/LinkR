@@ -387,6 +387,12 @@ load_dataset_concepts <- function(){
     }
     
     for (table in names(local_concepts)) {
+      
+      if ("valid_start_date" %in% colnames(local_concepts[[table]])){
+        local_concepts[[table]] <- local_concepts[[table]] %>% dplyr::mutate_at(c("valid_start_date", "valid_end_date"), as.Date)
+        dataset_concepts[[table]] <- dataset_concepts[[table]] %>% dplyr::mutate_at(c("valid_start_date", "valid_end_date"), as.Date)
+      }
+      
       combined <- local_concepts[[table]] %>% dplyr::bind_rows(dataset_concepts[[table]])
       
       uniq_cols <- where_col[[table]]
