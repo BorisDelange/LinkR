@@ -14,14 +14,11 @@
 #' @param import_vocabulary_tables A logical value indicating whether to import OMOP vocabulary tables (concept, vocabulary, concept_relationship, etc.) into LinkR. If TRUE, terminology tables will be uploaded into app database. Defaults to FALSE.
 #' @details ...
 import_dataset <- function(
-  r, m, d, dataset_id = integer(), omop_version = "5.4",
-  data_source = "disk", data_folder = character(), save_as_duckdb_file = FALSE, rewrite = FALSE,
-  con, load_tables = character(), import_vocabulary_tables = FALSE
-){
+    r, m, d, dataset_id = integer(), omop_version = "5.4", data_source = "disk", data_folder = character(), con,
+    load_tables = character(), import_vocabulary_tables = FALSE
+  ){
   
   i18n <- r$i18n
-  
-  r$import_dataset_save_as_duckdb_file <- save_as_duckdb_file
   
   # Check arguments ----
 
@@ -218,105 +215,102 @@ import_dataset <- function(
     
     if (length(file_names) == 0) return(i18n$t("folder_doesnt_contain_any_file"))
     
-    if (save_as_duckdb_file) {
-      
-      db_path <- file.path(r$app_folder, "datasets_files", dataset_id, "duckdb_data.db")
-      
-      # Rewrite DuckDB database ?
-      if (rewrite) unlink(db_path)
-      
-      d$con <- DBI::dbConnect(duckdb::duckdb(), dbdir = db_path, read_only = FALSE)
-    } else d$con <- DBI::dbConnect(duckdb::duckdb())
+    # Create a DuckDB file for metadata, if not already exists
     
-    for (file_name in file_names){
+    db_path <- file.path(r$app_folder, "datasets_files", dataset_id, "data.duckdb")
+    
+    if (!file.exists(db_path)){
+    
+      d$con <- DBI::dbConnect(duckdb::duckdb(), dbdir = db_path, read_only = FALSE)
       
-      table <- sub("\\.[^.]*$", "", file_name)
-      file_ext <- sub(".*\\.", "", tolower(file_name))
-      
-      if (table %not_in% loaded_tables){
+      for (file_name in file_names){
+        
+        table <- sub("\\.[^.]*$", "", file_name)
+        file_ext <- sub(".*\\.", "", tolower(file_name))
         
         # If no file_ext, consider it is a folder containing parquet or CSV files
         if (file_ext == table) file_ext <- ""
         
-        # Check if this is an OMOP table
-        
-        if (table %in% load_tables){
+        if (table %not_in% loaded_tables){
           
-          if (file_ext %in% c("csv", "parquet", "")){
+          # Check if this is an OMOP table
+          
+          if (table %in% load_tables){
             
-            # If no file_ext, consider it is a folder and try to find extension of first file
-            if (file_ext == "") {
-              folder_path <- file.path(data_folder, file_name)
+            if (file_ext %in% c("csv", "parquet", "")){
               
-              if (dir.exists(folder_path)) {
-                folder_files <- list.files(folder_path)
+              # If no file_ext, consider it is a folder and try to find extension of first file
+              if (file_ext == "") {
+                folder_path <- file.path(data_folder, file_name)
                 
-                if (length(folder_files) > 0) {
-                  # Get extension of first file
-                  first_file_ext <- sub(".*\\.", "", tolower(folder_files[1]))
-                  if (first_file_ext %in% c("csv", "parquet")) {
-                    file_ext <- first_file_ext
+                if (dir.exists(folder_path)) {
+                  folder_files <- list.files(folder_path)
+                  
+                  if (length(folder_files) > 0) {
+                    # Get extension of first file
+                    first_file_ext <- sub(".*\\.", "", tolower(folder_files[1]))
+                    if (first_file_ext %in% c("csv", "parquet")) {
+                      file_ext <- first_file_ext
+                    }
                   }
                 }
               }
-            }
-            
-            if (file_ext %in% c("csv", "parquet")){
               
-              if (!DBI::dbExistsTable(d$con, table)){
+              if (file_ext %in% c("csv", "parquet")){
                 
-                file_path <- file.path(data_folder, file_name)
-                
-                if (file_ext == "csv"){
-                  type_codes <- strsplit(col_types[[table]], "")[[1]]
+                if (!DBI::dbExistsTable(d$con, table)){
                   
-                  col_names <- data_cols[[table]]
-                  col_types_sql <- paste(
-                    mapply(
-                      function(col, type) {
-                        sprintf('"%s" %s', col, convert_to_duckdb_type(type))
-                      },
-                      col_names,
-                      type_codes
-                    ),
-                    collapse = ", "
-                  )
+                  file_path <- file.path(data_folder, file_name)
                   
-                  DBI::dbExecute(d$con, sprintf("CREATE TABLE %s (%s)", table, col_types_sql))
-                  
-                  col_types_csv <- paste(
-                    mapply(
-                      function(col, type) {
-                        sprintf("'%s': '%s'", col, convert_to_duckdb_type(type))
-                      },
-                      col_names,
-                      type_codes
-                    ),
-                    collapse = ", "
-                  )
-                  
-                  DBI::dbExecute(
-                    d$con,
-                    sprintf(
-                      "INSERT INTO %s SELECT * FROM read_csv('%s', nullstr='NA', columns={%s})",
-                      table,
-                      file.path(data_folder, file_name),
-                      col_types_csv
+                  if (file_ext == "csv"){
+                    type_codes <- strsplit(col_types[[table]], "")[[1]]
+                    
+                    col_names <- data_cols[[table]]
+                    col_types_sql <- paste(
+                      mapply(
+                        function(col, type) {
+                          sprintf('"%s" %s', col, convert_to_duckdb_type(type))
+                        },
+                        col_names,
+                        type_codes
+                      ),
+                      collapse = ", "
                     )
-                  )
+                    
+                    col_types_csv <- paste(
+                      mapply(
+                        function(col, type) {
+                          sprintf("'%s': '%s'", col, convert_to_duckdb_type(type))
+                        },
+                        col_names,
+                        type_codes
+                      ),
+                      collapse = ", "
+                    )
+                    
+                    DBI::dbExecute(
+                      d$con,
+                      sprintf(
+                        "CREATE VIEW %s SELECT * FROM read_csv('%s', nullstr='NA', columns={%s})",
+                        table,
+                        file.path(data_folder, file_name),
+                        col_types_csv
+                      )
+                    )
+                  }
+                  else if (file_ext == "parquet") DBI::dbExecute(d$con, paste0("CREATE VIEW ", table, " AS SELECT * FROM read_parquet('", file_path, "')"))
                 }
-                else if (file_ext == "parquet") DBI::dbExecute(d$con, paste0("CREATE TABLE ", table, " AS SELECT * FROM read_parquet('", file_path, "')"))
               }
             }
           }
-          
-          if (DBI::dbExistsTable(d$con, table)){
-            d[[table]] <- dplyr::tbl(d$con, table)
-            loaded_tables <- c(loaded_tables, table)
-          }
         }
       }
+      
+      # Disconnect to reconnect with a read_only connection
+      DBI::dbDisconnect(d$con, shutdown = TRUE)
     }
+    
+    d$con <- DBI::dbConnect(duckdb::duckdb(), dbdir = db_path, read_only = TRUE)
   }
   
   ## Import data from database connection ----
@@ -326,78 +320,35 @@ import_dataset <- function(
     # Test connection
     if (!DBI::dbIsValid(con)) return(i18n$t("dataset_error_with_db_connection"))
     
-    if (save_as_duckdb_file) {
-      
-      # Create DuckDB connection
-      db_path <- file.path(r$app_folder, "datasets_files", dataset_id, "duckdb_data.db")
-      
-      # Rewrite DuckDB database ?
-      if (rewrite) unlink(db_path)
-      
-      d$con <- DBI::dbConnect(duckdb::duckdb(), dbdir = db_path, read_only = FALSE)
-      
-      # Copy tables from source database to DuckDB
-      for (table in load_tables) {
-        if (table %in% DBI::dbListTables(con)) {
-          
-          if (!DBI::dbExistsTable(d$con, table)){
-            
-            # Create table structure in DuckDB
-            type_codes <- strsplit(col_types[[table]], "")[[1]]
-            col_names <- data_cols[[table]]
-            col_types_sql <- paste(
-              mapply(
-                function(col, type) {
-                  sprintf('"%s" %s', col, convert_to_duckdb_type(type))
-                },
-                col_names,
-                type_codes
-              ),
-              collapse = ", "
-            )
-            
-            # Create table in DuckDB
-            DBI::dbExecute(d$con, sprintf("CREATE TABLE %s (%s)", table, col_types_sql))
-            
-            # Copy data from source database
-            source_data <-
-              dplyr::tbl(con, table) %>%
-              dplyr::select(all_of(col_names)) %>%
-              dplyr::collect()
-            
-            # Insert data into DuckDB
-            DBI::dbAppendTable(d$con, table, source_data)
-          }
-          
-          # Create reference to the table
-          d[[table]] <- dplyr::tbl(d$con, table)
-          loaded_tables <- c(loaded_tables, table)
-        }
-      }
+    d$con <- con
+  }
+  
+  # Load data in a d$ var
+  
+  tables <- DBI::dbListTables(d$con)
+  
+  for (table in tables){
+    if (table %in% load_tables){
+      d[[table]] <- dplyr::tbl(d$con, table)
+      loaded_tables <- c(loaded_tables, table)
     }
-    else {
-    
-      d$con <- con
+  }
+  
+  # Import vocabulary tables in app database
+  
+  if (import_vocabulary_tables){
+    if (length(intersect(tables, vocabulary_tables)) > 0) {
       
-      tables <- DBI::dbListTables(con)
-      
-      for (table in tables){
-        if (table %in% load_tables){
-          d[[table]] <- dplyr::tbl(con, table)
-          
-          loaded_tables <- c(loaded_tables, table)
-        }
-      }
-    }
-    
-    # Import vocabulary tables in app database
-    
-    if (import_vocabulary_tables){
-      cat("Import vocabulary tables:\n")
+      cat("Import vocabulary tables in LinkR database:\n")
       for (table in vocabulary_tables){
-        sql <- glue::glue_sql("SELECT * FROM {`table`}", .con = con)
-        vocabulary_data <- DBI::dbGetQuery(con, sql)
-        import_vocabulary_table(r = r, m = m, table_name = table, data = vocabulary_data)
+        if (table %in% tables){
+          
+          sql <- glue::glue_sql("SELECT * FROM {`table`}", .con = d$con)
+          vocabulary_data <- DBI::dbGetQuery(d$con, sql)
+          
+          cat(paste0("\n\nImporting ", table, " table"))
+          import_vocabulary_table(r = r, m = m, table_name = table, data = vocabulary_data)
+        }
       }
       cat("\n\n")
     }

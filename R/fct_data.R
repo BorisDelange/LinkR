@@ -583,25 +583,25 @@ load_dataset_concepts <- function(r, d, m){
     file_path <- file.path(dataset_folder, paste0(table, ".parquet"))
     
     # Case 1: a duckdb DB has been created from files or from an existing database
-    if (r$import_dataset_save_as_duckdb_file){
-      if (length(d$con) > 0){
-        
-        if (!DBI::dbExistsTable(d$con, table)){
-          sql <- glue::glue_sql("CREATE TABLE {`table`} AS SELECT * FROM read_parquet({file_path})", .con = d$con)
-          DBI::dbExecute(d$con, sql)
-        }
-        d[[table]] <- dplyr::tbl(d$con, table)
-      }
-    }
-    
-    # Case 2: vocabulary tables exist in DB connection
-    else if (DBI::dbExistsTable(d$con, table)) d[[table]] <- dplyr::tbl(d$con, table)
-    
-    # Case 3: dataset is created from files without creating a DuckDB file or it is a database connection without vocabulary tables
-    else {
-      con <- DBI::dbConnect(duckdb::duckdb(), dbdir = ":memory:")
-      d[[table]] <- dplyr::tbl(con, paste0("read_parquet('", file_path, "')"))
-    }
+    # if (r$import_dataset_save_as_duckdb_file){
+    #   if (length(d$con) > 0){
+    #     
+    #     if (!DBI::dbExistsTable(d$con, table)){
+    #       sql <- glue::glue_sql("CREATE TABLE {`table`} AS SELECT * FROM read_parquet({file_path})", .con = d$con)
+    #       DBI::dbExecute(d$con, sql)
+    #     }
+    #     d[[table]] <- dplyr::tbl(d$con, table)
+    #   }
+    # }
+    # 
+    # # Case 2: vocabulary tables exist in DB connection
+    # else if (DBI::dbExistsTable(d$con, table)) d[[table]] <- dplyr::tbl(d$con, table)
+    # 
+    # # Case 3: dataset is created from files without creating a DuckDB file or it is a database connection without vocabulary tables
+    # else {
+    #   con <- DBI::dbConnect(duckdb::duckdb(), dbdir = ":memory:")
+    #   d[[table]] <- dplyr::tbl(con, paste0("read_parquet('", file_path, "')"))
+    # }
   }
 }
 

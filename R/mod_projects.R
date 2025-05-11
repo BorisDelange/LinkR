@@ -624,9 +624,6 @@ mod_projects_server <- function(id, r, d, m, language, i18n, debug, user_accesse
         # Hide dataset details
         sapply(c("dataset_care_sites_details", "dataset_patients_details", "dataset_stays_details"), shinyjs::hide)
         
-        # Reset import_dataset saved parameters
-        r$import_dataset_save_as_duckdb_file <- FALSE
-        
         r$selected_dataset <- input$load_dataset_id
         
         tryCatch({
