@@ -1,43 +1,29 @@
 #' Import a dataset
 #' 
 #' @description Imports a dataset into the application using the OMOP Common Data Model.
-#' @param r A `shiny::reactiveValues` object used for communication between modules.
-#' @param d A `shiny::reactiveValues` object used for communication between modules.
-#' @param dataset_id The ID of the dataset, used to create a specific dataset folder in the application directories. Must be an integer.
 #' @param omop_version The OMOP version of the imported data. Accepted values are `"5.3"` and `"5.4"`. Defaults to `"5.4"`.
-#' @param data_source The source of the data. Accepted values are `"db"` for a database connection or `"disk"` for disk storage. Defaults to `"disk"`.
 #' @param data_folder The folder containing the data. Must be a character string.
-#' @param save_as_duckdb_file A logical value indicating whether to save the data as a DuckDB database file (.db). If TRUE, the data will be persistently stored in a DuckDB file in the dataset folder. Defaults to FALSE.
-#' @param rewrite A logical value indicating whether to rewrite DuckDB database.
 #' @param con A `DBI::dbConnect` object representing the database connection, required if `data_source` is `"db"`.
-#' @param load_tables A character vector specifying which OMOP tables to load
+#' @param tables_to_load A character vector specifying which OMOP tables to load
 #' @param import_vocabulary_tables A logical value indicating whether to import OMOP vocabulary tables (concept, vocabulary, concept_relationship, etc.) into LinkR. If TRUE, terminology tables will be uploaded into app database. Defaults to FALSE.
 #' @details ...
 import_dataset <- function(
-    r, m, d, dataset_id = integer(), omop_version = "5.4", data_source = "disk", data_folder = character(), con,
-    load_tables = character(), import_vocabulary_tables = FALSE
+    omop_version = "5.4", data_source = "disk", data_folder = character(), con,
+    tables_to_load = character(), import_vocabulary_tables = FALSE
   ){
   
+  # Get variables
+  
+  for (obj_name in c("r", "d")) assign(obj_name, get(obj_name, envir = parent.frame()))
   i18n <- r$i18n
+  if (r$current_page == "datasets") dataset_id <-  eval(parse(text = "input$selected_element"), envir = parent.frame())
+  else if (r$current_page == "projects") dataset_id <- r$selected_dataset
   
-  # Check arguments ----
-
-  # Check dataset_id
-  error_dataset_id <- TRUE
-  if (length(dataset_id) > 0) if (!is.na(dataset_id)){
-    tryCatch(dataset_id <- as.integer(dataset_id))
-    error_dataset_id <- FALSE
-  }
-  if (error_dataset_id) return(i18n$t("invalid_dataset_id_value"))
-  
-  # Check data_source
-  if (data_source %not_in% c("db", "disk")) return(i18n$t("dataset_invalid_data_source"))
+  # If a data_folder is provided, then data_source is "disk", else it is "db"
+  if (length(data_folder) > 0) data_source <- "disk" else data_source <- "db"
   
   # Check omop_version
   if (omop_version %not_in% c("5.3", "5.4")) return(i18n$t("invalid_omop_version"))
-  
-  # Check data_folder
-  if (data_source == "disk" & length(data_folder) == 0) return(i18n$t("invalid_data_folder"))
   
   # Load data ----
   
@@ -188,9 +174,9 @@ import_dataset <- function(
     )
   }
   
-  # Load tables from load_tables argument if specified. If not specified, load all OMOP tables.
-  if (length(load_tables) == 0) load_tables <- names(col_types)
-  if (length(load_tables) > 0) load_tables <- intersect(load_tables, names(col_types))
+  # Load tables from tables_to_load argument if specified. If not specified, load all OMOP tables.
+  if (length(tables_to_load) == 0) tables_to_load <- names(col_types)
+  if (length(tables_to_load) > 0) tables_to_load <- intersect(tables_to_load, names(col_types))
   
   # Record loaded tables
   loaded_tables <- c()
@@ -235,7 +221,7 @@ import_dataset <- function(
           
           # Check if this is an OMOP table
           
-          if (table %in% load_tables){
+          if (table %in% tables_to_load){
             
             if (file_ext %in% c("csv", "parquet", "")){
               
@@ -328,7 +314,7 @@ import_dataset <- function(
   tables <- DBI::dbListTables(d$con)
   
   for (table in tables){
-    if (table %in% load_tables){
+    if (table %in% tables_to_load){
       d[[table]] <- dplyr::tbl(d$con, table)
       loaded_tables <- c(loaded_tables, table)
     }
