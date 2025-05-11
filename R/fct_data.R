@@ -283,33 +283,130 @@ load_dataset <- function(id, output, r, m, d, dataset_id, main_tables, selected_
 }
 
 #' @noRd
-load_dataset_concepts <- function(r, d, m){
+load_dataset_concepts <- function(){
   
-  # req(!is.na(r$selected_dataset), r$selected_dataset != 0)
+  # Get variables from other environments
+  for (obj_name in c("r", "d", "m")) assign(obj_name, get(obj_name, envir = parent.frame()))
   
   # Create dataset folder if doesn't exist
   dataset_folder <- paste0(r$app_folder, "/datasets_files/", r$selected_dataset)
   if (!dir.exists(dataset_folder)) dir.create(dataset_folder)
   
-  # Load Parquet files
   dataset_concept_filename <- paste0(dataset_folder, "/dataset_concept.parquet")
-  if (file.exists(dataset_concept_filename)) d$dataset_concept <- arrow::read_parquet(dataset_concept_filename)
-  
   dataset_drug_strength_filename <- paste0(dataset_folder, "/dataset_drug_strength.parquet")
-  if (file.exists(dataset_drug_strength_filename)) d$dataset_drug_strength <- arrow::read_parquet(dataset_drug_strength_filename)
   
-  ## dataset_concept & dataset_drug_strength ----
+  # Reload concept Parquet files if don't exist
   
   if (!file.exists(dataset_concept_filename) | !file.exists(dataset_drug_strength_filename)){
-    
-    # Load all concepts for this dataset, with rows count
-    omop_version <- DBI::dbGetQuery(r$db, glue::glue_sql("SELECT value FROM options WHERE category = 'dataset' AND link_id = {r$selected_dataset} AND name = 'omop_version'", .con = r$db)) %>% dplyr::pull()
+  
+    ## Select distinct concept IDs on dataset ----
     
     tables <- c(
-      "person", "visit_occurrence", "visit_detail", "condition_occurrence", "drug_exposure", "procedure_occurrence", "device_exposure",
-      "measurement", "observation", "specimen", "drug_era", "dose_era", "condition_era", "note", "specimen")
+      "person", "visit_occurrence", "visit_detail", "death", "condition_occurrence", "drug_exposure", "procedure_occurrence", "device_exposure",
+      "measurement", "observation", "specimen", "drug_era", "dose_era", "condition_era", "note", "specimen"
+    )
     
-    if (omop_version %in% c("5.3", "5.0")) tables <- c(tables, "death")
+    # Get all concept_ids for this dataset
+    dataset_concept_ids <- NA_integer_
+    
+    for (table in tables){
+      
+      concept_ids <- 
+        d[[table]] %>%
+        dplyr::select(dplyr::contains("concept_id")) %>%
+        dplyr::distinct() %>%
+        dplyr::collect() %>%
+        unlist(use.names = FALSE) %>%
+        as.character() %>%
+        purrr::discard(~is.na(.) | !grepl("^[0-9]+$", .)) %>%
+        as.integer() %>%
+        unique()
+      
+      dataset_concept_ids <- unique(c(dataset_concept_ids, concept_ids))
+    }
+    
+    ## Merge app database and data concepts, and save all these concepts in Parquet files ----
+    
+    dataset_tables <- DBI::dbListTables(d$con)
+    
+    local_concepts <- list()
+    dataset_concepts <- list()
+    combined_concepts <- list()
+    
+    where_col <- list(
+      concept = "concept_id",
+      concept_ancestor = c("ancestor_concept_id", "descendant_concept_id"),
+      concept_relationship = c("concept_id_1", "concept_id_2"),
+      concept_synonym = "concept_id",
+      drug_strength = "drug_concept_id",
+      vocabulary = "vocabulary_id",
+      concept_class = "concept_class_id",
+      relationship = "relationship_id",
+      domain = "domain_id"
+    )
+    
+    col_names <- get_omop_col_names(version = "5.4")
+    
+    tables_with_filter <- c("concept", "concept_ancestor", "concept_relationship", "concept_synonym", "drug_strength")
+    tables_without_filter <- c("vocabulary", "concept_class", "relationship", "domain")
+    all_tables <- c(tables_with_filter, tables_without_filter)
+    
+    dataset_concept_ids <- dataset_concept_ids[!is.na(dataset_concept_ids)]
+    
+    for (table in all_tables) {
+      
+      cols <- col_names[[table]]
+      col_list_sql <- paste(cols, collapse = ", ")
+      
+      if (table %in% tables_with_filter) {
+        if (length(where_col[[table]]) == 1) {
+          col <- where_col[[table]]
+          values <- paste(dataset_concept_ids, collapse = ", ")
+          where_clause <- paste0(col, " IN (", values, ") AND ", col, " != 0")
+        } else {
+          parts <- lapply(where_col[[table]], function(col) {
+            values <- paste(dataset_concept_ids, collapse = ", ")
+            paste0("(", col, " IN (", values, ") AND ", col, " != 0)")
+          })
+          where_clause <- paste(parts, collapse = " OR ")
+        }
+        
+        sql <- paste0("SELECT ", col_list_sql, " FROM ", table, " WHERE ", where_clause)
+        
+      } else {
+        sql <- paste0("SELECT ", col_list_sql, " FROM ", table)
+      }
+      
+      local_concepts[[table]] <- DBI::dbGetQuery(m$db, sql) %>% tibble::as_tibble()
+      
+      if (table %in% dataset_tables) {
+        dataset_concepts[[table]] <- DBI::dbGetQuery(d$con, sql) %>% tibble::as_tibble()
+      } else {
+        dataset_concepts[[table]] <- local_concepts[[table]] %>% dplyr::slice(0)
+      }
+    }
+    
+    for (table in names(local_concepts)) {
+      combined <- local_concepts[[table]] %>% dplyr::bind_rows(dataset_concepts[[table]])
+      
+      uniq_cols <- where_col[[table]]
+      combined <- combined %>% dplyr::distinct(dplyr::across(all_of(uniq_cols)), .keep_all = TRUE)
+      
+      combined_concepts[[table]] <- combined
+      file_path <- file.path(dataset_folder, paste0(table, ".parquet"))
+      arrow::write_parquet(combined, file_path)
+      
+      # Reload duckdb views
+      if (r$dataset_data_source == "disk"){
+        
+        DBI::dbExecute(d$con, paste0("DROP VIEW IF EXISTS ", table))
+        DBI::dbExecute(d$con, paste0("CREATE VIEW ", table, " AS SELECT * FROM read_parquet('", file_path, "')"))
+      }
+    }
+    
+    ## dataset_concept & dataset_drug_strength ----
+    
+    # Load all concepts for this dataset, with rows count
     
     main_cols <- c(
       "condition_era" = "condition",
@@ -338,66 +435,7 @@ load_dataset_concepts <- function(r, d, m){
       "specimen" = c("specimen_type", "unit", "anatomic_site", "disease_status")
     )
     
-    # Get all concept_ids for this dataset
-    dataset_concept_ids <- NA_integer_
-    
-    for (table in tables){
-      
-      concept_ids <- 
-        d[[table]] %>%
-        dplyr::select(dplyr::contains("concept_id")) %>%
-        dplyr::distinct() %>%
-        dplyr::collect() %>%
-        unlist(use.names = FALSE) %>%
-        as.character() %>%
-        purrr::discard(~is.na(.) | !grepl("^[0-9]+$", .)) %>%
-        as.integer() %>%
-        unique()
-      
-      dataset_concept_ids <- unique(c(dataset_concept_ids, concept_ids))
-    }
-    
-    # Get concepts from app database
-    sql <- glue::glue_sql("SELECT * FROM concept WHERE concept_id IN ({dataset_concept_ids*}) AND concept_id != 0 ORDER BY concept_id", .con = m$db)
-    concept <- DBI::dbGetQuery(m$db, sql) %>% tibble::as_tibble() %>% dplyr::select(-id)
-    
-    sql <- glue::glue_sql("SELECT * FROM drug_strength WHERE drug_concept_id IN ({dataset_concept_ids*}) AND drug_concept_id != 0 ORDER BY drug_concept_id", .con = m$db)
-    drug_strength <- DBI::dbGetQuery(m$db, sql) %>% tibble::as_tibble() %>% dplyr::select(-id)
-    
-    # Get concepts from data (if the user loads a dataset from a database, it can contain concepts not imported in app database)
-    if ("concept" %in% DBI::dbListTables(d$con)){
-      sql <- glue::glue_sql("
-        SELECT
-          concept_id, concept_name, domain_id, vocabulary_id, concept_class_id,
-          standard_concept, concept_code, valid_start_date, valid_end_date, invalid_reason
-        FROM concept WHERE concept_id IN ({dataset_concept_ids*}) AND concept_id != 0 ORDER BY concept_id", .con = d$con)
-      
-      new_concepts <- 
-        DBI::dbGetQuery(d$con, sql) %>%
-        dplyr::mutate_at(c("valid_start_date", "valid_end_date"), as.character)
-      
-      if (nrow(new_concepts) > 0) concept <- concept %>% dplyr::bind_rows(new_concepts %>% dplyr::anti_join(concept, by = "concept_id"))
-    }
-    
-    if ("drug_strength" %in% DBI::dbListTables(d$con)){
-      sql <- glue::glue_sql("
-        SELECT
-          drug_concept_id, ingredient_concept_id, amount_value, amount_unit_concept_id, numerator_value, numerator_unit_concept_id,
-          denominator_value, denominator_unit_concept_id, box_size, valid_start_date, valid_end_date, invalid_reason
-        FROM drug_strength WHERE drug_concept_id IN ({dataset_concept_ids*}) AND drug_concept_id != 0 ORDER BY drug_concept_id", .con = d$con)
-      
-      new_drug_strength <-
-        DBI::dbGetQuery(d$con, sql) %>%
-        dplyr::mutate_at(c("valid_start_date", "valid_end_date"), as.character)
-      
-      if (nrow(new_drug_strength) > 0) drug_strength <- drug_strength %>% dplyr::bind_rows(new_drug_strength %>% dplyr::anti_join(drug_strength, by = "drug_concept_id"))
-    }
-    
-    concept <- concept %>% dplyr::mutate(concept_display_name = NA_character_, .after = "concept_name")
-    
-    # Count rows
-    
-    count_rows <- tibble::tibble(concept_id = integer(), count_persons_rows = numeric(), count_concepts_rows = numeric())
+    omop_version <- DBI::dbGetQuery(r$db, glue::glue_sql("SELECT value FROM options WHERE category = 'dataset' AND link_id = {r$selected_dataset} AND name = 'omop_version'", .con = r$db)) %>% dplyr::pull()
     
     if (omop_version == "5.3"){
       secondary_cols <- rlist::list.append(secondary_cols, "visit_occurrence" = c("visit", "visit_type", "visit_source", "admitting_source", "discharge_to"))
@@ -407,6 +445,13 @@ load_dataset_concepts <- function(r, d, m){
       secondary_cols <- rlist::list.append(secondary_cols, "visit_occurrence" = c("visit", "visit_type", "visit_source", "admitted_from", "discharge_to"))
       secondary_cols <- rlist::list.append(secondary_cols, "visit_detail" = c("visit_detail", "visit_detail_type", "visit_detail_source", "admitted_from", "discharge_to"))
     }
+    
+    concept <- combined_concepts$concept %>% dplyr::mutate(concept_display_name = NA_character_, .after = "concept_name")
+    drug_strength <- combined_concepts$drug_strength
+    
+    # Count rows
+    
+    count_rows <- tibble::tibble(concept_id = integer(), count_persons_rows = numeric(), count_concepts_rows = numeric())
     
     for(table in tables){
       
@@ -520,7 +565,8 @@ load_dataset_concepts <- function(r, d, m){
           id = get_last_row(m$db, "concept_dataset") + 1:dplyr::n(), concept_id, dataset_id = r$selected_dataset, vocabulary_id,
           count_persons_rows, count_concepts_rows, count_secondary_concepts_rows = as.numeric(0)))
     
-    # Save data as csv
+    # Save data as Parquet
+    
     arrow::write_parquet(concept, dataset_concept_filename)
     arrow::write_parquet(drug_strength, dataset_drug_strength_filename)
     
@@ -529,74 +575,12 @@ load_dataset_concepts <- function(r, d, m){
     d$dataset_drug_strength <- drug_strength
   }
   
+  else {
+    d$dataset_concept <- arrow::read_parquet(dataset_concept_filename)
+    d$dataset_drug_strength <- arrow::read_parquet(dataset_drug_strength_filename)
+  }
+  
   r$dataset_vocabularies <- d$dataset_concept %>% dplyr::distinct(vocabulary_id) %>% dplyr::arrange(vocabulary_id)
-  
-  # Save all concept tables as Parquet files ----
-  
-  dataset_concept_ids <- d$dataset_concept %>% dplyr::pull(concept_id)
-  
-  for (table in c("concept", "concept_ancestor", "concept_relationship", "concept_synonym", "drug_strength")){
-    
-    file_path <- file.path(dataset_folder, paste0(table, ".parquet"))
-    
-    if (!file.exists(file_path)){
-      
-      sql <- switch(
-        table,
-        "concept" = glue::glue_sql("SELECT * FROM concept WHERE concept_id IN ({dataset_concept_ids*})", .con = m$db),
-        "concept_ancestor" = glue::glue_sql("SELECT * FROM concept_ancestor WHERE ancestor_concept_id IN ({dataset_concept_ids*}) OR descendant_concept_id IN ({dataset_concept_ids*})", .con = m$db),
-        "concept_relationship" = glue::glue_sql("SELECT * FROM concept_relationship WHERE concept_id_1 IN ({dataset_concept_ids*}) OR concept_id_2 IN ({dataset_concept_ids*})", .con = m$db),
-        "concept_synonym" = glue::glue_sql("SELECT * FROM concept_synonym WHERE concept_id IN ({dataset_concept_ids*})", .con = m$db),
-        "drug_strength" = glue::glue_sql("SELECT * FROM drug_strength WHERE drug_concept_id IN ({dataset_concept_ids*}) OR ingredient_concept_id IN ({dataset_concept_ids*})", .con = m$db)
-      )
-      
-      data <- DBI::dbGetQuery(m$db, sql) %>% dplyr::select(-id) %>% tibble::as_tibble()
-      
-      # Save data as Parquet
-      arrow::write_parquet(data, file_path)
-    }
-  }
-  
-  for (table in c("vocabulary", "concept_class", "relationship", "domain")){
-    
-    file_path <- file.path(dataset_folder, paste0(table, ".parquet"))
-    if (file.exists(file_path)) data <- arrow::read_parquet(file_path)
-    else {
-      sql <- glue::glue_sql("SELECT * FROM {`table`}", .con = m$db)
-      data <- DBI::dbGetQuery(m$db, sql) %>% dplyr::select(-id) %>% tibble::as_tibble()
-      
-      arrow::write_parquet(data, file_path)
-    }
-  }
-  
-  # If dataset is imported in a duckdb database, add these tables in the database
-  # In all cases, add these tables in d$...
-  
-  for (table in c("concept", "concept_ancestor", "concept_relationship", "concept_synonym", "drug_strength", "vocabulary", "concept_class", "relationship", "domain")){
-    
-    file_path <- file.path(dataset_folder, paste0(table, ".parquet"))
-    
-    # Case 1: a duckdb DB has been created from files or from an existing database
-    # if (r$import_dataset_save_as_duckdb_file){
-    #   if (length(d$con) > 0){
-    #     
-    #     if (!DBI::dbExistsTable(d$con, table)){
-    #       sql <- glue::glue_sql("CREATE TABLE {`table`} AS SELECT * FROM read_parquet({file_path})", .con = d$con)
-    #       DBI::dbExecute(d$con, sql)
-    #     }
-    #     d[[table]] <- dplyr::tbl(d$con, table)
-    #   }
-    # }
-    # 
-    # # Case 2: vocabulary tables exist in DB connection
-    # else if (DBI::dbExistsTable(d$con, table)) d[[table]] <- dplyr::tbl(d$con, table)
-    # 
-    # # Case 3: dataset is created from files without creating a DuckDB file or it is a database connection without vocabulary tables
-    # else {
-    #   con <- DBI::dbConnect(duckdb::duckdb(), dbdir = ":memory:")
-    #   d[[table]] <- dplyr::tbl(con, paste0("read_parquet('", file_path, "')"))
-    # }
-  }
 }
 
 #' @noRd

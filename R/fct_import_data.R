@@ -9,7 +9,6 @@
 import_dataset <- function(omop_version = "5.4", data_folder = character(), con, tables_to_load = character()){
   
   # Get variables from other environments
-  
   for (obj_name in c("r", "d")) assign(obj_name, get(obj_name, envir = parent.frame()))
   i18n <- r$i18n
   if (r$current_page == "datasets") dataset_id <- eval(parse(text = "input$selected_element"), envir = parent.frame())
@@ -17,6 +16,7 @@ import_dataset <- function(omop_version = "5.4", data_folder = character(), con,
   
   # If a data_folder is provided, then data_source is "disk", else it is "db"
   if (length(data_folder) > 0) data_source <- "disk" else data_source <- "db"
+  r$dataset_data_source <- data_source
   
   # Check omop_version
   if (omop_version %not_in% c("5.3", "5.4")) return(i18n$t("invalid_omop_version"))
@@ -71,102 +71,92 @@ import_dataset <- function(omop_version = "5.4", data_folder = character(), con,
     
     if (length(file_names) == 0) return(i18n$t("folder_doesnt_contain_any_file"))
     
-    # Create a DuckDB file for metadata, if not already exists
+    # Load files with DuckDB in-memory database
     
-    db_path <- file.path(r$app_folder, "datasets_files", dataset_id, "data.duckdb")
+    d$con <- DBI::dbConnect(duckdb::duckdb(), dbdir = ":memory:")
     
-    if (!file.exists(db_path)){
-    
-      d$con <- DBI::dbConnect(duckdb::duckdb(), dbdir = db_path, read_only = FALSE)
+    for (file_name in file_names){
       
-      for (file_name in file_names){
+      table <- sub("\\.[^.]*$", "", file_name)
+      file_ext <- sub(".*\\.", "", tolower(file_name))
+      
+      # If no file_ext, consider it is a folder containing parquet or CSV files
+      if (file_ext == table) file_ext <- ""
+      
+      if (table %not_in% loaded_tables){
         
-        table <- sub("\\.[^.]*$", "", file_name)
-        file_ext <- sub(".*\\.", "", tolower(file_name))
+        # Check if this is an OMOP table
         
-        # If no file_ext, consider it is a folder containing parquet or CSV files
-        if (file_ext == table) file_ext <- ""
-        
-        if (table %not_in% loaded_tables){
+        if (table %in% tables_to_load){
           
-          # Check if this is an OMOP table
-          
-          if (table %in% tables_to_load){
+          if (file_ext %in% c("csv", "parquet", "")){
             
-            if (file_ext %in% c("csv", "parquet", "")){
+            # If no file_ext, consider it is a folder and try to find extension of first file
+            if (file_ext == "") {
+              folder_path <- file.path(data_folder, file_name)
               
-              # If no file_ext, consider it is a folder and try to find extension of first file
-              if (file_ext == "") {
-                folder_path <- file.path(data_folder, file_name)
+              if (dir.exists(folder_path)) {
+                folder_files <- list.files(folder_path)
                 
-                if (dir.exists(folder_path)) {
-                  folder_files <- list.files(folder_path)
-                  
-                  if (length(folder_files) > 0) {
-                    # Get extension of first file
-                    first_file_ext <- sub(".*\\.", "", tolower(folder_files[1]))
-                    if (first_file_ext %in% c("csv", "parquet")) {
-                      file_ext <- first_file_ext
-                    }
+                if (length(folder_files) > 0) {
+                  # Get extension of first file
+                  first_file_ext <- sub(".*\\.", "", tolower(folder_files[1]))
+                  if (first_file_ext %in% c("csv", "parquet")) {
+                    file_ext <- first_file_ext
                   }
                 }
               }
+            }
+            
+            if (file_ext %in% c("csv", "parquet")){
               
-              if (file_ext %in% c("csv", "parquet")){
+              if (!DBI::dbExistsTable(d$con, table)){
                 
-                if (!DBI::dbExistsTable(d$con, table)){
+                file_path <- file.path(data_folder, file_name)
+                
+                if (file_ext == "csv"){
+                  type_codes <- strsplit(col_types[[table]], "")[[1]]
                   
-                  file_path <- file.path(data_folder, file_name)
+                  col_names <- col_names[[table]]
+                  col_types_sql <- paste(
+                    mapply(
+                      function(col, type) {
+                        sprintf('"%s" %s', col, convert_to_duckdb_type(type))
+                      },
+                      col_names,
+                      type_codes
+                    ),
+                    collapse = ", "
+                  )
                   
-                  if (file_ext == "csv"){
-                    type_codes <- strsplit(col_types[[table]], "")[[1]]
-                    
-                    col_names <- col_names[[table]]
-                    col_types_sql <- paste(
-                      mapply(
-                        function(col, type) {
-                          sprintf('"%s" %s', col, convert_to_duckdb_type(type))
-                        },
-                        col_names,
-                        type_codes
-                      ),
-                      collapse = ", "
+                  col_types_csv <- paste(
+                    mapply(
+                      function(col, type) {
+                        sprintf("'%s': '%s'", col, convert_to_duckdb_type(type))
+                      },
+                      col_names,
+                      type_codes
+                    ),
+                    collapse = ", "
+                  )
+                  
+                  DBI::dbExecute(
+                    d$con,
+                    sprintf(
+                      "CREATE VIEW %s SELECT * FROM read_csv('%s', nullstr='NA', columns={%s})",
+                      table,
+                      file.path(data_folder, file_name),
+                      col_types_csv
                     )
-                    
-                    col_types_csv <- paste(
-                      mapply(
-                        function(col, type) {
-                          sprintf("'%s': '%s'", col, convert_to_duckdb_type(type))
-                        },
-                        col_names,
-                        type_codes
-                      ),
-                      collapse = ", "
-                    )
-                    
-                    DBI::dbExecute(
-                      d$con,
-                      sprintf(
-                        "CREATE VIEW %s SELECT * FROM read_csv('%s', nullstr='NA', columns={%s})",
-                        table,
-                        file.path(data_folder, file_name),
-                        col_types_csv
-                      )
-                    )
-                  }
-                  else if (file_ext == "parquet") DBI::dbExecute(d$con, paste0("CREATE VIEW ", table, " AS SELECT * FROM read_parquet('", file_path, "')"))
+                  )
                 }
+                else if (file_ext == "parquet") DBI::dbExecute(d$con, paste0("CREATE VIEW ", table, " AS SELECT * FROM read_parquet('", file_path, "')"))
               }
             }
           }
         }
       }
-      
-      # Disconnect to reconnect with a read_only connection
-      DBI::dbDisconnect(d$con, shutdown = TRUE)
     }
-    
-    d$con <- DBI::dbConnect(duckdb::duckdb(), dbdir = db_path, read_only = TRUE)
   }
   
   ## Import data from database connection ----
@@ -190,13 +180,9 @@ import_dataset <- function(omop_version = "5.4", data_folder = character(), con,
     }
   }
   
-  # Transform data ----
-  
-  ## Select cols ----
+  # Count imported tables rows (only for datasets page)
   
   loaded_data <- tibble::tibble(table = character(), n_rows = integer())
-  
-  # Count imported tables rows (only for datasets page)
   
   if (r$current_page == "datasets"){
     for (table in loaded_tables){
@@ -211,7 +197,6 @@ import_dataset <- function(omop_version = "5.4", data_folder = character(), con,
 import_vocabulary_table <- function(table_name = character(), data = tibble::tibble()){
   
   # Get variables from other environments
-  
   for (obj_name in c("r", "m")) assign(obj_name, get(obj_name, envir = parent.frame()))
   i18n <- r$i18n
   

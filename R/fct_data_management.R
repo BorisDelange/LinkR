@@ -61,7 +61,6 @@
 add_patients_to_subset <- function(patients = tibble::tibble(), subset_id = integer()){
   
   # Get variables from other environments
-  
   for (obj_name in c("r", "m", "output")) assign(obj_name, get(obj_name, envir = parent.frame()))
   i18n <- r$i18n
   
@@ -190,7 +189,6 @@ add_patients_to_subset <- function(patients = tibble::tibble(), subset_id = inte
 remove_patients_from_subset <- function(patients = tibble::tibble(), subset_id = integer()){
   
   # Get variables from other environments
-  
   for (obj_name in c("r", "m", "output")) assign(obj_name, get(obj_name, envir = parent.frame()))
   i18n <- r$i18n
   

@@ -630,7 +630,7 @@ mod_projects_server <- function(id, r, d, m, language, i18n, debug, user_accesse
           load_dataset(id, output, r, m, d, input$load_dataset_id, r$main_tables, m$selected_study)
           
           tryCatch(
-            load_dataset_concepts(r, d, m), 
+            load_dataset_concepts(), 
             error = function(e) {
               cat(paste0("\n", now(), " - mod_projects - error loading dataset concepts - error = ", toString(e)))
               show_message_bar(id, output, "error_loading_dataset_concepts", "severeWarning", i18n = i18n, ns = ns)
