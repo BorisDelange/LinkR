@@ -12,7 +12,7 @@ app_server <- function(
     
     if (debug) cat(paste0("\n", now(), " - server - reactive values"))
     
-    # Create observers ----
+    # Create reactive values ----
     
     # Create r reactive value, for the application processings
     r <- reactiveValues()
@@ -54,7 +54,7 @@ app_server <- function(
     o <- reactiveValues()
     
     # App version ----
-    r$app_version <- "0.3.1.9007"
+    r$app_version <- "0.3.1.9008"
     
     # Databse col types ----
     
