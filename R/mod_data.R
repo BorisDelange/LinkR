@@ -251,10 +251,6 @@ mod_data_ui <- function(id, language, languages, i18n){
 #' @noRd 
 mod_data_server <- function(id, r, d, m, language, i18n, debug, user_accesses){
   
-  # |-------------------------------- -----
-  
-  if (debug) cat(paste0("\n", now(), " - mod_data - start"))
-  
   # Load concepts backend ----
   
   mod_select_concepts_server(id, r, d, m, language, i18n, debug)
@@ -276,8 +272,6 @@ mod_data_server <- function(id, r, d, m, language, i18n, debug, user_accesses){
     # --- --- --- --- --
     # Initiate vars ----
     # --- --- --- --- --
-    
-    if (debug) cat(paste0("\n", now(), " - mod_data - initiate vars"))
     
     categories <- c("patient_lvl", "aggregated")
     
@@ -326,8 +320,7 @@ mod_data_server <- function(id, r, d, m, language, i18n, debug, user_accesses){
     # Change data page ----
     # --- --- --- --- --- -
     
-    observeEvent(r$data_page, {
-      if (debug) cat(paste0("\n", now(), " - mod_data - observer r$data_page"))
+    observeEvent(r$data_page, try_catch("r$data_page", {
       
       displayed_category <- r$data_page
       hidden_category <- categories[categories != displayed_category]
@@ -355,7 +348,7 @@ mod_data_server <- function(id, r, d, m, language, i18n, debug, user_accesses){
       
       # Reload window size (correct bug with some plugins display)
       shinyjs::runjs("var event = new Event('resize'); window.dispatchEvent(event);")
-    })
+    }))
     
     # --- --- --- --- --- --- --
     # A project is selected ----
@@ -366,9 +359,7 @@ mod_data_server <- function(id, r, d, m, language, i18n, debug, user_accesses){
     subset_tables <- c(person_tables, "person")
     main_tables <- c(subset_tables, "location", "care_site", "provider")
     
-    observeEvent(r$load_project_trigger, {
-      
-      if (debug) cat(paste0("\n", now(), " - mod_data - observer r$load_project_trigger"))
+    observeEvent(r$load_project_trigger, try_catch("r$load_project_trigger", {
       
       # Hide all grids
       sapply(r$data_grids, shinyjs::hide)
@@ -387,196 +378,177 @@ mod_data_server <- function(id, r, d, m, language, i18n, debug, user_accesses){
         sapply(person_tables, function(table) d$data_person[[table]] <- tibble::tibble())
         sapply(visit_detail_tables, function(table) d$data_visit_detail[[table]] <- tibble::tibble())
 
-        req(!is.na(m$selected_study))
+        if (!is.na(m$selected_study)){
 
-        # Reset selected_subset, selected_person & selected_visit_detail
-        m$selected_subset <- NA_integer_
-        m$selected_person <- NA_integer_
-        m$selected_visit_detail <- NA_integer_
-
-        shinyjs::show("study_menu")
-        shinyjs::hide("patient_switching_buttons")
-        
-        # Reset selected plugin and selected concepts
-        shinyjs::runjs(update_selected_concepts_css$add)
-        shinyjs::runjs(update_selected_concepts_css$edit)
-        output$add_widget_selected_plugin <- renderUI(default_selected_plugin_ui)
-        output$edit_widget_selected_plugin <- renderUI(default_selected_plugin_ui)
-        output$add_widget_selected_concepts <- renderUI(default_selected_concepts_ui)
-        output$edit_widget_selected_concepts <- renderUI(default_selected_concepts_ui)
-
-        # Reset selected key
-        r$patient_lvl_selected_tab <- NA_integer_
-        r$aggregated_selected_tab <- NA_integer_
-        
-        r$data_load_ui_stage <- "first_time"
-
-        # Load tabs & widgets variables for this study
-        
-        tab_group_ids <- c(
-          r$projects_wide %>% dplyr::filter(id == m$selected_study) %>% dplyr::pull(patient_lvl_tab_group_id),
-          r$projects_wide %>% dplyr::filter(id == m$selected_study) %>% dplyr::pull(aggregated_tab_group_id)
-        )
-        
-        r$data_tabs_groups <- tibble::tibble(category = c("patient_lvl", "aggregated"), id = tab_group_ids)
-        
-        sql <- glue::glue_sql("SELECT * FROM tabs WHERE tab_group_id IN ({tab_group_ids*})", .con = r$db)
-        r$data_tabs <- DBI::dbGetQuery(r$db, sql)
-        
-        sql <- glue::glue_sql("SELECT * FROM widgets WHERE tab_id IN ({r$data_tabs$id*})", .con = r$db)
-        r$data_widgets <- DBI::dbGetQuery(r$db, sql) %>% dplyr::mutate(plugin_id = dplyr::if_else(is.na(plugin_id), 0, plugin_id))
-        
-        sql <- glue::glue_sql("SELECT * FROM widgets_concepts WHERE widget_id IN ({r$data_widgets$id*})", .con = m$db)
-        r$data_widgets_concepts <- DBI::dbGetQuery(m$db, sql)
-        
-        # Load tabs
-        r$data_reload_tabs <- paste0("ui_first_load_", now())
-
-        # Load data & concepts
-        sql <- glue::glue_sql("SELECT dataset_id FROM studies WHERE id = {m$selected_study}", .con = r$db)
-        r$selected_dataset <- DBI::dbGetQuery(r$db, sql) %>% dplyr::pull(dataset_id)
-        
-        # Reset d list if no selected dataset
-        # Reset dropdowns and hive divs
-        if (is.na(r$selected_dataset)){
-          
-          sapply(main_tables, function(table) d[[table]] <- tibble::tibble())
-          
-          updateSelectizeInput(
-            session, "subset", choices = NULL, server = TRUE,
-            options = list(
-              placeholder = i18n$t("no_subset_available"),
-              onInitialize = I("function() { this.setValue(''); }")
-            )
-          )
-          
-          updateSelectizeInput(session, "person", choices = NULL, server = TRUE)
-          updateSelectizeInput(session, "visit_detail", choices = NULL, server = TRUE)
-          
-          output$person_info <- renderUI("")
-          output$subset_info <- renderUI("")
-          
-          shinyjs::hide("patient_switching_buttons")
+          # Reset selected_subset, selected_person & selected_visit_detail
           m$selected_subset <- NA_integer_
           m$selected_person <- NA_integer_
           m$selected_visit_detail <- NA_integer_
+  
+          shinyjs::show("study_menu")
+          shinyjs::hide("patient_switching_buttons")
           
-          m$subsets <- tibble::tibble()
-          m$subset_persons <- tibble::tibble()
-          r$dataset_vocabularies <- tibble::tibble()
-        }
+          # Reset selected plugin and selected concepts
+          shinyjs::runjs(update_selected_concepts_css$add)
+          shinyjs::runjs(update_selected_concepts_css$edit)
+          output$add_widget_selected_plugin <- renderUI(default_selected_plugin_ui)
+          output$edit_widget_selected_plugin <- renderUI(default_selected_plugin_ui)
+          output$add_widget_selected_concepts <- renderUI(default_selected_concepts_ui)
+          output$edit_widget_selected_concepts <- renderUI(default_selected_concepts_ui)
+  
+          # Reset selected key
+          r$patient_lvl_selected_tab <- NA_integer_
+          r$aggregated_selected_tab <- NA_integer_
           
-        else {
-          ## Load data
-          shinyjs::runjs(paste0("Shiny.setInputValue('projects-load_dataset', Math.random());"))
+          r$data_load_ui_stage <- "first_time"
+  
+          # Load tabs & widgets variables for this study
+          
+          tab_group_ids <- c(
+            r$projects_wide %>% dplyr::filter(id == m$selected_study) %>% dplyr::pull(patient_lvl_tab_group_id),
+            r$projects_wide %>% dplyr::filter(id == m$selected_study) %>% dplyr::pull(aggregated_tab_group_id)
+          )
+          
+          r$data_tabs_groups <- tibble::tibble(category = c("patient_lvl", "aggregated"), id = tab_group_ids)
+          
+          sql <- glue::glue_sql("SELECT * FROM tabs WHERE tab_group_id IN ({tab_group_ids*})", .con = r$db)
+          r$data_tabs <- DBI::dbGetQuery(r$db, sql)
+          
+          sql <- glue::glue_sql("SELECT * FROM widgets WHERE tab_id IN ({r$data_tabs$id*})", .con = r$db)
+          r$data_widgets <- DBI::dbGetQuery(r$db, sql) %>% dplyr::mutate(plugin_id = dplyr::if_else(is.na(plugin_id), 0, plugin_id))
+          
+          sql <- glue::glue_sql("SELECT * FROM widgets_concepts WHERE widget_id IN ({r$data_widgets$id*})", .con = m$db)
+          r$data_widgets_concepts <- DBI::dbGetQuery(m$db, sql)
+          
+          # Load tabs
+          r$data_reload_tabs <- paste0("ui_first_load_", now())
+  
+          # Load data & concepts
+          sql <- glue::glue_sql("SELECT dataset_id FROM studies WHERE id = {m$selected_study}", .con = r$db)
+          r$selected_dataset <- DBI::dbGetQuery(r$db, sql) %>% dplyr::pull(dataset_id)
+          
+          # Reset d list if no selected dataset
+          # Reset dropdowns and hive divs
+          if (is.na(r$selected_dataset)){
+            
+            sapply(main_tables, function(table) d[[table]] <- tibble::tibble())
+            
+            updateSelectizeInput(
+              session, "subset", choices = NULL, server = TRUE,
+              options = list(
+                placeholder = i18n$t("no_subset_available"),
+                onInitialize = I("function() { this.setValue(''); }")
+              )
+            )
+            
+            updateSelectizeInput(session, "person", choices = NULL, server = TRUE)
+            updateSelectizeInput(session, "visit_detail", choices = NULL, server = TRUE)
+            
+            output$person_info <- renderUI("")
+            output$subset_info <- renderUI("")
+            
+            shinyjs::hide("patient_switching_buttons")
+            m$selected_subset <- NA_integer_
+            m$selected_person <- NA_integer_
+            m$selected_visit_detail <- NA_integer_
+            
+            m$subsets <- tibble::tibble()
+            m$subset_persons <- tibble::tibble()
+            r$dataset_vocabularies <- tibble::tibble()
+          }
+            
+          else {
+            ## Load data
+            shinyjs::runjs(paste0("Shiny.setInputValue('projects-load_dataset', Math.random());"))
+          }
         }
       })
-    })
+    }))
     
     # --- --- --- --
     # Load data ----
     # --- --- --- --
     
     ## Subset ----
-    observeEvent(m$selected_subset, {
-      if (debug) cat(paste0("\n", now(), " - mod_data - observer m$selected_subset"))
+    observeEvent(m$selected_subset, try_catch("m$selected_subset", {
       
-      req(!is.na(m$selected_subset))
+      if (!is.na(m$selected_subset)){
       
-      if (nrow(m$subset_persons) == 0) for(table in c("person", "visit_occurrence", "visit_detail")) d$data_subset[[table]] <- tibble::tibble()
-      else {
-        
-        person_ids <- m$subset_persons %>% dplyr::distinct(person_id) %>% dplyr::pull()
-        person_ids_only <- m$subset_persons %>% dplyr::filter(is.na(visit_occurrence_id) & is.na(visit_detail_id)) %>% dplyr::distinct(person_id) %>% dplyr::pull()
-        visit_occurrence_ids <- m$subset_persons %>% dplyr::filter(!is.na(visit_occurrence_id)) %>% dplyr::distinct(visit_occurrence_id) %>% dplyr::pull()
-        visit_occurrence_ids_only <- m$subset_persons %>% dplyr::filter(is.na(visit_detail_id)) %>% dplyr::distinct(visit_occurrence_id) %>% dplyr::pull()
-        visit_detail_ids <- m$subset_persons %>% dplyr::filter(!is.na(visit_detail_id)) %>% dplyr::distinct(visit_detail_id) %>% dplyr::pull()
-        
-        for (table in c("person", "visit_occurrence", "visit_detail")){
-          if ("person_id" %in% colnames(d[[table]])){
-            if (table == "person") d$data_subset$person <- d$person %>% dplyr::filter(person_id %in% person_ids)
-            else if (table == "visit_occurrence") d$data_subset$visit_occurrence <- d$visit_occurrence %>% 
-              dplyr::filter(visit_occurrence_id %in% visit_occurrence_ids | person_id %in% person_ids_only)
-            else if (table == "visit_detail") d$data_subset$visit_detail <- d$visit_detail %>% 
-              dplyr::filter(visit_detail_id %in% visit_detail_ids | visit_occurrence_id %in% visit_occurrence_ids_only | person_id %in% person_ids_only)
+        if (nrow(m$subset_persons) == 0) for(table in c("person", "visit_occurrence", "visit_detail")) d$data_subset[[table]] <- tibble::tibble()
+        else {
+          
+          person_ids <- m$subset_persons %>% dplyr::distinct(person_id) %>% dplyr::pull()
+          person_ids_only <- m$subset_persons %>% dplyr::filter(is.na(visit_occurrence_id) & is.na(visit_detail_id)) %>% dplyr::distinct(person_id) %>% dplyr::pull()
+          visit_occurrence_ids <- m$subset_persons %>% dplyr::filter(!is.na(visit_occurrence_id)) %>% dplyr::distinct(visit_occurrence_id) %>% dplyr::pull()
+          visit_occurrence_ids_only <- m$subset_persons %>% dplyr::filter(is.na(visit_detail_id)) %>% dplyr::distinct(visit_occurrence_id) %>% dplyr::pull()
+          visit_detail_ids <- m$subset_persons %>% dplyr::filter(!is.na(visit_detail_id)) %>% dplyr::distinct(visit_detail_id) %>% dplyr::pull()
+          
+          for (table in c("person", "visit_occurrence", "visit_detail")){
+            if ("person_id" %in% colnames(d[[table]])){
+              if (table == "person") d$data_subset$person <- d$person %>% dplyr::filter(person_id %in% person_ids)
+              else if (table == "visit_occurrence") d$data_subset$visit_occurrence <- d$visit_occurrence %>% 
+                dplyr::filter(visit_occurrence_id %in% visit_occurrence_ids | person_id %in% person_ids_only)
+              else if (table == "visit_detail") d$data_subset$visit_detail <- d$visit_detail %>% 
+                dplyr::filter(visit_detail_id %in% visit_detail_ids | visit_occurrence_id %in% visit_occurrence_ids_only | person_id %in% person_ids_only)
+            }
+            else d$data_subset[[table]] <- tibble::tibble()
+            d$data_subset_source[[table]] <- d$data_subset[[table]]
           }
-          else d$data_subset[[table]] <- tibble::tibble()
-          d$data_subset_source[[table]] <- d$data_subset[[table]]
+          
+          tables <- c(
+            "condition_occurrence", "drug_exposure", "procedure_occurrence", "device_exposure", "measurement", "observation", "note", "payer_plan_period",
+            "specimen", "death", "drug_era", "dose_era", "condition_era", "observation_period"
+          )
+          
+          for(table in tables){
+            
+            # Filter data on person_id, visit_occurrence_id and visit_detail_id
+  
+            if ("person_id" %in% colnames(d[[table]])){
+              if (table %in% c("condition_occurrence", "drug_exposure", "procedure_occurrence", "device_exposure", "measurement", "observation", "note")){
+                d$data_subset[[table]] <- d[[table]] %>% dplyr::inner_join(d$data_subset$visit_detail %>% dplyr::distinct(visit_detail_id), by = "visit_detail_id")
+              }
+              else if (table %in% c("specimen", "death", "drug_era", "dose_era", "condition_era", "observation_period", "payer_plan_period")){
+                d$data_subset[[table]] <- d[[table]] %>% dplyr::inner_join(d$data_subset$person %>% dplyr::distinct(person_id), by = "person_id")
+              }
+            }
+            else d$data_subset[[table]] <- tibble::tibble()
+            
+            d$data_subset_source[[table]] <- d$data_subset[[table]]
+          }
         }
         
-        tables <- c(
-          "condition_occurrence", "drug_exposure", "procedure_occurrence", "device_exposure", "measurement", "observation", "note", "payer_plan_period",
-          "specimen", "death", "drug_era", "dose_era", "condition_era", "observation_period"
-        )
+        # Reload subset informations UI
+        r$subset_updated_data <- Sys.time()
         
-        for(table in tables){
-          
-          # Filter data on person_id, visit_occurrence_id and visit_detail_id
-
-          if ("person_id" %in% colnames(d[[table]])){
-            if (table %in% c("condition_occurrence", "drug_exposure", "procedure_occurrence", "device_exposure", "measurement", "observation", "note")){
-              d$data_subset[[table]] <- d[[table]] %>% dplyr::inner_join(d$data_subset$visit_detail %>% dplyr::distinct(visit_detail_id), by = "visit_detail_id")
-            }
-            else if (table %in% c("specimen", "death", "drug_era", "dose_era", "condition_era", "observation_period", "payer_plan_period")){
-              d$data_subset[[table]] <- d[[table]] %>% dplyr::inner_join(d$data_subset$person %>% dplyr::distinct(person_id), by = "person_id")
-            }
-          }
-          else d$data_subset[[table]] <- tibble::tibble()
-          
-          d$data_subset_source[[table]] <- d$data_subset[[table]]
+        # Update date sliderInput and DatePicker
+        if ("visit_occurrence_id" %in% colnames(d$data_subset$visit_occurrence)){
+          dates_range <-
+            d$data_subset$visit_occurrence %>%
+            dplyr::summarize(
+              min_date = min(visit_start_datetime, na.rm = TRUE),
+              max_date = max(visit_end_datetime, na.rm = TRUE)
+            ) %>%
+            dplyr::collect() %>%
+            dplyr::mutate_at(c("min_date", "max_date"), as.Date)
+  
+          subset_dates_range(c(dates_range$min_date, dates_range$max_date))
+          subset_dates(c(dates_range$min_date, dates_range$max_date))
         }
       }
-      
-      # Reload subset informations UI
-      r$subset_updated_data <- Sys.time()
-      
-      # Update date sliderInput and DatePicker
-      if ("visit_occurrence_id" %in% colnames(d$data_subset$visit_occurrence)){
-        dates_range <-
-          d$data_subset$visit_occurrence %>%
-          dplyr::summarize(
-            min_date = min(visit_start_datetime, na.rm = TRUE),
-            max_date = max(visit_end_datetime, na.rm = TRUE)
-          ) %>%
-          dplyr::collect() %>%
-          dplyr::mutate_at(c("min_date", "max_date"), as.Date)
-
-        subset_dates_range(c(dates_range$min_date, dates_range$max_date))
-        subset_dates(c(dates_range$min_date, dates_range$max_date))
-      }
-    })
+    }))
     
     ## Patient ----
-    observeEvent(m$selected_person, {
-      if (debug) cat(paste0("\n", now(), " - mod_data - observer m$selected_person"))
+    observeEvent(m$selected_person, try_catch("m$selected_person", {
       
-      req(!is.na(m$selected_person))
-      
-      selected_person <- m$selected_person
-      
-      # for(table in person_tables){
-      #   if ("person_id" %in% colnames(d$data_subset[[table]])){
-      #     d$data_person[[table]] <- d$data_subset[[table]] %>% dplyr::filter(person_id == selected_person)
-      #   }
-      #   else d$data_person[[table]] <- tibble::tibble()
-      # }
-    })
+      if (!is.na(m$selected_person)) selected_person <- m$selected_person
+    }))
     
     ## Stay ----
-    observeEvent(m$selected_visit_detail, {
-      if (debug) cat(paste0("\n", now(), " - mod_data - observer m$selected_visit_detail"))
+    observeEvent(m$selected_visit_detail, try_catch("m$selected_visit_detail", {
       
-      req(!is.na(m$selected_visit_detail))
-      
-      selected_visit_detail <- m$selected_visit_detail
-      
-      # for(table in visit_detail_tables){
-      #   if ("visit_detail_id" %in% colnames(d$data_person[[table]])){
-      #     d$data_visit_detail[[table]] <- d$data_person[[table]] %>% dplyr::filter(visit_detail_id == selected_visit_detail)
-      #   }
-      #   else d$data_visit_detail[[table]] <- tibble::tibble()
-      # }
-    })
+      if (!is.na(m$selected_visit_detail)) selected_visit_detail <- m$selected_visit_detail
+    }))
     
     # --- --- --- --- --- --
     # Sidenav dropdowns ----
@@ -584,8 +556,7 @@ mod_data_server <- function(id, r, d, m, language, i18n, debug, user_accesses){
     
       ## Subset ----
       
-      observeEvent(m$subsets, {
-        if (debug) cat(paste0("\n", now(), " - mod_data - observer m$subsets"))
+      observeEvent(m$subsets, try_catch("m$subsets", {
         
         # Update subset dropdown
         if (nrow(m$subsets) == 0) updateSelectizeInput(
@@ -637,50 +608,50 @@ mod_data_server <- function(id, r, d, m, language, i18n, debug, user_accesses){
         
         output$person_info <- renderUI("")
         shinyjs::hide("person_info_div")
-      })
+      }))
     
-      observeEvent(input$subset, {
-        if (debug) cat(paste0("\n", now(), " - mod_data - observer input$subset"))
+      observeEvent(input$subset, try_catch("input$subset", {
         
-        req(input$subset)
+        if (length(input$subset) > 0 && length(m$selected_subset) > 0){
         
-        selected_subset <- as.numeric(input$subset)
-        
-        # Prevent multiple changes of m$selected_subset
-        # We have to keep multiple observers, cause we use input variable
-        if (is.na(m$selected_subset)) m$selected_subset <- selected_subset
-        if (!is.na(m$selected_subset) & m$selected_subset != selected_subset) m$selected_subset <- selected_subset
-
-        # Reset data var
-        if (r$data_page == "patient_lvl"){
-          sapply(person_tables, function(table) d$data_person[[table]] <- tibble::tibble())
-          sapply(visit_detail_tables, function(table) d$data_visit_detail[[table]] <- tibble::tibble())
-        }
-
-        # Select patients who belong to this subset
-        m$subset_persons <- DBI::dbGetQuery(m$db, glue::glue_sql("SELECT * FROM subset_persons WHERE subset_id = {selected_subset}", .con = m$db))
-        
-        # If this subset contains no patient, maybe the code has not been run yet
-        if (nrow(m$subset_persons) == 0){
+          selected_subset <- as.numeric(input$subset)
           
-          sql <- glue::glue_sql("SELECT value FROM options WHERE category = 'subset' AND name = 'unique_id' AND link_id = {selected_subset}", .con = m$db)
-          subset_unique_id <- DBI::dbGetQuery(m$db, sql) %>% dplyr::pull()
-          
-          file_path <- file.path(r$app_folder, "subsets", subset_unique_id, "main.R")
-          subset_code <- readLines(file_path, warn = FALSE) %>% paste(collapse = "\n")
-
-          subset_code <- subset_code %>% stringr::str_replace_all("\r", "\n")
-
-          tryCatch(eval(parse(text = subset_code)),
-            error = function(e) if (nchar(e[1]) > 0) cat(paste0("\n", now(), " - mod_data - error executing subset code - subset_id = ", selected_subset)))
-
+          # Prevent multiple changes of m$selected_subset
+          # We have to keep multiple observers, cause we use input variable
+          if (is.na(m$selected_subset)) m$selected_subset <- selected_subset
+          if (!is.na(m$selected_subset) & m$selected_subset != selected_subset) m$selected_subset <- selected_subset
+  
+          # Reset data var
+          if (r$data_page == "patient_lvl"){
+            sapply(person_tables, function(table) d$data_person[[table]] <- tibble::tibble())
+            sapply(visit_detail_tables, function(table) d$data_visit_detail[[table]] <- tibble::tibble())
+          }
+  
+          # Select patients who belong to this subset
           m$subset_persons <- DBI::dbGetQuery(m$db, glue::glue_sql("SELECT * FROM subset_persons WHERE subset_id = {selected_subset}", .con = m$db))
+          
+          # If this subset contains no patient, maybe the code has not been run yet
+          if (nrow(m$subset_persons) == 0){
+            
+            sql <- glue::glue_sql("SELECT value FROM options WHERE category = 'subset' AND name = 'unique_id' AND link_id = {selected_subset}", .con = m$db)
+            subset_unique_id <- DBI::dbGetQuery(m$db, sql) %>% dplyr::pull()
+            
+            file_path <- file.path(r$app_folder, "subsets", subset_unique_id, "main.R")
+            subset_code <- readLines(file_path, warn = FALSE) %>% paste(collapse = "\n")
+  
+            subset_code <- subset_code %>% stringr::str_replace_all("\r", "\n")
+  
+            tryCatch(eval(parse(text = subset_code)),
+              error = function(e) if (nchar(e[1]) > 0) cat(paste0("\n", now(), " - mod_data - error executing subset code - subset_id = ", selected_subset)))
+  
+            m$subset_persons <- DBI::dbGetQuery(m$db, glue::glue_sql("SELECT * FROM subset_persons WHERE subset_id = {selected_subset}", .con = m$db))
+          }
+  
+          # Reset selected_person & selected_visit_detail
+          m$selected_person <- NA_integer_
+          m$selected_visit_detail <- NA_integer_
         }
-
-        # Reset selected_person & selected_visit_detail
-        m$selected_person <- NA_integer_
-        m$selected_visit_detail <- NA_integer_
-      })
+      }))
       
       ## Filter subset dates ----
       
@@ -690,52 +661,49 @@ mod_data_server <- function(id, r, d, m, language, i18n, debug, user_accesses){
       subset_dates <- reactiveVal(c(as.Date("1970-01-01"), Sys.Date()))
       debounced_subset_dates <- reactive(subset_dates()) %>% debounce(100)
       
-      observeEvent(input$subset_date_slider, {
-        if (debug) cat(paste0("\n", now(), " - mod_data - observer input$subset_date_slider"))
+      observeEvent(input$subset_date_slider, try_catch("input$subset_date_slider", {
         
         subset_dates(input$subset_date_slider)
-      })
+      }))
       
-      observeEvent(input$subset_start_date, {
-        if (debug) cat(paste0("\n", now(), " - mod_data - observer input$subset_start_date"))
+      observeEvent(input$subset_start_date, try_catch("input$subset_start_date", {
         
         if (as.Date(input$subset_start_date) != subset_dates()[1]) subset_dates(c(as.Date(input$subset_start_date), subset_dates()[2]))
-      })
+      }))
       
-      observeEvent(input$subset_end_date, {
-        if (debug) cat(paste0("\n", now(), " - mod_data - observer input$subset_end_date"))
+      observeEvent(input$subset_end_date, try_catch("input$subset_end_date", {
         
         if (as.Date(input$subset_end_date) != subset_dates()[2]) subset_dates(c(subset_dates()[1], as.Date(input$subset_end_date)))
-      })
+      }))
       
-      observeEvent(debounced_subset_dates(), {
-        if (debug) cat(paste0("\n", now(), " - mod_data - observer subset_dates()"))
+      observeEvent(debounced_subset_dates(), try_catch("debounced_subset_dates()", {
         
-        req(input$subset_date_slider, debounced_subset_dates(), subset_dates_range())
+        if (length(input$subset_date_slider) > 0 && length(debounced_subset_dates()) > 0 && length(subset_dates_range()) > 0){
         
-        start_date <- debounced_subset_dates()[1]
-        end_date <- debounced_subset_dates()[2]
-        min_date <- subset_dates_range()[1]
-        max_date <- subset_dates_range()[2]
-        min_date_js <- htmlwidgets::JS(sprintf("new Date('%s')", as.character(min_date)))
-        max_date_js <- htmlwidgets::JS(sprintf("new Date('%s')", as.character(max_date)))
-        
-        if (input$subset_date_slider[1] != start_date | input$subset_date_slider[2] != end_date){
-          if (start_date >= min_date & end_date <= max_date){
-            updateSliderInput(
-              session, "subset_date_slider",
-              min = min_date, max = max_date,
-              value = as.Date(debounced_subset_dates()),
-              timeFormat = ifelse(language == "fr", "%d-%m-%Y", "%Y-%m-%d")
-            )
+          start_date <- debounced_subset_dates()[1]
+          end_date <- debounced_subset_dates()[2]
+          min_date <- subset_dates_range()[1]
+          max_date <- subset_dates_range()[2]
+          min_date_js <- htmlwidgets::JS(sprintf("new Date('%s')", as.character(min_date)))
+          max_date_js <- htmlwidgets::JS(sprintf("new Date('%s')", as.character(max_date)))
+          
+          if (input$subset_date_slider[1] != start_date | input$subset_date_slider[2] != end_date){
+            if (start_date >= min_date & end_date <= max_date){
+              updateSliderInput(
+                session, "subset_date_slider",
+                min = min_date, max = max_date,
+                value = as.Date(debounced_subset_dates()),
+                timeFormat = ifelse(language == "fr", "%d-%m-%Y", "%Y-%m-%d")
+              )
+            }
           }
+          
+          shiny.fluent::updateDatePicker.shinyInput(session, "subset_start_date", value = start_date, minDate = min_date_js, maxDate = max_date_js)
+          shiny.fluent::updateDatePicker.shinyInput(session, "subset_end_date", value = end_date, minDate = min_date_js, maxDate = max_date_js)
+          
+          shinyjs::delay(10, shinyjs::runjs("observeSubsetSliderChanges();"))
         }
-        
-        shiny.fluent::updateDatePicker.shinyInput(session, "subset_start_date", value = start_date, minDate = min_date_js, maxDate = max_date_js)
-        shiny.fluent::updateDatePicker.shinyInput(session, "subset_end_date", value = end_date, minDate = min_date_js, maxDate = max_date_js)
-        
-        shinyjs::delay(10, shinyjs::runjs("observeSubsetSliderChanges();"))
-      })
+      }))
       
       # Adjust position of subset_date_slider
       
@@ -793,54 +761,53 @@ mod_data_server <- function(id, r, d, m, language, i18n, debug, user_accesses){
       
       # Filter d$data_subset with selected date range
       
-      observeEvent(input$apply_subset_date_filters, {
-        if (debug) cat(paste0("\n", now(), " - mod_data - observer input$apply_subset_date_filters"))
+      observeEvent(input$apply_subset_date_filters, try_catch("input$apply_subset_date_filters", {
         
-        req(!is.na(m$selected_subset))
+        if (!is.na(m$selected_subset)){
         
-        start_date <- subset_dates()[1]
-        end_date <- subset_dates()[2]
-        
-        if (nrow(m$subset_persons) == 0) for(table in subset_tables) d$data_subset[[table]] <- tibble::tibble()
-        
-        else {
+          start_date <- subset_dates()[1]
+          end_date <- subset_dates()[2]
           
-          if ("visit_occurrence_id" %in% colnames(d$data_subset_source$visit_occurrence)) d$data_subset$visit_occurrence <-
-              d$data_subset_source$visit_occurrence %>% dplyr::filter(visit_start_date >= start_date & visit_start_date <= end_date)
-          if ("visit_detail_id" %in% colnames(d$data_subset_source$visit_detail)) d$data_subset$visit_detail <-
-              d$data_subset_source$visit_detail %>% dplyr::inner_join(d$data_subset$visit_occurrence %>% dplyr::distinct(visit_occurrence_id), by = "visit_occurrence_id")
-          if ("person_id" %in% colnames(d$data_subset_source$person)) d$data_subset$person <-
-              d$data_subset_source$person %>% dplyr::inner_join(d$data_subset$visit_occurrence %>% dplyr::distinct(person_id), by = "person_id")
+          if (nrow(m$subset_persons) == 0) for(table in subset_tables) d$data_subset[[table]] <- tibble::tibble()
           
-          tables <- c(
-            "condition_occurrence", "drug_exposure", "procedure_occurrence", "device_exposure", "measurement", "observation", "note", "payer_plan_period",
-            "specimen", "death", "drug_era", "dose_era", "condition_era", "observation_period"
-          )
-          
-          for(table in tables){
+          else {
             
-            # Filter data on person_id, visit_occurrence_id and visit_detail_id
+            if ("visit_occurrence_id" %in% colnames(d$data_subset_source$visit_occurrence)) d$data_subset$visit_occurrence <-
+                d$data_subset_source$visit_occurrence %>% dplyr::filter(visit_start_date >= start_date & visit_start_date <= end_date)
+            if ("visit_detail_id" %in% colnames(d$data_subset_source$visit_detail)) d$data_subset$visit_detail <-
+                d$data_subset_source$visit_detail %>% dplyr::inner_join(d$data_subset$visit_occurrence %>% dplyr::distinct(visit_occurrence_id), by = "visit_occurrence_id")
+            if ("person_id" %in% colnames(d$data_subset_source$person)) d$data_subset$person <-
+                d$data_subset_source$person %>% dplyr::inner_join(d$data_subset$visit_occurrence %>% dplyr::distinct(person_id), by = "person_id")
             
-            if ("person_id" %in% colnames(d$data_subset_source[[table]])){
-              if (table %in% c("condition_occurrence", "drug_exposure", "procedure_occurrence", "device_exposure", "measurement", "observation", "note")){
-                d$data_subset[[table]] <- d$data_subset_source[[table]] %>% dplyr::inner_join(d$data_subset$visit_detail %>% dplyr::distinct(visit_detail_id), by = "visit_detail_id")
+            tables <- c(
+              "condition_occurrence", "drug_exposure", "procedure_occurrence", "device_exposure", "measurement", "observation", "note", "payer_plan_period",
+              "specimen", "death", "drug_era", "dose_era", "condition_era", "observation_period"
+            )
+            
+            for(table in tables){
+              
+              # Filter data on person_id, visit_occurrence_id and visit_detail_id
+              
+              if ("person_id" %in% colnames(d$data_subset_source[[table]])){
+                if (table %in% c("condition_occurrence", "drug_exposure", "procedure_occurrence", "device_exposure", "measurement", "observation", "note")){
+                  d$data_subset[[table]] <- d$data_subset_source[[table]] %>% dplyr::inner_join(d$data_subset$visit_detail %>% dplyr::distinct(visit_detail_id), by = "visit_detail_id")
+                }
+                else if (table %in% c("specimen", "death", "drug_era", "dose_era", "condition_era", "observation_period", "payer_plan_period")){
+                  d$data_subset[[table]] <- d$data_subset_source[[table]] %>% dplyr::inner_join(d$data_subset$person %>% dplyr::distinct(person_id), by = "person_id")
+                }
               }
-              else if (table %in% c("specimen", "death", "drug_era", "dose_era", "condition_era", "observation_period", "payer_plan_period")){
-                d$data_subset[[table]] <- d$data_subset_source[[table]] %>% dplyr::inner_join(d$data_subset$person %>% dplyr::distinct(person_id), by = "person_id")
-              }
+              else d$data_subset[[table]] <- tibble::tibble()
             }
-            else d$data_subset[[table]] <- tibble::tibble()
           }
+          
+          # Reload subset informations UI
+          r$subset_updated_data <- Sys.time()
         }
-        
-        # Reload subset informations UI
-        r$subset_updated_data <- Sys.time()
-      })
+      }))
       
       ## Subset informations
       
-      observeEvent(r$subset_updated_data, {
-        if (debug) cat(paste0("\n", now(), " - mod_data - observer r$subset_updated_data"))
+      observeEvent(r$subset_updated_data, try_catch("r$subset_updated_data", {
         
         style <- "display:inline-block; width:100px; font-weight:bold;"
         output$subset_info <- renderUI(
@@ -851,13 +818,12 @@ mod_data_server <- function(id, r, d, m, language, i18n, debug, user_accesses){
             span(i18n$t("stays"), style = style), d$data_subset$visit_occurrence %>% dplyr::count() %>% dplyr::pull()
           )
         )
-      })
+      }))
     
       ## Patient ----
       
       # Update patients dropdown
-      observeEvent(m$subset_persons, {
-        if (debug) cat(paste0("\n", now(), " - mod_data - observer m$subset_persons"))
+      observeEvent(m$subset_persons, try_catch("m$subset_persons", {
         
         # Hide patients switching buttons
         shinyjs::hide("patient_switching_buttons")
@@ -932,212 +898,211 @@ mod_data_server <- function(id, r, d, m, language, i18n, debug, user_accesses){
           )
         )
         output$person_info <- renderUI("")
-      })
+      }))
       
       # When a patient is selected
-      observeEvent(input$person, {
-        if (debug) cat(paste0("\n", now(), " - mod_data - observer input$person"))
+      observeEvent(input$person, try_catch("input$person", {
         
-        req(input$person)
+        if (length(input$person) > 0 && length(r$subset_merged_patients) > 0){
         
-        person_id <- as.numeric(input$person)
-        m$selected_person <- person_id
-        
-        # Update switch buttons
-        shinyjs::show("patient_switching_buttons")
-        num_patient <- r$subset_merged_patients %>% dplyr::filter(person_id == !!person_id) %>% dplyr::pull(n)
-        r$num_selected_patient <- num_patient
-        num_patients <- max(r$subset_merged_patients$n)
-        output$person_switch_nums <- renderUI(div(num_patient, " / ", num_patients))
-        
-        # Reset variables
-        sapply(person_tables, function(table) d$data_person[[table]] <- tibble::tibble())
-        sapply(visit_detail_tables, function(table) d$data_visit_detail[[table]] <- tibble::tibble())
-
-        # Reset selected_visit_detail
-        m$selected_visit_detail <- NA_integer_
-        
-        no_stay_available <- FALSE
-        if ("visit_detail_id" %not_in% colnames(d$visit_detail)) no_stay_available <- TRUE
-        if ("visit_detail_id" %in% colnames(d$visit_detail)) if (d$visit_detail %>% dplyr::filter(person_id == !!person_id) %>% dplyr::count() %>% dplyr::pull() == 0) no_stay_available <- TRUE
-        
-        if (no_stay_available) updateSelectizeInput(
-          session, "visit_detail", choices = NULL, server = TRUE,
-          options = list(
-            placeholder = i18n$t("no_stay_available"),
-            onInitialize = I("function() { this.setValue(''); }")
-          )
-        )
-        
-        if (!no_stay_available){
+          person_id <- as.numeric(input$person)
+          m$selected_person <- person_id
           
-          visit_detail <- d$visit_detail %>% dplyr::mutate_at("person_id", as.integer) %>% dplyr::filter(person_id == !!person_id)
+          # Update switch buttons
+          shinyjs::show("patient_switching_buttons")
+          num_patient <- r$subset_merged_patients %>% dplyr::filter(person_id == !!person_id) %>% dplyr::pull(n)
+          r$num_selected_patient <- num_patient
+          num_patients <- max(r$subset_merged_patients$n)
+          output$person_switch_nums <- renderUI(div(num_patient, " / ", num_patients))
           
-          if ("parent_visit_detail_id" %in% colnames(visit_detail)) visit_detail <- visit_detail %>% dplyr::filter(is.na(parent_visit_detail_id))
-          else if ("visit_detail_parent_id" %in% colnames(visit_detail)) visit_detail <- visit_detail %>% dplyr::filter(is.na(visit_detail_parent_id))
+          # Reset variables
+          sapply(person_tables, function(table) d$data_person[[table]] <- tibble::tibble())
+          sapply(visit_detail_tables, function(table) d$data_visit_detail[[table]] <- tibble::tibble())
+  
+          # Reset selected_visit_detail
+          m$selected_visit_detail <- NA_integer_
           
-          visit_detail <-
-            visit_detail %>% 
-            dplyr::collect() %>% 
-            dplyr::left_join(
-              d$dataset_concept %>% dplyr::select(visit_detail_concept_id = concept_id, visit_detail_concept_name = concept_name),
-              by = "visit_detail_concept_id"
-            ) %>%
-            dplyr::arrange(visit_detail_start_datetime)
+          no_stay_available <- FALSE
+          if ("visit_detail_id" %not_in% colnames(d$visit_detail)) no_stay_available <- TRUE
+          if ("visit_detail_id" %in% colnames(d$visit_detail)) if (d$visit_detail %>% dplyr::filter(person_id == !!person_id) %>% dplyr::count() %>% dplyr::pull() == 0) no_stay_available <- TRUE
           
-          if ("visit_detail_concept_name" %in% colnames(visit_detail)){
-            
-            if (tolower(language) == "fr") visit_details <- 
-                visit_detail %>% 
-                dplyr::mutate(
-                  name_display = paste0(
-                    format(as.POSIXct(visit_detail_start_datetime), format = "%d-%m-%Y"), " ", 
-                    tolower(i18n$t("to")), " ",  format(as.POSIXct(visit_detail_end_datetime), format = "%d-%m-%Y"),
-                    " - ", visit_detail_concept_name
-                  )
-                )
-            
-            else visit_details <- 
-                visit_detail %>% 
-                dplyr::mutate(
-                  name_display = paste0(
-                    format(as.POSIXct(visit_detail_start_datetime), format = "%Y-%m-%d"), " ",
-                    tolower(i18n$t("to")), " ",  format(as.POSIXct(visit_detail_end_datetime), format = "%Y-%m-%d"),
-                    " - ", visit_detail_concept_name
-                  )
-                )
-          }
-          else {
-            
-            if (tolower(language) == "fr") visit_details <-
-                visit_detail %>% dplyr::mutate(
-                  name_display = paste0(
-                    format(as.POSIXct(visit_detail_start_datetime), format = "%d-%m-%Y"), " ",
-                    tolower(i18n$t("to")), " ",  format(as.POSIXct(visit_detail_end_datetime), format = "%d-%m-%Y"),
-                    " - ", visit_detail_concept_id
-                  )
-                )
-            
-            
-            else visit_details <- 
-                visit_detail %>% 
-                dplyr::mutate(
-                  name_display = paste0(
-                    format(as.POSIXct(visit_detail_start_datetime), format = "%Y-%m-%d"), " ",
-                    tolower(i18n$t("to")), " ",  format(as.POSIXct(visit_detail_end_datetime), format = "%Y-%m-%d"),
-                    " - ", visit_detail_concept_id
-                  )
-                )
-          }
-          
-          # Load visit_details of the person & update dropdown
-          choices <- setNames(visit_details$visit_detail_id, visit_details$name_display)
-          updateSelectizeInput(
-            session, "visit_detail", choices = choices, server = TRUE, selected = FALSE,
+          if (no_stay_available) updateSelectizeInput(
+            session, "visit_detail", choices = NULL, server = TRUE,
             options = list(
-              placeholder = "",
+              placeholder = i18n$t("no_stay_available"),
               onInitialize = I("function() { this.setValue(''); }")
             )
           )
-        }
-        
-        # Update person informations on sidenav
-        style <- "display:inline-block; width:80px; font-weight:bold;"
-        
-        person <- 
-          d$person %>%
-          dplyr::mutate_at("person_id", as.integer) %>%
-          dplyr::filter(person_id == !!person_id) %>% 
-          dplyr::collect() %>%
-          dplyr::left_join(d$dataset_concept %>% dplyr::select(gender_concept_id = concept_id, gender_concept_name = concept_name), by = "gender_concept_id")
-        
-        output$person_info <- renderUI(
-          tagList(
-            span(i18n$t("person_id"), style = style), person$person_id, br(),
-            span(i18n$t("gender"), style = style), person$gender_concept_name
+          
+          if (!no_stay_available){
+            
+            visit_detail <- d$visit_detail %>% dplyr::mutate_at("person_id", as.integer) %>% dplyr::filter(person_id == !!person_id)
+            
+            if ("parent_visit_detail_id" %in% colnames(visit_detail)) visit_detail <- visit_detail %>% dplyr::filter(is.na(parent_visit_detail_id))
+            else if ("visit_detail_parent_id" %in% colnames(visit_detail)) visit_detail <- visit_detail %>% dplyr::filter(is.na(visit_detail_parent_id))
+            
+            visit_detail <-
+              visit_detail %>% 
+              dplyr::collect() %>% 
+              dplyr::left_join(
+                d$dataset_concept %>% dplyr::select(visit_detail_concept_id = concept_id, visit_detail_concept_name = concept_name),
+                by = "visit_detail_concept_id"
+              ) %>%
+              dplyr::arrange(visit_detail_start_datetime)
+            
+            if ("visit_detail_concept_name" %in% colnames(visit_detail)){
+              
+              if (tolower(language) == "fr") visit_details <- 
+                  visit_detail %>% 
+                  dplyr::mutate(
+                    name_display = paste0(
+                      format(as.POSIXct(visit_detail_start_datetime), format = "%d-%m-%Y"), " ", 
+                      tolower(i18n$t("to")), " ",  format(as.POSIXct(visit_detail_end_datetime), format = "%d-%m-%Y"),
+                      " - ", visit_detail_concept_name
+                    )
+                  )
+              
+              else visit_details <- 
+                  visit_detail %>% 
+                  dplyr::mutate(
+                    name_display = paste0(
+                      format(as.POSIXct(visit_detail_start_datetime), format = "%Y-%m-%d"), " ",
+                      tolower(i18n$t("to")), " ",  format(as.POSIXct(visit_detail_end_datetime), format = "%Y-%m-%d"),
+                      " - ", visit_detail_concept_name
+                    )
+                  )
+            }
+            else {
+              
+              if (tolower(language) == "fr") visit_details <-
+                  visit_detail %>% dplyr::mutate(
+                    name_display = paste0(
+                      format(as.POSIXct(visit_detail_start_datetime), format = "%d-%m-%Y"), " ",
+                      tolower(i18n$t("to")), " ",  format(as.POSIXct(visit_detail_end_datetime), format = "%d-%m-%Y"),
+                      " - ", visit_detail_concept_id
+                    )
+                  )
+              
+              
+              else visit_details <- 
+                  visit_detail %>% 
+                  dplyr::mutate(
+                    name_display = paste0(
+                      format(as.POSIXct(visit_detail_start_datetime), format = "%Y-%m-%d"), " ",
+                      tolower(i18n$t("to")), " ",  format(as.POSIXct(visit_detail_end_datetime), format = "%Y-%m-%d"),
+                      " - ", visit_detail_concept_id
+                    )
+                  )
+            }
+            
+            # Load visit_details of the person & update dropdown
+            choices <- setNames(visit_details$visit_detail_id, visit_details$name_display)
+            updateSelectizeInput(
+              session, "visit_detail", choices = choices, server = TRUE, selected = FALSE,
+              options = list(
+                placeholder = "",
+                onInitialize = I("function() { this.setValue(''); }")
+              )
+            )
+          }
+          
+          # Update person informations on sidenav
+          style <- "display:inline-block; width:80px; font-weight:bold;"
+          
+          person <- 
+            d$person %>%
+            dplyr::mutate_at("person_id", as.integer) %>%
+            dplyr::filter(person_id == !!person_id) %>% 
+            dplyr::collect() %>%
+            dplyr::left_join(d$dataset_concept %>% dplyr::select(gender_concept_id = concept_id, gender_concept_name = concept_name), by = "gender_concept_id")
+          
+          output$person_info <- renderUI(
+            tagList(
+              span(i18n$t("person_id"), style = style), person$person_id, br(),
+              span(i18n$t("gender"), style = style), person$gender_concept_name
+            )
           )
-        )
-        
-        sapply(c("visit_detail", "person_info"), function(name) shinyjs::show(paste0(name, "_div")))
-        
-        # Reset variables
-        sapply(person_tables, function(table) d$data_person[[table]] <- tibble::tibble())
-        sapply(visit_detail_tables, function(table) d$data_visit_detail[[table]] <- tibble::tibble())
-        
-        # Reset selected_visit_detail
-        m$selected_visit_detail <- NA_integer_
-      })
+          
+          sapply(c("visit_detail", "person_info"), function(name) shinyjs::show(paste0(name, "_div")))
+          
+          # Reset variables
+          sapply(person_tables, function(table) d$data_person[[table]] <- tibble::tibble())
+          sapply(visit_detail_tables, function(table) d$data_visit_detail[[table]] <- tibble::tibble())
+          
+          # Reset selected_visit_detail
+          m$selected_visit_detail <- NA_integer_
+        }
+      }))
       
       ## Stay ----
       
-      observeEvent(input$visit_detail, {
-        if (debug) cat(paste0("\n", now(), " - mod_data - observer input$visit_detail"))
+      observeEvent(input$visit_detail, try_catch("input$visit_detail", {
         
-        req(input$visit_detail)
+        if (length(input$visit_detail) > 0 && length(d$dataset_concept) > 0){
         
-        selected_visit_detail <- as.numeric(input$visit_detail)
-        m$selected_visit_detail <- selected_visit_detail
-        
-        # Update person informations on sidenav
-        
-        style <- "display:inline-block; width:80px; font-weight:bold;"
-        
-        person_id <- m$selected_person
-        
-        person <- 
-          d$person %>%
-          # dplyr::mutate_at("person_id", as.integer) %>%
-          dplyr::filter(person_id == !!person_id) %>% 
-          dplyr::collect() %>%
-          dplyr::left_join(d$dataset_concept %>% dplyr::select(gender_concept_id = concept_id, gender_concept_name = concept_name), by = "gender_concept_id")
-        
-        visit_detail_id <- selected_visit_detail
-        visit_detail <- 
-          d$visit_detail %>% 
-          # dplyr::mutate_at("visit_detail_id", as.integer) %>%
-          dplyr::filter(visit_detail_id == !!visit_detail_id) %>% 
-          dplyr::collect() %>%
-          dplyr::left_join(d$dataset_concept %>% dplyr::select(visit_detail_concept_id = concept_id, visit_detail_concept_name = concept_name), by = "visit_detail_concept_id")
-        
-        if (!is.na(person$birth_datetime)) age <- lubridate::interval(person$birth_datetime, visit_detail$visit_detail_start_datetime) / lubridate::years(1)
-        else if (is.na(person$birth_datetime) & !is.na(person$year_of_birth)) age <- as.numeric(format(visit_detail$visit_detail_start_datetime, "%Y")) - person$year_of_birth
-        else age <- NA_integer_
-        
-        age_div <- tagList(round(age, 0), " ", i18n$t("years"))
-        if (!is.na(age) & age <= 2) age_div <- tagList(round(age * 12, 0), " ", i18n$t("months"))
-        
-        if ("visit_detail_concept_name" %in% names(visit_detail)) visit_detail_concept_name <- visit_detail %>% dplyr::pull(visit_detail_concept_name)
-        else visit_detail_concept_name <- visit_detail %>% dplyr::pull(visit_detail_concept_id)
-        
-        max_length <- 26
-        if (is.na(visit_detail_concept_name)) visit_detail_concept_name <- i18n$t("concept_not_loaded")
-        if (nchar(visit_detail_concept_name) > max_length){
-          visit_detail_concept_name_short <- paste0(substr(visit_detail_concept_name, 1, max_length - 3), "...")
-          visit_detail_div <- div(create_hover_card(ui = tags$span(visit_detail_concept_name_short), text = visit_detail_concept_name), style = "display: inline-block;")
+          selected_visit_detail <- as.numeric(input$visit_detail)
+          m$selected_visit_detail <- selected_visit_detail
+          
+          # Update person informations on sidenav
+          
+          style <- "display:inline-block; width:80px; font-weight:bold;"
+          
+          person_id <- m$selected_person
+          
+          person <- 
+            d$person %>%
+            # dplyr::mutate_at("person_id", as.integer) %>%
+            dplyr::filter(person_id == !!person_id) %>% 
+            dplyr::collect() %>%
+            dplyr::left_join(d$dataset_concept %>% dplyr::select(gender_concept_id = concept_id, gender_concept_name = concept_name), by = "gender_concept_id")
+          
+          visit_detail_id <- selected_visit_detail
+          visit_detail <- 
+            d$visit_detail %>% 
+            # dplyr::mutate_at("visit_detail_id", as.integer) %>%
+            dplyr::filter(visit_detail_id == !!visit_detail_id) %>% 
+            dplyr::collect() %>%
+            dplyr::left_join(d$dataset_concept %>% dplyr::select(visit_detail_concept_id = concept_id, visit_detail_concept_name = concept_name), by = "visit_detail_concept_id")
+          
+          if (!is.na(person$birth_datetime)) age <- lubridate::interval(person$birth_datetime, visit_detail$visit_detail_start_datetime) / lubridate::years(1)
+          else if (is.na(person$birth_datetime) & !is.na(person$year_of_birth)) age <- as.numeric(format(visit_detail$visit_detail_start_datetime, "%Y")) - person$year_of_birth
+          else age <- NA_integer_
+          
+          age_div <- tagList(round(age, 0), " ", i18n$t("years"))
+          if (length(age) > 0 && !is.na(age) && age <= 2) age_div <- tagList(round(age * 12, 0), " ", i18n$t("months"))
+          
+          if ("visit_detail_concept_name" %in% names(visit_detail)) visit_detail_concept_name <- visit_detail %>% dplyr::pull(visit_detail_concept_name)
+          else visit_detail_concept_name <- visit_detail %>% dplyr::pull(visit_detail_concept_id)
+          
+          max_length <- 26
+          if (length(visit_detail_concept_name) == 0 || is.na(visit_detail_concept_name)) visit_detail_concept_name <- i18n$t("concept_not_loaded")
+          if (nchar(visit_detail_concept_name) > max_length){
+            visit_detail_concept_name_short <- paste0(substr(visit_detail_concept_name, 1, max_length - 3), "...")
+            visit_detail_div <- div(create_hover_card(ui = tags$span(visit_detail_concept_name_short), text = visit_detail_concept_name), style = "display: inline-block;")
+          }
+          else visit_detail_div <- tags$span(visit_detail_concept_name)
+          
+          los <- as.integer(difftime(visit_detail$visit_detail_end_datetime, visit_detail$visit_detail_start_datetime, units = "days"))
+          days_trad <- ifelse(los == 1, i18n$t("day"), i18n$t("days"))
+          
+          output$person_info <- renderUI({
+            tagList(
+              span(i18n$t("person_id"), style = style), tags$span(m$selected_person), br(),
+              span(i18n$t("gender"), style = style), tags$span(person$gender_concept_name), br(), br(),
+              span(i18n$t("visit_detail_id"), style = style), tags$span(selected_visit_detail), br(),
+              span(i18n$t("age"), style = style), tags$span(age_div), br(),
+              span(i18n$t("hosp_unit"), style = style), visit_detail_div, br(),
+              span(i18n$t("from"), style = style), tags$span(visit_detail$visit_detail_start_datetime %>% format_datetime(language, sec = FALSE)), br(),
+              span(i18n$t("to"), style = style), tags$span(visit_detail$visit_detail_end_datetime %>% format_datetime(language, sec = FALSE)), br(),
+              span(i18n$t("duration"), style = style), tags$span(los, " ", tolower(days_trad))
+            )
+          })
         }
-        else visit_detail_div <- tags$span(visit_detail_concept_name)
-        
-        los <- as.integer(difftime(visit_detail$visit_detail_end_datetime, visit_detail$visit_detail_start_datetime, units = "days"))
-        days_trad <- ifelse(los == 1, i18n$t("day"), i18n$t("days"))
-        
-        output$person_info <- renderUI({
-          tagList(
-            span(i18n$t("person_id"), style = style), tags$span(m$selected_person), br(),
-            span(i18n$t("gender"), style = style), tags$span(person$gender_concept_name), br(), br(),
-            span(i18n$t("visit_detail_id"), style = style), tags$span(selected_visit_detail), br(),
-            span(i18n$t("age"), style = style), tags$span(age_div), br(),
-            span(i18n$t("hosp_unit"), style = style), visit_detail_div, br(),
-            span(i18n$t("from"), style = style), tags$span(visit_detail$visit_detail_start_datetime %>% format_datetime(language, sec = FALSE)), br(),
-            span(i18n$t("to"), style = style), tags$span(visit_detail$visit_detail_end_datetime %>% format_datetime(language, sec = FALSE)), br(),
-            span(i18n$t("duration"), style = style), tags$span(los, " ", tolower(days_trad))
-          )
-        })
-      })
+      }))
       
       ## Patients switching ----
       
-      observeEvent(input$next_patient, {
-        if (debug) cat(paste0("\n", now(), " - mod_data - observer input$next_patient"))
+      observeEvent(input$next_patient, try_catch("input$next_patient", {
         
         num_selected_patient <- r$num_selected_patient + 1
         if (num_selected_patient > max(r$subset_merged_patients$n)) num_selected_patient <- r$num_selected_patient
@@ -1146,10 +1111,9 @@ mod_data_server <- function(id, r, d, m, language, i18n, debug, user_accesses){
         person_id <- r$subset_merged_patients %>% dplyr::filter(n == num_selected_patient) %>% dplyr::pull(person_id)
         
         updateSelectizeInput(session, "person", selected = person_id)
-      })
+      }))
       
-      observeEvent(input$previous_patient, {
-        if (debug) cat(paste0("\n", now(), " - mod_data - observer input$previous_patient"))
+      observeEvent(input$previous_patient, try_catch("input$previous_patient", {
         
         num_selected_patient <- r$num_selected_patient - 1
         if (num_selected_patient < min(r$subset_merged_patients$n)) num_selected_patient <- r$num_selected_patient
@@ -1158,7 +1122,7 @@ mod_data_server <- function(id, r, d, m, language, i18n, debug, user_accesses){
         person_id <- r$subset_merged_patients %>% dplyr::filter(n == num_selected_patient) %>% dplyr::pull(person_id)
         
         updateSelectizeInput(session, "person", selected = person_id)
-      })
+      }))
       
       # |-------------------------------- -----
       
@@ -1170,9 +1134,7 @@ mod_data_server <- function(id, r, d, m, language, i18n, debug, user_accesses){
       ## Prepare vars ----
       # --- --- --- --- --
       
-      observeEvent(r$data_reload_tabs, {
-        
-        if (debug) cat(paste0("\n", now(), " - mod_data - observer r$..reload_tabs"))
+      observeEvent(r$data_reload_tabs, try_catch("r$data_reload_tabs", {
         
         category <- r$data_page
 
@@ -1199,7 +1161,7 @@ mod_data_server <- function(id, r, d, m, language, i18n, debug, user_accesses){
         tabs <- tabs %>% dplyr::arrange(level, display_order)
 
         # Calculate first tab displayed in the menu
-        if(nrow(tabs) > 0 & "level" %in% names(tabs) & !is.na(m$selected_study)){
+        if (nrow(tabs) > 0 & "level" %in% names(tabs) & !is.na(m$selected_study)){
 
           # First tab displayed
           first_tab_displayed <- tabs %>% dplyr::filter(level == 1) %>% dplyr::slice(1)
@@ -1228,14 +1190,13 @@ mod_data_server <- function(id, r, d, m, language, i18n, debug, user_accesses){
         
         # Load widgets
         if (grepl("ui_first_load", r$data_reload_tabs)) r$data_load_ui_widgets <- now()
-      })
+      }))
       
       # --- --- --- ---
       ## Load menu ----
       # --- --- --- ---
       
-      observeEvent(r$data_reload_menu, {
-        if (debug) cat(paste0("\n", now(), " - mod_data - r$data_reload_menu"))
+      observeEvent(r$data_reload_menu, try_catch("r$data_reload_menu", {
         
         sapply(categories, function(category){
           
@@ -1423,41 +1384,41 @@ mod_data_server <- function(id, r, d, m, language, i18n, debug, user_accesses){
           shinyjs::show(paste0(displayed_category, "_study_menu"))
           shinyjs::hide(paste0(hidden_category, "_study_menu"))
         })
-      })
+      }))
       
       # --- --- --- --- --
       ## Load widgets ----
       # --- --- --- --- --
       
-      observeEvent(r$data_load_ui_widgets, {
-        if (debug) cat(paste0("\n", now(), " - mod_data - observer r$data_load_ui_widgets"))
+      observeEvent(r$data_load_ui_widgets, try_catch("r$data_load_ui_widgets", {
         
         # Don't reload study UI if already loaded
-        req(m$selected_study %not_in% r$data_loaded_studies)
+        if (m$selected_study %not_in% r$data_loaded_studies){
         
-        sapply(categories, function(category){
-          
-          distinct_tabs <- r$data_menu_tabs %>% dplyr::filter(category == !!category) %>% dplyr::pull(id)
-          
-          code_ui <- tagList()
-          
-          all_groups <- NA_integer_
-          
-          # Loop over distinct tabs, for this study
-          # Load front-end & back-end
-          sapply(distinct_tabs, function(tab_id){
-            load_tab_plugins(tab_id)
-            load_tab_ui(category, tab_id, action = "load_tabs")
-            load_tab_server(tab_id, action = "load_tabs")
+          sapply(categories, function(category){
+            
+            distinct_tabs <- r$data_menu_tabs %>% dplyr::filter(category == !!category) %>% dplyr::pull(id)
+            
+            code_ui <- tagList()
+            
+            all_groups <- NA_integer_
+            
+            # Loop over distinct tabs, for this study
+            # Load front-end & back-end
+            sapply(distinct_tabs, function(tab_id){
+              load_tab_plugins(tab_id)
+              load_tab_ui(category, tab_id, action = "load_tabs")
+              load_tab_server(tab_id, action = "load_tabs")
+            })
+            
+            # displayed_category <- r$data_page
+            # hidden_category <- categories[categories != displayed_category]
           })
           
-          # displayed_category <- r$data_page
-          # hidden_category <- categories[categories != displayed_category]
-        })
-        
-        # Indicate that this study has been loaded, so that UI elements aren't loaded twice
-        r$data_loaded_studies <- c(r$data_loaded_studies, m$selected_study)
-      })
+          # Indicate that this study has been loaded, so that UI elements aren't loaded twice
+          r$data_loaded_studies <- c(r$data_loaded_studies, m$selected_study)
+        }
+      }))
       
     # |-------------------------------- -----
     
@@ -1468,8 +1429,7 @@ mod_data_server <- function(id, r, d, m, language, i18n, debug, user_accesses){
     sapply(categories, function(category){
       
       # A tab is selected
-      observeEvent(r[[paste0(category, "_selected_tab")]], {
-        if (debug) cat(paste0("\n", now(), " - mod_data - observer r$..selected_tab"))
+      observeEvent(r[[paste0(category, "_selected_tab")]], try_catch(paste0("r$", category, "_selected_tab"), {
         
         # Hide all grids
         sapply(r$data_grids, shinyjs::hide)
@@ -1482,11 +1442,10 @@ mod_data_server <- function(id, r, d, m, language, i18n, debug, user_accesses){
         
         # Reload window size (correct bug with some plugins display)
         shinyjs::runjs("var event = new Event('resize'); window.dispatchEvent(event);")
-      })
+      }))
     
-    # Tab selected from the menu
-      observeEvent(input[[paste0(category, "_study_current_tab_trigger")]], {
-        if (debug) cat(paste0("\n", now(), " - mod_data - observer input$", category, "_study_current_tab_trigger"))
+      # Tab selected from the menu
+      observeEvent(input[[paste0(category, "_study_current_tab_trigger")]], try_catch(paste0("input$", category, "_study_current_tab_trigger"), {
         
         last_selected_tab <- r[[paste0(category, "_selected_tab")]]
         selected_tab <- gsub("data-tab_", "", input[[paste0(category, "_study_current_tab")]], fixed = FALSE)
@@ -1509,11 +1468,10 @@ mod_data_server <- function(id, r, d, m, language, i18n, debug, user_accesses){
             shinyjs::show(paste0(category, "_study_", name, "_", first_child$tab_group_id, "_", first_child$tab_sub_group))
           }
         }
-      })
+      }))
       
       # A tab is moved
-      observeEvent(input[[paste0(category, "_tab_positions")]], {
-        if (debug) cat(paste0("\n", now(), " - mod_data - observer input$", category, "_tab_positions"))
+      observeEvent(input[[paste0(category, "_tab_positions")]], try_catch(paste0("input$", category, "_tab_positions"), {
         
         positions <- input[[paste0(category, "_tab_positions")]]
         
@@ -1533,140 +1491,135 @@ mod_data_server <- function(id, r, d, m, language, i18n, debug, user_accesses){
         }
         r$data_menu_tabs <- r$data_menu_tabs %>% dplyr::arrange(category, display_order)
         r$data_tabs <- r$data_tabs %>% dplyr::arrange(category, display_order)
-      })
+      }))
     })
     
     # Tab selected from breadcrumb
-    observeEvent(input$study_go_to_tab_trigger, {
-      if (debug) cat(paste0("\n", now(), " - mod_data - observer input$study_go_to_tab"))
+    observeEvent(input$study_go_to_tab_trigger, try_catch("input$study_go_to_tab_trigger", {
       
       r[[paste0(r$data_page, "_selected_tab")]] <- input$study_go_to_tab
       r$data_reload_menu <- now()
-    })
+    }))
     
     # --- --- --- --
     # Add a tab ----
     # --- --- --- --
     
     # Open modal
-    observeEvent(input$add_tab, {
-      if (debug) cat(paste0("\n", now(), " - mod_data - observer input$add_tab"))
+    observeEvent(input$add_tab, try_catch("input$add_tab", {
       shinyjs::show("add_tab_modal")
-    })
+    }))
     
     # Close modal
-    observeEvent(input$close_add_tab_modal, {
-      if (debug) cat(paste0("\n", now(), " - mod_data - observer input$close_add_tab_modal"))
+    observeEvent(input$close_add_tab_modal, try_catch("input$close_add_tab_modal", {
       shinyjs::hide("add_tab_modal")
-    })
+    }))
     
     # Add a tab
-    observeEvent(input$add_tab_button, {
+    observeEvent(input$add_tab_button, try_catch("input$add_tab_button", {
       
-      if (debug) cat(paste0("\n", now(), " - mod_data - observer input$add_tab_button"))
-      
-      req(length(input$tab_name) > 0)
       tab_name <- input$tab_name
       
       category <- r$data_page
       
       # Check if name is not empty
-      if (is.na(tab_name) | tab_name == "") shiny.fluent::updateTextField.shinyInput(session, "tab_name", errorMessage = i18n$t("provide_valid_name"))
-      req(!is.na(tab_name) & tab_name != "")
-      
-      selected_tab <- r[[paste0(category, "_selected_tab")]]
-      tabs <- r$data_tabs %>% dplyr::filter(id == selected_tab)
-      
-      # Get tab_group_id
-      sql <- glue::glue_sql("SELECT {`paste0(category, '_tab_group_id')`} FROM studies WHERE id = {m$selected_study}", .con = r$db)
-      tab_group_id <- DBI::dbGetQuery(r$db, sql) %>% dplyr::pull()
-      
-      # If it is the first tab to be created
-      if (nrow(tabs) == 0){
-        parent_tab_id <- NA_integer_
-        display_order <- 1
-      }
-      
-      # If there are already existing tabs
+      if (length(tab_name) == 0 || is.na(tab_name) || tab_name == "") shiny.fluent::updateTextField.shinyInput(session, "tab_name", errorMessage = i18n$t("provide_valid_name"))
       else {
         
-        # If tab is at the same level of current tab, get common parent_tab_id
-        # Calculate display order
+        selected_tab <- r[[paste0(category, "_selected_tab")]]
+        tabs <- r$data_tabs %>% dplyr::filter(id == selected_tab)
         
-        if (input$add_tab_type == "same_level") parent_tab_id <- tabs %>% dplyr::pull(parent_tab_id)
-        else if (input$add_tab_type == "level_under") parent_tab_id <- tabs %>% dplyr::pull(id)
+        # Get tab_group_id
+        sql <- glue::glue_sql("SELECT {`paste0(category, '_tab_group_id')`} FROM studies WHERE id = {m$selected_study}", .con = r$db)
+        tab_group_id <- DBI::dbGetQuery(r$db, sql) %>% dplyr::pull()
         
-        # Calculate display order
-        if (!is.na(parent_tab_id)) sql <- glue::glue_sql("SELECT COALESCE(MAX(display_order), 0) FROM tabs WHERE tab_group_id = {tab_group_id} AND parent_tab_id = {parent_tab_id}", .con = r$db)
-        else sql <- glue::glue_sql("SELECT COALESCE(MAX(display_order), 0) FROM tabs WHERE tab_group_id = {tab_group_id} AND parent_tab_id IS NULL", .con = r$db)
+        # If it is the first tab to be created
+        if (nrow(tabs) == 0){
+          parent_tab_id <- NA_integer_
+          display_order <- 1
+        }
         
-        display_order <- DBI::dbGetQuery(r$db, sql) %>% dplyr::pull() + 1
+        # If there are already existing tabs
+        else {
+          
+          # If tab is at the same level of current tab, get common parent_tab_id
+          # Calculate display order
+          
+          if (input$add_tab_type == "same_level") parent_tab_id <- tabs %>% dplyr::pull(parent_tab_id)
+          else if (input$add_tab_type == "level_under") parent_tab_id <- tabs %>% dplyr::pull(id)
+          
+          # Calculate display order
+          if (!is.na(parent_tab_id)) sql <- glue::glue_sql("SELECT COALESCE(MAX(display_order), 0) FROM tabs WHERE tab_group_id = {tab_group_id} AND parent_tab_id = {parent_tab_id}", .con = r$db)
+          else sql <- glue::glue_sql("SELECT COALESCE(MAX(display_order), 0) FROM tabs WHERE tab_group_id = {tab_group_id} AND parent_tab_id IS NULL", .con = r$db)
+          
+          display_order <- DBI::dbGetQuery(r$db, sql) %>% dplyr::pull() + 1
+          
+          # Can't add a tab at the level under if there are tabs elements attached to current tab
+          if (input$add_tab_type == "level_under"){
+            # selected_tab <- r[[paste0(category, "_selected_tab")]]
+            widgets <- r$data_widgets %>% dplyr::filter(tab_id == selected_tab, !deleted) %>% dplyr::rename(widget_id = id)
+            if (nrow(widgets) > 0) show_message_bar(id, output, message = "add_tab_has_widgets", i18n = i18n, ns = ns)
+            req(nrow(widgets) == 0)
+          }
+        }
         
-        # Can't add a tab at the level under if there are tabs elements attached to current tab
-        if (input$add_tab_type == "level_under"){
-          # selected_tab <- r[[paste0(category, "_selected_tab")]]
-          widgets <- r$data_widgets %>% dplyr::filter(tab_id == selected_tab, !deleted) %>% dplyr::rename(widget_id = id)
-          if (nrow(widgets) > 0) show_message_bar(id, output, message = "add_tab_has_widgets", i18n = i18n, ns = ns)
-          req(nrow(widgets) == 0)
+        # Check if name is not already used
+        if (is.na(parent_tab_id)) sql <- glue::glue_sql("SELECT name FROM tabs WHERE category = {category} AND tab_group_id = {tab_group_id} AND parent_tab_id IS NULL", .con = r$db)
+        else sql <- glue::glue_sql("SELECT name FROM tabs WHERE category = {category} AND tab_group_id = {tab_group_id} AND parent_tab_id = {parent_tab_id}", .con = r$db)
+        tabs_names <- DBI::dbGetQuery(r$db, sql) %>% dplyr::pull()
+        name_already_used <- remove_special_chars(tab_name) %in% remove_special_chars(tabs_names)
+        
+        if (name_already_used) shiny.fluent::updateTextField.shinyInput(session, "tab_name", errorMessage = i18n$t("name_already_used"))
+        else {
+        
+          new_id <- get_last_row(r$db, "tabs") + 1
+          
+          # Add data in database
+          new_data <- tibble::tibble(id = new_id, category = category, name = tab_name, description = NA_character_, 
+            tab_group_id = tab_group_id, parent_tab_id = parent_tab_id, display_order = display_order, creator_id = r$user_id, datetime = now(), deleted = FALSE)
+          DBI::dbAppendTable(r$db, "tabs", new_data)
+          
+          # Update r var
+          r$data_tabs <- r$data_tabs %>% dplyr::bind_rows(new_data)
+          
+          # Add gridstack instance
+          load_tab_ui(category, new_id, action = "add_tab")
+          
+          # Notify user
+          show_message_bar(id, output, "tab_added", "success", i18n = i18n, ns = ns)
+          
+          # Reload update_datetime
+          sql_update_datetime(r, m)
+          
+          # Reset fields
+          shiny.fluent::updateTextField.shinyInput(session, "tab_name", value = "")
+          shiny.fluent::updateChoiceGroup.shinyInput(session, "add_tab_type", value = "same_level")
+          
+          # Reload UI, with new tab opened
+          r[[paste0(category, "_selected_tab")]] <- new_id
+          r$data_reload_tabs <- now()
+          
+          # Reload UI menu and set to added tab
+          r$data_reload_menu <- now()
+          
+          # Hide currently opened grids
+          sapply(r$data_grids, shinyjs::hide)
+          
+          # Hide "no tabs" message
+          shinyjs::hide(paste0(category, "_no_tabs_to_display"))
+          
+          # Hide add tab model
+          shinyjs::hide("add_tab_modal")
         }
       }
-      
-      # Check if name is not already used
-      if (is.na(parent_tab_id)) sql <- glue::glue_sql("SELECT name FROM tabs WHERE category = {category} AND tab_group_id = {tab_group_id} AND parent_tab_id IS NULL", .con = r$db)
-      else sql <- glue::glue_sql("SELECT name FROM tabs WHERE category = {category} AND tab_group_id = {tab_group_id} AND parent_tab_id = {parent_tab_id}", .con = r$db)
-      tabs_names <- DBI::dbGetQuery(r$db, sql) %>% dplyr::pull()
-      name_already_used <- remove_special_chars(tab_name) %in% remove_special_chars(tabs_names)
-      
-      if (name_already_used) shiny.fluent::updateTextField.shinyInput(session, "tab_name", errorMessage = i18n$t("name_already_used"))
-      req(!name_already_used)
-      
-      new_id <- get_last_row(r$db, "tabs") + 1
-      
-      # Add data in database
-      new_data <- tibble::tibble(id = new_id, category = category, name = tab_name, description = NA_character_, 
-        tab_group_id = tab_group_id, parent_tab_id = parent_tab_id, display_order = display_order, creator_id = r$user_id, datetime = now(), deleted = FALSE)
-      DBI::dbAppendTable(r$db, "tabs", new_data)
-      
-      # Update r var
-      r$data_tabs <- r$data_tabs %>% dplyr::bind_rows(new_data)
-      
-      # Add gridstack instance
-      load_tab_ui(category, new_id, action = "add_tab")
-      
-      # Notify user
-      show_message_bar(id, output, "tab_added", "success", i18n = i18n, ns = ns)
-      
-      # Reload update_datetime
-      sql_update_datetime(r, m)
-      
-      # Reset fields
-      shiny.fluent::updateTextField.shinyInput(session, "tab_name", value = "")
-      shiny.fluent::updateChoiceGroup.shinyInput(session, "add_tab_type", value = "same_level")
-      
-      # Reload UI, with new tab opened
-      r[[paste0(category, "_selected_tab")]] <- new_id
-      r$data_reload_tabs <- now()
-      
-      # Reload UI menu and set to added tab
-      r$data_reload_menu <- now()
-      
-      # Hide currently opened grids
-      sapply(r$data_grids, shinyjs::hide)
-      
-      # Hide "no tabs" message
-      shinyjs::hide(paste0(category, "_no_tabs_to_display"))
-      
-      # Hide add tab model
-      shinyjs::hide("add_tab_modal")
-    })
+    }))
     
     # --- --- --- - -
     # Edit a tab ----
     # --- --- --- - -
     
     # Open modal
-    observeEvent(input$edit_tab_trigger, {
-      if (debug) cat(paste0("\n", now(), " - mod_data - observer input$edit_tab_trigger"))
+    observeEvent(input$edit_tab_trigger, try_catch("input$edit_tab_trigger", {
       shinyjs::show("edit_tab_modal")
       
       # Get tab ID
@@ -1675,17 +1628,15 @@ mod_data_server <- function(id, r, d, m, language, i18n, debug, user_accesses){
       # Get tab name and update textfield
       tab <- r$data_tabs %>% dplyr::filter(id == tab_id)
       shiny.fluent::updateTextField.shinyInput(session, "edit_tab_name", value = tab$name)
-    })
+    }))
     
     # Close modal
-    observeEvent(input$close_edit_tab_modal, {
-      if (debug) cat(paste0("\n", now(), " - mod_data - observer input$close_edit_tab_modal"))
+    observeEvent(input$close_edit_tab_modal, try_catch("input$close_edit_tab_modal", {
       shinyjs::hide("edit_tab_modal")
-    })
+    }))
     
     # Save updates
-    observeEvent(input$save_tab_button, {
-      if (debug) cat(paste0("\n", now(), " - mod_data - observer input$save_tab_button"))
+    observeEvent(input$save_tab_button, try_catch("input$save_tab_button", {
       
       # Get tab ID
       tab_id <- input$edit_tab_id
@@ -1693,53 +1644,54 @@ mod_data_server <- function(id, r, d, m, language, i18n, debug, user_accesses){
       # Check if name is not empty
       tab_name <- input$edit_tab_name
       if (is.na(tab_name) | tab_name == "") shiny.fluent::updateTextField.shinyInput(session, "edit_tab_name", errorMessage = i18n$t("provide_valid_name"))
-      req(!is.na(tab_name) & tab_name != "")
       
-      # Check if name is not already used
-      name_already_used <- nrow(r$data_tabs %>% dplyr::filter(category == r$data_page, tolower(name) == tolower(tab_name)))
+      if (!is.na(tab_name) & tab_name != ""){
       
-      if (name_already_used) shiny.fluent::updateTextField.shinyInput(session, "edit_tab_name", errorMessage = i18n$t("name_already_used"))
-      req(!name_already_used)
-      
-      # Save updates in db
-      sql <- glue::glue_sql("UPDATE tabs SET name = {tab_name} WHERE id = {tab_id}", .con = r$db)
-      sql_send_statement(r$db, sql)
-      
-      # Update r var
-      r$data_tabs <- r$data_tabs %>% dplyr::mutate(name = dplyr::case_when(
-        id == tab_id ~ tab_name,
-        TRUE ~ name
-      ))
-      
-      # Reload study menu
-      r$data_reload_tabs <- now()
-      
-      # Notify user
-      show_message_bar(id, output, message = "modif_saved", type = "success", i18n = i18n, ns = ns)
-      
-      # Reload update_datetime
-      sql_update_datetime(r, m)
-      
-      # Close modal
-      shinyjs::hide("edit_tab_modal")
-    })
+        # Check if name is not already used
+        name_already_used <- nrow(r$data_tabs %>% dplyr::filter(category == r$data_page, tolower(name) == tolower(tab_name)))
+        
+        if (name_already_used) shiny.fluent::updateTextField.shinyInput(session, "edit_tab_name", errorMessage = i18n$t("name_already_used"))
+        
+        if (!name_already_used){
+          
+          # Save updates in db
+          sql <- glue::glue_sql("UPDATE tabs SET name = {tab_name} WHERE id = {tab_id}", .con = r$db)
+          sql_send_statement(r$db, sql)
+          
+          # Update r var
+          r$data_tabs <- r$data_tabs %>% dplyr::mutate(name = dplyr::case_when(
+            id == tab_id ~ tab_name,
+            TRUE ~ name
+          ))
+          
+          # Reload study menu
+          r$data_reload_tabs <- now()
+          
+          # Notify user
+          show_message_bar(id, output, message = "modif_saved", type = "success", i18n = i18n, ns = ns)
+          
+          # Reload update_datetime
+          sql_update_datetime(r, m)
+          
+          # Close modal
+          shinyjs::hide("edit_tab_modal")
+        }
+      }
+    }))
     
     # --- --- --- --- -
     # Delete a tab ----
     # --- --- --- --- -
     
-    observeEvent(input$delete_tab_button, {
-      if (debug) cat(paste0("\n", now(), " - mod_data - observer input$delete_tab_button"))
+    observeEvent(input$delete_tab_button, try_catch("input$delete_tab_button", {
       shinyjs::show("delete_tab_modal")
-    })
+    }))
     
-    observeEvent(input$close_tab_deletion_modal, {
-      if (debug) cat(paste0("\n", now(), " - mod_data - observer input$close_tab_deletion_modal"))
+    observeEvent(input$close_tab_deletion_modal, try_catch("input$close_tab_deletion_modal", {
       shinyjs::hide("delete_tab_modal")
-    })
+    }))
     
-    observeEvent(input$confirm_tab_deletion, {
-      if (debug) cat(paste0("\n", now(), " - mod_data - observer input$confirm_tab_deletion"))
+    observeEvent(input$confirm_tab_deletion, try_catch("input$confirm_tab_deletion", {
       
       category <- r$data_page
       
@@ -1811,75 +1763,70 @@ mod_data_server <- function(id, r, d, m, language, i18n, debug, user_accesses){
       
       # Close modals
       sapply(c("edit_tab_modal", "delete_tab_modal"), shinyjs::hide)
-    })
+    }))
     
     # --- --- --- --- -
     # Add a widget ----
     # --- --- --- --- -
     
     # Open modal
-    observeEvent(input$add_widget, {
-      if (debug) cat(paste0("\n", now(), " - mod_data - observer input$add_widget"))
+    observeEvent(input$add_widget, try_catch("input$add_widget,", {
       
       if (is.na(r[[paste0(r$data_page, "_selected_tab")]])) show_message_bar(id, output, message = "create_a_tab_before_adding_a_widget", type = "warning", i18n = i18n, ns = ns)
       
-      req(!is.na(r[[paste0(r$data_page, "_selected_tab")]]))
+      if (!is.na(r[[paste0(r$data_page, "_selected_tab")]])){
       
-      if (r[[paste0(r$data_page, "_selected_tab")]] %in% r$data_tabs_full_screen$tab_id) show_message_bar(id, output, message = "cant_add_widget_in_full_screen_mode", type = "warning", i18n = i18n, ns = ns)
-      req(r[[paste0(r$data_page, "_selected_tab")]] %not_in% r$data_tabs_full_screen$tab_id)
-      
-      shinyjs::show("add_widget_modal")
-      
-      # Reload concepts datatable
-      shinyjs::runjs(paste0("Shiny.setInputValue('", id, "-reload_vocabulary_datatable', Math.random())"))
-      
-      # Set opened widget modal to creation
-      shinyjs::runjs(paste0("Shiny.setInputValue('", id, "-opened_widget_modal', 'add');"))
-      
-      # Reload plugins var
-      shinyjs::runjs(paste0("Shiny.setInputValue('", id, "-reload_plugins_var', Math.random());"))
-    })
+        if (r[[paste0(r$data_page, "_selected_tab")]] %in% r$data_tabs_full_screen$tab_id) show_message_bar(id, output, message = "cant_add_widget_in_full_screen_mode", type = "warning", i18n = i18n, ns = ns)
+        else {
+        
+          shinyjs::show("add_widget_modal")
+          
+          # Reload concepts datatable
+          shinyjs::runjs(paste0("Shiny.setInputValue('", id, "-reload_vocabulary_datatable', Math.random())"))
+          
+          # Set opened widget modal to creation
+          shinyjs::runjs(paste0("Shiny.setInputValue('", id, "-opened_widget_modal', 'add');"))
+          
+          # Reload plugins var
+          shinyjs::runjs(paste0("Shiny.setInputValue('", id, "-reload_plugins_var', Math.random());"))
+        }
+      }
+    }))
     
     # Close modal
-    observeEvent(input$close_add_widget_modal, {
-      if (debug) cat(paste0("\n", now(), " - mod_data - observer input$close_add_widget_modal"))
+    observeEvent(input$close_add_widget_modal, try_catch("input$close_add_widget_modal", {
       shinyjs::hide("add_widget_modal")
-    })
+    }))
     
     ## Selected plugin ----
     
-    observeEvent(input$open_select_a_plugin_modal, {
-      if (debug) cat(paste0("\n", now(), " - mod_data - observer input$open_select_a_plugin_modal"))
+    observeEvent(input$open_select_a_plugin_modal, try_catch("input$open_select_a_plugin_modal", {
       shinyjs::show("select_a_plugin_modal")
       shinyjs::hide(paste0(input$opened_widget_modal, "_widget_modal"))
-    })
+    }))
     
-    observeEvent(input$close_select_a_plugin_modal, {
-      if (debug) cat(paste0("\n", now(), " - mod_data - observer input$close_select_a_plugin_modal"))
+    observeEvent(input$close_select_a_plugin_modal, try_catch("input$close_select_a_plugin_modal", {
       shinyjs::hide("select_a_plugin_modal")
       shinyjs::show(paste0(input$opened_widget_modal, "_widget_modal"))
-    })
+    }))
     
-    observeEvent(input$reload_plugins_var, {
-      if (debug) cat(paste0("\n", now(), " - mod_data - observer input$reload_plugins_var"))
+    observeEvent(input$reload_plugins_var, try_catch("input$reload_plugins_var", {
       
       reload_elements_var(page_id = id, id = "plugins", con = r$db, r = r, m = m, long_var_filtered = "filtered_data_plugins_long", user_accesses)
       
       shinyjs::runjs(paste0("Shiny.setInputValue('", id, "-reload_plugins_list', Math.random());"))
-    })
+    }))
     
-    observeEvent(input$reload_plugins_list, {
-      if (debug) cat(paste0("\n", now(), " - mod_data - observer input$reload_plugins_list"))
+    observeEvent(input$reload_plugins_list, try_catch("input$reload_plugins_list", {
       
       elements_ui <- create_elements_ui(page_id = id, id = "plugins", elements = r$filtered_data_plugins_long, r = r, language = language, i18n = i18n)
       
       output$plugins_widgets <- renderUI(elements_ui)
-    })
+    }))
     
     # Display a plugin description
     
-    observeEvent(input$show_plugin_description_trigger, {
-      if (debug) cat(paste0("\n", now(), " - mod_data - observer input$show_plugin_description_trigger"))
+    observeEvent(input$show_plugin_description_trigger, try_catch("input$show_plugin_description_trigge", {
       
       shinyjs::hide("select_a_plugin_modal")
       shinyjs::delay(50, shinyjs::show("plugin_description_modal"))
@@ -1900,19 +1847,17 @@ mod_data_server <- function(id, r, d, m, language, i18n, debug, user_accesses){
         output$plugin_description <- renderUI(div(class = "markdown", withMathJax(includeMarkdown(output_file))))
       }
       output$plugin_description_title <- renderUI(tags$h1(description_title))
-    })
+    }))
     
-    observeEvent(input$close_plugin_description_modal, {
-      if (debug) cat(paste0("\n", now(), " - mod_data - observer input$close_plugin_description_modal"))
+    observeEvent(input$close_plugin_description_modal, try_catch("input$close_plugin_description_modal", {
       
       shinyjs::hide("plugin_description_modal")
       shinyjs::delay(50, shinyjs::show("select_a_plugin_modal"))
-    })
+    }))
     
     # Search a plugin
     
-    observeEvent(input$search_plugin, {
-      if (debug) cat(paste0("\n", now(), " - mod_data - observer input$search_plugin"))
+    observeEvent(input$search_plugin, try_catch("input$search_plugin", {
       
       if (input$search_plugin == "") r$filtered_data_plugins_long <- r$plugins_long
       else {
@@ -1930,12 +1875,11 @@ mod_data_server <- function(id, r, d, m, language, i18n, debug, user_accesses){
       }
       
       shinyjs::runjs(paste0("Shiny.setInputValue('", id, "-reload_plugins_list', Math.random());"))
-    })
+    }))
     
     # A plugin is selected
     
-    observeEvent(input$selected_element_trigger, {
-      if (debug) cat(paste0("\n", now(), " - mod_data - observer input$selected_element_trigger"))
+    observeEvent(input$selected_element_trigger, try_catch("input$selected_element_trigger", {
       
       row <- r$filtered_data_plugins_long %>% dplyr::filter(id == input$selected_element)
       plugin_type <- row %>% dplyr::slice(1) %>% dplyr::pull(tab_type_id)
@@ -1951,137 +1895,135 @@ mod_data_server <- function(id, r, d, m, language, i18n, debug, user_accesses){
       
       shinyjs::show(paste0(input$opened_widget_modal, "_widget_modal"))
       shinyjs::delay(50, shinyjs::hide("select_a_plugin_modal"))
-    })
+    }))
     
     ## Confirm creation of widget ----
     
-    observeEvent(input$widget_creation_save, {
-      if (debug) cat(paste0("\n", now(), " - mod_data - observer input$widget_creation_save"))
+    observeEvent(input$widget_creation_save, try_catch("input$widget_creation_save", {
       
       category <- r$data_page
       
       ### Add widget in db ----
       
-      req(length(input$widget_creation_name) > 0)
       widget_name <- input$widget_creation_name
       
       # Check if name is not empty
-      if (is.na(widget_name) | widget_name == "") shiny.fluent::updateTextField.shinyInput(session, "widget_creation_name", errorMessage = i18n$t("provide_valid_name"))
-      req(!is.na(widget_name) & widget_name != "")
-      
-      # Check if a plugin is selected
-      if (length(input$selected_element) == 0) output$add_widget_selected_plugin <- renderUI(
-        div(
-          class = "element_widget plugin_widget",
+      if (length(widget_name) == 0 || is.na(widget_name) || widget_name == "") shiny.fluent::updateTextField.shinyInput(session, "widget_creation_name", errorMessage = i18n$t("provide_valid_name"))
+      else {
+        
+        # Check if a plugin is selected
+        if (length(input$selected_element) == 0) output$add_widget_selected_plugin <- renderUI(
           div(
-            class = "element_widget_icon plugin_widget_icon",
-            tags$i(class = "fas fa-puzzle-piece")
-          ),
-          div(
-            class = "element_widget_content",
-            tags$h1(i18n$t("select_a_plugin"), style = "font-weight: 600; color: #B83137")
+            class = "element_widget plugin_widget",
+            div(
+              class = "element_widget_icon plugin_widget_icon",
+              tags$i(class = "fas fa-puzzle-piece")
+            ),
+            div(
+              class = "element_widget_content",
+              tags$h1(i18n$t("select_a_plugin"), style = "font-weight: 600; color: #B83137")
+            )
           )
         )
-      )
-      req(length(input$selected_element) > 0)
-      
-      plugin_id <- input$selected_element
-      selected_tab <- r[[paste0(category, "_selected_tab")]]
-      tab_id <- r[[paste0(category, "_selected_tab")]]
-      
-      sql <- glue::glue_sql("SELECT value FROM options WHERE category = 'plugin' AND name = 'unique_id' AND link_id = {plugin_id}", .con = r$db)
-      plugin_unique_id <- DBI::dbGetQuery(r$db, sql) %>% dplyr::pull()
-      
-      plugin_folder <- paste0(r$app_folder, "/plugins/", category, "/", plugin_unique_id)
-      
-      # Check if name is not already used
-      sql <- glue::glue_sql("SELECT name FROM widgets WHERE tab_id = {tab_id}", .con = r$db)
-      widgets_names <- DBI::dbGetQuery(r$db, sql) %>% dplyr::pull()
-      name_already_used <- remove_special_chars(widget_name) %in% remove_special_chars(widgets_names)
-      
-      if (name_already_used) shiny.fluent::updateTextField.shinyInput(session, "widget_creation_name", errorMessage = i18n$t("name_already_used"))
-      req(!name_already_used)
-      
-      # Add widget in db
-      widget_id <- get_last_row(r$db, "widgets") + 1
-      if (widget_id <= r$session_max_widget) widget_id <- r$session_max_widget + 1
-      
-      new_data <- tibble::tibble(
-        id = widget_id, name = widget_name, category = category, tab_id = as.integer(tab_id), plugin_id = plugin_id, display_order = NA_integer_,
-        creator_id = r$user_id, datetime = now(), deleted = FALSE)
+        req(length(input$selected_element) > 0)
         
-      DBI::dbAppendTable(r$db, "widgets", new_data)
-      r$data_widgets <- r$data_widgets %>% dplyr::bind_rows(new_data)
-
-      # Add widget concepts in db
-      last_row_widgets_concepts <- get_last_row(m$db, "widgets_concepts")
-
-      # Vocabulary concepts for server code
-      selected_concepts <- r[[paste0(id, "_selected_concepts")]]
-      
-      if (nrow(r[[paste0(id, "_selected_concepts")]]) > 0){
-
-        new_data <-
-          r[[paste0(id, "_selected_concepts")]] %>%
-          dplyr::transmute(
-            id = 1:dplyr::n() + last_row_widgets_concepts + 1, widget_id = !!widget_id,
-            concept_id, concept_name, concept_display_name = "", domain_id, mapped_to_concept_id, merge_mapped_concepts,
-            creator_id = r$user_id, datetime = now(), deleted = FALSE
+        plugin_id <- input$selected_element
+        selected_tab <- r[[paste0(category, "_selected_tab")]]
+        tab_id <- r[[paste0(category, "_selected_tab")]]
+        
+        sql <- glue::glue_sql("SELECT value FROM options WHERE category = 'plugin' AND name = 'unique_id' AND link_id = {plugin_id}", .con = r$db)
+        plugin_unique_id <- DBI::dbGetQuery(r$db, sql) %>% dplyr::pull()
+        
+        plugin_folder <- paste0(r$app_folder, "/plugins/", category, "/", plugin_unique_id)
+        
+        # Check if name is not already used
+        sql <- glue::glue_sql("SELECT name FROM widgets WHERE tab_id = {tab_id}", .con = r$db)
+        widgets_names <- DBI::dbGetQuery(r$db, sql) %>% dplyr::pull()
+        name_already_used <- remove_special_chars(widget_name) %in% remove_special_chars(widgets_names)
+        
+        if (name_already_used) shiny.fluent::updateTextField.shinyInput(session, "widget_creation_name", errorMessage = i18n$t("name_already_used"))
+        req(!name_already_used)
+        
+        # Add widget in db
+        widget_id <- get_last_row(r$db, "widgets") + 1
+        if (widget_id <= r$session_max_widget) widget_id <- r$session_max_widget + 1
+        
+        new_data <- tibble::tibble(
+          id = widget_id, name = widget_name, category = category, tab_id = as.integer(tab_id), plugin_id = plugin_id, display_order = NA_integer_,
+          creator_id = r$user_id, datetime = now(), deleted = FALSE)
+          
+        DBI::dbAppendTable(r$db, "widgets", new_data)
+        r$data_widgets <- r$data_widgets %>% dplyr::bind_rows(new_data)
+  
+        # Add widget concepts in db
+        last_row_widgets_concepts <- get_last_row(m$db, "widgets_concepts")
+  
+        # Vocabulary concepts for server code
+        selected_concepts <- r[[paste0(id, "_selected_concepts")]]
+        
+        if (nrow(r[[paste0(id, "_selected_concepts")]]) > 0){
+  
+          new_data <-
+            r[[paste0(id, "_selected_concepts")]] %>%
+            dplyr::transmute(
+              id = 1:dplyr::n() + last_row_widgets_concepts + 1, widget_id = !!widget_id,
+              concept_id, concept_name, concept_display_name = "", domain_id, mapped_to_concept_id, merge_mapped_concepts,
+              creator_id = r$user_id, datetime = now(), deleted = FALSE
+            )
+  
+          DBI::dbAppendTable(m$db, "widgets_concepts", new_data)
+          r$data_widgets_concepts <- r$data_widgets_concepts %>% dplyr::bind_rows(new_data)
+          
+          # Reset add concept buttons
+          sapply(r[[paste0(id, "_selected_concepts")]]$concept_id, function(concept_id) shinyjs::runjs(paste0("$('#", id, "-add_concept_", concept_id, " i').removeClass('fa-minus').addClass('fa-plus');")))
+          
+          # Reset selected concepts
+          r[[paste0(id, "_selected_concepts")]] <- tibble::tibble(
+            concept_id = integer(), concept_name = character(), domain_id = character(), vocabulary_id = character(),
+            mapped_to_concept_id = integer(), merge_mapped_concepts = logical()
           )
-
-        DBI::dbAppendTable(m$db, "widgets_concepts", new_data)
-        r$data_widgets_concepts <- r$data_widgets_concepts %>% dplyr::bind_rows(new_data)
+        }
         
-        # Reset add concept buttons
-        sapply(r[[paste0(id, "_selected_concepts")]]$concept_id, function(concept_id) shinyjs::runjs(paste0("$('#", id, "-add_concept_", concept_id, " i').removeClass('fa-minus').addClass('fa-plus');")))
+        # Notify user
+        show_message_bar(id, output, message = "widget_added", type = "success", i18n = i18n, ns = ns)
         
-        # Reset selected concepts
-        r[[paste0(id, "_selected_concepts")]] <- tibble::tibble(
-          concept_id = integer(), concept_name = character(), domain_id = character(), vocabulary_id = character(),
-          mapped_to_concept_id = integer(), merge_mapped_concepts = logical()
-        )
+        # Reload update_datetime
+        sql_update_datetime(r, m)
+        
+        # Reset fields
+        shiny.fluent::updateTextField.shinyInput(session, "widget_creation_name", value = "")
+        
+        shiny.fluent::updateSearchBox.shinyInput(session, "search_plugin", value = "")
+        
+        # Reset selected plugin and selected concepts
+        shinyjs::runjs(update_selected_concepts_css$add)
+        output$add_widget_selected_concepts <- renderUI(default_selected_concepts_ui)
+        
+        output$add_widget_selected_plugin <- renderUI(default_selected_plugin_ui)
+        shinyjs::runjs(paste0("Shiny.setInputValue('", id, "-selected_element', null);"))
+        
+        output$add_widget_selected_concepts <- renderUI(default_selected_concepts_ui)
+        output$selected_concepts_list <- renderUI("")
+        
+        ## Load front-end & back-end ----
+        
+        load_tab_plugins(tab_id, widget_id, "add")
+        load_tab_ui(category, tab_id, widget_id, action = "add_widget")
+        load_tab_server(tab_id, widget_id, "add_widget")
+        
+        # Close modal
+        shinyjs::hide("add_widget_modal")
+        
+        # Reload menu (issue : it changed selected tab)
+        r$data_reload_menu <- now()
       }
-      
-      # Notify user
-      show_message_bar(id, output, message = "widget_added", type = "success", i18n = i18n, ns = ns)
-      
-      # Reload update_datetime
-      sql_update_datetime(r, m)
-      
-      # Reset fields
-      shiny.fluent::updateTextField.shinyInput(session, "widget_creation_name", value = "")
-      
-      shiny.fluent::updateSearchBox.shinyInput(session, "search_plugin", value = "")
-      
-      # Reset selected plugin and selected concepts
-      shinyjs::runjs(update_selected_concepts_css$add)
-      output$add_widget_selected_concepts <- renderUI(default_selected_concepts_ui)
-      
-      output$add_widget_selected_plugin <- renderUI(default_selected_plugin_ui)
-      shinyjs::runjs(paste0("Shiny.setInputValue('", id, "-selected_element', null);"))
-      
-      output$add_widget_selected_concepts <- renderUI(default_selected_concepts_ui)
-      output$selected_concepts_list <- renderUI("")
-      
-      ## Load front-end & back-end ----
-      
-      load_tab_plugins(tab_id, widget_id, "add")
-      load_tab_ui(category, tab_id, widget_id, action = "add_widget")
-      load_tab_server(tab_id, widget_id, "add_widget")
-      
-      # Close modal
-      shinyjs::hide("add_widget_modal")
-      
-      # Reload menu (issue : it changed selected tab)
-      r$data_reload_menu <- now()
-    })
+    }))
     
     # --- --- --- --- --
     # Edit a widget ----
     # --- --- --- --- --
     
-    observeEvent(input$edit_widget_trigger, {
-      if (debug) cat(paste0("\n", now(), " - mod_data - observer input$edit_widget_trigger"))
+    observeEvent(input$edit_widget_trigger, try_catch("input$edit_widget_trigger", {
       
       # Set opened widget modal to creation
       shinyjs::runjs(paste0("Shiny.setInputValue('", id, "-opened_widget_modal', 'edit');"))
@@ -2174,11 +2116,10 @@ mod_data_server <- function(id, r, d, m, language, i18n, debug, user_accesses){
       shinyjs::runjs(paste0("Shiny.setInputValue('", id, "-reload_vocabulary_datatable', Math.random())"))
       
       shinyjs::show("edit_widget_modal")
-    })
+    }))
     
     # Close modal
-    observeEvent(input$close_edit_widget_modal, {
-      if (debug) cat(paste0("\n", now(), " - mod_data - observer input$close_edit_widget_modal"))
+    observeEvent(input$close_edit_widget_modal, try_catch("input$close_edit_widget_modal", {
       shinyjs::hide("edit_widget_modal")
       
       # Reload selected concepts
@@ -2189,11 +2130,10 @@ mod_data_server <- function(id, r, d, m, language, i18n, debug, user_accesses){
         concept_id = integer(), concept_name = character(), domain_id = character(), vocabulary_id = character(),
         mapped_to_concept_id = integer(), merge_mapped_concepts = logical()
       )
-    })
+    }))
     
     # Save updates
-    observeEvent(input$widget_edition_save, {
-      if (debug) cat(paste0("\n", now(), " - mod_data - observer input$widget_edition_save"))
+    observeEvent(input$widget_edition_save, try_catch("input$widget_edition_save", {
       
       widget_id <- input$edit_widget_id
       tab_id <- r$data_widgets %>% dplyr::filter(id == widget_id) %>% dplyr::pull(tab_id)
@@ -2291,7 +2231,7 @@ mod_data_server <- function(id, r, d, m, language, i18n, debug, user_accesses){
         
       show_message_bar(id, output, message = "modif_saved", type = "success", i18n = i18n, ns = ns)
       shinyjs::hide("edit_widget_modal")
-    })
+    }))
     
     # --- --- --- --- --- --- --
     # Widget in full screen ----
@@ -2299,8 +2239,7 @@ mod_data_server <- function(id, r, d, m, language, i18n, debug, user_accesses){
     
     r$data_tabs_full_screen <- tibble::tibble(widget_id = integer(), tab_id = integer(), x = integer(), y = integer(), w = integer(), h = integer())
     
-    observeEvent(input$widget_full_screen_trigger, {
-      if (debug) cat(paste0("\n", now(), " - mod_data - observer input$widget_full_screen_trigger"))
+    observeEvent(input$widget_full_screen_trigger, try_catch("input$widget_full_screen_trigger", {
       
       widget_id <- input$widget_full_screen_id
       tab_id <- r$data_widgets %>% dplyr::filter(id == widget_id) %>% dplyr::pull(tab_id)
@@ -2406,10 +2345,9 @@ mod_data_server <- function(id, r, d, m, language, i18n, debug, user_accesses){
       
       # Reload window size (correct bug with Ace editor display)
       shinyjs::delay(300, shinyjs::runjs("var event = new Event('resize'); window.dispatchEvent(event);"))
-    })
+    }))
     
-    observeEvent(input$full_screen_widget_position_trigger, {
-      if (debug) cat(paste0("\n", now(), " - mod_data - observer input$full_screen_widget_position_trigger"))
+    observeEvent(input$full_screen_widget_position_trigger, try_catch("input$full_screen_widget_position_trigger", {
       
       widget <- input$full_screen_widget_position
       
@@ -2423,24 +2361,21 @@ mod_data_server <- function(id, r, d, m, language, i18n, debug, user_accesses){
           h = as.integer(widget$h)
         )
       )
-    })
+    }))
     
     # --- --- --- --- -- -
     # Delete a widget ----
     # --- --- --- --- -- -
     
-    observeEvent(input$remove_widget_trigger, {
-      if (debug) cat(paste0("\n", now(), " - mod_data - observer input$remove_widget_trigger"))
+    observeEvent(input$remove_widget_trigger, try_catch("input$remove_widget_trigger", {
       shinyjs::show("delete_widget_modal")
-    })
+    }))
     
-    observeEvent(input$close_widget_deletion_modal, {
-      if (debug) cat(paste0("\n", now(), " - mod_data - observer input$close_file_deletion_modal"))
+    observeEvent(input$close_widget_deletion_modal, try_catch("input$close_widget_deletion_modal", {
       shinyjs::hide("delete_widget_modal")
-    })
+    }))
     
-    observeEvent(input$confirm_widget_deletion, {
-      if (debug) cat(paste0("\n", now(), " - mod_data - observer input$confirm_widget_deletion"))
+    observeEvent(input$confirm_widget_deletion, try_catch("input$confirm_widget_deletion", {
       
       category <- r$data_page
       
@@ -2480,7 +2415,7 @@ mod_data_server <- function(id, r, d, m, language, i18n, debug, user_accesses){
       
       # Reload update_datetime
       sql_update_datetime(r, m)
-    })
+    }))
     
     # --- --- --- --
     # Edit page ----
@@ -2488,15 +2423,13 @@ mod_data_server <- function(id, r, d, m, language, i18n, debug, user_accesses){
     
     r$data_edit_page_activated <- FALSE
     
-    observeEvent(input$edit_page, {
-      if (debug) cat(paste0("\n", now(), " - mod_data - observer input$edit_page"))
+    observeEvent(input$edit_page, try_catch("input$edit_page", {
       
       if (r$data_edit_page_activated) r$data_edit_page_activated <- FALSE
       else r$data_edit_page_activated <- TRUE
-    })
+    }))
     
-    observeEvent(r$data_edit_page_activated, {
-      if (debug) cat(paste0("\n", now(), " - mod_data - observer r$data_edit_page_activated"))
+    observeEvent(r$data_edit_page_activated, try_catch("r$data_edit_page_activated", {
       
       if (r$data_edit_page_activated){
         
@@ -2578,41 +2511,42 @@ mod_data_server <- function(id, r, d, m, language, i18n, debug, user_accesses){
         # Reload update_datetime
         sql_update_datetime(r, m)
       }
-    }, ignoreInit = TRUE)
+    }), ignoreInit = TRUE)
     
     # Save each widget position
-    observeEvent(input$widget_position_trigger, {
-      if (debug) cat(paste0("\n", now(), " - mod_data - observer input$widget_position_trigger"))
+    observeEvent(input$widget_position_trigger, try_catch("input$widget_position_trigger", {
       
       widget <- input$widget_position
       
       # Don't save if we are in full screen mode
       tab_id <- r$data_widgets %>% dplyr::filter(id == widget$id) %>% dplyr::pull(tab_id)
-      req(tab_id %not_in% r$data_tabs_full_screen$tab_id)
       
-      widget_position <- ""
-      for (pos in c("w", "h", "x", "y")){
-        if (length(widget[[pos]]) == 0) widget_pos <- 1
-        else widget_pos <- widget[[pos]]
-        widget_position <- paste0(widget_position, pos, "=", widget_pos, ";")
-      }
+      if (tab_id %not_in% r$data_tabs_full_screen$tab_id){
       
-      # Check if this data is already registred
-      sql <- glue::glue_sql("SELECT * FROM widgets_options WHERE widget_id = {widget$id} AND category = 'widget_position'", .con = m$db)
-      
-      if (nrow(DBI::dbGetQuery(m$db, sql)) > 0){
-        sql <- glue::glue_sql("UPDATE widgets_options SET value = {widget_position} WHERE widget_id = {widget$id} AND category = 'widget_position'", .con = m$db)
-        sql_send_statement(m$db, sql)
+        widget_position <- ""
+        for (pos in c("w", "h", "x", "y")){
+          if (length(widget[[pos]]) == 0) widget_pos <- 1
+          else widget_pos <- widget[[pos]]
+          widget_position <- paste0(widget_position, pos, "=", widget_pos, ";")
+        }
+        
+        # Check if this data is already registred
+        sql <- glue::glue_sql("SELECT * FROM widgets_options WHERE widget_id = {widget$id} AND category = 'widget_position'", .con = m$db)
+        
+        if (nrow(DBI::dbGetQuery(m$db, sql)) > 0){
+          sql <- glue::glue_sql("UPDATE widgets_options SET value = {widget_position} WHERE widget_id = {widget$id} AND category = 'widget_position'", .con = m$db)
+          sql_send_statement(m$db, sql)
+        }
+        else {
+          new_data <- tibble::tibble(
+            id =  get_last_row(m$db, "widgets_options") + 1, widget_id = widget$id, person_id = NA_integer_, link_id = NA_integer_,
+            category = "widget_position", name = NA_character_, value = widget_position, value_num = NA_integer_,
+            creator_id = r$user_id, datetime = now(), deleted = FALSE
+          )
+          DBI::dbAppendTable(m$db, "widgets_options", new_data)
+        }
       }
-      else {
-        new_data <- tibble::tibble(
-          id =  get_last_row(m$db, "widgets_options") + 1, widget_id = widget$id, person_id = NA_integer_, link_id = NA_integer_,
-          category = "widget_position", name = NA_character_, value = widget_position, value_num = NA_integer_,
-          creator_id = r$user_id, datetime = now(), deleted = FALSE
-        )
-        DBI::dbAppendTable(m$db, "widgets_options", new_data)
-      }
-    })
+    }))
     
     # --- --- --- --- --- --- --- -- -
     # Show / hide widgets buttons ----
@@ -2620,8 +2554,7 @@ mod_data_server <- function(id, r, d, m, language, i18n, debug, user_accesses){
     
     r$data_show_widgets_buttons <- TRUE
     
-    observeEvent(input$show_hide_widgets_buttons, {
-      if (debug) cat(paste0("\n", now(), " - mod_data - observer input$show_hide_widgets_buttons"))
+    observeEvent(input$show_hide_widgets_buttons, try_catch("input$show_hide_widgets_buttons", {
       
       # Hide all data widgets buttons
       if (r$data_show_widgets_buttons){
@@ -2640,7 +2573,7 @@ mod_data_server <- function(id, r, d, m, language, i18n, debug, user_accesses){
         shinyjs::runjs("$('.data_widget_settings_code_panel').css('height', 'calc(100% - 34px)');")
         shinyjs::runjs("var event = new Event('resize'); window.dispatchEvent(event);")
       }
-    })
+    }))
     
     # |-------------------------------- -----
     

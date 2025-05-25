@@ -16,7 +16,7 @@
 #' @param loading_options List specifying the initial page, project, and subset to load at startup (a list with `page`, `project`, and `subset` keys)
 #' @examples 
 #' \dontrun{
-#' linkr(language = "en", debug = FALSE, local = FALSE)
+#' linkr(language = "en", app_folder = "my_app_folder/")
 #' }
 #' @export
 #' @importFrom shiny shinyApp
@@ -51,7 +51,7 @@ linkr <- function(
   # Used to restore database and import vocabularies
   # shiny.launch.browser to automatically open browser
   
-  if (debug) cat(paste0(now(), " - linkr - init - v0.3.1.9008"))
+  if (debug) cat(paste0("[", now(), "] [INFO] - [page_id = linkr] init LinkR - v0.3.1.9008"))
   options(shiny.maxRequestSize = 4096*1024^2, shiny.launch.browser = TRUE, shiny.port = port)
   
   if (!is.logical(debug)) stop("'debug' argument is not of logical type")
@@ -65,7 +65,7 @@ linkr <- function(
   }
   
   # Create app folder if it doesn't exist
-  if (debug) cat(paste0("\n", now(), " - linkr - app_folder"))
+  if (debug) cat(paste0("\n[", now(), "] [INFO] - [page_id = linkr] create app_folder"))
   if (length(app_folder) == 0) app_folder <- paste0(path.expand("~"), "/linkr")
   
   if (!dir.exists(app_folder)){
@@ -76,7 +76,7 @@ linkr <- function(
   }
   
   # Create app sub-dirs
-  if (debug) cat(paste0("\n", now(), " - linkr - app sub-dirs"))
+  if (debug) cat(paste0("\n[", now(), "] [INFO] - [page_id = linkr] create app sub-dirs"))
   sub_dirs <- c(
     "app_database",
     "data_cleaning",
@@ -94,7 +94,7 @@ linkr <- function(
   for (sub_dir in sub_dirs) if (!dir.exists(paste0(app_folder, "/", sub_dir))) dir.create(paste0(app_folder, "/", sub_dir))
   
   # Load translations
-  if (debug) cat(paste0("\n", now(), " - linkr - translations"))
+  if (debug) cat(paste0("\n[", now(), "] [INFO] - [page_id = linkr] load translations"))
   
   languages <- c("en", "fr")
   if (language %not_in% languages){
@@ -329,7 +329,7 @@ linkr <- function(
   
   # Load UI & server
   
-  if (debug) cat(paste0("\n", now(), " - linkr - load UI & server"))
+  if (debug) cat(paste0("\n[", now(), "] [INFO] - [page_id = linkr] load UI & server"))
   shinyApp(
     ui = app_ui(pages, language, languages, i18n, users_accesses_toggles_options, db_col_types, dropdowns, auto_complete_list, debug),
     server = app_server(pages, language, languages, i18n, app_folder, authentication, username, debug, log_file, local, users_accesses_toggles_options, db_col_types, dropdowns, auto_complete_list, loading_options),

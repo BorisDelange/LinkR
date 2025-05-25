@@ -295,8 +295,6 @@ mod_datasets_server <- function(id, r, d, m, language, i18n, debug, user_accesse
   
   # |-------------------------------- -----
   
-  if (debug) cat(paste0("\n", now(), " - mod_datasets - ", id, " - start"))
-  
   # Load widgets ----
   
   all_divs <- c("summary", "edit_code", "share")
@@ -335,35 +333,30 @@ mod_datasets_server <- function(id, r, d, m, language, i18n, debug, user_accesse
     
     # Load code ----
     
-    observeEvent(input$load_dataset_code, {
-      if (debug) cat(paste0("\n", now(), " - mod_datasets - observer input$load_dataset_code"))
+    observeEvent(input$load_dataset_code, try_catch("input$load_dataset_code", {
       
       dataset_id <- input$selected_element
       unique_id <- r$datasets_long %>% dplyr::filter(id == dataset_id) %>% dplyr::filter(name == "unique_id") %>% dplyr::pull(value)
       code <- load_element_code(id = id, r = r, unique_id = unique_id)
       
       shinyAce::updateAceEditor(session, "dataset_code", value = code)
-    })
+    }))
     
     # Comment code ----
-    observeEvent(input$dataset_code_comment, {
-      if (debug) cat(paste0("\n", now(), " - mod_datasets - observer input$dataset_code_comment"))
+    observeEvent(input$dataset_code_comment, try_catch("input$dataset_code_comment", {
       
       toggle_comments(id = id, input_id = "dataset_code", code = input$dataset_code, selection = input$dataset_code_comment$range, session = session)
-    })
+    }))
     
     # Run code ----
     
-    observeEvent(input$run_code, {
-      if (debug) cat(paste0("\n", now(), " - mod_datasets - observer input$run_code"))
+    observeEvent(input$run_code, try_catch("input$run_code", {
       
       r$dataset_code <- input$dataset_code
       shinyjs::runjs(paste0("Shiny.setInputValue('", id, "-run_code_trigger', Math.random());"))
-    })
+    }))
     
-    observeEvent(input$dataset_code_run_selection, {
-      
-      if (debug) cat(paste0("\n", now(), " - mod_datasets - observer input$dataset_code_run_selection"))
+    observeEvent(input$dataset_code_run_selection, try_catch("input$dataset_code_run_selection", {
       
       dataset_id <- input$selected_element
       omop_version <- DBI::dbGetQuery(r$db, glue::glue_sql("SELECT value FROM options WHERE category = 'dataset' AND name = 'omop_version' AND link_id = {dataset_id}", .con = r$db)) %>% dplyr::pull()
@@ -381,17 +374,15 @@ mod_datasets_server <- function(id, r, d, m, language, i18n, debug, user_accesse
       execute_ace_code(r = r, id = id, editor_id = editor_id, full_code = full_code, editor_input = editor_input, code_store_var = code_store_var)
       
       shinyjs::runjs(paste0("Shiny.setInputValue('", id, "-run_code_trigger', Math.random());"))
-    })
+    }))
     
-    observeEvent(input$dataset_code_run_all, {
-      if (debug) cat(paste0("\n", now(), " - mod_datasets - observer input$code_run_all"))
+    observeEvent(input$dataset_code_run_all, try_catch("input$dataset_code_run_all", {
       
       r$dataset_code <- input$dataset_code
       shinyjs::runjs(paste0("Shiny.setInputValue('", id, "-run_code_trigger', Math.random());"))
-    })
+    }))
     
-    observeEvent(input$run_code_trigger, {
-      if (debug) cat(paste0("\n", now(), " - mod_datasets - observer input$run_code_trigger"))
+    observeEvent(input$run_code_trigger, try_catch("input$run_code_trigger", {
       
       dataset_id <- input$selected_element
       
@@ -410,26 +401,23 @@ mod_datasets_server <- function(id, r, d, m, language, i18n, debug, user_accesse
       result <- capture.output(tryCatch(eval(parse(text = code)), error = function(e) print(e), warning = function(w) print(w)))
       
       output$code_result <- renderText(paste(result, collapse = "\n"))
-    })
+    }))
     
     # Save code ----
     
-    observeEvent(input$save_code, {
-      if (debug) cat(paste0("\n", now(), " - mod_datasets - observer input$save_code"))
+    observeEvent(input$save_code, try_catch("input$save_code", {
       shinyjs::runjs(paste0("Shiny.setInputValue('", id, "-save_code_trigger', Math.random());"))
-    })
+    }))
     
-    observeEvent(input$dataset_code_save, {
-      if (debug) cat(paste0("\n", now(), " - mod_datasets - observer input$dataset_code_save"))
+    observeEvent(input$dataset_code_save, try_catch("input$dataset_code_save", {
       shinyjs::runjs(paste0("Shiny.setInputValue('", id, "-save_code_trigger', Math.random());"))
-    })
+    }))
     
-    observeEvent(input$save_code_trigger, {
-      if (debug) cat(paste0("\n", now(), " - mod_datasets - observer input$save_code_trigger"))
+    observeEvent(input$save_code_trigger, try_catch("input$save_code_trigger", {
       
       dataset_id <- input$selected_element
       unique_id <- r$datasets_long %>% dplyr::filter(id == dataset_id) %>% dplyr::filter(name == "unique_id") %>% dplyr::pull(value)
       save_element_code(id = id, i18n = i18n, output = output, r = r, unique_id = unique_id, new_code = input$dataset_code)
-    })
+    }))
   })
 }

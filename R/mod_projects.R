@@ -420,10 +420,6 @@ mod_projects_ui <- function(id, language, languages, i18n){
 #' @noRd 
 mod_projects_server <- function(id, r, d, m, language, i18n, debug, user_accesses, user_settings){
   
-  # |-------------------------------- -----
-  
-  if (debug) cat(paste0("\n", now(), " - mod_projects - ", id, " - start"))
-  
   # Load widgets ----
   
   all_divs <- c("summary", "dataset", "data_cleaning_scripts", "share")
@@ -454,11 +450,9 @@ mod_projects_server <- function(id, r, d, m, language, i18n, debug, user_accesse
     
     # Update project creation dataset
     
-    observeEvent(r$datasets_wide, {
-      if (debug) cat(paste0("\n", now(), " - mod_projects - observer r$datasets_wide"))
-      
+    observeEvent(r$datasets_wide, try_catch("r$datasets_wide", {
       shiny.fluent::updateDropdown.shinyInput(session, "element_creation_dataset", options = convert_tibble_to_list(r$datasets_wide, key_col = "id", text_col = "name"), value = NULL)
-    })
+    }))
     
     # --- --- --- --- ---
     # Load a project ----
@@ -466,8 +460,7 @@ mod_projects_server <- function(id, r, d, m, language, i18n, debug, user_accesse
     
     # Load a specific project if noticed in loading_options
     
-    observeEvent(r$projects_wide, {
-      if (debug) cat(paste0("\n", now(), " - mod_projects - observer r$projects_wide"))
+    observeEvent(r$projects_wide, try_catch("r$projects_wide", {
       
       if (length(r$loading_options$project_id) > 0){
         
@@ -489,19 +482,10 @@ mod_projects_server <- function(id, r, d, m, language, i18n, debug, user_accesse
         
         r$loading_options$project_id <- NULL
       }
-    })
-    
-    # Reload sidenav values
-    
-    observeEvent(m$selected_study, {
-      if (debug) cat(paste0("\n", now(), " - mod_projects - observer m$selected_study"))
-      
-      
-    })
+    }))
     
     # Reload data rows UI
-    observeEvent(d$care_site, {
-      if (debug) cat(paste0("\n", now(), " - mod_projects - observer d$person"))
+    observeEvent(d$care_site, try_catch("d$care_site", {
       
       num_care_sites <- 0
       
@@ -516,18 +500,16 @@ mod_projects_server <- function(id, r, d, m, language, i18n, debug, user_accesse
       
       output$summary_num_care_sites <- renderUI(num_care_sites)
       output$dataset_num_care_sites <- renderUI(num_care_sites)
-    })
+    }))
     
-    observeEvent(d$person, {
-      if (debug) cat(paste0("\n", now(), " - mod_projects - observer d$person"))
+    observeEvent(d$person, try_catch("d$person", {
       
       num_patients <- d$person %>% dplyr::count() %>% dplyr::pull()
+      
       output$summary_num_patients <- renderUI(num_patients)
       output$dataset_num_patients <- renderUI(num_patients)
       
       # Update tables rows count
-      
-      req(m$omop_version)
 
       omop_tables <- c(
         "condition_occurrence", "drug_exposure", "procedure_occurrence", "device_exposure", "measurement", "observation", "note", "note_nlp", "payer_plan_period", "cost",
@@ -535,7 +517,7 @@ mod_projects_server <- function(id, r, d, m, language, i18n, debug, user_accesse
         "person", "location", "care_site", "provider"
       )
 
-      if (m$omop_version %in% c("5.3", "5.4")) omop_tables <- c(omop_tables, "death")
+      if (length(m$omop_version) > 0 && m$omop_version %in% c("5.3", "5.4")) omop_tables <- c(omop_tables, "death")
 
       tables_count <- tibble::tibble(table = character(), num_pat = integer(), num_rows = integer())
 
@@ -560,15 +542,14 @@ mod_projects_server <- function(id, r, d, m, language, i18n, debug, user_accesse
             )
         )
       }
-    })
+    }))
     
-    observeEvent(d$visit_occurrence, {
-      if (debug) cat(paste0("\n", now(), " - mod_projects - observer d$visit_occurrence"))
+    observeEvent(d$visit_occurrence, try_catch("d$visit_occurrence", {
       
       num_stays <- d$visit_occurrence %>% dplyr::count() %>% dplyr::pull()
       output$summary_num_stays <- renderUI(num_stays)
       output$dataset_num_stays <- renderUI(num_stays)
-    })
+    }))
     
     # --- --- --- --- -- -
     # Project dataset ----
@@ -576,49 +557,46 @@ mod_projects_server <- function(id, r, d, m, language, i18n, debug, user_accesse
     
     ## Save updates ----
     
-    observeEvent(input$project_dataset, {
-      if (debug) cat(paste0("\n", now(), " - mod_projects - observer input$save_dataset"))
-      req(length(input$project_dataset) > 0)
+    observeEvent(input$project_dataset, try_catch("input$save_dataset", {
       
-      # Save each time a dataset is selected
-      shinyjs::runjs(paste0("Shiny.setInputValue('", id, "-save_dataset', Math.random());"))
-    })
+      if (length(input$project_dataset) > 0){
+        
+        # Save each time a dataset is selected
+        shinyjs::runjs(paste0("Shiny.setInputValue('", id, "-save_dataset', Math.random());"))
+      }
+    }))
     
-    observeEvent(input$save_dataset, {
-      if (debug) cat(paste0("\n", now(), " - mod_projects - observer input$save_dataset"))
+    observeEvent(input$save_dataset, try_catch("input$save_dataset", {
       
-      req("projects_dataset" %in% user_accesses)
+      if ("projects_dataset" %in% user_accesses){
       
-      sql <- glue::glue_sql("UPDATE studies SET dataset_id = {input$project_dataset} WHERE id = {input$selected_element}", .con = r$db)
-      query <- DBI::dbSendStatement(r$db, sql)
-      DBI::dbClearResult(query)
-      
-      r$projects_wide <- 
-        r$projects_wide %>% 
-        dplyr::mutate(dataset_id = dplyr::case_when(id == input$selected_element ~ input$project_dataset, TRUE ~ dataset_id))
-    })
+        sql <- glue::glue_sql("UPDATE studies SET dataset_id = {input$project_dataset} WHERE id = {input$selected_element}", .con = r$db)
+        query <- DBI::dbSendStatement(r$db, sql)
+        DBI::dbClearResult(query)
+        
+        r$projects_wide <- 
+          r$projects_wide %>% 
+          dplyr::mutate(dataset_id = dplyr::case_when(id == input$selected_element ~ input$project_dataset, TRUE ~ dataset_id))
+      }
+    }))
     
     ## Load or reload dataset ----
     
-    observeEvent(input$load_dataset, {
-      if (debug) cat(paste0("\n", now(), " - mod_projects - observer input$load_dataset"))
+    observeEvent(input$load_dataset, try_catch("input$load_dataset", {
       
       shinyjs::runjs(paste0("Shiny.setInputValue('", id, "-load_dataset_id', ", r$selected_dataset, ");"))
       shinyjs::runjs(paste0("Shiny.setInputValue('", id, "-load_or_reload_dataset', Math.random());"))
-    })
+    }))
     
-    observeEvent(input$reload_dataset, {
-      if (debug) cat(paste0("\n", now(), " - mod_projects - observer input$reload_dataset"))
+    observeEvent(input$reload_dataset, try_catch("input$reload_dataset", {
       
-      req(length(input$project_dataset) > 0)
-      req("projects_dataset" %in% user_accesses)
-      
-      shinyjs::runjs(paste0("Shiny.setInputValue('", id, "-load_dataset_id', ", input$project_dataset, ");"))
-      shinyjs::runjs(paste0("Shiny.setInputValue('", id, "-load_or_reload_dataset', Math.random());"))
-    })
+      if (length(input$project_dataset) > 0 && "projects_dataset" %in% user_accesses){
+        shinyjs::runjs(paste0("Shiny.setInputValue('", id, "-load_dataset_id', ", input$project_dataset, ");"))
+        shinyjs::runjs(paste0("Shiny.setInputValue('", id, "-load_or_reload_dataset', Math.random());"))
+      }
+    }))
     
-    observeEvent(input$load_or_reload_dataset, {
-      if (debug) cat(paste0("\n", now(), " - mod_projects - observer input$load_or_reload_dataset"))
+    observeEvent(input$load_or_reload_dataset, try_catch("input$load_or_reload_dataset", {
       
       shinyjs::delay(100, {
         # Hide dataset details
@@ -641,12 +619,11 @@ mod_projects_server <- function(id, r, d, m, language, i18n, debug, user_accesse
           show_message_bar(id, output, "error_loading_data", "severeWarning", i18n = i18n, ns = ns)
         })
       })
-    })
+    }))
     
     ## Dataset details ----
     
-    observeEvent(input$dataset_details_trigger, {
-      if (debug) cat(paste0("\n", now(), " - mod_projects - observer input$dataset_details_trigger"))
+    observeEvent(input$dataset_details_trigger, try_catch("input$dataset_details_trigger", {
       
       categories <- c("care_sites", "patients", "stays")
       sapply(categories[categories != input$dataset_details], function(category) shinyjs::hide(paste0("dataset_", category, "_details")))
@@ -655,32 +632,24 @@ mod_projects_server <- function(id, r, d, m, language, i18n, debug, user_accesse
       
       if (input$dataset_details == "care_sites"){
         
-        tryCatch({
-          num_care_sites <- 0
+        num_care_sites <- 0
+        
+        if (d$location %>% dplyr::count() %>% dplyr::pull() > 0 & d$care_site %>% dplyr::count() %>% dplyr::pull() > 0){
+          care_sites <-
+            d$location %>%
+            dplyr::inner_join(d$care_site, by = "location_id")
           
-          if (d$location %>% dplyr::count() %>% dplyr::pull() > 0 & d$care_site %>% dplyr::count() %>% dplyr::pull() > 0){
-            care_sites <-
-              d$location %>%
-              dplyr::inner_join(d$care_site, by = "location_id")
-            
-            num_care_sites <- care_sites %>% dplyr::distinct(location_id) %>% dplyr::count() %>% dplyr::pull()
-          }
-          
-          if (num_care_sites == 0){
-            
-          }
-          
-          req(num_care_sites > 0)
-          
+          num_care_sites <- care_sites %>% dplyr::distinct(location_id) %>% dplyr::count() %>% dplyr::pull()
+        }
+        
+        if (num_care_sites > 0){
+        
           output$dataset_care_sites_locations_table <- renderTable(
             care_sites %>%
               dplyr::distinct(location_source_value) %>%
               dplyr::rename(!!i18n$t("care_site") := location_source_value)
           )
-        }, error = function(e){
-          cat(paste0("\n", now(), " - mod_projects - error loading care_sites details - error = ", toString(e)))
-          show_message_bar(id, output, "error_loading_data_details", "severeWarning", i18n = i18n, ns = ns)
-        })
+        }
       }
       
       ## Patients details ----
@@ -689,13 +658,8 @@ mod_projects_server <- function(id, r, d, m, language, i18n, debug, user_accesse
         
         num_rows <- d$person %>% dplyr::count() %>% dplyr::pull()
         
-        if (num_rows == 0){
-          
-        }
+        if (num_rows > 0){
         
-        req(num_rows > 0)
-        
-        tryCatch({
           age_data <-
             d$visit_occurrence %>%
             dplyr::left_join(
@@ -807,94 +771,81 @@ mod_projects_server <- function(id, r, d, m, language, i18n, debug, user_accesse
               .id = "Groupe"
             )
           }, sanitize.text.function = identity, rownames = FALSE)
-        }, error = function(e){
-          cat(paste0("\n", now(), " - mod_projects - error loading patients details - error = ", toString(e)))
-          show_message_bar(id, output, "error_loading_data_details", "severeWarning", i18n = i18n, ns = ns)
-        })
-        
+        }
       }
       
       ## Stays details ----
       
       else if (input$dataset_details == "stays"){
         
-        tryCatch({
-          admissions_data <- d$visit_occurrence %>%
-            dplyr::select(visit_start_date) %>%
-            dplyr::collect() %>%
-            dplyr::mutate(visit_start_date = as.Date(visit_start_date)) %>%
-            dplyr::mutate(month = lubridate::floor_date(visit_start_date, "month")) %>%
-            dplyr::group_by(month) %>%
-            dplyr::summarize(admissions_count = dplyr::n()) %>%
-            dplyr::ungroup()
-          
-          filtered_admissions_data <- admissions_data %>%
-            dplyr::arrange(desc(month)) %>%
-            dplyr::slice(1:30) %>%
-            dplyr::arrange(month)
-          
-          output$dataset_admissions_plot <- renderPlot(
-            ggplot2::ggplot(filtered_admissions_data, ggplot2::aes(x = month, y = admissions_count)) +
-              ggplot2::geom_col(fill = "#2874A6", alpha = 0.7) +
-              ggplot2::scale_x_date(breaks = scales::breaks_pretty(n = 10), date_labels = "%b %Y") +
-              ggplot2::theme_minimal() +
-              ggplot2::labs(
-                x = "Date",
-                y = "Number of admissions",
-                title = "Number of admissions over time"
-              ) +
-              ggplot2::theme(
-                plot.title = ggplot2::element_text(hjust = 0.5, face = "bold")
-              )
-          )
-          
-          care_site_visits <-
-            d$visit_detail %>%
-            dplyr::left_join(d$care_site, by = "care_site_id") %>%
-            dplyr::group_by(care_site_name) %>%
-            dplyr::summarise(num = as.integer(dplyr::n())) %>%
-            dplyr::ungroup() %>%
-            dplyr::collect() %>%
-            dplyr::arrange(desc(num)) %>%
-            dplyr::slice_head(n = 20)
-          
-          colnames(care_site_visits) <- c(i18n$t("hospital_unit_name"), i18n$t("admissions_number"))
-          
-          output$dataset_care_sites_table <- renderTable(care_site_visits)
-        }, error = function(e){
-          cat(paste0("\n", now(), " - mod_projects - error loading stays details - error = ", toString(e)))
-          show_message_bar(id, output, "error_loading_data_details", "severeWarning", i18n = i18n, ns = ns)
-        })
+        admissions_data <- d$visit_occurrence %>%
+          dplyr::select(visit_start_date) %>%
+          dplyr::collect() %>%
+          dplyr::mutate(visit_start_date = as.Date(visit_start_date)) %>%
+          dplyr::mutate(month = lubridate::floor_date(visit_start_date, "month")) %>%
+          dplyr::group_by(month) %>%
+          dplyr::summarize(admissions_count = dplyr::n()) %>%
+          dplyr::ungroup()
+        
+        filtered_admissions_data <- admissions_data %>%
+          dplyr::arrange(desc(month)) %>%
+          dplyr::slice(1:30) %>%
+          dplyr::arrange(month)
+        
+        output$dataset_admissions_plot <- renderPlot(
+          ggplot2::ggplot(filtered_admissions_data, ggplot2::aes(x = month, y = admissions_count)) +
+            ggplot2::geom_col(fill = "#2874A6", alpha = 0.7) +
+            ggplot2::scale_x_date(breaks = scales::breaks_pretty(n = 10), date_labels = "%b %Y") +
+            ggplot2::theme_minimal() +
+            ggplot2::labs(
+              x = "Date",
+              y = "Number of admissions",
+              title = "Number of admissions over time"
+            ) +
+            ggplot2::theme(
+              plot.title = ggplot2::element_text(hjust = 0.5, face = "bold")
+            )
+        )
+        
+        care_site_visits <-
+          d$visit_detail %>%
+          dplyr::left_join(d$care_site, by = "care_site_id") %>%
+          dplyr::group_by(care_site_name) %>%
+          dplyr::summarise(num = as.integer(dplyr::n())) %>%
+          dplyr::ungroup() %>%
+          dplyr::collect() %>%
+          dplyr::arrange(desc(num)) %>%
+          dplyr::slice_head(n = 20)
+        
+        colnames(care_site_visits) <- c(i18n$t("hospital_unit_name"), i18n$t("admissions_number"))
+        
+        output$dataset_care_sites_table <- renderTable(care_site_visits)
       }
       
       shinyjs::show(paste0("dataset_", input$dataset_details, "_details"))
-    })
+    }))
     
     # --- --- --- --- --- -
     # Import a project ----
     # --- --- --- --- --- -
     
     # Do plugins need to be updated?
-    observeEvent(input$ask_plugins_update, {
-      if (debug) cat(paste0("\n", now(), " - mod_projects - observer input$ask_plugins_update"))
-      
+    observeEvent(input$ask_plugins_update, try_catch("input$ask_plugins_update", {
       shinyjs::show("update_project_plugins_modal")
-    })
+    }))
     
-    observeEvent(input$confirm_project_plugins_import, {
-      if (debug) cat(paste0("\n", now(), " - mod_projects - observer input$confirm_project_plugins_import"))
+    observeEvent(input$confirm_project_plugins_import, try_catch("input$confirm_project_plugins_import", {
       
       shinyjs::hide("update_project_plugins_modal")
       shinyjs::runjs(paste0("Shiny.setInputValue('", id, "-import_project_plugins', true);"))
       shinyjs::runjs(paste0("Shiny.setInputValue('", id, "-confirm_element_import_2', Math.random());"))
-    })
+    }))
     
-    observeEvent(input$close_project_plugins_import_modal, {
-      if (debug) cat(paste0("\n", now(), " - mod_projects - observer input$close_project_plugins_import_modal"))
+    observeEvent(input$close_project_plugins_import_modal, try_catch("input$close_project_plugins_import_modal", {
       
       shinyjs::hide("update_project_plugins_modal")
       shinyjs::runjs(paste0("Shiny.setInputValue('", id, "-import_project_plugins', false);"))
       shinyjs::runjs(paste0("Shiny.setInputValue('", id, "-confirm_element_import_2', Math.random());"))
-    })
+    }))
   })
 }

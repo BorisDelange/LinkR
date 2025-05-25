@@ -207,8 +207,6 @@ mod_vocabularies_ui <- function(id, language, languages, i18n, code_hotkeys, dro
 mod_vocabularies_server <- function(id, r, d, m, language, i18n, debug, user_accesses, user_settings){
   # |-------------------------------- -----
   
-  if (debug) cat(paste0("\n", now(), " - mod_vocabularies - start"))
-  
   # Initiate vars ----
   authorized_concept_files <- c("concept", "domain", "concept_class", "concept_relationship", "relationship", "concept_synonym", "concept_ancestor", "drug_strength", "vocabulary")
   
@@ -241,19 +239,17 @@ mod_vocabularies_server <- function(id, r, d, m, language, i18n, debug, user_acc
     
     ## Load vocabulary tables ----
     
-    observeEvent(input$load_vocabulary_tables, {
-      if (debug) cat(paste0("\n", now(), " - mod_vocabularies - observer input$load_vocabulary_tables"))
+    observeEvent(input$load_vocabulary_tables, try_catch("input$load_vocabulary_tables", {
       
       vocabulary_id <- r$vocabularies_wide %>% dplyr::filter(id == input$selected_element) %>% dplyr::pull(vocabulary_id)
       shinyjs::runjs(paste0("Shiny.setInputValue('", id, "-selected_vocabulary_id', '", vocabulary_id, "');"))
       
       for (table in c("concept", "concept_relationship", "concept_synonym", "concept_ancestor", "drug_strength")) m[[table]] <- tibble::tibble()
-    })
+    }))
     
     ## Concepts main table ----
     
-    observeEvent(input$vocabulary_table, {
-      if (debug) cat(paste0("\n", now(), " - mod_vocabularies - observer input$vocabulary_table"))
+    observeEvent(input$vocabulary_table, try_catch("input$vocabulary_table", {
       
       table <- input$vocabulary_table
       vocabulary_id <- input$selected_vocabulary_id
@@ -363,18 +359,17 @@ mod_vocabularies_server <- function(id, r, d, m, language, i18n, debug, user_acc
       )
       
       r$vocabularies_primary_concepts_dt_proxy <- DT::dataTableProxy("primary_concepts_dt", deferUntilFlush = FALSE)
-    })
+    }))
     
-    observeEvent(input$primary_concepts_dt_cols, {
-      if (debug) cat(paste0("\n", now(), " - mod_vocabularies - observer input$primary_concepts_dt_cols"))
+    observeEvent(input$primary_concepts_dt_cols, try_catch("input$primary_concepts_dt_cols", {
       
-      req(r$vocabularies_primary_concepts_dt_proxy)
+      if (length(r$vocabularies_primary_concepts_dt_proxy) > 0){
       
-      r$vocabularies_primary_concepts_dt_proxy %>%
-        DT::showCols(0:8) %>%
-        DT::hideCols(setdiff(0:8, input$primary_concepts_dt_cols))
-    })
-    
+        r$vocabularies_primary_concepts_dt_proxy %>%
+          DT::showCols(0:8) %>%
+          DT::hideCols(setdiff(0:8, input$primary_concepts_dt_cols))
+      }
+    }))
     
     ## Concepts secondary table ----
     
@@ -382,95 +377,89 @@ mod_vocabularies_server <- function(id, r, d, m, language, i18n, debug, user_acc
     
     # Show / hide import concepts modal
     
-    observeEvent(input$import_concepts_1, {
-      if (debug) cat(paste0("\n", now(), " - mod_vocabularies - observer input$import_concepts_1"))
+    observeEvent(input$import_concepts_1, try_catch("input$import_concepts_1", {
       shinyjs::show("import_concepts_modal")
-    })
-    observeEvent(input$import_concepts_2, {
-      if (debug) cat(paste0("\n", now(), " - mod_vocabularies - observer input$import_concepts_2"))
+    }))
+    
+    observeEvent(input$import_concepts_2, try_catch("input$import_concepts_2", {
       shinyjs::show("import_concepts_modal")
-    })
+    }))
     
-    observeEvent(input$close_import_concepts_modal_1, {
-      if (debug) cat(paste0("\n", now(), " - mod_vocabularies - observer input$close_import_concepts_modal"))
+    observeEvent(input$close_import_concepts_modal_1, try_catch("input$close_import_concepts_modal_1", {
       shinyjs::runjs(paste0("Shiny.setInputValue('", id, "-close_import_concepts_modal', Math.random());"))
-    })
+    }))
     
-    observeEvent(input$close_import_concepts_modal_2, {
-      if (debug) cat(paste0("\n", now(), " - mod_vocabularies - observer input$close_import_concepts_modal_2"))
+    observeEvent(input$close_import_concepts_modal_2, try_catch("input$close_import_concepts_modal_2", {
       shinyjs::runjs(paste0("Shiny.setInputValue('", id, "-close_import_concepts_modal', Math.random());"))
-    })
+    }))
     
-    observeEvent(input$close_import_concepts_modal, {
-      if (debug) cat(paste0("\n", now(), " - mod_vocabularies - observer input$close_import_concepts_modal"))
+    observeEvent(input$close_import_concepts_modal, try_catch("input$close_import_concepts_modal", {
       
-      req("vocabularies_import" %in% user_accesses)
+      if ("vocabularies_import" %in% user_accesses){
       
-      # Reset fields
-      render_datatable(
-        output = output, ns = ns, i18n = i18n, data = tibble::tibble(table_name = character(), n_rows = character(), message = character()),
-        output_name = "inserted_concepts_dt", datatable_dom = "<'top't><'bottom'p>", col_names = c(i18n$t("table_name"), i18n$t("rows_inserted"), i18n$t("message")),
-        column_widths = c("table_name" = "100px", "n_rows" = "100px")
-      )
-      shinyjs::hide("inserted_concepts_dt")
-      
-      output$selected_files <- renderUI(div())
-      
-      shinyjs::hide("import_concepts_modal")
-    })
+        # Reset fields
+        render_datatable(
+          output = output, ns = ns, i18n = i18n, data = tibble::tibble(table_name = character(), n_rows = character(), message = character()),
+          output_name = "inserted_concepts_dt", datatable_dom = "<'top't><'bottom'p>", col_names = c(i18n$t("table_name"), i18n$t("rows_inserted"), i18n$t("message")),
+          column_widths = c("table_name" = "100px", "n_rows" = "100px")
+        )
+        shinyjs::hide("inserted_concepts_dt")
+        
+        output$selected_files <- renderUI(div())
+        
+        shinyjs::hide("import_concepts_modal")
+      }
+    }))
     
     # Show file browser input
     
-    observeEvent(input$select_files, {
-      if (debug) cat(paste0("\n", now(), " - mod_vocabularies - observer input$select_files"))
+    observeEvent(input$select_files, try_catch("input$select_files", {
       shinyjs::click("select_files_input")
-    })
+    }))
     
     # Select files
     
-    observeEvent(input$select_files_input, {
-      if (debug) cat(paste0("\n", now(), " - mod_vocabularies - observer input$select_files_input"))
+    observeEvent(input$select_files_input, try_catch("input$select_files_input", {
       
-      req("vocabularies_import" %in% user_accesses)
-      
-      req(length(input$select_files_input) > 0)
-      
-      # Change button, from close to import
-      shinyjs::hide("close_import_concepts_modal_2_div")
-      shinyjs::show("import_files_div")
-      
-      # Create files to import UI
-      
-      files_ui <- tagList()
-      
-      for (filename in input$select_files_input$name){
-        file_ext <- sub(".*\\.", "", tolower(filename))
+      if ("vocabularies_import" %in% user_accesses && length(input$select_files_input) > 0){
         
-        concept_style <- "selected_file"
+        # Change button, from close to import
+        shinyjs::hide("close_import_concepts_modal_2_div")
+        shinyjs::show("import_files_div")
         
-        if (file_ext %in% c("csv", "zip")){
-          concept_style <- paste0(concept_style, " ", file_ext, "_file")
+        # Create files to import UI
         
-          files_ui <- tagList(
-            files_ui,
-            div(
-              create_hover_card(ui = div(filename, class = concept_style), text = filename),
-              style = "display: flex; margin: 2px 0;"
+        files_ui <- tagList()
+        
+        for (filename in input$select_files_input$name){
+          file_ext <- sub(".*\\.", "", tolower(filename))
+          
+          concept_style <- "selected_file"
+          
+          if (file_ext %in% c("csv", "zip")){
+            concept_style <- paste0(concept_style, " ", file_ext, "_file")
+          
+            files_ui <- tagList(
+              files_ui,
+              div(
+                create_hover_card(ui = div(filename, class = concept_style), text = filename),
+                style = "display: flex; margin: 2px 0;"
+              )
             )
-          )
+          }
         }
+        
+        output$selected_files <- renderUI(files_ui)
+        
+        # Reset datatable
+        render_datatable(
+          output = output, ns = ns, i18n = i18n, data = tibble::tibble(table_name = character(), n_rows = integer(), message = character()),
+          output_name = "inserted_concepts_dt", datatable_dom = "<'top't><'bottom'p>",
+          sortable_cols = c("table_name", "n_rows", "message"), col_names = c(i18n$t("table_name"), i18n$t("rows_inserted"), i18n$t("message")),
+          column_widths = c("table_name" = "100px", "n_rows" = "100px")
+        )
       }
-      
-      output$selected_files <- renderUI(files_ui)
-      
-      # Reset datatable
-      render_datatable(
-        output = output, ns = ns, i18n = i18n, data = tibble::tibble(table_name = character(), n_rows = integer(), message = character()),
-        output_name = "inserted_concepts_dt", datatable_dom = "<'top't><'bottom'p>",
-        sortable_cols = c("table_name", "n_rows", "message"), col_names = c(i18n$t("table_name"), i18n$t("rows_inserted"), i18n$t("message")),
-        column_widths = c("table_name" = "100px", "n_rows" = "100px")
-      )
-    })
+    }))
     
     # Import files
     
@@ -487,78 +476,76 @@ mod_vocabularies_server <- function(id, r, d, m, language, i18n, debug, user_acc
       drug_strength = "iinininiiccc"
     )
     
-    observeEvent(input$import_files, {
-      if (debug) cat(paste0("\n", now(), " - mod_vocabularies - observer input$import_files"))
+    observeEvent(input$import_files, try_catch("input$import_files", {
       
-      req("vocabularies_import" %in% user_accesses)
-      
-      req(length(input$select_files_input) > 0)
-      
-      # Change button, from import to close
-      shinyjs::hide("import_files_div")
-      sapply(c("close_import_concepts_modal_2_div", "inserted_concepts_dt"), shinyjs::show)
-      
-      # Add new vocabularies ?
-      add_vocabulary <- input$import_new_vocabularies
-      
-      # Reset count rows var
-      inserted_data <- tibble::tibble(table_name = character(), n_rows = character(), message = character())
-      
-      files <- input$select_files_input %>% tibble::as_tibble()
-      
-      for (i in 1:nrow(files)){
+      if ("vocabularies_import" %in% user_accesses && length(input$select_files_input) > 0){
         
-        row <- files[i, ]
-        file_ext <- sub(".*\\.", "", tolower(row$name))
+        # Change button, from import to close
+        shinyjs::hide("import_files_div")
+        sapply(c("close_import_concepts_modal_2_div", "inserted_concepts_dt"), shinyjs::show)
         
-        if (file_ext == "csv"){
+        # Add new vocabularies ?
+        add_vocabulary <- input$import_new_vocabularies
+        
+        # Reset count rows var
+        inserted_data <- tibble::tibble(table_name = character(), n_rows = character(), message = character())
+        
+        files <- input$select_files_input %>% tibble::as_tibble()
+        
+        for (i in 1:nrow(files)){
           
-          table_name <- tolower(substr(row$name, 1, nchar(row$name) - 4))
+          row <- files[i, ]
+          file_ext <- sub(".*\\.", "", tolower(row$name))
           
-          if (table_name %in% authorized_concept_files){
+          if (file_ext == "csv"){
             
-            # Insert new data
-            new_inserted_data <- load_concepts_from_csv_file(r, m, table_name, row$datapath, col_types[[table_name]])
-            inserted_data <- inserted_data %>% dplyr::bind_rows(new_inserted_data)
+            table_name <- tolower(substr(row$name, 1, nchar(row$name) - 4))
+            
+            if (table_name %in% authorized_concept_files){
+              
+              # Insert new data
+              new_inserted_data <- load_concepts_from_csv_file(r, m, table_name, row$datapath, col_types[[table_name]])
+              inserted_data <- inserted_data %>% dplyr::bind_rows(new_inserted_data)
+            }
           }
-        }
-        
-        else if (file_ext == "zip"){
           
-          # Extract zip file
-          temp_dir <- paste0(r$app_folder, "/temp_files/", r$user_id, "/vocabularies/", now() %>% stringr::str_replace_all(":| |-", ""), paste0(sample(c(0:9, letters[1:6]), 24, TRUE), collapse = ''))
-          zip::unzip(row$datapath, exdir = temp_dir)
-          zip_files <- zip::zip_list(row$datapath)
-          
-          for(filename in zip_files$filename){
+          else if (file_ext == "zip"){
             
-            if (grepl(".csv$", filename)){
+            # Extract zip file
+            temp_dir <- paste0(r$app_folder, "/temp_files/", r$user_id, "/vocabularies/", now() %>% stringr::str_replace_all(":| |-", ""), paste0(sample(c(0:9, letters[1:6]), 24, TRUE), collapse = ''))
+            zip::unzip(row$datapath, exdir = temp_dir)
+            zip_files <- zip::zip_list(row$datapath)
+            
+            for(filename in zip_files$filename){
               
-              table_name <- tolower(substr(filename, 1, nchar(filename) - 4))
-              
-              if (table_name %in% authorized_concept_files){
+              if (grepl(".csv$", filename)){
                 
-                file_path <- paste0(temp_dir, "/", filename)
+                table_name <- tolower(substr(filename, 1, nchar(filename) - 4))
                 
-                # Insert new data
-                new_inserted_data <- load_concepts_from_csv_file(r, m, table_name, file_path, col_types[[table_name]])
-                inserted_data <- inserted_data %>% dplyr::bind_rows(new_inserted_data)
+                if (table_name %in% authorized_concept_files){
+                  
+                  file_path <- paste0(temp_dir, "/", filename)
+                  
+                  # Insert new data
+                  new_inserted_data <- load_concepts_from_csv_file(r, m, table_name, file_path, col_types[[table_name]])
+                  inserted_data <- inserted_data %>% dplyr::bind_rows(new_inserted_data)
+                }
               }
             }
           }
         }
+        
+        # Show inserted data
+        render_datatable(
+          output = output, ns = ns, i18n = i18n, data = inserted_data, output_name = "inserted_concepts_dt", datatable_dom = "<'top't><'bottom'p>",
+          sortable_cols = c("table_name", "n_rows", "message"), col_names = c(i18n$t("table_name"), i18n$t("rows_inserted"), i18n$t("message")),
+          column_widths = c("table_name" = "100px", "n_rows" = "100px")
+        )
+        
+        # Reload widgets
+        shinyjs::runjs(paste0("Shiny.setInputValue('", id, "-reload_elements_var', Math.random());"))
       }
-      
-      # Show inserted data
-      render_datatable(
-        output = output, ns = ns, i18n = i18n, data = inserted_data, output_name = "inserted_concepts_dt", datatable_dom = "<'top't><'bottom'p>",
-        sortable_cols = c("table_name", "n_rows", "message"), col_names = c(i18n$t("table_name"), i18n$t("rows_inserted"), i18n$t("message")),
-        column_widths = c("table_name" = "100px", "n_rows" = "100px")
-      )
-      
-      # Reload widgets
-      shinyjs::runjs(paste0("Shiny.setInputValue('", id, "-reload_elements_var', Math.random());"))
-    })
+    }))
     
     # |-------------------------------- -----
     

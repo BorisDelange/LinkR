@@ -6,11 +6,11 @@ app_server <- function(
   
   function(input, output, session) {
     
-    if (debug) cat(paste0("\n", now(), " - server - init"))
+    if (debug) cat(paste0("\n[", now(), "] [INFO] - [page_id = server] init server"))
     
     language <- tolower(language)
     
-    if (debug) cat(paste0("\n", now(), " - server - reactive values"))
+    if (debug) cat(paste0("\n[", now(), "] [INFO] - [page_id = server] load reactive values"))
     
     # Create reactive values ----
     
@@ -60,13 +60,13 @@ app_server <- function(
     
     # Test internet connection ----
     # If local is TRUE, don't use internet connection
-    if (debug) cat(paste0("\n", now(), " - server - has_internet"))
+    if (debug) cat(paste0("\n[", now(), "] [INFO] - [page_id = server] internet connection test"))
     if (local) has_internet <- FALSE
     else has_internet <- curl::has_internet()
     r$has_internet <- has_internet
     
     # App folder ----
-    if (debug) cat(paste0("\n", now(), " - server - app_folder"))
+    if (debug) cat(paste0("\n[", now(), "] [INFO] - [page_id = server] get app folder"))
     r$app_folder <- app_folder
     m$app_folder <- app_folder
     
@@ -75,7 +75,7 @@ app_server <- function(
     
     # Translations ----
     
-    if (debug) cat(paste0("\n", now(), " - server - translations"))
+    if (debug) cat(paste0("\n[", now(), "] [INFO] - [page_id = server] get translations"))
     
     r$i18n <- i18n
     r$languages <- languages
@@ -86,7 +86,7 @@ app_server <- function(
     
     # Connection to database ----
     # If connection informations have been given in linkr() function, use these informations
-    if (debug) cat(paste0("\n", now(), " - server - app_db"))
+    if (debug) cat(paste0("\n[", now(), "] [INFO] - [page_id = server] load app database"))
     local_db <- DBI::dbConnect(RSQLite::SQLite(), paste0(app_db_folder, "/linkr_main"))
     r$local_db <- local_db
     m$local_db <- DBI::dbConnect(RSQLite::SQLite(), paste0(app_db_folder, "/linkr_public"))
@@ -103,7 +103,7 @@ app_server <- function(
     
     observeEvent(r$db, {
       
-      if (debug) cat(paste0("\n", now(), " - server - observer r$db"))
+      if (debug) cat(paste0("\n[", now(), "] [INFO] - [page_id = server] event triggered by observer r$db"))
       
       # Add default values in database, if it is empty
       insert_default_data(output = output, r = r, m = m, i18n = i18n, language = language, db_col_types = db_col_types, users_accesses_toggles_options = users_accesses_toggles_options)
@@ -183,7 +183,7 @@ app_server <- function(
     # User is logged in
     
     observeEvent(r$user_id, {
-      if (debug) cat(paste0("\n", now(), " - server - observer r$user_id"))
+      if (debug) cat(paste0("\n[", now(), "] [INFO] - [page_id = server] event triggered by r$user_id"))
       
       if (log_file){
         
@@ -195,7 +195,7 @@ app_server <- function(
       }
       
       onStop(function() {
-        if (debug) cat(paste0("\n", now(), " - server - observer onStop"))
+        if (debug) cat(paste0("\n[", now(), "] [INFO] - [page_id = server] event triggered by onStop"))
         
         # Close db connections
         # if (length(d$con) > 0) if (DBI::dbIsValid(d$con)) DBI::dbDisconnect(d$con)
@@ -205,7 +205,6 @@ app_server <- function(
       })
       
       # Clear temp dir
-      if (debug) cat(paste0("\n", now(), " - server - clear temp_files"))
       
       temp_files_folder <- paste0(app_folder, "/temp_files/", r$user_id)
       unlink(temp_files_folder, recursive = TRUE, force = TRUE)
@@ -219,7 +218,6 @@ app_server <- function(
     }, once = TRUE)
     
     # Route pages ----
-    if (debug) cat(paste0("\n", now(), " - server - shiny.router"))
     shiny.router::router_server()
     
     # Load pages ----
@@ -228,7 +226,7 @@ app_server <- function(
     
     observeEvent(shiny.router::get_page(), {
 
-      if (debug) cat(paste0("\n", now(), " - server - observer shiny.router::get_page()"))
+      if (debug) cat(paste0("\n[", now(), "] [INFO] - [page_id = server] event triggered by shiny.router::get_page()"))
 
       current_page <- shiny.router::get_page()
       r$current_page <- current_page
@@ -253,7 +251,7 @@ app_server <- function(
     })
     
     observeEvent(r$load_page, {
-      if (debug) cat(paste0("\n", now(), " - server - observer r$load_page"))
+      if (debug) cat(paste0("\n[", now(), "] [INFO] - [page_id = server] event triggered by r$load_page"))
       
       page <- r$load_page
       

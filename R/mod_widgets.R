@@ -116,17 +116,15 @@ mod_widgets_server <- function(id, r, d, m, language, i18n, all_divs, debug, use
     
     # |-------------------------------- -----
     
-    if (debug) cat(paste0("\n", now(), " - mod_widgets - (", id, ") - start"))
-    
     # Page change observer ----
-    observeEvent(shiny.router::get_page(), {
+    observeEvent(shiny.router::get_page(), try_catch("shiny.router::get_page()", {
       
-      req(shiny.router::get_page() == id)
-      if (debug) cat(paste0("\n", now(), " - mod_widgets - (", id, ") - observer shiny.router::get_page()"))
+      if (shiny.router::get_page() == id){
       
-      # Reload elements list
-      shinyjs::runjs(paste0("Shiny.setInputValue('", id, "-reload_elements_var', Math.random());"))
-    })
+        # Reload elements list
+        shinyjs::runjs(paste0("Shiny.setInputValue('", id, "-reload_elements_var', Math.random());"))
+      }
+    }))
     
     # Initiate vars ----
     
@@ -187,43 +185,41 @@ mod_widgets_server <- function(id, r, d, m, language, i18n, all_divs, debug, use
     
     # Search an element ----
     
-    observeEvent(input$search_element, {
-      if (debug) cat(paste0("\n", now(), " - mod_widgets - (", id, ") - observer input$search_element"))
+    observeEvent(input$search_element, try_catch("input$search_element", {
       
-      req(length(r[[long_var]]) > 0)
-      
-      if (input$search_element == "") r[[long_var_filtered]] <- r[[long_var]]
-      else {
+      if (length(r[[long_var]]) > 0){
         
-        # Filter on name or description
+        if (input$search_element == "") r[[long_var_filtered]] <- r[[long_var]]
+        else {
+          
+          # Filter on name or description
+          
+          filtered_ids <- r[[long_var]] %>% 
+            dplyr::filter(
+              (name == paste0("name_", language) & grepl(tolower(input$search_element), tolower(value))) |
+              (name == paste0("short_description_", language) & grepl(tolower(input$search_element), tolower(value)))
+            ) %>%
+            dplyr::pull(id)
+          
+          r[[long_var_filtered]] <- r[[long_var]] %>% dplyr::filter(id %in% filtered_ids)
+        }
         
-        filtered_ids <- r[[long_var]] %>% 
-          dplyr::filter(
-            (name == paste0("name_", language) & grepl(tolower(input$search_element), tolower(value))) |
-            (name == paste0("short_description_", language) & grepl(tolower(input$search_element), tolower(value)))
-          ) %>%
-          dplyr::pull(id)
-        
-        r[[long_var_filtered]] <- r[[long_var]] %>% dplyr::filter(id %in% filtered_ids)
+        shinyjs::runjs(paste0("Shiny.setInputValue('", id, "-reload_elements_list', Math.random());"))
       }
-      
-      shinyjs::runjs(paste0("Shiny.setInputValue('", id, "-reload_elements_list', Math.random());"))
-    })
+    }))
     
     # Reload widgets -----
     
     shinyjs::runjs(paste0("Shiny.setInputValue('", id, "-reload_elements_var', Math.random());"))
     
-    observeEvent(input$reload_elements_var, {
-      if (debug) cat(paste0("\n", now(), " - mod_widgets - (", id, ") - observer input$reload_elements_var"))
+    observeEvent(input$reload_elements_var, try_catch("input$reload_elements_var", {
       
       reload_elements_var(page_id = id, id = id, con = con, r = r, m = m, long_var_filtered = paste0("filtered_", id, "_long"), user_accesses)
       
       shinyjs::runjs(paste0("Shiny.setInputValue('", id, "-reload_elements_list', Math.random());"))
-    })
+    }))
     
-    observeEvent(input$reload_elements_list, {
-      if (debug) cat(paste0("\n", now(), " - mod_widgets - (", id, ") - observer input$reload_elements_list"))
+    observeEvent(input$reload_elements_list, try_catch("input$reload_elements_list", {
       
       if (id %in% user_accesses | (id == "subsets" & "projects_subsets_management" %in% user_accesses)){
         
@@ -244,12 +240,11 @@ mod_widgets_server <- function(id, r, d, m, language, i18n, all_divs, debug, use
         
       # Unlock reactivity
       shinyjs::show("elements")
-    })
+    }))
     
     # Element current tab ----
     
-    observeEvent(input$current_tab_trigger, {
-      if (debug) cat(paste0("\n", now(), " - mod_widgets - (", id, ") - observer input$current_tab_trigger"))
+    observeEvent(input$current_tab_trigger, try_catch("input$current_tab_trigger", {
       
       current_tab <- gsub(paste0(id, "-"), "", input$current_tab, fixed = FALSE)
       
@@ -288,12 +283,11 @@ mod_widgets_server <- function(id, r, d, m, language, i18n, all_divs, debug, use
       
       # Prevent a bug with scroll into ace editor
       if (current_tab == "edit_code") shinyjs::runjs("var event = new Event('resize'); window.dispatchEvent(event);")
-    })
+    }))
     
     # Go to home page ----
     
-    observeEvent(input$show_home, {
-      if (debug) cat(paste0("\n", now(), " - mod_widgets - (", id, ") - observer input$show_home"))
+    observeEvent(input$show_home, try_catch("input$show_home", {
       
       divs <- c(paste0(all_divs, "_reduced_sidenav"), paste0(all_divs, "_large_sidenav"))
       
@@ -307,7 +301,7 @@ mod_widgets_server <- function(id, r, d, m, language, i18n, all_divs, debug, use
         # Change header
         sapply(c("command_bar_2_link", "command_bar_2_div"), shinyjs::hide)
       }
-    })
+    }))
     
     # |-------------------------------- -----
     
@@ -316,21 +310,17 @@ mod_widgets_server <- function(id, r, d, m, language, i18n, all_divs, debug, use
     # --- --- --- --- --- --
     
     # Open modal
-    observeEvent(input$create_element, {
-      if (debug) cat(paste0("\n", now(), " - mod_widgets - (", id, ") - observer input$create_element"))
+    observeEvent(input$create_element, try_catch("input$create_element", {
       shinyjs::show("create_element_modal")
-    })
+    }))
     
     # Close modal
-    observeEvent(input$close_create_element_modal, {
-      if (debug) cat(paste0("\n", now(), " - mod_widgets - (", id, ") - observer input$close_create_element_modal"))
+    observeEvent(input$close_create_element_modal, try_catch("input$close_create_element_modal", {
       shinyjs::hide("create_element_modal")
-    })
+    }))
     
     # Add an element
-    observeEvent(input$add_element, {
-      
-      if (debug) cat(paste0("\n", now(), " - mod_widgets - (", id, ") - observer input$add_element"))
+    observeEvent(input$add_element, try_catch("input$add_element", {
       
       req(paste0(id, "_management") %in% user_accesses | (id == "subsets" & "projects_subsets_management" %in% user_accesses))
       
@@ -537,7 +527,7 @@ mod_widgets_server <- function(id, r, d, m, language, i18n, all_divs, debug, use
       
       # Close modal
       shinyjs::hide("create_element_modal")
-    })
+    }))
     
     # |-------------------------------- -----
     
@@ -547,18 +537,14 @@ mod_widgets_server <- function(id, r, d, m, language, i18n, all_divs, debug, use
     
     ## Upload file ----
     
-    observeEvent(input$import_element, {
-      if (debug) cat(paste0("\n", now(), " - mod_widgets - (", id, ") - observer input$import_element_browse"))
+    observeEvent(input$import_element, try_catch("input$import_element", {
       shinyjs::click("import_element_upload")
-    })
+    }))
     
-    observeEvent(input$import_element_upload, {
-      if (debug) cat(paste0("\n", now(), " - mod_widgets - (", id, ") - observer input$import_element_upload"))
+    observeEvent(input$import_element_upload, try_catch("input$import_element_upload", {
     
-      req(paste0(id, "_import") %in% user_accesses)
-      
-      tryCatch({
-      
+      if (paste0(id, "_import") %in% user_accesses){
+        
         # Extract ZIP file
 
         r$imported_element_temp_dir <- paste0(r$app_folder, "/temp_files/", r$user_id, "/", id, "/", now() %>% stringr::str_replace_all(":| |-", ""), paste0(sample(c(0:9, letters[1:6]), 24, TRUE), collapse = ''))
@@ -594,28 +580,24 @@ mod_widgets_server <- function(id, r, d, m, language, i18n, all_divs, debug, use
           if (id == "projects") shinyjs::runjs(paste0("Shiny.setInputValue('", id, "-ask_plugins_update', Math.random());"))
           else shinyjs::runjs(paste0("Shiny.setInputValue('", id, "-confirm_element_import_2', Math.random());"))
         }
-        
-      }, error = function(e) cat(paste0("\n", now(), " - mod_widgets - (", id, ") - import element error - ", toString(e))))
-    })
+      }
+    }))
     
-    observeEvent(input$close_element_import_modal, {
-      if (debug) cat(paste0("\n", now(), " - mod_widgets - (", id, ") - observer input$close_element_import"))
+    observeEvent(input$close_element_import_modal, try_catch("input$close_element_import_modal", {
       shinyjs::hide("import_element_modal")
-    })
+    }))
     
     ## Import files ----
     
-    observeEvent(input$confirm_element_import_1, {
-      if (debug) cat(paste0("\n", now(), " - mod_widgets - (", id, ") - observer input$confirm_element_import_1"))
+    observeEvent(input$confirm_element_import_1, try_catch("input$confirm_element_import_1", {
       
       shinyjs::hide("import_element_modal")
       
       if (id == "projects") shinyjs::runjs(paste0("Shiny.setInputValue('", id, "-ask_plugins_update', Math.random());"))
       else shinyjs::runjs(paste0("Shiny.setInputValue('", id, "-confirm_element_import_2', Math.random());"))
-    })
+    }))
       
-    observeEvent(input$confirm_element_import_2, {
-      if (debug) cat(paste0("\n", now(), " - mod_widgets - (", id, ") - observer input$confirm_element_import_2"))
+    observeEvent(input$confirm_element_import_2, try_catch("input$confirm_element_import_2", {
       
       tryCatch({
         
@@ -628,7 +610,7 @@ mod_widgets_server <- function(id, r, d, m, language, i18n, all_divs, debug, use
         show_message_bar(id, output, paste0("error_importing_", single_id), "warning", i18n = i18n, ns = ns)
         cat(paste0("\n", now(), " - mod_widgets - (", id, ") - import element error - ", toString(e)))
       })
-    })
+    }))
     
     # |-------------------------------- -----
     
@@ -636,8 +618,7 @@ mod_widgets_server <- function(id, r, d, m, language, i18n, all_divs, debug, use
     # An element is selected ----
     # --- --- --- --- --- --- ---
     
-    observeEvent(input$selected_element_trigger, {
-      if (debug) cat(paste0("\n", now(), " - mod_widgets - (", id, ") - observer input$selected_element_trigger"))
+    observeEvent(input$selected_element_trigger, try_catch("input$selected_element_trigger", {
       
       sapply(c("all_elements", "all_elements_reduced_sidenav"), shinyjs::hide)
       shinyjs::show("one_element")
@@ -825,7 +806,7 @@ mod_widgets_server <- function(id, r, d, m, language, i18n, all_divs, debug, use
         
         shinyjs::runjs(paste0("Shiny.setInputValue('", id, "-load_data_cleaning_code', Math.random());"))
       }
-    })
+    }))
     
     # |-------------------------------- -----
     
@@ -835,29 +816,28 @@ mod_widgets_server <- function(id, r, d, m, language, i18n, all_divs, debug, use
     
     ## Edit summary ----
     
-    observeEvent(input$edit_summary, {
-      if (debug) cat(paste0("\n", now(), " - mod_widgets - (", id, ") - observer input$edit_summary"))
+    observeEvent(input$edit_summary, try_catch("input$edit_summary", {
       
-      req(paste0(id, "_management") %in% user_accesses | (id == "subsets" & "projects_subsets_management" %in% user_accesses))
+      if (paste0(id, "_management") %in% user_accesses || (id == "subsets" && "projects_subsets_management" %in% user_accesses)){
       
-      # Reload markdown
-      element_long <- r[[long_var]] %>% dplyr::filter(id == input$selected_element)
-      description_code <- element_long %>% dplyr::filter(name == paste0("description_", input$language)) %>% dplyr::pull(value)
-      
-      if (description_code == "" | is.na(description_code)) output$description_ui <- renderUI(div(shiny.fluent::MessageBar(i18n$t("no_description_available"), messageBarType = 5) ,style = "display: inline-block;"))
-      else {
-        output_file <- create_rmarkdown_file(r, description_code, interpret_code = FALSE)
-        output$description_ui <- renderUI(div(class = "markdown", withMathJax(includeMarkdown(output_file))))
+        # Reload markdown
+        element_long <- r[[long_var]] %>% dplyr::filter(id == input$selected_element)
+        description_code <- element_long %>% dplyr::filter(name == paste0("description_", input$language)) %>% dplyr::pull(value)
+        
+        if (description_code == "" | is.na(description_code)) output$description_ui <- renderUI(div(shiny.fluent::MessageBar(i18n$t("no_description_available"), messageBarType = 5) ,style = "display: inline-block;"))
+        else {
+          output_file <- create_rmarkdown_file(r, description_code, interpret_code = FALSE)
+          output$description_ui <- renderUI(div(class = "markdown", withMathJax(includeMarkdown(output_file))))
+        }
+        
+        sapply(c("summary_view_informations_div", "edit_summary_div"), shinyjs::hide)
+        sapply(c("summary_edit_informations_div", "save_summary_div", "edit_description_button"), shinyjs::show)
       }
-      
-      sapply(c("summary_view_informations_div", "edit_summary_div"), shinyjs::hide)
-      sapply(c("summary_edit_informations_div", "save_summary_div", "edit_description_button"), shinyjs::show)
-    })
+    }))
     
     ## Reload informations UI ----
     
-    observeEvent(input$reload_informations_ui, {
-      if (debug) cat(paste0("\n", now(), " - mod_widgets - (", id, ") - observer input$reload_informations_ui"))
+    observeEvent(input$reload_informations_ui, try_catch("input$reload_informations_ui", {
       
       element_wide <- r[[wide_var]] %>% dplyr::filter(id == input$selected_element)
       element_long <- r[[long_var]] %>% dplyr::filter(id == input$selected_element)
@@ -910,94 +890,86 @@ mod_widgets_server <- function(id, r, d, m, language, i18n, all_divs, debug, use
         )
       }
       
-    })
+    }))
     
     ## Show / hide users UI ----
     
-    observeEvent(input$users_allowed_read_group, {
-      if (debug) cat(paste0("\n", now(), " - mod_widgets - (", id, ") - observer input$users_allowed_read_group"))
+    observeEvent(input$users_allowed_read_group, try_catch("input$users_allowed_read_group", {
       
       if (input$users_allowed_read_group == "people_picker") shinyjs::show("users_allowed_read_ui")
       else shinyjs::hide("users_allowed_read_ui")
-    })
+    }))
     
     ## Change language ----
     
-    observeEvent(input$language, {
-      if (debug) cat(paste0("\n", now(), " - mod_widgets - (", id, ") - observer input$language"))
+    observeEvent(input$language, try_catch("input$language", {
       
-      req(input$selected_element)
-      
-      # Update name et short description fields
-      sapply(r$languages$code, function(lang){
-        if (lang != input$language) sapply(c("name", "short_description"), function(field) shinyjs::hide(paste0(field, "_", lang, "_div")))
-      })
-      
-      # Update description editor
-      element_long <- r[[long_var]] %>% dplyr::filter(id == input$selected_element)
-      description_code <- element_long %>% dplyr::filter(name == paste0("description_", input$language)) %>% dplyr::pull(value)
-      shinyAce::updateAceEditor(session, "description_code", value = description_code)
-      
-      # Reload markdown
-      
-      if (description_code == "" | is.na(description_code)) output$description_ui <- renderUI(div(shiny.fluent::MessageBar(i18n$t("no_description_available"), messageBarType = 5) ,style = "display: inline-block;"))
-      else {
-        output_file <- create_rmarkdown_file(r, description_code, interpret_code = FALSE)
-        output$description_ui <- renderUI(div(class = "markdown", withMathJax(includeMarkdown(output_file))))
+      if (length(input$selected_element) > 0){
+        
+        # Update name et short description fields
+        sapply(r$languages$code, function(lang){
+          if (lang != input$language) sapply(c("name", "short_description"), function(field) shinyjs::hide(paste0(field, "_", lang, "_div")))
+        })
+        
+        # Update description editor
+        element_long <- r[[long_var]] %>% dplyr::filter(id == input$selected_element)
+        description_code <- element_long %>% dplyr::filter(name == paste0("description_", input$language)) %>% dplyr::pull(value)
+        shinyAce::updateAceEditor(session, "description_code", value = description_code)
+        
+        # Reload markdown
+        
+        if (description_code == "" | is.na(description_code)) output$description_ui <- renderUI(div(shiny.fluent::MessageBar(i18n$t("no_description_available"), messageBarType = 5) ,style = "display: inline-block;"))
+        else {
+          output_file <- create_rmarkdown_file(r, description_code, interpret_code = FALSE)
+          output$description_ui <- renderUI(div(class = "markdown", withMathJax(includeMarkdown(output_file))))
+        }
+        
+        sapply(c("name", "short_description"), function(field) shinyjs::show(paste0(field, "_", input$language, "_div")))
       }
-      
-      sapply(c("name", "short_description"), function(field) shinyjs::show(paste0(field, "_", input$language, "_div")))
-    })
+    }))
     
     ## Edit description ----
     
-    observeEvent(input$edit_description, {
-      if (debug) cat(paste0("\n", now(), " - mod_widgets - (", id, ") - observer input$edit_description"))
+    observeEvent(input$edit_description, try_catch("input$edit_description", {
       
       sapply(c("edit_description_button", "summary_informations_div"), shinyjs::hide)
       sapply(c("save_and_cancel_description_buttons", "edit_description_div"), shinyjs::show)
-    })
+    }))
     
     ## Run description code ----
     
-    observeEvent(input$run_description_code, {
-      if (debug) cat(paste0("\n", now(), " - mod_widgets - (", id, ") - observer input$run_description_code"))
+    observeEvent(input$run_description_code, try_catch("input$run_description_code", {
       shinyjs::runjs(paste0("Shiny.setInputValue('", id, "-run_description_code_trigger', Math.random());"))
-    })
+    }))
     
-    observeEvent(input$description_code_run_all, {
-      if (debug) cat(paste0("\n", now(), " - mod_widgets - (", id, ") - observer input$description_code_run_all"))
+    observeEvent(input$description_code_run_all, try_catch("input$description_code_run_all", {
       shinyjs::runjs(paste0("Shiny.setInputValue('", id, "-run_description_code_trigger', Math.random());"))
-    })
+    }))
     
-    observeEvent(input$run_description_code_trigger, {
-      if (debug) cat(paste0("\n", now(), " - mod_widgets - (", id, ") - observer input$run_description_code_trigger"))
+    observeEvent(input$run_description_code_trigger, try_catch("input$run_description_code_trigger", {
       
       if (input$description_code == "" | is.na(input$description_code)) output$description_ui <- renderUI(div(shiny.fluent::MessageBar(i18n$t("no_description_available"), messageBarType = 5) ,style = "display: inline-block;"))
       else {
         output_file <- create_rmarkdown_file(r, input$description_code, interpret_code = FALSE)
         output$description_ui <- renderUI(div(class = "markdown", withMathJax(includeMarkdown(output_file))))
       }
-    })
+    }))
     
     ## Save description updates ----
     
-    observeEvent(input$description_code_save, {
-      if (debug) cat(paste0("\n", now(), " - mod_widgets - (", id, ") - observer input$description_code_save"))
+    observeEvent(input$description_code_save, try_catch("input$description_code_save", {
       shinyjs::runjs(paste0("Shiny.setInputValue('", id, "-save_description_trigger', Math.random());"))
-    })
+    }))
     
-    observeEvent(input$save_description, {
-      if (debug) cat(paste0("\n", now(), " - mod_widgets - (", id, ") - observer input$save_description"))
+    observeEvent(input$save_description, try_catch("input$save_description", {
       
       shinyjs::runjs(paste0("Shiny.setInputValue('", id, "-save_description_trigger', Math.random());"))
       
       sapply(c("save_and_cancel_description_buttons", "edit_description_div"), shinyjs::hide)
       sapply(c("edit_description_button", "summary_informations_div"), shinyjs::show)
-    })
+    }))
     
-    observeEvent(input$save_description_trigger, {
-      if (debug) cat(paste0("\n", now(), " - mod_widgets - (", id, ") - observer input$save_description_trigger"))
+    observeEvent(input$save_description_trigger, try_catch("input$save_description_trigger", {
       
       # Update database and r var
       sql <- glue::glue_sql("UPDATE options SET value = {input$description_code} WHERE category = {sql_category} AND link_id = {input$selected_element} AND name = {paste0('description_', input$language)}", .con = r$db)
@@ -1018,12 +990,11 @@ mod_widgets_server <- function(id, r, d, m, language, i18n, all_divs, debug, use
       }
       
       show_message_bar(id, output, "modif_saved", "success", i18n = i18n, ns = ns)
-    })
+    }))
     
     ## Cancel description updates ----
     
-    observeEvent(input$cancel_description, {
-      if (debug) cat(paste0("\n", now(), " - mod_widgets - (", id, ") - observer input$cancel_description"))
+    observeEvent(input$cancel_description, try_catch("input$cancel_description", {
       
       sapply(c("save_and_cancel_description_buttons", "edit_description_div"), shinyjs::hide)
       sapply(c("edit_description_button", "summary_informations_div"), shinyjs::show)
@@ -1039,12 +1010,11 @@ mod_widgets_server <- function(id, r, d, m, language, i18n, all_divs, debug, use
         output_file <- create_rmarkdown_file(r, description_code, interpret_code = FALSE)
         output$description_ui <- renderUI(div(class = "markdown", withMathJax(includeMarkdown(output_file))))
       }
-    })
+    }))
     
     ## Save summary updates ----
     
-    observeEvent(input$save_summary, {
-      if (debug) cat(paste0("\n", now(), " - mod_widgets - (", id, ") - observer input$save_summary"))
+    observeEvent(input$save_summary, try_catch("input$save_summary", {
       
       name_field <- paste0("name_", language)
       if (id == "vocabularies") element_name <- input$vocabulary_id
@@ -1193,22 +1163,19 @@ mod_widgets_server <- function(id, r, d, m, language, i18n, all_divs, debug, use
       # Close edition mode
       sapply(c("summary_edit_informations_div", "save_summary_div", "edit_description_button"), shinyjs::hide)
       sapply(c("summary_view_informations_div", "edit_summary_div"), shinyjs::show)
-    })
+    }))
     
     ## Delete an element ----
     
-    observeEvent(input$delete_element, {
-      if (debug) cat(paste0("\n", now(), " - mod_widgets - (", id, ") - observer input$delete_element"))
+    observeEvent(input$delete_element, try_catch("input$delete_element", {
       shinyjs::show("delete_element_modal")
-    })
+    }))
     
-    observeEvent(input$close_element_deletion_modal, {
-      if (debug) cat(paste0("\n", now(), " - mod_widgets - (", id, ") - observer input$close_element_deletion"))
+    observeEvent(input$close_element_deletion_modal, try_catch("input$close_element_deletion_modal", {
       shinyjs::hide("delete_element_modal")
-    })
+    }))
     
-    observeEvent(input$confirm_element_deletion, {
-      if (debug) cat(paste0("\n", now(), " - mod_widgets - (", id, ") - observer input$confirm_element_deletion"))
+    observeEvent(input$confirm_element_deletion, try_catch("input$confirm_element_deletion", {
       
       req(paste0(id, "_management") %in% user_accesses | (id == "subsets" & "projects_subsets_management" %in% user_accesses))
       
@@ -1292,7 +1259,7 @@ mod_widgets_server <- function(id, r, d, m, language, i18n, all_divs, debug, use
       
       # Close modal
       shinyjs::hide("delete_element_modal")
-    })
+    }))
     
     # |-------------------------------- -----
     
@@ -1303,56 +1270,54 @@ mod_widgets_server <- function(id, r, d, m, language, i18n, all_divs, debug, use
     ## Git synchronization ----
     
     ### Load a git repo ----
-    observeEvent(input$git_repo, {
-      if (debug) cat(paste0("\n", now(), " - mod_widgets - (", id, ") - observer input$git_repo"))
+    observeEvent(input$git_repo, try_catch("input$git_repo", {
       
       # Reload git repo
       shinyjs::runjs(paste0("Shiny.setInputValue('", id, "-reload_git_repo', Math.random());"))
-    })
+    }))
     
-    observeEvent(input$reload_git_repo, {
-      if (debug) cat(paste0("\n", now(), " - mod_widgets - (", id, ") - observer input$reload_git_repo"))
+    observeEvent(input$reload_git_repo, try_catch("input$reload_git_repo", {
       
-      req(paste0(id, "_share") %in% user_accesses)
+      if (paste0(id, "_share") %in% user_accesses){
       
-      git_repo <- r$git_repos %>% dplyr::filter(id == input$git_repo)
-      
-      # Clone git repo if not already loaded
-      
-      loaded_git_repo <- tibble::tibble()
-      
-      tryCatch({
-        loaded_git_repo <- load_git_repo(id, r, git_repo)
-        }, error = function(e){
-          show_message_bar(id, output, "error_loading_git_repo", "warning", i18n = i18n, ns = ns)
-          cat(paste0("\n", now(), " - mod_widgets - error downloading git repo - error = ", toString(e)))
+        git_repo <- r$git_repos %>% dplyr::filter(id == input$git_repo)
+        
+        # Clone git repo if not already loaded
+        
+        loaded_git_repo <- tibble::tibble()
+        
+        tryCatch({
+          loaded_git_repo <- load_git_repo(id, r, git_repo)
+          }, error = function(e){
+            show_message_bar(id, output, "error_loading_git_repo", "warning", i18n = i18n, ns = ns)
+            cat(paste0("\n", now(), " - mod_widgets - error downloading git repo - error = ", toString(e)))
+          }
+        )
+        
+        if (nrow(loaded_git_repo) > 0){
+          git_repo_local_path <- loaded_git_repo$local_path
+          
+          # Show upload git button
+          shinyjs::show("reload_git_repo_div")
         }
-      )
-      
-      if (nrow(loaded_git_repo) > 0){
-        git_repo_local_path <- loaded_git_repo$local_path
+        else {
+          git_repo_local_path <- ""
+          r$loaded_git_repos_objects[[git_repo$unique_id]] <- character(0)
+          
+          # Hide upload git button
+          shinyjs::hide("reload_git_repo_div")
+        }
         
-        # Show upload git button
-        shinyjs::show("reload_git_repo_div")
+        shinyjs::runjs(paste0("Shiny.setInputValue('", id, "-git_repo_local_path', '", git_repo_local_path, "');"))
+  
+        # Reload git element UI
+        shinyjs::runjs(paste0("Shiny.setInputValue('", id, "-reload_git_element_ui', Math.random());"))
       }
-      else {
-        git_repo_local_path <- ""
-        r$loaded_git_repos_objects[[git_repo$unique_id]] <- character(0)
-        
-        # Hide upload git button
-        shinyjs::hide("reload_git_repo_div")
-      }
-      
-      shinyjs::runjs(paste0("Shiny.setInputValue('", id, "-git_repo_local_path', '", git_repo_local_path, "');"))
-
-      # Reload git element UI
-      shinyjs::runjs(paste0("Shiny.setInputValue('", id, "-reload_git_element_ui', Math.random());"))
-    })
+    }))
     
     ### Reload git element UI ----
     
-    observeEvent(input$reload_git_element_ui, {
-      if (debug) cat(paste0("\n", now(), " - mod_widgets - (", id, ") - observer input$reload_git_element_ui"))
+    observeEvent(input$reload_git_element_ui, try_catch("input$reload_git_element_ui", {
       
       req(paste0(id, "_share") %in% user_accesses)
       
@@ -1487,47 +1452,28 @@ mod_widgets_server <- function(id, r, d, m, language, i18n, all_divs, debug, use
       
       output$git_repo_element_ui <- renderUI(git_element_ui)
       output$synchronize_git_buttons <- renderUI(synchronize_git_buttons)
-    })
+    }))
     
     ### Update or delete git element ----
-    observeEvent(input$git_repo_update_element, {
-      if (debug) cat(paste0("\n", now(), " - mod_widgets - (", id, ") - observer input$git_repo_update_element"))
+    observeEvent(input$git_repo_update_element, try_catch("input$git_repo_update_element", {
       
       sapply(c("update_git_element_text_div", "confirm_git_element_update_div"), shinyjs::show)
       sapply(c("delete_git_element_text_div", "confirm_git_element_deletion_div"), shinyjs::hide)
       shinyjs::show("update_or_delete_git_element_modal")
-    })
-    
-    # observeEvent(input$git_repo_delete_element, {
-    #   if (debug) cat(paste0("\n", now(), " - mod_widgets - (", id, ") - observer input$git_repo_update_element"))
-    #   
-    #   sapply(c("delete_git_element_text_div", "confirm_git_element_deletion_div"), shinyjs::show)
-    #   sapply(c("update_git_element_text_div", "confirm_git_element_update_div"), shinyjs::hide)
-    #   shinyjs::show("update_or_delete_git_element_modal")
-    # })
+    }))
 
-    observeEvent(input$close_update_or_delete_git_element_modal, {
-      if (debug) cat(paste0("\n", now(), " - mod_widgets - (", id, ") - observer input$close_update_or_delete_git_element_modal"))
+    observeEvent(input$close_update_or_delete_git_element_modal, try_catch("input$close_update_or_delete_git_element_modal", {
       shinyjs::hide("update_or_delete_git_element_modal")
-    })
+    }))
 
-    observeEvent(input$confirm_git_element_update, {
-      if (debug) cat(paste0("\n", now(), " - mod_widgets - (", id, ") - observer input$confirm_git_element_update"))
+    observeEvent(input$confirm_git_element_update, try_catch("input$confirm_git_element_update", {
 
       shinyjs::runjs(paste0("Shiny.setInputValue('", id, "-update_git_type', 'update');"))
       shinyjs::runjs(paste0("Shiny.setInputValue('", id, "-update_git', Math.random());"))
-    })
-
-    # observeEvent(input$confirm_git_element_deletion, {
-    #   if (debug) cat(paste0("\n", now(), " - mod_widgets - (", id, ") - observer input$confirm_git_element_deletion"))
-    #   
-    #   shinyjs::runjs(paste0("Shiny.setInputValue('", id, "-update_git_type', 'deletion');"))
-    #   shinyjs::runjs(paste0("Shiny.setInputValue('", id, "-update_git', Math.random());"))
-    # })
+    }))
     
     # Update / delete git element confirmed
-    observeEvent(input$update_git, {
-      if (debug) cat(paste0("\n", now(), " - mod_widgets - (", id, ") - observer input$update_git"))
+    observeEvent(input$update_git, try_catch("input$update_git", {
       
       req(paste0(id, "_share") %in% user_accesses)
       
@@ -1633,14 +1579,13 @@ mod_widgets_server <- function(id, r, d, m, language, i18n, all_divs, debug, use
       
       # Close modal
       shinyjs::hide("update_or_delete_git_element_modal")
-    })
+    }))
     
     ## Export element ----
     
-    observeEvent(input$export_element, {
-      if (debug) cat(paste0("\n", now(), " - mod_widgets - (", id, ") - observer input$export_element"))
+    observeEvent(input$export_element, try_catch("input$export_element", {
       shinyjs::click("export_element_download")
-    })
+    }))
     
     output$export_element_download <- downloadHandler(
 
@@ -1654,13 +1599,10 @@ mod_widgets_server <- function(id, r, d, m, language, i18n, all_divs, debug, use
         paste0("linkr_", single_id, "_", element_name, "_", now() %>% stringr::str_replace_all(" ", "_") %>% stringr::str_replace_all(":", "-") %>% as.character(), ".zip")
       },
 
-      content = function(file){
-        if (debug) cat(paste0("\n", now(), " - mod_widgets - (", id, ") - output$export_elements_download"))
+      content = function(file) try_catch("", {
         
-        req(paste0(id, "_share") %in% user_accesses)
-        
-        tryCatch({
-          
+        if (paste0(id, "_share") %in% user_accesses){
+            
           element_wide <- r[[wide_var]] %>% dplyr::filter(id == input$selected_element)
           
           # Reload subsets var
@@ -1673,18 +1615,13 @@ mod_widgets_server <- function(id, r, d, m, language, i18n, all_divs, debug, use
           
           # Create a ZIP
           zip::zipr(file, list.files(temp_zip_dir, full.names = TRUE))
-          
-        }, error = function(e){
-          shinyjs::runjs(paste0("Shiny.setInputValue('", id, "-error_downloading_element', Math.random());"))
-          cat(paste0("\n", now(), " - mod_widgets - (", id, ") - export element error - ", toString(e)))
-        })
-      }
+        }
+      })
     )
     
     # Prevent a bug : show_message_bar in downloadHandler never ends
-    observeEvent(input$error_downloading_element, {
-      if (debug) cat(paste0("\n", now(), " - mod_widgets - (", id, ") - observer input$error_downloading_element"))
+    observeEvent(input$error_downloading_element, try_catch("input$error_downloading_element", {
       show_message_bar(id, output, message = paste0("error_downloading_", single_id), type = "severeWarning", i18n = i18n, ns = ns)
-    })
+    }))
   })
 }

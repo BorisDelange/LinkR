@@ -174,10 +174,9 @@ mod_page_header_server <- function(id, r, d, m, language, i18n, debug){
     # Show current page
     
     if (id == "data"){
-      observeEvent(shiny.router::get_page(), {
-        if (debug) cat(paste0("\n", now(), " - mod_page_header (", id, ") - observer shiny.router::get_page()"))
+      observeEvent(shiny.router::get_page(), try_catch("shiny.router::get_page() (header)", {
         output$current_page <- renderUI(i18n$t(paste0(r$data_page, "_data")))
-      })
+      }))
     }
     else if (id == "project_messages") output$current_page <- renderUI(i18n$t("messages"))
     else if (id == "git_repos") output$current_page <- renderUI(i18n$t("content_catalog"))
@@ -187,8 +186,7 @@ mod_page_header_server <- function(id, r, d, m, language, i18n, debug){
     
     if (id %in% c("concepts", "data", "projects", "project_files", "subsets", "tasks")){
       
-      observeEvent(m$selected_study, {
-        if (debug) cat(paste0("\n", now(), " - mod_page_header (", id, ") - observer m$selected_study"))
+      observeEvent(m$selected_study, try_catch("m$selected_study (header)", {
         
         project_name <- r$projects_long %>% dplyr::filter(id == m$selected_study, name == paste0("name_", language)) %>% dplyr::pull(value)
         project_name_short <- project_name
@@ -197,17 +195,15 @@ mod_page_header_server <- function(id, r, d, m, language, i18n, debug){
         if (nchar(project_name_short) > max_length) project_name_short <- paste0(substr(project_name_short, 1, max_length - 3), "...")
         
         output$selected_project <- renderUI(create_hover_card(ui = project_name_short, text = project_name))
-      })
+      }))
     }
     
-    observeEvent(input$open_help_modal, {
-      if (debug) cat(paste0("\n", now(), " - mod_page_header (", id, ") - observer input$open_help_modal"))
+    observeEvent(input$open_help_modal, try_catch("input$open_help_modal (header)", {
       shinyjs::show("help_modal")
-    })
+    }))
     
-    observeEvent(input$close_help_modal, {
-      if (debug) cat(paste0("\n", now(), " - mod_page_header (", id, ") - observer input$close_help_modal"))
+    observeEvent(input$close_help_modal, try_catch("input$close_help_modal (header)", {
       shinyjs::hide("help_modal")
-    })
+    }))
   })
 }

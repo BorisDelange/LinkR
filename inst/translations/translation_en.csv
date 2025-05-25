@@ -575,3 +575,5 @@ incorrect_password,Incorrect password
 passwords_dont_match,Passwords don't match
 password_successfully_updated,Password successfully updated
 user_added,New user added
+an_error_occurred_see_log_for_details,An error occurred. See logs for details.
+an_error_occurred,An error occurred

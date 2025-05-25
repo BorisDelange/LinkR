@@ -80,22 +80,18 @@ mod_concepts_server <- function(id, r, d, m, language, i18n, debug, user_accesse
   moduleServer(id, function(input, output, session){
     ns <- session$ns
     
-    if (debug) cat(paste0("\n", now(), " - mod_concepts - start"))
-    
     # Current user accesses ----
     
     if ("concepts_reload_dataset_concepts" %in% user_accesses) shinyjs::show("reload_concepts_count_button")
     
     # Reload vocabulary dropdown ----
     
-    observeEvent(r$dataset_vocabularies, {
-      if (debug) cat(paste0("\n", now(), " - mod_concepts - ", id, " - observer r$dataset_vocabularies"))
+    observeEvent(r$dataset_vocabularies, try_catch("r$dataset_vocabularies", {
 
       shinyjs::runjs(paste0("Shiny.setInputValue('", id, "-reload_vocabulary_dropdown', Math.random());"))
-    })
+    }))
     
-    observeEvent(input$reload_vocabulary_dropdown, {
-      if (debug) cat(paste0("\n", now(), " - mod_concepts - ", id, " - observer input$reload_vocabulary_dropdown"))
+    observeEvent(input$reload_vocabulary_dropdown, try_catch("input$reload_vocabulary_dropdown", {
       
       if (nrow(r$dataset_vocabularies) > 0){
         # Reload vocabulary dropdown
@@ -117,19 +113,17 @@ mod_concepts_server <- function(id, r, d, m, language, i18n, debug, user_accesse
       # Reset UI
       output$primary_concept_info <- renderUI("")
       shinyjs::hide("primary_concept_plot")
-    })
+    }))
     
     # Reload concepts datatable ----
     
     # Reload datatable when vocabulary is updated
-    observeEvent(input$vocabulary, {
-      if (debug) cat(paste0("\n", now(), " - mod_concepts - ", id, " - observer input$vocabulary"))
+    observeEvent(input$vocabulary, try_catch("input$vocabulary", {
       shinyjs::runjs(paste0("Shiny.setInputValue('", id, "-reload_concepts_dt', Math.random());"))
-    })
+    }))
     
     # Reload datatable
-    observeEvent(input$reload_concepts_dt, {
-      if (debug) cat(paste0("\n", now(), " - mod_concepts - ", id, " - observer input$reload_concepts_dt"))
+    observeEvent(input$reload_concepts_dt, try_catch("input$reload_concepts_dt", {
       
       data <- tibble::tibble(
         concept_id = character(), concept_name = character(), concept_display_name = character(), domain_id = character(), vocabulary_id = character(),
@@ -175,22 +169,21 @@ mod_concepts_server <- function(id, r, d, m, language, i18n, debug, user_accesse
       )
       
       r$concepts_primary_concepts_dt_proxy <- DT::dataTableProxy("primary_concepts_dt", deferUntilFlush = FALSE)
-    })
+    }))
     
     # Show / hide cols
-    observeEvent(input$primary_concepts_dt_cols, {
-      if (debug) cat(paste0("\n", now(), " - mod_concepts - observer input$primary_concepts_dt_cols"))
+    observeEvent(input$primary_concepts_dt_cols, try_catch("input$primary_concepts_dt_cols", {
       
-      req(r$concepts_primary_concepts_dt_proxy)
+      if (length(r$concepts_primary_concepts_dt_proxy) > 0){
       
-      r$concepts_primary_concepts_dt_proxy %>%
-        DT::showCols(0:12) %>%
-        DT::hideCols(setdiff(0:12, input$primary_concepts_dt_cols))
-    })
+        r$concepts_primary_concepts_dt_proxy %>%
+          DT::showCols(0:12) %>%
+          DT::hideCols(setdiff(0:12, input$primary_concepts_dt_cols))
+      }
+    }))
     
     # A concept is selected ----
-    observeEvent(input$primary_concepts_dt_rows_selected, {
-      if (debug) cat(paste0("\n", now(), " - mod_concepts - observer input$primary_concepts_dt_rows_selected"))
+    observeEvent(input$primary_concepts_dt_rows_selected, try_catch("input$primary_concepts_dt_rows_selected", {
       
       concept <- r$concepts_dt_data[input$primary_concepts_dt_rows_selected, ]
       
@@ -234,22 +227,19 @@ mod_concepts_server <- function(id, r, d, m, language, i18n, debug, user_accesse
       }
       
       else shinyjs::hide("primary_concept_plot")
-    })
+    }))
     
     # Reload dataset concepts count ----
     
-    observeEvent(input$reload_concepts_count, {
-      if (debug) cat(paste0("\n", now(), " - mod_select_concepts - (", id, ") - observer input$reload_concepts_count"))
+    observeEvent(input$reload_concepts_count, try_catch("input$reload_concepts_count", {
       shinyjs::show("reload_concepts_count_modal")
-    })
+    }))
 
-    observeEvent(input$close_reload_concepts_count_modal, {
-      if (debug) cat(paste0("\n", now(), " - mod_select_concepts - (", id, ") - observer input$close_reload_concepts_count_modal"))
+    observeEvent(input$close_reload_concepts_count_modal, try_catch("input$close_reload_concepts_count_modal", {
       shinyjs::hide("reload_concepts_count_modal")
-    })
+    }))
 
-    observeEvent(input$confirm_reload_concepts_count, {
-      if (debug) cat(paste0("\n", now(), " - mod_select_concepts - (", id, ") - observer input$confirm_reload_concepts_count"))
+    observeEvent(input$confirm_reload_concepts_count, try_catch("input$confirm_reload_concepts_count", {
       
       # Remove concept files
       # Also remove duckDB tables
@@ -272,6 +262,6 @@ mod_concepts_server <- function(id, r, d, m, language, i18n, debug, user_accesse
       shinyjs::runjs(paste0("Shiny.setInputValue('", id, "-reload_concepts_dt', Math.random())"))
 
       shinyjs::hide("reload_concepts_count_modal")
-    })
+    }))
   })
 }

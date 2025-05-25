@@ -38,3 +38,20 @@ remove_special_chars <- function(text){
 
 #' @noRd
 `%not_in%` <- Negate(`%in%`)
+
+#' @noRd
+try_catch <- function(trigger = character(), code){
+  
+  for (obj_name in c("id", "debug", "output", "i18n", "ns")) assign(obj_name, get(obj_name, envir = parent.frame()))
+  
+  tryCatch({
+    if (debug) cat(paste0("\n[", now(), "] [INFO] [page_id = ", id, "] event triggered by ", trigger))
+    code
+  }, error = function(e){
+    if (debug){
+      cat(paste0("\n[", now(), "] [ERROR] [page_id = ", id, "] error with trigger ", trigger, " - error = ", toString(e)))
+      show_message_bar(id, output, "an_error_occurred_see_log_for_details", i18n = i18n, ns = ns)
+    }
+    else show_message_bar(id, output, "an_error_occurred", i18n = i18n, ns = ns)
+  })
+}

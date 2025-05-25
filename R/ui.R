@@ -7,7 +7,7 @@ app_ui <- function(
   do.call(
     shiny.router::router_ui,
     lapply(pages, function(page_url){
-      if (debug) cat(paste0("\n", now(), " - ui - make_router - ", page_url))
+      if (debug) cat(paste0("\n[", now(), "] [INFO] - [page_id = ui] make_router ", page_url))
       
       if (page_url == "/") page <- "home" else page <- page_url
       

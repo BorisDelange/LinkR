@@ -33,8 +33,6 @@ mod_home_server <- function(id, r, d, m, language, i18n, debug, user_accesses){
   moduleServer(id, function(input, output, session){
     ns <- session$ns
     
-    if (debug) cat(paste0("\n", now(), " - mod_home - start"))
-    
     sapply(c("projects", "datasets", "plugins"), function(page){
       
       single_id <- switch(
@@ -47,8 +45,7 @@ mod_home_server <- function(id, r, d, m, language, i18n, debug, user_accesses){
         "vocabularies" = "vocabulary"
       )
         
-      observeEvent(r[[paste0("reload_home_", page)]], {
-        if (debug) cat(paste0("\n", now(), " - mod_home - observer r$reload_home_", page))
+      observeEvent(r[[paste0("reload_home_", page)]], try_catch(paste0("r$reload_home_", page), {
         
         long_var_filtered <- paste0("filtered_", page, "_long")
         
@@ -84,17 +81,16 @@ mod_home_server <- function(id, r, d, m, language, i18n, debug, user_accesses){
         )
         
         output[[page]] <- renderUI(elements_ui)
-      })
+      }))
       
       r[[paste0("reload_home_", page)]] <- now()
       
-      observeEvent(input[[paste0("selected_", single_id, "_trigger")]], {
-        if (debug) cat(paste0("\n", now(), " - mod_home - observer input$selected_", single_id, "_trigger"))
+      observeEvent(input[[paste0("selected_", single_id, "_trigger")]], try_catch(paste0("r$selected_", single_id, "_trigger"), {
         
         shiny.router::change_page(page)
         shinyjs::runjs(paste0("Shiny.setInputValue('", page, "-selected_element', ", input[[paste0("selected_", single_id)]], ");"))
         shinyjs::delay(500, shinyjs::runjs(paste0("Shiny.setInputValue('", page, "-selected_element_trigger', Math.random());")))
-      })
+      }))
     })
     
     shinyjs::delay(10, shinyjs::runjs("

@@ -573,3 +573,5 @@ incorrect_password,Mot de passe incorrect
 passwords_dont_match,Les deux mots de passe ne sont pas identiques
 password_successfully_updated,Mot de passe mis à jour
 user_added,Nouvel utilisateur ajouté
+an_error_occurred_see_log_for_details,Une erreur est survenue. Voir les logs pour les détails.
+an_error_occurred,Une erreur est survenue
