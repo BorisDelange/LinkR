@@ -117,13 +117,10 @@ mod_widgets_server <- function(id, r, d, m, language, i18n, all_divs, debug, use
     # |-------------------------------- -----
     
     # Page change observer ----
+    
     observeEvent(shiny.router::get_page(), try_catch("shiny.router::get_page()", {
       
-      if (shiny.router::get_page() == id){
-      
-        # Reload elements list
-        shinyjs::runjs(paste0("Shiny.setInputValue('", id, "-reload_elements_var', Math.random());"))
-      }
+      if (shiny.router::get_page() == id) shinyjs::runjs(paste0("Shiny.setInputValue('", id, "-reload_elements_var', Math.random());"))
     }))
     
     # Initiate vars ----
@@ -187,25 +184,24 @@ mod_widgets_server <- function(id, r, d, m, language, i18n, all_divs, debug, use
     
     observeEvent(input$search_element, try_catch("input$search_element", {
       
-      if (length(r[[long_var]]) > 0){
+      if (length(r[[long_var]]) == 0) return()
         
-        if (input$search_element == "") r[[long_var_filtered]] <- r[[long_var]]
-        else {
-          
-          # Filter on name or description
-          
-          filtered_ids <- r[[long_var]] %>% 
-            dplyr::filter(
-              (name == paste0("name_", language) & grepl(tolower(input$search_element), tolower(value))) |
-              (name == paste0("short_description_", language) & grepl(tolower(input$search_element), tolower(value)))
-            ) %>%
-            dplyr::pull(id)
-          
-          r[[long_var_filtered]] <- r[[long_var]] %>% dplyr::filter(id %in% filtered_ids)
-        }
+      if (input$search_element == "") r[[long_var_filtered]] <- r[[long_var]]
+      else {
         
-        shinyjs::runjs(paste0("Shiny.setInputValue('", id, "-reload_elements_list', Math.random());"))
+        # Filter on name or description
+        
+        filtered_ids <- r[[long_var]] %>% 
+          dplyr::filter(
+            (name == paste0("name_", language) & grepl(tolower(input$search_element), tolower(value))) |
+            (name == paste0("short_description_", language) & grepl(tolower(input$search_element), tolower(value)))
+          ) %>%
+          dplyr::pull(id)
+        
+        r[[long_var_filtered]] <- r[[long_var]] %>% dplyr::filter(id %in% filtered_ids)
       }
+      
+      shinyjs::runjs(paste0("Shiny.setInputValue('", id, "-reload_elements_list', Math.random());"))
     }))
     
     # Reload widgets -----
@@ -309,20 +305,16 @@ mod_widgets_server <- function(id, r, d, m, language, i18n, all_divs, debug, use
     # Create an element ----
     # --- --- --- --- --- --
     
-    # Open modal
-    observeEvent(input$create_element, try_catch("input$create_element", {
-      shinyjs::show("create_element_modal")
-    }))
+    # Open / close modal
     
-    # Close modal
-    observeEvent(input$close_create_element_modal, try_catch("input$close_create_element_modal", {
-      shinyjs::hide("create_element_modal")
-    }))
+    observeEvent(input$create_element, try_catch("input$create_element", shinyjs::show("create_element_modal")))
+    observeEvent(input$close_create_element_modal, try_catch("input$close_create_element_modal", shinyjs::hide("create_element_modal")))
     
     # Add an element
+    
     observeEvent(input$add_element, try_catch("input$add_element", {
       
-      req(paste0(id, "_management") %in% user_accesses | (id == "subsets" & "projects_subsets_management" %in% user_accesses))
+      if (!(paste0(id, "_management") %in% user_accesses || (id == "subsets" && "projects_subsets_management" %in% user_accesses))) return()
       
       element_name <- input$element_creation_name
       username <- r$users %>% dplyr::filter(id == r$user_id) %>% dplyr::pull(name)
@@ -330,8 +322,10 @@ mod_widgets_server <- function(id, r, d, m, language, i18n, all_divs, debug, use
       # Check if name is not empty
       empty_name <- TRUE
       if (length(element_name) > 0) if (!is.na(element_name) & element_name != "") empty_name <- FALSE
-      if (empty_name) shiny.fluent::updateTextField.shinyInput(session, "element_creation_name", errorMessage = i18n$t("provide_valid_name"))
-      req(!empty_name)
+      if (empty_name){
+        shiny.fluent::updateTextField.shinyInput(session, "element_creation_name", errorMessage = i18n$t("provide_valid_name"))
+        return()
+      }
 
       # Check if name is not already used
       if (sql_table == "subsets") sql <- glue::glue_sql("SELECT name FROM subsets WHERE study_id = {m$selected_study}", .con = con)
@@ -341,15 +335,19 @@ mod_widgets_server <- function(id, r, d, m, language, i18n, all_divs, debug, use
       elements_names <- DBI::dbGetQuery(con, sql) %>% dplyr::pull()
       name_already_used <- remove_special_chars(element_name) %in% remove_special_chars(elements_names)
 
-      if (name_already_used) shiny.fluent::updateTextField.shinyInput(session, "element_creation_name", errorMessage = i18n$t("name_already_used"))
-      req(!name_already_used)
+      if (name_already_used){
+        shiny.fluent::updateTextField.shinyInput(session, "element_creation_name", errorMessage = i18n$t("name_already_used"))
+        return()
+      }
       
-     # For plugins page
+      # For plugins page
       if (sql_table == "plugins"){
         
         # Check if plugin_creation_type is empty
-        if (length(input$plugin_creation_type) == 0) shiny.fluent::updateDropdown.shinyInput(session, "plugin_creation_type", errorMessage = i18n$t("field_cant_be_empty"))
-        req(length(input$plugin_creation_type) > 0)
+        if (length(input$plugin_creation_type) == 0){
+          shiny.fluent::updateDropdown.shinyInput(session, "plugin_creation_type", errorMessage = i18n$t("field_cant_be_empty"))
+          return()
+        }
         
         # Check if plugin_to_copy is empty, if plugin_copy_existing_plugin toggle is activated
         
@@ -368,7 +366,7 @@ mod_widgets_server <- function(id, r, d, m, language, i18n, all_divs, debug, use
           }
         }
         
-        req(plugin_to_copy_check)
+        if (!plugin_to_copy_check) return()
         
       }
 
@@ -537,49 +535,46 @@ mod_widgets_server <- function(id, r, d, m, language, i18n, all_divs, debug, use
     
     ## Upload file ----
     
-    observeEvent(input$import_element, try_catch("input$import_element", {
-      shinyjs::click("import_element_upload")
-    }))
+    observeEvent(input$import_element, try_catch("input$import_element", shinyjs::click("import_element_upload")))
     
     observeEvent(input$import_element_upload, try_catch("input$import_element_upload", {
     
-      if (paste0(id, "_import") %in% user_accesses){
+      if (paste0(id, "_import") %not_in% user_accesses) return()
         
-        # Extract ZIP file
+      # Extract ZIP file
 
-        r$imported_element_temp_dir <- paste0(r$app_folder, "/temp_files/", r$user_id, "/", id, "/", now() %>% stringr::str_replace_all(":| |-", ""), paste0(sample(c(0:9, letters[1:6]), 24, TRUE), collapse = ''))
-        zip::unzip(input$import_element_upload$datapath, exdir = r$imported_element_temp_dir)
-        r$imported_element_temp_dir <- file.path(r$imported_element_temp_dir, list.files(r$imported_element_temp_dir))
+      r$imported_element_temp_dir <- paste0(r$app_folder, "/temp_files/", r$user_id, "/", id, "/", now() %>% stringr::str_replace_all(":| |-", ""), paste0(sample(c(0:9, letters[1:6]), 24, TRUE), collapse = ''))
+      zip::unzip(input$import_element_upload$datapath, exdir = r$imported_element_temp_dir)
+      r$imported_element_temp_dir <- file.path(r$imported_element_temp_dir, list.files(r$imported_element_temp_dir))
+      
+      # Case 1: import from LinkR download
+      top_level_items <- list.files(r$imported_element_temp_dir, full.names = TRUE)
+      
+      # Case 2: import from git repo download. Only select the first element.
+      if (id %in% basename(top_level_items)) {
         
-        # Case 1: import from LinkR download
-        top_level_items <- list.files(r$imported_element_temp_dir, full.names = TRUE)
+        element_dir <- file.path(r$imported_element_temp_dir, id)
+        elements_list <- list.dirs(element_dir, recursive = FALSE, full.names = TRUE)
         
-        # Case 2: import from git repo download. Only select the first element.
-        if (id %in% basename(top_level_items)) {
-          
-          element_dir <- file.path(r$imported_element_temp_dir, id)
-          elements_list <- list.dirs(element_dir, recursive = FALSE, full.names = TRUE)
-          
-          if (length(elements_list) > 0) r$imported_element_temp_dir <- elements_list[1]
-        }
+        if (length(elements_list) > 0) r$imported_element_temp_dir <- elements_list[1]
+      }
 
-        # Read XML file
-        
-        r$imported_element <-
-          xml2::read_xml(paste0(r$imported_element_temp_dir, "/", single_id, ".xml")) %>%
-          XML::xmlParse() %>%
-          XML::xmlToDataFrame(nodes = XML::getNodeSet(., paste0("//", single_id)), stringsAsFactors = FALSE) %>%
-          tibble::as_tibble() %>%
-          dplyr::mutate(authors = stringr::str_replace_all(authors, "(?<=\\p{L})(?=\\p{Lu})", "; "))
-        
-        # Check if this element already exists in our database
-        # If this element already exists, confirm its deletion
-        
-        if (r[[long_var]] %>% dplyr::filter(name == "unique_id" & value == r$imported_element$unique_id) %>% nrow() > 0) shinyjs::show("import_element_modal")
-        else {
-          if (id == "projects") shinyjs::runjs(paste0("Shiny.setInputValue('", id, "-ask_plugins_update', Math.random());"))
-          else shinyjs::runjs(paste0("Shiny.setInputValue('", id, "-confirm_element_import_2', Math.random());"))
-        }
+      # Read XML file
+      
+      r$imported_element <-
+        xml2::read_xml(paste0(r$imported_element_temp_dir, "/", single_id, ".xml")) %>%
+        XML::xmlParse() %>%
+        XML::xmlToDataFrame(nodes = XML::getNodeSet(., paste0("//", single_id)), stringsAsFactors = FALSE) %>%
+        tibble::as_tibble() %>%
+        dplyr::mutate(authors = stringr::str_replace_all(authors, "(?<=\\p{L})(?=\\p{Lu})", "; "))
+      
+      # Check if this element already exists in our database
+      # If this element already exists, confirm its deletion
+      
+      if (r[[long_var]] %>% dplyr::filter(name == "unique_id" & value == r$imported_element$unique_id) %>% nrow() > 0) shinyjs::show("import_element_modal")
+      else {
+        if (id == "projects") shinyjs::runjs(paste0("Shiny.setInputValue('", id, "-ask_plugins_update', Math.random());"))
+        else shinyjs::runjs(paste0("Shiny.setInputValue('", id, "-confirm_element_import_2', Math.random());"))
       }
     }))
     
@@ -763,9 +758,7 @@ mod_widgets_server <- function(id, r, d, m, language, i18n, all_divs, debug, use
         sapply(c("command_bar_2_link", "command_bar_2_div"), shinyjs::show)
         
         # Check if we load another project, or if it is the same
-        project_already_loaded <- FALSE
-        if (length(m$selected_study) > 0) if (m$selected_study == input$selected_element) project_already_loaded <- TRUE
-        req(!project_already_loaded)
+        if (length(m$selected_study) > 0 && m$selected_study == input$selected_element) return()
         
         # Change current project name
         m$selected_study <- input$selected_element
@@ -818,21 +811,20 @@ mod_widgets_server <- function(id, r, d, m, language, i18n, all_divs, debug, use
     
     observeEvent(input$edit_summary, try_catch("input$edit_summary", {
       
-      if (paste0(id, "_management") %in% user_accesses || (id == "subsets" && "projects_subsets_management" %in% user_accesses)){
+      if (!(paste0(id, "_management") %in% user_accesses || (id == "subsets" && "projects_subsets_management" %in% user_accesses))) return()
       
-        # Reload markdown
-        element_long <- r[[long_var]] %>% dplyr::filter(id == input$selected_element)
-        description_code <- element_long %>% dplyr::filter(name == paste0("description_", input$language)) %>% dplyr::pull(value)
-        
-        if (description_code == "" | is.na(description_code)) output$description_ui <- renderUI(div(shiny.fluent::MessageBar(i18n$t("no_description_available"), messageBarType = 5) ,style = "display: inline-block;"))
-        else {
-          output_file <- create_rmarkdown_file(r, description_code, interpret_code = FALSE)
-          output$description_ui <- renderUI(div(class = "markdown", withMathJax(includeMarkdown(output_file))))
-        }
-        
-        sapply(c("summary_view_informations_div", "edit_summary_div"), shinyjs::hide)
-        sapply(c("summary_edit_informations_div", "save_summary_div", "edit_description_button"), shinyjs::show)
+      # Reload markdown
+      element_long <- r[[long_var]] %>% dplyr::filter(id == input$selected_element)
+      description_code <- element_long %>% dplyr::filter(name == paste0("description_", input$language)) %>% dplyr::pull(value)
+      
+      if (description_code == "" | is.na(description_code)) output$description_ui <- renderUI(div(shiny.fluent::MessageBar(i18n$t("no_description_available"), messageBarType = 5) ,style = "display: inline-block;"))
+      else {
+        output_file <- create_rmarkdown_file(r, description_code, interpret_code = FALSE)
+        output$description_ui <- renderUI(div(class = "markdown", withMathJax(includeMarkdown(output_file))))
       }
+      
+      sapply(c("summary_view_informations_div", "edit_summary_div"), shinyjs::hide)
+      sapply(c("summary_edit_informations_div", "save_summary_div", "edit_description_button"), shinyjs::show)
     }))
     
     ## Reload informations UI ----
@@ -904,28 +896,27 @@ mod_widgets_server <- function(id, r, d, m, language, i18n, all_divs, debug, use
     
     observeEvent(input$language, try_catch("input$language", {
       
-      if (length(input$selected_element) > 0){
+      if (length(input$selected_element) == 0) return()
         
-        # Update name et short description fields
-        sapply(r$languages$code, function(lang){
-          if (lang != input$language) sapply(c("name", "short_description"), function(field) shinyjs::hide(paste0(field, "_", lang, "_div")))
-        })
-        
-        # Update description editor
-        element_long <- r[[long_var]] %>% dplyr::filter(id == input$selected_element)
-        description_code <- element_long %>% dplyr::filter(name == paste0("description_", input$language)) %>% dplyr::pull(value)
-        shinyAce::updateAceEditor(session, "description_code", value = description_code)
-        
-        # Reload markdown
-        
-        if (description_code == "" | is.na(description_code)) output$description_ui <- renderUI(div(shiny.fluent::MessageBar(i18n$t("no_description_available"), messageBarType = 5) ,style = "display: inline-block;"))
-        else {
-          output_file <- create_rmarkdown_file(r, description_code, interpret_code = FALSE)
-          output$description_ui <- renderUI(div(class = "markdown", withMathJax(includeMarkdown(output_file))))
-        }
-        
-        sapply(c("name", "short_description"), function(field) shinyjs::show(paste0(field, "_", input$language, "_div")))
+      # Update name et short description fields
+      sapply(r$languages$code, function(lang){
+        if (lang != input$language) sapply(c("name", "short_description"), function(field) shinyjs::hide(paste0(field, "_", lang, "_div")))
+      })
+      
+      # Update description editor
+      element_long <- r[[long_var]] %>% dplyr::filter(id == input$selected_element)
+      description_code <- element_long %>% dplyr::filter(name == paste0("description_", input$language)) %>% dplyr::pull(value)
+      shinyAce::updateAceEditor(session, "description_code", value = description_code)
+      
+      # Reload markdown
+      
+      if (description_code == "" | is.na(description_code)) output$description_ui <- renderUI(div(shiny.fluent::MessageBar(i18n$t("no_description_available"), messageBarType = 5) ,style = "display: inline-block;"))
+      else {
+        output_file <- create_rmarkdown_file(r, description_code, interpret_code = FALSE)
+        output$description_ui <- renderUI(div(class = "markdown", withMathJax(includeMarkdown(output_file))))
       }
+      
+      sapply(c("name", "short_description"), function(field) shinyjs::show(paste0(field, "_", input$language, "_div")))
     }))
     
     ## Edit description ----
@@ -1023,8 +1014,10 @@ mod_widgets_server <- function(id, r, d, m, language, i18n, all_divs, debug, use
       # Check if name is not empty
       empty_name <- TRUE
       if (length(element_name) > 0) if (!is.na(element_name) & element_name != "") empty_name <- FALSE
-      if (empty_name) shiny.fluent::updateTextField.shinyInput(session, name_field, errorMessage = i18n$t("provide_valid_name"))
-      req(!empty_name)
+      if (empty_name){
+        shiny.fluent::updateTextField.shinyInput(session, name_field, errorMessage = i18n$t("provide_valid_name"))
+        return()
+      }
       
       # Check if name is not already used
       if (id == "subsets") sql <- glue::glue_sql("SELECT name FROM subsets WHERE LOWER(name) = {tolower(element_name)} AND id != {input$selected_element} AND study_id = {m$selected_study}", .con = con)
@@ -1032,13 +1025,17 @@ mod_widgets_server <- function(id, r, d, m, language, i18n, all_divs, debug, use
       else sql <- glue::glue_sql("SELECT name FROM {sql_table} WHERE LOWER(name) = {tolower(element_name)} AND id != {input$selected_element}", .con = con)
       name_already_used <- nrow(DBI::dbGetQuery(con, sql) > 0)
       
-      if (name_already_used) shiny.fluent::updateTextField.shinyInput(session, name_field, errorMessage = i18n$t("name_already_used"))
-      req(!name_already_used)
+      if (name_already_used){
+        shiny.fluent::updateTextField.shinyInput(session, name_field, errorMessage = i18n$t("name_already_used"))
+        return()
+      }
       
       # Check if tab_type_id is not empty
       if (id == "plugins"){
-        if (length(input$tab_type_id) == 0) shiny.fluent::updateDropdown.shinyInput(session, "tab_type_id", errorMessage = i18n$t("field_cant_be_empty"))
-        req(length(input$tab_type_id) > 0)
+        if (length(input$tab_type_id) == 0){
+          shiny.fluent::updateDropdown.shinyInput(session, "tab_type_id", errorMessage = i18n$t("field_cant_be_empty"))
+          return()
+        }
       }
       
       # Change update datetime
@@ -1167,17 +1164,13 @@ mod_widgets_server <- function(id, r, d, m, language, i18n, all_divs, debug, use
     
     ## Delete an element ----
     
-    observeEvent(input$delete_element, try_catch("input$delete_element", {
-      shinyjs::show("delete_element_modal")
-    }))
+    observeEvent(input$delete_element, try_catch("input$delete_element", shinyjs::show("delete_element_modal")))
     
-    observeEvent(input$close_element_deletion_modal, try_catch("input$close_element_deletion_modal", {
-      shinyjs::hide("delete_element_modal")
-    }))
+    observeEvent(input$close_element_deletion_modal, try_catch("input$close_element_deletion_modal", shinyjs::hide("delete_element_modal")))
     
     observeEvent(input$confirm_element_deletion, try_catch("input$confirm_element_deletion", {
       
-      req(paste0(id, "_management") %in% user_accesses | (id == "subsets" & "projects_subsets_management" %in% user_accesses))
+      if(!(paste0(id, "_management") %in% user_accesses || (id == "subsets" && "projects_subsets_management" %in% user_accesses))) return()
       
       element_id <- input$selected_element
       
@@ -1278,48 +1271,47 @@ mod_widgets_server <- function(id, r, d, m, language, i18n, all_divs, debug, use
     
     observeEvent(input$reload_git_repo, try_catch("input$reload_git_repo", {
       
-      if (paste0(id, "_share") %in% user_accesses){
+      if (paste0(id, "_share") %not_in% user_accesses) return()
       
-        git_repo <- r$git_repos %>% dplyr::filter(id == input$git_repo)
-        
-        # Clone git repo if not already loaded
-        
-        loaded_git_repo <- tibble::tibble()
-        
-        tryCatch({
-          loaded_git_repo <- load_git_repo(id, r, git_repo)
-          }, error = function(e){
-            show_message_bar(id, output, "error_loading_git_repo", "warning", i18n = i18n, ns = ns)
-            cat(paste0("\n", now(), " - mod_widgets - error downloading git repo - error = ", toString(e)))
-          }
-        )
-        
-        if (nrow(loaded_git_repo) > 0){
-          git_repo_local_path <- loaded_git_repo$local_path
-          
-          # Show upload git button
-          shinyjs::show("reload_git_repo_div")
+      git_repo <- r$git_repos %>% dplyr::filter(id == input$git_repo)
+      
+      # Clone git repo if not already loaded
+      
+      loaded_git_repo <- tibble::tibble()
+      
+      tryCatch({
+        loaded_git_repo <- load_git_repo(id, r, git_repo)
+        }, error = function(e){
+          show_message_bar(id, output, "error_loading_git_repo", "warning", i18n = i18n, ns = ns)
+          cat(paste0("\n", now(), " - mod_widgets - error downloading git repo - error = ", toString(e)))
         }
-        else {
-          git_repo_local_path <- ""
-          r$loaded_git_repos_objects[[git_repo$unique_id]] <- character(0)
-          
-          # Hide upload git button
-          shinyjs::hide("reload_git_repo_div")
-        }
+      )
+      
+      if (nrow(loaded_git_repo) > 0){
+        git_repo_local_path <- loaded_git_repo$local_path
         
-        shinyjs::runjs(paste0("Shiny.setInputValue('", id, "-git_repo_local_path', '", git_repo_local_path, "');"))
-  
-        # Reload git element UI
-        shinyjs::runjs(paste0("Shiny.setInputValue('", id, "-reload_git_element_ui', Math.random());"))
+        # Show upload git button
+        shinyjs::show("reload_git_repo_div")
       }
+      else {
+        git_repo_local_path <- ""
+        r$loaded_git_repos_objects[[git_repo$unique_id]] <- character(0)
+        
+        # Hide upload git button
+        shinyjs::hide("reload_git_repo_div")
+      }
+      
+      shinyjs::runjs(paste0("Shiny.setInputValue('", id, "-git_repo_local_path', '", git_repo_local_path, "');"))
+
+      # Reload git element UI
+      shinyjs::runjs(paste0("Shiny.setInputValue('", id, "-reload_git_element_ui', Math.random());"))
     }))
     
     ### Reload git element UI ----
     
     observeEvent(input$reload_git_element_ui, try_catch("input$reload_git_element_ui", {
       
-      req(paste0(id, "_share") %in% user_accesses)
+      if (paste0(id, "_share") %not_in% user_accesses) return()
       
       element_long <- r[[long_var]] %>% dplyr::filter(id == input$selected_element)
       git_element_ui <- div(
@@ -1475,19 +1467,14 @@ mod_widgets_server <- function(id, r, d, m, language, i18n, all_divs, debug, use
     # Update / delete git element confirmed
     observeEvent(input$update_git, try_catch("input$update_git", {
       
-      req(paste0(id, "_share") %in% user_accesses)
+      if (paste0(id, "_share") %not_in% user_accesses) return()
       
       # Check if API key is empty
-      api_key_empty <- TRUE
       if (input$update_or_delete_git_element_api_key == ""){
         shiny.fluent::updateTextField.shinyInput(session, "update_or_delete_git_element_api_key", errorMessage = i18n$t("provide_valid_api_key"))
+        return()
       }
-      else {
-        api_key_empty <- FALSE
-        shiny.fluent::updateTextField.shinyInput(session, "update_or_delete_git_element_api_key", errorMessage = NULL)
-      }
-      
-      req(!api_key_empty)
+      else shiny.fluent::updateTextField.shinyInput(session, "update_or_delete_git_element_api_key", errorMessage = NULL)
       
       git_repo <- r$git_repos %>% dplyr::filter(id == input$git_repo)
       
@@ -1583,9 +1570,7 @@ mod_widgets_server <- function(id, r, d, m, language, i18n, all_divs, debug, use
     
     ## Export element ----
     
-    observeEvent(input$export_element, try_catch("input$export_element", {
-      shinyjs::click("export_element_download")
-    }))
+    observeEvent(input$export_element, try_catch("input$export_element", shinyjs::click("export_element_download")))
     
     output$export_element_download <- downloadHandler(
 

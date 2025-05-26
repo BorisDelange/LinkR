@@ -329,20 +329,19 @@ mod_app_db_server <- function(id, r, d, m, language, i18n, db_col_types, app_fol
     
     observeEvent(r$local_db, try_catch("r$local_db", {
       
-      if ("app_db_connection_settings" %in% user_accesses){
+      if ("app_db_connection_settings" %not_in% user_accesses) return()
       
-        # Get remote db informations
-        db_info <- 
-          DBI::dbGetQuery(r$local_db, "SELECT * FROM options WHERE category = 'remote_db'") %>%
-          tibble::as_tibble() %>%
-          dplyr::pull(value, name) %>%
-          as.list()
-        
-        # Fill textfields & choicegroup with recorded informations in local database
-        for (name in names(db_info)){
-          if (name == "connection_type") r$db_connection_type <- db_info[[name]]
-          if (name != "connection_type") shiny.fluent::updateTextField.shinyInput(session, name, value = db_info[[name]])
-        }
+      # Get remote db informations
+      db_info <- 
+        DBI::dbGetQuery(r$local_db, "SELECT * FROM options WHERE category = 'remote_db'") %>%
+        tibble::as_tibble() %>%
+        dplyr::pull(value, name) %>%
+        as.list()
+      
+      # Fill textfields & choicegroup with recorded informations in local database
+      for (name in names(db_info)){
+        if (name == "connection_type") r$db_connection_type <- db_info[[name]]
+        if (name != "connection_type") shiny.fluent::updateTextField.shinyInput(session, name, value = db_info[[name]])
       }
     }))
     
@@ -365,46 +364,45 @@ mod_app_db_server <- function(id, r, d, m, language, i18n, db_col_types, app_fol
     
     observeEvent(input$test_connection, try_catch("input$test_connection", {
       
-      if ("app_db_connection_settings" %in% user_accesses){
+      if ("app_db_connection_settings" %not_in% user_accesses) return()
         
-        # Before testing connection, make sure fields are filled
-        db_checks <- c("main_db_name" = FALSE, "public_db_name" = FALSE, "host" = FALSE, "port" = FALSE, "user" = FALSE, "password" = FALSE)
-        
-        for(name in names(db_checks)){
-          shiny.fluent::updateTextField.shinyInput(session, name, errorMessage = NULL)
-          if (!is.null(input[[name]])){
-            if (name != "port" & input[[name]] != "") db_checks[[name]] <- TRUE
-            if (name == "port" & input[[name]] != "" & grepl("^[0-9]+$", input[[name]])) db_checks[[name]] <- TRUE
-          }
+      # Before testing connection, make sure fields are filled
+      db_checks <- c("main_db_name" = FALSE, "public_db_name" = FALSE, "host" = FALSE, "port" = FALSE, "user" = FALSE, "password" = FALSE)
+      
+      for(name in names(db_checks)){
+        shiny.fluent::updateTextField.shinyInput(session, name, errorMessage = NULL)
+        if (!is.null(input[[name]])){
+          if (name != "port" & input[[name]] != "") db_checks[[name]] <- TRUE
+          if (name == "port" & input[[name]] != "" & grepl("^[0-9]+$", input[[name]])) db_checks[[name]] <- TRUE
         }
+      }
+      
+      # Reset output textfields
+      output$test_connection_main_db <- renderText("")
+      output$test_connection_public_db <- renderText("")
+      
+      sapply(names(db_checks), function(name) if (!db_checks[[name]]) shiny.fluent::updateTextField.shinyInput(session, name, errorMessage = i18n$t(paste0("provide_valid_", name))))
+      
+      required_fields <- c("main_db_name", "public_db_name", "host", "port", "user", "password")
+      if (!all(sapply(required_fields, function(x) db_checks[[x]]))) return()
+    
+      # If checks are OK, test connection
+      for(db_type in c("main_db", "public_db")){
         
-        # Reset output textfields
-        output$test_connection_main_db <- renderText("")
-        output$test_connection_public_db <- renderText("")
+        result <- capture.output(
+          tryCatch(
+            DBI::dbConnect(
+              RPostgres::Postgres(), dbname = input[[paste0(db_type, "_name")]],
+              host = input$host, port = input$host, user = input$user, password = input$password
+            ),
+            error = function(e) print(e), warning = function(w) print(w)
+          )
+        ) %>% toString()
         
-        sapply(names(db_checks), function(name) if (!db_checks[[name]]) shiny.fluent::updateTextField.shinyInput(session, name, errorMessage = i18n$t(paste0("provide_valid_", name))))
+        result_ui <- tags$style(i18n$t("success"), style = "color: #2E86C4")
+        if (grepl("exception|error|warning|fatal", tolower(result))) result_ui <- tags$span(result, style = "color: red;")
         
-        if (db_checks[["main_db_name"]] && db_checks[["public_db_name"]] && db_checks[["host"]] && db_checks[["port"]] && db_checks[["user"]] && db_checks[["password"]]){
-        
-          # If checks are OK, test connection
-          for(db_type in c("main_db", "public_db")){
-            
-            result <- capture.output(
-              tryCatch(
-                DBI::dbConnect(
-                  RPostgres::Postgres(), dbname = input[[paste0(db_type, "_name")]],
-                  host = input$host, port = input$host, user = input$user, password = input$password
-                ),
-                error = function(e) print(e), warning = function(w) print(w)
-              )
-            ) %>% toString()
-            
-            result_ui <- tags$style(i18n$t("success"), style = "color: #2E86C4")
-            if (grepl("exception|error|warning|fatal", tolower(result))) result_ui <- tags$span(result, style = "color: red;")
-            
-            output[[paste0(db_type, "_result")]] <- renderUI(result_ui)
-          }
-        }
+        output[[paste0(db_type, "_result")]] <- renderUI(result_ui)
       }
     }))
     
@@ -414,40 +412,39 @@ mod_app_db_server <- function(id, r, d, m, language, i18n, db_col_types, app_fol
     
     observeEvent(input$save_app_db_settings, try_catch("input$save_app_db_settings", {
       
-      if ("app_db_connection_settings" %in% user_accesses){
+      if ("app_db_connection_settings" %not_in% user_accesses) return()
         
-        # If connection_type is local, save only connection_type but do not erase other informations (remote DB informations)
-        # If connection_type is remote, save connection_type and other remote DB informations
+      # If connection_type is local, save only connection_type but do not erase other informations (remote DB informations)
+      # If connection_type is remote, save connection_type and other remote DB informations
+      
+      sql <- glue::glue_sql("UPDATE options SET value = {input$connection_type} WHERE category = 'remote_db' AND name = 'connection_type'", .con = r$local_db)
+      sql_send_statement(r$local_db, sql)
+      
+      if (input$connection_type == "remote"){
         
-        sql <- glue::glue_sql("UPDATE options SET value = {input$connection_type} WHERE category = 'remote_db' AND name = 'connection_type'", .con = r$local_db)
-        sql_send_statement(r$local_db, sql)
+        # Make sure fields are not empty
+        # Password is not required
+        required_textfields <- c("sql_lib", "main_db_name", "public_db_name", "host", "port", "user")
+        textfields_checks <- TRUE
         
-        if (input$connection_type == "remote"){
+        for (textfield in required_textfields){
           
-          # Make sure fields are not empty
-          # Password is not required
-          required_textfields <- c("sql_lib", "main_db_name", "public_db_name", "host", "port", "user")
-          textfields_checks <- TRUE
-          
-          for (textfield in required_textfields){
-            
-            if (is.na(input[[textfield]]) | input[[textfield]] == "") shiny.fluent::updateTextField.shinyInput(session, textfield, errorMessage = i18n$t(paste0("provide_valid_", textfield)))
-            else shiny.fluent::updateTextField.shinyInput(session, textfield, errorMessage = NULL)
-            if (is.na(input[[textfield]]) | input[[textfield]] == "") textfields_checks <- FALSE
-          }
-          
-          if (textfields_checks){
-          
-            for(name in c(required_textfields, "connection_type", "password")){
-              sql <- glue::glue_sql("UPDATE options SET value = {as.character(input[[name]])}, creator_id = {r$user_id}, datetime = {now()} WHERE category = 'remote_db' AND name = {name}", .con = r$local_db)
-              sql_send_statement(r$local_db, sql)
-            }
-          }
+          if (is.na(input[[textfield]]) | input[[textfield]] == "") shiny.fluent::updateTextField.shinyInput(session, textfield, errorMessage = i18n$t(paste0("provide_valid_", textfield)))
+          else shiny.fluent::updateTextField.shinyInput(session, textfield, errorMessage = NULL)
+          if (is.na(input[[textfield]]) | input[[textfield]] == "") textfields_checks <- FALSE
         }
         
-        show_message_bar(id, output, "modif_saved", "success", i18n = i18n, ns = ns)
-        shinyjs::delay(2000, show_message_bar(id, output,  "reload_app_to_take_into_account_changes", "warning", i18n = i18n, ns = ns))
+        if (textfields_checks){
+        
+          for(name in c(required_textfields, "connection_type", "password")){
+            sql <- glue::glue_sql("UPDATE options SET value = {as.character(input[[name]])}, creator_id = {r$user_id}, datetime = {now()} WHERE category = 'remote_db' AND name = {name}", .con = r$local_db)
+            sql_send_statement(r$local_db, sql)
+          }
+        }
       }
+      
+      show_message_bar(id, output, "modif_saved", "success", i18n = i18n, ns = ns)
+      shinyjs::delay(2000, show_message_bar(id, output,  "reload_app_to_take_into_account_changes", "warning", i18n = i18n, ns = ns))
     }))
     
     # |-------------------------------- -----
@@ -475,28 +472,27 @@ mod_app_db_server <- function(id, r, d, m, language, i18n, db_col_types, app_fol
     
     observeEvent(input$run_code_trigger, try_catch("input$run_code_trigger", {
       
-      if ("app_db_db_request" %in% user_accesses){
+      if ("app_db_db_request" %not_in% user_accesses) return()
       
-        # Capture console output of our code
-  
-        code <- r$sql_code  %>% stringr::str_replace_all("\r", "\n")
+      # Capture console output of our code
+
+      code <- r$sql_code  %>% stringr::str_replace_all("\r", "\n")
+      
+      if (input$run_sql_code_db == "main") con <- r$db else con <- m$db
+      
+      if (!grepl("^select", tolower(code))) captured_output <- capture.output(tryCatch({
+        DBI::dbSendStatement(con, code) -> query
+        print(query)
+        DBI::dbClearResult(query)
+      }, error = function(e) print(e), warning = function(w) print(w)))
         
-        if (input$run_sql_code_db == "main") con <- r$db else con <- m$db
+      else captured_output <- capture.output(tryCatch(DBI::dbGetQuery(con, code) %>% tibble::as_tibble() %>% print(n = 1000), error = function(e) print(e), warning = function(w) print(w))) %>% paste(collapse = "\n")
         
-        if (!grepl("^select", tolower(code))) captured_output <- capture.output(tryCatch({
-          DBI::dbSendStatement(con, code) -> query
-          print(query)
-          DBI::dbClearResult(query)
-        }, error = function(e) print(e), warning = function(w) print(w)))
-          
-        else captured_output <- capture.output(tryCatch(DBI::dbGetQuery(con, code) %>% tibble::as_tibble() %>% print(n = 1000), error = function(e) print(e), warning = function(w) print(w))) %>% paste(collapse = "\n")
-          
-        captured_output <- captured_output %>% paste(collapse = "\n")
-        
-        # Display result
-        output$datetime_code_execution <- renderText(format_datetime(now(), language))
-        output$sql_result <- renderText(captured_output)
-      }
+      captured_output <- captured_output %>% paste(collapse = "\n")
+      
+      # Display result
+      output$datetime_code_execution <- renderText(format_datetime(now(), language))
+      output$sql_result <- renderText(captured_output)
     }))
     
     # |-------------------------------- -----
@@ -533,30 +529,29 @@ mod_app_db_server <- function(id, r, d, m, language, i18n, db_col_types, app_fol
     
     observeEvent(input$export_db, try_catch("input$export_db", {
       
-      if ("app_db_save_restore" %in% user_accesses && (length(input$main_tables_to_export) > 0 || length(input$public_tables_to_export))){
+      if (!("app_db_save_restore" %in% user_accesses && (length(input$main_tables_to_export) > 0 || length(input$public_tables_to_export) > 0))) return()
+    
+      last_save <- DBI::dbGetQuery(r$db, "SELECT * FROM options WHERE category = 'last_db_save' AND name = 'last_db_save'")
       
-        last_save <- DBI::dbGetQuery(r$db, "SELECT * FROM options WHERE category = 'last_db_save' AND name = 'last_db_save'")
+      if (nrow(last_save) == 0){
         
-        if (nrow(last_save) == 0){
-          
-          # Insert last time row
-          last_row <- get_last_row(r$db, "options")
-          new_data <- tibble::tibble(
-            id = as.integer(last_row + 1), category = "last_db_save", link_id = NA_integer_, name = "last_db_save", value = now(),
-            value_num = NA_real_, creator_id = r$user_id, datetime = now(), deleted = FALSE
-          )
-          DBI::dbAppendTable(r$db, "options", new_data)
-        }
-        
-        else {
-          sql <- glue::glue_sql("UPDATE options SET value = {now()}, datetime = {now()} WHERE category = 'last_db_save' AND name = 'last_db_save'", .con = r$db)
-          sql_send_statement(r$db, sql)
-        }
-        
-        shinyjs::click("db_save")
-        
-        shinyjs::runjs(paste0("Shiny.setInputValue('", id, "-reload_last_db_save', Math.random());"))
+        # Insert last time row
+        last_row <- get_last_row(r$db, "options")
+        new_data <- tibble::tibble(
+          id = as.integer(last_row + 1), category = "last_db_save", link_id = NA_integer_, name = "last_db_save", value = now(),
+          value_num = NA_real_, creator_id = r$user_id, datetime = now(), deleted = FALSE
+        )
+        DBI::dbAppendTable(r$db, "options", new_data)
       }
+      
+      else {
+        sql <- glue::glue_sql("UPDATE options SET value = {now()}, datetime = {now()} WHERE category = 'last_db_save' AND name = 'last_db_save'", .con = r$db)
+        sql_send_statement(r$db, sql)
+      }
+      
+      shinyjs::click("db_save")
+      
+      shinyjs::runjs(paste0("Shiny.setInputValue('", id, "-reload_last_db_save', Math.random());"))
     }))
     
     ### Download zip file
@@ -613,24 +608,21 @@ mod_app_db_server <- function(id, r, d, m, language, i18n, db_col_types, app_fol
     
     observeEvent(input$reload_last_db_save, try_catch("input$reload_last_db_save", {
       
-      if ("app_db_save_restore" %in% user_accesses){
+      if ("app_db_save_restore" %not_in% user_accesses) return()
       
-        last_save <- DBI::dbGetQuery(r$db, "SELECT * FROM options WHERE category = 'last_db_save' AND name = 'last_db_save'")
-        
-        if (nrow(last_save) > 0) last_save_datetime <- format_datetime(last_save %>% dplyr::pull(value), language = "fr", sec = FALSE)
-        else last_save_datetime <- "/"
-        
-        output$last_db_save <- renderUI(tagList(strong(i18n$t("last_db_save")), " : ", last_save_datetime))
-      }
+      last_save <- DBI::dbGetQuery(r$db, "SELECT * FROM options WHERE category = 'last_db_save' AND name = 'last_db_save'")
+      
+      if (nrow(last_save) > 0) last_save_datetime <- format_datetime(last_save %>% dplyr::pull(value), language = "fr", sec = FALSE)
+      else last_save_datetime <- "/"
+      
+      output$last_db_save <- renderUI(tagList(strong(i18n$t("last_db_save")), " : ", last_save_datetime))
     }))
     
     ## Restore db ----
     
     ### Browse file
     
-    observeEvent(input$db_restore_browse, try_catch("input$db_restore_browse", {
-      shinyjs::click("db_restore")
-    }))
+    observeEvent(input$db_restore_browse, try_catch("input$db_restore_browse", shinyjs::click("db_restore")))
     
     ### Update last db save field
     
@@ -638,205 +630,202 @@ mod_app_db_server <- function(id, r, d, m, language, i18n, db_col_types, app_fol
     
     observeEvent(input$reload_last_db_restore, try_catch("input$reload_last_db_restore", {
       
-      if ("app_db_save_restore" %in% user_accesses){
+      if ("app_db_save_restore" %not_in% user_accesses) return()
       
-        last_restore <- DBI::dbGetQuery(r$db, "SELECT * FROM options WHERE category = 'last_db_restore' AND name = 'last_db_restore'")
-        
-        if (nrow(last_restore) > 0) last_restore_datetime <- format_datetime(last_restore %>% dplyr::pull(value), language = "fr", sec = FALSE)
-        else last_restore_datetime <- "/"
-        
-        output$last_db_restore <- renderUI(tagList(strong(i18n$t("last_db_restore")), " : ", last_restore_datetime))
-      }
+      last_restore <- DBI::dbGetQuery(r$db, "SELECT * FROM options WHERE category = 'last_db_restore' AND name = 'last_db_restore'")
+      
+      if (nrow(last_restore) > 0) last_restore_datetime <- format_datetime(last_restore %>% dplyr::pull(value), language = "fr", sec = FALSE)
+      else last_restore_datetime <- "/"
+      
+      output$last_db_restore <- renderUI(tagList(strong(i18n$t("last_db_restore")), " : ", last_restore_datetime))
     }))
     
     ### Restore file
     
     observeEvent(input$db_restore, try_catch("input$db_restore", {
       
-      if ("app_db_save_restore" %in% user_accesses && length(input$db_restore$name) > 0){
+      if (!("app_db_save_restore" %in% user_accesses && length(input$db_restore$name) > 0)) return()
         
-        # Show loaded file
-        output$db_restore_loaded_file <- renderUI(div(input$db_restore$name, class = "selected_file db_backup_file"))
+      # Show loaded file
+      output$db_restore_loaded_file <- renderUI(div(input$db_restore$name, class = "selected_file db_backup_file"))
+      
+      # Show db tables dropdowns
+      shinyjs::show("import_db_tables_div")
+      
+      r$import_db_files <- tibble::tibble(prefix = character(), name = character(), path = character())
+      
+      tryCatch({
         
-        # Show db tables dropdowns
-        shinyjs::show("import_db_tables_div")
+        exdir <- paste0(r$app_folder, "/temp_files/", r$user_id, "/app_db/import_db_", now() %>% stringr::str_replace_all(":| |-", "_"))
+        dir.create(exdir)
         
-        r$import_db_files <- tibble::tibble(prefix = character(), name = character(), path = character())
+        zip::unzip(input$db_restore$datapath, exdir = exdir)
         
-        tryCatch({
+        files <- list.files(exdir)
+        
+        csv_files <- files[grepl("\\.csv$", files, ignore.case = TRUE)]
+        prefix <- ifelse(grepl("^(main|public)_", csv_files, ignore.case = TRUE), sub("_.*", "", csv_files), NA)
           
-          exdir <- paste0(r$app_folder, "/temp_files/", r$user_id, "/app_db/import_db_", now() %>% stringr::str_replace_all(":| |-", "_"))
-          dir.create(exdir)
-          
-          zip::unzip(input$db_restore$datapath, exdir = exdir)
-          
-          files <- list.files(exdir)
-          
-          csv_files <- files[grepl("\\.csv$", files, ignore.case = TRUE)]
-          prefix <- ifelse(grepl("^(main|public)_", csv_files, ignore.case = TRUE), sub("_.*", "", csv_files), NA)
-            
-          # Remove .csv
-          names_without_extension <- sub("\\.csv$", "", csv_files, ignore.case = TRUE)
-          # Remove "main_" or "public_"
-          names_without_extension <- sub("^[^_]*_", "", names_without_extension)
-          
-          full_path <- file.path(exdir, csv_files)
-          
-          r$import_db_files <- 
-            r$import_db_files %>%
-            dplyr::bind_rows(tibble::tibble(prefix = prefix, name = names_without_extension, path = full_path))
-          
-          # Filter on existing tables
-          r$import_db_files <- 
-            r$import_db_files %>% 
-            dplyr::filter(!is.na(prefix)) %>%
-            dplyr::inner_join(
-              db_col_types %>% dplyr::select(name = table, prefix = db),
-              by = c("name", "prefix")
-            )
-          
-          for (type in c("main", "public")) shiny.fluent::updateDropdown.shinyInput(
-            session, paste0(type, "_tables_to_import"),
-            options = convert_tibble_to_list(r$import_db_files %>% dplyr::filter(prefix == type), key_col = "name", text_col = "name"),
-            value = r$import_db_files %>% dplyr::filter(prefix == type) %>% dplyr::pull(name)
+        # Remove .csv
+        names_without_extension <- sub("\\.csv$", "", csv_files, ignore.case = TRUE)
+        # Remove "main_" or "public_"
+        names_without_extension <- sub("^[^_]*_", "", names_without_extension)
+        
+        full_path <- file.path(exdir, csv_files)
+        
+        r$import_db_files <- 
+          r$import_db_files %>%
+          dplyr::bind_rows(tibble::tibble(prefix = prefix, name = names_without_extension, path = full_path))
+        
+        # Filter on existing tables
+        r$import_db_files <- 
+          r$import_db_files %>% 
+          dplyr::filter(!is.na(prefix)) %>%
+          dplyr::inner_join(
+            db_col_types %>% dplyr::select(name = table, prefix = db),
+            by = c("name", "prefix")
           )
-        },
-        error = function(e){
-          show_message_bar(id, output, "error_loading_db_file", "warning", i18n = i18n, ns = ns)
-          cat(paste0("\n", now(), " - mod_git_repos - error loading db file - error = ", toString(e)))
-        })
-      }
+        
+        for (type in c("main", "public")) shiny.fluent::updateDropdown.shinyInput(
+          session, paste0(type, "_tables_to_import"),
+          options = convert_tibble_to_list(r$import_db_files %>% dplyr::filter(prefix == type), key_col = "name", text_col = "name"),
+          value = r$import_db_files %>% dplyr::filter(prefix == type) %>% dplyr::pull(name)
+        )
+      },
+      error = function(e){
+        show_message_bar(id, output, "error_loading_db_file", "warning", i18n = i18n, ns = ns)
+        cat(paste0("\n", now(), " - mod_git_repos - error loading db file - error = ", toString(e)))
+      })
     }))
     
     observeEvent(input$import_db, try_catch("inpu$import_db", {
       
-      if ("app_db_save_restore" %in% user_accesses && nrow(r$import_db_files) > 0){
+      if (!("app_db_save_restore" %in% user_accesses && nrow(r$import_db_files) > 0)) return()
       
-        # Save current database before import new one
-  
-        db_list <- c("main", "public")
-  
-        db_folder <- paste0(r$app_folder, "/temp_files/", r$user_id, "/app_db/import_db_rescue_", now() %>% stringr::str_replace_all(":| |-", "_"))
-        dir.create(db_folder)
-  
-        for (db in db_list){
-  
-          if (db == "main") con <- r$db
-          if (db == "public") con <- m$db
-  
-          tables <- db_col_types %>% dplyr::filter(db == !!db) %>% dplyr::pull(table)
-  
-          for (table in tables){
-            file_name <- paste0(db_folder, "/", db, "_", table, ".csv")
-            readr::write_csv(DBI::dbGetQuery(con, paste0("SELECT * FROM ", table)), file_name)
-          }
+      # Save current database before import new one
+
+      db_list <- c("main", "public")
+
+      db_folder <- paste0(r$app_folder, "/temp_files/", r$user_id, "/app_db/import_db_rescue_", now() %>% stringr::str_replace_all(":| |-", "_"))
+      dir.create(db_folder)
+
+      for (db in db_list){
+
+        if (db == "main") con <- r$db
+        if (db == "public") con <- m$db
+
+        tables <- db_col_types %>% dplyr::filter(db == !!db) %>% dplyr::pull(table)
+
+        for (table in tables){
+          file_name <- paste0(db_folder, "/", db, "_", table, ".csv")
+          readr::write_csv(DBI::dbGetQuery(con, paste0("SELECT * FROM ", table)), file_name)
         }
-  
-        # Try to import restore files
-        # Reload current database in case of error
-  
-        total_success <- TRUE
-        
-        for(i in 1:nrow(r$import_db_files)){
-  
-          row <- r$import_db_files[i, ]
-          if (row$prefix == "main") con <- r$db
-          else if (row$prefix == "public") con <- m$db
-  
-          if (row$name %in% input[[paste0(row$prefix, "_tables_to_import")]]){
-  
-            col_types <- db_col_types %>% dplyr::filter(table == row$name, db == row$prefix) %>% dplyr::pull(col_types)
-  
-            success <- FALSE
-  
-            tryCatch({
-  
-              # Load CSV file
-              data <- vroom::vroom(row$path, col_types = col_types, progress = FALSE)
-  
-              # Delete data from old table
-              sql <- glue::glue_sql("DELETE FROM {`row$name`}", .con = con)
-              sql_send_statement(con, sql)
-  
-              # Insert new data in table
-              DBI::dbAppendTable(con, row$name, data)
-  
-              success <- TRUE
-  
-            }, error = function(e){
-              show_message_bar(id, output, "error_restoring_database_table", "warning", i18n = i18n, ns = ns)
-              cat(paste0("\n", now(), " - mod_git_repos - error restoring database table (", row$name, ") - error = ", toString(e)))
-            })
-  
-            if (!success) total_success <- FALSE
-          }
-        }
-  
-        # Restore database in case of failure
-  
-        if (!total_success){
-  
+      }
+
+      # Try to import restore files
+      # Reload current database in case of error
+
+      total_success <- TRUE
+      
+      for(i in 1:nrow(r$import_db_files)){
+
+        row <- r$import_db_files[i, ]
+        if (row$prefix == "main") con <- r$db
+        else if (row$prefix == "public") con <- m$db
+
+        if (row$name %in% input[[paste0(row$prefix, "_tables_to_import")]]){
+
+          col_types <- db_col_types %>% dplyr::filter(table == row$name, db == row$prefix) %>% dplyr::pull(col_types)
+
+          success <- FALSE
+
           tryCatch({
-  
-            for (db in db_list){
-  
-              if (db == "main") con <- r$db
-              if (db == "public") con <- m$db
-  
-              tables <- db_col_types %>% dplyr::filter(db == !!db) %>% dplyr::pull(table)
-  
-              for (table in tables){
-  
-                file_name <- paste0(db_folder, "/", db, "_", table, ".csv")
-                col_types <- db_col_types %>% dplyr::filter(table == !!table, db == !!db) %>% dplyr::pull(col_types)
-  
-                data <- vroom::vroom(file_name, col_types = col_types, progress = FALSE)
-  
-                # Delete data from old table
-                sql <- glue::glue_sql("DELETE FROM {`table`}", .con = con)
-                sql_send_statement(con, sql)
-  
-                # Insert new data in table
-                DBI::dbAppendTable(con, table, data)
-              }
-            }
-  
+
+            # Load CSV file
+            data <- vroom::vroom(row$path, col_types = col_types, progress = FALSE)
+
+            # Delete data from old table
+            sql <- glue::glue_sql("DELETE FROM {`row$name`}", .con = con)
+            sql_send_statement(con, sql)
+
+            # Insert new data in table
+            DBI::dbAppendTable(con, row$name, data)
+
+            success <- TRUE
+
           }, error = function(e){
-            show_message_bar(id, output, "error_restoring_db_old_table_after_import_failure", "warning", i18n = i18n, ns = ns)
-            cat(paste0("\n", now(), " - mod_git_repos - error restoring old database table after import failure (", row$name, ") - error = ", toString(e)))
+            show_message_bar(id, output, "error_restoring_database_table", "warning", i18n = i18n, ns = ns)
+            cat(paste0("\n", now(), " - mod_git_repos - error restoring database table (", row$name, ") - error = ", toString(e)))
           })
+
+          if (!success) total_success <- FALSE
         }
-  
-        if (total_success){
-  
-          # Reset fields
-          output$db_restore_loaded_file <- renderUI(div())
-          shinyjs::hide("import_db_tables_div")
-          
-          # Save last restore datetime
-          last_restore <- DBI::dbGetQuery(r$db, "SELECT * FROM options WHERE category = 'last_db_restore' AND name = 'last_db_restore'")
-          
-          if (nrow(last_restore) == 0){
-            
-            # Insert last time row
-            last_row <- get_last_row(r$db, "options")
-            new_data <- tibble::tibble(
-              id = as.integer(last_row + 1), category = "last_db_restore", link_id = NA_integer_, name = "last_db_restore", value = now(),
-              value_num = NA_real_, creator_id = r$user_id, datetime = now(), deleted = FALSE
-            )
-            DBI::dbAppendTable(r$db, "options", new_data)
+      }
+
+      # Restore database in case of failure
+
+      if (!total_success){
+
+        tryCatch({
+
+          for (db in db_list){
+
+            if (db == "main") con <- r$db
+            if (db == "public") con <- m$db
+
+            tables <- db_col_types %>% dplyr::filter(db == !!db) %>% dplyr::pull(table)
+
+            for (table in tables){
+
+              file_name <- paste0(db_folder, "/", db, "_", table, ".csv")
+              col_types <- db_col_types %>% dplyr::filter(table == !!table, db == !!db) %>% dplyr::pull(col_types)
+
+              data <- vroom::vroom(file_name, col_types = col_types, progress = FALSE)
+
+              # Delete data from old table
+              sql <- glue::glue_sql("DELETE FROM {`table`}", .con = con)
+              sql_send_statement(con, sql)
+
+              # Insert new data in table
+              DBI::dbAppendTable(con, table, data)
+            }
           }
+
+        }, error = function(e){
+          show_message_bar(id, output, "error_restoring_db_old_table_after_import_failure", "warning", i18n = i18n, ns = ns)
+          cat(paste0("\n", now(), " - mod_git_repos - error restoring old database table after import failure (", row$name, ") - error = ", toString(e)))
+        })
+      }
+
+      if (total_success){
+
+        # Reset fields
+        output$db_restore_loaded_file <- renderUI(div())
+        shinyjs::hide("import_db_tables_div")
+        
+        # Save last restore datetime
+        last_restore <- DBI::dbGetQuery(r$db, "SELECT * FROM options WHERE category = 'last_db_restore' AND name = 'last_db_restore'")
+        
+        if (nrow(last_restore) == 0){
           
-          else {
-            sql <- glue::glue_sql("UPDATE options SET value = {now()}, datetime = {now()} WHERE category = 'last_db_restore' AND name = 'last_db_restore'", .con = r$db)
-            sql_send_statement(r$db, sql)
-          }
-          
-          shinyjs::runjs(paste0("Shiny.setInputValue('", id, "-reload_last_db_restore', Math.random());"))
-  
-          # Notify user
-          show_message_bar(id, output, "db_restored_reload_app_to_take_into_account_changes", "success", i18n = i18n, ns = ns)
+          # Insert last time row
+          last_row <- get_last_row(r$db, "options")
+          new_data <- tibble::tibble(
+            id = as.integer(last_row + 1), category = "last_db_restore", link_id = NA_integer_, name = "last_db_restore", value = now(),
+            value_num = NA_real_, creator_id = r$user_id, datetime = now(), deleted = FALSE
+          )
+          DBI::dbAppendTable(r$db, "options", new_data)
         }
+        
+        else {
+          sql <- glue::glue_sql("UPDATE options SET value = {now()}, datetime = {now()} WHERE category = 'last_db_restore' AND name = 'last_db_restore'", .con = r$db)
+          sql_send_statement(r$db, sql)
+        }
+        
+        shinyjs::runjs(paste0("Shiny.setInputValue('", id, "-reload_last_db_restore', Math.random());"))
+
+        # Notify user
+        show_message_bar(id, output, "db_restored_reload_app_to_take_into_account_changes", "success", i18n = i18n, ns = ns)
       }
     }))
     
@@ -846,15 +835,14 @@ mod_app_db_server <- function(id, r, d, m, language, i18n, db_col_types, app_fol
     
     observeEvent(input$reload_last_db_restore, try_catch("input$reload_last_db_restore", {
       
-      if ("app_db_save_restore" %in% user_accesses){
+      if ("app_db_save_restore" %not_in% user_accesses) return()
       
-        last_restore <- DBI::dbGetQuery(r$db, "SELECT * FROM options WHERE category = 'last_db_restore' AND name = 'last_db_restore'")
-        
-        if (nrow(last_restore) > 0) last_restore_datetime <- format_datetime(last_restore %>% dplyr::pull(value), language = "fr", sec = FALSE)
-        else last_restore_datetime <- "/"
-        
-        output$last_db_restore <- renderUI(tagList(strong(i18n$t("last_db_restore")), " : ", last_restore_datetime))
-      }
+      last_restore <- DBI::dbGetQuery(r$db, "SELECT * FROM options WHERE category = 'last_db_restore' AND name = 'last_db_restore'")
+      
+      if (nrow(last_restore) > 0) last_restore_datetime <- format_datetime(last_restore %>% dplyr::pull(value), language = "fr", sec = FALSE)
+      else last_restore_datetime <- "/"
+      
+      output$last_db_restore <- renderUI(try_catch("output$last_db_restore", tagList(strong(i18n$t("last_db_restore")), " : ", last_restore_datetime)))
     }))
     
   })

@@ -1111,7 +1111,7 @@ reload_elements_var <- function(page_id, id, con, r, m, long_var_filtered, user_
   }
   
   else if (sql_table == "subsets"){
-    req(length(m$selected_study) > 0)
+    if (length(m$selected_study) == 0) return()
     sql <- glue::glue_sql(paste0("
       SELECT s.id, o.name, o.value, o.value_num
       FROM subsets s

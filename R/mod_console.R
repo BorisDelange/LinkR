@@ -130,46 +130,45 @@ mod_console_server <- function(id, r, d, m, language, i18n, debug, user_accesses
     # Update output dropdown ----
     observeEvent(input$programming_language, try_catch("input$programming_language", {
       
-      if (length(input$output) > 0){
+      if (length(input$output) == 0) return()
       
-        if (input$programming_language == "r"){
-          output_options <- list(
-            list(key = "console", text = i18n$t("console")),
-            list(key = "figure", text = i18n$t("figure")),
-            list(key = "ui", text = i18n$t("ui_output")),
-            list(key = "table", text = i18n$t("table_output")),
-            list(key = "datatable", text = i18n$t("datatable_output")),
-            list(key = "rmarkdown", text = i18n$t("rmarkdown"))
-          )
-          output_value <- "console"
-          
-          if (input$output == "markdown") ace_mode <- "markdown"
-          else ace_mode <- "r"
-        }
-        else if (input$programming_language == "python"){
-          output_options <- list(
-            list(key = "console", text = i18n$t("console")),
-            list(key = "matplotlib", text = i18n$t("matplotlib"))
-          )
-          output_value <- "console"
-          
-          ace_mode <- "python"
-        }
-        else if (input$programming_language == "shell"){
-          output_options <- list(
-            list(key = "terminal", text = i18n$t("terminal"))
-          )
-          output_value <- "terminal"
-          
-          ace_mode <- "sh"
-        }
+      if (input$programming_language == "r"){
+        output_options <- list(
+          list(key = "console", text = i18n$t("console")),
+          list(key = "figure", text = i18n$t("figure")),
+          list(key = "ui", text = i18n$t("ui_output")),
+          list(key = "table", text = i18n$t("table_output")),
+          list(key = "datatable", text = i18n$t("datatable_output")),
+          list(key = "rmarkdown", text = i18n$t("rmarkdown"))
+        )
+        output_value <- "console"
         
-        # Update output dropdown options
-        shiny.fluent::updateDropdown.shinyInput(session, "output", options = output_options, value = output_value)
-        
-        # Update ace editor mode
-        shinyAce::updateAceEditor(session, "code", mode = ace_mode)
+        if (input$output == "markdown") ace_mode <- "markdown"
+        else ace_mode <- "r"
       }
+      else if (input$programming_language == "python"){
+        output_options <- list(
+          list(key = "console", text = i18n$t("console")),
+          list(key = "matplotlib", text = i18n$t("matplotlib"))
+        )
+        output_value <- "console"
+        
+        ace_mode <- "python"
+      }
+      else if (input$programming_language == "shell"){
+        output_options <- list(
+          list(key = "terminal", text = i18n$t("terminal"))
+        )
+        output_value <- "terminal"
+        
+        ace_mode <- "sh"
+      }
+      
+      # Update output dropdown options
+      shiny.fluent::updateDropdown.shinyInput(session, "output", options = output_options, value = output_value)
+      
+      # Update ace editor mode
+      shinyAce::updateAceEditor(session, "code", mode = ace_mode)
     }))
     
     # Output dropdown ----
@@ -228,127 +227,126 @@ mod_console_server <- function(id, r, d, m, language, i18n, debug, user_accesses
     
     observeEvent(input$run_code_trigger, try_catch("input$run_code_trigger", {
       
-      if ("console_execute_code" %in% user_accesses){
+      if ("console_execute_code" %not_in% user_accesses) return()
       
-        code <- gsub("\r", "\n", r$console_code)
+      code <- gsub("\r", "\n", r$console_code)
+      
+      ## Run R code ----
+      
+      if (input$programming_language == "r"){
         
-        ## Run R code ----
-        
-        if (input$programming_language == "r"){
+        # Console output
+        if (input$output == "console"){
           
-          # Console output
-          if (input$output == "console"){
-            
-            # Change this option to display correctly tibble in textbox
-            options('cli.num_colors' = 1)
-            
-            # Capture console output of our code
-            captured_output <- capture.output(tryCatch(eval(parse(text = code)), error = function(e) print(e), warning = function(w) print(w))) %>% paste(collapse = "\n")
-            
-            # Restore normal value
-            options('cli.num_colors' = NULL)
-            
-            # Render result
-            output$code_output <- renderText(captured_output)
-          }
+          # Change this option to display correctly tibble in textbox
+          options('cli.num_colors' = 1)
           
-          # Plot output
-          else if (input$output == "figure") shinyjs::delay(100, 
-            output$plot_output <- renderPlot(
-              tryCatch(eval(parse(text = code)), error = function(e) cat(paste0("\n", toString(e))), warning = function(w) cat(paste0("\n", toString(w)))),
-              width = isolate(input$plot_width), height = isolate(input$plot_height), res = isolate(input$plot_dpi)
-            )
-          )
+          # Capture console output of our code
+          captured_output <- capture.output(tryCatch(eval(parse(text = code)), error = function(e) print(e), warning = function(w) print(w))) %>% paste(collapse = "\n")
           
-          # UI
-          
-          else if (input$output == "ui") output$ui_output <- renderUI(tryCatch(eval(parse(text = code)), error = function(e) print(e), warning = function(w) print(w)))
-          
-          # RMarkdown
-          else if (input$output == "rmarkdown"){
-            
-            output_file <- create_rmarkdown_file(r, code)
-            output$rmarkdown_output <- renderUI(div(class = "markdown", withMathJax(includeMarkdown(output_file))))
-          }
-          
-          # Table
-          else if (input$output == "table") output$table_output <- renderTable(tryCatch(eval(parse(text = code)), error = function(e) print(e), warning = function(w) print(w)))
-          
-          # DataTable
-          else if (input$output == "datatable") output$datatable_output <- DT::renderDT(
-            DT::datatable(
-              tryCatch(eval(parse(text = code)), error = function(e) print(e), warning = function(w) print(w)),
-              
-              rownames = FALSE,
-              options = list(
-                dom = "<'datatable_length'l><'top't><'bottom'p>",
-                compact = TRUE, hover = TRUE,
-                pageLength = 25
-              ),
-              selection = "single",
-              
-              # CSS for datatable
-              callback = htmlwidgets::JS(
-                "table.on('draw.dt', function() {",
-                "  $('.dataTable tbody tr td').css({",
-                "    'height': '12px',",
-                "    'padding': '2px 5px'",
-                "  });",
-                "  $('.dataTable thead tr td div .form-control').css('font-size', '12px');",
-                "  $('.dataTable thead tr td').css('padding', '5px');",
-                "});"
-              )
-            )
-          )
-        }
-        
-        # Run Python code ----
-        
-        else if (input$programming_language == "python"){
-          
-          # reticulate::py_run_string("sys.stdout = original_stdout\nsys.stderr = original_stderr\n")
-          
-          # Console output
-          if (input$output == "console") output$code_output <- renderText(capture_python_output(code))
-          
-          # Plot output
-          else if (input$output == "matplotlib"){
-            
-            # Create a file with plot image
-            dir <- paste0(r$app_folder, "/temp_files/", r$user_id, "/img")
-            output_file <- paste0(dir, "/", paste0(sample(c(0:9, letters[1:6]), 8, TRUE), collapse = ''), "_", now() %>% stringr::str_replace_all(":", "_") %>% stringr::str_replace_all(" ", "_"), ".png")
-            if (!dir.exists(dir)) dir.create(dir)
-            
-            code <- paste0(
-              "import matplotlib.pyplot as plt\n",
-              "plt.close('all')\n",
-              code, "\n",
-              "plt.savefig('", output_file, "', dpi = ", input$plot_dpi, ")"
-            )
-            
-            capture_python_output(code)
-            
-            shinyjs::delay(100, 
-              output$image_output <- renderImage({
-                list(src = output_file, contentType = 'image/png', width = isolate(input$plot_width), height = isolate(input$plot_height))
-              }, deleteFile = FALSE)
-            )
-          }
-        }
-        
-        # Run shell code ----
-        
-        else if (input$programming_language == "shell"){
-          
-          # Use R system fct
-          result <- capture.output(tryCatch(eval(parse(text = paste0("system('", code, "', intern = TRUE)"))), error = function(e) print(e), warning = function(w) print(w))) %>% paste(collapse = "\n")
+          # Restore normal value
+          options('cli.num_colors' = NULL)
           
           # Render result
-          output$code_output <- renderText(result)
+          output$code_output <- renderText(captured_output)
         }
         
-        output$datetime_code_execution <- renderText(format_datetime(now(), language))
+        # Plot output
+        else if (input$output == "figure") shinyjs::delay(100, 
+          output$plot_output <- renderPlot(
+            tryCatch(eval(parse(text = code)), error = function(e) cat(paste0("\n", toString(e))), warning = function(w) cat(paste0("\n", toString(w)))),
+            width = isolate(input$plot_width), height = isolate(input$plot_height), res = isolate(input$plot_dpi)
+          )
+        )
+        
+        # UI
+        
+        else if (input$output == "ui") output$ui_output <- renderUI(tryCatch(eval(parse(text = code)), error = function(e) print(e), warning = function(w) print(w)))
+        
+        # RMarkdown
+        else if (input$output == "rmarkdown"){
+          
+          output_file <- create_rmarkdown_file(r, code)
+          output$rmarkdown_output <- renderUI(div(class = "markdown", withMathJax(includeMarkdown(output_file))))
+        }
+        
+        # Table
+        else if (input$output == "table") output$table_output <- renderTable(tryCatch(eval(parse(text = code)), error = function(e) print(e), warning = function(w) print(w)))
+        
+        # DataTable
+        else if (input$output == "datatable") output$datatable_output <- DT::renderDT(
+          DT::datatable(
+            tryCatch(eval(parse(text = code)), error = function(e) print(e), warning = function(w) print(w)),
+            
+            rownames = FALSE,
+            options = list(
+              dom = "<'datatable_length'l><'top't><'bottom'p>",
+              compact = TRUE, hover = TRUE,
+              pageLength = 25
+            ),
+            selection = "single",
+            
+            # CSS for datatable
+            callback = htmlwidgets::JS(
+              "table.on('draw.dt', function() {",
+              "  $('.dataTable tbody tr td').css({",
+              "    'height': '12px',",
+              "    'padding': '2px 5px'",
+              "  });",
+              "  $('.dataTable thead tr td div .form-control').css('font-size', '12px');",
+              "  $('.dataTable thead tr td').css('padding', '5px');",
+              "});"
+            )
+          )
+        )
       }
+      
+      # Run Python code ----
+      
+      else if (input$programming_language == "python"){
+        
+        # reticulate::py_run_string("sys.stdout = original_stdout\nsys.stderr = original_stderr\n")
+        
+        # Console output
+        if (input$output == "console") output$code_output <- renderText(capture_python_output(code))
+        
+        # Plot output
+        else if (input$output == "matplotlib"){
+          
+          # Create a file with plot image
+          dir <- paste0(r$app_folder, "/temp_files/", r$user_id, "/img")
+          output_file <- paste0(dir, "/", paste0(sample(c(0:9, letters[1:6]), 8, TRUE), collapse = ''), "_", now() %>% stringr::str_replace_all(":", "_") %>% stringr::str_replace_all(" ", "_"), ".png")
+          if (!dir.exists(dir)) dir.create(dir)
+          
+          code <- paste0(
+            "import matplotlib.pyplot as plt\n",
+            "plt.close('all')\n",
+            code, "\n",
+            "plt.savefig('", output_file, "', dpi = ", input$plot_dpi, ")"
+          )
+          
+          capture_python_output(code)
+          
+          shinyjs::delay(100, 
+            output$image_output <- renderImage({
+              list(src = output_file, contentType = 'image/png', width = isolate(input$plot_width), height = isolate(input$plot_height))
+            }, deleteFile = FALSE)
+          )
+        }
+      }
+      
+      # Run shell code ----
+      
+      else if (input$programming_language == "shell"){
+        
+        # Use R system fct
+        result <- capture.output(tryCatch(eval(parse(text = paste0("system('", code, "', intern = TRUE)"))), error = function(e) print(e), warning = function(w) print(w))) %>% paste(collapse = "\n")
+        
+        # Render result
+        output$code_output <- renderText(result)
+      }
+      
+      output$datetime_code_execution <- renderText(format_datetime(now(), language))
     }))
   })
 }

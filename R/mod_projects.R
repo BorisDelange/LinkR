@@ -462,26 +462,25 @@ mod_projects_server <- function(id, r, d, m, language, i18n, debug, user_accesse
     
     observeEvent(r$projects_wide, try_catch("r$projects_wide", {
       
-      if (length(r$loading_options$project_id) > 0){
+      if (length(r$loading_options$project_id) == 0) return()
         
-        project_id <- r$loading_options$project_id
+      project_id <- r$loading_options$project_id
+      
+      if (project_id %in% r$projects_wide$id){
+        shinyjs::runjs(paste0("Shiny.setInputValue('", id, "-selected_element', ", project_id, ");"))
+        shinyjs::runjs(paste0("Shiny.setInputValue('", id, "-selected_element_trigger', Math.random());"))
         
-        if (project_id %in% r$projects_wide$id){
-          shinyjs::runjs(paste0("Shiny.setInputValue('", id, "-selected_element', ", project_id, ");"))
-          shinyjs::runjs(paste0("Shiny.setInputValue('", id, "-selected_element_trigger', Math.random());"))
+        if (length(r$loading_options$load_data_page) > 0){
           
-          if (length(r$loading_options$load_data_page) > 0){
-            
-            data_page <- r$loading_options$load_data_page
-            
-            if (data_page %in% c("patient_lvl", "aggregated")) shiny.router::change_page(paste0("data?type=", data_page))
-            else cat(paste0("\n", now(), " - server - ", data_page, " is not a valid data_page"))
-          }
+          data_page <- r$loading_options$load_data_page
+          
+          if (data_page %in% c("patient_lvl", "aggregated")) shiny.router::change_page(paste0("data?type=", data_page))
+          else cat(paste0("\n", now(), " - server - ", data_page, " is not a valid data_page"))
         }
-        else cat(paste0("\n", now(), " - mod_projects - ", project_id, " is not a valid project ID"))
-        
-        r$loading_options$project_id <- NULL
       }
+      else cat(paste0("\n", now(), " - mod_projects - ", project_id, " is not a valid project ID"))
+      
+      r$loading_options$project_id <- NULL
     }))
     
     # Reload data rows UI
@@ -559,25 +558,23 @@ mod_projects_server <- function(id, r, d, m, language, i18n, debug, user_accesse
     
     observeEvent(input$project_dataset, try_catch("input$save_dataset", {
       
-      if (length(input$project_dataset) > 0){
+      if (length(input$project_dataset) == 0) return()
         
-        # Save each time a dataset is selected
-        shinyjs::runjs(paste0("Shiny.setInputValue('", id, "-save_dataset', Math.random());"))
-      }
+      # Save each time a dataset is selected
+      shinyjs::runjs(paste0("Shiny.setInputValue('", id, "-save_dataset', Math.random());"))
     }))
     
     observeEvent(input$save_dataset, try_catch("input$save_dataset", {
       
-      if ("projects_dataset" %in% user_accesses){
+      if ("projects_dataset" %not_in% user_accesses) return()
       
-        sql <- glue::glue_sql("UPDATE studies SET dataset_id = {input$project_dataset} WHERE id = {input$selected_element}", .con = r$db)
-        query <- DBI::dbSendStatement(r$db, sql)
-        DBI::dbClearResult(query)
-        
-        r$projects_wide <- 
-          r$projects_wide %>% 
-          dplyr::mutate(dataset_id = dplyr::case_when(id == input$selected_element ~ input$project_dataset, TRUE ~ dataset_id))
-      }
+      sql <- glue::glue_sql("UPDATE studies SET dataset_id = {input$project_dataset} WHERE id = {input$selected_element}", .con = r$db)
+      query <- DBI::dbSendStatement(r$db, sql)
+      DBI::dbClearResult(query)
+      
+      r$projects_wide <- 
+        r$projects_wide %>% 
+        dplyr::mutate(dataset_id = dplyr::case_when(id == input$selected_element ~ input$project_dataset, TRUE ~ dataset_id))
     }))
     
     ## Load or reload dataset ----
@@ -590,10 +587,10 @@ mod_projects_server <- function(id, r, d, m, language, i18n, debug, user_accesse
     
     observeEvent(input$reload_dataset, try_catch("input$reload_dataset", {
       
-      if (length(input$project_dataset) > 0 && "projects_dataset" %in% user_accesses){
-        shinyjs::runjs(paste0("Shiny.setInputValue('", id, "-load_dataset_id', ", input$project_dataset, ");"))
-        shinyjs::runjs(paste0("Shiny.setInputValue('", id, "-load_or_reload_dataset', Math.random());"))
-      }
+      if (!(length(input$project_dataset) > 0 && "projects_dataset" %in% user_accesses)) return()
+        
+      shinyjs::runjs(paste0("Shiny.setInputValue('", id, "-load_dataset_id', ", input$project_dataset, ");"))
+      shinyjs::runjs(paste0("Shiny.setInputValue('", id, "-load_or_reload_dataset', Math.random());"))
     }))
     
     observeEvent(input$load_or_reload_dataset, try_catch("input$load_or_reload_dataset", {
@@ -830,9 +827,7 @@ mod_projects_server <- function(id, r, d, m, language, i18n, debug, user_accesse
     # --- --- --- --- --- -
     
     # Do plugins need to be updated?
-    observeEvent(input$ask_plugins_update, try_catch("input$ask_plugins_update", {
-      shinyjs::show("update_project_plugins_modal")
-    }))
+    observeEvent(input$ask_plugins_update, try_catch("input$ask_plugins_update", shinyjs::show("update_project_plugins_modal")))
     
     observeEvent(input$confirm_project_plugins_import, try_catch("input$confirm_project_plugins_import", {
       

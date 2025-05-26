@@ -47,7 +47,7 @@ mod_login_server <- function(id, r, i18n, debug){
     
     observeEvent(input$login, try_catch("input$login", {
       
-      req(length(r$user_id) == 0)
+      if (length(r$user_id) > 0) return()
       
       # Check if login and username are not empty
       empty <- list()
@@ -60,7 +60,7 @@ mod_login_server <- function(id, r, i18n, debug){
         else shiny.fluent::updateTextField.shinyInput(session, field, errorMessage = NULL)
       }
       
-      req(!empty$username, !empty$password)
+      if (empty$username || empty$password) return()
       
       # Check login and password
       sql <- glue::glue_sql("SELECT id, password FROM users WHERE username = {input$username}", .con = r$db)

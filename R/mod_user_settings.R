@@ -169,28 +169,27 @@ mod_user_settings_server <- function(id, r, d, m, language, i18n, debug, user_ac
     all_divs <- c("user_profile", "code_editor")
     
     # Page change observer ----
-    observeEvent(shiny.router::get_page(), {
+    observeEvent(shiny.router::get_page(), try_catch("shiny.router::get_page()", {
       
-      req(shiny.router::get_page() == id)
-      if (debug) cat(paste0("\n", now(), " - mod_user_settings - observer shiny.router::get_page()"))
+      if (shiny.router::get_page() == id){
       
-      # Show a default text output
-      captured_output <- capture.output(tibble::tibble(
-        firstname = c("John", "Sarah", "Michael", "Emma", "David", "Lisa", "Robert", "Jennifer", "Thomas", "Maria"),
-        lastname = c("Smith", "Johnson", "Williams", "Brown", "Jones", "Garcia", "Miller", "Davis", "Rodriguez", "Martinez"),
-        birth_date = c("1975-03-15", "1982-07-22", "1968-11-04", "1990-05-18", "1956-09-30", 
-                       "1988-01-12", "1972-06-25", "1985-04-07", "1963-12-21", "1978-08-09"),
-        death_date = c(NA, NA, "2022-06-15", NA, "2020-11-09", NA, NA, NA, "2021-03-25", NA),
-        gender = c("M", "F", "M", "F", "M", "F", "M", "F", "M", "F")
-      ) %>% tibble::as_tibble() %>% head(10)) %>% paste(collapse = "\n")
-      
-      output$ace_editor_output <- renderText(captured_output)
-    })
+        # Show a default text output
+        captured_output <- capture.output(tibble::tibble(
+          firstname = c("John", "Sarah", "Michael", "Emma", "David", "Lisa", "Robert", "Jennifer", "Thomas", "Maria"),
+          lastname = c("Smith", "Johnson", "Williams", "Brown", "Jones", "Garcia", "Miller", "Davis", "Rodriguez", "Martinez"),
+          birth_date = c("1975-03-15", "1982-07-22", "1968-11-04", "1990-05-18", "1956-09-30", 
+                         "1988-01-12", "1972-06-25", "1985-04-07", "1963-12-21", "1978-08-09"),
+          death_date = c(NA, NA, "2022-06-15", NA, "2020-11-09", NA, NA, NA, "2021-03-25", NA),
+          gender = c("M", "F", "M", "F", "M", "F", "M", "F", "M", "F")
+        ) %>% tibble::as_tibble() %>% head(10)) %>% paste(collapse = "\n")
+        
+        output$ace_editor_output <- renderText(try_catch("output$ace_editor_output", captured_output))
+      }
+    }))
     
     # Current tab ----
     
-    observeEvent(input$current_tab_trigger, {
-      if (debug) cat(paste0("\n", now(), " - mod_user_settings - observer input$current_tab_trigger"))
+    observeEvent(input$current_tab_trigger, try_catch("input$current_tab_trigger", {
       
       current_tab <- gsub(paste0(id, "-"), "", input$current_tab, fixed = FALSE)
       
@@ -209,7 +208,7 @@ mod_user_settings_server <- function(id, r, d, m, language, i18n, debug, user_ac
       # Change selected tab
       sapply(all_divs, function(button_id) shinyjs::removeClass(class = "selected_pivot_item", selector = paste0("#", id, "-", button_id)))
       shinyjs::addClass(class = "selected_pivot_item", selector = paste0("#", id, "-", current_tab))
-    })
+    }))
     
     # Load settings ----
     
@@ -218,8 +217,7 @@ mod_user_settings_server <- function(id, r, d, m, language, i18n, debug, user_ac
     
     # Save settings ----
     
-    observeEvent(input$save_settings, {
-      if (debug) cat(paste0("\n", now(), " - mod_user_settings - observer input$save_settings"))
+    observeEvent(input$save_settings, try_catch("input$save_settings", {
       
       current_tab <- "user_profile"
       if (length(input$current_tab) > 0) current_tab <- gsub(paste0(id, "-"), "", input$current_tab, fixed = FALSE)
@@ -236,7 +234,7 @@ mod_user_settings_server <- function(id, r, d, m, language, i18n, debug, user_ac
           if (empty_fields[[field]]) shiny.fluent::updateTextField.shinyInput(session, field, errorMessage = i18n$t("provide_valid_value"))
           else shiny.fluent::updateTextField.shinyInput(session, field, errorMessage = NULL)
         }
-        req(!TRUE %in% empty_fields)
+        if (TRUE %in% empty_fields) return()
         
         sql_username <- glue::glue_sql("SELECT id FROM users WHERE LOWER(username) = {tolower(input$username)} AND id != {r$user_id}", .con = r$db)
         username_already_used <- nrow(DBI::dbGetQuery(r$db, sql_username)) > 0
@@ -254,7 +252,7 @@ mod_user_settings_server <- function(id, r, d, m, language, i18n, debug, user_ac
           shiny.fluent::updateTextField.shinyInput(session, "lastname", errorMessage = i18n$t("firstname_and_lastname_already_used"))
         }
         
-        req(!username_already_used, !fullname_already_used)
+        if (username_already_used || fullname_already_used) return()
         
         sql <- glue::glue_sql("UPDATE users SET username = {input$username}, firstname = {input$firstname}, lastname = {input$lastname} WHERE id = {r$user_id}", .con = r$db)
         DBI::dbExecute(r$db, sql)
@@ -278,12 +276,11 @@ mod_user_settings_server <- function(id, r, d, m, language, i18n, debug, user_ac
         
         show_message_bar(id, output, "modif_saved", "success", i18n = i18n, ns = ns)
       }
-    })
+    }))
     
     # Code editor settings ----
     
-    observeEvent(input$ace_theme, {
-      if (debug) cat(paste0("\n", now(), " - mod_user_settings - observer input$ace_theme"))
+    observeEvent(input$ace_theme, try_catch("input$ace_theme", {
       
       # Update Ace edotir theme
       shinyAce::updateAceEditor(session, "ace_editor", theme = input$ace_theme)
@@ -295,39 +292,34 @@ mod_user_settings_server <- function(id, r, d, m, language, i18n, debug, user_ac
       text_output_theme <- gsub("_", "-", input$ace_theme)
       if (text_output_theme == "terminal") text_output_theme <- paste0(text_output_theme, "-theme")
       shinyjs::addClass("console_output", paste0("ace-", text_output_theme))
-    })
+    }))
     
-    observeEvent(input$ace_font_size, {
-      if (debug) cat(paste0("\n", now(), " - mod_user_settings - observer input$ace_font_size"))
+    observeEvent(input$ace_font_size, try_catch("input$ace_font_size", {
       
       shinyAce::updateAceEditor(session, "ace_editor", fontSize = input$ace_font_size)
-    })
+    }))
     
     # User profile ----
     
-    observeEvent(r$user_id, {
-      if (debug) cat(paste0("\n", now(), " - mod_user_settings - observer r$user_id"))
+    observeEvent(r$user_id, try_catch("r$user_id", {
       
       sql <- glue::glue_sql("SELECT username, firstname, lastname FROM users WHERE id = {r$user_id}", .con = r$db)
       user_infos <- DBI::dbGetQuery(r$db, sql)
       
       for (field in c("username", "firstname", "lastname")) shiny.fluent::updateTextField.shinyInput(session, field, value = user_infos[[field]])
-    })
+    }))
     
-    observeEvent(input$change_password, {
-      if (debug) cat(paste0("\n", now(), " - mod_user_settings - observer input$change_password"))
+    observeEvent(input$change_password, try_catch("input$change_password", {
       
       shinyjs::show("change_password_modal")
-    })
+    }))
     
-    observeEvent(input$close_change_password_modal, {
-      if (debug) cat(paste0("\n", now(), " - mod_user_settings - observer input$close_change_password_modal"))
+    observeEvent(input$close_change_password_modal, try_catch("input$close_change_password_modal", {
       
       shinyjs::hide("change_password_modal")
-    })
+    }))
     
-    observeEvent(input$confirm_password_update, {
-      if (debug) cat(paste0("\n", now(), " - mod_user_settings - observer input$confirm_password_update"))
+    observeEvent(input$confirm_password_update, try_catch("input$confirm_password_update", {
       
       empty_fields <- list()
       for (field in c("current_password", "new_password_1", "new_password_2")) {
@@ -337,7 +329,7 @@ mod_user_settings_server <- function(id, r, d, m, language, i18n, debug, user_ac
         if (empty_fields[[field]]) shiny.fluent::updateTextField.shinyInput(session, field, errorMessage = i18n$t("provide_valid_value"))
         else shiny.fluent::updateTextField.shinyInput(session, field, errorMessage = NULL)
       }
-      req(!TRUE %in% empty_fields)
+      if (TRUE %in% empty_fields) return()
       
       sql <- glue::glue_sql("SELECT password FROM users WHERE id = {r$user_id}", .con = r$db)
       result <- DBI::dbGetQuery(r$db, sql)
@@ -351,13 +343,13 @@ mod_user_settings_server <- function(id, r, d, m, language, i18n, debug, user_ac
       
       if (!current_password_correct) {
         shiny.fluent::updateTextField.shinyInput(session, "current_password", errorMessage = i18n$t("incorrect_password"))
-        req(FALSE)
+        return()
       }
       
       passwords_match <- input$new_password_1 == input$new_password_2
       if (!passwords_match) {
         shiny.fluent::updateTextField.shinyInput(session, "new_password_2", errorMessage = i18n$t("passwords_dont_match"))
-        req(FALSE)
+        return()
       }
       
       hashed_password <- bcrypt::hashpw(input$new_password_1)
@@ -370,7 +362,7 @@ mod_user_settings_server <- function(id, r, d, m, language, i18n, debug, user_ac
       shinyjs::hide("change_password_modal")
       
       show_message_bar(id, output, "password_successfully_updated", "success", i18n = i18n, ns = ns)
-    })
+    }))
     
   })
 }

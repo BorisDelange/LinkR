@@ -198,12 +198,8 @@ mod_page_header_server <- function(id, r, d, m, language, i18n, debug){
       }))
     }
     
-    observeEvent(input$open_help_modal, try_catch("input$open_help_modal (header)", {
-      shinyjs::show("help_modal")
-    }))
+    observeEvent(input$open_help_modal, try_catch("input$open_help_modal (header)", shinyjs::show("help_modal")))
     
-    observeEvent(input$close_help_modal, try_catch("input$close_help_modal (header)", {
-      shinyjs::hide("help_modal")
-    }))
+    observeEvent(input$close_help_modal, try_catch("input$close_help_modal (header)", shinyjs::hide("help_modal")))
   })
 }

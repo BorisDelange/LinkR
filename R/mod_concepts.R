@@ -174,12 +174,11 @@ mod_concepts_server <- function(id, r, d, m, language, i18n, debug, user_accesse
     # Show / hide cols
     observeEvent(input$primary_concepts_dt_cols, try_catch("input$primary_concepts_dt_cols", {
       
-      if (length(r$concepts_primary_concepts_dt_proxy) > 0){
+      if (length(r$concepts_primary_concepts_dt_proxy) == 0) return()
       
-        r$concepts_primary_concepts_dt_proxy %>%
-          DT::showCols(0:12) %>%
-          DT::hideCols(setdiff(0:12, input$primary_concepts_dt_cols))
-      }
+      r$concepts_primary_concepts_dt_proxy %>%
+        DT::showCols(0:12) %>%
+        DT::hideCols(setdiff(0:12, input$primary_concepts_dt_cols))
     }))
     
     # A concept is selected ----
@@ -231,13 +230,9 @@ mod_concepts_server <- function(id, r, d, m, language, i18n, debug, user_accesse
     
     # Reload dataset concepts count ----
     
-    observeEvent(input$reload_concepts_count, try_catch("input$reload_concepts_count", {
-      shinyjs::show("reload_concepts_count_modal")
-    }))
+    observeEvent(input$reload_concepts_count, try_catch("input$reload_concepts_count", shinyjs::show("reload_concepts_count_modal")))
 
-    observeEvent(input$close_reload_concepts_count_modal, try_catch("input$close_reload_concepts_count_modal", {
-      shinyjs::hide("reload_concepts_count_modal")
-    }))
+    observeEvent(input$close_reload_concepts_count_modal, try_catch("input$close_reload_concepts_count_modal", shinyjs::hide("reload_concepts_count_modal")))
 
     observeEvent(input$confirm_reload_concepts_count, try_catch("input$confirm_reload_concepts_count", {
       

@@ -415,20 +415,26 @@ files_browser_edit_filename <- function(id, i18n, output, input_prefix, r, r_pre
   
   # Check extension
   check_extension <- grepl("\\.(r|py|csv|css|js)$", new_name, ignore.case = TRUE)
-  if (!check_extension) show_message_bar(id, output, "invalid_file_extension", "severeWarning", i18n = i18n, ns = ns)
-  req(check_extension)
+  if (!check_extension){
+    show_message_bar(id, output, "invalid_file_extension", "severeWarning", i18n = i18n, ns = ns)
+    return()
+  }
   
   # Check name (no space, no special character and not empty)
   if (new_name == "") check_special_char <- FALSE
   else check_special_char <- grepl("^[\\w\\.]+\\.(r|py|csv|css|js)$", new_name, ignore.case = TRUE, perl = TRUE)
-  if (!check_special_char) show_message_bar(id, output, "invalid_filename", "severeWarning", i18n = i18n, ns = ns)
-  req(check_special_char)
+  if (!check_special_char){
+    show_message_bar(id, output, "invalid_filename", "severeWarning", i18n = i18n, ns = ns)
+    return()
+  }
   
   # Check if name is already used
   if (tolower(new_name) == tolower(old_name)) check_used_name <- TRUE
   else check_used_name <- !file.exists(paste0(folder, "/", new_name))
-  if (!check_used_name) show_message_bar(id, output, "name_already_used", "severeWarning", i18n = i18n, ns = ns)
-  req(check_used_name)
+  if (!check_used_name){
+    show_message_bar(id, output, "name_already_used", "severeWarning", i18n = i18n, ns = ns)
+    return()
+  }
   
   # Update file
   file.rename(paste0(folder, "/", old_name), paste0(folder, "/", new_name))

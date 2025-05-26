@@ -231,7 +231,7 @@ app_server <- function(
       current_page <- shiny.router::get_page()
       r$current_page <- current_page
 
-      req(current_page %in% pages)
+      if (current_page %not_in% pages) return()
 
       if (current_page == "/") current_page <- "home"
 
@@ -262,7 +262,7 @@ app_server <- function(
       
       if (length(r$user_id) == 0) if (shiny.router::get_page() != "login") shinyjs::delay(50, shiny.router::change_page("login"))
       
-      req(r$user_id)
+      if (length(r$user_id) == 0) return()
       
       # Get user accesses
       user_access_id <- r$users %>% dplyr::filter(id == r$user_id) %>% dplyr::pull(user_access_id) 

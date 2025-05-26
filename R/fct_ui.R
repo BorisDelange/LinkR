@@ -757,7 +757,7 @@ show_message_bar <- function(id, output, message = character(), type = "severeWa
 toggle_comments <- function(id, input_id, code, selection, session) {
   
   lines <- strsplit(code, "\n")[[1]]
-  req(length(lines) > 0)
+  if (length(lines) == 0) return()
   start_row <- selection$start$row + 1
   end_row <- selection$end$row + 1
   

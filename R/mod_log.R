@@ -45,36 +45,34 @@ mod_log_server <- function(id, r, d, m, language, i18n, debug, user_accesses){
     
     observeEvent(input$refresh_log, try_catch("input$refresh_log", {
       
-      if ("log_user_log" %in% user_accesses){
+      if ("log_user_log" %not_in% user_accesses) return()
       
-        log <-
-          readLines(log_file, warn = FALSE) %>% 
-          gsub("^(.*?\\- )(.*?)( \\- .*)$", "\\1<span style='color: #015bb5; font-weight: 600;'>\\2</span>\\3", .) %>%
-          gsub("Error", "<span style='color: #f44336; font-weight: 600;'></span>", .) %>%
-          # rev() %>% 
-          paste(collapse = "<br />")
-          
-        output$log <- renderUI(div(HTML(log), style = "font-weight: 500; font-family: monospace;"))
+      log <-
+        readLines(log_file, warn = FALSE) %>% 
+        gsub("^(.*?\\- )(.*?)( \\- .*)$", "\\1<span style='color: #015bb5; font-weight: 600;'>\\2</span>\\3", .) %>%
+        gsub("Error", "<span style='color: #f44336; font-weight: 600;'></span>", .) %>%
+        # rev() %>% 
+        paste(collapse = "<br />")
         
-        # Scroll to the bottom of the page
-        shinyjs::delay(100,
-          shinyjs::runjs("
-            const element = document.getElementById('log-main');
-            element.scrollTop = element.scrollHeight;")
-        )
-      }
+      output$log <- renderUI(div(HTML(log), style = "font-weight: 500; font-family: monospace;"))
+      
+      # Scroll to the bottom of the page
+      shinyjs::delay(100,
+        shinyjs::runjs("
+          const element = document.getElementById('log-main');
+          element.scrollTop = element.scrollHeight;")
+      )
     }))
     
     observeEvent(input$reset_log, try_catch("input$reset_log", {
       
-      if ("log_user_log" %in% user_accesses){
+      if ("log_user_log" %not_in% user_accesses) return()
       
-        file.remove(log_file)
-        file.create(log_file)
-        sink(log_file, append = TRUE)
-        
-        output$log <- renderUI("")
-      }
+      file.remove(log_file)
+      file.create(log_file)
+      sink(log_file, append = TRUE)
+      
+      output$log <- renderUI("")
     }))
   })
 }
