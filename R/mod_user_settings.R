@@ -257,7 +257,7 @@ mod_user_settings_server <- function(id, r, d, m, language, i18n, debug, user_ac
         sql <- glue::glue_sql("UPDATE users SET username = {input$username}, firstname = {input$firstname}, lastname = {input$lastname} WHERE id = {r$user_id}", .con = r$db)
         DBI::dbExecute(r$db, sql)
         
-        show_message_bar(id, output, "modif_saved", "success", i18n = i18n, ns = ns)
+        show_message_bar("modif_saved", "success")
       }
       
       else if (current_tab == "code_editor"){
@@ -274,7 +274,7 @@ mod_user_settings_server <- function(id, r, d, m, language, i18n, debug, user_ac
         
         DBI::dbAppendTable(r$db, "options", new_data)
         
-        show_message_bar(id, output, "modif_saved", "success", i18n = i18n, ns = ns)
+        show_message_bar("modif_saved", "success")
       }
     }))
     
@@ -361,7 +361,7 @@ mod_user_settings_server <- function(id, r, d, m, language, i18n, debug, user_ac
       
       shinyjs::hide("change_password_modal")
       
-      show_message_bar(id, output, "password_successfully_updated", "success", i18n = i18n, ns = ns)
+      show_message_bar("password_successfully_updated", "success")
     }))
     
   })

@@ -78,6 +78,7 @@ app_server <- function(
     if (debug) cat(paste0("\n[", now(), "] [INFO] - [page_id = server] get translations"))
     
     r$i18n <- i18n
+    m$i18n <- i18n
     r$languages <- languages
     r$language <- language
     m$language <- language

@@ -443,8 +443,8 @@ mod_app_db_server <- function(id, r, d, m, language, i18n, db_col_types, app_fol
         }
       }
       
-      show_message_bar(id, output, "modif_saved", "success", i18n = i18n, ns = ns)
-      shinyjs::delay(2000, show_message_bar(id, output,  "reload_app_to_take_into_account_changes", "warning", i18n = i18n, ns = ns))
+      show_message_bar("modif_saved", "success")
+      shinyjs::delay(2000, show_message_bar("reload_app_to_take_into_account_changes", "warning"))
     }))
     
     # |-------------------------------- -----
@@ -693,7 +693,7 @@ mod_app_db_server <- function(id, r, d, m, language, i18n, db_col_types, app_fol
         )
       },
       error = function(e){
-        show_message_bar(id, output, "error_loading_db_file", "warning", i18n = i18n, ns = ns)
+        show_message_bar("error_loading_db_file", "warning")
         cat(paste0("\n", now(), " - mod_git_repos - error loading db file - error = ", toString(e)))
       })
     }))
@@ -754,7 +754,7 @@ mod_app_db_server <- function(id, r, d, m, language, i18n, db_col_types, app_fol
             success <- TRUE
 
           }, error = function(e){
-            show_message_bar(id, output, "error_restoring_database_table", "warning", i18n = i18n, ns = ns)
+            show_message_bar("error_restoring_database_table", "warning")
             cat(paste0("\n", now(), " - mod_git_repos - error restoring database table (", row$name, ") - error = ", toString(e)))
           })
 
@@ -792,7 +792,7 @@ mod_app_db_server <- function(id, r, d, m, language, i18n, db_col_types, app_fol
           }
 
         }, error = function(e){
-          show_message_bar(id, output, "error_restoring_db_old_table_after_import_failure", "warning", i18n = i18n, ns = ns)
+          show_message_bar("error_restoring_db_old_table_after_import_failure", "warning")
           cat(paste0("\n", now(), " - mod_git_repos - error restoring old database table after import failure (", row$name, ") - error = ", toString(e)))
         })
       }
@@ -825,7 +825,7 @@ mod_app_db_server <- function(id, r, d, m, language, i18n, db_col_types, app_fol
         shinyjs::runjs(paste0("Shiny.setInputValue('", id, "-reload_last_db_restore', Math.random());"))
 
         # Notify user
-        show_message_bar(id, output, "db_restored_reload_app_to_take_into_account_changes", "success", i18n = i18n, ns = ns)
+        show_message_bar("db_restored_reload_app_to_take_into_account_changes", "success")
       }
     }))
     

@@ -163,7 +163,7 @@ mod_concepts_server <- function(id, r, d, m, language, i18n, debug, user_accesse
       col_names <- unname(sapply(colnames(data), i18n$t))
       
       render_datatable(
-        output = output, ns = ns, i18n = i18n, data = r$concepts_dt_data, editable_cols = editable_cols, hidden_cols = hidden_cols, column_widths = column_widths,
+        data = r$concepts_dt_data, editable_cols = editable_cols, hidden_cols = hidden_cols, column_widths = column_widths,
         output_name = "primary_concepts_dt", sortable_cols = sortable_cols, page_length = 25,
         col_names = col_names, searchable_cols = searchable_cols, factorize_cols = factorize_cols, filter = TRUE
       )
@@ -249,7 +249,7 @@ mod_concepts_server <- function(id, r, d, m, language, i18n, debug, user_accesse
       # Reload concepts count
       tryCatch(load_dataset_concepts(), error = function(e){
         cat(paste0("\n", now(), " - mod_concepts - error loading dataset concepts - error = ", toString(e)))
-        show_message_bar(id, output, "error_loading_dataset_concepts", "severeWarning", i18n = i18n, ns = ns)
+        show_message_bar("error_loading_dataset_concepts", "severeWarning")
       })
       
       # Reset fields

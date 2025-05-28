@@ -249,7 +249,7 @@ load_dataset <- function(dataset_id, main_tables, selected_study){
   
   tryCatch(capture.output(eval(parse(text = dataset_code))), error = function(e){
     cat(paste0("\n", now(), " - mod_", id, " - error loading dataset - dataset_id = ", dataset_id, " - error = ", toString(e)))
-    show_message_bar(id, output, "error_loading_data", "severeWarning", i18n = i18n, ns = ns)
+    show_message_bar("error_loading_data", "severeWarning")
   })
   
   # Subsets depending on the selected study
@@ -292,7 +292,7 @@ load_dataset <- function(dataset_id, main_tables, selected_study){
   m$subsets_persons <- DBI::dbGetQuery(m$db, sql)
   
   # Notify user
-  show_message_bar(id, output, "success_loading_data", "success", i18n = i18n, ns = ns)
+  show_message_bar("success_loading_data", "success")
 }
 
 #' @noRd
@@ -708,5 +708,5 @@ save_element_code <- function(unique_id, new_code){
   
   code <- writeLines(new_code, code_file)
   
-  show_message_bar(id, output, "modif_saved", "success", i18n = i18n, ns = ns)
+  show_message_bar("modif_saved", "success")
 }

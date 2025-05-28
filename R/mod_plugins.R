@@ -734,7 +734,7 @@ mod_plugins_server <- function(id, r, d, m, language, i18n, debug, user_accesses
       # Notify user that if there's not a study loaded, server code might not work
       no_study_loaded <- TRUE
       if (length(m$selected_study) > 0) if (!is.na(m$selected_study)) no_study_loaded <- FALSE
-      if (no_study_loaded) show_message_bar(id, output, "plugin_no_selected_project", "warning", i18n = i18n, ns = ns)
+      if (no_study_loaded) show_message_bar("plugin_no_selected_project", "warning")
 
       # Create translations file
 
@@ -806,7 +806,7 @@ mod_plugins_server <- function(id, r, d, m, language, i18n, debug, user_accesses
         eval(parse(text = code$ui)),
         error = function(e){
           r$widget_ui_last_error <- e
-          show_message_bar(id, output,  "error_run_plugin_ui_code", "severeWarning", i18n = i18n, ns = ns)
+          show_message_bar("error_run_plugin_ui_code", "severeWarning")
           cat(paste0("\n", now(), " - mod_plugins - error loading UI code - plugin_id = ", input$selected_element, " - ", toString(e)))
         }
       )
@@ -852,7 +852,7 @@ mod_plugins_server <- function(id, r, d, m, language, i18n, debug, user_accesses
       captured_output <- capture.output(
         tryCatch(eval(parse(text = code$server), envir = new_env), error = function(e){
           r$widget_server_last_error <- e
-          show_message_bar(id, output,  "error_run_plugin_server_code", "severeWarning", i18n = i18n, ns = ns)
+          show_message_bar("error_run_plugin_server_code", "severeWarning")
           cat(paste0("\n", now(), " - mod_plugins - error loading server code - plugin_id = ", input$selected_element, " - ", toString(e)))
         }))
 

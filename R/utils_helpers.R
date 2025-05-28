@@ -50,8 +50,8 @@ try_catch <- function(trigger = character(), code){
   }, error = function(e){
     if (debug){
       cat(paste0("\n[", now(), "] [ERROR] [page_id = ", id, "] error with trigger ", trigger, " - error = ", toString(e)))
-      show_message_bar(id, output, "an_error_occurred_see_log_for_details", i18n = i18n, ns = ns)
+      show_message_bar("an_error_occurred_see_log_for_details", "severeWarning")
     }
-    else show_message_bar(id, output, "an_error_occurred", i18n = i18n, ns = ns)
+    else show_message_bar("an_error_occurred", "severeWarning")
   })
 }

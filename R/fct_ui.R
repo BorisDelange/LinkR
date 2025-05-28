@@ -71,9 +71,6 @@ make_card <- function(title = character(), content = character(), size = 12, sty
 #' 
 #' @description Renders a datatable (from library DT)
 #' 
-#' @param output variable from Shiny, used to render messages on the message bar
-#' @param ns Shiny namespace
-#' @param i18n Translator object from shiny.i18n library
 #' @param data Data used in the datatable (tibble or dataframe)
 #' @param output_name Name of the datatable output
 #' @param col_names A character vector containing colnames, already translated (character)
@@ -103,19 +100,24 @@ make_card <- function(title = character(), content = character(), size = 12, sty
 #' shortened_cols <- c("name" = 30, "url_address" = 30, "creator_id" = 20)
 #' my_data <- tibble::tibble(col_1 = c("value_1", "value_2"), col_2 = c("value_3", "value_4"))
 #' 
-#' render_datatable(output = output, ns = ns, i18n = i18n, data = my_data,
-#'   output_name = "git_repos_datatable", col_names = col_names, shortened_cols = shortened_cols,
+#' render_datatable(
+#'   data = my_data, output_name = "git_repos_datatable", col_names = col_names, shortened_cols = shortened_cols,
 #'   editable_cols = editable_cols, sortable_cols = sortable_cols, centered_cols = centered_cols, column_widths = column_widths,
 #'   searchable_cols = searchable_cols, filter = TRUE, factorize_cols = factorize_cols, hidden_cols = hidden_cols)
 #' }
 #' @noRd
-render_datatable <- function(output, ns = character(), i18n = character(), data = tibble::tibble(),
-  output_name = character(), col_names = character(), datatable_dom = "<'datatable_length'l><'top't><'bottom'p>", page_length = 10,
+render_datatable <- function(data = tibble::tibble(), output_name = character(), col_names = character(),
+  datatable_dom = "<'datatable_length'l><'top't><'bottom'p>", page_length = 10,
   editable_cols = character(), sortable_cols = character(), centered_cols = character(),
   searchable_cols = character(), search_filters = NULL, filter = FALSE, 
   factorize_cols = character(), column_widths = character(), hidden_cols = character(), selection = "single",
   bold_rows = character(), shortened_cols = character(), enable_keyboard_navigation = TRUE
 ){
+  
+  # Get variables from other environments
+  for (obj_name in c("id", "output", "m")) assign(obj_name, get(obj_name, envir = parent.frame()))
+  ns <- NS(id)
+  i18n <- m$i18n
   
   # Translation for datatable
   dt_translation <- list(
@@ -714,7 +716,13 @@ render_datatable <- function(output, ns = character(), i18n = character(), data 
 }
 
 #' @noRd
-show_message_bar <- function(id, output, message = character(), type = "severeWarning", i18n = character(), time = 7000, ns = character()){
+show_message_bar <- function(message = character(), type = "severeWarning", time = 7000){
+  
+  # Get variables from other environments
+  for (obj_name in c("id", "output", "i18n")) assign(obj_name, get(obj_name, envir = parent.frame()))
+  ns <- NS(id)
+  # i18n <- m$i18n
+  
   # Convert message type to numeric value for Fluent UI
   type <- switch(type, "info" = 0, "error" = 1, "blocked" = 2, "severeWarning" = 3, "success" = 4, "warning" = 5)
   
