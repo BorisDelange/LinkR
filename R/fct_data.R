@@ -683,9 +683,6 @@ process_widget_code <- function(code, tab_id, widget_id, study_id, patient_id, p
   code <- gsub("%tab_id%", as.character(tab_id), code, fixed = TRUE)
   code <- gsub("%widget_id%", as.character(widget_id), code, fixed = TRUE)
   
-  # Replace req (so that an observer in inactivated when server code is launched more than one time)
-  code <- gsub("%req%", "req(m[[session_code]] == session_num)\nreq(m$selected_study == %study_id%)", code, fixed = TRUE)
-  
   # Replace study and patients IDS
   code <- gsub("%study_id%", as.character(study_id), code, fixed = TRUE)
   code <- gsub("%patient_id%", as.character(patient_id), code, fixed = TRUE)

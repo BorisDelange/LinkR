@@ -40,11 +40,16 @@ remove_special_chars <- function(text){
 `%not_in%` <- Negate(`%in%`)
 
 #' @noRd
-try_catch <- function(trigger = character(), code, widget_id = NA_integer_){
+try_catch <- function(trigger = character(), code){
 
-  for (obj_name in c("id", "log_level", "output", "i18n", "ns")) assign(obj_name, get(obj_name, envir = parent.frame()))
-
-  if (!is.na(widget_id)){
+  for (obj_name in c("id", "log_level", "session_code", "session_num", "i18n", "i18np", "output", "m", "study_id", "widget_id")){
+    if (exists(obj_name, envir = parent.frame())){
+      assign(obj_name, get(obj_name, envir = parent.frame()))
+    }
+  }
+  if (exists("i18np")) i18n <- i18np
+  
+  if (exists("widget_id")){
     event_message <- paste0("\n[", now(), "] [EVENT] [page_id = ", id, "] [widget_id = ", widget_id, "] event triggered by ", trigger)
     error_message <- paste0("\n[", now(), "] [ERROR] [page_id = ", id, "] [widget_id = ", widget_id, "] error with trigger ", trigger, " - error = ")
   }
@@ -52,15 +57,20 @@ try_catch <- function(trigger = character(), code, widget_id = NA_integer_){
     event_message <- paste0("\n[", now(), "] [EVENT] [page_id = ", id, "] event triggered by ", trigger)
     error_message <- paste0("\n[", now(), "] [ERROR] [page_id = ", id, "] error with trigger ", trigger, " - error = ")
   }
-
+  
   tryCatch({
+    
     if ("event" %in% log_level) cat(event_message)
+    
+    # Prevents the observer from executing multiple times
+    if (exists("study_id") && exists("widget_id")) if(m[[session_code]] != session_num || m$selected_study != study_id) return()
+    
     code
   }, error = function(e){
     if ("error" %in% log_level){
       cat(paste0(error_message, toString(e)))
-      show_message_bar("an_error_occurred_see_log_for_details", "severeWarning")
+      show_message_bar("an_error_occurred_see_log_for_details", "severeWarning", i18n = i18n)
     }
-    else show_message_bar("an_error_occurred", "severeWarning")
+    else show_message_bar("an_error_occurred", "severeWarning", i18n = i18n)
   })
 }
