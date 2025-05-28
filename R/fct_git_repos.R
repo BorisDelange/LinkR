@@ -1,5 +1,8 @@
 #' @noRd
-load_git_repo <- function(id, r, git_repo){
+load_git_repo <- function(git_repo){
+  
+  # Get variables from other environments
+  for (obj_name in c("id", "r")) assign(obj_name, get(obj_name, envir = parent.frame()))
   
   if (length(r$loaded_git_repos) == 0) r$loaded_git_repos <- tibble::tibble(unique_id = character(), datetime = character(), local_path = character(), repo = list())
   if (length(r$loaded_git_repos_objects) == 0) r$loaded_git_repos_objects <- list()

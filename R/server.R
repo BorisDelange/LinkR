@@ -91,7 +91,7 @@ app_server <- function(
     r$local_db <- local_db
     m$local_db <- DBI::dbConnect(RSQLite::SQLite(), paste0(app_db_folder, "/linkr_public"))
     
-    db_local_main <- get_db(r = r, m = m, app_db_folder = app_db_folder, db_col_types = db_col_types)
+    db_local_main <- get_db()
     
     # Db col types
     r$db_col_types <- db_col_types
@@ -106,7 +106,7 @@ app_server <- function(
       if (debug) cat(paste0("\n[", now(), "] [INFO] - [page_id = server] event triggered by observer r$db"))
       
       # Add default values in database, if it is empty
-      insert_default_data(output = output, r = r, m = m, i18n = i18n, language = language, db_col_types = db_col_types, users_accesses_toggles_options = users_accesses_toggles_options)
+      insert_default_data(db_col_types = db_col_types, users_accesses_toggles_options = users_accesses_toggles_options)
       
       # Connection with username
       if (!authentication){

@@ -522,7 +522,7 @@ mod_plugins_server <- function(id, r, d, m, language, i18n, debug, user_accesses
         dplyr::mutate_at("filename", as.character) %>%
         dplyr::mutate(short_filename = ifelse(nchar(filename) >= 23, paste0(substr(filename, 1, 20), "..."), filename))
       
-      files_ui <- load_files_browser_ui(id = id, input_prefix = "edit_code_", files_list = edit_plugin_code_files_list)
+      files_ui <- load_files_browser_ui(input_prefix = "edit_code_", files_list = edit_plugin_code_files_list)
       
       output$edit_code_files_browser <- renderUI(files_ui)
     }))
@@ -534,7 +534,7 @@ mod_plugins_server <- function(id, r, d, m, language, i18n, debug, user_accesses
       if ("plugins_edit_code" %not_in% user_accesses) return()
       
       tabs_container <- reload_files_browser_tabs(
-        id = id, input_prefix = "edit_code_", r = r, r_prefix = "edit_plugin_code",
+        input_prefix = "edit_code_", r_prefix = "edit_plugin_code",
         element_id = input$selected_element, file_id = input$edit_code_selected_file
       )
       
@@ -545,14 +545,14 @@ mod_plugins_server <- function(id, r, d, m, language, i18n, debug, user_accesses
     
     observeEvent(input$edit_code_tab_positions, try_catch("input$edit_code_tab_positions", {
       
-      files_browser_edit_tab_positions(id = id, positions = input$edit_code_tab_positions, r = r, r_prefix = "edit_plugin_code", element_id = input$selected_element)
+      files_browser_edit_tab_positions(positions = input$edit_code_tab_positions, r_prefix = "edit_plugin_code", element_id = input$selected_element)
     }))
     
     ## Change file tab ----
     
     observeEvent(input$edit_code_selected_tab, try_catch("input$edit_code_selected_tab", {
       
-      files_browser_change_tab(id = id, input_prefix = "edit_code_", r = r, r_prefix = "edit_plugin_code", file_id = input$edit_code_selected_tab)
+      files_browser_change_tab(input_prefix = "edit_code_", r_prefix = "edit_plugin_code", file_id = input$edit_code_selected_tab)
     }))
     
     ## Open a file ----
@@ -562,7 +562,7 @@ mod_plugins_server <- function(id, r, d, m, language, i18n, debug, user_accesses
       if ("plugins_edit_code" %not_in% user_accesses) return()
       
       files_browser_open_file(
-        id = id, input_prefix = "edit_code_", r = r, r_prefix = "edit_plugin_code", folder = input$selected_plugin_folder,
+        input_prefix = "edit_code_", r_prefix = "edit_plugin_code", folder = input$selected_plugin_folder,
         element_id = input$selected_element, file_id = input$edit_code_selected_file, code_hotkeys = code_hotkeys, user_settings = user_settings
       )
     }))
@@ -572,7 +572,7 @@ mod_plugins_server <- function(id, r, d, m, language, i18n, debug, user_accesses
     observeEvent(input$edit_code_close_selected_tab_trigger, try_catch("input$edit_code_close_selected_tab_trigger", {
       
       files_browser_close_file(
-        id = id, input_prefix = "edit_code_", r = r, r_prefix = "edit_plugin_code",
+        input_prefix = "edit_code_", r_prefix = "edit_plugin_code",
         element_id = input$selected_element, file_id = input$edit_code_close_selected_tab
       )
     }))
@@ -584,7 +584,7 @@ mod_plugins_server <- function(id, r, d, m, language, i18n, debug, user_accesses
       if ("plugins_edit_code" %not_in% user_accesses) return()
       
       files_browser_create_file(
-        id = id, input_prefix = "edit_code_", r = r, r_prefix = "edit_plugin_code", folder = input$selected_plugin_folder,
+        input_prefix = "edit_code_", r_prefix = "edit_plugin_code", folder = input$selected_plugin_folder,
         element_id = input$selected_element, code_hotkeys = code_hotkeys, user_settings = user_settings
       )
     }))
@@ -601,7 +601,7 @@ mod_plugins_server <- function(id, r, d, m, language, i18n, debug, user_accesses
       
       observeEvent(input[[paste0(editor_id, "_comment")]], try_catch(paste0("input$", editor_id, "_comment"), {
         
-        toggle_comments(id = id, input_id = editor_id, code = input[[editor_id]], selection = input[[paste0(editor_id, "_comment")]]$range, session = session)
+        toggle_comments(input_id = editor_id, code = input[[editor_id]], selection = input[[paste0(editor_id, "_comment")]]$range, session = session)
       }))
       
       observeEvent(input[[paste0(editor_id, "_save")]], try_catch(paste0("input$", editor_id, "_save"), {
@@ -618,7 +618,7 @@ mod_plugins_server <- function(id, r, d, m, language, i18n, debug, user_accesses
       file <- r$edit_plugin_code_files_list %>% dplyr::filter(id == input$edit_code_selected_file)
       
       files_browser_save_file(
-        id = id, i18n = i18n, output = output, input_prefix = "edit_code_", r = r, r_prefix = "edit_plugin_code",
+        input_prefix = "edit_code_", r_prefix = "edit_plugin_code",
         folder = input$selected_plugin_folder, element_id = input$selected_element, file_id = file$id,
         new_code = input[[paste0("edit_code_editor_", file$id)]]
       )
@@ -679,9 +679,8 @@ mod_plugins_server <- function(id, r, d, m, language, i18n, debug, user_accesses
       new_name <- input[[textfield_id]]
       
       files_browser_edit_filename(
-        id = id, i18n = i18n, output = output, input_prefix = "edit_code_", r = r, r_prefix = "edit_plugin_code",
-        folder = input$selected_plugin_folder, element_id = input$selected_element, file_id = file_id,
-        new_name = new_name
+        input_prefix = "edit_code_", r_prefix = "edit_plugin_code", folder = input$selected_plugin_folder,
+        element_id = input$selected_element, file_id = file_id, new_name = new_name
       )
     }))
     
@@ -695,7 +694,7 @@ mod_plugins_server <- function(id, r, d, m, language, i18n, debug, user_accesses
       if ("plugins_edit_code" %not_in% user_accesses) return()
       
       files_browser_delete_file(
-        id = id, i18n = i18n, output = output, input_prefix = "edit_code_", r = r, r_prefix = "edit_plugin_code",
+        input_prefix = "edit_code_", r_prefix = "edit_plugin_code",
         folder = input$selected_plugin_folder, element_id = input$selected_element, file_id = input$edit_code_delete_file
       )
     }))
@@ -721,7 +720,7 @@ mod_plugins_server <- function(id, r, d, m, language, i18n, debug, user_accesses
     r$run_plugin_tab_id <- get_last_row(r$db, "tabs") + 10^9 %>% as.integer()
     
     # Initiate gridstack instance
-    create_gridstack_instance(id, "plugin_run_code")
+    create_gridstack_instance("plugin_run_code")
     
     observeEvent(input$run_plugin_code_trigger, try_catch("input$run_plugin_code_trigger", {
 
@@ -829,10 +828,10 @@ mod_plugins_server <- function(id, r, d, m, language, i18n, debug, user_accesses
       matches <- stringr::str_match(widget_position, "w=(\\d+);h=(\\d+);x=(\\d+);y=(\\d+)")
       widget_pos <- list(w = as.integer(matches[2]), h = as.integer(matches[3]), x = as.integer(matches[4]), y = as.integer(matches[5]))
       
-      ui_output <- create_widget(id, widget_id, code$ui, w = widget_pos$w, h = widget_pos$h, x = widget_pos$x, y = widget_pos$y)
-      add_widget_to_gridstack(id, "plugin_run_code", ui_output, widget_id, previous_widget_id)
+      ui_output <- create_widget(widget_id, code$ui, w = widget_pos$w, h = widget_pos$h, x = widget_pos$x, y = widget_pos$y)
+      add_widget_to_gridstack("plugin_run_code", ui_output, widget_id, previous_widget_id)
       output[[paste0("ui_", widget_id)]] <- renderUI(code$ui)
-      output[[paste0("edit_buttons_", widget_id)]] <- renderUI(get_widget_edit_buttons(id, widget_id))
+      output[[paste0("edit_buttons_", widget_id)]] <- renderUI(get_widget_edit_buttons(widget_id))
       
       # New environment, to authorize access to selected variables from shinyAce editor
       # We choose which vars to keep access to

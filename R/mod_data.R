@@ -369,7 +369,7 @@ mod_data_server <- function(id, r, d, m, language, i18n, debug, user_accesses){
       
       # Load subsets
       # Already loaded in load_dataset fct
-      # reload_elements_var(page_id = "subsets", id = "subsets", con = m$db, r = r, m = m, long_var_filtered = "filtered_subsets_long", user_accesses)
+      # reload_elements_var(page_id = "subsets", id = "subsets", con = m$db, long_var_filtered = "filtered_subsets_long")
 
       shinyjs::delay(100, {
         
@@ -1262,7 +1262,7 @@ mod_data_server <- function(id, r, d, m, language, i18n, debug, user_accesses){
               pivot <- 
                 div(
                   id = ns(pivot_id),
-                  prepare_sortable_pivot_tabs(ns, category, tab_group_id, tab_sub_group, tabs_ui)
+                  prepare_sortable_pivot_tabs(category, tab_group_id, tab_sub_group, tabs_ui)
                 )
               
               if (is.na(r[[paste0(category, "_selected_tab")]]) & i > 1) pivot <- shinyjs::hidden(pivot)
@@ -1803,7 +1803,7 @@ mod_data_server <- function(id, r, d, m, language, i18n, debug, user_accesses){
     
     observeEvent(input$reload_plugins_var, try_catch("input$reload_plugins_var", {
       
-      reload_elements_var(page_id = id, id = "plugins", con = r$db, r = r, m = m, long_var_filtered = "filtered_data_plugins_long", user_accesses)
+      reload_elements_var(page_id = id, id = "plugins", con = r$db, long_var_filtered = "filtered_data_plugins_long")
       
       shinyjs::runjs(paste0("Shiny.setInputValue('", id, "-reload_plugins_list', Math.random());"))
     }))
@@ -1834,7 +1834,7 @@ mod_data_server <- function(id, r, d, m, language, i18n, debug, user_accesses){
       
       if (description_code == "" | is.na(description_code)) output$plugin_description <- renderUI(div(shiny.fluent::MessageBar(i18n$t("no_description_available"), messageBarType = 5) ,style = "display: inline-block;"))
       else {
-        output_file <- create_rmarkdown_file(r, description_code, interpret_code = FALSE)
+        output_file <- create_rmarkdown_file(description_code, interpret_code = FALSE)
         output$plugin_description <- renderUI(div(class = "markdown", withMathJax(includeMarkdown(output_file))))
       }
       output$plugin_description_title <- renderUI(tags$h1(description_title))
@@ -1880,7 +1880,7 @@ mod_data_server <- function(id, r, d, m, language, i18n, debug, user_accesses){
       
       users_ui <- create_authors_ui(row %>% dplyr::filter(name == "author") %>% dplyr::pull(value))
       plugin_buttons <- ""
-      element_ui <- create_element_ui(ns, id, input$selected_element, "plugin", plugin_name, users_ui, plugin_buttons, "", short_description, FALSE)
+      element_ui <- create_element_ui(id, input$selected_element, "plugin", plugin_name, users_ui, plugin_buttons, "", short_description, FALSE)
       
       output[[paste0(input$opened_widget_modal, "_widget_selected_plugin")]] <- renderUI(element_ui)
       
@@ -2043,7 +2043,7 @@ mod_data_server <- function(id, r, d, m, language, i18n, debug, user_accesses){
         
         users_ui <- create_authors_ui(row %>% dplyr::filter(name == "author") %>% dplyr::pull(value))
         plugin_buttons <- ""
-        element_ui <- create_element_ui(ns, id, input$selected_element, "plugin", plugin_name, users_ui, plugin_buttons, "", short_description, FALSE)
+        element_ui <- create_element_ui(id, input$selected_element, "plugin", plugin_name, users_ui, plugin_buttons, "", short_description, FALSE)
         
         output$edit_widget_selected_plugin <- renderUI(element_ui)
         
@@ -2647,7 +2647,7 @@ mod_data_server <- function(id, r, d, m, language, i18n, debug, user_accesses){
 
         insertUI(selector = paste0("#", ns("study_widgets")), where = "beforeEnd", ui = gridstack_div)
 
-        create_gridstack_instance(id, tab_id)
+        create_gridstack_instance(tab_id)
 
         r$data_grids <- c(r$data_grids, gridstack_id)
 
@@ -2734,14 +2734,14 @@ mod_data_server <- function(id, r, d, m, language, i18n, debug, user_accesses){
             matches <- stringr::str_match(widget_position, "w=(\\d+);h=(\\d+);x=(\\d+);y=(\\d+)")
             widget_pos <- list(w = as.integer(matches[2]), h = as.integer(matches[3]), x = as.integer(matches[4]), y = as.integer(matches[5]))
             
-            ui_output <- create_widget(id, widget_id, ui_code, w = widget_pos$w, h = widget_pos$h, x = widget_pos$x, y = widget_pos$y)
+            ui_output <- create_widget(widget_id, ui_code, w = widget_pos$w, h = widget_pos$h, x = widget_pos$x, y = widget_pos$y)
             
-            add_widget_to_gridstack(id, tab_id, ui_output, widget_id)
+            add_widget_to_gridstack(tab_id, ui_output, widget_id)
           }
           
           output[[paste0("ui_", widget_id)]] <- renderUI(ui_code)
           
-          if (action %in% c("add_tab", "load_tabs", "add_widget")) output[[paste0("edit_buttons_", widget_id)]] <- renderUI(get_widget_edit_buttons(id, widget_id, show_edit_buttons = r$data_edit_page_activated))
+          if (action %in% c("add_tab", "load_tabs", "add_widget")) output[[paste0("edit_buttons_", widget_id)]] <- renderUI(get_widget_edit_buttons(widget_id, show_edit_buttons = r$data_edit_page_activated))
         })
       }
     }

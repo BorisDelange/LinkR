@@ -1,5 +1,8 @@
 #' @noRd
-add_widget_to_gridstack <- function(id, tab_id, ui_output, widget_id, previous_widget_id = NA_integer_){
+add_widget_to_gridstack <- function(tab_id, ui_output, widget_id, previous_widget_id = NA_integer_){
+ 
+  # Get variables from other environments
+  id <- get("id", envir = parent.frame())
   ns <- NS(id)
   
   if (id == "plugins") delete_previous_widget <- paste0(
@@ -50,7 +53,9 @@ add_widget_to_gridstack <- function(id, tab_id, ui_output, widget_id, previous_w
 }
 
 #' @noRd
-create_gridstack_instance <- function(id, tab_id){
+create_gridstack_instance <- function(tab_id){
+  # Get variables from other environments
+  id <- get("id", envir = parent.frame())
   ns <- NS(id)
   
   shinyjs::delay(200,
@@ -89,7 +94,10 @@ create_gridstack_instance <- function(id, tab_id){
 }
 
 #' @noRd
-create_widget <- function(id, widget_id, ui_code, w = 6, h = 20, x = 0, y = 0){
+create_widget <- function(widget_id, ui_code, w = 6, h = 20, x = 0, y = 0){
+  
+  # Get variables from other environments
+  id <- get("id", envir = parent.frame())
   ns <- NS(id)
   
   if (is.na(w) | w == 0) w <- 6
@@ -150,7 +158,10 @@ get_query <- function(query) {
 }
 
 #' @noRd
-get_widget_edit_buttons <- function(id, widget_id, show_edit_buttons = FALSE){
+get_widget_edit_buttons <- function(widget_id, show_edit_buttons = FALSE){
+  
+  # Get variables from other environments
+  id <- get("id", envir = parent.frame())
   ns <- NS(id)
   
   edit_buttons <- div(
@@ -202,8 +213,10 @@ get_widget_edit_buttons <- function(id, widget_id, show_edit_buttons = FALSE){
 }
 
 #' @noRd
-load_dataset <- function(id, output, r, m, d, dataset_id, main_tables, selected_study){
+load_dataset <- function(dataset_id, main_tables, selected_study){
   
+  # Get variables from other environments
+  for (obj_name in c("id", "r", "m", "d", "output")) assign(obj_name, get(obj_name, envir = parent.frame()))
   i18n <- r$i18n
   ns <- NS(id)
   
@@ -259,8 +272,8 @@ load_dataset <- function(id, output, r, m, d, dataset_id, main_tables, selected_
     m$subsets <- new_data
     
     new_options <- create_options_tibble(
-      element_id = new_subset_id, element_name = new_subset_name, sql_category = "subset", user_id = r$user_id, username = username, 
-      languages = r$languages, last_options_id = get_last_row(m$db, "options"))
+      element_id = new_subset_id, element_name = new_subset_name, sql_category = "subset", username = username, 
+      last_options_id = get_last_row(m$db, "options"))
     
     DBI::dbAppendTable(m$db, "options", new_options)
     
@@ -590,19 +603,29 @@ load_dataset_concepts <- function(){
 }
 
 #' @noRd
-prepare_sortable_pivot_tabs <- function(ns, category, tab_group_id, tab_sub_group, tabs_ui) {
-  div(
-    id = ns(paste0("study_pivot_sub_div_", tab_group_id, "_", tab_sub_group)),
-    tabs_ui,
-    class = "pivot",
-    `data-id-prefix` = paste0(ns(paste0("tab_"))),
-    `data-input-id` = ns(paste0(category, "_tab_positions")), 
-    `data-draggable-class` = "pivot_item"
+prepare_sortable_pivot_tabs <- function(category, tab_group_id, tab_sub_group, tabs_ui) {
+  
+  # Get variables from other environments
+  id <- get("id", envir = parent.frame())
+  ns <- NS(id)
+  
+  return(
+    div(
+      id = ns(paste0("study_pivot_sub_div_", tab_group_id, "_", tab_sub_group)),
+      tabs_ui,
+      class = "pivot",
+      `data-id-prefix` = paste0(ns(paste0("tab_"))),
+      `data-input-id` = ns(paste0(category, "_tab_positions")), 
+      `data-draggable-class` = "pivot_item"
+    )
   )
 }
 
 #' @noRd
-load_element_code <- function(id, r, unique_id){
+load_element_code <- function(unique_id){
+  
+  # Get variables from other environments
+  for (obj_name in c("id", "r")) assign(obj_name, get(obj_name, envir = parent.frame()))
   
   folder <- paste0(r$app_folder, "/", id, "/", unique_id)
   code_file <- paste0(folder, "/main.R")
@@ -673,8 +696,11 @@ process_widget_code <- function(code, tab_id, widget_id, study_id, patient_id, p
 }
 
 #' @noRd
-save_element_code <- function(id, i18n, output, r, unique_id, new_code){
+save_element_code <- function(unique_id, new_code){
   
+  # Get variables from other environments
+  for (obj_name in c("id", "r", "output")) assign(obj_name, get(obj_name, envir = parent.frame()))
+  i18n <- r$i18n
   ns <- NS(id)
   
   folder <- paste0(r$app_folder, "/", id, "/", unique_id)

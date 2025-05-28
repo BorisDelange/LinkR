@@ -1,5 +1,10 @@
 #' @noRd
-insert_default_data <- function(output, r, m, i18n, language, db_col_types, users_accesses_toggles_options){
+insert_default_data <- function(db_col_types, users_accesses_toggles_options){
+  
+  # Get variables from other environments
+  for (obj_name in c("r", "m", "output")) assign(obj_name, get(obj_name, envir = parent.frame()))
+  i18n <- r$i18n
+  language <- r$language
   
   error_loading_database <- FALSE
   

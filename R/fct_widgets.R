@@ -14,7 +14,10 @@ create_authors_ui <- function(authors){
 
 
 #' @noRd
-create_element_files <- function(id, r, m, sql_category, con, single_id, element_id, element_wide){
+create_element_files <- function(sql_category, con, single_id, element_id, element_wide){
+  
+  # Get variables from other environments
+  for (obj_name in c("id", "r", "m")) assign(obj_name, get(obj_name, envir = parent.frame()))
   
   # Element unique_id
   sql <- glue::glue_sql("SELECT value FROM options WHERE category = {sql_category} AND name = 'unique_id' AND link_id = {element_id}", .con = con)
@@ -48,7 +51,7 @@ create_element_files <- function(id, r, m, sql_category, con, single_id, element
   file.copy(files_list, temp_element_dir, overwrite = TRUE)
   
   # Create XML and README files
-  create_element_xml(id = id, r = r, element_id = element_id, single_id = single_id, element_options = element_options, element_dir = temp_element_dir)
+  create_element_xml(id = id, element_id = element_id, single_id = single_id, element_options = element_options, element_dir = temp_element_dir)
   description <- element_options %>% dplyr::filter(name == "description_en") %>% dplyr::pull(value)
   create_element_readme(description = description, element_dir = temp_element_dir)
   
@@ -143,7 +146,7 @@ create_element_files <- function(id, r, m, sql_category, con, single_id, element
           sql <- glue::glue_sql("SELECT * FROM options WHERE category = {element_single} AND link_id = {element$id}", .con = con)
           element_options <- DBI::dbGetQuery(con, sql)
           
-          create_element_xml(id = element_type, r = r, element_id = element$id, single_id = element_single, element_options = element_options, element_dir = project_type_dir)
+          create_element_xml(id = element_type, element_id = element$id, single_id = element_single, element_options = element_options, element_dir = project_type_dir)
           description <- element_options %>% dplyr::filter(name == "description_en") %>% dplyr::pull(value)
           create_element_readme(description = description, element_dir = project_type_dir)
         }
@@ -313,7 +316,10 @@ create_element_readme <- function(description, element_dir){
 }
 
 #' @noRd
-create_element_scripts <- function(id, language, element_dir, code = ""){
+create_element_scripts <- function(id, element_dir, code = ""){
+  
+  # Get variables from other environments
+  language <- get("language", envir = parent.frame())
   
   if (!dir.exists(element_dir)) dir.create(element_dir)
   
@@ -369,7 +375,11 @@ create_element_scripts <- function(id, language, element_dir, code = ""){
 }
 
 #' @noRd
-create_element_ui <- function(ns, page_id, element_id, single_id, element_name, users_ui, widget_buttons, onclick, short_description, is_selected_element){
+create_element_ui <- function(page_id, element_id, single_id, element_name, users_ui, widget_buttons, onclick, short_description, is_selected_element){
+  
+  # Get variables from other environments
+  id <- get("id", envir = parent.frame())
+  ns <- NS(id)
   
   selected_element_css <- ""
   if (is_selected_element) selected_element_css <- paste0("selected_", single_id, "_widget")
@@ -475,7 +485,7 @@ create_elements_ui <- function(page_id, id, elements, selected_element = NA_inte
       plugin_type <- row %>% dplyr::slice(1) %>% dplyr::pull(tab_type_id)
       if (page_id == "data") buttons <- c("tab_type", "info")
       else buttons <- "tab_type"
-      widget_buttons <- get_plugin_buttons(page_id, buttons, plugin_type, row$id, i18n)
+      widget_buttons <- get_plugin_buttons(page_id, buttons, plugin_type, row$id)
     }
     
     # Test if this element is the currently selected element, to add a green border
@@ -484,7 +494,7 @@ create_elements_ui <- function(page_id, id, elements, selected_element = NA_inte
     
     elements_ui <- tagList(
       elements_ui,
-      create_element_ui(ns, page_id, i, single_id, element_name, users_ui, widget_buttons, onclick, short_description, is_selected_element)
+      create_element_ui(page_id, i, single_id, element_name, users_ui, widget_buttons, onclick, short_description, is_selected_element)
     )
   }
   
@@ -494,7 +504,10 @@ create_elements_ui <- function(page_id, id, elements, selected_element = NA_inte
 }
 
 #' @noRd
-create_element_xml <- function(id, r, element_id, single_id, element_options, element_dir){
+create_element_xml <- function(id, element_id, single_id, element_options, element_dir){
+  
+  # Get variables from other environments
+  r <- get("r", envir = parent.frame())
   
   xml <- XML::newXMLDoc()
   
@@ -539,7 +552,13 @@ create_element_xml <- function(id, r, element_id, single_id, element_options, el
 }
 
 #' @noRd
-create_options_tibble <- function(element_id, element_name, sql_category, user_id, username, languages, last_options_id){
+create_options_tibble <- function(element_id, element_name, sql_category, user_id, username, last_options_id){
+  
+  # Get variables from other environments
+  r <- get("r", envir = parent.frame())
+  languages <- r$languages
+  user_id <- r$user_id
+  
   tibble::tribble(
     ~name, ~value, ~value_num,
     "users_allowed_read_group", "people_picker", 1,
@@ -565,7 +584,10 @@ create_options_tibble <- function(element_id, element_name, sql_category, user_i
 }
 
 #' @noRd
-create_rmarkdown_file <- function(r, code, interpret_code = TRUE){
+create_rmarkdown_file <- function(code, interpret_code = TRUE){
+  
+  # Get variables from other environments
+  r <- get("r", envir = parent.frame())
   
   code <- gsub("\r", "\n", code)
   
@@ -582,7 +604,10 @@ create_rmarkdown_file <- function(r, code, interpret_code = TRUE){
 }
 
 #' @noRd
-delete_project <- function(r, m, project_id){
+delete_project <- function(project_id){
+  
+  # Get variables from other environments
+  for (obj_name in c("r", "m")) assign(obj_name, get(obj_name, envir = parent.frame()))
   
   # Delete project files
   
@@ -635,7 +660,11 @@ delete_project <- function(r, m, project_id){
 }
 
 #' @noRd
-get_plugin_buttons <- function(id, buttons, plugin_type, plugin_id, i18n){
+get_plugin_buttons <- function(id, buttons, plugin_type, plugin_id){
+  
+  # Get variables from other environments
+  r <- get("r", envir = parent.frame())
+  i18n <- r$i18n
   
   buttons_ui <- tagList()
   
@@ -691,8 +720,10 @@ get_plugin_buttons <- function(id, buttons, plugin_type, plugin_id, i18n){
 }
 
 #' @noRd
-import_element <- function(id, input, output, r, m, con, sql_table, sql_category, single_id, element, element_type, temp_dir, user_accesses){
+import_element <- function(con, sql_table, sql_category, single_id, element, element_type, temp_dir, user_accesses){
   
+  # Get variables from other environments
+  for (obj_name in c("id", "r", "m", "input", "output", "user_accesses")) assign(obj_name, get(obj_name, envir = parent.frame()))
   ns <- NS(id)
   i18n <- r$i18n
   language <- r$language
@@ -722,7 +753,7 @@ import_element <- function(id, input, output, r, m, con, sql_table, sql_category
     sql_send_statement(con, glue::glue_sql("DELETE FROM {`sql_table`} WHERE id = {element_id}", .con = con))
     
     # For projects, delete all rows in associated tables
-    if (sql_category == "study") delete_project(r, m, element_id)
+    if (sql_category == "study") delete_project(element_id)
     
     # Delete options in db
     sql_send_statement(con, glue::glue_sql("DELETE FROM options WHERE category = {sql_category} AND link_id = {element_id}", .con = con))
@@ -793,17 +824,14 @@ import_element <- function(id, input, output, r, m, con, sql_table, sql_category
     update_plugins <- TRUE
     if (length(input$import_project_plugins) > 0) update_plugins <- input$import_project_plugins
     
-    import_project(
-      r = r, m = m, temp_dir = temp_dir,
-      update_plugins = update_plugins, project_id = element$id, unique_id = element$unique_id, user_accesses = user_accesses
-    )
+    import_project(temp_dir = temp_dir, update_plugins = update_plugins, project_id = element$id, unique_id = element$unique_id)
   }
   
   # Reload elements var and widgets
   shinyjs::runjs(paste0("Shiny.setInputValue('", element_type, "-reload_elements_var', Math.random());"))
   
   # For project import, reload plugins var
-  if (element_type == "projects") reload_elements_var(page_id = id, id = "plugins", con = r$db, r = r, m = m, long_var_filtered = "filtered_plugins_long", user_accesses)
+  if (element_type == "projects") reload_elements_var(page_id = id, id = "plugins", con = r$db, long_var_filtered = "filtered_plugins_long")
   
   show_message_bar(id, output, message = paste0("success_importing_", single_id), type = "success", i18n = i18n, ns = ns)
   
@@ -812,7 +840,10 @@ import_element <- function(id, input, output, r, m, con, sql_table, sql_category
 }
 
 #' @noRd
-import_project <- function(r, m, temp_dir, update_plugins, project_id, unique_id, user_accesses){
+import_project <- function(temp_dir, update_plugins, project_id, unique_id){
+  
+  # Get variables from other environments
+  for (obj_name in c("r", "m", "user_accesses")) assign(obj_name, get(obj_name, envir = parent.frame()))
   
   # Tables :
   # - tabs_groups
@@ -863,7 +894,7 @@ import_project <- function(r, m, temp_dir, update_plugins, project_id, unique_id
   ## plugins
   
   ### Reload r$plugins_wide & r$plugins_long
-  reload_elements_var(page_id = "plugins", id = "plugins", con = r$db, r = r, m = m, long_var_filtered = "filtered_plugins_long", user_accesses)
+  reload_elements_var(page_id = "plugins", id = "plugins", con = r$db, long_var_filtered = "filtered_plugins_long")
   
   data$plugins <- data$plugins %>% dplyr::mutate(new_id = id + last_row$plugins)
   
@@ -1068,7 +1099,10 @@ import_project <- function(r, m, temp_dir, update_plugins, project_id, unique_id
 }
 
 #' @noRd
-reload_elements_var <- function(page_id, id, con, r, m, long_var_filtered, user_accesses){
+reload_elements_var <- function(page_id, id, con, long_var_filtered){
+  
+  # Get variables from other environments
+  for (obj_name in c("r", "m", "user_accesses")) assign(obj_name, get(obj_name, envir = parent.frame()))
   
   sql_category <- switch(
     id,

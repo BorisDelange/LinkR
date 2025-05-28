@@ -49,7 +49,7 @@ mod_home_server <- function(id, r, d, m, language, i18n, debug, user_accesses){
         
         long_var_filtered <- paste0("filtered_", page, "_long")
         
-        reload_elements_var(page_id = "home", id = page, con = r$db, r = r, m = m, long_var_filtered = long_var_filtered, user_accesses)
+        reload_elements_var(page_id = "home", id = page, con = r$db, long_var_filtered = long_var_filtered)
         
         buttons <- tagList(
           tags$button(class = "home-nav-button prev hidden", onclick = "scrollContainer(this, 'left')", tags$i(class = "fas fa-chevron-left")),

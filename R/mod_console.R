@@ -197,7 +197,7 @@ mod_console_server <- function(id, r, d, m, language, i18n, debug, user_accesses
     # Comment code ----
     observeEvent(input$code_comment, try_catch("input$code_comment", {
       
-      toggle_comments(id = id, input_id = "code", code = input$code, selection = input$code_comment$range, session = session)
+      toggle_comments(input_id = "code", code = input$code, selection = input$code_comment$range, session = session)
     }))
     
     # Execute code ----
@@ -214,7 +214,7 @@ mod_console_server <- function(id, r, d, m, language, i18n, debug, user_accesses
       full_code <- input[[editor_id]]
       code_store_var <- "console_code"
       
-      execute_ace_code(r = r, id = id, editor_id = editor_id, full_code = full_code, editor_input = editor_input, code_store_var = code_store_var)
+      execute_ace_code(editor_id = editor_id, full_code = full_code, editor_input = editor_input, code_store_var = code_store_var)
       
       shinyjs::runjs(paste0("Shiny.setInputValue('", id, "-run_code_trigger', Math.random());"))
     }))
@@ -266,7 +266,7 @@ mod_console_server <- function(id, r, d, m, language, i18n, debug, user_accesses
         # RMarkdown
         else if (input$output == "rmarkdown"){
           
-          output_file <- create_rmarkdown_file(r, code)
+          output_file <- create_rmarkdown_file(code)
           output$rmarkdown_output <- renderUI(div(class = "markdown", withMathJax(includeMarkdown(output_file))))
         }
         

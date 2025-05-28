@@ -319,7 +319,7 @@ mod_data_cleaning_server <- function(id, r, d, m, language, i18n, debug, user_ac
       
       data_cleaning_script_id <- input$selected_element
       unique_id <- r$data_cleaning_long %>% dplyr::filter(id == data_cleaning_script_id) %>% dplyr::filter(name == "unique_id") %>% dplyr::pull(value)
-      code <- load_element_code(id = id, r = r, unique_id = unique_id)
+      code <- load_element_code(unique_id = unique_id)
       
       shinyAce::updateAceEditor(session, "data_cleaning_code", value = code)
     }))
@@ -327,7 +327,7 @@ mod_data_cleaning_server <- function(id, r, d, m, language, i18n, debug, user_ac
     # Comment code ----
     observeEvent(input$data_cleaning_code_comment, try_catch("input$data_cleaning_code_comment", {
       
-      toggle_comments(id = id, input_id = "data_cleaning_code", code = input$data_cleaning_code, selection = input$data_cleaning_code_comment$range, session = session)
+      toggle_comments(input_id = "data_cleaning_code", code = input$data_cleaning_code, selection = input$data_cleaning_code_comment$range, session = session)
     }))
     
     # Run code ----
@@ -345,7 +345,7 @@ mod_data_cleaning_server <- function(id, r, d, m, language, i18n, debug, user_ac
       full_code <- input[[editor_id]]
       code_store_var <- "data_cleaning_code"
       
-      execute_ace_code(r = r, id = id, editor_id = editor_id, full_code = full_code, editor_input = editor_input, code_store_var = code_store_var)
+      execute_ace_code(editor_id = editor_id, full_code = full_code, editor_input = editor_input, code_store_var = code_store_var)
       
       shinyjs::runjs(paste0("Shiny.setInputValue('", id, "-run_code_trigger', Math.random());"))
     }))
@@ -381,7 +381,7 @@ mod_data_cleaning_server <- function(id, r, d, m, language, i18n, debug, user_ac
       
       data_cleaning_script_id <- input$selected_element
       unique_id <- r$data_cleaning_long %>% dplyr::filter(id == data_cleaning_script_id) %>% dplyr::filter(name == "unique_id") %>% dplyr::pull(value)
-      save_element_code(id = id, i18n = i18n, output = output, r = r, unique_id = unique_id, new_code = input$data_cleaning_code)
+      save_element_code(unique_id = unique_id, new_code = input$data_cleaning_code)
     }))
   })
 }

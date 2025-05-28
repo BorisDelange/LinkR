@@ -820,7 +820,7 @@ mod_git_repos_server <- function(id, r, d, m, language, i18n, debug, user_access
         loaded_git_repo <- tibble::tibble()
         
         tryCatch({
-            loaded_git_repo <- load_git_repo(id, r, git_repo)
+            loaded_git_repo <- load_git_repo(git_repo)
           }, error = function(e){
             show_message_bar(id, output, "error_loading_git_repo", "warning", i18n = i18n, ns = ns)
             cat(paste0("\n", now(), " - mod_git_repos - error downloading git repo - error = ", toString(e)))
@@ -955,7 +955,7 @@ mod_git_repos_server <- function(id, r, d, m, language, i18n, debug, user_access
         shinyAce::updateAceEditor(session, "readme_code", value = code)
         
         # Run code
-        output_file <- create_rmarkdown_file(r, code, interpret_code = FALSE)
+        output_file <- create_rmarkdown_file(code, interpret_code = FALSE)
         output[[paste0(input$current_page, "_git_readme")]] <- renderUI(div(class = "markdown", withMathJax(includeMarkdown(output_file))))
       }))
       
@@ -971,7 +971,7 @@ mod_git_repos_server <- function(id, r, d, m, language, i18n, debug, user_access
       
       observeEvent(input$run_readme_code_trigger, try_catch("input$run_readme_code_trigger", {
 
-        output_file <- create_rmarkdown_file(r, input$readme_code, interpret_code = FALSE)
+        output_file <- create_rmarkdown_file(input$readme_code, interpret_code = FALSE)
         output[[paste0(input$current_page, "_git_readme")]] <- renderUI(div(class = "markdown", withMathJax(includeMarkdown(output_file))))
       }))
       
@@ -1002,7 +1002,7 @@ mod_git_repos_server <- function(id, r, d, m, language, i18n, debug, user_access
         loaded_git_repo <- tibble::tibble()
         
         tryCatch({
-            loaded_git_repo <- load_git_repo(id, r, git_repo)
+            loaded_git_repo <- load_git_repo(git_repo)
           }, error = function(e){
             show_message_bar(id, output, "error_loading_git_repo", "warning", i18n = i18n, ns = ns)
             cat(paste0("\n", now(), " - mod_git_repos - error downloading git repo - error = ", toString(e)))
@@ -1027,7 +1027,7 @@ mod_git_repos_server <- function(id, r, d, m, language, i18n, debug, user_access
         # Reload markdown
         if (input$readme_code == "") output$readme_ui <- renderUI(div(shiny.fluent::MessageBar(i18n$t("no_description_available"), messageBarType = 5) ,style = "display: inline-block;"))
         else {
-          output_file <- create_rmarkdown_file(r, input$readme_code, interpret_code = FALSE)
+          output_file <- create_rmarkdown_file(input$readme_code, interpret_code = FALSE)
           output$readme_ui <- renderUI(div(class = "markdown", withMathJax(includeMarkdown(output_file))))
         }
       }))
@@ -1103,7 +1103,7 @@ mod_git_repos_server <- function(id, r, d, m, language, i18n, debug, user_access
         
         if (code == "") output$readme_ui <- renderUI(div(shiny.fluent::MessageBar(i18n$t("no_description_available"), messageBarType = 5) ,style = "display: inline-block;"))
         else {
-          output_file <- create_rmarkdown_file(r, code, interpret_code = FALSE)
+          output_file <- create_rmarkdown_file(code, interpret_code = FALSE)
           output$readme_ui <- renderUI(div(class = "markdown", withMathJax(includeMarkdown(output_file))))
         }
       }))
@@ -1143,7 +1143,7 @@ mod_git_repos_server <- function(id, r, d, m, language, i18n, debug, user_access
         loaded_git_repo <- tibble::tibble()
         
         tryCatch({
-            loaded_git_repo <- load_git_repo(id, r, r$git_repo)
+            loaded_git_repo <- load_git_repo(r$git_repo)
           }, error = function(e){
             show_message_bar(id, output, "error_loading_git_repo", "warning", i18n = i18n, ns = ns)
             cat(paste0("\n", now(), " - mod_git_repos - error downloading git repo - error = ", toString(e)))
@@ -1242,7 +1242,7 @@ mod_git_repos_server <- function(id, r, d, m, language, i18n, debug, user_access
             
             if (current_tab == "plugins"){
               plugin_type <- row %>% dplyr::slice(1) %>% dplyr::pull(type)
-              widget_buttons <- get_plugin_buttons(id, "tab_type", plugin_type, row$id, i18n)
+              widget_buttons <- get_plugin_buttons(id, "tab_type", plugin_type, row$id)
             }
             
             onclick <- paste0("
@@ -1253,7 +1253,7 @@ mod_git_repos_server <- function(id, r, d, m, language, i18n, debug, user_access
             short_description <- row[[paste0("short_description_", language)]]
             
             elements_ui <- tagList(
-              create_element_ui(ns, page_id = id, i, single_id, element_name, users_ui, widget_buttons, onclick, short_description, FALSE),
+              create_element_ui(page_id = id, i, single_id, element_name, users_ui, widget_buttons, onclick, short_description, FALSE),
               elements_ui
             )
           }
@@ -1448,9 +1448,8 @@ mod_git_repos_server <- function(id, r, d, m, language, i18n, debug, user_access
           git_element_folder <- file.path(git_folder, current_tab, element_name)
           
           import_element(
-            id = id, input = input, output = output, r = r, m = m, con = r$db, sql_table = sql_table, sql_category = sql_category, single_id = single_id,
-            element = git_element, element_type = current_tab, temp_dir = git_element_folder,
-            user_accesses = user_accesses
+            con = r$db, sql_table = sql_table, sql_category = sql_category, single_id = single_id,
+            element = git_element, element_type = current_tab, temp_dir = git_element_folder
           )
         },
         error = function(e){

@@ -754,7 +754,10 @@ show_message_bar <- function(id, output, message = character(), type = "severeWa
 }
 
 #' @noRd
-toggle_comments <- function(id, input_id, code, selection, session) {
+toggle_comments <- function(input_id, code, selection, session) {
+  
+  # Get variables from other environments
+  id <- get("id", envir = parent.frame())
   
   lines <- strsplit(code, "\n")[[1]]
   if (length(lines) == 0) return()

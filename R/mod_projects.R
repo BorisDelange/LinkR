@@ -602,7 +602,7 @@ mod_projects_server <- function(id, r, d, m, language, i18n, debug, user_accesse
         r$selected_dataset <- input$load_dataset_id
         
         tryCatch({
-          load_dataset(id, output, r, m, d, input$load_dataset_id, r$main_tables, m$selected_study)
+          load_dataset(input$load_dataset_id, r$main_tables, m$selected_study)
           
           tryCatch(
             load_dataset_concepts(), 

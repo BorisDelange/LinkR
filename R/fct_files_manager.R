@@ -1,5 +1,7 @@
-load_files_browser_ui <- function(id, input_prefix, files_list){
+load_files_browser_ui <- function(input_prefix, files_list){
   
+  # Get variables from other environments
+  id <- get("id", envir = parent.frame())
   ns <- NS(id)
   
   files_ui <- tagList()
@@ -110,8 +112,11 @@ load_files_browser_ui <- function(id, input_prefix, files_list){
   )
 }
 
-files_browser_create_file <- function(id, input_prefix, r, r_prefix, folder, element_id, code_hotkeys, user_settings){
+files_browser_create_file <- function(input_prefix, r_prefix, folder, element_id, code_hotkeys, user_settings){
   
+  # Get variables from other environments
+  for (obj_name in c("id", "r")) assign(obj_name, get(obj_name, envir = parent.frame()))
+  i18n <- r$i18n
   ns <- NS(id)
   
   # List files to create new filename
@@ -169,8 +174,11 @@ files_browser_create_file <- function(id, input_prefix, r, r_prefix, folder, ele
   shinyjs::runjs(paste0("Shiny.setInputValue('", id, "-", input_prefix, "selected_file', ", new_row_id, ");"))
 }
 
-files_browser_delete_file <- function(id, i18n, output, input_prefix, r, r_prefix, folder, element_id, file_id){
+files_browser_delete_file <- function(input_prefix, r_prefix, folder, element_id, file_id){
   
+  # Get variables from other environments
+  for (obj_name in c("id", "r", "output")) assign(obj_name, get(obj_name, envir = parent.frame()))
+  i18n <- r$i18n
   ns <- NS(id)
   
   filename <- r[[paste0(r_prefix, "_files_list")]] %>% dplyr::filter(id == file_id) %>% dplyr::pull(filename)
@@ -207,8 +215,10 @@ files_browser_delete_file <- function(id, i18n, output, input_prefix, r, r_prefi
   show_message_bar(id, output, "file_deleted", "warning", i18n = i18n, ns = ns)
 }
 
-reload_files_browser_tabs <- function(id, input_prefix, r, r_prefix, element_id, file_id){
+reload_files_browser_tabs <- function(input_prefix, r_prefix, element_id, file_id){
   
+  # Get variables from other environments
+  for (obj_name in c("id", "r")) assign(obj_name, get(obj_name, envir = parent.frame()))
   ns <- NS(id)
   
   tabs_ui <- tagList()
@@ -264,7 +274,10 @@ reload_files_browser_tabs <- function(id, input_prefix, r, r_prefix, element_id,
   tabs_container
 }
 
-files_browser_edit_tab_positions <- function(id, positions, r, r_prefix, element_id){
+files_browser_edit_tab_positions <- function(positions, r_prefix, element_id){
+  
+  # Get variables from other environments
+  for (obj_name in c("id", "r")) assign(obj_name, get(obj_name, envir = parent.frame()))
   
   ids <- positions[seq(1, length(positions), 2)]
   pos <- positions[seq(2, length(positions), 2)]
@@ -290,8 +303,10 @@ files_browser_edit_tab_positions <- function(id, positions, r, r_prefix, element
   }
 }
 
-files_browser_open_file <- function(id, input_prefix, r, r_prefix, folder, element_id, file_id, code_hotkeys, user_settings){
+files_browser_open_file <- function(input_prefix, r_prefix, folder, element_id, file_id, code_hotkeys, user_settings){
   
+  # Get variables from other environments
+  for (obj_name in c("id", "r")) assign(obj_name, get(obj_name, envir = parent.frame()))
   ns <- NS(id)
   
   if (id == "plugins") id_col <- "plugin_id"
@@ -348,7 +363,10 @@ files_browser_open_file <- function(id, input_prefix, r, r_prefix, folder, eleme
   shinyjs::runjs(paste0("Shiny.setInputValue('", id, "-", input_prefix, "selected_file', ", file_id, ");"))
 }
 
-files_browser_change_tab <- function(id, input_prefix, r, r_prefix, file_id){
+files_browser_change_tab <- function(input_prefix, r_prefix, file_id){
+  
+  # Get variables from other environments
+  for (obj_name in c("id", "r")) assign(obj_name, get(obj_name, envir = parent.frame()))
   
   shinyjs::runjs(paste0("Shiny.setInputValue('", id, "-", input_prefix, "selected_file', ", file_id, ");"))
   
@@ -364,7 +382,10 @@ files_browser_change_tab <- function(id, input_prefix, r, r_prefix, file_id){
   sapply(hide_ids, function(file_id) shinyjs::hide(paste0(input_prefix, "editor_div_", file_id)))
 }
 
-files_browser_close_file <- function(id, input_prefix, r, r_prefix, element_id, file_id){
+files_browser_close_file <- function(input_prefix, r_prefix, element_id, file_id){
+  
+  # Get variables from other environments
+  for (obj_name in c("id", "r")) assign(obj_name, get(obj_name, envir = parent.frame()))
   
   if (id == "plugins") id_col <- "plugin_id"
   else if (id == "project_files") id_col <- "project_id"
@@ -387,8 +408,11 @@ files_browser_close_file <- function(id, input_prefix, r, r_prefix, element_id, 
   shinyjs::runjs(paste0("Shiny.setInputValue('", id, "-", input_prefix, "reload_files_tab', '", now(format = "%Y-%m-%d %H:%M:%OS3"), "');"))
 }
 
-files_browser_save_file <- function(id, i18n, output, input_prefix, r, r_prefix, folder, element_id, file_id, new_code){
+files_browser_save_file <- function(input_prefix, r_prefix, folder, element_id, file_id, new_code){
   
+  # Get variables from other environments
+  for (obj_name in c("id", "r", "output")) assign(obj_name, get(obj_name, envir = parent.frame()))
+  i18n <- r$i18n
   ns <- NS(id)
   
   if(length(file_id) > 0){
@@ -407,8 +431,11 @@ files_browser_save_file <- function(id, i18n, output, input_prefix, r, r_prefix,
   }
 }
 
-files_browser_edit_filename <- function(id, i18n, output, input_prefix, r, r_prefix, folder, element_id, file_id, new_name){
+files_browser_edit_filename <- function(input_prefix, r_prefix, folder, element_id, file_id, new_name){
   
+  # Get variables from other environments
+  for (obj_name in c("id", "r", "output")) assign(obj_name, get(obj_name, envir = parent.frame()))
+  i18n <- r$i18n
   ns <- NS(id)
   
   old_name <- r[[paste0(r_prefix, "_files_list")]] %>% dplyr::filter(id == file_id) %>% dplyr::pull(filename)

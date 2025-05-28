@@ -143,7 +143,7 @@ mod_project_files_server <- function(id, r, d, m, language, i18n, debug, user_ac
     observeEvent(input$reload_files_browser, try_catch("input$reload_files_browser", {
       
       project_files_list <- r$project_files_list %>% dplyr::filter(project_id == m$selected_project)
-      files_ui <- load_files_browser_ui(id = id, input_prefix = "", files_list = project_files_list)
+      files_ui <- load_files_browser_ui(input_prefix = "", files_list = project_files_list)
 
       output$files_browser <- renderUI(files_ui)
     }))
@@ -153,7 +153,7 @@ mod_project_files_server <- function(id, r, d, m, language, i18n, debug, user_ac
     observeEvent(input$reload_files_tab, try_catch("input$reload_files_tab", {
       
       tabs_container <- reload_files_browser_tabs(
-        id = id, input_prefix = "", r = r, r_prefix = "project",
+        input_prefix = "", r_prefix = "project",
         element_id = m$selected_project, file_id = input$selected_file
       )
       
@@ -164,14 +164,14 @@ mod_project_files_server <- function(id, r, d, m, language, i18n, debug, user_ac
     
     observeEvent(input$tab_positions, try_catch("input$tab_positions", {
       
-      files_browser_edit_tab_positions(id = id, positions = input$tab_positions, r = r, r_prefix = "project", element_id = m$selected_project)
+      files_browser_edit_tab_positions(positions = input$tab_positions, r_prefix = "project", element_id = m$selected_project)
     }))
     
     # Change file tab ----
     
     observeEvent(input$selected_tab, try_catch("input$selected_tab", {
       
-      files_browser_change_tab(id = id, input_prefix = "", r = r, r_prefix = "project", file_id = input$selected_tab)
+      files_browser_change_tab(input_prefix = "", r_prefix = "project", file_id = input$selected_tab)
     }))
     
     # Open a file ----
@@ -179,7 +179,7 @@ mod_project_files_server <- function(id, r, d, m, language, i18n, debug, user_ac
     observeEvent(input$selected_file, try_catch("input$selected_file", {
       
       files_browser_open_file(
-        id = id, input_prefix = "", r = r, r_prefix = "project", folder = input$selected_project_folder,
+        input_prefix = "", r_prefix = "project", folder = input$selected_project_folder,
         element_id = m$selected_project, file_id = input$selected_file, code_hotkeys = code_hotkeys, user_settings = user_settings
       )
       
@@ -311,7 +311,7 @@ mod_project_files_server <- function(id, r, d, m, language, i18n, debug, user_ac
     observeEvent(input$close_selected_tab_trigger, try_catch("input$close_selected_tab_trigger", {
       
       files_browser_close_file(
-        id = id, input_prefix = "", r = r, r_prefix = "project",
+        input_prefix = "", r_prefix = "project",
         element_id = m$selected_project, file_id = input$close_selected_tab
       )
     }))
@@ -323,7 +323,7 @@ mod_project_files_server <- function(id, r, d, m, language, i18n, debug, user_ac
       if ("projects_scripts" %not_in% user_accesses) return()
       
       files_browser_create_file(
-        id = id, input_prefix = "", r = r, r_prefix = "project", folder = input$selected_project_folder,
+        input_prefix = "", r_prefix = "project", folder = input$selected_project_folder,
         element_id = m$selected_project, code_hotkeys = code_hotkeys, user_settings = user_settings
       )
     }))
@@ -335,7 +335,7 @@ mod_project_files_server <- function(id, r, d, m, language, i18n, debug, user_ac
       editor_id <- paste0("editor_", file_id)
       
       observeEvent(input[[paste0(editor_id, "_comment")]], try_catch(paste0("input$", editor_id, "_comment"), {
-        toggle_comments(id = id, input_id = editor_id, code = input[[editor_id]], selection = input[[paste0(editor_id, "_comment")]]$range, session = session)
+        toggle_comments(input_id = editor_id, code = input[[editor_id]], selection = input[[paste0(editor_id, "_comment")]]$range, session = session)
       }))
       
       observeEvent(input[[paste0(editor_id, "_save")]], try_catch(paste0("input$", editor_id, "_save"), {
@@ -352,7 +352,7 @@ mod_project_files_server <- function(id, r, d, m, language, i18n, debug, user_ac
       file <- r$project_files_list %>% dplyr::filter(id == input$selected_file)
       
       files_browser_save_file(
-        id = id, i18n = i18n, output = output, input_prefix = "", r = r, r_prefix = "project",
+        input_prefix = "", r_prefix = "project",
         folder = input$selected_project_folder, element_id = m$selected_project, file_id = file$id,
         new_code = input[[paste0("editor_", file$id)]]
       )
@@ -417,9 +417,8 @@ mod_project_files_server <- function(id, r, d, m, language, i18n, debug, user_ac
       new_name <- input[[textfield_id]]
       
       files_browser_edit_filename(
-        id = id, i18n = i18n, output = output, input_prefix = "", r = r, r_prefix = "project",
-        folder = input$selected_project_folder, element_id = m$selected_project, file_id = file_id,
-        new_name = new_name
+        input_prefix = "", r_prefix = "project", folder = input$selected_project_folder,
+        element_id = m$selected_project, file_id = file_id, new_name = new_name
       )
       
       shinyjs::runjs(paste0("Shiny.setInputValue('", id, "-update_code_output_dropdown', Math.random());"))
@@ -436,7 +435,7 @@ mod_project_files_server <- function(id, r, d, m, language, i18n, debug, user_ac
       if ("projects_scripts" %not_in% user_accesses) return()
       
       files_browser_delete_file(
-        id = id, i18n = i18n, output = output, input_prefix = "", r = r, r_prefix = "project",
+        input_prefix = "", r_prefix = "project",
         folder = input$selected_project_folder, element_id = m$selected_project, file_id = input$delete_file
       )
     }))
@@ -455,7 +454,7 @@ mod_project_files_server <- function(id, r, d, m, language, i18n, debug, user_ac
       full_code <- input[[editor_id]]
       code_store_var <- "project_file_code"
       
-      execute_ace_code(r = r, id = id, editor_id = editor_id, full_code = full_code, editor_input = editor_input, code_store_var = code_store_var)
+      execute_ace_code(editor_id = editor_id, full_code = full_code, editor_input = editor_input, code_store_var = code_store_var)
       
       shinyjs::runjs(paste0("Shiny.setInputValue('", id, "-run_code_trigger', Math.random());"))
     }))
@@ -518,7 +517,7 @@ mod_project_files_server <- function(id, r, d, m, language, i18n, debug, user_ac
         # RMarkdown
         else if (input$code_output == "rmarkdown"){
   
-          output_file <- create_rmarkdown_file(r, code)
+          output_file <- create_rmarkdown_file(code)
           output$rmarkdown_output <- renderUI(div(class = "markdown", withMathJax(includeMarkdown(output_file))))
         }
   

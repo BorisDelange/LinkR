@@ -210,7 +210,7 @@ mod_widgets_server <- function(id, r, d, m, language, i18n, all_divs, debug, use
     
     observeEvent(input$reload_elements_var, try_catch("input$reload_elements_var", {
       
-      reload_elements_var(page_id = id, id = id, con = con, r = r, m = m, long_var_filtered = paste0("filtered_", id, "_long"), user_accesses)
+      reload_elements_var(page_id = id, id = id, con = con, long_var_filtered = paste0("filtered_", id, "_long"))
       
       shinyjs::runjs(paste0("Shiny.setInputValue('", id, "-reload_elements_list', Math.random());"))
     }))
@@ -454,8 +454,8 @@ mod_widgets_server <- function(id, r, d, m, language, i18n, all_divs, debug, use
       ## Options table
       
       new_options <- create_options_tibble(
-        element_id = element_id, element_name = element_name, sql_category = sql_category, user_id = r$user_id, username = username, 
-        languages = r$languages, last_options_id = get_last_row(con, "options"))
+        element_id = element_id, element_name = element_name, sql_category = sql_category, username = username, 
+        last_options_id = get_last_row(con, "options"))
       
       ### For datasets table, add a row for omop version
       if (id == "datasets"){
@@ -471,8 +471,8 @@ mod_widgets_server <- function(id, r, d, m, language, i18n, all_divs, debug, use
       ### For a new study, add a default subset
       else if (id == "projects"){
         new_subset_options <- create_options_tibble(
-          element_id = subset_id, element_name = i18n$t("subset_all_patients"), sql_category = "subset", user_id = r$user_id, username = username, 
-          languages = r$languages, last_options_id = get_last_row(m$db, "options"))
+          element_id = subset_id, element_name = i18n$t("subset_all_patients"), sql_category = "subset", username = username, 
+          last_options_id = get_last_row(m$db, "options"))
         DBI::dbAppendTable(m$db, "options", new_subset_options)
       }
       
@@ -498,13 +498,13 @@ mod_widgets_server <- function(id, r, d, m, language, i18n, all_divs, debug, use
           file.copy(file, paste0(new_element_dir, "/", file_name), overwrite = TRUE)
         }
       }
-      else create_element_scripts(id = id, language = language, element_dir = new_element_dir)
+      else create_element_scripts(id = id, element_dir = new_element_dir)
       
       # For a new study, create default subset code
       if (id == "projects"){
         new_subset_unique_id <- new_subset_options %>% dplyr::filter(name == "unique_id") %>% dplyr::pull(value)
         new_subset_dir <- paste0(r$app_folder, "/subsets/", new_subset_unique_id)
-        create_element_scripts(id = "subsets", language = language, element_dir = new_subset_dir)
+        create_element_scripts(id = "subsets", element_dir = new_subset_dir)
       }
       
       # Reset fields
@@ -597,9 +597,8 @@ mod_widgets_server <- function(id, r, d, m, language, i18n, all_divs, debug, use
       tryCatch({
         
         import_element(
-          id = id, input = input, output = output, r = r, m = m, con = con, sql_table = sql_table, sql_category = sql_category, single_id = single_id,
-          element = r$imported_element, element_type = id, temp_dir = r$imported_element_temp_dir,
-          user_accesses = user_accesses
+          con = con, sql_table = sql_table, sql_category = sql_category, single_id = single_id,
+          element = r$imported_element, element_type = id, temp_dir = r$imported_element_temp_dir
         )
       }, error = function(e){
         show_message_bar(id, output, paste0("error_importing_", single_id), "warning", i18n = i18n, ns = ns)
@@ -683,7 +682,7 @@ mod_widgets_server <- function(id, r, d, m, language, i18n, all_divs, debug, use
         
         if (description_code == "" | is.na(description_code)) output$description_ui <- renderUI(div(shiny.fluent::MessageBar(i18n$t("no_description_available"), messageBarType = 5) ,style = "display: inline-block;"))
         else {
-          output_file <- create_rmarkdown_file(r, description_code, interpret_code = FALSE)
+          output_file <- create_rmarkdown_file(description_code, interpret_code = FALSE)
           output$description_ui <- renderUI(div(class = "markdown", withMathJax(includeMarkdown(output_file))))
         }
       }
@@ -819,7 +818,7 @@ mod_widgets_server <- function(id, r, d, m, language, i18n, all_divs, debug, use
       
       if (description_code == "" | is.na(description_code)) output$description_ui <- renderUI(div(shiny.fluent::MessageBar(i18n$t("no_description_available"), messageBarType = 5) ,style = "display: inline-block;"))
       else {
-        output_file <- create_rmarkdown_file(r, description_code, interpret_code = FALSE)
+        output_file <- create_rmarkdown_file(description_code, interpret_code = FALSE)
         output$description_ui <- renderUI(div(class = "markdown", withMathJax(includeMarkdown(output_file))))
       }
       
@@ -912,7 +911,7 @@ mod_widgets_server <- function(id, r, d, m, language, i18n, all_divs, debug, use
       
       if (description_code == "" | is.na(description_code)) output$description_ui <- renderUI(div(shiny.fluent::MessageBar(i18n$t("no_description_available"), messageBarType = 5) ,style = "display: inline-block;"))
       else {
-        output_file <- create_rmarkdown_file(r, description_code, interpret_code = FALSE)
+        output_file <- create_rmarkdown_file(description_code, interpret_code = FALSE)
         output$description_ui <- renderUI(div(class = "markdown", withMathJax(includeMarkdown(output_file))))
       }
       
@@ -941,7 +940,7 @@ mod_widgets_server <- function(id, r, d, m, language, i18n, all_divs, debug, use
       
       if (input$description_code == "" | is.na(input$description_code)) output$description_ui <- renderUI(div(shiny.fluent::MessageBar(i18n$t("no_description_available"), messageBarType = 5) ,style = "display: inline-block;"))
       else {
-        output_file <- create_rmarkdown_file(r, input$description_code, interpret_code = FALSE)
+        output_file <- create_rmarkdown_file(input$description_code, interpret_code = FALSE)
         output$description_ui <- renderUI(div(class = "markdown", withMathJax(includeMarkdown(output_file))))
       }
     }))
@@ -976,7 +975,7 @@ mod_widgets_server <- function(id, r, d, m, language, i18n, all_divs, debug, use
       # Reload markdown
       if (input$description_code == "" | is.na(input$description_code)) output$description_ui <- renderUI(div(shiny.fluent::MessageBar(i18n$t("no_description_available"), messageBarType = 5) ,style = "display: inline-block;"))
       else {
-        output_file <- create_rmarkdown_file(r, input$description_code, interpret_code = FALSE)
+        output_file <- create_rmarkdown_file(input$description_code, interpret_code = FALSE)
         output$description_ui <- renderUI(div(class = "markdown", withMathJax(includeMarkdown(output_file))))
       }
       
@@ -998,7 +997,7 @@ mod_widgets_server <- function(id, r, d, m, language, i18n, all_divs, debug, use
       # Reload markdown UI
       if (description_code == "" | is.na(description_code)) output$description_ui <- renderUI(div(shiny.fluent::MessageBar(i18n$t("no_description_available"), messageBarType = 5) ,style = "display: inline-block;"))
       else {
-        output_file <- create_rmarkdown_file(r, description_code, interpret_code = FALSE)
+        output_file <- create_rmarkdown_file(description_code, interpret_code = FALSE)
         output$description_ui <- renderUI(div(class = "markdown", withMathJax(includeMarkdown(output_file))))
       }
     }))
@@ -1153,7 +1152,7 @@ mod_widgets_server <- function(id, r, d, m, language, i18n, all_divs, debug, use
       
       if (description_code == "" | is.na(description_code)) output$description_ui <- renderUI(div(shiny.fluent::MessageBar(i18n$t("no_description_available"), messageBarType = 5) ,style = "display: inline-block;"))
       else {
-        output_file <- create_rmarkdown_file(r, description_code, interpret_code = FALSE)
+        output_file <- create_rmarkdown_file(description_code, interpret_code = FALSE)
         output$description_ui <- renderUI(div(class = "markdown", withMathJax(includeMarkdown(output_file))))
       }
       
@@ -1225,7 +1224,7 @@ mod_widgets_server <- function(id, r, d, m, language, i18n, all_divs, debug, use
       }
       
       # For projects, delete subsets, widgets and tabs
-      else if (id == "projects") delete_project(r, m, element_id)
+      else if (id == "projects") delete_project(element_id)
       
       # Delete element in db
       sql_send_statement(con, glue::glue_sql("DELETE FROM {`sql_table`} WHERE id = {element_id}", .con = con))
@@ -1280,7 +1279,7 @@ mod_widgets_server <- function(id, r, d, m, language, i18n, all_divs, debug, use
       loaded_git_repo <- tibble::tibble()
       
       tryCatch({
-        loaded_git_repo <- load_git_repo(id, r, git_repo)
+        loaded_git_repo <- load_git_repo(git_repo)
         }, error = function(e){
           show_message_bar(id, output, "error_loading_git_repo", "warning", i18n = i18n, ns = ns)
           cat(paste0("\n", now(), " - mod_widgets - error downloading git repo - error = ", toString(e)))
@@ -1493,14 +1492,14 @@ mod_widgets_server <- function(id, r, d, m, language, i18n, all_divs, debug, use
         new_dir <- file.path(input$git_repo_elements_folder)
         
         # Reload subsets var
-        if (id == "projects") reload_elements_var(page_id = "subsets", id = "subsets", con = m$db, r = r, m = m, long_var_filtered = "filtered_subsets_long", user_accesses = user_accesses)
+        if (id == "projects") reload_elements_var(page_id = "subsets", id = "subsets", con = m$db, long_var_filtered = "filtered_subsets_long")
         
         # Create element files
         
         element_wide <- r$projects_wide %>% dplyr::filter(id == input$selected_element)
         
         temp_zip_dir <- create_element_files(
-          id = id, r = r, m = m, sql_category = sql_category, con = con, single_id = single_id,
+          sql_category = sql_category, con = con, single_id = single_id,
           element_id = input$selected_element, element_wide = element_wide
         )
         
@@ -1591,10 +1590,10 @@ mod_widgets_server <- function(id, r, d, m, language, i18n, all_divs, debug, use
           element_wide <- r[[wide_var]] %>% dplyr::filter(id == input$selected_element)
           
           # Reload subsets var
-          if (id == "projects") reload_elements_var(page_id = "subsets", id = "subsets", con = m$db, r = r, m = m, long_var_filtered = "filtered_subsets_long", user_accesses = user_accesses)
+          if (id == "projects") reload_elements_var(page_id = "subsets", id = "subsets", con = m$db, long_var_filtered = "filtered_subsets_long")
           
           temp_zip_dir <- create_element_files(
-            id = id, r = r, m = m, sql_category = sql_category, con = con, single_id = single_id,
+            sql_category = sql_category, con = con, single_id = single_id,
             element_id = input$selected_element, element_wide = element_wide
           )
           

@@ -337,7 +337,7 @@ mod_datasets_server <- function(id, r, d, m, language, i18n, debug, user_accesse
       
       dataset_id <- input$selected_element
       unique_id <- r$datasets_long %>% dplyr::filter(id == dataset_id) %>% dplyr::filter(name == "unique_id") %>% dplyr::pull(value)
-      code <- load_element_code(id = id, r = r, unique_id = unique_id)
+      code <- load_element_code(unique_id = unique_id)
       
       shinyAce::updateAceEditor(session, "dataset_code", value = code)
     }))
@@ -345,7 +345,7 @@ mod_datasets_server <- function(id, r, d, m, language, i18n, debug, user_accesse
     # Comment code ----
     observeEvent(input$dataset_code_comment, try_catch("input$dataset_code_comment", {
       
-      toggle_comments(id = id, input_id = "dataset_code", code = input$dataset_code, selection = input$dataset_code_comment$range, session = session)
+      toggle_comments(input_id = "dataset_code", code = input$dataset_code, selection = input$dataset_code_comment$range, session = session)
     }))
     
     # Run code ----
@@ -371,7 +371,7 @@ mod_datasets_server <- function(id, r, d, m, language, i18n, debug, user_accesse
         stringr::str_replace_all("%omop_version%", paste0("'", omop_version, "'")) %>%
         stringr::str_replace_all("%dataset_folder%", paste0(r$app_folder, "/datasets_files/", dataset_id))
       
-      execute_ace_code(r = r, id = id, editor_id = editor_id, full_code = full_code, editor_input = editor_input, code_store_var = code_store_var)
+      execute_ace_code(editor_id = editor_id, full_code = full_code, editor_input = editor_input, code_store_var = code_store_var)
       
       shinyjs::runjs(paste0("Shiny.setInputValue('", id, "-run_code_trigger', Math.random());"))
     }))
@@ -417,7 +417,7 @@ mod_datasets_server <- function(id, r, d, m, language, i18n, debug, user_accesse
       
       dataset_id <- input$selected_element
       unique_id <- r$datasets_long %>% dplyr::filter(id == dataset_id) %>% dplyr::filter(name == "unique_id") %>% dplyr::pull(value)
-      save_element_code(id = id, i18n = i18n, output = output, r = r, unique_id = unique_id, new_code = input$dataset_code)
+      save_element_code(unique_id = unique_id, new_code = input$dataset_code)
     }))
   })
 }

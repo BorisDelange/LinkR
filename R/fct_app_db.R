@@ -78,7 +78,10 @@ db_create_tables <- function(db, type, dbms, db_col_types){
 }
 
 #' @noRd
-get_db <- function(r, m, app_db_folder, db_col_types){
+get_db <- function(){
+  
+  # Get variables from other environments
+  for (obj_name in c("r", "m", "app_db_folder", "db_col_types")) assign(obj_name, get(obj_name, envir = parent.frame()))
   
   # Get local database connection
   
@@ -182,59 +185,67 @@ get_last_row <- function(con, table){
 }
 
 #' @noRd
-get_remote_db <- function(r, m, output, i18n, ns){
-  
-  result <- "failure"
-  
-  db_info <- DBI::dbGetQuery(r$local_db, "SELECT * FROM options WHERE category = 'remote_db'") %>% tibble::as_tibble()
-  db_info <- db_info %>% dplyr::pull(value, name) %>% as.list()
-  db <- list()
-  
-  # Try the connection
-  tryCatch({
-    
-    if (db_info$main_db_name != "" & db_info$public_db_name != ""){
-      
-      # Postgres
-      if (db_info$sql_lib == "postgres"){
-        db$main <- DBI::dbConnect(RPostgres::Postgres(), dbname = db_info$main_db_name, host = db_info$host, port = db_info$port, user = db_info$user, password = db_info$password)
-        db$plugins <- DBI::dbConnect(RPostgres::Postgres(), dbname = db_info$public_db_name, host = db_info$host, port = db_info$port, user = db_info$user, password = db_info$password)
-      } 
-      
-      # SQLite
-      if (db_info$sql_lib == "sqlite"){
-        db$main <- DBI::dbConnect(RSQLite::SQLite(), dbname = db_info$main_db_name, host = db_info$host, port = db_info$port, user = db_info$user, password = db_info$password)
-        db$plugins <- DBI::dbConnect(RSQLite::SQLite(), dbname = db_info$public_db_name, host = db_info$host, port = db_info$port, user = db_info$user, password = db_info$password)
-      }
-      
-      r$remote_db <- db$main
-      m$remote_db <- db$plugins
-      
-      result <- "success"
-    }
-    
-  }, error = function(e) if (nchar(e[1]) > 0) cat(paste0("\n", now(), " - get_remote_db - error = ", toString(e))))
-  
-  result
-}
+# get_remote_db <- function(){
+#   
+#   # Get variables from other environments
+#   for (obj_name in c("r", "m", "output", "ns")) assign(obj_name, get(obj_name, envir = parent.frame()))
+#   i18n <- r$i18n
+#   
+#   result <- "failure"
+#   
+#   db_info <- DBI::dbGetQuery(r$local_db, "SELECT * FROM options WHERE category = 'remote_db'") %>% tibble::as_tibble()
+#   db_info <- db_info %>% dplyr::pull(value, name) %>% as.list()
+#   db <- list()
+#   
+#   # Try the connection
+#   tryCatch({
+#     
+#     if (db_info$main_db_name != "" & db_info$public_db_name != ""){
+#       
+#       # Postgres
+#       if (db_info$sql_lib == "postgres"){
+#         db$main <- DBI::dbConnect(RPostgres::Postgres(), dbname = db_info$main_db_name, host = db_info$host, port = db_info$port, user = db_info$user, password = db_info$password)
+#         db$plugins <- DBI::dbConnect(RPostgres::Postgres(), dbname = db_info$public_db_name, host = db_info$host, port = db_info$port, user = db_info$user, password = db_info$password)
+#       } 
+#       
+#       # SQLite
+#       if (db_info$sql_lib == "sqlite"){
+#         db$main <- DBI::dbConnect(RSQLite::SQLite(), dbname = db_info$main_db_name, host = db_info$host, port = db_info$port, user = db_info$user, password = db_info$password)
+#         db$plugins <- DBI::dbConnect(RSQLite::SQLite(), dbname = db_info$public_db_name, host = db_info$host, port = db_info$port, user = db_info$user, password = db_info$password)
+#       }
+#       
+#       r$remote_db <- db$main
+#       m$remote_db <- db$plugins
+#       
+#       result <- "success"
+#     }
+#     
+#   }, error = function(e) if (nchar(e[1]) > 0) cat(paste0("\n", now(), " - get_remote_db - error = ", toString(e))))
+#   
+#   result
+# }
 
 #' @noRd
-load_database <- function(r, m, i18n){
-  
-  # Database tables to load
-  r_tables <- c("users", "users_accesses", "users_statuses", "datasets", "plugins", "scripts", "code", "options", "git_repos")
-  
-  m_tables <- c("vocabulary")
-  
-  sapply(m_tables, function(table){
-    # Easier to load vocabulary in r var
-    r[[table]] <- DBI::dbGetQuery(m$db, paste0("SELECT * FROM ", table, " WHERE deleted IS FALSE ORDER BY id"))
-    r[[paste0(table, "_temp")]] <- r[[table]] %>% dplyr::mutate(modified = FALSE)
-  })
-  
-  # Add a tab_types variable, for settings/plugins dropdown
-  r$tab_types <- tibble::tribble(~id, ~name, 1, i18n$t("patient_level_data"), 2, i18n$t("aggregated_data"))
-}
+# load_database <- function(){
+#   
+#   # Get variables from other environments
+#   for (obj_name in c("r", "m")) assign(obj_name, get(obj_name, envir = parent.frame()))
+#   i18n <- r$i18n
+#   
+#   # Database tables to load
+#   r_tables <- c("users", "users_accesses", "users_statuses", "datasets", "plugins", "scripts", "code", "options", "git_repos")
+#   
+#   m_tables <- c("vocabulary")
+#   
+#   sapply(m_tables, function(table){
+#     # Easier to load vocabulary in r var
+#     r[[table]] <- DBI::dbGetQuery(m$db, paste0("SELECT * FROM ", table, " WHERE deleted IS FALSE ORDER BY id"))
+#     r[[paste0(table, "_temp")]] <- r[[table]] %>% dplyr::mutate(modified = FALSE)
+#   })
+#   
+#   # Add a tab_types variable, for settings/plugins dropdown
+#   r$tab_types <- tibble::tribble(~id, ~name, 1, i18n$t("patient_level_data"), 2, i18n$t("aggregated_data"))
+# }
 
 #' @noRd
 sql_send_statement <- function(con, sql){

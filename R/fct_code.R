@@ -43,7 +43,12 @@ capture_python_output <- function(code){
 #' 
 #' @return NULL (used for its side effects)
 #' @noRd
-execute_ace_code <- function(r, id, editor_id, full_code, editor_input, code_store_var) {
+execute_ace_code <- function(editor_id, full_code, editor_input, code_store_var) {
+  
+  # Get variables from other environments
+  for (obj_name in c("id", "r")) assign(obj_name, get(obj_name, envir = parent.frame()))
+  i18n <- r$i18n
+  
   # Function to find the next executable line (non-comment and non-empty)
   next_executable_line <- function(code_lines, current_line_idx) {
     if (current_line_idx >= length(code_lines)) return(NULL)
@@ -66,11 +71,12 @@ execute_ace_code <- function(r, id, editor_id, full_code, editor_input, code_sto
     trimmed <- trimws(line)
     # Check if the line starts with a function call (no assignment or control structures)
     # This heuristic attempts to identify lines that are likely pipe continuations
-    return(nzchar(trimmed) && 
-             !grepl("^\\s*#", trimmed) && # Not a comment
-             !grepl("^\\s*[a-zA-Z0-9_.]+\\s*(<-|=)", trimmed) && # Not an assignment
-             !grepl("^\\s*(if|for|while|function|repeat)\\s*\\(", trimmed) && # Not a control structure
-             grepl("^\\s*[a-zA-Z0-9_.:]+\\s*\\(", trimmed)) # Looks like a function call
+    return(
+      nzchar(trimmed) && 
+      !grepl("^\\s*#", trimmed) && # Not a comment
+      !grepl("^\\s*[a-zA-Z0-9_.]+\\s*(<-|=)", trimmed) && # Not an assignment
+      !grepl("^\\s*(if|for|while|function|repeat)\\s*\\(", trimmed) && # Not a control structure
+      grepl("^\\s*[a-zA-Z0-9_.:]+\\s*\\(", trimmed)) # Looks like a function call
   }
   
   # Function to check if a line is a closing element or contains a closing parenthesis
@@ -78,8 +84,8 @@ execute_ace_code <- function(r, id, editor_id, full_code, editor_input, code_sto
     trimmed <- trimws(line)
     # Check for lines that are either just closing elements or contain closing parentheses
     return(nzchar(trimmed) && 
-             (grepl("\\)", trimmed) && # Contains closing parenthesis
-                !grepl("\\(", trimmed))) # But no opening parenthesis in the same line
+      (grepl("\\)", trimmed) && # Contains closing parenthesis
+      !grepl("\\(", trimmed))) # But no opening parenthesis in the same line
   }
   
   # Function to get the next valid code block (multi-line block starting at current line)
