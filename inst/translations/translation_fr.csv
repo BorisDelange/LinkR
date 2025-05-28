@@ -575,3 +575,4 @@ password_successfully_updated,Mot de passe mis à jour
 user_added,Nouvel utilisateur ajouté
 an_error_occurred_see_log_for_details,Une erreur est survenue. Voir les logs pour les détails.
 an_error_occurred,Une erreur est survenue
+dataset_deleted,Set de données supprimé
