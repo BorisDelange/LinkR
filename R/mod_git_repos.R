@@ -325,7 +325,7 @@ mod_git_repos_ui <- function(id = character(), language = "en", languages = tibb
 }
 
 #' @noRd 
-mod_git_repos_server <- function(id, r, d, m, language, i18n, debug, user_accesses){
+mod_git_repos_server <- function(id, r, d, m, language, i18n, log_level, user_accesses){
   
   moduleServer(id, function(input, output, session){
     ns <- session$ns

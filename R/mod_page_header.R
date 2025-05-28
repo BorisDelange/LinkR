@@ -156,7 +156,7 @@ mod_page_header_ui <- function(id, language, i18n){
 }
 
 #' @noRd 
-mod_page_header_server <- function(id, r, d, m, language, i18n, debug){
+mod_page_header_server <- function(id, r, d, m, language, i18n, log_level){
   moduleServer(id, function(input, output, session){
     ns <- session$ns
     

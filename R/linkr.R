@@ -1,23 +1,37 @@
-#' Run the Shiny application
+#' Run the LinkR Shiny Application
 #'
 #' @description 
-#' Runs the LinkR Shiny Application.\cr
-#' Use language argument to choose language to use ("en" or "fr" available).\cr
-#' Use app_folder argument to choose a folder where the files of the application will be saved. By default, 
-#' a 'linkr' folder will be created in the folder returned by path.expand("~").\cr
-#' @param language Default language to use in the App (character)
-#' @param app_folder Location of the application folder (character).
-#' @param authentication Requires an authentication to access the app? (logical)
-#' @param username Username used for connection. Default username is "admin". (character)
-#' @param local Run the app in local mode, do not load files on the internet (logical)
-#' @param debug Debug mode : steps and errors will by displayed in the console (logical)
-#' @param log_file Create a log file to see app log directly in the app (logical)
-#' @param port Port used by shiny app (integer)
-#' @param loading_options List specifying the initial page, project, and subset to load at startup (a list with `page`, `project`, and `subset` keys)
+#' Launches the LinkR Shiny application for health data science. \cr
+#' You can configure the interface language, authentication mode, runtime behavior, and logging preferences.\cr
+#' 
+#' Use `language` to set the application language (`"en"` or `"fr"`). \cr
+#' Use `app_folder` to define where LinkR will store application data and configuration files. 
+#' If not specified, a `linkr` folder will be created in the user's home directory. \cr
+#' 
+#' Use `log_level` to control which log messages are displayed. It accepts a character vector containing any combination of:
+#' `"info"` (standard information), `"error"` (errors only), and `"event"` (application lifecycle events). \cr
+#' To disable all logs, use `"none"` or leave the argument empty. \cr
+#'
+#' Use `log_target` to define where logs are displayed: `"console"` (developer mode) or `"app"` (to display logs in the LinkR interface).
+#'
+#' @param language Language to use in the app (`"en"` or `"fr"`). (character)
+#' @param app_folder Path to the folder where application files will be stored. (character)
+#' @param authentication Should user authentication be enabled? (logical)
+#' @param username Default username used for authentication (only relevant if `authentication = FALSE`). (character)
+#' @param local If `TRUE`, runs the app in local mode without loading external files (e.g., from GitHub). (logical)
+#' @param log_level Character vector of log levels to display. Can include `"info"`, `"error"`, `"event"`, or be set to `"none"` or an empty vector to disable logging.
+#' @param log_target Destination for log messages: `"console"` or `"app"`. (character)
+#' @param port Port used to run the Shiny app. (integer)
+#' @param host Host address to run the app on. Default is `"0.0.0.0"`. (character)
+#' @param loading_options A list of startup options (e.g., page, project, subset to load). Should include named elements like `page`, `project_id`, `load_data_page`, `subset_id`, `person_id`.
+#'
 #' @examples 
 #' \dontrun{
-#' linkr(language = "en", app_folder = "my_app_folder/")
+#' linkr(log_level = c("info", "event"), log_target = "console")
+#' linkr(log_level = "none")
+#' linkr(log_level = character(0))  # same as disabling all logs
 #' }
+#'
 #' @export
 #' @importFrom shiny shinyApp
 #' @importFrom magrittr %>%
@@ -28,9 +42,10 @@ linkr <- function(
   authentication = FALSE,
   username = "admin",
   local = FALSE,
-  debug = FALSE,
-  log_file = FALSE,
+  log_level = c("event", "error"),
+  log_target = "app",
   port = 3838,
+  host = "0.0.0.0",
   loading_options = list()
 ) {
   
@@ -44,6 +59,9 @@ linkr <- function(
   # Check version of shiny.fluent (has to be inferior to 0.4.0)
   if (packageVersion("shiny.fluent") >= "0.4.0") stop("Invalid shiny.fluent version: version 0.3.0 is required. Install it with remotes::install_github('Appsilon/shiny.fluent', ref = 'dd1c956').")
   
+  # Check arguments
+  if (log_target %not_in% c("console", "app")) stop("'log_target' argument must be 'console' or 'app'")
+  
   # Set umask 002 for files creation
   Sys.umask("002")
   
@@ -51,10 +69,9 @@ linkr <- function(
   # Used to restore database and import vocabularies
   # shiny.launch.browser to automatically open browser
   
-  if (debug) cat(paste0("[", now(), "] [INFO] - [page_id = linkr] init LinkR - v0.3.1.9008"))
-  options(shiny.maxRequestSize = 4096*1024^2, shiny.launch.browser = TRUE, shiny.port = port)
+  if ("event" %in% log_level) cat(paste0("[", now(), "] [EVENT] [page_id = linkr] init LinkR - v0.3.1.9008"))
+  options(shiny.maxRequestSize = 4096*1024^2, shiny.launch.browser = TRUE, shiny.port = port, shiny.host = host)
   
-  if (!is.logical(debug)) stop("'debug' argument is not of logical type")
   if (!is.logical(local)) stop("'local' argument is not of logical type")
   if (!is.logical(authentication)) stop("'authentication' argument is not of logical type")
   
@@ -65,7 +82,7 @@ linkr <- function(
   }
   
   # Create app folder if it doesn't exist
-  if (debug) cat(paste0("\n[", now(), "] [INFO] - [page_id = linkr] create app_folder"))
+  if ("event" %in% log_level) cat(paste0("\n[", now(), "] [EVENT] [page_id = linkr] create app_folder"))
   if (length(app_folder) == 0) app_folder <- paste0(path.expand("~"), "/linkr")
   
   if (!dir.exists(app_folder)){
@@ -76,7 +93,7 @@ linkr <- function(
   }
   
   # Create app sub-dirs
-  if (debug) cat(paste0("\n[", now(), "] [INFO] - [page_id = linkr] create app sub-dirs"))
+  if ("event" %in% log_level) cat(paste0("\n[", now(), "] [EVENT] [page_id = linkr] create app sub-dirs"))
   sub_dirs <- c(
     "app_database",
     "data_cleaning",
@@ -94,7 +111,7 @@ linkr <- function(
   for (sub_dir in sub_dirs) if (!dir.exists(paste0(app_folder, "/", sub_dir))) dir.create(paste0(app_folder, "/", sub_dir))
   
   # Load translations
-  if (debug) cat(paste0("\n[", now(), "] [INFO] - [page_id = linkr] load translations"))
+  if ("event" %in% log_level) cat(paste0("\n[", now(), "] [EVENT] [page_id = linkr] load translations"))
   
   languages <- c("en", "fr")
   if (language %not_in% languages){
@@ -329,10 +346,10 @@ linkr <- function(
   
   # Load UI & server
   
-  if (debug) cat(paste0("\n[", now(), "] [INFO] - [page_id = linkr] load UI & server"))
+  if ("event" %in% log_level) cat(paste0("\n[", now(), "] [EVENT] [page_id = linkr] load UI & server"))
   shinyApp(
-    ui = app_ui(pages, language, languages, i18n, users_accesses_toggles_options, db_col_types, dropdowns, auto_complete_list, debug),
-    server = app_server(pages, language, languages, i18n, app_folder, authentication, username, debug, log_file, local, users_accesses_toggles_options, db_col_types, dropdowns, auto_complete_list, loading_options),
+    ui = app_ui(pages, language, languages, i18n, users_accesses_toggles_options, db_col_types, dropdowns, auto_complete_list, log_level),
+    server = app_server(pages, language, languages, i18n, app_folder, authentication, username, log_level, log_target, local, users_accesses_toggles_options, db_col_types, dropdowns, auto_complete_list, loading_options),
     options = options
   )
 }

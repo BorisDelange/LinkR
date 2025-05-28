@@ -71,7 +71,7 @@ mod_project_files_ui <- function(id, language, languages, i18n){
 }
 
 #' @noRd 
-mod_project_files_server <- function(id, r, d, m, language, i18n, debug, user_accesses, user_settings){
+mod_project_files_server <- function(id, r, d, m, language, i18n, log_level, user_accesses, user_settings){
   moduleServer(id, function(input, output, session){
     ns <- session$ns
     

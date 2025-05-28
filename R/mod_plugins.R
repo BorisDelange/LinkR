@@ -343,18 +343,18 @@ mod_plugins_ui <- function(id, language, languages, i18n){
 }
 
 #' @noRd 
-mod_plugins_server <- function(id, r, d, m, language, i18n, debug, user_accesses, user_settings){
+mod_plugins_server <- function(id, r, d, m, language, i18n, log_level, user_accesses, user_settings){
   
   # |-------------------------------- -----
   
   # Load widgets ----
   
   all_divs <- c("summary", "edit_code", "run_code", "share")
-  mod_widgets_server(id, r, d, m, language, i18n, all_divs, debug, user_accesses, user_settings)
+  mod_widgets_server(id, r, d, m, language, i18n, all_divs, log_level, user_accesses, user_settings)
   
   # Load concepts backend ----
   
-  mod_select_concepts_server(id, r, d, m, language, i18n, debug)
+  mod_select_concepts_server(id, r, d, m, language, i18n, log_level)
   
   # |-------------------------------- -----
   
@@ -840,7 +840,7 @@ mod_plugins_server <- function(id, r, d, m, language, i18n, debug, user_accesses
       new_env_vars <- list("r" = NA)
 
       # Variables to keep
-      variables_to_keep <- c("d", "m", "session_code", "session_num", "i18n", "selected_concepts", "debug")
+      variables_to_keep <- c("d", "m", "session_code", "session_num", "i18n", "selected_concepts", "log_level")
       if (exists("i18np")) variables_to_keep <- c(variables_to_keep, "i18np")
 
       for (var in variables_to_keep) new_env_vars[[var]] <- eval(parse(text = var))

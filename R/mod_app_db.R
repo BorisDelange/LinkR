@@ -267,7 +267,7 @@ mod_app_db_ui <- function(id, language, languages, i18n, code_hotkeys, db_col_ty
 }
 
 #' @noRd
-mod_app_db_server <- function(id, r, d, m, language, i18n, db_col_types, app_folder, debug, user_accesses, user_settings){
+mod_app_db_server <- function(id, r, d, m, language, i18n, db_col_types, app_folder, log_level, user_accesses, user_settings){
   moduleServer(id, function(input, output, session){
     ns <- session$ns
     

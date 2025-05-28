@@ -29,7 +29,7 @@ mod_home_ui <- function(id, language, languages, i18n){
 }
 
 #' @noRd 
-mod_home_server <- function(id, r, d, m, language, i18n, debug, user_accesses){
+mod_home_server <- function(id, r, d, m, language, i18n, log_level, user_accesses){
   moduleServer(id, function(input, output, session){
     ns <- session$ns
     

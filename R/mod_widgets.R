@@ -110,7 +110,7 @@ mod_widgets_ui <- function(id, language, languages, i18n){
 }
 
 #' @noRd 
-mod_widgets_server <- function(id, r, d, m, language, i18n, all_divs, debug, user_accesses, user_settings){
+mod_widgets_server <- function(id, r, d, m, language, i18n, all_divs, log_level, user_accesses, user_settings){
   moduleServer(id, function(input, output, session){
     ns <- session$ns
     

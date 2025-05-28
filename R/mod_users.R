@@ -312,7 +312,7 @@ mod_users_ui <- function(id, language, languages, i18n, users_accesses_toggles_o
 }
 
 #' @noRd 
-mod_users_server <- function(id, r, d, m, language, i18n, debug, users_accesses_toggles_options, user_accesses){
+mod_users_server <- function(id, r, d, m, language, i18n, log_level, users_accesses_toggles_options, user_accesses){
   moduleServer(id, function(input, output, session){
     ns <- session$ns
     

@@ -50,7 +50,7 @@ mod_console_ui <- function(id, language, languages, i18n, code_hotkeys, auto_com
 }
 
 #' @noRd 
-mod_console_server <- function(id, r, d, m, language, i18n, debug, user_accesses, user_settings){
+mod_console_server <- function(id, r, d, m, language, i18n, log_level, user_accesses, user_settings){
   moduleServer(id, function(input, output, session){
     ns <- session$ns
     

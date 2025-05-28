@@ -40,16 +40,25 @@ remove_special_chars <- function(text){
 `%not_in%` <- Negate(`%in%`)
 
 #' @noRd
-try_catch <- function(trigger = character(), code){
-  
-  for (obj_name in c("id", "debug", "output", "i18n", "ns")) assign(obj_name, get(obj_name, envir = parent.frame()))
-  
+try_catch <- function(trigger = character(), code, widget_id = NA_integer_){
+
+  for (obj_name in c("id", "log_level", "output", "i18n", "ns")) assign(obj_name, get(obj_name, envir = parent.frame()))
+
+  if (!is.na(widget_id)){
+    event_message <- paste0("\n[", now(), "] [EVENT] [page_id = ", id, "] [widget_id = ", widget_id, "] event triggered by ", trigger)
+    error_message <- paste0("\n[", now(), "] [ERROR] [page_id = ", id, "] [widget_id = ", widget_id, "] error with trigger ", trigger, " - error = ")
+  }
+  else {
+    event_message <- paste0("\n[", now(), "] [EVENT] [page_id = ", id, "] event triggered by ", trigger)
+    error_message <- paste0("\n[", now(), "] [ERROR] [page_id = ", id, "] error with trigger ", trigger, " - error = ")
+  }
+
   tryCatch({
-    if (debug) cat(paste0("\n[", now(), "] [INFO] [page_id = ", id, "] event triggered by ", trigger))
+    if ("event" %in% log_level) cat(event_message)
     code
   }, error = function(e){
-    if (debug){
-      cat(paste0("\n[", now(), "] [ERROR] [page_id = ", id, "] error with trigger ", trigger, " - error = ", toString(e)))
+    if ("error" %in% log_level){
+      cat(paste0(error_message, toString(e)))
       show_message_bar("an_error_occurred_see_log_for_details", "severeWarning")
     }
     else show_message_bar("an_error_occurred", "severeWarning")

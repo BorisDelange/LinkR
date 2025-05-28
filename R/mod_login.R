@@ -41,7 +41,7 @@ mod_login_ui <- function(id, i18n){
 }
 
 #' @noRd 
-mod_login_server <- function(id, r, i18n, debug){
+mod_login_server <- function(id, r, i18n, log_level){
   moduleServer(id, function(input, output, session){
     ns <- session$ns
     

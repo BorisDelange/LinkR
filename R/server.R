@@ -1,16 +1,16 @@
 #' @noRd
 app_server <- function(
-    pages, language, languages, i18n, app_folder, authentication, username, debug, log_file, local, 
+    pages, language, languages, i18n, app_folder, authentication, username, log_level, log_target, local, 
     users_accesses_toggles_options, db_col_types, dropdowns, auto_complete_list, loading_options
   ){
   
   function(input, output, session) {
     
-    if (debug) cat(paste0("\n[", now(), "] [INFO] - [page_id = server] init server"))
+    if ("event" %in% log_level) cat(paste0("\n[", now(), "] [EVENT] [page_id = server] init server"))
     
     language <- tolower(language)
     
-    if (debug) cat(paste0("\n[", now(), "] [INFO] - [page_id = server] load reactive values"))
+    if ("event" %in% log_level) cat(paste0("\n[", now(), "] [EVENT] [page_id = server] load reactive values"))
     
     # Create reactive values ----
     
@@ -60,13 +60,13 @@ app_server <- function(
     
     # Test internet connection ----
     # If local is TRUE, don't use internet connection
-    if (debug) cat(paste0("\n[", now(), "] [INFO] - [page_id = server] internet connection test"))
+    if ("event" %in% log_level) cat(paste0("\n[", now(), "] [EVENT] [page_id = server] internet connection test"))
     if (local) has_internet <- FALSE
     else has_internet <- curl::has_internet()
     r$has_internet <- has_internet
     
     # App folder ----
-    if (debug) cat(paste0("\n[", now(), "] [INFO] - [page_id = server] get app folder"))
+    if ("event" %in% log_level) cat(paste0("\n[", now(), "] [EVENT] [page_id = server] get app folder"))
     r$app_folder <- app_folder
     m$app_folder <- app_folder
     
@@ -75,7 +75,7 @@ app_server <- function(
     
     # Translations ----
     
-    if (debug) cat(paste0("\n[", now(), "] [INFO] - [page_id = server] get translations"))
+    if ("event" %in% log_level) cat(paste0("\n[", now(), "] [EVENT] [page_id = server] get translations"))
     
     r$i18n <- i18n
     m$i18n <- i18n
@@ -87,7 +87,7 @@ app_server <- function(
     
     # Connection to database ----
     # If connection informations have been given in linkr() function, use these informations
-    if (debug) cat(paste0("\n[", now(), "] [INFO] - [page_id = server] load app database"))
+    if ("event" %in% log_level) cat(paste0("\n[", now(), "] [EVENT] [page_id = server] load app database"))
     local_db <- DBI::dbConnect(RSQLite::SQLite(), paste0(app_db_folder, "/linkr_main"))
     r$local_db <- local_db
     m$local_db <- DBI::dbConnect(RSQLite::SQLite(), paste0(app_db_folder, "/linkr_public"))
@@ -104,7 +104,7 @@ app_server <- function(
     
     observeEvent(r$db, {
       
-      if (debug) cat(paste0("\n[", now(), "] [INFO] - [page_id = server] event triggered by observer r$db"))
+      if ("event" %in% log_level) cat(paste0("\n[", now(), "] [EVENT] [page_id = server] event triggered by observer r$db"))
       
       # Add default values in database, if it is empty
       insert_default_data(db_col_types = db_col_types, users_accesses_toggles_options = users_accesses_toggles_options)
@@ -184,9 +184,9 @@ app_server <- function(
     # User is logged in
     
     observeEvent(r$user_id, {
-      if (debug) cat(paste0("\n[", now(), "] [INFO] - [page_id = server] event triggered by r$user_id"))
+      if ("event" %in% log_level) cat(paste0("\n[", now(), "] [EVENT] [page_id = server] event triggered by r$user_id"))
       
-      if (log_file){
+      if (log_target == "app"){
         
         # Create a log folder for this user if doesn't exist
         local_log_file <- paste0(r$app_folder, "/log/", r$user_id, ".txt")
@@ -196,7 +196,7 @@ app_server <- function(
       }
       
       onStop(function() {
-        if (debug) cat(paste0("\n[", now(), "] [INFO] - [page_id = server] event triggered by onStop"))
+        if ("event" %in% log_level) cat(paste0("\n[", now(), "] [EVENT] [page_id = server] event triggered by onStop"))
         
         # Close db connections
         # if (length(d$con) > 0) if (DBI::dbIsValid(d$con)) DBI::dbDisconnect(d$con)
@@ -227,7 +227,7 @@ app_server <- function(
     
     observeEvent(shiny.router::get_page(), {
 
-      if (debug) cat(paste0("\n[", now(), "] [INFO] - [page_id = server] event triggered by shiny.router::get_page()"))
+      if ("event" %in% log_level) cat(paste0("\n[", now(), "] [EVENT] [page_id = server] event triggered by shiny.router::get_page()"))
 
       current_page <- shiny.router::get_page()
       r$current_page <- current_page
@@ -252,12 +252,12 @@ app_server <- function(
     })
     
     observeEvent(r$load_page, {
-      if (debug) cat(paste0("\n[", now(), "] [INFO] - [page_id = server] event triggered by r$load_page"))
+      if ("event" %in% log_level) cat(paste0("\n[", now(), "] [EVENT] [page_id = server] event triggered by r$load_page"))
       
       page <- r$load_page
       
       if (page == "login"){
-        mod_login_server("login", r, i18n, debug)
+        mod_login_server("login", r, i18n, log_level)
         r$loaded_pages$login <- TRUE
       }
       
@@ -284,22 +284,22 @@ app_server <- function(
       # Data pages are loaded from mod_widgets (when a project is selected)
       if (page == "data"){
 
-        mod_data_server("data", r, d, m, language, i18n, debug, user_accesses)
-        mod_page_sidenav_server("data", r, d, m, language, i18n, debug)
-        mod_page_header_server("data", r, d, m, language, i18n, debug)
+        mod_data_server("data", r, d, m, language, i18n, log_level, user_accesses)
+        mod_page_sidenav_server("data", r, d, m, language, i18n, log_level)
+        mod_page_header_server("data", r, d, m, language, i18n, log_level)
         r$loaded_pages$data <- TRUE
 
         r$load_project_trigger <- now()
       }
       else {
-        if (page == "users") args <- list(page, r, d, m, language, i18n, debug, users_accesses_toggles_options, user_accesses)
-        else if (page == "app_db") args <- list(page, r, d, m, language, i18n, db_col_types, app_folder, debug, user_accesses, user_settings)
-        else if (page %in% c("console", "data_cleaning", "datasets", "plugins", "projects", "project_files", "subsets", "user_settings", "vocabularies")) args <- list(page, r, d, m, language, i18n, debug, user_accesses, user_settings)
-        else args <- list(page, r, d, m, language, i18n, debug, user_accesses)
+        if (page == "users") args <- list(page, r, d, m, language, i18n, log_level, users_accesses_toggles_options, user_accesses)
+        else if (page == "app_db") args <- list(page, r, d, m, language, i18n, db_col_types, app_folder, log_level, user_accesses, user_settings)
+        else if (page %in% c("console", "data_cleaning", "datasets", "plugins", "projects", "project_files", "subsets", "user_settings", "vocabularies")) args <- list(page, r, d, m, language, i18n, log_level, user_accesses, user_settings)
+        else args <- list(page, r, d, m, language, i18n, log_level, user_accesses)
         do.call(paste0("mod_", page, "_server"), args)
 
-        mod_page_sidenav_server(page, r, d, m, language, i18n, debug)
-        mod_page_header_server(page, r, d, m, language, i18n, debug)
+        mod_page_sidenav_server(page, r, d, m, language, i18n, log_level)
+        mod_page_header_server(page, r, d, m, language, i18n, log_level)
 
         r$loaded_pages[[page]] <- TRUE
       }
