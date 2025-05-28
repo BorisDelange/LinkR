@@ -1073,7 +1073,7 @@ mod_git_repos_server <- function(id, r, d, m, language, i18n, log_level, user_ac
           }
         }, error = function(e){
           show_message_bar("error_update_remote_git_repo", "severeWarning")
-          cat(paste0("\n", now(), " - mod_git_repos - update remot git error - ", toString(e)))
+          cat(paste0("\n", now(), " - mod_git_repos - update remote Git error - ", toString(e)))
         })
         
         # Close git push modal

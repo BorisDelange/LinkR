@@ -716,11 +716,13 @@ render_datatable <- function(data = tibble::tibble(), output_name = character(),
 }
 
 #' @noRd
-show_message_bar <- function(message = character(), type = "severeWarning", time = 7000){
+show_message_bar <- function(message = character(), type = "severeWarning", time = 7000, i18n){
   
   # Get variables from other environments
-  if (exists("i18np", envir = parent.frame())) i18n <- get("i18np", envir = parent.frame())
-  else i18n <- get("i18n", envir = parent.frame())
+  if (missing(i18n)){
+    if (exists("i18np", envir = parent.frame())) i18n <- get("i18np", envir = parent.frame())
+    else i18n <- get("i18n", envir = parent.frame())
+  }
   
   for (obj_name in c("id", "output")) assign(obj_name, get(obj_name, envir = parent.frame()))
   ns <- NS(id)

@@ -47,7 +47,6 @@ try_catch <- function(trigger = character(), code){
       assign(obj_name, get(obj_name, envir = parent.frame()))
     }
   }
-  if (exists("i18np")) i18n <- i18np
   
   if (exists("widget_id")){
     event_message <- paste0("\n[", now(), "] [EVENT] [page_id = ", id, "] [widget_id = ", widget_id, "] event triggered by ", trigger)

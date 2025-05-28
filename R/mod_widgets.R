@@ -1557,7 +1557,7 @@ mod_widgets_server <- function(id, r, d, m, language, i18n, all_divs, log_level,
           }
         }, error = function(e){
           show_message_bar("error_update_remote_git_repo", "severeWarning")
-          cat(paste0("\n", now(), " - mod_widgets - (", id, ") - update remot git error - ", toString(e)))
+          cat(paste0("\n", now(), " - mod_widgets - (", id, ") - update remote Git error - ", toString(e)))
         })
       }
       
