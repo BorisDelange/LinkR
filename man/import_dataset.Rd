@@ -2,7 +2,7 @@
 % Please edit documentation in R/fct_import_data.R
 \name{import_dataset}
 \alias{import_dataset}
-\title{Import a dataset}
+\title{Import a Dataset in OMOP Format}
 \usage{
 import_dataset(
   omop_version = "5.4",
@@ -12,17 +12,51 @@ import_dataset(
 )
 }
 \arguments{
-\item{omop_version}{The OMOP version of the imported data. Accepted values are `"5.3"` and `"5.4"`. Defaults to `"5.4"`.}
+\item{omop_version}{OMOP CDM version of the dataset. Accepted values are `"5.3"` and `"5.4"`. Default is `"5.4"`.}
 
-\item{data_folder}{The folder containing the data. Must be a character string.}
+\item{data_folder}{Path to the folder containing OMOP tables in `.csv` or `.parquet` format. If specified, `data_source = "disk"` is assumed.}
 
-\item{con}{A `DBI::dbConnect` object representing the database connection, required if `data_source` is `"db"`.}
+\item{con}{A live `DBI` database connection (`DBI::dbConnect(...)`), required only if `data_folder` is not specified. Used when `data_source = "db"`.}
 
-\item{tables_to_load}{A character vector specifying which OMOP tables to load}
+\item{tables_to_load}{A character vector specifying which OMOP tables to load. If empty, all supported tables are loaded automatically.}
+}
+\value{
+A tibble summarizing the number of rows per loaded table (only if current page is "datasets").
 }
 \description{
-Imports a dataset into the application using the OMOP Common Data Model.
+Imports an OMOP Common Data Model dataset into the application, either from a local folder (CSV or Parquet files)
+or from a live database connection. This function populates the in-app data environment (`d$`) and is typically 
+used when configuring or reloading a dataset in LinkR.
+
+If `data_folder` is provided, the function assumes a file-based import; otherwise, it expects a database connection via `con`.
 }
 \details{
-...
+This function supports two data sources:
+
+- **Disk**: When `data_folder` is specified, the app will try to load OMOP tables from CSV or Parquet files located in that folder.
+   You can also organize tables into subfolders (one per table) if needed.
+
+- **Database**: When `data_folder` is empty and a valid connection is passed via `con`, the data is pulled directly from the database.
+
+The function uses an internal DuckDB connection when reading from disk.
+It supports automatic detection of column types based on the OMOP version.
+
+For development and debugging purposes, imported tables are printed with the number of rows loaded (only when used from the "datasets" page).
+}
+\examples{
+\dontrun{
+# Import from a local folder containing OMOP CSV files
+import_dataset(data_folder = "~/data/omop_export", omop_version = "5.4")
+
+# Import only a few specific tables from Parquet files
+import_dataset(
+  data_folder = "~/data/parquet_omop",
+  tables_to_load = c("person", "observation", "visit_occurrence")
+)
+
+# Import data from a live PostgreSQL database
+con <- DBI::dbConnect(RPostgres::Postgres(), dbname = "omop", host = "localhost")
+import_dataset(con = con, tables_to_load = c("person", "measurement"))
+}
+
 }

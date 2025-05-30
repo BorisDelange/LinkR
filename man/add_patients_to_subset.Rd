@@ -2,63 +2,66 @@
 % Please edit documentation in R/fct_data_management.R
 \name{add_patients_to_subset}
 \alias{add_patients_to_subset}
-\title{Add patients to a subset}
+\title{Add Patients to a Subset}
 \usage{
 add_patients_to_subset(patients = tibble::tibble(), subset_id = integer())
 }
 \arguments{
 \item{patients}{Either:
-- A numeric vector of person_ids
-- A data.frame/tibble containing at least one of these columns:
-  - person_id: Patient identifier
-  - visit_occurrence_id: Visit identifier (optional, requires person_id)
-  - visit_detail_id: Visit detail identifier (optional, requires visit_occurrence_id)}
+- A numeric vector of `person_id`s  
+- A data.frame or tibble with at least one of the following columns:
+  - `person_id` (required): Patient identifier  
+  - `visit_occurrence_id` (optional): Visit identifier, must be used with `person_id`  
+  - `visit_detail_id` (optional): Visit detail identifier, must be used with `visit_occurrence_id`}
 
-\item{subset_id}{An integer representing the ID of the subset to which the patients will be added.
-The subset ID must be positive and valid.}
+\item{subset_id}{An integer representing the ID of the subset to which patients will be added.
+If not provided and the current page is `"subsets"`, it is inferred from currently selected subset.  
+The value must be a positive integer.}
 }
 \value{
-A character string indicating the success or failure of the operation. If successful, the message includes
-the number of patients added to the subset. If an error occurs, it returns an error message.
+A character message indicating the result:
+- Success message including the number of patients added
+- Message indicating no new patients were added
+- Error message if inputs are invalid
 }
 \description{
-This function adds patients to a specific subset in the database table subset_persons.
-It can handle person identifiers alone or combined with visit identifiers.
-It ensures the validity of the input parameters and prevents duplicate entries.
+Adds one or more patients to a specific subset in the `subset_persons` table of the database.  
+This function accepts either a vector of patient identifiers or a structured tibble including visit information.  
+It ensures input validity and avoids adding duplicates already present in the subset.
 }
 \details{
-The function performs several checks:
-- Validates subset_id to ensure it is a positive integer
-- Validates patients to ensure it is either a numeric vector or a data.frame/tibble with a person_id column
-- If visit identifiers are provided, ensures they are properly structured
-- Removes duplicate entries based on the provided identification columns
-- Removes patients that are already in the subset to avoid duplicates
+The function performs several validation steps:
 
-The function handles three cases:
-1. Basic: Only person_id provided
-2. Visits: person_id and visit_occurrence_id provided
-3. Detailed visits: person_id, visit_occurrence_id and visit_detail_id provided
+- Ensures `subset_id` is a valid positive integer  
+- Converts a numeric vector of patients into a tibble with a `person_id` column  
+- Validates the consistency of visit-related identifiers  
+- Removes duplicates within the input and already existing entries in the database  
 
-If the inputs are valid, the function inserts the new patients into the subset_persons table in the database.
+Supported use cases:
+1. **Basic:** Only `person_id` is provided  
+2. **With visit:** `person_id` and `visit_occurrence_id`  
+3. **With visit details:** `person_id`, `visit_occurrence_id`, and `visit_detail_id`
+
+Only new, unique entries will be inserted into the `subset_persons` table.
 }
 \examples{
 \dontrun{
-# Example with a numeric vector of person IDs
+# Add patients using a simple vector of person IDs
 patients <- c(123, 456, 789)
 add_patients_to_subset(patients = patients)
 
-# Example with person_ids in a tibble
+# Add patients using a tibble with person IDs
 patients <- tibble::tibble(person_id = c(123, 456, 789))
 add_patients_to_subset(patients = patients)
 
-# Example with visit_occurrence_ids
+# Add patients with visit_occurrence_id
 patients <- tibble::tibble(
   person_id = c(123, 456),
   visit_occurrence_id = c(1001, 1002)
 )
 add_patients_to_subset(patients = patients)
 
-# Example with visit_detail_ids
+# Add patients with visit_detail_id
 patients <- tibble::tibble(
   person_id = c(123, 456),
   visit_occurrence_id = c(1001, 1002),
@@ -66,4 +69,5 @@ patients <- tibble::tibble(
 )
 add_patients_to_subset(patients = patients)
 }
+
 }

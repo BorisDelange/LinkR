@@ -24,7 +24,7 @@ linkr(
 
 \item{authentication}{Should user authentication be enabled? (logical)}
 
-\item{username}{Default username used for authentication (only relevant if `authentication = FALSE`). (character)}
+\item{username}{Username to auto-connect with when `authentication = FALSE` (character). Ignored if authentication is enabled.}
 
 \item{local}{If `TRUE`, runs the app in local mode without loading external files (e.g., from GitHub). (logical)}
 
@@ -39,24 +39,61 @@ linkr(
 \item{loading_options}{A list of startup options (e.g., page, project, subset to load). Should include named elements like `page`, `project_id`, `load_data_page`, `subset_id`, `person_id`.}
 }
 \description{
-Launches the LinkR Shiny application for health data science. \cr
-You can configure the interface language, authentication mode, runtime behavior, and logging preferences.\cr
+Launches the LinkR Shiny application for health data science.
+You can configure the interface language, authentication mode, runtime behavior, and logging preferences
 
-Use `language` to set the application language (`"en"` or `"fr"`). \cr
+Use `language` to set the application language (`"en"` or `"fr"`).
+
 Use `app_folder` to define where LinkR will store application data and configuration files. 
-If not specified, a `linkr` folder will be created in the user's home directory. \cr
+If not specified, a `linkr` folder will be created in the user's home directory.
+
+Use `username` to auto-connect as a specific user when `authentication = FALSE`. 
+This allows you to bypass the login screen entirely during development or demo sessions.
 
 Use `log_level` to control which log messages are displayed. It accepts a character vector containing any combination of:
-`"info"` (standard information), `"error"` (errors only), and `"event"` (application lifecycle events). \cr
-To disable all logs, use `"none"` or leave the argument empty. \cr
+`"info"` (standard information), `"error"` (errors only), and `"event"` (application lifecycle events).
+To disable all logs, use `"none"` or leave the argument empty.
 
 Use `log_target` to define where logs are displayed: `"console"` (developer mode) or `"app"` (to display logs in the LinkR interface).
 }
 \examples{
 \dontrun{
-linkr(log_level = c("info", "event"), log_target = "console")
+# Run LinkR in English with default settings
+linkr()
+
+# Run LinkR in French
+linkr(language = "fr")
+
+# Specify a custom folder to store configuration and user data
+linkr(app_folder = "~/my_linkr_data")
+
+# Enable user authentication (will prompt login screen)
+linkr(authentication = TRUE)
+
+# Disable authentication and auto-connect as a predefined user
+linkr(authentication = FALSE, username = "admin")
+
+# Run the app in local mode (without loading from GitHub)
+linkr(local = TRUE)
+
+# Customize logging: show only info and error messages in the console
+linkr(log_level = c("info", "error"), log_target = "console")
+
+# Disable all logging
 linkr(log_level = "none")
-linkr(log_level = character(0))  # same as disabling all logs
+
+# Run the app on a custom host and port (e.g., for deployment)
+linkr(host = "127.0.0.1", port = 8080)
+
+# Automatically load a specific page or project at startup
+# This is especially useful for online demos or when sharing a reproducible scenario
+linkr(loading_options = list(
+  page = "home",
+  project_id = "project123",
+  load_data_page = "patient_lvl",
+  subset_id = "subset_A",
+  person_id = "patient42"
+))
 }
 
 }

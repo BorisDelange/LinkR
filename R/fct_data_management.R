@@ -1,56 +1,59 @@
-#' Add patients to a subset
+#' Add Patients to a Subset
 #'
 #' @description
-#' This function adds patients to a specific subset in the database table subset_persons.
-#' It can handle person identifiers alone or combined with visit identifiers.
-#' It ensures the validity of the input parameters and prevents duplicate entries.
+#' Adds one or more patients to a specific subset in the `subset_persons` table of the database.  
+#' This function accepts either a vector of patient identifiers or a structured tibble including visit information.  
+#' It ensures input validity and avoids adding duplicates already present in the subset.
 #'
 #' @param patients Either:
-#' - A numeric vector of person_ids
-#' - A data.frame/tibble containing at least one of these columns:
-#'   - person_id: Patient identifier
-#'   - visit_occurrence_id: Visit identifier (optional, requires person_id)
-#'   - visit_detail_id: Visit detail identifier (optional, requires visit_occurrence_id)
-#' @param subset_id An integer representing the ID of the subset to which the patients will be added.
-#' The subset ID must be positive and valid.
+#'   - A numeric vector of `person_id`s  
+#'   - A data.frame or tibble with at least one of the following columns:
+#'     - `person_id` (required): Patient identifier  
+#'     - `visit_occurrence_id` (optional): Visit identifier, must be used with `person_id`  
+#'     - `visit_detail_id` (optional): Visit detail identifier, must be used with `visit_occurrence_id`
 #'
-#' @return
-#' A character string indicating the success or failure of the operation. If successful, the message includes
-#' the number of patients added to the subset. If an error occurs, it returns an error message.
+#' @param subset_id An integer representing the ID of the subset to which patients will be added.  
+#' If not provided and the current page is `"subsets"`, it is inferred from currently selected subset.  
+#' The value must be a positive integer.
+#'
+#' @return A character message indicating the result:
+#' - Success message including the number of patients added
+#' - Message indicating no new patients were added
+#' - Error message if inputs are invalid
 #'
 #' @details
-#' The function performs several checks:
-#' - Validates subset_id to ensure it is a positive integer
-#' - Validates patients to ensure it is either a numeric vector or a data.frame/tibble with a person_id column
-#' - If visit identifiers are provided, ensures they are properly structured
-#' - Removes duplicate entries based on the provided identification columns
-#' - Removes patients that are already in the subset to avoid duplicates
+#' The function performs several validation steps:
+#' 
+#' - Ensures `subset_id` is a valid positive integer  
+#' - Converts a numeric vector of patients into a tibble with a `person_id` column  
+#' - Validates the consistency of visit-related identifiers  
+#' - Removes duplicates within the input and already existing entries in the database  
+#' 
+#' Supported use cases:
+#' 1. **Basic:** Only `person_id` is provided  
+#' 2. **With visit:** `person_id` and `visit_occurrence_id`  
+#' 3. **With visit details:** `person_id`, `visit_occurrence_id`, and `visit_detail_id`
 #'
-#' The function handles three cases:
-#' 1. Basic: Only person_id provided
-#' 2. Visits: person_id and visit_occurrence_id provided
-#' 3. Detailed visits: person_id, visit_occurrence_id and visit_detail_id provided
-#'
-#' If the inputs are valid, the function inserts the new patients into the subset_persons table in the database.
+#' Only new, unique entries will be inserted into the `subset_persons` table.
 #'
 #' @examples
 #' \dontrun{
-#' # Example with a numeric vector of person IDs
+#' # Add patients using a simple vector of person IDs
 #' patients <- c(123, 456, 789)
 #' add_patients_to_subset(patients = patients)
 #'
-#' # Example with person_ids in a tibble
+#' # Add patients using a tibble with person IDs
 #' patients <- tibble::tibble(person_id = c(123, 456, 789))
 #' add_patients_to_subset(patients = patients)
 #'
-#' # Example with visit_occurrence_ids
+#' # Add patients with visit_occurrence_id
 #' patients <- tibble::tibble(
 #'   person_id = c(123, 456),
 #'   visit_occurrence_id = c(1001, 1002)
 #' )
 #' add_patients_to_subset(patients = patients)
 #'
-#' # Example with visit_detail_ids
+#' # Add patients with visit_detail_id
 #' patients <- tibble::tibble(
 #'   person_id = c(123, 456),
 #'   visit_occurrence_id = c(1001, 1002),
@@ -58,6 +61,7 @@
 #' )
 #' add_patients_to_subset(patients = patients)
 #' }
+#'
 add_patients_to_subset <- function(patients = tibble::tibble(), subset_id = integer()){
   
   # Get variables from other environments
@@ -131,61 +135,66 @@ add_patients_to_subset <- function(patients = tibble::tibble(), subset_id = inte
   else return(i18n$t("no_patients_to_add_to_subset"))
 }
 
-#' Remove entries from a subset
+#' Remove Entries from a Subset
 #'
 #' @description 
-#' This function removes entries from a specific subset in the database table subset_persons.
-#' Entries can be identified by person_id, visit_occurrence_id (hospital stay), visit_detail_id (unit stay) 
-#' or any valid combination of these. The removal is hierarchical: removing a person_id removes all associated 
-#' visits and units, removing a visit removes all associated units.
+#' Removes patients, hospital stays, or unit stays from a specific subset in the `subset_persons` table.  
+#' Removal is **hierarchical**: 
+#' - Removing a `person_id` also removes associated visits and unit stays.  
+#' - Removing a `visit_occurrence_id` removes the visit and any associated unit stays.  
+#' - Removing a `visit_detail_id` only removes the specific unit stay.
 #' 
-#' @param output Shiny output variable, used for displaying outputs in a Shiny application.
-#' @param r A `shiny::reactiveValues` object, used to communicate between modules in the Shiny app. 
-#' @param m A `shiny::reactiveValues` object, used to communicate between modules in the Shiny app. 
-#' @param patients A numeric vector of person_ids or a `data.frame`/`tibble` that can contain any of these columns:
-#'   - person_id: Patient identifier
-#'   - visit_occurrence_id: Visit identifier (optional, requires person_id)
-#'   - visit_detail_id: Visit detail identifier (optional, requires visit_occurrence_id)
-#' @param subset_id An integer representing the ID of the subset from which the entries will be removed.
-#' The subset ID must be positive and valid.
-#' 
-#' @return 
-#' A character string indicating the success or failure of the operation. If successful, the message includes
-#' the number of patients, hospital stays, and unit stays removed from the subset. If an error occurs
-#' (e.g., invalid ID combinations), it returns an error message.
-#' 
-#' @details
-#' The function handles three cases:
-#' 1. Remove by person_id: Removes all entries for specified patients, including their hospital and unit stays
-#' 2. Remove by visit_occurrence_id: Removes specific hospital stays and their associated unit stays
-#' 3. Remove by visit_detail_id: Removes only specific unit stays
+#' @param patients Either:
+#'   - A numeric vector of `person_id`s  
+#'   - A data.frame or tibble with any combination of the following columns:
+#'     - `person_id`: required for all cases  
+#'     - `visit_occurrence_id`: optional, must be used with `person_id`  
+#'     - `visit_detail_id`: optional, must be used with `visit_occurrence_id`
 #'
-#' The function performs several validations:
-#' - Ensures subset_id is a positive integer
-#' - Verifies that visit_occurrence_ids are provided with corresponding person_ids
-#' - Verifies that visit_detail_ids are provided with corresponding visit_occurrence_ids
-#' 
+#' @param subset_id An integer representing the ID of the subset to which patients will be added.  
+#' If not provided and the current page is `"subsets"`, it is inferred from currently selected subset.  
+#' The value must be a positive integer.
+#'
+#' @return A character string indicating the outcome of the operation.  
+#' Returns a message with the number of patients, visits, and unit stays removed, or an error message if inputs are invalid.
+#'
+#' @details
+#' Supported usage scenarios:
+#' 1. **By `person_id` only**: removes all associated visits and unit stays  
+#' 2. **By `visit_occurrence_id`**: removes specific hospital stays and their units  
+#' 3. **By `visit_detail_id`**: removes only specific unit stays  
+#'
+#' The function also:
+#' - Validates that `subset_id` is a positive integer  
+#' - Verifies that visit-related columns are used in a consistent hierarchy  
+#' - Ignores duplicate input rows
+#'
 #' @examples 
 #' \dontrun{
-#' # Remove by person_ids only
+#' # Remove by person_id only
 #' patients <- tibble::tibble(person_id = c(123, 456))
-#' remove_patients_from_subset(patients = patients)
+#' remove_patients_from_subset(patients = patients, subset_id = 1)
 #'
-#' # Remove specific hospital stays
+#' # Remove by person_id + visit_occurrence_id
 #' patients <- tibble::tibble(
 #'   person_id = c(123, 456),
 #'   visit_occurrence_id = c(1001, 1002)
 #' )
-#' remove_patients_from_subset(patients = patients)
+#' remove_patients_from_subset(patients = patients, subset_id = 2)
 #'
-#' # Remove specific unit stays
+#' # Remove by person_id + visit_occurrence_id + visit_detail_id
 #' patients <- tibble::tibble(
 #'   person_id = c(123, 456),
 #'   visit_occurrence_id = c(1001, 1002),
 #'   visit_detail_id = c(2001, 2002)
 #' )
-#' remove_patients_from_subset(patients = patients)
+#' remove_patients_from_subset(patients = patients, subset_id = 3)
+#'
+#' # In a Shiny session where the subset is already selected in the UI:
+#' patients <- tibble::tibble(person_id = c(789))
+#' remove_patients_from_subset(patients = patients)  # subset_id is inferred
 #' }
+#'
 remove_patients_from_subset <- function(patients = tibble::tibble(), subset_id = integer()){
   
   # Get variables from other environments
