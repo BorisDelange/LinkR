@@ -1,5 +1,9 @@
 #' @noRd 
-mod_concepts_ui <- function(id, language, languages, i18n, dropdowns){
+mod_concepts_ui <- function(id){
+  
+  pages_variables_list <- get("pages_variables_list", envir = parent.frame())
+  for (obj_name in pages_variables_list) assign(obj_name, get(obj_name, envir = parent.frame()))
+  
   ns <- NS(id)
   
   div(
@@ -11,7 +15,7 @@ mod_concepts_ui <- function(id, language, languages, i18n, dropdowns){
             div(shiny.fluent::Dropdown.shinyInput(ns("vocabulary"), label = i18n$t("vocabulary")), style = "width: 200px;"),
             div(
               shiny.fluent::Dropdown.shinyInput(ns("primary_concepts_dt_cols"), multiSelect = TRUE, label = i18n$t("columns"),
-                options = convert_tibble_to_list(dropdowns$concept_with_counts %>% dplyr::mutate_at("text", i18n$t), key_col = "key", text_col = "text"), value = c(1, 3, 4, 11, 12)
+                options = convert_tibble_to_list(get_vocabulary_dropdown_options(type = "concept_with_counts") %>% dplyr::mutate_at("text", i18n$t), key_col = "key", text_col = "text"), value = c(1, 3, 4, 11, 12)
               ), 
               style = "width: 200px;"
             ),
@@ -76,7 +80,11 @@ mod_concepts_ui <- function(id, language, languages, i18n, dropdowns){
 }
 
 #' @noRd 
-mod_concepts_server <- function(id, r, d, m, language, i18n, log_level, user_accesses){
+mod_concepts_server <- function(id){
+  
+  pages_variables_list <- get("pages_variables_list", envir = parent.frame())
+  for (obj_name in pages_variables_list) assign(obj_name, get(obj_name, envir = parent.frame()))
+  
   moduleServer(id, function(input, output, session){
     ns <- session$ns
     
@@ -157,7 +165,7 @@ mod_concepts_server <- function(id, r, d, m, language, i18n, log_level, user_acc
       editable_cols <- "concept_display_name"
       column_widths <- c("concept_name" = "200px", "concept_display_name" = "200px")
       
-      if (length(input$primary_concepts_dt_cols) > 0) hidden_cols <- r$dropdowns$concept_with_counts %>% dplyr::filter(key %not_in% input$primary_concepts_dt_cols) %>% dplyr::pull(text)
+      if (length(input$primary_concepts_dt_cols) > 0) hidden_cols <- get_vocabulary_dropdown_options(type = "concept_with_counts") %>% dplyr::filter(key %not_in% input$primary_concepts_dt_cols) %>% dplyr::pull(text)
       else hidden_cols <- c("concept_id", "concept_display_name", "concept_class_id", "standard_concept", "concept_code", "valid_start_date", "valid_end_date", "invalid_reason")
       
       col_names <- unname(sapply(colnames(data), i18n$t))

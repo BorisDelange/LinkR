@@ -4,21 +4,9 @@
 \alias{add_patients_to_subset}
 \title{Add patients to a subset}
 \usage{
-add_patients_to_subset(
-  output,
-  r = shiny::reactiveValues(),
-  m = shiny::reactiveValues(),
-  patients = tibble::tibble(),
-  subset_id = integer()
-)
+add_patients_to_subset(patients = tibble::tibble(), subset_id = integer())
 }
 \arguments{
-\item{output}{Shiny output variable}
-
-\item{r}{A shiny::reactiveValues object, used to communicate between modules}
-
-\item{m}{A shiny::reactiveValues object, used to communicate between modules}
-
 \item{patients}{Either:
 - A numeric vector of person_ids
 - A data.frame/tibble containing at least one of these columns:
@@ -57,18 +45,18 @@ If the inputs are valid, the function inserts the new patients into the subset_p
 \dontrun{
 # Example with a numeric vector of person IDs
 patients <- c(123, 456, 789)
-add_patients_to_subset(output = output, r = r, m = m, patients = patients, subset_id = 3)
+add_patients_to_subset(patients = patients)
 
 # Example with person_ids in a tibble
 patients <- tibble::tibble(person_id = c(123, 456, 789))
-add_patients_to_subset(output = output, r = r, m = m, patients = patients, subset_id = 3)
+add_patients_to_subset(patients = patients)
 
 # Example with visit_occurrence_ids
 patients <- tibble::tibble(
   person_id = c(123, 456),
   visit_occurrence_id = c(1001, 1002)
 )
-add_patients_to_subset(output = output, r = r, m = m, patients = patients, subset_id = 3)
+add_patients_to_subset(patients = patients)
 
 # Example with visit_detail_ids
 patients <- tibble::tibble(
@@ -76,6 +64,6 @@ patients <- tibble::tibble(
   visit_occurrence_id = c(1001, 1002),
   visit_detail_id = c(2001, 2002)
 )
-add_patients_to_subset(output = output, r = r, m = m, patients = patients, subset_id = 3)
+add_patients_to_subset(patients = patients)
 }
 }

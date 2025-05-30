@@ -1,8 +1,8 @@
 #' @noRd
-app_server <- function(
-    pages, language, languages, i18n, app_folder, authentication, username, log_level, log_target, local, 
-    users_accesses_toggles_options, db_col_types, dropdowns, auto_complete_list, loading_options
-  ){
+app_server <- function(){
+  
+  variables_list <- get("variables_list", envir = parent.frame())
+  for (obj_name in variables_list) assign(obj_name, get(obj_name, envir = parent.frame()))
   
   function(input, output, session) {
     
@@ -10,42 +10,16 @@ app_server <- function(
     
     language <- tolower(language)
     
-    if ("event" %in% log_level) cat(paste0("\n[", now(), "] [EVENT] [page_id = server] load reactive values"))
-    
     # Create reactive values ----
+    
+    if ("event" %in% log_level) cat(paste0("\n[", now(), "] [EVENT] [page_id = server] load reactive values"))
     
     # Create r reactive value, for the application processings
     r <- reactiveValues()
     
     # Create d reactive value, for projects data
     d <- reactiveValues()
-    main_tables <- c(
-      "condition_occurrence",
-      "drug_exposure",
-      "procedure_occurrence",
-      "device_exposure",
-      "measurement",
-      "observation",
-      "death",
-      "note",
-      "note_nlp",
-      "specimen",
-      "fact_relationship",
-      "payer_plan_period",
-      "cost", 
-      "drug_era",
-      "dose_era",
-      "condition_era", 
-      "person",
-      "observation_period",
-      "visit_occurrence",
-      "visit_detail",
-      "location",
-      "care_site",
-      "provider"
-    )
-    sapply(main_tables, function(table) d[[table]] <- tibble::tibble())
-    r$main_tables <- main_tables
+    sapply(get_omop_col_names() %>% names(), function(table) d[[table]] <- tibble::tibble())
     
     # Create m reactive value, for plugins & widgets data
     m <- reactiveValues()
@@ -59,8 +33,9 @@ app_server <- function(
     # Databse col types ----
     
     # Test internet connection ----
-    # If local is TRUE, don't use internet connection
     if ("event" %in% log_level) cat(paste0("\n[", now(), "] [EVENT] [page_id = server] internet connection test"))
+    
+    # If local is TRUE, don't use internet connection
     if (local) has_internet <- FALSE
     else has_internet <- curl::has_internet()
     r$has_internet <- has_internet
@@ -79,11 +54,9 @@ app_server <- function(
     
     r$i18n <- i18n
     m$i18n <- i18n
-    r$languages <- languages
+    r$languages <- get_languages()
     r$language <- language
     m$language <- language
-    
-    r$dropdowns <- dropdowns
     
     # Connection to database ----
     # If connection informations have been given in linkr() function, use these informations
@@ -93,9 +66,6 @@ app_server <- function(
     m$local_db <- DBI::dbConnect(RSQLite::SQLite(), paste0(app_db_folder, "/linkr_public"))
     
     db_local_main <- get_db()
-    
-    # Db col types
-    r$db_col_types <- db_col_types
     
     # Add default values in database if database is empty
     # Load all data from database
@@ -107,7 +77,7 @@ app_server <- function(
       if ("event" %in% log_level) cat(paste0("\n[", now(), "] [EVENT] [page_id = server] event triggered by observer r$db"))
       
       # Add default values in database, if it is empty
-      insert_default_data(db_col_types = db_col_types, users_accesses_toggles_options = users_accesses_toggles_options)
+      insert_default_data()
       
       # Connection with username
       if (!authentication){
@@ -146,6 +116,8 @@ app_server <- function(
       # Retro-compatibility: delete all insertions with DELETED IS TRUE
       sql <- glue::glue_sql("SELECT * FROM options WHERE name = 'unused_rows_deleted' AND value = 'true'", .con = r$db)
       if (nrow(DBI::dbGetQuery(r$db, sql)) == 0){
+        
+        db_col_types <- get_app_db_col_types()
         
         for (i in 1:nrow(db_col_types)){
           row <- db_col_types[i, ]
@@ -225,6 +197,8 @@ app_server <- function(
     
     r$loaded_pages <- list()
     
+    pages_variables_list <- c("r", "d", "m", "language", "i18n", "app_folder", "log_level", "user_accesses", "user_settings")
+    
     observeEvent(shiny.router::get_page(), {
 
       if ("event" %in% log_level) cat(paste0("\n[", now(), "] [EVENT] [page_id = server] event triggered by shiny.router::get_page()"))
@@ -232,7 +206,7 @@ app_server <- function(
       current_page <- shiny.router::get_page()
       r$current_page <- current_page
 
-      if (current_page %not_in% pages) return()
+      if (current_page %not_in% get_pages()) return()
 
       if (current_page == "/") current_page <- "home"
 
@@ -282,27 +256,14 @@ app_server <- function(
       if (length(user_settings$ace_font_size) == 0) user_settings$ace_font_size <- 11
       
       # Data pages are loaded from mod_widgets (when a project is selected)
-      if (page == "data"){
-
-        mod_data_server("data", r, d, m, language, i18n, log_level, user_accesses)
-        mod_page_sidenav_server("data", r, d, m, language, i18n, log_level)
-        mod_page_header_server("data", r, d, m, language, i18n, log_level)
-        r$loaded_pages$data <- TRUE
-
-        r$load_project_trigger <- now()
-      }
-      else {
-        if (page == "users") args <- list(page, r, d, m, language, i18n, log_level, users_accesses_toggles_options, user_accesses)
-        else if (page == "app_db") args <- list(page, r, d, m, language, i18n, db_col_types, app_folder, log_level, user_accesses, user_settings)
-        else if (page %in% c("console", "data_cleaning", "datasets", "plugins", "projects", "project_files", "subsets", "user_settings", "vocabularies")) args <- list(page, r, d, m, language, i18n, log_level, user_accesses, user_settings)
-        else args <- list(page, r, d, m, language, i18n, log_level, user_accesses)
-        do.call(paste0("mod_", page, "_server"), args)
-
-        mod_page_sidenav_server(page, r, d, m, language, i18n, log_level)
-        mod_page_header_server(page, r, d, m, language, i18n, log_level)
-
-        r$loaded_pages[[page]] <- TRUE
-      }
+      
+      do.call(paste0("mod_", page, "_server"), list(page))
+      mod_page_sidenav_server(page)
+      mod_page_header_server(page)
+      
+      r$loaded_pages[[page]] <- TRUE
+      
+      if (page == "data") r$load_project_trigger <- now()
     })
     
     # Loading options
@@ -312,7 +273,7 @@ app_server <- function(
     # Go to a specific page if noticed in loading_options
     
     if (length(loading_options$page) > 0){
-      if (loading_options$page %in% pages) shinyjs::delay(10, shiny.router::change_page(loading_options$page))
+      if (loading_options$page %in% get_pages()) shinyjs::delay(10, shiny.router::change_page(loading_options$page))
       else cat(paste0("\n", now(), " - server - ", loading_options$page, " is not a valid page"))
     }
   }

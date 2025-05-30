@@ -4,21 +4,9 @@
 \alias{remove_patients_from_subset}
 \title{Remove entries from a subset}
 \usage{
-remove_patients_from_subset(
-  output,
-  r = shiny::reactiveValues(),
-  m = shiny::reactiveValues(),
-  patients = tibble::tibble(),
-  subset_id = integer()
-)
+remove_patients_from_subset(patients = tibble::tibble(), subset_id = integer())
 }
 \arguments{
-\item{output}{Shiny output variable, used for displaying outputs in a Shiny application.}
-
-\item{r}{A `shiny::reactiveValues` object, used to communicate between modules in the Shiny app.}
-
-\item{m}{A `shiny::reactiveValues` object, used to communicate between modules in the Shiny app.}
-
 \item{patients}{A numeric vector of person_ids or a `data.frame`/`tibble` that can contain any of these columns:
 - person_id: Patient identifier
 - visit_occurrence_id: Visit identifier (optional, requires person_id)
@@ -26,6 +14,12 @@ remove_patients_from_subset(
 
 \item{subset_id}{An integer representing the ID of the subset from which the entries will be removed.
 The subset ID must be positive and valid.}
+
+\item{output}{Shiny output variable, used for displaying outputs in a Shiny application.}
+
+\item{r}{A `shiny::reactiveValues` object, used to communicate between modules in the Shiny app.}
+
+\item{m}{A `shiny::reactiveValues` object, used to communicate between modules in the Shiny app.}
 }
 \value{
 A character string indicating the success or failure of the operation. If successful, the message includes
@@ -53,14 +47,14 @@ The function performs several validations:
 \dontrun{
 # Remove by person_ids only
 patients <- tibble::tibble(person_id = c(123, 456))
-remove_patients_from_subset(output = output, r = r, m = m, patients = patients, subset_id = 3)
+remove_patients_from_subset(patients = patients)
 
 # Remove specific hospital stays
 patients <- tibble::tibble(
   person_id = c(123, 456),
   visit_occurrence_id = c(1001, 1002)
 )
-remove_patients_from_subset(output = output, r = r, m = m, patients = patients, subset_id = 3)
+remove_patients_from_subset(patients = patients)
 
 # Remove specific unit stays
 patients <- tibble::tibble(
@@ -68,6 +62,6 @@ patients <- tibble::tibble(
   visit_occurrence_id = c(1001, 1002),
   visit_detail_id = c(2001, 2002)
 )
-remove_patients_from_subset(output = output, r = r, m = m, patients = patients, subset_id = 3)
+remove_patients_from_subset(patients = patients)
 }
 }

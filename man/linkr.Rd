@@ -2,44 +2,61 @@
 % Please edit documentation in R/linkr.R
 \name{linkr}
 \alias{linkr}
-\title{Run the Shiny application}
+\title{Run the LinkR Shiny Application}
 \usage{
 linkr(
   language = "en",
   app_folder = character(),
+  authentication = FALSE,
   username = "admin",
   local = FALSE,
-  debug = FALSE,
-  log_file = FALSE,
+  log_level = c("event", "error"),
+  log_target = "app",
   port = 3838,
+  host = "0.0.0.0",
   loading_options = list()
 )
 }
 \arguments{
-\item{language}{Default language to use in the App (character)}
+\item{language}{Language to use in the app (`"en"` or `"fr"`). (character)}
 
-\item{app_folder}{Location of the application folder (character).}
+\item{app_folder}{Path to the folder where application files will be stored. (character)}
 
-\item{username}{Username used for connection. Default username is "admin". (character)}
+\item{authentication}{Should user authentication be enabled? (logical)}
 
-\item{local}{Run the app in local mode, do not load files on the internet (logical)}
+\item{username}{Default username used for authentication (only relevant if `authentication = FALSE`). (character)}
 
-\item{debug}{Debug mode : steps and errors will by displayed in the console (logical)}
+\item{local}{If `TRUE`, runs the app in local mode without loading external files (e.g., from GitHub). (logical)}
 
-\item{log_file}{Create a log file to see app log directly in the app (logical)}
+\item{log_level}{Character vector of log levels to display. Can include `"info"`, `"error"`, `"event"`, or be set to `"none"` or an empty vector to disable logging.}
 
-\item{port}{Port used by shiny app (integer)}
+\item{log_target}{Destination for log messages: `"console"` or `"app"`. (character)}
 
-\item{loading_options}{List specifying the initial page, project, and subset to load at startup (a list with `page`, `project`, and `subset` keys)}
+\item{port}{Port used to run the Shiny app. (integer)}
+
+\item{host}{Host address to run the app on. Default is `"0.0.0.0"`. (character)}
+
+\item{loading_options}{A list of startup options (e.g., page, project, subset to load). Should include named elements like `page`, `project_id`, `load_data_page`, `subset_id`, `person_id`.}
 }
 \description{
-Runs the LinkR Shiny Application.\cr
-Use language argument to choose language to use ("en" or "fr" available).\cr
-Use app_folder argument to choose a folder where the files of the application will be saved. By default, 
-a 'linkr' folder will be created in the folder returned by path.expand("~").\cr
+Launches the LinkR Shiny application for health data science. \cr
+You can configure the interface language, authentication mode, runtime behavior, and logging preferences.\cr
+
+Use `language` to set the application language (`"en"` or `"fr"`). \cr
+Use `app_folder` to define where LinkR will store application data and configuration files. 
+If not specified, a `linkr` folder will be created in the user's home directory. \cr
+
+Use `log_level` to control which log messages are displayed. It accepts a character vector containing any combination of:
+`"info"` (standard information), `"error"` (errors only), and `"event"` (application lifecycle events). \cr
+To disable all logs, use `"none"` or leave the argument empty. \cr
+
+Use `log_target` to define where logs are displayed: `"console"` (developer mode) or `"app"` (to display logs in the LinkR interface).
 }
 \examples{
 \dontrun{
-linkr(language = "en", debug = FALSE, local = FALSE)
+linkr(log_level = c("info", "event"), log_target = "console")
+linkr(log_level = "none")
+linkr(log_level = character(0))  # same as disabling all logs
 }
+
 }

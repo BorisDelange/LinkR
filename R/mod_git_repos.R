@@ -1,5 +1,9 @@
 #' @noRd 
-mod_git_repos_ui <- function(id = character(), language = "en", languages = tibble::tibble(), i18n = character()){
+mod_git_repos_ui <- function(id){
+  
+  pages_variables_list <- get("pages_variables_list", envir = parent.frame())
+  for (obj_name in pages_variables_list) assign(obj_name, get(obj_name, envir = parent.frame()))
+  
   ns <- NS(id)
   
   pivot_item_js <- paste0("
@@ -325,7 +329,10 @@ mod_git_repos_ui <- function(id = character(), language = "en", languages = tibb
 }
 
 #' @noRd 
-mod_git_repos_server <- function(id, r, d, m, language, i18n, log_level, user_accesses){
+mod_git_repos_server <- function(id){
+  
+  pages_variables_list <- get("pages_variables_list", envir = parent.frame())
+  for (obj_name in pages_variables_list) assign(obj_name, get(obj_name, envir = parent.frame()))
   
   moduleServer(id, function(input, output, session){
     ns <- session$ns

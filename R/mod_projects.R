@@ -1,5 +1,9 @@
 #' @noRd
-mod_projects_ui <- function(id, language, languages, i18n){
+mod_projects_ui <- function(id){
+  
+  pages_variables_list <- get("pages_variables_list", envir = parent.frame())
+  for (obj_name in pages_variables_list) assign(obj_name, get(obj_name, envir = parent.frame()))
+  
   ns <- NS(id)
   
   pivot_item_js <- paste0("
@@ -54,7 +58,7 @@ mod_projects_ui <- function(id, language, languages, i18n){
     
     # Load widget UI ----
     
-    mod_widgets_ui(id, language, languages, i18n),
+    mod_widgets_ui(id),
     
     # Project details ----
     
@@ -418,12 +422,15 @@ mod_projects_ui <- function(id, language, languages, i18n){
 }
 
 #' @noRd 
-mod_projects_server <- function(id, r, d, m, language, i18n, log_level, user_accesses, user_settings){
+mod_projects_server <- function(id){
+  
+  pages_variables_list <- get("pages_variables_list", envir = parent.frame())
+  for (obj_name in pages_variables_list) assign(obj_name, get(obj_name, envir = parent.frame()))
   
   # Load widgets ----
   
   all_divs <- c("summary", "dataset", "data_cleaning_scripts", "share")
-  mod_widgets_server(id, r, d, m, language, i18n, all_divs, log_level, user_accesses, user_settings)
+  mod_widgets_server(id, all_divs)
   
   # Projects module ----
   
@@ -602,7 +609,7 @@ mod_projects_server <- function(id, r, d, m, language, i18n, log_level, user_acc
         r$selected_dataset <- input$load_dataset_id
         
         tryCatch({
-          load_dataset(input$load_dataset_id, r$main_tables, m$selected_study)
+          load_dataset(input$load_dataset_id, m$selected_study)
           
           tryCatch(
             load_dataset_concepts(), 

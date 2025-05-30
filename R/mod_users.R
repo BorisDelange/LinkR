@@ -1,5 +1,9 @@
 #' @noRd
-mod_users_ui <- function(id, language, languages, i18n, users_accesses_toggles_options){
+mod_users_ui <- function(id){
+  
+  pages_variables_list <- get("pages_variables_list", envir = parent.frame())
+  for (obj_name in pages_variables_list) assign(obj_name, get(obj_name, envir = parent.frame()))
+  
   ns <- NS(id)
   
   # Modals ----
@@ -53,6 +57,7 @@ mod_users_ui <- function(id, language, languages, i18n, users_accesses_toggles_o
   
   # Users accesses toggles ----
   
+  users_accesses_toggles_options <- get_users_accesses_toggles_options()
   users_accesses_toggles_options_result <- tagList()
   
   for (i in 1:nrow(users_accesses_toggles_options)){
@@ -312,7 +317,13 @@ mod_users_ui <- function(id, language, languages, i18n, users_accesses_toggles_o
 }
 
 #' @noRd 
-mod_users_server <- function(id, r, d, m, language, i18n, log_level, users_accesses_toggles_options, user_accesses){
+mod_users_server <- function(id){
+  
+  pages_variables_list <- get("pages_variables_list", envir = parent.frame())
+  for (obj_name in pages_variables_list) assign(obj_name, get(obj_name, envir = parent.frame()))
+  
+  users_accesses_toggles_options <- get_users_accesses_toggles_options()
+  
   moduleServer(id, function(input, output, session){
     ns <- session$ns
     

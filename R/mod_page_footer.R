@@ -1,5 +1,9 @@
 #' @noRd
-mod_page_footer_ui <- function(i18n, language){
+mod_page_footer_ui <- function(id){
+  
+  pages_variables_list <- get("pages_variables_list", envir = parent.frame())
+  for (obj_name in pages_variables_list) assign(obj_name, get(obj_name, envir = parent.frame()))
+  
   div(
     class = "footer",
     div(

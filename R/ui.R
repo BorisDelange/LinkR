@@ -1,37 +1,27 @@
 #' @import shiny
 #' @noRd
-app_ui <- function(
-    pages, language, languages, i18n, users_accesses_toggles_options, 
-    db_col_types, dropdowns, auto_complete_list, log_level) {
+app_ui <- function() {
+  
+  variables_list <- get("variables_list", envir = parent.frame())
+  for (obj_name in variables_list) assign(obj_name, get(obj_name, envir = parent.frame()))
+  
+  languages <- get_languages()
+  
+  pages_variables_list <- c("page", "language", "languages", "i18n")
   
   do.call(
     shiny.router::router_ui,
-    lapply(pages, function(page_url){
+    lapply(get_pages(), function(page_url){
       if ("event" %in% log_level) cat(paste0("\n[", now(), "] [EVENT] [page_id = ui] make_router ", page_url))
       
       if (page_url == "/") page <- "home" else page <- page_url
-      
-      code_hotkeys <- list(
-        save = list(win = "CTRL-S", mac = "CTRL-S|CMD-S"),
-        run_selection = list(win = "CTRL-ENTER", mac = "CTRL-ENTER|CMD-ENTER"),
-        run_all = list(win = "CTRL-SHIFT-ENTER", mac = "CTRL-SHIFT-ENTER|CMD-SHIFT-ENTER"),
-        comment = list(win = "CTRL-SHIFT-C", mac = "CTRL-SHIFT-C|CMD-SHIFT-C")
-      )
-      
-      args <- list(page, language, languages, i18n)
-      
-      if (page == "users") args <- list(page, language, languages, i18n, users_accesses_toggles_options)
-      else if (page == "app_db") args <- list(page, language, languages, i18n, code_hotkeys, db_col_types)
-      else if (page %in% c("console", "data_cleaning", "datasets", "subsets", "user_settings")) args <- list(page, language, languages, i18n, code_hotkeys, auto_complete_list)
-      else if (page == "vocabularies") args <- list(page, language, languages, i18n, code_hotkeys, dropdowns)
-      else if (page == "concepts") args <- list(page, language, languages, i18n, dropdowns)
       
       if (page == "login") shiny.router::route(
         page_url,
         div(
           class = "page_container",
           div(
-            mod_login_ui("login", i18n),
+            mod_login_ui("login"),
             class = "main_container"
           )
         )
@@ -41,13 +31,13 @@ app_ui <- function(
         page_url,
         div(
           class = "page_container",
-          mod_page_header_ui(id = page, language = language, i18n = i18n),
+          mod_page_header_ui(page),
           div(
-            mod_page_sidenav_ui(id = page, language = language, i18n = i18n),
-            do.call(paste0("mod_", page, "_ui"), args),
+            mod_page_sidenav_ui(page),
+            do.call(paste0("mod_", page, "_ui"), list(page)),
             class = "main_container"
           ),
-          mod_page_footer_ui(i18n = i18n, language = language)
+          mod_page_footer_ui(page)
         )
       )
     })

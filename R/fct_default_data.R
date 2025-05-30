@@ -1,5 +1,8 @@
 #' @noRd
-insert_default_data <- function(db_col_types, users_accesses_toggles_options){
+insert_default_data <- function(){
+  
+  users_accesses_toggles_options <- get_users_accesses_toggles_options()
+  db_col_types <- get_app_db_col_types()
   
   # Get variables from other environments
   for (obj_name in c("r", "m", "output")) assign(obj_name, get(obj_name, envir = parent.frame()))

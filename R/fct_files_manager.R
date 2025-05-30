@@ -112,7 +112,7 @@ load_files_browser_ui <- function(input_prefix, files_list){
   )
 }
 
-files_browser_create_file <- function(input_prefix, r_prefix, folder, element_id, code_hotkeys, user_settings){
+files_browser_create_file <- function(input_prefix, r_prefix, folder, element_id, user_settings){
   
   # Get variables from other environments
   for (obj_name in c("id", "r")) assign(obj_name, get(obj_name, envir = parent.frame()))
@@ -158,7 +158,7 @@ files_browser_create_file <- function(input_prefix, r_prefix, folder, element_id
       id = ns(paste0(input_prefix, "editor_div_", new_row_id)),
       shinyAce::aceEditor(
         ns(paste0(input_prefix, "editor_", new_row_id)), value = "", mode = "r",
-        hotkeys = code_hotkeys,
+        hotkeys = get_ace_editor_code_hotkeys(),
         theme = user_settings$ace_theme, fontSize = user_settings$ace_font_size,
         autoScrollEditorIntoView = TRUE, height = "100%", debounce = 100, showPrintMargin = FALSE
       ),
@@ -303,7 +303,7 @@ files_browser_edit_tab_positions <- function(positions, r_prefix, element_id){
   }
 }
 
-files_browser_open_file <- function(input_prefix, r_prefix, folder, element_id, file_id, code_hotkeys, user_settings){
+files_browser_open_file <- function(input_prefix, r_prefix, folder, element_id, file_id, user_settings){
   
   # Get variables from other environments
   for (obj_name in c("id", "r")) assign(obj_name, get(obj_name, envir = parent.frame()))
@@ -347,7 +347,7 @@ files_browser_open_file <- function(input_prefix, r_prefix, folder, element_id, 
       id = ns(paste0(input_prefix, "editor_div_", file_id)),
       shinyAce::aceEditor(
         ns(paste0(input_prefix, "editor_", file_id)), value = file_code, mode = ace_mode,
-        hotkeys = code_hotkeys,
+        hotkeys = get_ace_editor_code_hotkeys(),
         theme = user_settings$ace_theme, fontSize = user_settings$ace_font_size,
         autoScrollEditorIntoView = TRUE, height = "100%", debounce = 100, showPrintMargin = FALSE
       ),

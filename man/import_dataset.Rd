@@ -5,42 +5,20 @@
 \title{Import a dataset}
 \usage{
 import_dataset(
-  r,
-  m,
-  d,
-  dataset_id = integer(),
   omop_version = "5.4",
-  data_source = "disk",
   data_folder = character(),
-  save_as_duckdb_file = FALSE,
-  rewrite = FALSE,
   con,
-  load_tables = character(),
-  import_vocabulary_tables = FALSE
+  tables_to_load = character()
 )
 }
 \arguments{
-\item{r}{A `shiny::reactiveValues` object used for communication between modules.}
-
-\item{d}{A `shiny::reactiveValues` object used for communication between modules.}
-
-\item{dataset_id}{The ID of the dataset, used to create a specific dataset folder in the application directories. Must be an integer.}
-
 \item{omop_version}{The OMOP version of the imported data. Accepted values are `"5.3"` and `"5.4"`. Defaults to `"5.4"`.}
-
-\item{data_source}{The source of the data. Accepted values are `"db"` for a database connection or `"disk"` for disk storage. Defaults to `"disk"`.}
 
 \item{data_folder}{The folder containing the data. Must be a character string.}
 
-\item{save_as_duckdb_file}{A logical value indicating whether to save the data as a DuckDB database file (.db). If TRUE, the data will be persistently stored in a DuckDB file in the dataset folder. Defaults to FALSE.}
-
-\item{rewrite}{A logical value indicating whether to rewrite DuckDB database.}
-
 \item{con}{A `DBI::dbConnect` object representing the database connection, required if `data_source` is `"db"`.}
 
-\item{load_tables}{A character vector specifying which OMOP tables to load}
-
-\item{import_vocabulary_tables}{A logical value indicating whether to import OMOP vocabulary tables (concept, vocabulary, concept_relationship, etc.) into LinkR. If TRUE, terminology tables will be uploaded into app database. Defaults to FALSE.}
+\item{tables_to_load}{A character vector specifying which OMOP tables to load}
 }
 \description{
 Imports a dataset into the application using the OMOP Common Data Model.

@@ -1,5 +1,11 @@
 #' @noRd 
-mod_app_db_ui <- function(id, language, languages, i18n, code_hotkeys, db_col_types){
+mod_app_db_ui <- function(id){
+  
+  pages_variables_list <- get("pages_variables_list", envir = parent.frame())
+  for (obj_name in pages_variables_list) assign(obj_name, get(obj_name, envir = parent.frame()))
+  
+  db_col_types <- get_app_db_col_types()
+  
   ns <- NS(id)
   
   pivot_item_js <- paste0("
@@ -110,7 +116,7 @@ mod_app_db_ui <- function(id, language, languages, i18n, code_hotkeys, db_col_ty
               div(
                 shinyAce::aceEditor(
                   ns("sql_code"), value = "", mode = "sql",
-                  code_hotkeys = list("r", code_hotkeys),
+                  code_hotkeys = list("r",  get_ace_editor_code_hotkeys()),
                   autoScrollEditorIntoView = TRUE, height = "100%", debounce = 100, fontSize = 11, showPrintMargin = FALSE
                 ),
                 class = "resizable-panel left-panel",
@@ -267,7 +273,13 @@ mod_app_db_ui <- function(id, language, languages, i18n, code_hotkeys, db_col_ty
 }
 
 #' @noRd
-mod_app_db_server <- function(id, r, d, m, language, i18n, db_col_types, app_folder, log_level, user_accesses, user_settings){
+mod_app_db_server <- function(id){
+  
+  pages_variables_list <- get("pages_variables_list", envir = parent.frame())
+  for (obj_name in pages_variables_list) assign(obj_name, get(obj_name, envir = parent.frame()))
+  
+  db_col_types <- get_app_db_col_types()
+  
   moduleServer(id, function(input, output, session){
     ns <- session$ns
     

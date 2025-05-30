@@ -1,5 +1,9 @@
 #' @noRd 
-mod_vocabularies_ui <- function(id, language, languages, i18n, code_hotkeys, dropdowns){
+mod_vocabularies_ui <- function(id){
+  
+  pages_variables_list <- get("pages_variables_list", envir = parent.frame())
+  for (obj_name in pages_variables_list) assign(obj_name, get(obj_name, envir = parent.frame()))
+  
   ns <- NS(id)
   
   pivot_item_js <- paste0("
@@ -12,7 +16,7 @@ mod_vocabularies_ui <- function(id, language, languages, i18n, code_hotkeys, dro
       
     # Load widget UI ----
     
-    mod_widgets_ui(id, language, languages, i18n),
+    mod_widgets_ui(id),
     
     # Vocabulary details ----
     
@@ -79,7 +83,7 @@ mod_vocabularies_ui <- function(id, language, languages, i18n, code_hotkeys, dro
                   ),
                   div(
                     shiny.fluent::Dropdown.shinyInput(ns("primary_concepts_dt_cols"), multiSelect = TRUE, label = i18n$t("columns"),
-                      options = dropdowns$concept,
+                      options = get_vocabulary_dropdown_options(type = "concept"),
                       value = c(0, 1, 2, 3)
                     ),
                     style = "width: 200px;"
@@ -117,7 +121,7 @@ mod_vocabularies_ui <- function(id, language, languages, i18n, code_hotkeys, dro
         #     div(
         #       shinyAce::aceEditor(
         #         ns("vocabulary_code"), value = "", mode = "r",
-        #         code_hotkeys = list("r", code_hotkeys),
+        #         code_hotkeys = list("r",  get_ace_editor_code_hotkeys()),
         #         autoScrollEditorIntoView = TRUE, height = "100%", debounce = 100, fontSize = 11, showPrintMargin = FALSE
         #       ),
         #       class = "element_ace_editor"
@@ -204,7 +208,11 @@ mod_vocabularies_ui <- function(id, language, languages, i18n, code_hotkeys, dro
 }
 
 #' @noRd 
-mod_vocabularies_server <- function(id, r, d, m, language, i18n, log_level, user_accesses, user_settings){
+mod_vocabularies_server <- function(id){
+  
+  pages_variables_list <- get("pages_variables_list", envir = parent.frame())
+  for (obj_name in pages_variables_list) assign(obj_name, get(obj_name, envir = parent.frame()))
+  
   # |-------------------------------- -----
   
   # Initiate vars ----
@@ -213,7 +221,7 @@ mod_vocabularies_server <- function(id, r, d, m, language, i18n, log_level, user
   # Load widgets ----
   
   all_divs <- c("summary", "concepts")
-  mod_widgets_server(id, r, d, m, language, i18n, all_divs, log_level, user_accesses, user_settings)
+  mod_widgets_server(id, all_divs)
   
   # Vocabularies module ----
   

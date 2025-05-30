@@ -31,6 +31,54 @@ format_datetime <- function(datetime = character(), language = "en", sec = TRUE,
 }
 
 #' @noRd
+get_ace_editor_auto_complete_list <- function(){
+  return(list(
+    dplyr = getNamespaceExports("dplyr"),
+    DBI = getNamespaceExports("DBI"),
+    ggplot2 = getNamespaceExports("ggplot2"),
+    glue = getNamespaceExports("glue"),
+    plotly = getNamespaceExports("plotly"),
+    readr = getNamespaceExports("readr"),
+    tidyr = getNamespaceExports("tidyr"),
+    vroom = getNamespaceExports("vroom"),
+    `OMOP data` = paste0("d$", c(
+      "person", "visit_occurrence", "visit_detail", "death",
+      "measurement", "observation", "procedure_occurrence", "condition_occurrence", "drug_exposure", "device_exposure",
+      "note", "note_nlp", "specimen", "location", "care_site", "provider", "drug_era", "dose_era",
+      "condition_era", "payer_plan_period", "cost", "observation_period",
+      "data_subset",
+      paste0("data_subset$", c(
+        "person", "visit_occurrence", "visit_detail", "death",
+        "measurement", "observation", "procedure_occurrence", "condition_occurrence", "drug_exposure", "device_exposure",
+        "note", "note_nlp", "specimen", "drug_era", "dose_era",
+        "condition_era", "payer_plan_period", "cost", "observation_period"
+      )),
+      "data_person",
+      paste0("data_person$", c(
+        "death", "measurement", "observation", "procedure_occurrence", "condition_occurrence", "drug_exposure", "device_exposure",
+        "note", "note_nlp", "specimen", "drug_era", "dose_era",
+        "condition_era", "payer_plan_period", "cost"
+      )),
+      "data_visit_detail",
+      paste0("data_visit_detail$", c(
+        "measurement", "observation", "procedure_occurrence", "condition_occurrence", "drug_exposure", "device_exposure",
+        "note", "note_nlp", "payer_plan_period", "cost"
+      ))
+    ))
+  ))
+}
+
+#' @noRd
+get_ace_editor_code_hotkeys <- function(){
+  return(list(
+    save = list(win = "CTRL-S", mac = "CTRL-S|CMD-S"),
+    run_selection = list(win = "CTRL-ENTER", mac = "CTRL-ENTER|CMD-ENTER"),
+    run_all = list(win = "CTRL-SHIFT-ENTER", mac = "CTRL-SHIFT-ENTER|CMD-SHIFT-ENTER"),
+    comment = list(win = "CTRL-SHIFT-C", mac = "CTRL-SHIFT-C|CMD-SHIFT-C")
+  ))
+}
+
+#' @noRd
 create_hover_card <- function(ui = character(), text = character()){
   escaped_text <- gsub("'", "\\\\'", text)
   escaped_text <- gsub('"', '\\\\"', escaped_text)
@@ -43,6 +91,148 @@ create_hover_card <- function(ui = character(), text = character()){
       }")
     ),
     ui
+  )
+}
+
+#' @noRd
+get_languages <- function(get_translations = TRUE){
+  
+  if (get_translations){
+    i18n <- get("i18n", envir = parent.frame())
+    
+    return(tibble::tribble(
+      ~code, ~language, 
+      "en", i18n$t("english"),
+      "fr", i18n$t("french")#,
+      # "it", i18n$t("italian"),
+      # "es", i18n$t("spanish")
+    ))
+  }
+  else return(c("en", "fr"))
+}
+
+#' @noRd
+get_pages <- function(){
+  return(c(
+    "/",
+    "app_db",
+    "concepts",
+    "console",
+    "data",
+    "datasets",
+    "data_cleaning",
+    "git_repos",
+    "log",
+    "login",
+    "project_files",
+    "plugins",
+    "projects",
+    "subsets",
+    "tasks",
+    "user_settings",
+    "users",
+    "vocabularies"
+  ))
+}
+
+#' @noRd
+get_users_accesses_toggles_options <- function(){
+  return(tibble::tribble(
+    ~name, ~toggles,
+    "users", c(
+      "users_management",
+      "users_statuses_management",
+      "users_accesses_management"
+    ),
+    "projects", c(
+      "projects_see_all_data",
+      "projects_management",
+      "projects_import",
+      "projects_content_management",
+      'projects_widgets_settings',
+      "projects_scripts",
+      "projects_widgets_console",
+      "projects_dataset",
+      "projects_data_cleaning",
+      "projects_subsets_management",
+      "projects_share"
+    ),
+    "plugins", c(
+      "plugins_see_all_data",
+      "plugins_management",
+      "plugins_import",
+      "plugins_edit_code",
+      "plugins_share"
+    ),
+    "datasets", c(
+      "datasets_see_all_data",
+      "datasets_management",
+      "datasets_import",
+      "datasets_edit_code",
+      "datasets_share"
+    ),
+    "vocabularies", c(
+      "vocabularies_management",
+      "vocabularies_import",
+      "concepts_reload_dataset_concepts"
+    ),
+    "data_cleaning", c(
+      "data_cleaning_see_all_data",
+      "data_cleaning_management",
+      "data_cleaning_import",
+      "data_cleaning_edit_code",
+      "data_cleaning_share"
+    ),
+    "console", c(
+      "console_execute_code"
+    ),
+    "git_repos", c(
+      "git_repos_management",
+      "git_repos_remote_git_repo_management",
+      "git_repos_install_remote_git_element"
+    ),
+    "app_db", c(
+      "app_db_connection_settings",
+      "app_db_db_request",
+      "app_db_save_restore"
+    ),
+    "log", c(
+      "log_user_log"
+    )
+  ))
+}
+
+#' @noRd
+get_vocabulary_dropdown_options <- function(type = "concept"){
+  
+  if (type == "concept") return(tibble::tribble(
+    ~key, ~text,
+    0, "concept_id",
+    1, "concept_name",
+    2, "domain_id",
+    3, "concept_class_id",
+    4, "standard_concept",
+    5, "concept_code",
+    6, "valid_start_date",
+    7, "valid_end_date",
+    8, "invalid_reason"
+  ))
+  
+  else if (type == "concept_with_counts") tibble::tribble(
+    ~key, ~text,
+    0, "concept_id",
+    1, "concept_name",
+    2, "concept_display_name",
+    3, "domain_id",
+    4, "vocabulary_id",
+    5, "concept_class_id",
+    6, "standard_concept",
+    7, "concept_code",
+    8, "valid_start_date",
+    9, "valid_end_date",
+    10, "invalid_reason",
+    11, "count_persons_rows",
+    12, "count_concepts_rows"
   )
 }
 

@@ -1,5 +1,9 @@
 #' @noRd
-mod_plugins_ui <- function(id, language, languages, i18n){
+mod_plugins_ui <- function(id){
+  
+  pages_variables_list <- get("pages_variables_list", envir = parent.frame())
+  for (obj_name in pages_variables_list) assign(obj_name, get(obj_name, envir = parent.frame()))
+  
   ns <- NS(id)
   
   pivot_item_js <- paste0("
@@ -15,7 +19,7 @@ mod_plugins_ui <- function(id, language, languages, i18n){
     
     # Load widgets UI ----
     
-    mod_widgets_ui(id, language, languages, i18n),
+    mod_widgets_ui(id),
     
     # Plugin details ----
     
@@ -338,23 +342,26 @@ mod_plugins_ui <- function(id, language, languages, i18n){
     
     # Select concepts modal ----
     
-    mod_select_concepts_ui(id, language, languages, i18n)
+    mod_select_concepts_ui(id)
   )
 }
 
 #' @noRd 
-mod_plugins_server <- function(id, r, d, m, language, i18n, log_level, user_accesses, user_settings){
+mod_plugins_server <- function(id){
+  
+  pages_variables_list <- get("pages_variables_list", envir = parent.frame())
+  for (obj_name in pages_variables_list) assign(obj_name, get(obj_name, envir = parent.frame()))
   
   # |-------------------------------- -----
   
   # Load widgets ----
   
   all_divs <- c("summary", "edit_code", "run_code", "share")
-  mod_widgets_server(id, r, d, m, language, i18n, all_divs, log_level, user_accesses, user_settings)
+  mod_widgets_server(id, all_divss)
   
   # Load concepts backend ----
   
-  mod_select_concepts_server(id, r, d, m, language, i18n, log_level)
+  mod_select_concepts_server(id)
   
   # |-------------------------------- -----
   
@@ -410,13 +417,6 @@ mod_plugins_server <- function(id, r, d, m, language, i18n, log_level, user_acce
     # --- --- --- --- --- -
     # Edit plugin code ----
     # --- --- --- --- --- -
-    
-    code_hotkeys <- list(
-      save = list(win = "CTRL-S", mac = "CTRL-S|CMD-S"),
-      run_selection = list(win = "CTRL-ENTER", mac = "CTRL-ENTER|CMD-ENTER"),
-      run_all = list(win = "CTRL-SHIFT-ENTER", mac = "CTRL-SHIFT-ENTER|CMD-SHIFT-ENTER"),
-      comment = list(win = "CTRL-SHIFT-C", mac = "CTRL-SHIFT-C|CMD-SHIFT-C")
-    )
     
     ## Load plugin files  ----
     
@@ -480,7 +480,7 @@ mod_plugins_server <- function(id, r, d, m, language, i18n, log_level, user_acce
               id = ns(paste0("edit_code_editor_div_", file_id)),
               shinyAce::aceEditor(
                 ns(paste0("edit_code_editor_", file_id)), value = file_code, mode = ace_mode,
-                hotkeys = code_hotkeys,
+                hotkeys =  get_ace_editor_code_hotkeys(),
                 theme = user_settings$ace_theme, fontSize = user_settings$ace_font_size,
                 autoScrollEditorIntoView = TRUE, height = "100%", debounce = 100, showPrintMargin = FALSE
               ),
@@ -563,7 +563,7 @@ mod_plugins_server <- function(id, r, d, m, language, i18n, log_level, user_acce
       
       files_browser_open_file(
         input_prefix = "edit_code_", r_prefix = "edit_plugin_code", folder = input$selected_plugin_folder,
-        element_id = input$selected_element, file_id = input$edit_code_selected_file, code_hotkeys = code_hotkeys, user_settings = user_settings
+        element_id = input$selected_element, file_id = input$edit_code_selected_file, user_settings = user_settings
       )
     }))
     
@@ -585,7 +585,7 @@ mod_plugins_server <- function(id, r, d, m, language, i18n, log_level, user_acce
       
       files_browser_create_file(
         input_prefix = "edit_code_", r_prefix = "edit_plugin_code", folder = input$selected_plugin_folder,
-        element_id = input$selected_element, code_hotkeys = code_hotkeys, user_settings = user_settings
+        element_id = input$selected_element, user_settings = user_settings
       )
     }))
     

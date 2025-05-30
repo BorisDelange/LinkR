@@ -1,5 +1,9 @@
 #' @noRd 
-mod_user_settings_ui <- function(id, language, languages, i18n, code_hotkeys, auto_complete_list){
+mod_user_settings_ui <- function(id){
+  
+  pages_variables_list <- get("pages_variables_list", envir = parent.frame())
+  for (obj_name in pages_variables_list) assign(obj_name, get(obj_name, envir = parent.frame()))
+  
   ns <- NS(id)
   
   pivot_item_js <- paste0("
@@ -92,8 +96,8 @@ mod_user_settings_ui <- function(id, language, languages, i18n, code_hotkeys, au
           div(
             shinyAce::aceEditor(
               ns("ace_editor"), value = "", mode = "r",
-              code_hotkeys = list("r", code_hotkeys),
-              autoComplete = "live", autoCompleters = c("static", "text"), autoCompleteList = auto_complete_list,
+              code_hotkeys = list("r",  get_ace_editor_code_hotkeys()),
+              autoComplete = "live", autoCompleters = c("static", "text"), autoCompleteList = get_ace_editor_auto_complete_list(),
               autoScrollEditorIntoView = TRUE, height = "100%", debounce = 100, fontSize = 11, showPrintMargin = FALSE
             ),
             class = "resizable-panel left-panel",
@@ -162,7 +166,11 @@ mod_user_settings_ui <- function(id, language, languages, i18n, code_hotkeys, au
 }
 
 #' @noRd 
-mod_user_settings_server <- function(id, r, d, m, language, i18n, log_level, user_accesses, user_settings){
+mod_user_settings_server <- function(id){
+  
+  pages_variables_list <- get("pages_variables_list", envir = parent.frame())
+  for (obj_name in pages_variables_list) assign(obj_name, get(obj_name, envir = parent.frame()))
+  
   moduleServer(id, function(input, output, session){
     ns <- session$ns
     

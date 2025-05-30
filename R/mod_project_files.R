@@ -1,5 +1,9 @@
 #' @noRd 
-mod_project_files_ui <- function(id, language, languages, i18n){
+mod_project_files_ui <- function(id){
+  
+  pages_variables_list <- get("pages_variables_list", envir = parent.frame())
+  for (obj_name in pages_variables_list) assign(obj_name, get(obj_name, envir = parent.frame()))
+  
   ns <- NS(id)
   
   div(
@@ -71,7 +75,11 @@ mod_project_files_ui <- function(id, language, languages, i18n){
 }
 
 #' @noRd 
-mod_project_files_server <- function(id, r, d, m, language, i18n, log_level, user_accesses, user_settings){
+mod_project_files_server <- function(id){
+  
+  pages_variables_list <- get("pages_variables_list", envir = parent.frame())
+  for (obj_name in pages_variables_list) assign(obj_name, get(obj_name, envir = parent.frame()))
+  
   moduleServer(id, function(input, output, session){
     ns <- session$ns
     
@@ -94,13 +102,6 @@ mod_project_files_server <- function(id, r, d, m, language, i18n, log_level, use
     r$project_tabs <- tibble::tibble(id = integer(), project_id = integer(), filename = character(), position = integer())
     r$project_deleted_files_id <- c()
     r$project_editors <- tibble::tibble(id = integer(), project_id = integer(), filename = character())
-    
-    code_hotkeys <- list(
-      save = list(win = "CTRL-S", mac = "CTRL-S|CMD-S"),
-      run_selection = list(win = "CTRL-ENTER", mac = "CTRL-ENTER|CMD-ENTER"),
-      run_all = list(win = "CTRL-SHIFT-ENTER", mac = "CTRL-SHIFT-ENTER|CMD-SHIFT-ENTER"),
-      comment = list(win = "CTRL-SHIFT-C", mac = "CTRL-SHIFT-C|CMD-SHIFT-C")
-    )
     
     # Load project files ----
     
@@ -180,7 +181,7 @@ mod_project_files_server <- function(id, r, d, m, language, i18n, log_level, use
       
       files_browser_open_file(
         input_prefix = "", r_prefix = "project", folder = input$selected_project_folder,
-        element_id = m$selected_project, file_id = input$selected_file, code_hotkeys = code_hotkeys, user_settings = user_settings
+        element_id = m$selected_project, file_id = input$selected_file, user_settings = user_settings
       )
       
       shinyjs::delay(100, shinyjs::runjs(paste0("Shiny.setInputValue('", id, "-update_code_output_dropdown', Math.random());")))
@@ -324,7 +325,7 @@ mod_project_files_server <- function(id, r, d, m, language, i18n, log_level, use
       
       files_browser_create_file(
         input_prefix = "", r_prefix = "project", folder = input$selected_project_folder,
-        element_id = m$selected_project, code_hotkeys = code_hotkeys, user_settings = user_settings
+        element_id = m$selected_project, user_settings = user_settings
       )
     }))
     

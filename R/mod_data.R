@@ -1,8 +1,11 @@
 #' @noRd
-mod_data_ui <- function(id, language, languages, i18n){
+mod_data_ui <- function(id){
+  
+  pages_variables_list <- get("pages_variables_list", envir = parent.frame())
+  for (obj_name in pages_variables_list) assign(obj_name, get(obj_name, envir = parent.frame()))
+  
   ns <- NS(id)
   result <- ""
-  language <- "EN"
   
   # Add a tab modal ----
   
@@ -216,7 +219,7 @@ mod_data_ui <- function(id, language, languages, i18n){
   
   # Select concepts modal ----
   
-  select_concepts_modal <- mod_select_concepts_ui(id, language, languages, i18n)
+  select_concepts_modal <- mod_select_concepts_ui(id)
   
   # Study divs ----
   
@@ -249,11 +252,14 @@ mod_data_ui <- function(id, language, languages, i18n){
 }
 
 #' @noRd 
-mod_data_server <- function(id, r, d, m, language, i18n, log_level, user_accesses){
+mod_data_server <- function(id){
+  
+  pages_variables_list <- get("pages_variables_list", envir = parent.frame())
+  for (obj_name in pages_variables_list) assign(obj_name, get(obj_name, envir = parent.frame()))
   
   # Load concepts backend ----
   
-  mod_select_concepts_server(id, r, d, m, language, i18n, log_level)
+  mod_select_concepts_server(id)
   
   # |-------------------------------- -----
   

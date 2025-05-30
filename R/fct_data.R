@@ -213,7 +213,7 @@ get_widget_edit_buttons <- function(widget_id, show_edit_buttons = FALSE){
 }
 
 #' @noRd
-load_dataset <- function(dataset_id, main_tables, selected_study){
+load_dataset <- function(dataset_id, selected_study){
   
   # Get variables from other environments
   for (obj_name in c("id", "r", "m", "d", "output")) assign(obj_name, get(obj_name, envir = parent.frame()))
@@ -221,7 +221,7 @@ load_dataset <- function(dataset_id, main_tables, selected_study){
   ns <- NS(id)
   
   # Reset data vars
-  sapply(main_tables, function(table) d[[table]] <- tibble::tibble())
+  sapply(get_omop_col_names() %>% names(), function(table) d[[table]] <- tibble::tibble())
   
   # Get OMOP version for this dataset
   sql <- glue::glue_sql("SELECT value FROM options WHERE category = 'dataset' AND link_id = {dataset_id} AND name = 'omop_version'", .con = r$db)

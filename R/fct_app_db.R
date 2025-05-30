@@ -32,12 +32,66 @@ db_create_table <- function(db, table, dbms, empty_tibble, primary_key_col, text
 }
 
 #' @noRd
-db_create_tables <- function(db, type, dbms, db_col_types){
+get_app_db_col_types <- function(){
+  
+  return(tibble::tribble(
+    ~table, ~col_types, ~db, ~col_names,
+    
+    # Main tables
+    
+    "users", "icccciicl", "main", c("id", "username", "firstname", "lastname", "password", "user_access_id", "user_status_id", "datetime", "deleted"),
+    "users_accesses", "icccl", "main", c("id", "name", "description", "datetime", "deleted"),
+    "users_statuses", "icccl", "main", c("id", "name", "description", "datetime", "deleted"),
+    "datasets", "iciiccl", "main", c("id", "name", "data_source_id", "creator_id", "creation_datetime", "update_datetime", "deleted"),
+    "studies", "iciiiiccl", "main", c("id", "name", "dataset_id", "patient_lvl_tab_group_id", "aggregated_tab_group_id", "creator_id", "creation_datetime", "update_datetime", "deleted"),
+    "plugins", "iciccl", "main", c("id", "name", "tab_type_id", "creation_datetime", "update_datetime", "deleted"),
+    "scripts", "icccl", "main", c("id", "name", "creation_datetime", "update_datetime", "deleted"),
+    "tabs_groups", "icccicl", "main", c("id", "category", "name", "description", "creator_id", "datetime", "deleted"),
+    "tabs", "iccciiiicl", "main", c("id", "category", "name", "description", "tab_group_id", "parent_tab_id", "display_order", "creator_id", "datetime", "deleted"),
+    "widgets", "icciiiicl", "main", c("id", "category", "name", "tab_id", "plugin_id", "display_order", "creator_id", "datetime", "deleted"),
+    "code", "icicicl", "main", c("id", "category", "link_id", "code", "creator_id", "datetime", "deleted"),
+    "options", "iciccnicl", "main", c("id", "category", "link_id", "name", "value", "value_num", "creator_id", "datetime", "deleted"),
+    "messages", "iiicccicl", "main", c("id", "conversation_id", "study_id", "category", "message", "filepath", "creator_id", "datetime", "deleted"),
+    "conversations", "iccl", "main", c("id", "name", "datetime", "deleted"),
+    "user_deleted_conversations", "iiic", "main", c("id", "conversation_id", "user_id", "datetime"),
+    "inbox_messages", "iiilcl", "main", c("id", "message_id", "receiver_id", "read", "datetime", "deleted"),
+    "log", "icccic", "main", c("id", "category", "name", "value", "creator_id", "datetime"),
+    "git_repos", "icccccicl", "main", c("id", "unique_id", "name", "api_key", "repo_url_address", "raw_files_url_address", "creator_id", "datetime", "deleted"),
+    
+    # Public tables
+    
+    "persons_options", "iiiiiiciccnicl", "public", c("id", "dataset_id", "study_id", "subset_id", "person_id", "visit_detail_id", "category", "link_id", "name", "value", "value_num", "creator_id", "datetime", "deleted"),
+    "widgets_options", "iiiicccnicl", "public", c("id", "widget_id", "person_id", "link_id", "category", "name", "value", "value_num", "creator_id", "datetime", "deleted"),
+    "subsets", "icciicl", "public", c("id", "name", "description", "study_id", "creator_id", "datetime", "deleted"),
+    "options", "iciccnicl", "public", c("id", "category", "link_id", "name", "value", "value_num", "creator_id", "datetime", "deleted"),
+    "code", "icicicl", "public", c("id", "category", "link_id", "code", "creator_id", "datetime", "deleted"),
+    "subset_persons", "iiiiiicl", "public", c("id", "subset_id", "person_id", "visit_occurrence_id", "visit_detail_id", "creator_id", "datetime", "deleted"),
+    "concept", "iiccccccccc", "public", c("id", "concept_id", "concept_name", "domain_id", "vocabulary_id", "concept_class_id", "standard_concept", "concept_code", "valid_start_date", "valid_end_date", "invalid_reason"),
+    "concept_dataset", "iiciiii", "public", c("id", "concept_id", "vocabulary_id", "dataset_id", "count_persons_rows", "count_concepts_rows", "count_secondary_concepts_rows"),
+    "concept_user", "iiiccc", "public", c("id", "user_id", "concept_id", "concept_name", "concept_display_name", "vocabulary_id"),
+    "vocabulary", "icccciciiccl", "public", c("id", "vocabulary_id", "vocabulary_name", "vocabulary_reference", "vocabulary_version", "vocabulary_concept_id", "data_source_id", "display_order", "creator_id", "creation_datetime", "update_datetime", "deleted"),
+    "domain", "icci", "public", c("id", "domain_id", "domain_name", "domain_concept_id"),
+    "concept_class", "icci", "public", c("id", "concept_class_id", "concept_class_name", "concept_class_concept_id"),
+    "concept_relationship", "iiicccc", "public", c("id", "concept_id_1", "concept_id_2", "relationship_id", "valid_start_date", "valid_end_date", "invalid_reason"),
+    "concept_relationship_user", "iicic", "public", c("id", "concept_relationship_id", "comment", "creator_id", "datetime"),
+    "concept_relationship_evals", "iiicc", "public", c("id", "concept_relationship_id", "creator_id", "evaluation_id", "datetime"),
+    "relationship", "iccccci", "public", c("id", "relationship_id", "relationship_name", "is_hierarchical", "defines_ancestry", "reverse_relationship_id", "relationship_concept_id"),
+    "concept_synonym", "iici", "public", c("id", "concept_id", "concept_synonym_name", "language_concept_id"),
+    "concept_ancestor", "iiiii", "public", c("id", "ancestor_concept_id", "descendant_concept_id", "min_levels_of_separation", "max_levels_of_separation"),
+    "drug_strength", "iiinininiiccc", "public", c("id", "drug_concept_id", "ingredient_concept_id", "amount_value", "amount_unit_concept_id", "numerator_value", "numerator_unit_concept_id", "denominator_value", "denominator_unit_concept_id", "box_size", "valid_start_date", "valid_end_date", "invalid_reason"),
+    "widgets_concepts", "iiicccilicl", "public", c("id", "widget_id", "concept_id", "concept_name", "concept_display_name", "domain_id", "mapped_to_concept_id", "merge_mapped_concepts", "creator_id", "datetime", "deleted")
+  ))
+}
+
+#' @noRd
+db_create_tables <- function(db, type, dbms){
   
   # Create tables if does not exist
   
   # Type = main for main database
   # Type = public for plugins / tabs database
+  
+  db_col_types <- get_app_db_col_types()
   
   for (type in c("main", "public")){
     
@@ -81,7 +135,7 @@ db_create_tables <- function(db, type, dbms, db_col_types){
 get_db <- function(){
   
   # Get variables from other environments
-  for (obj_name in c("r", "m", "app_db_folder", "db_col_types")) assign(obj_name, get(obj_name, envir = parent.frame()))
+  for (obj_name in c("r", "m", "app_db_folder")) assign(obj_name, get(obj_name, envir = parent.frame()))
   
   # Get local database connection
   
@@ -101,8 +155,8 @@ get_db <- function(){
   
   # Create tables for local databases
   
-  db_create_tables(db = db$local_main, type = "main", dbms = "sqlite", db_col_types = db_col_types)
-  db_create_tables(db = db$local_public, type = "public", dbms = "sqlite", db_col_types = db_col_types)
+  db_create_tables(db = db$local_main, type = "main", dbms = "sqlite")
+  db_create_tables(db = db$local_public, type = "public", dbms = "sqlite")
   
   # Add remote db rows if they do not already exist
   
@@ -159,8 +213,8 @@ get_db <- function(){
         r$db <- db$remote_main
         m$db <- db$remote_public
         
-        db_create_tables(db = db$remote_main, type = "main", dbms = db_info$sql_lib, db_col_types = db_col_types)
-        db_create_tables(db = db$remote_public, type = "public", dbms = db_info$sql_lib, db_col_types = db_col_types)
+        db_create_tables(db = db$remote_main, type = "main", dbms = db_info$sql_lib)
+        db_create_tables(db = db$remote_public, type = "public", dbms = db_info$sql_lib)
         
         result <- "success"
       }

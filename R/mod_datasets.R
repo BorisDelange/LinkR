@@ -1,5 +1,9 @@
 #' @noRd 
-mod_datasets_ui <- function(id, language, languages, i18n, code_hotkeys, auto_complete_list){
+mod_datasets_ui <- function(id){
+  
+  pages_variables_list <- get("pages_variables_list", envir = parent.frame())
+  for (obj_name in pages_variables_list) assign(obj_name, get(obj_name, envir = parent.frame()))
+  
   ns <- NS(id)
   
   pivot_item_js <- paste0("
@@ -11,7 +15,7 @@ mod_datasets_ui <- function(id, language, languages, i18n, code_hotkeys, auto_co
       
     # Load widget UI ----
     
-    mod_widgets_ui(id, language, languages, i18n),
+    mod_widgets_ui(id),
     
     # Dataset details ----
 
@@ -183,8 +187,8 @@ mod_datasets_ui <- function(id, language, languages, i18n, code_hotkeys, auto_co
                 div(
                   shinyAce::aceEditor(
                     ns("dataset_code"), value = "", mode = "r",
-                    code_hotkeys = list("r", code_hotkeys),
-                    autoComplete = "live", autoCompleters = c("static", "text"), autoCompleteList = auto_complete_list,
+                    code_hotkeys = list("r",  get_ace_editor_code_hotkeys()),
+                    autoComplete = "live", autoCompleters = c("static", "text"), autoCompleteList = get_ace_editor_auto_complete_list(),
                     autoScrollEditorIntoView = TRUE, height = "100%", debounce = 100, fontSize = 11, showPrintMargin = FALSE
                   ),
                   class = "resizable-panel left-panel",
@@ -291,14 +295,17 @@ mod_datasets_ui <- function(id, language, languages, i18n, code_hotkeys, auto_co
 }
 
 #' @noRd 
-mod_datasets_server <- function(id, r, d, m, language, i18n, log_level, user_accesses, user_settings){
+mod_datasets_server <- function(id){
+  
+  pages_variables_list <- get("pages_variables_list", envir = parent.frame())
+  for (obj_name in pages_variables_list) assign(obj_name, get(obj_name, envir = parent.frame()))
   
   # |-------------------------------- -----
   
   # Load widgets ----
   
   all_divs <- c("summary", "edit_code", "share")
-  mod_widgets_server(id, r, d, m, language, i18n, all_divs, log_level, user_accesses, user_settings)
+  mod_widgets_server(id, all_divs)
   
   # Datasets module ----
   

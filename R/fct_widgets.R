@@ -882,7 +882,7 @@ import_project <- function(temp_dir, update_plugins, project_id, unique_id){
       
       last_row[[table]] <- get_last_row(con, table)
       
-      col_types <- r$db_col_types %>% dplyr::filter(db == !!db, table == !!table) %>% dplyr::pull(col_types)
+      col_types <- get_app_db_col_types() %>% dplyr::filter(db == !!db, table == !!table) %>% dplyr::pull(col_types)
       data[[table]] <- vroom::vroom(file_path, col_types = col_types, progress = FALSE)
       
       if (table %not_in% c("options", "plugins")) data[[table]] <- data[[table]] %>% dplyr::mutate(id = id + last_row[[table]])

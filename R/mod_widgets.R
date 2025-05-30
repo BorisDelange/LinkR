@@ -1,5 +1,9 @@
 #' @noRd 
-mod_widgets_ui <- function(id, language, languages, i18n){
+mod_widgets_ui <- function(id){
+  
+  pages_variables_list <- get("pages_variables_list", envir = parent.frame())
+  for (obj_name in pages_variables_list) assign(obj_name, get(obj_name, envir = parent.frame()))
+  
   ns <- NS(id)
   
   # Initiate vars ----
@@ -110,7 +114,11 @@ mod_widgets_ui <- function(id, language, languages, i18n){
 }
 
 #' @noRd 
-mod_widgets_server <- function(id, r, d, m, language, i18n, all_divs, log_level, user_accesses, user_settings){
+mod_widgets_server <- function(id, all_divs){
+  
+  pages_variables_list <- get("pages_variables_list", envir = parent.frame())
+  for (obj_name in pages_variables_list) assign(obj_name, get(obj_name, envir = parent.frame()))
+  
   moduleServer(id, function(input, output, session){
     ns <- session$ns
     
