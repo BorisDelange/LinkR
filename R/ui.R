@@ -11,10 +11,12 @@ app_ui <- function() {
   
   do.call(
     shiny.router::router_ui,
-    lapply(get_pages(), function(page_url){
-      if ("event" %in% log_level) cat(paste0("\n[", now(), "] [EVENT] [page_id = ui] make_router ", page_url))
+    lapply(get_pages(), function(page){
+      if ("event" %in% log_level) cat(paste0("\n[", now(), "] [EVENT] [page_id = ui] make_router ", page))
       
-      if (page_url == "/") page <- "home" else page <- page_url
+      if (authentication && page == "login") page_url <- "/"
+      else if (!authentication && page == "home") page_url <- "/"
+      else page_url <- page
       
       if (page == "login") shiny.router::route(
         page_url,

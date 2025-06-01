@@ -135,23 +135,19 @@ db_create_tables <- function(db, type, dbms){
 get_db <- function(){
   
   # Get variables from other environments
-  for (obj_name in c("r", "m", "app_db_folder")) assign(obj_name, get(obj_name, envir = parent.frame()))
+  app_db_folder <- get("app_db_folder", envir = parent.frame())
   
   # Get local database connection
-  
-  r$db_connection <- "local"
   
   db <- list()
   
   local_main_sqlite_file <- paste0(app_db_folder, "/linkr_main")
   db$local_main <- DBI::dbConnect(RSQLite::SQLite(), local_main_sqlite_file)
   Sys.chmod(local_main_sqlite_file, mode = "0664")
-  r$db <- db$local_main
   
   local_public_sqlite_file <- paste0(app_db_folder, "/linkr_public")
   db$local_public <- DBI::dbConnect(RSQLite::SQLite(), local_public_sqlite_file)
   Sys.chmod(local_public_sqlite_file, mode = "0664")
-  m$db <- db$local_public
   
   # Create tables for local databases
   
@@ -208,11 +204,6 @@ get_db <- function(){
           db$remote_public <- DBI::dbConnect(RSQLite::SQLite(), dbname = db_info$public_db_name, host = db_info$host, port = db_info$port, user = db_info$user, password = db_info$password)
         }
         
-        r$db_connection <- "remote"
-        
-        r$db <- db$remote_main
-        m$db <- db$remote_public
-        
         db_create_tables(db = db$remote_main, type = "main", dbms = db_info$sql_lib)
         db_create_tables(db = db$remote_public, type = "public", dbms = db_info$sql_lib)
         
@@ -229,7 +220,7 @@ get_db <- function(){
     }
   }
   
-  return(db$local_main)
+  return(db)
 }
 
 #' @noRd

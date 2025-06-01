@@ -6,6 +6,9 @@ mod_page_header_ui <- function(id){
   
   ns <- NS(id)
   
+  authentication <- get("authentication", envir = parent.frame())
+  if (authentication) home_url <- "home" else home_url <- "/"
+  
   command_bar_1 <- div(
     id = ns("command_bar_1_div"),
     shiny.fluent::CommandBar(
@@ -99,7 +102,7 @@ mod_page_header_ui <- function(id){
         div(
           tags$img(src = "www/img/logo.png"),
           class = "logo",
-          onclick = paste0("window.location.href='", shiny.router::route_link("/"), "';")
+          onclick = paste0("window.location.href='", shiny.router::route_link(home_url), "';")
         ),
         div(
           command_bar_1,

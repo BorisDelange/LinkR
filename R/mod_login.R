@@ -47,7 +47,7 @@ mod_login_ui <- function(id){
 #' @noRd 
 mod_login_server <- function(id){
   
-  pages_variables_list <- get("pages_variables_list", envir = parent.frame())
+  pages_variables_list <- c("r", "d", "m", "language", "i18n", "app_folder", "log_level")
   for (obj_name in pages_variables_list) assign(obj_name, get(obj_name, envir = parent.frame()))
   
   moduleServer(id, function(input, output, session){
@@ -91,7 +91,7 @@ mod_login_server <- function(id){
           shiny.fluent::updatePrimaryButton.shinyInput(session, "login", disabled = TRUE)
           
           r$load_page <- "home"
-          shiny.router::change_page("/")
+          shiny.router::change_page("home")
         }
       }
       

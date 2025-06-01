@@ -86,20 +86,35 @@ linkr <- function(
   loading_options = list()
 ) {
   
-  if ("event" %in% log_level) cat(paste0("[", now(), "] [EVENT] [page_id = linkr] init LinkR - v0.3.1.9008"))
+  app_version <- "0.3.1.9008"
+  if ("event" %in% log_level) cat(paste0("[", now(), "] [EVENT] [page_id = linkr] init LinkR - v", app_version))
   
-  # Loading options
+  # Loading options ----
   # - loading_options$page: load a specific page
   # - loading_options$project_id: load a project
   # - loading_options$load_data_page: load a data page ("patient_lvl" or "aggregated")
   # - loading_options$subset_id: load a subset_id the first time a project is loaded
   # - loading_options$person_id: load a person_id the first time a subset is loaded
   
-  # Check version of shiny.fluent (has to be inferior to 0.4.0)
+  # Check version of shiny.fluent ----
+  # shiny.fluent version has to be inferior to 0.4.0
+  if ("event" %in% log_level) cat(paste0("\n[", now(), "] [EVENT] [page_id = linkr] check shiny.fluent version"))
   if (packageVersion("shiny.fluent") >= "0.4.0") stop("Invalid shiny.fluent version: version 0.3.0 is required. Install it with remotes::install_github('Appsilon/shiny.fluent', ref = 'dd1c956').")
   
-  # Check arguments
+  # Check arguments ----
+  if ("event" %in% log_level) cat(paste0("\n[", now(), "] [EVENT] [page_id = linkr] check linkr arguments"))
+  
   if (log_target %not_in% c("console", "app")) stop("'log_target' argument must be 'console' or 'app'")
+  if (!is.logical(local)) stop("'local' argument is not of logical type")
+  if (!is.logical(authentication)) stop("'authentication' argument is not of logical type")
+  if (!authentication){
+    error_username <- TRUE
+    if (length(username) > 0) if (!is.na(username) & username != "") error_username <- FALSE
+    if (error_username) stop("'username' argument is invalid")
+  }
+  
+  # R options ----
+  if ("event" %in% log_level) cat(paste0("\n[", now(), "] [EVENT] [page_id = linkr] set R options"))
   
   # Set umask 002 for files creation
   Sys.umask("002")
@@ -110,17 +125,11 @@ linkr <- function(
   
   options(shiny.maxRequestSize = 4096*1024^2, shiny.launch.browser = TRUE, shiny.port = port, shiny.host = host, digits.secs = 0)
   
-  if (!is.logical(local)) stop("'local' argument is not of logical type")
-  if (!is.logical(authentication)) stop("'authentication' argument is not of logical type")
-  
-  if (!authentication){
-    error_username <- TRUE
-    if (length(username) > 0) if (!is.na(username) & username != "") error_username <- FALSE
-    if (error_username) stop("'username' argument is invalid")
-  }
+  # App folder ----
   
   # Create app folder if it doesn't exist
   if ("event" %in% log_level) cat(paste0("\n[", now(), "] [EVENT] [page_id = linkr] create app_folder"))
+  
   if (length(app_folder) == 0) app_folder <- paste0(path.expand("~"), "/linkr")
   
   if (!dir.exists(app_folder)){
@@ -132,6 +141,7 @@ linkr <- function(
   
   # Create app sub-dirs
   if ("event" %in% log_level) cat(paste0("\n[", now(), "] [EVENT] [page_id = linkr] create app sub-dirs"))
+  
   sub_dirs <- c(
     "app_database",
     "data_cleaning",
@@ -148,7 +158,8 @@ linkr <- function(
   )
   for (sub_dir in sub_dirs) if (!dir.exists(paste0(app_folder, "/", sub_dir))) dir.create(paste0(app_folder, "/", sub_dir))
   
-  # Load translations
+  # Load translations ----
+  
   if ("event" %in% log_level) cat(paste0("\n[", now(), "] [EVENT] [page_id = linkr] load translations"))
   
   if (language %not_in% get_languages(get_translations = FALSE)){
@@ -163,13 +174,30 @@ linkr <- function(
   i18n <- suppressWarnings(shiny.i18n::Translator$new(translation_csvs_path = translations_path))
   i18n$set_translation_language(language)
   
-  # Load UI & server
+  # Connection to database ----
+  # If connection informations have been given in linkr() function, use these informations
+  if ("event" %in% log_level) cat(paste0("\n[", now(), "] [EVENT] [page_id = linkr] load app database"))
   
-  if ("event" %in% log_level) cat(paste0("\n[", now(), "] [EVENT] [page_id = linkr] load UI & server"))
+  app_db_folder <- paste0(app_folder, "/app_database")
+  main_local_db <- DBI::dbConnect(RSQLite::SQLite(), paste0(app_db_folder, "/linkr_main"))
+  public_local_db <- DBI::dbConnect(RSQLite::SQLite(), paste0(app_db_folder, "/linkr_public"))
+  db <- get_db()
   
-  # Load Shiny App
+  # Test internet connection ----
+  if ("event" %in% log_level) cat(paste0("\n[", now(), "] [EVENT] [page_id = linkr] internet connection test"))
   
-  variables_list <- c("language", "i18n", "app_folder", "authentication", "username", "log_level", "log_target", "local", "loading_options")
+  # If local is TRUE, don't use internet connection
+  if (local) has_internet <- FALSE
+  else has_internet <- curl::has_internet()
+  
+  # Load Shiny app ----
+  
+  if ("event" %in% log_level) cat(paste0("\n[", now(), "] [EVENT] [page_id = linkr] load Shiny app"))
+  
+  variables_list <- c(
+    "app_folder", "app_version", "authentication", "db", "has_internet", "i18n", "language",
+    "loading_options","local", "log_level", "log_target", "username"
+  )
   
   shinyApp(
     ui = app_ui(),

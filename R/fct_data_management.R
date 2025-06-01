@@ -69,7 +69,10 @@ add_patients_to_subset <- function(patients = tibble::tibble(), subset_id = inte
   i18n <- r$i18n
   
   # Get subset_id if it is null
-  if (length(subset_id) == 0 && r$current_page == "subsets") subset_id <- eval(parse(text = "input$selected_element"), envir = parent.frame())
+  if (length(subset_id) == 0){
+    if (r$current_page == "subsets") subset_id <- eval(parse(text = "input$selected_element"), envir = parent.frame())
+    else if (r$current_page == "data" && exists("selected_subset", envir = parent.frame())) subset_id <- get("selected_subset", envir = parent.frame())
+  }
   
   # Check subset_id
   

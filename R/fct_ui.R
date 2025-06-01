@@ -114,7 +114,6 @@ get_languages <- function(get_translations = TRUE){
 #' @noRd
 get_pages <- function(){
   return(c(
-    "/",
     "app_db",
     "concepts",
     "console",
@@ -122,6 +121,7 @@ get_pages <- function(){
     "datasets",
     "data_cleaning",
     "git_repos",
+    "home",
     "log",
     "login",
     "project_files",

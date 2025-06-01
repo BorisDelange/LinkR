@@ -28,46 +28,23 @@ app_server <- function(){
     # Create o reactive values, for observers inactivation
     o <- reactiveValues()
     
-    # App version ----
-    r$app_version <- "0.3.1.9008"
+    # Get values
+    languages <- get_languages()
     
-    # Databse col types ----
+    for (index in c("app_folder", "app_version", "has_internet", "i18n", "language", "languages")){
+      r[[index]] <- get(index)
+      m[[index]] <- get(index)
+    }
     
-    # Test internet connection ----
-    if ("event" %in% log_level) cat(paste0("\n[", now(), "] [EVENT] [page_id = server] internet connection test"))
-    
-    # If local is TRUE, don't use internet connection
-    if (local) has_internet <- FALSE
-    else has_internet <- curl::has_internet()
-    r$has_internet <- has_internet
-    
-    # App folder ----
-    if ("event" %in% log_level) cat(paste0("\n[", now(), "] [EVENT] [page_id = server] get app folder"))
-    r$app_folder <- app_folder
-    m$app_folder <- app_folder
-    
-    # App db folder ----
-    app_db_folder <- paste0(app_folder, "/app_database")
-    
-    # Translations ----
-    
-    if ("event" %in% log_level) cat(paste0("\n[", now(), "] [EVENT] [page_id = server] get translations"))
-    
-    r$i18n <- i18n
-    m$i18n <- i18n
-    r$languages <- get_languages()
-    r$language <- language
-    m$language <- language
+    if (length(db$remote_main) > 0){
+      r$db <- db$remote_main
+      m$db <- db$remote_public
+    } else {
+      r$db <- db$local_main
+      m$db <- db$local_public
+    }
     
     # Connection to database ----
-    # If connection informations have been given in linkr() function, use these informations
-    if ("event" %in% log_level) cat(paste0("\n[", now(), "] [EVENT] [page_id = server] load app database"))
-    local_db <- DBI::dbConnect(RSQLite::SQLite(), paste0(app_db_folder, "/linkr_main"))
-    r$local_db <- local_db
-    m$local_db <- DBI::dbConnect(RSQLite::SQLite(), paste0(app_db_folder, "/linkr_public"))
-    
-    db_local_main <- get_db()
-    
     # Add default values in database if database is empty
     # Load all data from database
     # Don't load concept, load it only when a vocabulary is selected
@@ -82,8 +59,8 @@ app_server <- function(){
       
       # Connection with username
       if (!authentication){
-        sql <- glue::glue_sql("SELECT id FROM users WHERE username = {username}", .con = local_db)
-        user_id <- DBI::dbGetQuery(local_db, sql)
+        sql <- glue::glue_sql("SELECT id FROM users WHERE username = {username}", .con = r$db)
+        user_id <- DBI::dbGetQuery(r$db, sql)
         if (nrow(user_id) > 0) r$user_id <- user_id %>% dplyr::pull()
         else stop("Username not found in app database")
       }
@@ -203,13 +180,14 @@ app_server <- function(){
     observe_event(shiny.router::get_page(), {
 
       if ("event" %in% log_level) cat(paste0("\n[", now(), "] [EVENT] [page_id = server] event triggered by shiny.router::get_page()"))
-
+      
       current_page <- shiny.router::get_page()
+      if (current_page == "/" && authentication) current_page <- "login"
+      else if (current_page == "/" && !authentication) current_page <- "home"
+      
       r$current_page <- current_page
 
       if (current_page %not_in% get_pages()) return()
-
-      if (current_page == "/") current_page <- "home"
 
       else if (current_page == "data"){
         if (length(shiny.router::get_query_param()$type) > 0) r$data_page <- shiny.router::get_query_param()$type
@@ -232,13 +210,14 @@ app_server <- function(){
       page <- r$load_page
       
       if (page == "login"){
-        mod_login_server("login", r, i18n, log_level)
+        mod_login_server("login")
         r$loaded_pages$login <- TRUE
       }
       
-      if (length(r$user_id) == 0) if (shiny.router::get_page() != "login") shinyjs::delay(50, shiny.router::change_page("login"))
-      
-      if (length(r$user_id) == 0) return()
+      if (length(r$user_id) == 0){
+        if (shiny.router::get_page() != "login") shinyjs::delay(50, shiny.router::change_page("/"))
+        return()
+      }
       
       # Get user accesses
       user_access_id <- r$users %>% dplyr::filter(id == r$user_id) %>% dplyr::pull(user_access_id) 

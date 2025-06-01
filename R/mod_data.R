@@ -605,7 +605,7 @@ mod_data_server <- function(id){
     
       observe_event(input$subset, {
         
-        if (length(input$subset) == 0 || length(m$selected_subset) == 0) return()
+        if (length(input$subset) == 0 || is.na(input$subset) || input$subset == "" || length(m$selected_subset) == 0) return()
         
         selected_subset <- as.numeric(input$subset)
         
