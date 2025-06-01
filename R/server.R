@@ -8,6 +8,7 @@ app_server <- function(){
     
     if ("event" %in% log_level) cat(paste0("\n[", now(), "] [EVENT] [page_id = server] init server"))
     
+    id <- "server"
     language <- tolower(language)
     
     # Create reactive values ----
@@ -72,7 +73,7 @@ app_server <- function(){
     # Don't load concept, load it only when a vocabulary is selected
     # Don't load cache table neither
     
-    observeEvent(r$db, {
+    observe_event(r$db, {
       
       if ("event" %in% log_level) cat(paste0("\n[", now(), "] [EVENT] [page_id = server] event triggered by observer r$db"))
       
@@ -155,7 +156,7 @@ app_server <- function(){
     
     # User is logged in
     
-    observeEvent(r$user_id, {
+    observe_event(r$user_id, {
       if ("event" %in% log_level) cat(paste0("\n[", now(), "] [EVENT] [page_id = server] event triggered by r$user_id"))
       
       if (log_target == "app"){
@@ -199,7 +200,7 @@ app_server <- function(){
     
     pages_variables_list <- c("r", "d", "m", "language", "i18n", "app_folder", "log_level", "user_accesses", "user_settings")
     
-    observeEvent(shiny.router::get_page(), {
+    observe_event(shiny.router::get_page(), {
 
       if ("event" %in% log_level) cat(paste0("\n[", now(), "] [EVENT] [page_id = server] event triggered by shiny.router::get_page()"))
 
@@ -225,7 +226,7 @@ app_server <- function(){
       shinyjs::runjs("var event = new Event('resize'); window.dispatchEvent(event);")
     })
     
-    observeEvent(r$load_page, {
+    observe_event(r$load_page, {
       if ("event" %in% log_level) cat(paste0("\n[", now(), "] [EVENT] [page_id = server] event triggered by r$load_page"))
       
       page <- r$load_page

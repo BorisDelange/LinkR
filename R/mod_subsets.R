@@ -237,31 +237,28 @@ mod_subsets_server <- function(id){
     
     # Load code ----
     
-    observeEvent(input$load_subset_code, try_catch("input$load_subset_code", {
+    observe_event(input$load_subset_code, {
       
       subset_id <- input$selected_element
       unique_id <- r$subsets_long %>% dplyr::filter(id == subset_id) %>% dplyr::filter(name == "unique_id") %>% dplyr::pull(value)
       code <- load_element_code(unique_id = unique_id)
       
       shinyAce::updateAceEditor(session, "subset_code", value = code)
-    }))
+    })
     
     # Comment code ----
     
-    observeEvent(input$subset_code_comment, try_catch("input$subset_code_comment", {
-      
-      toggle_comments(input_id = "subset_code", code = input$subset_code, selection = input$subset_code_comment$range, session = session)
-    }))
+    observe_event(input$subset_code_comment, toggle_comments(input_id = "subset_code", code = input$subset_code, selection = input$subset_code_comment$range, session = session))
     
     # Run code ----
     
-    observeEvent(input$run_code, try_catch("input$run_code", {
+    observe_event(input$run_code, {
       
       r$subset_code <- input$subset_code
       shinyjs::runjs(paste0("Shiny.setInputValue('", id, "-run_code_trigger', Math.random());"))
-    }))
+    })
     
-    observeEvent(input$subset_code_run_selection, try_catch("input$subset_code_run_selection", {
+    observe_event(input$subset_code_run_selection, {
       
       subset_id <- input$selected_element
       
@@ -273,15 +270,15 @@ mod_subsets_server <- function(id){
       execute_ace_code(editor_id = editor_id, full_code = full_code, editor_input = editor_input, code_store_var = code_store_var)
       
       shinyjs::runjs(paste0("Shiny.setInputValue('", id, "-run_code_trigger', Math.random());"))
-    }))
+    })
     
-    observeEvent(input$subset_code_run_all, try_catch("input$subset_code_run_all", {
+    observe_event(input$subset_code_run_all, {
       
       r$subset_code <- input$subset_code
       shinyjs::runjs(paste0("Shiny.setInputValue('", id, "-run_code_trigger', Math.random());"))
-    }))
+    })
     
-    observeEvent(input$run_code_trigger, try_catch("input$run_code_trigger", {
+    observe_event(input$run_code_trigger, {
       
       subset_id <- input$selected_element
       
@@ -289,24 +286,20 @@ mod_subsets_server <- function(id){
       
       result <- capture.output(tryCatch(eval(parse(text = code)), error = function(e) print(e), warning = function(w) print(w)))
       
-      output$code_result <- renderText(try_catch("output$code_result", paste(result, collapse = "\n")))
-    }))
+      output$code_result <- renderText(paste(result, collapse = "\n"))
+    })
     
     # Save code ----
     
-    observeEvent(input$save_code, try_catch("input$save_code", {
-      shinyjs::runjs(paste0("Shiny.setInputValue('", id, "-save_code_trigger', Math.random());"))
-    }))
+    observe_event(input$save_code, shinyjs::runjs(paste0("Shiny.setInputValue('", id, "-save_code_trigger', Math.random());")))
     
-    observeEvent(input$subset_code_save, try_catch("input$subset_code_save", {
-      shinyjs::runjs(paste0("Shiny.setInputValue('", id, "-save_code_trigger', Math.random());"))
-    }))
+    observe_event(input$subset_code_save, shinyjs::runjs(paste0("Shiny.setInputValue('", id, "-save_code_trigger', Math.random());")))
     
-    observeEvent(input$save_code_trigger, try_catch("input$save_code_trigger", {
+    observe_event(input$save_code_trigger, {
       
       subset_id <- input$selected_element
       unique_id <- r$subsets_long %>% dplyr::filter(id == subset_id) %>% dplyr::filter(name == "unique_id") %>% dplyr::pull(value)
       save_element_code(unique_id = unique_id, new_code = input$subset_code)
-    }))
+    })
   })
 }

@@ -81,17 +81,17 @@ mod_select_concepts_server <- function(id){
     
     # Open / close modal ----
     
-    observeEvent(input$open_select_concepts_modal, try_catch("input$open_select_concepts_modal", shinyjs::show("select_concepts_modal")))
-    observeEvent(input$close_select_concepts_modal_1, try_catch("input$close_select_concepts_modal_1",  shinyjs::hide("select_concepts_modal")))
-    observeEvent(input$close_select_concepts_modal_2, try_catch("input$close_select_concepts_modal_2", shinyjs::hide("select_concepts_modal")))
+    observe_event(input$open_select_concepts_modal, shinyjs::show("select_concepts_modal"))
+    observe_event(input$close_select_concepts_modal_1, shinyjs::hide("select_concepts_modal"))
+    observe_event(input$close_select_concepts_modal_2, shinyjs::hide("select_concepts_modal"))
     
     # Reload vocabularies ----
     
-    observeEvent(r$dataset_vocabularies, try_catch("r$dataset_vocabularies", shinyjs::runjs(paste0("Shiny.setInputValue('", id, "-reload_vocabularies', Math.random())"))))
+    observe_event(r$dataset_vocabularies, shinyjs::runjs(paste0("Shiny.setInputValue('", id, "-reload_vocabularies', Math.random())")))
     
     shinyjs::runjs(paste0("Shiny.setInputValue('", id, "-reload_vocabularies', Math.random())"))
 
-    observeEvent(input$reload_vocabularies, try_catch("input$reload_vocabularies", {
+    observe_event(input$reload_vocabularies, {
       
       if (length(r$dataset_vocabularies) == 0) return()
       
@@ -111,15 +111,13 @@ mod_select_concepts_server <- function(id){
         concept_id = integer(), concept_name = character(), domain_id = character(), vocabulary_id = character(),
         mapped_to_concept_id = integer(), merge_mapped_concepts = logical()
       )
-    }))
+    })
 
     # Reload vocabulary concepts ----
     
-    observeEvent(input$vocabulary, try_catch("input$vocabulary", {
-      shinyjs::runjs(paste0("Shiny.setInputValue('", id, "-reload_vocabulary_datatable', Math.random())"))
-    }))
+    observe_event(input$vocabulary, shinyjs::runjs(paste0("Shiny.setInputValue('", id, "-reload_vocabulary_datatable', Math.random())")))
       
-    observeEvent(input$reload_vocabulary_datatable, try_catch("input$reload_vocabulary_datatable", {
+    observe_event(input$reload_vocabulary_datatable, {
       
       if (length(d$dataset_concept) == 0 || nrow(d$dataset_concept) == 0) return()
       
@@ -176,16 +174,13 @@ mod_select_concepts_server <- function(id){
       
       # Update add and remove icons
       shinyjs::runjs(paste0("Shiny.setInputValue('", id, "-update_add_remove_icons', Math.random())"))
-    }))
+    })
     
     # Reload add/remove icons status ----
     
-    observeEvent(input$vocabulary_concepts_state, try_catch("input$vocabulary_concepts_state", {
-      
-      shinyjs::runjs(paste0("Shiny.setInputValue('", id, "-update_add_remove_icons', Math.random())"))
-    }))
+    observe_event(input$vocabulary_concepts_state, shinyjs::runjs(paste0("Shiny.setInputValue('", id, "-update_add_remove_icons', Math.random())")))
     
-    observeEvent(input$update_add_remove_icons, try_catch("input$update_add_remove_icons", {
+    observe_event(input$update_add_remove_icons, {
       
       if (nrow(r[[paste0(id, "_selected_concepts")]]) > 0){
         sapply(1:nrow(r[[paste0(id, "_selected_concepts")]]), function(i){
@@ -193,11 +188,11 @@ mod_select_concepts_server <- function(id){
           shinyjs::delay(50, shinyjs::runjs(paste0("$('#", id, "-add_concept_", row$concept_id, " i').removeClass('fa-plus').addClass('fa-minus');")))
         })
       }
-    }))
+    })
 
     # Show / hide DT cols ----
 
-    observeEvent(input$vocabulary_dt_cols, try_catch("input$vocabulary_dt_cols", {
+    observe_event(input$vocabulary_dt_cols, {
 
       if (length(r[[paste0(id, "_vocabulary_concepts_proxy")]]) > 0){
 
@@ -205,29 +200,29 @@ mod_select_concepts_server <- function(id){
           DT::showCols(0:9) %>%
           DT::hideCols(setdiff(0:9, input$vocabulary_dt_cols))
       }
-    }))
+    })
 
     # # Updates in datatable
     # 
-    # observeEvent(input$widget_creation_vocabulary_concepts_cell_edit, {
+    # observe_event(input$widget_creation_vocabulary_concepts_cell_edit, {
     #   
     #   edit_info <- input$widget_creation_vocabulary_concepts_cell_edit
     #   r$data_widget_creation_vocabulary_concepts <- DT::editData(r$data_widget_creation_vocabulary_concepts, edit_info, rownames = FALSE)
     # })
     # 
-    # # observeEvent(input$widget_creation_vocabulary_mapped_concepts_cell_edit, {
+    # # observe_event(input$widget_creation_vocabulary_mapped_concepts_cell_edit, {
     # #   
     # #   edit_info <- input$widget_creation_vocabulary_mapped_concepts_cell_edit
     # #   r[[paste0(category, "_widget_creation_vocabulary_mapped_concepts")]] <- DT::editData(r[[paste0(category, "_widget_creation_vocabulary_mapped_concepts")]], edit_info, rownames = FALSE)
     # # })
     # 
-    # observeEvent(input$widget_settings_vocabulary_concepts_cell_edit, {
+    # observe_event(input$widget_settings_vocabulary_concepts_cell_edit, {
     #   
     #   edit_info <- input$widget_settings_vocabulary_concepts_cell_edit
     #   r$data_widget_settings_vocabulary_concepts <- DT::editData(r$data_widget_settings_vocabulary_concepts, edit_info, rownames = FALSE)
     # })
     # 
-    # # observeEvent(input$widget_settings_vocabulary_mapped_concepts_cell_edit, {
+    # # observe_event(input$widget_settings_vocabulary_mapped_concepts_cell_edit, {
     # #   
     # #   edit_info <- input$widget_settings_vocabulary_mapped_concepts_cell_edit
     # #   r[[paste0(category, "_widget_settings_vocabulary_mapped_concepts")]] <- DT::editData(r[[paste0(category, "_widget_settings_vocabulary_mapped_concepts")]], edit_info, rownames = FALSE)
@@ -235,7 +230,7 @@ mod_select_concepts_server <- function(id){
     # 
     
     # Select / unselect a concept ----
-    observeEvent(input$add_concept_trigger, try_catch("input$add_concept_trigger", {
+    observe_event(input$add_concept_trigger, {
       
       concept_id <- input$concept_selected
       
@@ -263,10 +258,10 @@ mod_select_concepts_server <- function(id){
       
       # Update selected concepts list
       shinyjs::runjs(paste0("Shiny.setInputValue('", id, "-update_selected_concepts_list', Math.random())"))
-    }))
+    })
     
     # Remove a concept ----
-    observeEvent(input$remove_concept_trigger, try_catch("input$remove_concept_trigger", {
+    observe_event(input$remove_concept_trigger, {
       
       shinyjs::runjs(paste0("$('#", id, "-add_concept_", input$remove_concept, " i').removeClass('fa-minus').addClass('fa-plus');"))
       
@@ -274,11 +269,11 @@ mod_select_concepts_server <- function(id){
       
       # Update selected concepts list
       shinyjs::runjs(paste0("Shiny.setInputValue('", id, "-update_selected_concepts_list', Math.random())"))
-    }))
+    })
     
     # Update selected concepts list ----
     
-    observeEvent(input$update_selected_concepts_list, try_catch("input$update_selected_concepts_list", {
+    observe_event(input$update_selected_concepts_list, {
       
       selected_concepts_ui <- tagList()
       selected_concepts_list_ui <- tagList()
@@ -333,9 +328,9 @@ mod_select_concepts_server <- function(id){
           "$('#", id, "-selected_concepts').css('justify-content', 'left');",
           "$('#", id, "-selected_concepts').css('align-items', 'flex-wrap;');"
         ))
-        output$selected_concepts <- renderUI(try_catch("output$selected_concepts", selected_concepts_ui))
+        output$selected_concepts <- renderUI(selected_concepts_ui)
       }
-      output$selected_concepts_list <- renderUI(try_catch("output$selected_concepts_list", selected_concepts_list_ui))
-    }))
+      output$selected_concepts_list <- renderUI(selected_concepts_list_ui)
+    })
   })
 }

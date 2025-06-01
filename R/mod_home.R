@@ -53,7 +53,7 @@ mod_home_server <- function(id){
         "vocabularies" = "vocabulary"
       )
         
-      observeEvent(r[[paste0("reload_home_", page)]], try_catch(paste0("r$reload_home_", page), {
+      observe_event(r[[paste0("reload_home_", page)]], {
         
         long_var_filtered <- paste0("filtered_", page, "_long")
         
@@ -89,16 +89,16 @@ mod_home_server <- function(id){
         )
         
         output[[page]] <- renderUI(elements_ui)
-      }))
+      })
       
       r[[paste0("reload_home_", page)]] <- now()
       
-      observeEvent(input[[paste0("selected_", single_id, "_trigger")]], try_catch(paste0("r$selected_", single_id, "_trigger"), {
+      observe_event(input[[paste0("selected_", single_id, "_trigger")]], {
         
         shiny.router::change_page(page)
         shinyjs::runjs(paste0("Shiny.setInputValue('", page, "-selected_element', ", input[[paste0("selected_", single_id)]], ");"))
         shinyjs::delay(500, shinyjs::runjs(paste0("Shiny.setInputValue('", page, "-selected_element_trigger', Math.random());")))
-      }))
+      })
     })
     
     shinyjs::delay(10, shinyjs::runjs("

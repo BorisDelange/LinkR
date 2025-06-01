@@ -326,7 +326,7 @@ mod_data_server <- function(id){
     # Change data page ----
     # --- --- --- --- --- -
     
-    observeEvent(r$data_page, try_catch("r$data_page", {
+    observe_event(r$data_page, {
       
       displayed_category <- r$data_page
       hidden_category <- categories[categories != displayed_category]
@@ -354,7 +354,7 @@ mod_data_server <- function(id){
       
       # Reload window size (correct bug with some plugins display)
       shinyjs::runjs("var event = new Event('resize'); window.dispatchEvent(event);")
-    }))
+    })
     
     # --- --- --- --- --- --- --
     # A project is selected ----
@@ -365,7 +365,7 @@ mod_data_server <- function(id){
     subset_tables <- c(person_tables, "person")
     main_tables <- c(subset_tables, "location", "care_site", "provider")
     
-    observeEvent(r$load_project_trigger, try_catch("r$load_project_trigger", {
+    observe_event(r$load_project_trigger, {
       
       # Hide all grids
       sapply(r$data_grids, shinyjs::hide)
@@ -469,14 +469,14 @@ mod_data_server <- function(id){
           }
         }
       })
-    }))
+    })
     
     # --- --- --- --
     # Load data ----
     # --- --- --- --
     
     ## Subset ----
-    observeEvent(m$selected_subset, try_catch("m$selected_subset", {
+    observe_event(m$selected_subset, {
       
       if (is.na(m$selected_subset)) return()
       
@@ -541,19 +541,7 @@ mod_data_server <- function(id){
         subset_dates_range(c(dates_range$min_date, dates_range$max_date))
         subset_dates(c(dates_range$min_date, dates_range$max_date))
       }
-    }))
-    
-    ## Patient ----
-    observeEvent(m$selected_person, try_catch("m$selected_person", {
-      
-      if (!is.na(m$selected_person)) selected_person <- m$selected_person
-    }))
-    
-    ## Stay ----
-    observeEvent(m$selected_visit_detail, try_catch("m$selected_visit_detail", {
-      
-      if (!is.na(m$selected_visit_detail)) selected_visit_detail <- m$selected_visit_detail
-    }))
+    })
     
     # --- --- --- --- --- --
     # Sidenav dropdowns ----
@@ -561,7 +549,7 @@ mod_data_server <- function(id){
     
       ## Subset ----
       
-      observeEvent(m$subsets, try_catch("m$subsets", {
+    observe_event(m$subsets, {
         
         # Update subset dropdown
         if (nrow(m$subsets) == 0) updateSelectizeInput(
@@ -613,9 +601,9 @@ mod_data_server <- function(id){
         
         output$person_info <- renderUI("")
         shinyjs::hide("person_info_div")
-      }))
+      })
     
-      observeEvent(input$subset, try_catch("input$subset", {
+      observe_event(input$subset, {
         
         if (length(input$subset) == 0 || length(m$selected_subset) == 0) return()
         
@@ -655,7 +643,7 @@ mod_data_server <- function(id){
         # Reset selected_person & selected_visit_detail
         m$selected_person <- NA_integer_
         m$selected_visit_detail <- NA_integer_
-      }))
+      })
       
       ## Filter subset dates ----
       
@@ -665,22 +653,13 @@ mod_data_server <- function(id){
       subset_dates <- reactiveVal(c(as.Date("1970-01-01"), Sys.Date()))
       debounced_subset_dates <- reactive(subset_dates()) %>% debounce(100)
       
-      observeEvent(input$subset_date_slider, try_catch("input$subset_date_slider", {
-        
-        subset_dates(input$subset_date_slider)
-      }))
+      observe_event(input$subset_date_slider, subset_dates(input$subset_date_slider))
       
-      observeEvent(input$subset_start_date, try_catch("input$subset_start_date", {
-        
-        if (as.Date(input$subset_start_date) != subset_dates()[1]) subset_dates(c(as.Date(input$subset_start_date), subset_dates()[2]))
-      }))
+      observe_event(input$subset_start_date, if (as.Date(input$subset_start_date) != subset_dates()[1]) subset_dates(c(as.Date(input$subset_start_date), subset_dates()[2])))
       
-      observeEvent(input$subset_end_date, try_catch("input$subset_end_date", {
-        
-        if (as.Date(input$subset_end_date) != subset_dates()[2]) subset_dates(c(subset_dates()[1], as.Date(input$subset_end_date)))
-      }))
+      observe_event(input$subset_end_date, if (as.Date(input$subset_end_date) != subset_dates()[2]) subset_dates(c(subset_dates()[1], as.Date(input$subset_end_date))))
       
-      observeEvent(debounced_subset_dates(), try_catch("debounced_subset_dates()", {
+      observe_event(debounced_subset_dates(), {
         
         if (length(input$subset_date_slider) == 0 || length(debounced_subset_dates()) == 0 || length(subset_dates_range()) == 0) return()
         
@@ -706,7 +685,7 @@ mod_data_server <- function(id){
         shiny.fluent::updateDatePicker.shinyInput(session, "subset_end_date", value = end_date, minDate = min_date_js, maxDate = max_date_js)
         
         shinyjs::delay(10, shinyjs::runjs("observeSubsetSliderChanges();"))
-      }))
+      })
       
       # Adjust position of subset_date_slider
       
@@ -764,7 +743,7 @@ mod_data_server <- function(id){
       
       # Filter d$data_subset with selected date range
       
-      observeEvent(input$apply_subset_date_filters, try_catch("input$apply_subset_date_filters", {
+      observe_event(input$apply_subset_date_filters, {
         
         if (is.na(m$selected_subset)) return()
         
@@ -805,11 +784,11 @@ mod_data_server <- function(id){
         
         # Reload subset informations UI
         r$subset_updated_data <- Sys.time()
-      }))
+      })
       
       ## Subset informations
       
-      observeEvent(r$subset_updated_data, try_catch("r$subset_updated_data", {
+      observe_event(r$subset_updated_data, {
         
         style <- "display:inline-block; width:100px; font-weight:bold;"
         output$subset_info <- renderUI(
@@ -820,12 +799,12 @@ mod_data_server <- function(id){
             span(i18n$t("stays"), style = style), d$data_subset$visit_occurrence %>% dplyr::count() %>% dplyr::pull()
           )
         )
-      }))
+      })
     
       ## Patient ----
       
       # Update patients dropdown
-      observeEvent(m$subset_persons, try_catch("m$subset_persons", {
+      observe_event(m$subset_persons, {
         
         # Hide patients switching buttons
         shinyjs::hide("patient_switching_buttons")
@@ -900,10 +879,10 @@ mod_data_server <- function(id){
           )
         )
         output$person_info <- renderUI("")
-      }))
+      })
       
       # When a patient is selected
-      observeEvent(input$person, try_catch("input$person", {
+      observe_event(input$person, {
         
         if (length(input$person) == 0 || length(r$subset_merged_patients) == 0) return()
         
@@ -1033,11 +1012,11 @@ mod_data_server <- function(id){
         
         # Reset selected_visit_detail
         m$selected_visit_detail <- NA_integer_
-      }))
+      })
       
       ## Stay ----
       
-      observeEvent(input$visit_detail, try_catch("input$visit_detail", {
+      observe_event(input$visit_detail, {
         
         if (length(input$visit_detail) == 0 || length(d$dataset_concept) == 0) return()
         
@@ -1098,11 +1077,11 @@ mod_data_server <- function(id){
             span(i18n$t("duration"), style = style), tags$span(los, " ", tolower(days_trad))
           )
         })
-      }))
+      })
       
       ## Patients switching ----
       
-      observeEvent(input$next_patient, try_catch("input$next_patient", {
+      observe_event(input$next_patient, {
         
         num_selected_patient <- r$num_selected_patient + 1
         if (num_selected_patient > max(r$subset_merged_patients$n)) num_selected_patient <- r$num_selected_patient
@@ -1111,9 +1090,9 @@ mod_data_server <- function(id){
         person_id <- r$subset_merged_patients %>% dplyr::filter(n == num_selected_patient) %>% dplyr::pull(person_id)
         
         updateSelectizeInput(session, "person", selected = person_id)
-      }))
+      })
       
-      observeEvent(input$previous_patient, try_catch("input$previous_patient", {
+      observe_event(input$previous_patient, {
         
         num_selected_patient <- r$num_selected_patient - 1
         if (num_selected_patient < min(r$subset_merged_patients$n)) num_selected_patient <- r$num_selected_patient
@@ -1122,7 +1101,7 @@ mod_data_server <- function(id){
         person_id <- r$subset_merged_patients %>% dplyr::filter(n == num_selected_patient) %>% dplyr::pull(person_id)
         
         updateSelectizeInput(session, "person", selected = person_id)
-      }))
+      })
       
       # |-------------------------------- -----
       
@@ -1134,7 +1113,7 @@ mod_data_server <- function(id){
       ## Prepare vars ----
       # --- --- --- --- --
       
-      observeEvent(r$data_reload_tabs, try_catch("r$data_reload_tabs", {
+      observe_event(r$data_reload_tabs, {
         
         category <- r$data_page
 
@@ -1190,13 +1169,13 @@ mod_data_server <- function(id){
         
         # Load widgets
         if (grepl("ui_first_load", r$data_reload_tabs)) r$data_load_ui_widgets <- now()
-      }))
+      })
       
       # --- --- --- ---
       ## Load menu ----
       # --- --- --- ---
       
-      observeEvent(r$data_reload_menu, try_catch("r$data_reload_menu", {
+      observe_event(r$data_reload_menu, {
         
         sapply(categories, function(category){
           
@@ -1384,13 +1363,13 @@ mod_data_server <- function(id){
           shinyjs::show(paste0(displayed_category, "_study_menu"))
           shinyjs::hide(paste0(hidden_category, "_study_menu"))
         })
-      }))
+      })
       
       # --- --- --- --- --
       ## Load widgets ----
       # --- --- --- --- --
       
-      observeEvent(r$data_load_ui_widgets, try_catch("r$data_load_ui_widgets", {
+      observe_event(r$data_load_ui_widgets, {
         
         # Don't reload study UI if already loaded
         if (m$selected_study %in% r$data_loaded_studies) return()
@@ -1417,7 +1396,7 @@ mod_data_server <- function(id){
         
         # Indicate that this study has been loaded, so that UI elements aren't loaded twice
         r$data_loaded_studies <- c(r$data_loaded_studies, m$selected_study)
-      }))
+      })
       
     # |-------------------------------- -----
     
@@ -1428,7 +1407,7 @@ mod_data_server <- function(id){
     sapply(categories, function(category){
       
       # A tab is selected
-      observeEvent(r[[paste0(category, "_selected_tab")]], try_catch(paste0("r$", category, "_selected_tab"), {
+      observe_event(r[[paste0(category, "_selected_tab")]], {
         
         # Hide all grids
         sapply(r$data_grids, shinyjs::hide)
@@ -1441,10 +1420,10 @@ mod_data_server <- function(id){
         
         # Reload window size (correct bug with some plugins display)
         shinyjs::runjs("var event = new Event('resize'); window.dispatchEvent(event);")
-      }))
+      })
     
       # Tab selected from the menu
-      observeEvent(input[[paste0(category, "_study_current_tab_trigger")]], try_catch(paste0("input$", category, "_study_current_tab_trigger"), {
+      observe_event(input[[paste0(category, "_study_current_tab_trigger")]], {
         
         last_selected_tab <- r[[paste0(category, "_selected_tab")]]
         selected_tab <- gsub("data-tab_", "", input[[paste0(category, "_study_current_tab")]], fixed = FALSE)
@@ -1467,10 +1446,10 @@ mod_data_server <- function(id){
             shinyjs::show(paste0(category, "_study_", name, "_", first_child$tab_group_id, "_", first_child$tab_sub_group))
           }
         }
-      }))
+      })
       
       # A tab is moved
-      observeEvent(input[[paste0(category, "_tab_positions")]], try_catch(paste0("input$", category, "_tab_positions"), {
+      observe_event(input[[paste0(category, "_tab_positions")]], {
         
         positions <- input[[paste0(category, "_tab_positions")]]
         
@@ -1490,32 +1469,28 @@ mod_data_server <- function(id){
         }
         r$data_menu_tabs <- r$data_menu_tabs %>% dplyr::arrange(category, display_order)
         r$data_tabs <- r$data_tabs %>% dplyr::arrange(category, display_order)
-      }))
+      })
     })
     
     # Tab selected from breadcrumb
-    observeEvent(input$study_go_to_tab_trigger, try_catch("input$study_go_to_tab_trigger", {
+      observe_event(input$study_go_to_tab_trigger, {
       
       r[[paste0(r$data_page, "_selected_tab")]] <- input$study_go_to_tab
       r$data_reload_menu <- now()
-    }))
+    })
     
     # --- --- --- --
     # Add a tab ----
     # --- --- --- --
     
     # Open modal
-    observeEvent(input$add_tab, try_catch("input$add_tab", {
-      shinyjs::show("add_tab_modal")
-    }))
+    observe_event(input$add_tab, shinyjs::show("add_tab_modal"))
     
     # Close modal
-    observeEvent(input$close_add_tab_modal, try_catch("input$close_add_tab_modal", {
-      shinyjs::hide("add_tab_modal")
-    }))
+    observe_event(input$close_add_tab_modal, shinyjs::hide("add_tab_modal"))
     
     # Add a tab
-    observeEvent(input$add_tab_button, try_catch("input$add_tab_button", {
+    observe_event(input$add_tab_button, {
       
       tab_name <- input$tab_name
       
@@ -1615,14 +1590,14 @@ mod_data_server <- function(id){
       
       # Hide add tab model
       shinyjs::hide("add_tab_modal")
-    }))
+    })
     
     # --- --- --- - -
     # Edit a tab ----
     # --- --- --- - -
     
     # Open modal
-    observeEvent(input$edit_tab_trigger, try_catch("input$edit_tab_trigger", {
+    observe_event(input$edit_tab_trigger, {
       shinyjs::show("edit_tab_modal")
       
       # Get tab ID
@@ -1631,15 +1606,13 @@ mod_data_server <- function(id){
       # Get tab name and update textfield
       tab <- r$data_tabs %>% dplyr::filter(id == tab_id)
       shiny.fluent::updateTextField.shinyInput(session, "edit_tab_name", value = tab$name)
-    }))
+    })
     
     # Close modal
-    observeEvent(input$close_edit_tab_modal, try_catch("input$close_edit_tab_modal", {
-      shinyjs::hide("edit_tab_modal")
-    }))
+    observe_event(input$close_edit_tab_modal, shinyjs::hide("edit_tab_modal"))
     
     # Save updates
-    observeEvent(input$save_tab_button, try_catch("input$save_tab_button", {
+    observe_event(input$save_tab_button, {
       
       # Get tab ID
       tab_id <- input$edit_tab_id
@@ -1654,42 +1627,42 @@ mod_data_server <- function(id){
       # Check if name is not already used
       name_already_used <- nrow(r$data_tabs %>% dplyr::filter(category == r$data_page, tolower(name) == tolower(tab_name)))
       
-      if (name_already_used) shiny.fluent::updateTextField.shinyInput(session, "edit_tab_name", errorMessage = i18n$t("name_already_used"))
-      
-      if (!name_already_used){
-        
-        # Save updates in db
-        sql <- glue::glue_sql("UPDATE tabs SET name = {tab_name} WHERE id = {tab_id}", .con = r$db)
-        sql_send_statement(r$db, sql)
-        
-        # Update r var
-        r$data_tabs <- r$data_tabs %>% dplyr::mutate(name = dplyr::case_when(
-          id == tab_id ~ tab_name,
-          TRUE ~ name
-        ))
-        
-        # Reload study menu
-        r$data_reload_tabs <- now()
-        
-        # Notify user
-        show_message_bar("modif_saved", "success")
-        
-        # Reload update_datetime
-        sql_update_datetime(r, m)
-        
-        # Close modal
-        shinyjs::hide("edit_tab_modal")
+      if (name_already_used){
+        shiny.fluent::updateTextField.shinyInput(session, "edit_tab_name", errorMessage = i18n$t("name_already_used"))
+        return()
       }
-    }))
+        
+      # Save updates in db
+      sql <- glue::glue_sql("UPDATE tabs SET name = {tab_name} WHERE id = {tab_id}", .con = r$db)
+      sql_send_statement(r$db, sql)
+      
+      # Update r var
+      r$data_tabs <- r$data_tabs %>% dplyr::mutate(name = dplyr::case_when(
+        id == tab_id ~ tab_name,
+        TRUE ~ name
+      ))
+      
+      # Reload study menu
+      r$data_reload_tabs <- now()
+      
+      # Notify user
+      show_message_bar("modif_saved", "success")
+      
+      # Reload update_datetime
+      sql_update_datetime(r, m)
+      
+      # Close modal
+      shinyjs::hide("edit_tab_modal")
+    })
     
     # --- --- --- --- -
     # Delete a tab ----
     # --- --- --- --- -
     
-    observeEvent(input$delete_tab_button, try_catch("input$delete_tab_button", shinyjs::show("delete_tab_modal")))
-    observeEvent(input$close_tab_deletion_modal, try_catch("input$close_tab_deletion_modal", shinyjs::hide("delete_tab_modal")))
+    observe_event(input$delete_tab_button, shinyjs::show("delete_tab_modal"))
+    observe_event(input$close_tab_deletion_modal, shinyjs::hide("delete_tab_modal"))
     
-    observeEvent(input$confirm_tab_deletion, try_catch("input$confirm_tab_deletion", {
+    observe_event(input$confirm_tab_deletion, {
       
       category <- r$data_page
       
@@ -1761,14 +1734,14 @@ mod_data_server <- function(id){
       
       # Close modals
       sapply(c("edit_tab_modal", "delete_tab_modal"), shinyjs::hide)
-    }))
+    })
     
     # --- --- --- --- -
     # Add a widget ----
     # --- --- --- --- -
     
     # Open modal
-    observeEvent(input$add_widget, try_catch("input$add_widget,", {
+    observe_event(input$add_widget, {
       
       if (is.na(r[[paste0(r$data_page, "_selected_tab")]])){
         show_message_bar("create_a_tab_before_adding_a_widget", "warning")
@@ -1790,40 +1763,38 @@ mod_data_server <- function(id){
       
       # Reload plugins var
       shinyjs::runjs(paste0("Shiny.setInputValue('", id, "-reload_plugins_var', Math.random());"))
-    }))
+    })
     
     # Close modal
-    observeEvent(input$close_add_widget_modal, try_catch("input$close_add_widget_modal", shinyjs::hide("add_widget_modal")))
+    observe_event(input$close_add_widget_modal, shinyjs::hide("add_widget_modal"))
     
     ## Selected plugin ----
     
-    observeEvent(input$open_select_a_plugin_modal, try_catch("input$open_select_a_plugin_modal", {
+    observe_event(input$open_select_a_plugin_modal, {
       shinyjs::show("select_a_plugin_modal")
       shinyjs::hide(paste0(input$opened_widget_modal, "_widget_modal"))
-    }))
+    })
     
-    observeEvent(input$close_select_a_plugin_modal, try_catch("input$close_select_a_plugin_modal", {
+    observe_event(input$close_select_a_plugin_modal, {
       shinyjs::hide("select_a_plugin_modal")
       shinyjs::show(paste0(input$opened_widget_modal, "_widget_modal"))
-    }))
+    })
     
-    observeEvent(input$reload_plugins_var, try_catch("input$reload_plugins_var", {
+    observe_event(input$reload_plugins_var, {
       
       reload_elements_var(page_id = id, id = "plugins", con = r$db, long_var_filtered = "filtered_data_plugins_long")
-      
       shinyjs::runjs(paste0("Shiny.setInputValue('", id, "-reload_plugins_list', Math.random());"))
-    }))
+    })
     
-    observeEvent(input$reload_plugins_list, try_catch("input$reload_plugins_list", {
+    observe_event(input$reload_plugins_list, {
       
       elements_ui <- create_elements_ui(page_id = id, id = "plugins", elements = r$filtered_data_plugins_long, r = r, language = language, i18n = i18n)
-      
       output$plugins_widgets <- renderUI(elements_ui)
-    }))
+    })
     
     # Display a plugin description
     
-    observeEvent(input$show_plugin_description_trigger, try_catch("input$show_plugin_description_trigge", {
+    observe_event(input$show_plugin_description_trigger, {
       
       shinyjs::hide("select_a_plugin_modal")
       shinyjs::delay(50, shinyjs::show("plugin_description_modal"))
@@ -1844,17 +1815,17 @@ mod_data_server <- function(id){
         output$plugin_description <- renderUI(div(class = "markdown", withMathJax(includeMarkdown(output_file))))
       }
       output$plugin_description_title <- renderUI(tags$h1(description_title))
-    }))
+    })
     
-    observeEvent(input$close_plugin_description_modal, try_catch("input$close_plugin_description_modal", {
+    observe_event(input$close_plugin_description_modal, {
       
       shinyjs::hide("plugin_description_modal")
       shinyjs::delay(50, shinyjs::show("select_a_plugin_modal"))
-    }))
+    })
     
     # Search a plugin
     
-    observeEvent(input$search_plugin, try_catch("input$search_plugin", {
+    observe_event(input$search_plugin, {
       
       if (input$search_plugin == "") r$filtered_data_plugins_long <- r$plugins_long
       else {
@@ -1872,11 +1843,11 @@ mod_data_server <- function(id){
       }
       
       shinyjs::runjs(paste0("Shiny.setInputValue('", id, "-reload_plugins_list', Math.random());"))
-    }))
+    })
     
     # A plugin is selected
     
-    observeEvent(input$selected_element_trigger, try_catch("input$selected_element_trigger", {
+    observe_event(input$selected_element_trigger, {
       
       row <- r$filtered_data_plugins_long %>% dplyr::filter(id == input$selected_element)
       plugin_type <- row %>% dplyr::slice(1) %>% dplyr::pull(tab_type_id)
@@ -1892,11 +1863,11 @@ mod_data_server <- function(id){
       
       shinyjs::show(paste0(input$opened_widget_modal, "_widget_modal"))
       shinyjs::delay(50, shinyjs::hide("select_a_plugin_modal"))
-    }))
+    })
     
     ## Confirm creation of widget ----
     
-    observeEvent(input$widget_creation_save, try_catch("input$widget_creation_save", {
+    observe_event(input$widget_creation_save, {
       
       category <- r$data_page
       
@@ -2019,13 +1990,13 @@ mod_data_server <- function(id){
         # Reload menu (issue : it changed selected tab)
         r$data_reload_menu <- now()
       }
-    }))
+    })
     
     # --- --- --- --- --
     # Edit a widget ----
     # --- --- --- --- --
     
-    observeEvent(input$edit_widget_trigger, try_catch("input$edit_widget_trigger", {
+    observe_event(input$edit_widget_trigger, {
       
       # Set opened widget modal to creation
       shinyjs::runjs(paste0("Shiny.setInputValue('", id, "-opened_widget_modal', 'edit');"))
@@ -2118,10 +2089,10 @@ mod_data_server <- function(id){
       shinyjs::runjs(paste0("Shiny.setInputValue('", id, "-reload_vocabulary_datatable', Math.random())"))
       
       shinyjs::show("edit_widget_modal")
-    }))
+    })
     
     # Close modal
-    observeEvent(input$close_edit_widget_modal, try_catch("input$close_edit_widget_modal", {
+    observe_event(input$close_edit_widget_modal, {
       shinyjs::hide("edit_widget_modal")
       
       # Reload selected concepts
@@ -2132,10 +2103,10 @@ mod_data_server <- function(id){
         concept_id = integer(), concept_name = character(), domain_id = character(), vocabulary_id = character(),
         mapped_to_concept_id = integer(), merge_mapped_concepts = logical()
       )
-    }))
+    })
     
     # Save updates
-    observeEvent(input$widget_edition_save, try_catch("input$widget_edition_save", {
+    observe_event(input$widget_edition_save, {
       
       widget_id <- input$edit_widget_id
       tab_id <- r$data_widgets %>% dplyr::filter(id == widget_id) %>% dplyr::pull(tab_id)
@@ -2240,7 +2211,7 @@ mod_data_server <- function(id){
         
       show_message_bar("modif_saved", "success")
       shinyjs::hide("edit_widget_modal")
-    }))
+    })
     
     # --- --- --- --- --- --- --
     # Widget in full screen ----
@@ -2248,7 +2219,7 @@ mod_data_server <- function(id){
     
     r$data_tabs_full_screen <- tibble::tibble(widget_id = integer(), tab_id = integer(), x = integer(), y = integer(), w = integer(), h = integer())
     
-    observeEvent(input$widget_full_screen_trigger, try_catch("input$widget_full_screen_trigger", {
+    observe_event(input$widget_full_screen_trigger, {
       
       widget_id <- input$widget_full_screen_id
       tab_id <- r$data_widgets %>% dplyr::filter(id == widget_id) %>% dplyr::pull(tab_id)
@@ -2354,9 +2325,9 @@ mod_data_server <- function(id){
       
       # Reload window size (correct bug with Ace editor display)
       shinyjs::delay(300, shinyjs::runjs("var event = new Event('resize'); window.dispatchEvent(event);"))
-    }))
+    })
     
-    observeEvent(input$full_screen_widget_position_trigger, try_catch("input$full_screen_widget_position_trigger", {
+    observe_event(input$full_screen_widget_position_trigger, {
       
       widget <- input$full_screen_widget_position
       
@@ -2370,16 +2341,16 @@ mod_data_server <- function(id){
           h = as.integer(widget$h)
         )
       )
-    }))
+    })
     
     # --- --- --- --- -- -
     # Delete a widget ----
     # --- --- --- --- -- -
     
-    observeEvent(input$remove_widget_trigger, try_catch("input$remove_widget_trigger", shinyjs::show("delete_widget_modal")))
-    observeEvent(input$close_widget_deletion_modal, try_catch("input$close_widget_deletion_modal", shinyjs::hide("delete_widget_modal")))
+    observe_event(input$remove_widget_trigger, shinyjs::show("delete_widget_modal"))
+    observe_event(input$close_widget_deletion_modal, shinyjs::hide("delete_widget_modal"))
     
-    observeEvent(input$confirm_widget_deletion, try_catch("input$confirm_widget_deletion", {
+    observe_event(input$confirm_widget_deletion, {
       
       category <- r$data_page
       
@@ -2419,7 +2390,7 @@ mod_data_server <- function(id){
       
       # Reload update_datetime
       sql_update_datetime(r, m)
-    }))
+    })
     
     # --- --- --- --
     # Edit page ----
@@ -2427,13 +2398,13 @@ mod_data_server <- function(id){
     
     r$data_edit_page_activated <- FALSE
     
-    observeEvent(input$edit_page, try_catch("input$edit_page", {
+    observe_event(input$edit_page, {
       
       if (r$data_edit_page_activated) r$data_edit_page_activated <- FALSE
       else r$data_edit_page_activated <- TRUE
-    }))
+    })
     
-    observeEvent(r$data_edit_page_activated, try_catch("r$data_edit_page_activated", {
+    observe_event(r$data_edit_page_activated, {
       
       if (r$data_edit_page_activated){
         
@@ -2515,10 +2486,10 @@ mod_data_server <- function(id){
         # Reload update_datetime
         sql_update_datetime(r, m)
       }
-    }), ignoreInit = TRUE)
+    }, ignoreInit = TRUE)
     
     # Save each widget position
-    observeEvent(input$widget_position_trigger, try_catch("input$widget_position_trigger", {
+    observe_event(input$widget_position_trigger, {
       
       widget <- input$widget_position
       
@@ -2550,7 +2521,7 @@ mod_data_server <- function(id){
           DBI::dbAppendTable(m$db, "widgets_options", new_data)
         }
       }
-    }))
+    })
     
     # --- --- --- --- --- --- --- -- -
     # Show / hide widgets buttons ----
@@ -2558,7 +2529,7 @@ mod_data_server <- function(id){
     
     r$data_show_widgets_buttons <- TRUE
     
-    observeEvent(input$show_hide_widgets_buttons, try_catch("input$show_hide_widgets_buttons", {
+    observe_event(input$show_hide_widgets_buttons, {
       
       # Hide all data widgets buttons
       if (r$data_show_widgets_buttons){
@@ -2577,7 +2548,7 @@ mod_data_server <- function(id){
         shinyjs::runjs("$('.data_widget_settings_code_panel').css('height', 'calc(100% - 34px)');")
         shinyjs::runjs("var event = new Event('resize'); window.dispatchEvent(event);")
       }
-    }))
+    })
     
     # |-------------------------------- -----
     
@@ -2761,7 +2732,7 @@ mod_data_server <- function(id){
         else if (action %in% c("add_widget", "reload_widget")) widgets <- r$data_widgets %>% dplyr::filter(id == !!widget_id)
         widgets <- widgets %>% dplyr::rename(widget_id = id)
         
-        req (nrow(widgets) > 0)
+        if (nrow(widgets) == 0) return()
         
         widgets_concepts <- r$data_widgets_concepts %>% dplyr::inner_join(widgets %>% dplyr::select(widget_id), by = "widget_id")
           
@@ -2838,8 +2809,6 @@ mod_data_server <- function(id){
             if (length(m[[session_code]]) == 0) session_num <- 1L
             if (length(m[[session_code]]) > 0) session_num <- m[[session_code]] + 1
             m[[session_code]] <- session_num
-            
-            # NB : req(m[[session_code]] == session_num) must be put at the beginning of each observeEvent in plugins code
             
             # Variables to hide
             new_env_vars <- list("r" = NA)

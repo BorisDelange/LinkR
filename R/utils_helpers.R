@@ -73,3 +73,27 @@ try_catch <- function(trigger = character(), code){
     else show_message_bar("an_error_occurred", "severeWarning", i18n = i18n)
   })
 }
+
+#' @noRd
+observe_event <- function(eventExpr, handlerExpr, ...) {
+  
+  # Capture expressions and environment
+  event_expr <- substitute(eventExpr)
+  handler_expr <- substitute(handlerExpr)
+  trigger_name <- deparse(event_expr)
+  
+  # Build the call manually
+  call_args <- list(
+    event_expr,
+    substitute(
+      try_catch(trigger_name, handler_expr), 
+      list(trigger_name = trigger_name, handler_expr = handler_expr)
+    )
+  )
+  
+  # Add extra arguments
+  call_args <- c(call_args, list(...))
+  
+  # Execute the call in the parent environment
+  do.call("observeEvent", call_args, envir = parent.frame())
+}

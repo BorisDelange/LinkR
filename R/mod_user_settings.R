@@ -177,7 +177,7 @@ mod_user_settings_server <- function(id){
     all_divs <- c("user_profile", "code_editor")
     
     # Page change observer ----
-    observeEvent(shiny.router::get_page(), try_catch("shiny.router::get_page()", {
+    observe_event(shiny.router::get_page(), {
       
       if (shiny.router::get_page() == id){
       
@@ -191,13 +191,13 @@ mod_user_settings_server <- function(id){
           gender = c("M", "F", "M", "F", "M", "F", "M", "F", "M", "F")
         ) %>% tibble::as_tibble() %>% head(10)) %>% paste(collapse = "\n")
         
-        output$ace_editor_output <- renderText(try_catch("output$ace_editor_output", captured_output))
+        output$ace_editor_output <- renderText(captured_output)
       }
-    }))
+    })
     
     # Current tab ----
     
-    observeEvent(input$current_tab_trigger, try_catch("input$current_tab_trigger", {
+    observe_event(input$current_tab_trigger, {
       
       current_tab <- gsub(paste0(id, "-"), "", input$current_tab, fixed = FALSE)
       
@@ -216,7 +216,7 @@ mod_user_settings_server <- function(id){
       # Change selected tab
       sapply(all_divs, function(button_id) shinyjs::removeClass(class = "selected_pivot_item", selector = paste0("#", id, "-", button_id)))
       shinyjs::addClass(class = "selected_pivot_item", selector = paste0("#", id, "-", current_tab))
-    }))
+    })
     
     # Load settings ----
     
@@ -225,7 +225,7 @@ mod_user_settings_server <- function(id){
     
     # Save settings ----
     
-    observeEvent(input$save_settings, try_catch("input$save_settings", {
+    observe_event(input$save_settings, {
       
       current_tab <- "user_profile"
       if (length(input$current_tab) > 0) current_tab <- gsub(paste0(id, "-"), "", input$current_tab, fixed = FALSE)
@@ -284,11 +284,11 @@ mod_user_settings_server <- function(id){
         
         show_message_bar("modif_saved", "success")
       }
-    }))
+    })
     
     # Code editor settings ----
     
-    observeEvent(input$ace_theme, try_catch("input$ace_theme", {
+    observe_event(input$ace_theme, {
       
       # Update Ace edotir theme
       shinyAce::updateAceEditor(session, "ace_editor", theme = input$ace_theme)
@@ -300,34 +300,24 @@ mod_user_settings_server <- function(id){
       text_output_theme <- gsub("_", "-", input$ace_theme)
       if (text_output_theme == "terminal") text_output_theme <- paste0(text_output_theme, "-theme")
       shinyjs::addClass("console_output", paste0("ace-", text_output_theme))
-    }))
+    })
     
-    observeEvent(input$ace_font_size, try_catch("input$ace_font_size", {
-      
-      shinyAce::updateAceEditor(session, "ace_editor", fontSize = input$ace_font_size)
-    }))
+    observe_event(input$ace_font_size, shinyAce::updateAceEditor(session, "ace_editor", fontSize = input$ace_font_size))
     
     # User profile ----
     
-    observeEvent(r$user_id, try_catch("r$user_id", {
+    observe_event(r$user_id, {
       
       sql <- glue::glue_sql("SELECT username, firstname, lastname FROM users WHERE id = {r$user_id}", .con = r$db)
       user_infos <- DBI::dbGetQuery(r$db, sql)
       
       for (field in c("username", "firstname", "lastname")) shiny.fluent::updateTextField.shinyInput(session, field, value = user_infos[[field]])
-    }))
+    })
     
-    observeEvent(input$change_password, try_catch("input$change_password", {
-      
-      shinyjs::show("change_password_modal")
-    }))
+    observe_event(input$change_password, shinyjs::show("change_password_modal"))
+    observe_event(input$close_change_password_modal, shinyjs::hide("change_password_modal"))
     
-    observeEvent(input$close_change_password_modal, try_catch("input$close_change_password_modal", {
-      
-      shinyjs::hide("change_password_modal")
-    }))
-    
-    observeEvent(input$confirm_password_update, try_catch("input$confirm_password_update", {
+    observe_event(input$confirm_password_update, {
       
       empty_fields <- list()
       for (field in c("current_password", "new_password_1", "new_password_2")) {
@@ -370,7 +360,7 @@ mod_user_settings_server <- function(id){
       shinyjs::hide("change_password_modal")
       
       show_message_bar("password_successfully_updated", "success")
-    }))
+    })
     
   })
 }

@@ -344,7 +344,7 @@ mod_users_server <- function(id){
     
     shinyjs::runjs(paste0("Shiny.setInputValue('", id, "-reload_users', Math.random());"))
     
-    observeEvent(input$reload_users, try_catch("input$reload_users", {
+    observe_event(input$reload_users, {
       
       sql <- glue::glue_sql(paste0(
         "SELECT u.id, u.username, u.firstname, u.lastname, (u.firstname || ' ' || u.lastname) AS name, (SUBSTR(u.firstname, 1, 1) || SUBSTR(u.lastname, 1, 1)) AS initials, ",
@@ -388,23 +388,19 @@ mod_users_server <- function(id){
         output_name = "users_dt", datatable_dom = "<'top't><'bottom'p>", sortable_cols = sortable_cols, centered_cols = centered_cols,
         col_names = col_names, searchable_cols = searchable_cols, factorize_cols = factorize_cols, filter = TRUE, column_widths = column_widths
       )
-    }))
+    })
     
     # Create user ----
     
     ## Open modal
-    observeEvent(input$create_user, try_catch("input$create_user", {
-      shinyjs::show("create_user_modal")
-    }))
+    observe_event(input$create_user, shinyjs::show("create_user_modal"))
     
     ## Close modal
-    observeEvent(input$close_create_user_modal, try_catch("input$close_create_user_modal", {
-      shinyjs::hide("create_user_modal")
-    }))
+    observe_event(input$close_create_user_modal, shinyjs::hide("create_user_modal"))
     
     ## Creation confirmed
     
-    observeEvent(input$add_user, try_catch("input$add_user", {
+    observe_event(input$add_user, {
       
       if ("users_management" %not_in% user_accesses) return()
         
@@ -475,11 +471,11 @@ mod_users_server <- function(id){
       show_message_bar("user_added", "success")
       
       shinyjs::hide("create_user_modal")
-    }))
+    })
     
     # Edit user ----
     
-    observeEvent(input$edit_user_trigger, try_catch("input$edit_user_trigger", {
+    observe_event(input$edit_user_trigger, {
       
       if ("users_management" %in% user_accesses){
       
@@ -497,19 +493,13 @@ mod_users_server <- function(id){
         sapply(c("users_dt", "add_user_icon"), shinyjs::hide)
         sapply(c("user_edition_div", "edit_user_icons"), shinyjs::show)
       }
-    }))
+    })
     
-    observeEvent(input$edit_user_password, try_catch("input$edit_user_password", {
-      
-      shinyjs::show("edit_user_password_modal")
-    }))
+    observe_event(input$edit_user_password, shinyjs::show("edit_user_password_modal"))
     
-    observeEvent(input$close_edit_user_password_modal, try_catch("input$close_edit_user_password_modal", {
-      
-      shinyjs::hide("edit_user_password_modal")
-    }))
+    observe_event(input$close_edit_user_password_modal, shinyjs::hide("edit_user_password_modal"))
     
-    observeEvent(input$confirm_password_update, try_catch("input$confirm_password_update", {
+    observe_event(input$confirm_password_update, {
       
       empty_fields <- list()
       for (field in c("new_password_1", "new_password_2")) {
@@ -537,11 +527,11 @@ mod_users_server <- function(id){
       shinyjs::hide("edit_user_password_modal")
       
       show_message_bar("password_successfully_updated", "success")
-    }))
+    })
     
     # Save updates
     
-    observeEvent(input$save_user_updates, try_catch("input$save_user_updates", {
+    observe_event(input$save_user_updates, {
       
       if ("users_management" %not_in% user_accesses) return()
         
@@ -613,24 +603,24 @@ mod_users_server <- function(id){
       
       sapply(c("user_edition_div", "edit_user_icons"), shinyjs::hide)
       sapply(c("users_dt", "add_user_icon"), shinyjs::show)
-    }))
+    })
     
     # Cancel updates
     
-    observeEvent(input$cancel_user_updates, try_catch("input$cancel_user_updates", {
+    observe_event(input$cancel_user_updates, {
       
       sapply(c("user_edition_div", "edit_user_icons"), shinyjs::hide)
       sapply(c("users_dt", "add_user_icon"), shinyjs::show)
-    }))
+    })
     
     # Delete user ----
     
     ## Open / close modal
-    observeEvent(input$delete_user, try_catch("input$delete_user", shinyjs::show("delete_user_modal")))
-    observeEvent(input$close_user_deletion_modal, try_catch("input$close_user_deletion_modal", shinyjs::hide("delete_user_modal")))
+    observe_event(input$delete_user, shinyjs::show("delete_user_modal"))
+    observe_event(input$close_user_deletion_modal, shinyjs::hide("delete_user_modal"))
     
     ## Deletion confirmed
-    observeEvent(input$confirm_user_deletion, try_catch("input$confirm_user_deletion", {
+    observe_event(input$confirm_user_deletion, {
       
       if ("users_management" %not_in% user_accesses) return()
       
@@ -646,7 +636,7 @@ mod_users_server <- function(id){
       
       sapply(c("user_edition_div", "edit_user_icons", "delete_user_modal"), shinyjs::hide)
       sapply(c("users_dt", "add_user_icon"), shinyjs::show)
-    }))
+    })
     
     # |----------- USERS STATUSES ---------- -----
     
@@ -654,26 +644,21 @@ mod_users_server <- function(id){
     
     shinyjs::runjs(paste0("Shiny.setInputValue('", id, "-reload_users_statuses', Math.random());"))
     
-    observeEvent(input$reload_users_statuses, try_catch("input$reload_users_statuses", {
-      reload_user_attribute("user_status")
-    }))
+    observe_event(input$reload_users_statuses, reload_user_attribute("user_status"))
     
     # Create user status ----
     
     ## Open / close modal
-    observeEvent(input$create_user_status, try_catch("input$create_user_status", shinyjs::show("create_user_status_modal")))
-    observeEvent(input$close_create_user_status_modal, try_catch("input$close_create_user_status_modal", shinyjs::hide("create_user_status_modal")))
+    observe_event(input$create_user_status, shinyjs::show("create_user_status_modal"))
+    observe_event(input$close_create_user_status_modal, shinyjs::hide("create_user_status_modal"))
     
     ## Creation confirmed
     
-    observeEvent(input$add_user_status, try_catch("input$add_user_status", {
-      
-      if ("users_statuses_management" %in% user_accesses) add_user_attribute("user_status")
-    }))
+    observe_event(input$add_user_status, if ("users_statuses_management" %in% user_accesses) add_user_attribute("user_status"))
     
     # Edit user status ----
     
-    observeEvent(input$edit_user_status_trigger, try_catch("input$edit_user_status_trigger", {
+    observe_event(input$edit_user_status_trigger, {
       
       # Update fields
       user_status <- r$users_statuses %>% dplyr::filter(id == input$edit_user_status_id)
@@ -682,41 +667,30 @@ mod_users_server <- function(id){
       
       sapply(c("users_statuses_dt", "add_user_status_icon"), shinyjs::hide)
       sapply(c("user_status_edition_div", "edit_user_status_icons"), shinyjs::show)
-    }))
+    })
     
     # Save updates
     
-    observeEvent(input$save_user_status_updates, try_catch("input$save_user_status_updates", {
-      
-      if ("users_statuses_management" %in% user_accesses) save_user_attribute_updates("user_status")
-    }))
+    observe_event(input$save_user_status_updates, if ("users_statuses_management" %in% user_accesses) save_user_attribute_updates("user_status"))
     
     # Cancel updates
     
-    observeEvent(input$cancel_user_status_updates, try_catch("input$cancel_user_status_updates", {
+    observe_event(input$cancel_user_status_updates, {
       
       sapply(c("user_status_edition_div", "edit_user_status_icons"), shinyjs::hide)
       sapply(c("users_statuses_dt", "add_user_status_icon"), shinyjs::show)
-    }))
+    })
     
     # Delete user status ----
     
     ## Open modal
-    observeEvent(input$delete_user_status, try_catch("input$delete_user_status", {
-      shinyjs::show("delete_user_status_modal")
-    }))
+    observe_event(input$delete_user_status, shinyjs::show("delete_user_status_modal"))
     
     ## Close modal
-    observeEvent(input$close_user_status_deletion_modal, try_catch("input$close_user_status_deletion_modal", {
-      
-      shinyjs::hide("delete_user_status_modal")
-    }))
+    observe_event(input$close_user_status_deletion_modal, shinyjs::hide("delete_user_status_modal"))
     
     ## Deletion confirmed
-    observeEvent(input$confirm_user_status_deletion, try_catch("input$confirm_user_status_deletion", {
-      
-      if ("users_statuses_management" %in% user_accesses) delete_user_attribute("user_status")
-    }))
+    observe_event(input$confirm_user_status_deletion, if ("users_statuses_management" %in% user_accesses) delete_user_attribute("user_status"))
     
     # |----------- USERS ACCESSES --------- -----
     
@@ -724,33 +698,23 @@ mod_users_server <- function(id){
     
     shinyjs::runjs(paste0("Shiny.setInputValue('", id, "-reload_users_accesses', Math.random());"))
     
-    observeEvent(input$reload_users_accesses, try_catch("input$reload_users_accesses", {
-      
-      reload_user_attribute("user_access")
-    }))
+    observe_event(input$reload_users_accesses, reload_user_attribute("user_access"))
     
     # Create user access ----
     
     ## Open modal
-    observeEvent(input$create_user_access, try_catch("input$create_user_access", {
-      shinyjs::show("create_user_access_modal")
-    }))
+    observe_event(input$create_user_access, shinyjs::show("create_user_access_modal"))
     
     ## Close modal
-    observeEvent(input$close_create_user_access_modal, try_catch("input$close_create_user_access_modal", {
-      shinyjs::hide("create_user_access_modal")
-    }))
+    observe_event(input$close_create_user_access_modal, shinyjs::hide("create_user_access_modal"))
     
     ## Creation confirmed
     
-    observeEvent(input$add_user_access, try_catch("input$add_user_access", {
-      
-      if ("users_accesses_management" %in% user_accesses) add_user_attribute("user_access")
-    }))
+    observe_event(input$add_user_access, if ("users_accesses_management" %in% user_accesses) add_user_attribute("user_access"))
     
     # Edit user access ----
     
-    observeEvent(input$edit_user_access_trigger, try_catch("input$edit_user_access_trigger", {
+    observe_event(input$edit_user_access_trigger, {
       
       # Update fields
       user_access <- r$users_accesses %>% dplyr::filter(id == input$edit_user_access_id)
@@ -762,22 +726,19 @@ mod_users_server <- function(id){
       
       # Update toggles
       shinyjs::runjs(paste0("Shiny.setInputValue('", id, "-update_user_accesses_toggles', Math.random());"))
-    }))
+    })
     
     # Save updates
     
-    observeEvent(input$save_user_access_updates, try_catch("input$save_user_access_updates", {
-      
-      if ("users_accesses_management" %in% user_accesses) save_user_attribute_updates("user_access")
-    }))
+    observe_event(input$save_user_access_updates, if ("users_accesses_management" %in% user_accesses) save_user_attribute_updates("user_access"))
     
     # Cancel updates
     
-    observeEvent(input$cancel_user_access_updates, try_catch("input$cancel_user_access_updates", {
+    observe_event(input$cancel_user_access_updates, {
       
       sapply(c("user_access_edition_div", "edit_user_access_icons"), shinyjs::hide)
       sapply(c("users_accesses_dt", "add_user_access_icon"), shinyjs::show)
-    }))
+    })
     
     # Show / hide toggles
     
@@ -786,15 +747,15 @@ mod_users_server <- function(id){
       # Show or hide toggles
       label <- users_accesses_toggles_options[[i, "name"]]
       
-      observeEvent(input[[paste0("toggle_", label)]], try_catch(paste0("input$toggle_", label), {
+      observe_event(input[[paste0("toggle_", label)]], {
         if (input[[paste0("toggle_", label)]]) shinyjs::show(paste0("sub_results_", label, "_div"))
         else shinyjs::hide(paste0("sub_results_", label, "_div"))
-      }))
+      })
     })
     
     # Update toggles
     
-    observeEvent(input$update_user_accesses_toggles, try_catch("input$update_user_accesses_toggles", {
+    observe_event(input$update_user_accesses_toggles, {
       
       sql <- glue::glue_sql("SELECT name, value_num FROM options WHERE category = 'users_accesses' AND link_id = {input$edit_user_access_id} AND value_num = 1", .con = r$db)
       current_data <- DBI::dbGetQuery(r$db, sql)
@@ -814,19 +775,16 @@ mod_users_server <- function(id){
           }
         }
       }
-    }))
+    })
     
     # Delete user access ----
     
     ## Open / close modal
-    observeEvent(input$delete_user_access, try_catch("input$delete_user_access", shinyjs::show("delete_user_access_modal")))
-    observeEvent(input$close_user_access_deletion_modal, try_catch("input$close_user_access_deletion_modal", shinyjs::hide("delete_user_access_modal")))
+    observe_event(input$delete_user_access, shinyjs::show("delete_user_access_modal"))
+    observe_event(input$close_user_access_deletion_modal, shinyjs::hide("delete_user_access_modal"))
     
     ## Deletion confirmed
-    observeEvent(input$confirm_user_access_deletion, try_catch("input$confirm_user_access_deletion", {
-      
-      if ("users_accesses_management" %in% user_accesses) delete_user_attribute("user_access")
-    }))
+    observe_event(input$confirm_user_access_deletion, if ("users_accesses_management" %in% user_accesses) delete_user_attribute("user_access"))
     
     # |----------- MODAL FUNCTIONS -------- -----
     

@@ -322,30 +322,27 @@ mod_data_cleaning_server <- function(id){
     
     # Load code ----
     
-    observeEvent(input$load_data_cleaning_code, try_catch("input$load_data_cleaning_code", {
+    observe_event(input$load_data_cleaning_code, {
       
       data_cleaning_script_id <- input$selected_element
       unique_id <- r$data_cleaning_long %>% dplyr::filter(id == data_cleaning_script_id) %>% dplyr::filter(name == "unique_id") %>% dplyr::pull(value)
       code <- load_element_code(unique_id = unique_id)
       
       shinyAce::updateAceEditor(session, "data_cleaning_code", value = code)
-    }))
+    })
     
     # Comment code ----
-    observeEvent(input$data_cleaning_code_comment, try_catch("input$data_cleaning_code_comment", {
-      
-      toggle_comments(input_id = "data_cleaning_code", code = input$data_cleaning_code, selection = input$data_cleaning_code_comment$range, session = session)
-    }))
+    observe_event(input$data_cleaning_code_comment, toggle_comments(input_id = "data_cleaning_code", code = input$data_cleaning_code, selection = input$data_cleaning_code_comment$range, session = session))
     
     # Run code ----
     
-    observeEvent(input$run_code, try_catch("input$run_code", {
+    observe_event(input$run_code, {
       
       r$data_cleaning_code <- input$data_cleaning_code
       shinyjs::runjs(paste0("Shiny.setInputValue('", id, "-run_code_trigger', Math.random());"))
-    }))
+    })
     
-    observeEvent(input$data_cleaning_code_run_selection, try_catch("input$data_cleaning_code_run_selection", {
+    observe_event(input$data_cleaning_code_run_selection, {
       
       editor_id <- "data_cleaning_code"
       editor_input <- input[[paste0(editor_id, "_run_selection")]]
@@ -355,15 +352,15 @@ mod_data_cleaning_server <- function(id){
       execute_ace_code(editor_id = editor_id, full_code = full_code, editor_input = editor_input, code_store_var = code_store_var)
       
       shinyjs::runjs(paste0("Shiny.setInputValue('", id, "-run_code_trigger', Math.random());"))
-    }))
+    })
     
-    observeEvent(input$data_cleaning_code_run_all, try_catch("input$data_cleaning_code_run_all", {
+    observe_event(input$data_cleaning_code_run_all, {
       
       r$data_cleaning_code <- input$data_cleaning_code
       shinyjs::runjs(paste0("Shiny.setInputValue('", id, "-run_code_trigger', Math.random());"))
-    }))
+    })
     
-    observeEvent(input$run_code_trigger, try_catch("input$run_code_trigger", {
+    observe_event(input$run_code_trigger, {
       
       data_cleaning_script_id <- input$selected_element
       
@@ -372,23 +369,19 @@ mod_data_cleaning_server <- function(id){
       result <- capture.output(tryCatch(eval(parse(text = code)), error = function(e) print(e), warning = function(w) print(w)))
       
       output$code_result <- renderText(paste(result, collapse = "\n"))
-    }))
+    })
     
     # Save code ----
     
-    observeEvent(input$save_code, try_catch("input$save_code", {
-      shinyjs::runjs(paste0("Shiny.setInputValue('", id, "-save_code_trigger', Math.random());"))
-    }))
+    observe_event(input$save_code, shinyjs::runjs(paste0("Shiny.setInputValue('", id, "-save_code_trigger', Math.random());")))
     
-    observeEvent(input$data_cleaning_code_save, try_catch("input$data_cleaning_code_save", {
-      shinyjs::runjs(paste0("Shiny.setInputValue('", id, "-save_code_trigger', Math.random());"))
-    }))
+    observe_event(input$data_cleaning_code_save, shinyjs::runjs(paste0("Shiny.setInputValue('", id, "-save_code_trigger', Math.random());")))
     
-    observeEvent(input$save_code_trigger, try_catch("input$save_code_trigger", {
+    observe_event(input$save_code_trigger, {
       
       data_cleaning_script_id <- input$selected_element
       unique_id <- r$data_cleaning_long %>% dplyr::filter(id == data_cleaning_script_id) %>% dplyr::filter(name == "unique_id") %>% dplyr::pull(value)
       save_element_code(unique_id = unique_id, new_code = input$data_cleaning_code)
-    }))
+    })
   })
 }

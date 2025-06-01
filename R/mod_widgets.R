@@ -126,10 +126,7 @@ mod_widgets_server <- function(id, all_divs){
     
     # Page change observer ----
     
-    observeEvent(shiny.router::get_page(), try_catch("shiny.router::get_page()", {
-      
-      if (shiny.router::get_page() == id) shinyjs::runjs(paste0("Shiny.setInputValue('", id, "-reload_elements_var', Math.random());"))
-    }))
+    observe_event(shiny.router::get_page(), if (shiny.router::get_page() == id) shinyjs::runjs(paste0("Shiny.setInputValue('", id, "-reload_elements_var', Math.random());")))
     
     # Initiate vars ----
     
@@ -190,7 +187,7 @@ mod_widgets_server <- function(id, all_divs){
     
     # Search an element ----
     
-    observeEvent(input$search_element, try_catch("input$search_element", {
+    observe_event(input$search_element, {
       
       if (length(r[[long_var]]) == 0) return()
         
@@ -210,20 +207,20 @@ mod_widgets_server <- function(id, all_divs){
       }
       
       shinyjs::runjs(paste0("Shiny.setInputValue('", id, "-reload_elements_list', Math.random());"))
-    }))
+    })
     
     # Reload widgets -----
     
     shinyjs::runjs(paste0("Shiny.setInputValue('", id, "-reload_elements_var', Math.random());"))
     
-    observeEvent(input$reload_elements_var, try_catch("input$reload_elements_var", {
+    observe_event(input$reload_elements_var, {
       
       reload_elements_var(page_id = id, id = id, con = con, long_var_filtered = paste0("filtered_", id, "_long"))
       
       shinyjs::runjs(paste0("Shiny.setInputValue('", id, "-reload_elements_list', Math.random());"))
-    }))
+    })
     
-    observeEvent(input$reload_elements_list, try_catch("input$reload_elements_list", {
+    observe_event(input$reload_elements_list, {
       
       if (id %in% user_accesses | (id == "subsets" & "projects_subsets_management" %in% user_accesses)){
         
@@ -244,11 +241,11 @@ mod_widgets_server <- function(id, all_divs){
         
       # Unlock reactivity
       shinyjs::show("elements")
-    }))
+    })
     
     # Element current tab ----
     
-    observeEvent(input$current_tab_trigger, try_catch("input$current_tab_trigger", {
+    observe_event(input$current_tab_trigger, {
       
       current_tab <- gsub(paste0(id, "-"), "", input$current_tab, fixed = FALSE)
       
@@ -287,11 +284,11 @@ mod_widgets_server <- function(id, all_divs){
       
       # Prevent a bug with scroll into ace editor
       if (current_tab == "edit_code") shinyjs::runjs("var event = new Event('resize'); window.dispatchEvent(event);")
-    }))
+    })
     
     # Go to home page ----
     
-    observeEvent(input$show_home, try_catch("input$show_home", {
+    observe_event(input$show_home, {
       
       divs <- c(paste0(all_divs, "_reduced_sidenav"), paste0(all_divs, "_large_sidenav"))
       
@@ -305,7 +302,7 @@ mod_widgets_server <- function(id, all_divs){
         # Change header
         sapply(c("command_bar_2_link", "command_bar_2_div"), shinyjs::hide)
       }
-    }))
+    })
     
     # |-------------------------------- -----
     
@@ -315,12 +312,12 @@ mod_widgets_server <- function(id, all_divs){
     
     # Open / close modal
     
-    observeEvent(input$create_element, try_catch("input$create_element", shinyjs::show("create_element_modal")))
-    observeEvent(input$close_create_element_modal, try_catch("input$close_create_element_modal", shinyjs::hide("create_element_modal")))
+    observe_event(input$create_element, shinyjs::show("create_element_modal"))
+    observe_event(input$close_create_element_modal, shinyjs::hide("create_element_modal"))
     
     # Add an element
     
-    observeEvent(input$add_element, try_catch("input$add_element", {
+    observe_event(input$add_element, {
       
       if (!(paste0(id, "_management") %in% user_accesses || (id == "subsets" && "projects_subsets_management" %in% user_accesses))) return()
       
@@ -533,7 +530,7 @@ mod_widgets_server <- function(id, all_divs){
       
       # Close modal
       shinyjs::hide("create_element_modal")
-    }))
+    })
     
     # |-------------------------------- -----
     
@@ -543,9 +540,9 @@ mod_widgets_server <- function(id, all_divs){
     
     ## Upload file ----
     
-    observeEvent(input$import_element, try_catch("input$import_element", shinyjs::click("import_element_upload")))
+    observe_event(input$import_element, shinyjs::click("import_element_upload"))
     
-    observeEvent(input$import_element_upload, try_catch("input$import_element_upload", {
+    observe_event(input$import_element_upload, {
     
       if (paste0(id, "_import") %not_in% user_accesses) return()
         
@@ -584,23 +581,21 @@ mod_widgets_server <- function(id, all_divs){
         if (id == "projects") shinyjs::runjs(paste0("Shiny.setInputValue('", id, "-ask_plugins_update', Math.random());"))
         else shinyjs::runjs(paste0("Shiny.setInputValue('", id, "-confirm_element_import_2', Math.random());"))
       }
-    }))
+    })
     
-    observeEvent(input$close_element_import_modal, try_catch("input$close_element_import_modal", {
-      shinyjs::hide("import_element_modal")
-    }))
+    observe_event(input$close_element_import_modal, shinyjs::hide("import_element_modal"))
     
     ## Import files ----
     
-    observeEvent(input$confirm_element_import_1, try_catch("input$confirm_element_import_1", {
+    observe_event(input$confirm_element_import_1, {
       
       shinyjs::hide("import_element_modal")
       
       if (id == "projects") shinyjs::runjs(paste0("Shiny.setInputValue('", id, "-ask_plugins_update', Math.random());"))
       else shinyjs::runjs(paste0("Shiny.setInputValue('", id, "-confirm_element_import_2', Math.random());"))
-    }))
+    })
       
-    observeEvent(input$confirm_element_import_2, try_catch("input$confirm_element_import_2", {
+    observe_event(input$confirm_element_import_2, {
       
       tryCatch({
         
@@ -612,7 +607,7 @@ mod_widgets_server <- function(id, all_divs){
         show_message_bar(paste0("error_importing_", single_id), "warning")
         cat(paste0("\n", now(), " - mod_widgets - (", id, ") - import element error - ", toString(e)))
       })
-    }))
+    })
     
     # |-------------------------------- -----
     
@@ -620,7 +615,7 @@ mod_widgets_server <- function(id, all_divs){
     # An element is selected ----
     # --- --- --- --- --- --- ---
     
-    observeEvent(input$selected_element_trigger, try_catch("input$selected_element_trigger", {
+    observe_event(input$selected_element_trigger, {
       
       sapply(c("all_elements", "all_elements_reduced_sidenav"), shinyjs::hide)
       shinyjs::show("one_element")
@@ -806,7 +801,7 @@ mod_widgets_server <- function(id, all_divs){
         
         shinyjs::runjs(paste0("Shiny.setInputValue('", id, "-load_data_cleaning_code', Math.random());"))
       }
-    }))
+    })
     
     # |-------------------------------- -----
     
@@ -816,7 +811,7 @@ mod_widgets_server <- function(id, all_divs){
     
     ## Edit summary ----
     
-    observeEvent(input$edit_summary, try_catch("input$edit_summary", {
+    observe_event(input$edit_summary, {
       
       if (!(paste0(id, "_management") %in% user_accesses || (id == "subsets" && "projects_subsets_management" %in% user_accesses))) return()
       
@@ -832,11 +827,11 @@ mod_widgets_server <- function(id, all_divs){
       
       sapply(c("summary_view_informations_div", "edit_summary_div"), shinyjs::hide)
       sapply(c("summary_edit_informations_div", "save_summary_div", "edit_description_button"), shinyjs::show)
-    }))
+    })
     
     ## Reload informations UI ----
     
-    observeEvent(input$reload_informations_ui, try_catch("input$reload_informations_ui", {
+    observe_event(input$reload_informations_ui, {
       
       element_wide <- r[[wide_var]] %>% dplyr::filter(id == input$selected_element)
       element_long <- r[[long_var]] %>% dplyr::filter(id == input$selected_element)
@@ -889,19 +884,19 @@ mod_widgets_server <- function(id, all_divs){
         )
       }
       
-    }))
+    })
     
     ## Show / hide users UI ----
     
-    observeEvent(input$users_allowed_read_group, try_catch("input$users_allowed_read_group", {
+    observe_event(input$users_allowed_read_group, {
       
       if (input$users_allowed_read_group == "people_picker") shinyjs::show("users_allowed_read_ui")
       else shinyjs::hide("users_allowed_read_ui")
-    }))
+    })
     
     ## Change language ----
     
-    observeEvent(input$language, try_catch("input$language", {
+    observe_event(input$language, {
       
       if (length(input$selected_element) == 0) return()
         
@@ -924,50 +919,44 @@ mod_widgets_server <- function(id, all_divs){
       }
       
       sapply(c("name", "short_description"), function(field) shinyjs::show(paste0(field, "_", input$language, "_div")))
-    }))
+    })
     
     ## Edit description ----
     
-    observeEvent(input$edit_description, try_catch("input$edit_description", {
+    observe_event(input$edit_description, {
       
       sapply(c("edit_description_button", "summary_informations_div"), shinyjs::hide)
       sapply(c("save_and_cancel_description_buttons", "edit_description_div"), shinyjs::show)
-    }))
+    })
     
     ## Run description code ----
     
-    observeEvent(input$run_description_code, try_catch("input$run_description_code", {
-      shinyjs::runjs(paste0("Shiny.setInputValue('", id, "-run_description_code_trigger', Math.random());"))
-    }))
+    observe_event(input$run_description_code, shinyjs::runjs(paste0("Shiny.setInputValue('", id, "-run_description_code_trigger', Math.random());")))
     
-    observeEvent(input$description_code_run_all, try_catch("input$description_code_run_all", {
-      shinyjs::runjs(paste0("Shiny.setInputValue('", id, "-run_description_code_trigger', Math.random());"))
-    }))
+    observe_event(input$description_code_run_all, shinyjs::runjs(paste0("Shiny.setInputValue('", id, "-run_description_code_trigger', Math.random());")))
     
-    observeEvent(input$run_description_code_trigger, try_catch("input$run_description_code_trigger", {
+    observe_event(input$run_description_code_trigger, {
       
       if (input$description_code == "" | is.na(input$description_code)) output$description_ui <- renderUI(div(shiny.fluent::MessageBar(i18n$t("no_description_available"), messageBarType = 5) ,style = "display: inline-block;"))
       else {
         output_file <- create_rmarkdown_file(input$description_code, interpret_code = FALSE)
         output$description_ui <- renderUI(div(class = "markdown", withMathJax(includeMarkdown(output_file))))
       }
-    }))
+    })
     
     ## Save description updates ----
     
-    observeEvent(input$description_code_save, try_catch("input$description_code_save", {
-      shinyjs::runjs(paste0("Shiny.setInputValue('", id, "-save_description_trigger', Math.random());"))
-    }))
+    observe_event(input$description_code_save, shinyjs::runjs(paste0("Shiny.setInputValue('", id, "-save_description_trigger', Math.random());")))
     
-    observeEvent(input$save_description, try_catch("input$save_description", {
+    observe_event(input$save_description, {
       
       shinyjs::runjs(paste0("Shiny.setInputValue('", id, "-save_description_trigger', Math.random());"))
       
       sapply(c("save_and_cancel_description_buttons", "edit_description_div"), shinyjs::hide)
       sapply(c("edit_description_button", "summary_informations_div"), shinyjs::show)
-    }))
+    })
     
-    observeEvent(input$save_description_trigger, try_catch("input$save_description_trigger", {
+    observe_event(input$save_description_trigger, {
       
       # Update database and r var
       sql <- glue::glue_sql("UPDATE options SET value = {input$description_code} WHERE category = {sql_category} AND link_id = {input$selected_element} AND name = {paste0('description_', input$language)}", .con = r$db)
@@ -988,11 +977,11 @@ mod_widgets_server <- function(id, all_divs){
       }
       
       show_message_bar("modif_saved", "success")
-    }))
+    })
     
     ## Cancel description updates ----
     
-    observeEvent(input$cancel_description, try_catch("input$cancel_description", {
+    observe_event(input$cancel_description, {
       
       sapply(c("save_and_cancel_description_buttons", "edit_description_div"), shinyjs::hide)
       sapply(c("edit_description_button", "summary_informations_div"), shinyjs::show)
@@ -1008,11 +997,11 @@ mod_widgets_server <- function(id, all_divs){
         output_file <- create_rmarkdown_file(description_code, interpret_code = FALSE)
         output$description_ui <- renderUI(div(class = "markdown", withMathJax(includeMarkdown(output_file))))
       }
-    }))
+    })
     
     ## Save summary updates ----
     
-    observeEvent(input$save_summary, try_catch("input$save_summary", {
+    observe_event(input$save_summary, {
       
       name_field <- paste0("name_", language)
       if (id == "vocabularies") element_name <- input$vocabulary_id
@@ -1167,15 +1156,15 @@ mod_widgets_server <- function(id, all_divs){
       # Close edition mode
       sapply(c("summary_edit_informations_div", "save_summary_div", "edit_description_button"), shinyjs::hide)
       sapply(c("summary_view_informations_div", "edit_summary_div"), shinyjs::show)
-    }))
+    })
     
     ## Delete an element ----
     
-    observeEvent(input$delete_element, try_catch("input$delete_element", shinyjs::show("delete_element_modal")))
+    observe_event(input$delete_element, shinyjs::show("delete_element_modal"))
     
-    observeEvent(input$close_element_deletion_modal, try_catch("input$close_element_deletion_modal", shinyjs::hide("delete_element_modal")))
+    observe_event(input$close_element_deletion_modal, shinyjs::hide("delete_element_modal"))
     
-    observeEvent(input$confirm_element_deletion, try_catch("input$confirm_element_deletion", {
+    observe_event(input$confirm_element_deletion, {
       
       if(!(paste0(id, "_management") %in% user_accesses || (id == "subsets" && "projects_subsets_management" %in% user_accesses))) return()
       
@@ -1259,7 +1248,7 @@ mod_widgets_server <- function(id, all_divs){
       
       # Close modal
       shinyjs::hide("delete_element_modal")
-    }))
+    })
     
     # |-------------------------------- -----
     
@@ -1270,13 +1259,9 @@ mod_widgets_server <- function(id, all_divs){
     ## Git synchronization ----
     
     ### Load a git repo ----
-    observeEvent(input$git_repo, try_catch("input$git_repo", {
-      
-      # Reload git repo
-      shinyjs::runjs(paste0("Shiny.setInputValue('", id, "-reload_git_repo', Math.random());"))
-    }))
+    observe_event(input$git_repo, shinyjs::runjs(paste0("Shiny.setInputValue('", id, "-reload_git_repo', Math.random());")))
     
-    observeEvent(input$reload_git_repo, try_catch("input$reload_git_repo", {
+    observe_event(input$reload_git_repo, {
       
       if (paste0(id, "_share") %not_in% user_accesses) return()
       
@@ -1312,11 +1297,11 @@ mod_widgets_server <- function(id, all_divs){
 
       # Reload git element UI
       shinyjs::runjs(paste0("Shiny.setInputValue('", id, "-reload_git_element_ui', Math.random());"))
-    }))
+    })
     
     ### Reload git element UI ----
     
-    observeEvent(input$reload_git_element_ui, try_catch("input$reload_git_element_ui", {
+    observe_event(input$reload_git_element_ui, {
       
       if (paste0(id, "_share") %not_in% user_accesses) return()
       
@@ -1451,28 +1436,26 @@ mod_widgets_server <- function(id, all_divs){
       
       output$git_repo_element_ui <- renderUI(git_element_ui)
       output$synchronize_git_buttons <- renderUI(synchronize_git_buttons)
-    }))
+    })
     
     ### Update or delete git element ----
-    observeEvent(input$git_repo_update_element, try_catch("input$git_repo_update_element", {
+    observe_event(input$git_repo_update_element, {
       
       sapply(c("update_git_element_text_div", "confirm_git_element_update_div"), shinyjs::show)
       sapply(c("delete_git_element_text_div", "confirm_git_element_deletion_div"), shinyjs::hide)
       shinyjs::show("update_or_delete_git_element_modal")
-    }))
+    })
 
-    observeEvent(input$close_update_or_delete_git_element_modal, try_catch("input$close_update_or_delete_git_element_modal", {
-      shinyjs::hide("update_or_delete_git_element_modal")
-    }))
+    observe_event(input$close_update_or_delete_git_element_modal, shinyjs::hide("update_or_delete_git_element_modal"))
 
-    observeEvent(input$confirm_git_element_update, try_catch("input$confirm_git_element_update", {
+    observe_event(input$confirm_git_element_update, {
 
       shinyjs::runjs(paste0("Shiny.setInputValue('", id, "-update_git_type', 'update');"))
       shinyjs::runjs(paste0("Shiny.setInputValue('", id, "-update_git', Math.random());"))
-    }))
+    })
     
     # Update / delete git element confirmed
-    observeEvent(input$update_git, try_catch("input$update_git", {
+    observe_event(input$update_git, {
       
       if (paste0(id, "_share") %not_in% user_accesses) return()
       
@@ -1573,11 +1556,11 @@ mod_widgets_server <- function(id, all_divs){
       
       # Close modal
       shinyjs::hide("update_or_delete_git_element_modal")
-    }))
+    })
     
     ## Export element ----
     
-    observeEvent(input$export_element, try_catch("input$export_element", shinyjs::click("export_element_download")))
+    observe_event(input$export_element, shinyjs::click("export_element_download"))
     
     output$export_element_download <- downloadHandler(
 
@@ -1612,8 +1595,6 @@ mod_widgets_server <- function(id, all_divs){
     )
     
     # Prevent a bug : show_message_bar in downloadHandler never ends
-    observeEvent(input$error_downloading_element, try_catch("input$error_downloading_element", {
-      show_message_bar(paste0("error_downloading_", single_id), "severeWarning")
-    }))
+    observe_event(input$error_downloading_element, show_message_bar(paste0("error_downloading_", single_id), "severeWarning"))
   })
 }

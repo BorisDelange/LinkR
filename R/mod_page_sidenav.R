@@ -928,17 +928,17 @@ mod_page_sidenav_server <- function(id){
     
     if (id %in% c("app_db", "data_cleaning", "datasets", "git_repos", "home", "log", "plugins", "projects", "subsets", "users", "vocabularies")) r[[paste0(id, "_show_hide_sidenav")]] <- "hide"
     
-    observeEvent(r[[paste0(id, "_show_hide_sidenav")]], try_catch(paste0("r$", id, "_show_hide_sidenav"), {
+    observe_event(r[[paste0(id, "_show_hide_sidenav")]], {
       
       if (r[[paste0(id, "_show_hide_sidenav")]] == "hide") shinyjs::runjs(paste0(js_vars, js_hide_sidenav))
       else shinyjs::runjs(paste0(js_vars, js_show_sidenav))
-    }))
+    })
     
-    observeEvent(input$show_hide_sidenav, try_catch("input$show_hide_sidenav", {
+    observe_event(input$show_hide_sidenav, {
       
       if (input$show_hide_sidenav == "hide") shinyjs::runjs(paste0(js_vars, js_hide_sidenav))
       else if (input$show_hide_sidenav == "show") shinyjs::runjs(paste0(js_vars, js_show_sidenav))
       else shinyjs::runjs(paste0(js_vars, " if (currentWidth === '220px') {", js_hide_sidenav, "} else { ", js_show_sidenav, "}"))
-    }))
+    })
   })
 }

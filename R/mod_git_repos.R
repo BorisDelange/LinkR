@@ -343,9 +343,7 @@ mod_git_repos_server <- function(id){
     if ("git_repos_remote_git_repo_management" %in% user_accesses) sapply(c("edit_readme_buttons", "save_git_repo_button"), shinyjs::show)
     
     # Prevent bug leaflet ----
-    observeEvent(shiny.router::get_page(), try_catch("shiny.router::get_page()", {
-      if (shiny.router::get_page() == id) shinyjs::runjs("var event = new Event('resize'); window.dispatchEvent(event);")
-    }))
+    observe_event(shiny.router::get_page(), if (shiny.router::get_page() == id) shinyjs::runjs("var event = new Event('resize'); window.dispatchEvent(event);"))
     
     # Initiate vars ----
     
@@ -415,7 +413,7 @@ mod_git_repos_server <- function(id){
       
       ## Display list or map ----
       
-      observeEvent(input$show_list, try_catch("input$show_list", {
+      observe_event(input$show_list, {
         
         sapply(c("show_list_div", "explore_map", "map_git_infos_div", "map_git_readme", "save_and_cancel_readme_buttons", "edit_readme_div"), shinyjs::hide)
         sapply(c("explore_ui", "list_git_infos_div", "list_git_readme", "explore_map_and_ui_div", "git_infos_div"), shinyjs::show)
@@ -427,9 +425,9 @@ mod_git_repos_server <- function(id){
         
         # Save that we are on the list page
         shinyjs::runjs(paste0("Shiny.setInputValue('", id, "-current_page', 'list');"))
-      }))
+      })
       
-      observeEvent(input$show_map, try_catch("input$show_map", {
+      observe_event(input$show_map, {
         
         sapply(c("show_map_div", "explore_ui", "list_git_infos_div", "list_git_readme", "save_and_cancel_readme_buttons", "edit_readme_div"), shinyjs::hide)
         sapply(c("map_git_infos_div", "map_git_readme", "explore_map", "explore_map_and_ui_div", "git_infos_div"), shinyjs::show)
@@ -447,13 +445,13 @@ mod_git_repos_server <- function(id){
         
         # Save that we are on the map page
         shinyjs::runjs(paste0("Shiny.setInputValue('", id, "-current_page', 'map');"))
-      }))
+      })
       
       ## Reload list ----
       
       shinyjs::runjs(paste0("Shiny.setInputValue('", id, "-reload_git_repos', Math.random());"))
       
-      observeEvent(input$reload_git_repos, try_catch("input$reload_git_repos", {
+      observe_event(input$reload_git_repos, {
         
         sql <- glue::glue_sql("WITH selected_git_repos AS (
           SELECT DISTINCT g.id
@@ -478,11 +476,11 @@ mod_git_repos_server <- function(id){
           output_name = "git_repos_dt", col_names = i18n$t("name"), datatable_dom = "<'top't><'bottom'p>",
           sortable_cols = "name", searchable_cols = "name", filter = TRUE
         )
-      }))
+      })
       
       ## A row is selected ----
       
-      observeEvent(input$git_repos_dt_rows_selected, try_catch("input$git_repos_dt_rows_selected", {
+      observe_event(input$git_repos_dt_rows_selected, {
         
         git_repo_id <- r$git_repos_wide[input$git_repos_dt_rows_selected, ] %>% dplyr::pull(id)
         git_repo <- r$git_repos_wide %>% dplyr::filter(id == git_repo_id)
@@ -505,19 +503,19 @@ mod_git_repos_server <- function(id){
         
         # Update git infos UI
         shinyjs::runjs(paste0("Shiny.setInputValue('", id, "-reload_list_git_infos_ui', Math.random());"))
-      }))
+      })
       
-      observeEvent(input$reload_list_git_infos_ui, try_catch("input$reload_list_git_infos_ui", {
+      observe_event(input$reload_list_git_infos_ui, {
         
         # Update git infos UI
         git_repo <- r$list_git_repo
         shinyjs::show("list_git_infos_buttons")
         output$list_git_infos_title <- renderUI(tags$h1(git_repo$name))
         output$list_git_infos_content <- renderUI(get_git_infos(r, git_repo, "list"))
-      }))
+      })
       
       ## Click on the map ----
-      observeEvent(input$explore_map_marker_click, try_catch("input$explore_map_marker_click", {
+      observe_event(input$explore_map_marker_click, {
         
         git_repo <- git_repos %>% dplyr::filter(
           sprintf("%.6f", as.numeric(lat)) == sprintf("%.6f", as.numeric(input$explore_map_marker_click$lat)),
@@ -552,7 +550,7 @@ mod_git_repos_server <- function(id){
         
         # Show readme edit button
         shinyjs::show("edit_readme_button")
-      }))
+      })
       
       # |-------------------------------- -----
       
@@ -562,7 +560,7 @@ mod_git_repos_server <- function(id){
       
       ### Add from map
       
-      observeEvent(input$add_to_saved_git_repos, try_catch("input$add_to_saved_git_repos", {
+      observe_event(input$add_to_saved_git_repos, {
         
         if (nrow(r$map_git_repo) == 0) return()
           
@@ -597,16 +595,16 @@ mod_git_repos_server <- function(id){
         
         # Reload list
         shinyjs::runjs(paste0("Shiny.setInputValue('", id, "-reload_git_repos', Math.random());"))
-      }))
+      })
       
       ### Open modal
-      observeEvent(input$create_git_repo, try_catch("input$create_git_repo", shinyjs::show("create_git_repo_modal")))
+      observe_event(input$create_git_repo, shinyjs::show("create_git_repo_modal"))
       
       ### Close modal
-      observeEvent(input$close_create_git_repo_modal, try_catch("input$close_create_git_repo_modal", shinyjs::hide("create_git_repo_modal")))
+      observe_event(input$close_create_git_repo_modal, shinyjs::hide("create_git_repo_modal"))
       
       ### Add button clicked
-      observeEvent(input$add_git_repo, try_catch("input$add_git_repo", {
+      observe_event(input$add_git_repo, {
         
         if ("git_repos_management" %not_in% user_accesses) return()
         
@@ -693,16 +691,16 @@ mod_git_repos_server <- function(id){
         
         # Close modal
         shinyjs::hide("create_git_repo_modal")
-      }))
+      })
       
       ## Delete git repo ----
       
       ### Open / close modal
-      observeEvent(input$delete_git_repo, try_catch("input$delete_git_repo", shinyjs::show("delete_git_repo_modal")))
-      observeEvent(input$close_git_repo_deletion_modal, try_catch("input$close_git_repo_deletion_modal", shinyjs::hide("delete_git_repo_modal")))
+      observe_event(input$delete_git_repo, shinyjs::show("delete_git_repo_modal"))
+      observe_event(input$close_git_repo_deletion_modal, shinyjs::hide("delete_git_repo_modal"))
       
       ### Deletion confirmed
-      observeEvent(input$confirm_git_repo_deletion, try_catch("input$confirm_git_repo_deletion", {
+      observe_event(input$confirm_git_repo_deletion, {
         
         if ("git_repos_management" %not_in% user_accesses) return()
         
@@ -729,21 +727,21 @@ mod_git_repos_server <- function(id){
         output$list_git_infos_content <- renderUI("")
         output$list_git_readme <- renderUI("")
         sapply(c("list_git_infos_buttons", "show_content_list_div", "edit_readme_button"), shinyjs::hide)
-      }))
+      })
       
       ## Edit git repo ----
       
-      observeEvent(input$edit_git_repo, try_catch("input$edit_git_repo", {
+      observe_event(input$edit_git_repo, {
         
         if ("git_repos_management" %not_in% user_accesses) return()
         
         sapply(c("edit_git_repo_button", "list_git_infos_content"), shinyjs::hide)
         sapply(c("save_git_repo_edition_button", "edit_git_repo_div"), shinyjs::show)
-      }))
+      })
       
       ## Save git repo edition ----
       
-      observeEvent(input$save_git_repo_edition, try_catch("input$save_git_repo_edition", {
+      observe_event(input$save_git_repo_edition, {
         
         if ("git_repos_management" %not_in% user_accesses) return()
           
@@ -790,13 +788,13 @@ mod_git_repos_server <- function(id){
         
         # Notify user
         show_message_bar("modif_saved", "success")
-      }))
+      })
       
       ## Edit readme ----
       
       ### Edit readme ----
       
-      observeEvent(input$edit_readme, try_catch("input$edit_readme", {
+      observe_event(input$edit_readme, {
         
         if ("git_repos_remote_git_repo_management" %not_in% user_accesses) return()
         
@@ -813,11 +811,11 @@ mod_git_repos_server <- function(id){
         
         sapply(c("explore_map_and_ui_div", "git_infos_div", "edit_readme_button"), shinyjs::hide)
         sapply(c("save_and_cancel_readme_buttons", "edit_readme_div"), shinyjs::show)
-      }))
+      })
       
       ### Generate readme ----
       
-      observeEvent(input$generate_readme, try_catch("input$generate_readme", {
+      observe_event(input$generate_readme, {
         
         if ("git_repos_remote_git_repo_management" %not_in% user_accesses) return()
         
@@ -964,31 +962,25 @@ mod_git_repos_server <- function(id){
         # Run code
         output_file <- create_rmarkdown_file(code, interpret_code = FALSE)
         output[[paste0(input$current_page, "_git_readme")]] <- renderUI(div(class = "markdown", withMathJax(includeMarkdown(output_file))))
-      }))
+      })
       
       ### Run readme code ----
       
-      observeEvent(input$run_readme_code, try_catch("input$run_readme_code", {
-        shinyjs::runjs(paste0("Shiny.setInputValue('", id, "-run_readme_code_trigger', Math.random());"))
-      }))
+      observe_event(input$run_readme_code, shinyjs::runjs(paste0("Shiny.setInputValue('", id, "-run_readme_code_trigger', Math.random());")))
       
-      observeEvent(input$readme_code_run_all, try_catch("input$readme_code_run_all", {
-        shinyjs::runjs(paste0("Shiny.setInputValue('", id, "-run_readme_code_trigger', Math.random());"))
-      }))
+      observe_event(input$readme_code_run_all, shinyjs::runjs(paste0("Shiny.setInputValue('", id, "-run_readme_code_trigger', Math.random());")))
       
-      observeEvent(input$run_readme_code_trigger, try_catch("input$run_readme_code_trigger", {
+      observe_event(input$run_readme_code_trigger, {
 
         output_file <- create_rmarkdown_file(input$readme_code, interpret_code = FALSE)
         output[[paste0(input$current_page, "_git_readme")]] <- renderUI(div(class = "markdown", withMathJax(includeMarkdown(output_file))))
-      }))
+      })
       
       ### Save readme updates ----
       
-      observeEvent(input$readme_code_save, try_catch("input$readme_code_save", {
-        shinyjs::runjs(paste0("Shiny.setInputValue('", id, "-save_readme_trigger', Math.random());"))
-      }))
+      observe_event(input$readme_code_save, shinyjs::runjs(paste0("Shiny.setInputValue('", id, "-save_readme_trigger', Math.random());")))
       
-      observeEvent(input$save_readme, try_catch("input$save_readme", {
+      observe_event(input$save_readme, {
 
         shinyjs::runjs(paste0("Shiny.setInputValue('", id, "-save_readme_trigger', Math.random());"))
 
@@ -997,9 +989,9 @@ mod_git_repos_server <- function(id){
         
         # Prevent a bug with leaflet map display
         shinyjs::runjs("var event = new Event('resize'); window.dispatchEvent(event);")
-      }))
+      })
       
-      observeEvent(input$save_readme_trigger, try_catch("input$save_readme_trigger", {
+      observe_event(input$save_readme_trigger, {
         
         if ("git_repos_remote_git_repo_management" %not_in% user_accesses) return()
         
@@ -1037,15 +1029,13 @@ mod_git_repos_server <- function(id){
           output_file <- create_rmarkdown_file(input$readme_code, interpret_code = FALSE)
           output$readme_ui <- renderUI(div(class = "markdown", withMathJax(includeMarkdown(output_file))))
         }
-      }))
+      })
       
       ### Close git push modal
-      observeEvent(input$close_push_git_modal, try_catch("input$close_push_git_modal", {
-        shinyjs::hide("push_git_modal")
-      }))
+      observe_event(input$close_push_git_modal, shinyjs::hide("push_git_modal"))
       
       ### Confirm readme update on remote git
-      observeEvent(input$confirm_push_git_update, try_catch("input$confirm_push_git_update", {
+      observe_event(input$confirm_push_git_update, {
         
         tryCatch({
           git_repo <- r[[paste0(input$current_page, "_git_repo")]]
@@ -1085,11 +1075,11 @@ mod_git_repos_server <- function(id){
         
         # Close git push modal
         shinyjs::hide("push_git_modal")
-      }))
+      })
       
       ### Cancel readme updates ----
       
-      observeEvent(input$cancel_readme, try_catch("input$cancel_readme", {
+      observe_event(input$cancel_readme, {
 
         sapply(c("save_and_cancel_readme_buttons", "edit_readme_div"), shinyjs::hide)
         sapply(c("explore_map_and_ui_div", "git_infos_div", "edit_readme_button"), shinyjs::show)
@@ -1113,32 +1103,30 @@ mod_git_repos_server <- function(id){
           output_file <- create_rmarkdown_file(code, interpret_code = FALSE)
           output$readme_ui <- renderUI(div(class = "markdown", withMathJax(includeMarkdown(output_file))))
         }
-      }))
+      })
       
       # |-------------------------------- -----
       
       # A repo is selected ----
       
       ## Selected from DT
-      observeEvent(input$show_content_list, try_catch("input$show_content_list", {
+      observe_event(input$show_content_list, {
         
         r$git_repo <- r$list_git_repo
         shinyjs::runjs(paste0("Shiny.setInputValue('", id, "-show_content_trigger', Math.random());"))
-      }))
+      })
       
       ## Selected from the map
-      observeEvent(input$show_content_map, try_catch("input$show_content_map", {
+      observe_event(input$show_content_map, {
         
         r$git_repo <- r$map_git_repo
         shinyjs::runjs(paste0("Shiny.setInputValue('", id, "-show_content_trigger', Math.random());"))
-      }))
+      })
       
       ## Sidenav reload git button
-      observeEvent(input$reload_git_repo, try_catch("input$reload_git_repo", {
-        shinyjs::runjs(paste0("Shiny.setInputValue('", id, "-show_content_trigger', Math.random());"))
-      }))
+      observe_event(input$reload_git_repo, shinyjs::runjs(paste0("Shiny.setInputValue('", id, "-show_content_trigger', Math.random());")))
       
-      observeEvent(input$show_content_trigger, try_catch("input$show_content_trigger", {
+      observe_event(input$show_content_trigger, {
         
         sapply(c("one_repo_reduced_sidenav", "one_git_repo"), shinyjs::show)
         sapply(c("all_repos_reduced_sidenav", "all_git_repos"), shinyjs::hide)
@@ -1167,11 +1155,11 @@ mod_git_repos_server <- function(id){
           Shiny.setInputValue('", id, "-current_tab', '", id, "-projects');
           Shiny.setInputValue('", id, "-current_tab_trigger', Math.random());"
         ))
-      }))
+      })
       
       ## Repo current tab ----
       
-      observeEvent(input$current_tab_trigger, try_catch("input$current_tab_trigger", {
+      observe_event(input$current_tab_trigger, {
         
         # Hide element details
         shinyjs::hide("element_details_div")
@@ -1192,11 +1180,11 @@ mod_git_repos_server <- function(id){
         
         # Reload widgets UI
         shinyjs::runjs(paste0("Shiny.setInputValue('", id, "-reload_elements_list', Math.random());"))
-      }))
+      })
       
       ## Reload widgets ----
       
-      observeEvent(input$reload_elements_list, try_catch("input$reload_elements_list", {
+      observe_event(input$reload_elements_list, {
         
         current_tab <- gsub(paste0(id, "-"), "", input$current_tab, fixed = FALSE)
         
@@ -1268,22 +1256,22 @@ mod_git_repos_server <- function(id){
 
         elements_ui <- div(elements_ui, class = paste0(current_tab, "_container"))
         output$elements <- renderUI(elements_ui)
-      }))
+      })
       
       ## Return to all repos page ----
       
-      observeEvent(input$show_home, try_catch("input$show_home", {
+      observe_event(input$show_home, {
         
         sapply(c("all_repos_reduced_sidenav", "all_git_repos"), shinyjs::show)
         sapply(c("one_repo_reduced_sidenav", "one_git_repo"), shinyjs::hide)
         
         # Prevent a bug with leaflet map display
         shinyjs::runjs("var event = new Event('resize'); window.dispatchEvent(event);")
-      }))
+      })
       
       ## An element is selected ----
       
-      observeEvent(input$selected_element_trigger, try_catch("input$selected_element_trigger", {
+      observe_event(input$selected_element_trigger, {
         
         git_element <- r$loaded_git_repo_elements %>% dplyr::filter(unique_id == input$selected_element)
         
@@ -1377,42 +1365,42 @@ mod_git_repos_server <- function(id){
         
         shinyjs::hide("widgets_div")
         shinyjs::show("element_details_div")
-      }))
+      })
       
       ## Edit description ----
       
-      observeEvent(input$edit_description, try_catch("input$edit_description", {
+      observe_event(input$edit_description, {
         
         sapply(c("edit_description_button", "summary_informations_div"), shinyjs::hide)
         sapply(c("save_and_cancel_description_buttons", "edit_description_div"), shinyjs::show)
-      }))
+      })
       
       ## Install an element ----
       
-      observeEvent(input$git_install_element, try_catch("input$git_install_element", {
+      observe_event(input$git_install_element, {
         
         current_tab <- gsub(paste0(id, "-"), "", input$current_tab, fixed = FALSE)
         if (current_tab == "projects") shinyjs::show("update_project_plugins_modal")
         else shinyjs::runjs(paste0("Shiny.setInputValue('", id, "-git_install_element_confirmed', Math.random());"))
-      }))
+      })
       
-      observeEvent(input$confirm_project_plugins_import, try_catch("input$confirm_project_plugins_import", {
+      observe_event(input$confirm_project_plugins_import, {
         
         shinyjs::hide("update_project_plugins_modal")
         
         shinyjs::runjs(paste0("Shiny.setInputValue('", id, "-import_project_plugins', true);"))
         shinyjs::runjs(paste0("Shiny.setInputValue('", id, "-git_install_element_confirmed', Math.random());"))
-      }))
+      })
       
-      observeEvent(input$close_project_plugins_import_modal, try_catch("input$close_project_plugins_import_modal", {
+      observe_event(input$close_project_plugins_import_modal, {
         
         shinyjs::hide("update_project_plugins_modal")
         
         shinyjs::runjs(paste0("Shiny.setInputValue('", id, "-import_project_plugins', false);"))
         shinyjs::runjs(paste0("Shiny.setInputValue('", id, "-git_install_element_confirmed', Math.random());"))
-      }))
+      })
       
-      observeEvent(input$git_install_element_confirmed, try_catch("input$git_install_element_confirmed", {
+      observe_event(input$git_install_element_confirmed, {
         
         current_tab <- gsub(paste0(id, "-"), "", input$current_tab, fixed = FALSE)
         current_tab_single <- switch(
@@ -1463,16 +1451,16 @@ mod_git_repos_server <- function(id){
           show_message_bar(paste0("error_install_remote_git_", current_tab_single), "warning")
           cat(paste0("\n", now(), " - mod_git_repos - error installing ", current_tab_single, " from git - error = ", toString(e)))
         })
-      }))
+      })
       
       ## Delete element from git ----
       
       ### Open / close modal
-      observeEvent(input$delete_element_from_git, try_catch("input$delete_element_from_git", shinyjs::show("delete_git_element_modal")))
-      observeEvent(input$close_git_element_deletion_modal, try_catch("input$close_git_element_deletion_modal", shinyjs::hide("delete_git_element_modal")))
+      observe_event(input$delete_element_from_git, shinyjs::show("delete_git_element_modal"))
+      observe_event(input$close_git_element_deletion_modal, shinyjs::hide("delete_git_element_modal"))
       
       ### Deletion confirmed
-      observeEvent(input$confirm_git_element_deletion, try_catch("input$confirm_git_element_deletion", {
+      observe_event(input$confirm_git_element_deletion, {
         
         current_tab <- gsub(paste0(id, "-"), "", input$current_tab, fixed = FALSE)
         git_element <- r$loaded_git_repo_elements %>% dplyr::filter(unique_id == input$selected_element)
@@ -1490,15 +1478,15 @@ mod_git_repos_server <- function(id){
         ))
         
         shinyjs::hide("delete_git_element_modal")
-      }))
+      })
       
       ## Commit and push with updates ----
       
-      observeEvent(input$save_git_repo, try_catch("input$save_git_repo", shinyjs::show("push_git_modal")))
+      observe_event(input$save_git_repo, shinyjs::show("push_git_modal"))
       
       ## Return to selected repo page ----
       
-      observeEvent(input$show_git_repo, try_catch("input$show_git_repo", {
+      observe_event(input$show_git_repo, {
         
         shinyjs::hide("element_details_div")
         shinyjs::show("widgets_div")
@@ -1506,7 +1494,7 @@ mod_git_repos_server <- function(id){
         current_tab <- gsub(paste0(id, "-"), "", input$current_tab, fixed = FALSE)
         
         output$breadcrumb <- renderUI(create_breadcrumb(c(1, 2, 3), i18n, current_tab))
-      }))
+      })
     }
     
     # |-------------------------------- -----

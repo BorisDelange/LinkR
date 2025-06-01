@@ -105,7 +105,7 @@ mod_project_files_server <- function(id){
     
     # Load project files ----
     
-    observeEvent(m$selected_project, try_catch("m$selected_project", {
+    observe_event(m$selected_project, {
       
       if (!("projects_scripts" %in% user_accesses && !is.na(m$selected_project))) return()
       
@@ -137,21 +137,21 @@ mod_project_files_server <- function(id){
       # Reload files browser + tabs
       shinyjs::runjs(paste0("Shiny.setInputValue('", id, "-reload_files_browser', Math.random());"))
       shinyjs::runjs(paste0("Shiny.setInputValue('", id, "-reload_files_tab', '", now(format = "%Y-%m-%d %H:%M:%OS3"), "');"))
-    }))
+    })
     
     # Reload files browser ----
     
-    observeEvent(input$reload_files_browser, try_catch("input$reload_files_browser", {
+    observe_event(input$reload_files_browser, {
       
       project_files_list <- r$project_files_list %>% dplyr::filter(project_id == m$selected_project)
       files_ui <- load_files_browser_ui(input_prefix = "", files_list = project_files_list)
 
       output$files_browser <- renderUI(files_ui)
-    }))
+    })
     
     # Reload tabs ----
     
-    observeEvent(input$reload_files_tab, try_catch("input$reload_files_tab", {
+    observe_event(input$reload_files_tab, {
       
       tabs_container <- reload_files_browser_tabs(
         input_prefix = "", r_prefix = "project",
@@ -161,23 +161,17 @@ mod_project_files_server <- function(id){
       output$tabs_ui <- renderUI(tabs_container)
       
       shinyjs::delay(500, shinyjs::runjs(sprintf("initSortableTabs('%s')", ns("tabs"))))
-    }))
+    })
     
-    observeEvent(input$tab_positions, try_catch("input$tab_positions", {
-      
-      files_browser_edit_tab_positions(positions = input$tab_positions, r_prefix = "project", element_id = m$selected_project)
-    }))
+    observe_event(input$tab_positions, files_browser_edit_tab_positions(positions = input$tab_positions, r_prefix = "project", element_id = m$selected_project))
     
     # Change file tab ----
     
-    observeEvent(input$selected_tab, try_catch("input$selected_tab", {
-      
-      files_browser_change_tab(input_prefix = "", r_prefix = "project", file_id = input$selected_tab)
-    }))
+    observe_event(input$selected_tab, files_browser_change_tab(input_prefix = "", r_prefix = "project", file_id = input$selected_tab))
     
     # Open a file ----
     
-    observeEvent(input$selected_file, try_catch("input$selected_file", {
+    observe_event(input$selected_file, {
       
       files_browser_open_file(
         input_prefix = "", r_prefix = "project", folder = input$selected_project_folder,
@@ -185,11 +179,11 @@ mod_project_files_server <- function(id){
       )
       
       shinyjs::delay(100, shinyjs::runjs(paste0("Shiny.setInputValue('", id, "-update_code_output_dropdown', Math.random());")))
-    }))
+    })
     
     # Update code output dropdown ----
     
-    observeEvent(input$update_code_output_dropdown, try_catch("input$update_code_output_dropdown", {
+    observe_event(input$update_code_output_dropdown, {
       
       file_name <- r$project_files_list %>% dplyr::filter(id == input$selected_file) %>% dplyr::pull(filename)
       extension <- tolower(sub(".*\\.", "", file_name))
@@ -230,11 +224,11 @@ mod_project_files_server <- function(id){
       
       shiny.fluent::updateDropdown.shinyInput(session, "code_output", options = output_options, value = output_value)
       shinyjs::runjs(paste0("Shiny.setInputValue('", id, "-update_ace_mode', Math.random());"))
-    }))
+    })
     
     # Code output ----
     
-    observeEvent(input$code_output, try_catch("input$code_output", {
+    observe_event(input$code_output, {
       
       # Output style
       if (input$code_output %in% c("console", "terminal")) shinyjs::addClass("code_result_div", paste0("ace-", text_output_theme))
@@ -255,9 +249,9 @@ mod_project_files_server <- function(id){
         new_content <- paste(lines, collapse = "\n")
         shinyAce::updateAceEditor(session, editor_id, value = new_content)
       }
-    }))
+    })
     
-    observeEvent(input$update_ace_mode, try_catch("input$update_ace_mode", {
+    observe_event(input$update_ace_mode, {
       
       # Update ace editor
       file_name <- r$project_files_list %>% dplyr::filter(id == input$selected_file) %>% dplyr::pull(filename)
@@ -287,11 +281,11 @@ mod_project_files_server <- function(id){
           else if (input$code_output == "matplotlib") shinyjs::show("image_output")
         })
       }
-    }))
+    })
     
     ## Reset outputs
     
-    observeEvent(input$reset_code_outputs, try_catch("input$reset_code_outputs", {
+    observe_event(input$reset_code_outputs, {
       
       output$verbatim_code_output <- renderText("")
       output$plot_output <- renderPlot(NULL)
@@ -305,21 +299,21 @@ mod_project_files_server <- function(id){
              width = 1, 
              height = 1)
       }, deleteFile = FALSE)
-    }))
+    })
     
     # Close a file ----
     
-    observeEvent(input$close_selected_tab_trigger, try_catch("input$close_selected_tab_trigger", {
+    observe_event(input$close_selected_tab_trigger, {
       
       files_browser_close_file(
         input_prefix = "", r_prefix = "project",
         element_id = m$selected_project, file_id = input$close_selected_tab
       )
-    }))
+    })
     
     # Create a file ----
     
-    observeEvent(input$add_file, try_catch("input$add_file", {
+    observe_event(input$add_file, {
       
       if ("projects_scripts" %not_in% user_accesses) return()
       
@@ -327,26 +321,21 @@ mod_project_files_server <- function(id){
         input_prefix = "", r_prefix = "project", folder = input$selected_project_folder,
         element_id = m$selected_project, user_settings = user_settings
       )
-    }))
+    })
     
     # Editor hotkeys ----
-    observeEvent(input$add_code_editor_hotkeys, try_catch("input$add_code_editor_hotkeys", {
+    observe_event(input$add_code_editor_hotkeys, {
       
       file_id <- input$add_code_editor_hotkeys
       editor_id <- paste0("editor_", file_id)
       
-      observeEvent(input[[paste0(editor_id, "_comment")]], try_catch(paste0("input$", editor_id, "_comment"), {
-        toggle_comments(input_id = editor_id, code = input[[editor_id]], selection = input[[paste0(editor_id, "_comment")]]$range, session = session)
-      }))
-      
-      observeEvent(input[[paste0(editor_id, "_save")]], try_catch(paste0("input$", editor_id, "_save"), {
-        shinyjs::runjs(paste0("Shiny.setInputValue('", id, "-save_file_code', Math.random());"))
-      }))
-    }))
+      observe_event(input[[paste0(editor_id, "_comment")]], toggle_comments(input_id = editor_id, code = input[[editor_id]], selection = input[[paste0(editor_id, "_comment")]]$range, session = session))
+      observe_event(input[[paste0(editor_id, "_save")]], shinyjs::runjs(paste0("Shiny.setInputValue('", id, "-save_file_code', Math.random());")))
+    })
     
     # Save updates ----
     
-    observeEvent(input$save_file_code, try_catch("input$save_file_code", {
+    observe_event(input$save_file_code, {
       
       if ("projects_scripts" %not_in% user_accesses) return()
       
@@ -357,13 +346,13 @@ mod_project_files_server <- function(id){
         folder = input$selected_project_folder, element_id = m$selected_project, file_id = file$id,
         new_code = input[[paste0("editor_", file$id)]]
       )
-    }))
+    })
     
     # Rename a file ----
     
     # Show textfield
     
-    observeEvent(input$edit_filename_trigger, try_catch("input$edit_filename_trigger", {
+    observe_event(input$edit_filename_trigger, {
       
       file_id <- input$edit_filename
       file_name <- r$project_files_list %>% dplyr::filter(id == file_id) %>% dplyr::pull(filename)
@@ -384,11 +373,11 @@ mod_project_files_server <- function(id){
         paste0("edit_filename_button_div_", file_id)),
         shinyjs::hide
       )
-    }))
+    })
     
     # Cancel rename
     
-    observeEvent(input$cancel_rename_trigger, try_catch("input$cancel_rename_trigger", {
+    observe_event(input$cancel_rename_trigger, {
       
       file_id <- input$edit_filename
       
@@ -407,11 +396,11 @@ mod_project_files_server <- function(id){
         paste0("edit_filename_button_div_", file_id)),
         shinyjs::show
       )
-    }))
+    })
     
     # Save new name
     
-    observeEvent(input$save_filename_trigger, try_catch("input$save_filename_trigger", {
+    observe_event(input$save_filename_trigger, {
       
       file_id <- input$save_filename
       textfield_id <- paste0("edit_filename_textfield_", file_id)
@@ -423,15 +412,14 @@ mod_project_files_server <- function(id){
       )
       
       shinyjs::runjs(paste0("Shiny.setInputValue('", id, "-update_code_output_dropdown', Math.random());"))
-    }))
+    })
     
     # Delete a file ----
     
-    observeEvent(input$delete_file_trigger, try_catch("input$delete_file_trigger", shinyjs::show("delete_file_modal")))
+    observe_event(input$delete_file_trigger, shinyjs::show("delete_file_modal"))
+    observe_event(input$close_file_deletion_modal, shinyjs::hide("delete_file_modal"))
     
-    observeEvent(input$close_file_deletion_modal, try_catch("input$close_file_deletion_modal", shinyjs::hide("delete_file_modal")))
-    
-    observeEvent(input$confirm_file_deletion, try_catch("input$confirm_file_deletion", {
+    observe_event(input$confirm_file_deletion, {
       
       if ("projects_scripts" %not_in% user_accesses) return()
       
@@ -439,17 +427,17 @@ mod_project_files_server <- function(id){
         input_prefix = "", r_prefix = "project",
         folder = input$selected_project_folder, element_id = m$selected_project, file_id = input$delete_file
       )
-    }))
+    })
     
     # Run code ----
     
-    observeEvent(input$run_code, try_catch("input$run_code", {
+    observe_event(input$run_code, {
       
       r$project_file_code <- input[[paste0("editor_", input$selected_file)]]
       shinyjs::runjs(paste0("Shiny.setInputValue('", id, "-run_code_trigger', Math.random());"))
-    }))
+    })
     
-    observeEvent(input[[paste0("editor_", input$selected_file, "_run_selection")]], try_catch(paste0("input$editor_", input$selected_file, "_run_selection"), {
+    observe_event(input[[paste0("editor_", input$selected_file, "_run_selection")]], {
       editor_id <- paste0("editor_", input$selected_file)
       editor_input <- input[[paste0(editor_id, "_run_selection")]]
       full_code <- input[[editor_id]]
@@ -458,15 +446,15 @@ mod_project_files_server <- function(id){
       execute_ace_code(editor_id = editor_id, full_code = full_code, editor_input = editor_input, code_store_var = code_store_var)
       
       shinyjs::runjs(paste0("Shiny.setInputValue('", id, "-run_code_trigger', Math.random());"))
-    }))
+    })
     
-    observeEvent(input[[paste0("editor_", input$selected_file, "_run_all")]], try_catch(paste0("input$editor_", input$selected_file, "_run_all"), {
+    observe_event(input[[paste0("editor_", input$selected_file, "_run_all")]], {
       
       r$project_file_code <- input[[paste0("editor_", input$selected_file)]]
       shinyjs::runjs(paste0("Shiny.setInputValue('", id, "-run_code_trigger', Math.random());"))
-    }))
+    })
     
-    observeEvent(input$run_code_trigger, try_catch("input$run_code_trigger", {
+    observe_event(input$run_code_trigger, {
 
       if ("projects_scripts" %not_in% user_accesses) return()
         
@@ -591,15 +579,15 @@ mod_project_files_server <- function(id){
         }
       }
       
-      output$datetime_code_execution <- renderText(try_catch("output$datetime_code_execution", format_datetime(now(), language)))
-    }))
+      output$datetime_code_execution <- renderText(format_datetime(now(), language))
+    })
     
-    observeEvent(input$render_image_trigger, try_catch("input$render_image_trigger", {
+    observe_event(input$render_image_trigger, {
       
       output$image_output <- renderImage(try_catch("output$image_output", {
         # list(src = output_file, contentType = 'image/png', width = isolate(input$plot_width), height = isolate(input$plot_height))
         list(src = input$render_image, contentType = 'image/png')
       }), deleteFile = FALSE)
-    }))
+    })
   })
 }

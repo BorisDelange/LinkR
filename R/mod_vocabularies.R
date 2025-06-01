@@ -247,17 +247,17 @@ mod_vocabularies_server <- function(id){
     
     ## Load vocabulary tables ----
     
-    observeEvent(input$load_vocabulary_tables, try_catch("input$load_vocabulary_tables", {
+    observe_event(input$load_vocabulary_tables, {
       
       vocabulary_id <- r$vocabularies_wide %>% dplyr::filter(id == input$selected_element) %>% dplyr::pull(vocabulary_id)
       shinyjs::runjs(paste0("Shiny.setInputValue('", id, "-selected_vocabulary_id', '", vocabulary_id, "');"))
       
       for (table in c("concept", "concept_relationship", "concept_synonym", "concept_ancestor", "drug_strength")) m[[table]] <- tibble::tibble()
-    }))
+    })
     
     ## Concepts main table ----
     
-    observeEvent(input$vocabulary_table, try_catch("input$vocabulary_table", {
+    observe_event(input$vocabulary_table, {
       
       table <- input$vocabulary_table
       vocabulary_id <- input$selected_vocabulary_id
@@ -367,9 +367,9 @@ mod_vocabularies_server <- function(id){
       )
       
       r$vocabularies_primary_concepts_dt_proxy <- DT::dataTableProxy("primary_concepts_dt", deferUntilFlush = FALSE)
-    }))
+    })
     
-    observeEvent(input$primary_concepts_dt_cols, try_catch("input$primary_concepts_dt_cols", {
+    observe_event(input$primary_concepts_dt_cols, {
       
       if (length(r$vocabularies_primary_concepts_dt_proxy) > 0){
       
@@ -377,7 +377,7 @@ mod_vocabularies_server <- function(id){
           DT::showCols(0:8) %>%
           DT::hideCols(setdiff(0:8, input$primary_concepts_dt_cols))
       }
-    }))
+    })
     
     ## Concepts secondary table ----
     
@@ -385,18 +385,14 @@ mod_vocabularies_server <- function(id){
     
     # Show / hide import concepts modal
     
-    observeEvent(input$import_concepts_1, try_catch("input$import_concepts_1", shinyjs::show("import_concepts_modal")))
-    observeEvent(input$import_concepts_2, try_catch("input$import_concepts_2", shinyjs::show("import_concepts_modal")))
+    observe_event(input$import_concepts_1, shinyjs::show("import_concepts_modal"))
+    observe_event(input$import_concepts_2, shinyjs::show("import_concepts_modal"))
     
-    observeEvent(input$close_import_concepts_modal_1, try_catch("input$close_import_concepts_modal_1", {
-      shinyjs::runjs(paste0("Shiny.setInputValue('", id, "-close_import_concepts_modal', Math.random());"))
-    }))
+    observe_event(input$close_import_concepts_modal_1, shinyjs::runjs(paste0("Shiny.setInputValue('", id, "-close_import_concepts_modal', Math.random());")))
     
-    observeEvent(input$close_import_concepts_modal_2, try_catch("input$close_import_concepts_modal_2", {
-      shinyjs::runjs(paste0("Shiny.setInputValue('", id, "-close_import_concepts_modal', Math.random());"))
-    }))
+    observe_event(input$close_import_concepts_modal_2, shinyjs::runjs(paste0("Shiny.setInputValue('", id, "-close_import_concepts_modal', Math.random());")))
     
-    observeEvent(input$close_import_concepts_modal, try_catch("input$close_import_concepts_modal", {
+    observe_event(input$close_import_concepts_modal, {
       
       if ("vocabularies_import" %not_in% user_accesses) return()
       
@@ -411,17 +407,15 @@ mod_vocabularies_server <- function(id){
       output$selected_files <- renderUI(div())
       
       shinyjs::hide("import_concepts_modal")
-    }))
+    })
     
     # Show file browser input
     
-    observeEvent(input$select_files, try_catch("input$select_files", {
-      shinyjs::click("select_files_input")
-    }))
+    observe_event(input$select_files, shinyjs::click("select_files_input"))
     
     # Select files
     
-    observeEvent(input$select_files_input, try_catch("input$select_files_input", {
+    observe_event(input$select_files_input, {
       
       if (!("vocabularies_import" %in% user_accesses && length(input$select_files_input) > 0)) return()
         
@@ -451,7 +445,7 @@ mod_vocabularies_server <- function(id){
         }
       }
       
-      output$selected_files <- renderUI(try_catch("output$selected_files", files_ui))
+      output$selected_files <- renderUI(files_ui)
       
       # Reset datatable
       render_datatable(
@@ -460,7 +454,7 @@ mod_vocabularies_server <- function(id){
         sortable_cols = c("table_name", "n_rows", "message"), col_names = c(i18n$t("table_name"), i18n$t("rows_inserted"), i18n$t("message")),
         column_widths = c("table_name" = "100px", "n_rows" = "100px")
       )
-    }))
+    })
     
     # Import files
     
@@ -477,7 +471,7 @@ mod_vocabularies_server <- function(id){
       drug_strength = "iinininiiccc"
     )
     
-    observeEvent(input$import_files, try_catch("input$import_files", {
+    observe_event(input$import_files, {
       
       if (!("vocabularies_import" %in% user_accesses && length(input$select_files_input) > 0)) return()
         
@@ -545,7 +539,7 @@ mod_vocabularies_server <- function(id){
       
       # Reload widgets
       shinyjs::runjs(paste0("Shiny.setInputValue('", id, "-reload_elements_var', Math.random());"))
-    }))
+    })
     
     # |-------------------------------- -----
     

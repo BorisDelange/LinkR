@@ -47,11 +47,9 @@ mod_log_server <- function(id){
     # Create log file if doesn't exist
     if (!file.exists(log_file)) file.create(log_file)
     
-    observeEvent(shiny.router::get_page(), try_catch("shiny.router::get_page()", {
-      if (shiny.router::get_page() == "log") shinyjs::runjs(paste0("Shiny.setInputValue('", id, "-refresh_log', Math.random());"))
-    }))
+    observe_event(shiny.router::get_page(), if (shiny.router::get_page() == "log") shinyjs::runjs(paste0("Shiny.setInputValue('", id, "-refresh_log', Math.random());")))
     
-    observeEvent(input$refresh_log, try_catch("input$refresh_log", {
+    observe_event(input$refresh_log, {
       
       if ("log_user_log" %not_in% user_accesses) return()
       
@@ -70,9 +68,9 @@ mod_log_server <- function(id){
           const element = document.getElementById('log-main');
           element.scrollTop = element.scrollHeight;")
       )
-    }))
+    })
     
-    observeEvent(input$reset_log, try_catch("input$reset_log", {
+    observe_event(input$reset_log, {
       
       if ("log_user_log" %not_in% user_accesses) return()
       
@@ -81,6 +79,6 @@ mod_log_server <- function(id){
       sink(log_file, append = TRUE)
       
       output$log <- renderUI("")
-    }))
+    })
   })
 }

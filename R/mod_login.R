@@ -53,7 +53,7 @@ mod_login_server <- function(id){
   moduleServer(id, function(input, output, session){
     ns <- session$ns
     
-    observeEvent(input$login, try_catch("input$login", {
+    observe_event(input$login, {
       
       if (length(r$user_id) > 0) return()
       
@@ -96,6 +96,6 @@ mod_login_server <- function(id){
       }
       
       if (error_login_or_password) shiny.fluent::updateTextField.shinyInput(session, "password", errorMessage = i18n$t("invalid_login_or_password"))
-    }))
+    })
   })
 }

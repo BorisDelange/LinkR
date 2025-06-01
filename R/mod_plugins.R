@@ -357,7 +357,7 @@ mod_plugins_server <- function(id){
   # Load widgets ----
   
   all_divs <- c("summary", "edit_code", "run_code", "share")
-  mod_widgets_server(id, all_divss)
+  mod_widgets_server(id, all_divs)
   
   # Load concepts backend ----
   
@@ -408,11 +408,11 @@ mod_plugins_server <- function(id){
     
     # Show / hide plugin_to_copy dropdown
     
-    observeEvent(input$plugin_copy_existing_plugin, try_catch("input$plugin_copy_existing_plugin", {
+    observe_event(input$plugin_copy_existing_plugin, {
       
       if (input$plugin_copy_existing_plugin) shinyjs::show("plugin_to_copy_div")
       else shinyjs::hide("plugin_to_copy_div")
-    }))
+    })
     
     # --- --- --- --- --- -
     # Edit plugin code ----
@@ -420,7 +420,7 @@ mod_plugins_server <- function(id){
     
     ## Load plugin files  ----
     
-    observeEvent(input$reload_code_files, try_catch("input$reload_code_files", {
+    observe_event(input$reload_code_files, {
       
       if ("plugins_edit_code" %not_in% user_accesses) return()
         
@@ -506,11 +506,11 @@ mod_plugins_server <- function(id){
         if (input$edit_code_selected_file %in% plugin_editors_ids) shinyjs::show(paste0("edit_code_editor_div_", input$edit_code_selected_file))
         else shinyjs::show(paste0("edit_code_editor_div_", first_file_id))
       }
-    }))
+    })
     
     ## Reload files browser ----
     
-    observeEvent(input$edit_code_reload_files_browser, try_catch("input$edit_code_reload_files_browser", {
+    observe_event(input$edit_code_reload_files_browser, {
       
       filenames_order <- c("ui.R", "server.R", "translations.csv")
       
@@ -525,11 +525,11 @@ mod_plugins_server <- function(id){
       files_ui <- load_files_browser_ui(input_prefix = "edit_code_", files_list = edit_plugin_code_files_list)
       
       output$edit_code_files_browser <- renderUI(files_ui)
-    }))
+    })
     
     ## Reload code tabs ----
     
-    observeEvent(input$edit_code_reload_files_tab, try_catch("input$edit_code_reload_files_tab", {
+    observe_event(input$edit_code_reload_files_tab, {
       
       if ("plugins_edit_code" %not_in% user_accesses) return()
       
@@ -541,23 +541,17 @@ mod_plugins_server <- function(id){
       output$edit_code_tabs_ui <- renderUI(tabs_container)
       
       shinyjs::delay(500, shinyjs::runjs(sprintf("initSortableTabs('%s')", ns("edit_code_tabs"))))
-    }))
+    })
     
-    observeEvent(input$edit_code_tab_positions, try_catch("input$edit_code_tab_positions", {
-      
-      files_browser_edit_tab_positions(positions = input$edit_code_tab_positions, r_prefix = "edit_plugin_code", element_id = input$selected_element)
-    }))
+    observe_event(input$edit_code_tab_positions, files_browser_edit_tab_positions(positions = input$edit_code_tab_positions, r_prefix = "edit_plugin_code", element_id = input$selected_element))
     
     ## Change file tab ----
     
-    observeEvent(input$edit_code_selected_tab, try_catch("input$edit_code_selected_tab", {
-      
-      files_browser_change_tab(input_prefix = "edit_code_", r_prefix = "edit_plugin_code", file_id = input$edit_code_selected_tab)
-    }))
+    observe_event(input$edit_code_selected_tab, files_browser_change_tab(input_prefix = "edit_code_", r_prefix = "edit_plugin_code", file_id = input$edit_code_selected_tab))
     
     ## Open a file ----
     
-    observeEvent(input$edit_code_selected_file, try_catch("input$edit_code_selected_file", {
+    observe_event(input$edit_code_selected_file, {
       
       if ("plugins_edit_code" %not_in% user_accesses) return()
       
@@ -565,21 +559,20 @@ mod_plugins_server <- function(id){
         input_prefix = "edit_code_", r_prefix = "edit_plugin_code", folder = input$selected_plugin_folder,
         element_id = input$selected_element, file_id = input$edit_code_selected_file, user_settings = user_settings
       )
-    }))
+    })
     
     ## Close a file ----
     
-    observeEvent(input$edit_code_close_selected_tab_trigger, try_catch("input$edit_code_close_selected_tab_trigger", {
-      
+    observe_event(input$edit_code_close_selected_tab_trigger, {
       files_browser_close_file(
         input_prefix = "edit_code_", r_prefix = "edit_plugin_code",
         element_id = input$selected_element, file_id = input$edit_code_close_selected_tab
       )
-    }))
+    })
     
     ## Create a file ----
     
-    observeEvent(input$edit_code_add_file, try_catch("input$edit_code_add_file", {
+    observe_event(input$edit_code_add_file, {
       
       if ("plugins_edit_code" %not_in% user_accesses) return()
       
@@ -587,31 +580,22 @@ mod_plugins_server <- function(id){
         input_prefix = "edit_code_", r_prefix = "edit_plugin_code", folder = input$selected_plugin_folder,
         element_id = input$selected_element, user_settings = user_settings
       )
-    }))
+    })
     
     ## Editor hotkeys ----
-    observeEvent(input$add_code_editor_hotkeys, try_catch("input$add_code_editor_hotkeys", {
+    observe_event(input$add_code_editor_hotkeys, {
       
       file_id <- input$add_code_editor_hotkeys
       editor_id <- paste0("edit_code_editor_", file_id)
       
-      observeEvent(input[[paste0(editor_id, "_run_all")]], try_catch(paste0("input$", editor_id, "_run_all"), {
-        shinyjs::runjs(paste0("Shiny.setInputValue('", id, "-run_plugin_code_trigger', Math.random());"))
-      }))
-      
-      observeEvent(input[[paste0(editor_id, "_comment")]], try_catch(paste0("input$", editor_id, "_comment"), {
-        
-        toggle_comments(input_id = editor_id, code = input[[editor_id]], selection = input[[paste0(editor_id, "_comment")]]$range, session = session)
-      }))
-      
-      observeEvent(input[[paste0(editor_id, "_save")]], try_catch(paste0("input$", editor_id, "_save"), {
-        shinyjs::runjs(paste0("Shiny.setInputValue('", id, "-save_file_code', Math.random());"))
-      }))
-    }))
+      observe_event(input[[paste0(editor_id, "_run_all")]], shinyjs::runjs(paste0("Shiny.setInputValue('", id, "-run_plugin_code_trigger', Math.random());")))
+      observe_event(input[[paste0(editor_id, "_comment")]], toggle_comments(input_id = editor_id, code = input[[editor_id]], selection = input[[paste0(editor_id, "_comment")]]$range, session = session))
+      observe_event(input[[paste0(editor_id, "_save")]], shinyjs::runjs(paste0("Shiny.setInputValue('", id, "-save_file_code', Math.random());")))
+    })
     
     ## Save updates ----
     
-    observeEvent(input$save_file_code, try_catch("input$save_file_code", {
+    observe_event(input$save_file_code, {
       
       if ("plugins_edit_code" %not_in% user_accesses) return()
       
@@ -622,12 +606,12 @@ mod_plugins_server <- function(id){
         folder = input$selected_plugin_folder, element_id = input$selected_element, file_id = file$id,
         new_code = input[[paste0("edit_code_editor_", file$id)]]
       )
-    }))
+    })
     
     ## Rename a file ----
     
     # Show textfield
-    observeEvent(input$edit_code_edit_filename_trigger, try_catch("input$edit_code_edit_filename_trigger", {
+    observe_event(input$edit_code_edit_filename_trigger, {
       
       file_id <- input$edit_code_edit_filename
       file_name <- r$edit_plugin_code_files_list %>% dplyr::filter(id == file_id) %>% dplyr::pull(filename)
@@ -647,11 +631,11 @@ mod_plugins_server <- function(id){
         paste0("edit_code_edit_filename_button_div_", file_id)),
         shinyjs::hide
       )
-    }))
+    })
     
     # Cancel rename
     
-    observeEvent(input$edit_code_cancel_rename_trigger, try_catch("input$edit_code_cancel_rename_trigger", {
+    observe_event(input$edit_code_cancel_rename_trigger, {
       
       file_id <- input$edit_code_edit_filename
       
@@ -669,10 +653,10 @@ mod_plugins_server <- function(id){
         paste0("edit_code_edit_filename_button_div_", file_id)),
         shinyjs::show
       )
-    }))
+    })
     
     # Save new name
-    observeEvent(input$edit_code_save_filename_trigger, try_catch("input$edit_code_save_filename_trigger", {
+    observe_event(input$edit_code_save_filename_trigger, {
       
       file_id <- input$edit_code_save_filename
       textfield_id <- paste0("edit_code_edit_filename_textfield_", file_id)
@@ -682,14 +666,14 @@ mod_plugins_server <- function(id){
         input_prefix = "edit_code_", r_prefix = "edit_plugin_code", folder = input$selected_plugin_folder,
         element_id = input$selected_element, file_id = file_id, new_name = new_name
       )
-    }))
+    })
     
     ## Delete a file ----
     
-    observeEvent(input$edit_code_delete_file_trigger, try_catch("input$edit_code_delete_file_trigger", shinyjs::show("delete_file_modal")))
-    observeEvent(input$close_file_deletion_modal, try_catch("input$close_file_deletion_modal", shinyjs::hide("delete_file_modal")))
+    observe_event(input$edit_code_delete_file_trigger, shinyjs::show("delete_file_modal"))
+    observe_event(input$close_file_deletion_modal, shinyjs::hide("delete_file_modal"))
     
-    observeEvent(input$confirm_file_deletion, try_catch("input$confirm_file_deletion", {
+    observe_event(input$confirm_file_deletion, {
       
       if ("plugins_edit_code" %not_in% user_accesses) return()
       
@@ -697,23 +681,19 @@ mod_plugins_server <- function(id){
         input_prefix = "edit_code_", r_prefix = "edit_plugin_code",
         folder = input$selected_plugin_folder, element_id = input$selected_element, file_id = input$edit_code_delete_file
       )
-    }))
+    })
     
     ## Select concepts ----
     
     # Open / close modal
-    observeEvent(input$select_concepts, try_catch("input$select_concepts", shinyjs::show("select_concepts_modal")))
-    observeEvent(input$close_select_concepts_modal, try_catch("input$close_select_concepts_modal", shinyjs::hide("select_concepts_modal")))
+    observe_event(input$select_concepts, shinyjs::show("select_concepts_modal"))
+    observe_event(input$close_select_concepts_modal, shinyjs::hide("select_concepts_modal"))
     
     ## Run plugin code ----
     
-    observeEvent(input$run_plugin_code, try_catch("input$run_plugin_code", {
-      shinyjs::runjs(paste0("Shiny.setInputValue('", id, "-run_plugin_code_trigger', Math.random());"))
-    }))
+    observe_event(input$run_plugin_code, shinyjs::runjs(paste0("Shiny.setInputValue('", id, "-run_plugin_code_trigger', Math.random());")))
     
-    observeEvent(input$reload_plugin_code, try_catch("input$reload_plugin_code", {
-      shinyjs::runjs(paste0("Shiny.setInputValue('", id, "-run_plugin_code_trigger', Math.random());"))
-    }))
+    observe_event(input$reload_plugin_code, shinyjs::runjs(paste0("Shiny.setInputValue('", id, "-run_plugin_code_trigger', Math.random());")))
     
     # Initiate widgets var
     r$run_plugin_last_widget_id <- get_last_row(r$db, "widgets") + 10^9 %>% as.integer()
@@ -722,7 +702,7 @@ mod_plugins_server <- function(id){
     # Initiate gridstack instance
     create_gridstack_instance("plugin_run_code")
     
-    observeEvent(input$run_plugin_code_trigger, try_catch("input$run_plugin_code_trigger", {
+    observe_event(input$run_plugin_code_trigger, {
 
       if ("plugins_edit_code" %not_in% user_accesses) return()
         
@@ -791,9 +771,7 @@ mod_plugins_server <- function(id){
       if (length(m[[session_code]]) == 0) session_num <- 1L
       if (length(m[[session_code]]) > 0) session_num <- m[[session_code]] + 1
       m[[session_code]] <- session_num
-
-      # NB : req(m[[session_code]] == session_num) & req(m$selected_study == %study_id%) must be put at the beginning of each observeEvent in plugins code
-
+      
       study_id <- NA_integer_
       patient_id <- NA_integer_
       if (length(m$selected_study) > 0) study_id <- m$selected_study
@@ -862,13 +840,13 @@ mod_plugins_server <- function(id){
       output$run_code_result_server <- renderText(paste(captured_output, collapse = "\n"))
 
       output$run_code_datetime_code_execution <- renderText(format_datetime(now(), language))
-    }))
+    })
     
     ## Edit code test page ----
     
     r$plugin_run_code_edit_page_activated <- FALSE
     
-    observeEvent(input$edit_page_on, try_catch("input$edit_page_on", {
+    observe_event(input$edit_page_on, {
       
       if ("plugins_edit_code" %not_in% user_accesses) return()
         
@@ -887,9 +865,9 @@ mod_plugins_server <- function(id){
 
       # Hide resize button when sidenav is displayed or not
       r$plugin_run_code_edit_page_activated <- TRUE
-    }))
+    })
     
-    observeEvent(input$edit_page_off, try_catch("input$edit_page_off", {
+    observe_event(input$edit_page_off, {
       
       widget_id <- r$run_plugin_last_widget_id
       
@@ -925,10 +903,10 @@ mod_plugins_server <- function(id){
         "Shiny.setInputValue('", id, "-widget_position', widgetPosition);",
         "Shiny.setInputValue('", id, "-widget_position_trigger', Math.random());"
       ))
-    }))
+    })
     
     # Save widget position
-    observeEvent(input$widget_position_trigger, try_catch("input$widget_position_trigger", {
+    observe_event(input$widget_position_trigger, {
       
       widget <- input$widget_position
       
@@ -941,6 +919,6 @@ mod_plugins_server <- function(id){
       
       sql <- glue::glue_sql("UPDATE options SET value = {widget_position} WHERE category = 'plugin_run_code_options' AND name = 'plugin_widget_position'", .con = r$db)
       sql_send_statement(r$db, sql)
-    }))
+    })
   })
 }

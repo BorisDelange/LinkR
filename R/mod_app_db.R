@@ -304,7 +304,7 @@ mod_app_db_server <- function(id){
     
     # Current tab ----
     
-    observeEvent(input$current_tab_trigger, try_catch("input$current_tab_trigger", {
+    observe_event(input$current_tab_trigger, {
       
       current_tab <- gsub(paste0(id, "-"), "", input$current_tab, fixed = FALSE)
       
@@ -323,7 +323,7 @@ mod_app_db_server <- function(id){
       # Change selected tab
       sapply(all_divs, function(button_id) shinyjs::removeClass(class = "selected_pivot_item", selector = paste0("#", id, "-", button_id)))
       shinyjs::addClass(class = "selected_pivot_item", selector = paste0("#", id, "-", current_tab))
-    }))
+    })
     
     # User settings
     
@@ -339,7 +339,7 @@ mod_app_db_server <- function(id){
     
     ## Load saved settings ----
     
-    observeEvent(r$local_db, try_catch("r$local_db", {
+    observe_event(r$local_db, {
       
       if ("app_db_connection_settings" %not_in% user_accesses) return()
       
@@ -355,26 +355,26 @@ mod_app_db_server <- function(id){
         if (name == "connection_type") r$db_connection_type <- db_info[[name]]
         if (name != "connection_type") shiny.fluent::updateTextField.shinyInput(session, name, value = db_info[[name]])
       }
-    }))
+    })
     
     ## Update connection type ----
     
-    observeEvent(input$connection_type, try_catch("input$connection_type", {
+    observe_event(input$connection_type, {
       r$db_connection_type <- input$connection_type
-    }))
+    })
     
-    observeEvent(r$db_connection_type, try_catch("r$db_connection_type", {
+    observe_event(r$db_connection_type, {
       
       shiny.fluent::updateChoiceGroup.shinyInput(session, "connection_type", value = r$db_connection_type)
       
       divs <- c("connection_infos_div", "test_connection_div")
       if (r$db_connection_type == "remote") sapply(divs, shinyjs::show)
       else sapply(divs, shinyjs::hide)
-    }))
+    })
     
     ## Test connection ----
     
-    observeEvent(input$test_connection, try_catch("input$test_connection", {
+    observe_event(input$test_connection, {
       
       if ("app_db_connection_settings" %not_in% user_accesses) return()
         
@@ -416,13 +416,13 @@ mod_app_db_server <- function(id){
         
         output[[paste0(db_type, "_result")]] <- renderUI(result_ui)
       }
-    }))
+    })
     
     ## Save connection settings ----
     
     # When save button is clicked
     
-    observeEvent(input$save_app_db_settings, try_catch("input$save_app_db_settings", {
+    observe_event(input$save_app_db_settings, {
       
       if ("app_db_connection_settings" %not_in% user_accesses) return()
         
@@ -457,32 +457,32 @@ mod_app_db_server <- function(id){
       
       show_message_bar("modif_saved", "success")
       shinyjs::delay(2000, show_message_bar("reload_app_to_take_into_account_changes", "warning"))
-    }))
+    })
     
     # |-------------------------------- -----
     
     # Run SQL code ----
     
-    observeEvent(input$run_code, try_catch("input$run_code", {
+    observe_event(input$run_code, {
       
       r$sql_code <- input$sql_code
       shinyjs::runjs(paste0("Shiny.setInputValue('", id, "-run_code_trigger', Math.random());"))
-    }))
+    })
     
-    observeEvent(input$sql_code_run_selection, try_catch("input$sql_code_run_selection", {
+    observe_event(input$sql_code_run_selection, {
       
       if (!shinyAce::is.empty(input$sql_code_run_selection$selection)) r$sql_code <- input$sql_code_run_selection$selection
       else r$sql_code <- input$sql_code_run_selection$line
       shinyjs::runjs(paste0("Shiny.setInputValue('", id, "-run_code_trigger', Math.random());"))
-    }))
+    })
     
-    observeEvent(input$sql_code_run_all, try_catch("input$sql_code_run_all", {
+    observe_event(input$sql_code_run_all, {
       
       r$sql_code <- input$sql_code
       shinyjs::runjs(paste0("Shiny.setInputValue('", id, "-run_code_trigger', Math.random());"))
-    }))
+    })
     
-    observeEvent(input$run_code_trigger, try_catch("input$run_code_trigger", {
+    observe_event(input$run_code_trigger, {
       
       if ("app_db_db_request" %not_in% user_accesses) return()
       
@@ -505,7 +505,7 @@ mod_app_db_server <- function(id){
       # Display result
       output$datetime_code_execution <- renderText(format_datetime(now(), language))
       output$sql_result <- renderText(captured_output)
-    }))
+    })
     
     # |-------------------------------- -----
     
@@ -517,7 +517,7 @@ mod_app_db_server <- function(id){
       sapply(c("check", "uncheck"), function(action){
         sapply(c("main", "public"), function(type){
           
-          observeEvent(input[[paste0(category, "_db_", action, "_all_", type, "_tables")]], try_catch(paste0("input$", category, "_db_", action, "_all_", type, "_tables"), {
+          observe_event(input[[paste0(category, "_db_", action, "_all_", type, "_tables")]], {
             
             value <- NULL
             
@@ -530,7 +530,7 @@ mod_app_db_server <- function(id){
             else if (category == "import") dropdown_options <- convert_tibble_to_list(r$import_db_files %>% dplyr::filter(prefix == type), key_col = "name", text_col = "name")
             
             shiny.fluent::updateDropdown.shinyInput(session, paste0(type, "_tables_to_", category), options = dropdown_options, value = value)
-          }))
+          })
         })
       })
     })
@@ -539,7 +539,7 @@ mod_app_db_server <- function(id){
     
     ### Export button is clicked
     
-    observeEvent(input$export_db, try_catch("input$export_db", {
+    observe_event(input$export_db, {
       
       if (!("app_db_save_restore" %in% user_accesses && (length(input$main_tables_to_export) > 0 || length(input$public_tables_to_export) > 0))) return()
     
@@ -564,7 +564,7 @@ mod_app_db_server <- function(id){
       shinyjs::click("db_save")
       
       shinyjs::runjs(paste0("Shiny.setInputValue('", id, "-reload_last_db_save', Math.random());"))
-    }))
+    })
     
     ### Download zip file
     
@@ -618,7 +618,7 @@ mod_app_db_server <- function(id){
     
     shinyjs::runjs(paste0("Shiny.setInputValue('", id, "-reload_last_db_save', Math.random());"))
     
-    observeEvent(input$reload_last_db_save, try_catch("input$reload_last_db_save", {
+    observe_event(input$reload_last_db_save, {
       
       if ("app_db_save_restore" %not_in% user_accesses) return()
       
@@ -628,19 +628,19 @@ mod_app_db_server <- function(id){
       else last_save_datetime <- "/"
       
       output$last_db_save <- renderUI(tagList(strong(i18n$t("last_db_save")), " : ", last_save_datetime))
-    }))
+    })
     
     ## Restore db ----
     
     ### Browse file
     
-    observeEvent(input$db_restore_browse, try_catch("input$db_restore_browse", shinyjs::click("db_restore")))
+    observe_event(input$db_restore_browse, shinyjs::click("db_restore"))
     
     ### Update last db save field
     
     shinyjs::runjs(paste0("Shiny.setInputValue('", id, "-reload_last_db_restore', Math.random());"))
     
-    observeEvent(input$reload_last_db_restore, try_catch("input$reload_last_db_restore", {
+    observe_event(input$reload_last_db_restore, {
       
       if ("app_db_save_restore" %not_in% user_accesses) return()
       
@@ -650,11 +650,11 @@ mod_app_db_server <- function(id){
       else last_restore_datetime <- "/"
       
       output$last_db_restore <- renderUI(tagList(strong(i18n$t("last_db_restore")), " : ", last_restore_datetime))
-    }))
+    })
     
     ### Restore file
     
-    observeEvent(input$db_restore, try_catch("input$db_restore", {
+    observe_event(input$db_restore, {
       
       if (!("app_db_save_restore" %in% user_accesses && length(input$db_restore$name) > 0)) return()
         
@@ -708,9 +708,9 @@ mod_app_db_server <- function(id){
         show_message_bar("error_loading_db_file", "warning")
         cat(paste0("\n", now(), " - mod_git_repos - error loading db file - error = ", toString(e)))
       })
-    }))
+    })
     
-    observeEvent(input$import_db, try_catch("inpu$import_db", {
+    observe_event(input$import_db, {
       
       if (!("app_db_save_restore" %in% user_accesses && nrow(r$import_db_files) > 0)) return()
       
@@ -839,13 +839,13 @@ mod_app_db_server <- function(id){
         # Notify user
         show_message_bar("db_restored_reload_app_to_take_into_account_changes", "success")
       }
-    }))
+    })
     
     ### Update last db restore field
     
     shinyjs::runjs(paste0("Shiny.setInputValue('", id, "-reload_last_db_restore', Math.random());"))
     
-    observeEvent(input$reload_last_db_restore, try_catch("input$reload_last_db_restore", {
+    observe_event(input$reload_last_db_restore, {
       
       if ("app_db_save_restore" %not_in% user_accesses) return()
       
@@ -855,7 +855,7 @@ mod_app_db_server <- function(id){
       else last_restore_datetime <- "/"
       
       output$last_db_restore <- renderUI(try_catch("output$last_db_restore", tagList(strong(i18n$t("last_db_restore")), " : ", last_restore_datetime)))
-    }))
+    })
     
   })
 }

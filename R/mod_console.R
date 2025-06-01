@@ -131,12 +131,12 @@ mod_console_server <- function(id){
     ")
     
     # Unlock reactivity
-    observeEvent(shiny.router::get_page(), try_catch("shiny.router::get_page()", {
+    observe_event(shiny.router::get_page(), {
       if (shiny.router::get_page() == "console") shinyjs::show("console")
-    }))
+    })
     
     # Update output dropdown ----
-    observeEvent(input$programming_language, try_catch("input$programming_language", {
+    observe_event(input$programming_language, {
       
       if (length(input$output) == 0) return()
       
@@ -177,10 +177,10 @@ mod_console_server <- function(id){
       
       # Update ace editor mode
       shinyAce::updateAceEditor(session, "code", mode = ace_mode)
-    }))
+    })
     
     # Output dropdown ----
-    observeEvent(input$output, try_catch("input$output", {
+    observe_event(input$output, {
       
       if (input$output %in% c("figure", "matplotlib")){
         shinyjs::show("plot_size_div")
@@ -200,22 +200,19 @@ mod_console_server <- function(id){
       # Output style
       if (input$output %in% c("console", "terminal")) shinyjs::addClass("console_output", paste0("ace-", text_output_theme))
       else shinyjs::removeClass("console_output", paste0("ace-", text_output_theme))
-    }))
+    })
     
     # Comment code ----
-    observeEvent(input$code_comment, try_catch("input$code_comment", {
-      
-      toggle_comments(input_id = "code", code = input$code, selection = input$code_comment$range, session = session)
-    }))
+    observe_event(input$code_comment, toggle_comments(input_id = "code", code = input$code, selection = input$code_comment$range, session = session))
     
     # Execute code ----
-    observeEvent(input$execute_code, try_catch("input$execute_code", {
+    observe_event(input$execute_code, {
       
       r$console_code <- input$code
       shinyjs::runjs(paste0("Shiny.setInputValue('", id, "-run_code_trigger', Math.random());"))
-    }))
+    })
 
-    observeEvent(input$code_run_selection, try_catch("input$code_run_selection", {
+    observe_event(input$code_run_selection, {
       
       editor_id <- "code"
       editor_input <- input[[paste0(editor_id, "_run_selection")]]
@@ -225,15 +222,15 @@ mod_console_server <- function(id){
       execute_ace_code(editor_id = editor_id, full_code = full_code, editor_input = editor_input, code_store_var = code_store_var)
       
       shinyjs::runjs(paste0("Shiny.setInputValue('", id, "-run_code_trigger', Math.random());"))
-    }))
+    })
 
-    observeEvent(input$code_run_all, try_catch("input$code_run_all", {
+    observe_event(input$code_run_all, {
 
       r$console_code <- input$code
       shinyjs::runjs(paste0("Shiny.setInputValue('", id, "-run_code_trigger', Math.random());"))
-    }))
+    })
     
-    observeEvent(input$run_code_trigger, try_catch("input$run_code_trigger", {
+    observe_event(input$run_code_trigger, {
       
       if ("console_execute_code" %not_in% user_accesses) return()
       
@@ -355,6 +352,6 @@ mod_console_server <- function(id){
       }
       
       output$datetime_code_execution <- renderText(format_datetime(now(), language))
-    }))
+    })
   })
 }
