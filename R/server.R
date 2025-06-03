@@ -173,7 +173,7 @@ app_server <- function(){
     
     # Load pages ----
     
-    r$loaded_pages <- list()
+    r$loaded_pages <- c()
     
     pages_variables_list <- c("r", "d", "m", "language", "i18n", "app_folder", "log_level", "user_accesses", "user_settings")
     
@@ -198,7 +198,7 @@ app_server <- function(){
         if (length(shiny.router::get_query_param()$create_element) > 0) shinyjs::runjs(paste0("Shiny.setInputValue('", current_page, "-create_element', Math.random());"))
       }
 
-      if (current_page %not_in% names(r$loaded_pages)) r$load_page <- current_page
+      if (current_page %not_in% r$loaded_pages) r$load_page <- current_page
 
       # Prevent a bug with scroll into ace editor
       shinyjs::runjs("var event = new Event('resize'); window.dispatchEvent(event);")
@@ -211,7 +211,7 @@ app_server <- function(){
       
       if (page == "login"){
         mod_login_server("login")
-        r$loaded_pages$login <- TRUE
+        r$loaded_pages <- c(r$loaded_pages, "login")
       }
       
       if (length(r$user_id) == 0){
@@ -241,7 +241,7 @@ app_server <- function(){
       mod_page_sidenav_server(page)
       mod_page_header_server(page)
       
-      r$loaded_pages[[page]] <- TRUE
+      r$loaded_pages <- c(r$loaded_pages, page)
       
       if (page == "data") r$load_project_trigger <- now()
     })

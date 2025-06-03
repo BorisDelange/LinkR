@@ -774,7 +774,7 @@ mod_widgets_server <- function(id, all_divs){
         )
         
         # Load data page if not already loaded
-        if ("data" %not_in% names(r$loaded_pages)){
+        if ("data" %not_in% r$loaded_pages){
           r$load_page <- "data"
           r$data_page <- "patient_lvl"
         }
