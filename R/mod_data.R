@@ -2732,102 +2732,103 @@ mod_data_server <- function(id){
         else if (action %in% c("add_widget", "reload_widget")) widgets <- r$data_widgets %>% dplyr::filter(id == !!widget_id)
         widgets <- widgets %>% dplyr::rename(widget_id = id)
         
-        if (nrow(widgets) == 0) return()
+        if (nrow(widgets) > 0){
         
-        widgets_concepts <- r$data_widgets_concepts %>% dplyr::inner_join(widgets %>% dplyr::select(widget_id), by = "widget_id")
+          widgets_concepts <- r$data_widgets_concepts %>% dplyr::inner_join(widgets %>% dplyr::select(widget_id), by = "widget_id")
+            
+          widgets_ids <- unique(widgets$widget_id)
           
-        widgets_ids <- unique(widgets$widget_id)
-        
-        # Loop over widgets
-        sapply(widgets_ids, function(widget_id){
-          
-          # Run plugin server code
-          # Only if this code has not been already loaded
-          trace_code <- paste0(widget_id, "_", m$selected_study)
-          
-          if (trace_code %not_in% r$widgets_server_code_loaded | action == "reload_widget"){
+          # Loop over widgets
+          sapply(widgets_ids, function(widget_id){
             
-            # Add the trace_code to loaded plugins list
-            r$widgets_server_code_loaded <- c(r$widgets_server_code_loaded, trace_code)
+            # Run plugin server code
+            # Only if this code has not been already loaded
+            trace_code <- paste0(widget_id, "_", m$selected_study)
             
-            selected_concepts <- 
-              widgets_concepts %>% 
-              dplyr::filter(widget_id == !!widget_id) %>%
-              dplyr::select(concept_id, concept_name, concept_display_name, domain_id, mapped_to_concept_id, merge_mapped_concepts)
-            
-            # Get plugin code
-            
-            ids <- widgets %>% dplyr::filter(widget_id == !!widget_id) %>% dplyr::slice(1) %>% dplyr::select(plugin_id, tab_id)
-            
-            plugin_id <- ids$plugin_id
-            plugin_unique_id <- r$plugins_long %>% dplyr::filter(id == plugin_id, name == "unique_id") %>% dplyr::pull(value)
-            
-            tab_id <- ids$tab_id
-            
-            # Check if plugin has been deleted
-            check_deleted_plugin <- nrow(DBI::dbGetQuery(r$db, paste0("SELECT * FROM plugins WHERE id = ", plugin_id))) == 0
-            if (!check_deleted_plugin){
+            if (trace_code %not_in% r$widgets_server_code_loaded | action == "reload_widget"){
               
-              file_path <- file.path(r$app_folder, "plugins", plugin_unique_id, "server.R")
-              server_code <- readLines(file_path, warn = FALSE) %>% paste(collapse = "\n")
+              # Add the trace_code to loaded plugins list
+              r$widgets_server_code_loaded <- c(r$widgets_server_code_loaded, trace_code)
               
-              patient_id <- NA_integer_
-              if (length(m$selected_person) > 0) patient_id <- m$selected_person
+              selected_concepts <- 
+                widgets_concepts %>% 
+                dplyr::filter(widget_id == !!widget_id) %>%
+                dplyr::select(concept_id, concept_name, concept_display_name, domain_id, mapped_to_concept_id, merge_mapped_concepts)
               
-              sql <- glue::glue_sql("SELECT value FROM options WHERE category = 'plugin' AND name = 'unique_id' AND link_id = {plugin_id}", .con = r$db)
-              plugin_unique_id <- DBI::dbGetQuery(r$db, sql) %>% dplyr::pull()
+              # Get plugin code
               
-              tab_type_id <- r$plugins_wide %>% dplyr::filter(id == plugin_id) %>% dplyr::pull(tab_type_id)
-              if (tab_type_id == 1) category <- "patient_lvl" else category <- "aggregated"
+              ids <- widgets %>% dplyr::filter(widget_id == !!widget_id) %>% dplyr::slice(1) %>% dplyr::select(plugin_id, tab_id)
               
-              plugin_folder <- paste0(r$app_folder, "/plugins/", plugin_unique_id)
+              plugin_id <- ids$plugin_id
+              plugin_unique_id <- r$plugins_long %>% dplyr::filter(id == plugin_id, name == "unique_id") %>% dplyr::pull(value)
               
-              server_code <- process_widget_code(server_code, tab_id, widget_id, m$selected_study, patient_id, plugin_folder)
+              tab_id <- ids$tab_id
               
+              # Check if plugin has been deleted
+              check_deleted_plugin <- nrow(DBI::dbGetQuery(r$db, paste0("SELECT * FROM plugins WHERE id = ", plugin_id))) == 0
+              if (!check_deleted_plugin){
+                
+                file_path <- file.path(r$app_folder, "plugins", plugin_unique_id, "server.R")
+                server_code <- readLines(file_path, warn = FALSE) %>% paste(collapse = "\n")
+                
+                patient_id <- NA_integer_
+                if (length(m$selected_person) > 0) patient_id <- m$selected_person
+                
+                sql <- glue::glue_sql("SELECT value FROM options WHERE category = 'plugin' AND name = 'unique_id' AND link_id = {plugin_id}", .con = r$db)
+                plugin_unique_id <- DBI::dbGetQuery(r$db, sql) %>% dplyr::pull()
+                
+                tab_type_id <- r$plugins_wide %>% dplyr::filter(id == plugin_id) %>% dplyr::pull(tab_type_id)
+                if (tab_type_id == 1) category <- "patient_lvl" else category <- "aggregated"
+                
+                plugin_folder <- paste0(r$app_folder, "/plugins/", plugin_unique_id)
+                
+                server_code <- process_widget_code(server_code, tab_id, widget_id, m$selected_study, patient_id, plugin_folder)
+                
+              }
+              else server_code <- ""
+              
+              # Create translations var (translations files are created in UI)
+              if (!check_deleted_plugin){
+                
+                # Get plugin unique_id
+                sql <- glue::glue_sql("SELECT value FROM options WHERE category = 'plugin' AND name = 'unique_id' AND link_id = {plugin_id}", .con = r$db)
+                plugin_unique_id <- DBI::dbGetQuery(r$db, sql) %>% dplyr::pull()
+                
+                translations_dir <- paste0(r$app_folder, "/translations/", plugin_unique_id)
+                
+                tryCatch({
+                  i18np <- suppressWarnings(shiny.i18n::Translator$new(translation_csvs_path = translations_dir))
+                  i18np$set_translation_language(language)},
+                  error = function(e) cat(paste0("\n", now(), " - mod_data - error creating translator - plugin_id = ", plugin_id)))
+              }
+              
+              # Create a session number, to inactivate older observers
+              # Reset all older observers for this widget_id
+              
+              session_code <- paste0("widget_", widget_id)
+              if (length(m[[session_code]]) == 0) session_num <- 1L
+              if (length(m[[session_code]]) > 0) session_num <- m[[session_code]] + 1
+              m[[session_code]] <- session_num
+              
+              # Variables to hide
+              new_env_vars <- list("r" = NA)
+              
+              # Variables to keep
+              variables_to_keep <- c("d", "m", "session_code", "session_num", "i18n", "selected_concepts", "log_level")
+              if (exists("i18np")) variables_to_keep <- c(variables_to_keep, "i18np")
+              
+              for (var in variables_to_keep) new_env_vars[[var]] <- eval(parse(text = var))
+              
+              new_env <- rlang::new_environment(data = new_env_vars, parent = pryr::where("r"))
+              tryCatch(eval(parse(text = server_code), envir = new_env),
+                error = function(e){
+                  r$widget_server_last_error <- e
+                  show_message_bar("error_run_plugin_server_code", "severeWarning")
+                  cat(paste0("\n", now(), " - mod_data - error loading server code - widget_id = ", widget_id, " - ", toString(e)))
+                })
             }
-            else server_code <- ""
-            
-            # Create translations var (translations files are created in UI)
-            if (!check_deleted_plugin){
-              
-              # Get plugin unique_id
-              sql <- glue::glue_sql("SELECT value FROM options WHERE category = 'plugin' AND name = 'unique_id' AND link_id = {plugin_id}", .con = r$db)
-              plugin_unique_id <- DBI::dbGetQuery(r$db, sql) %>% dplyr::pull()
-              
-              translations_dir <- paste0(r$app_folder, "/translations/", plugin_unique_id)
-              
-              tryCatch({
-                i18np <- suppressWarnings(shiny.i18n::Translator$new(translation_csvs_path = translations_dir))
-                i18np$set_translation_language(language)},
-                error = function(e) cat(paste0("\n", now(), " - mod_data - error creating translator - plugin_id = ", plugin_id)))
-            }
-            
-            # Create a session number, to inactivate older observers
-            # Reset all older observers for this widget_id
-            
-            session_code <- paste0("widget_", widget_id)
-            if (length(m[[session_code]]) == 0) session_num <- 1L
-            if (length(m[[session_code]]) > 0) session_num <- m[[session_code]] + 1
-            m[[session_code]] <- session_num
-            
-            # Variables to hide
-            new_env_vars <- list("r" = NA)
-            
-            # Variables to keep
-            variables_to_keep <- c("d", "m", "session_code", "session_num", "i18n", "selected_concepts", "log_level")
-            if (exists("i18np")) variables_to_keep <- c(variables_to_keep, "i18np")
-            
-            for (var in variables_to_keep) new_env_vars[[var]] <- eval(parse(text = var))
-            
-            new_env <- rlang::new_environment(data = new_env_vars, parent = pryr::where("r"))
-            tryCatch(eval(parse(text = server_code), envir = new_env),
-              error = function(e){
-                r$widget_server_last_error <- e
-                show_message_bar("error_run_plugin_server_code", "severeWarning")
-                cat(paste0("\n", now(), " - mod_data - error loading server code - widget_id = ", widget_id, " - ", toString(e)))
-              })
-          }
-        })
+          })
+        }
         
         r$data_server_loaded <- TRUE
       })
