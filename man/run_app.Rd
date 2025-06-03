@@ -73,35 +73,35 @@ Use `log_target` to define where logs are displayed: `"console"` (developer mode
 \examples{
 \dontrun{
 # Run LinkR in English with default settings
-linkr()
+run_app()
 
 # Run LinkR in French
-linkr(language = "fr")
+run_app(language = "fr")
 
 # Specify a custom folder to store configuration and user data
-linkr(app_folder = "~/my_linkr_data")
+run_app(app_folder = "~/my_linkr_data")
 
 # Enable user authentication (will prompt login screen)
-linkr(authentication = TRUE)
+run_app(authentication = TRUE)
 
 # Disable authentication and auto-connect as a predefined user
-linkr(authentication = FALSE, username = "admin")
+run_app(authentication = FALSE, username = "admin")
 
 # Run the app in local mode (without loading from GitHub)
-linkr(local = TRUE)
+run_app(local = TRUE)
 
 # Customize logging: show only info and error messages in the console
-linkr(log_level = c("info", "error"), log_target = "console")
+run_app(log_level = c("info", "error"), log_target = "console")
 
 # Disable all logging
-linkr(log_level = "none")
+run_app(log_level = "none")
 
 # Run the app on a custom host and port (e.g., for deployment)
-linkr(host = "127.0.0.1", port = 8080)
+run_app(host = "127.0.0.1", port = 8080)
 
 # Automatically load a specific page or project at startup
 # This is especially useful for online demos or when sharing a reproducible scenario
-linkr(loading_options = list(
+run_app(loading_options = list(
   page = "home",
   project_id = "project123",
   load_data_page = "patient_lvl",
