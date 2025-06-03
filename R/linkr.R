@@ -73,7 +73,7 @@
 #' @importFrom shiny shinyApp
 #' @importFrom magrittr %>%
 
-linkr <- function(
+run_app <- function(
   language = "en",
   app_folder = character(),
   authentication = FALSE,
@@ -205,3 +205,7 @@ linkr <- function(
     options = options
   )
 }
+
+#' @rdname run_app
+#' @export
+linkr <- run_app

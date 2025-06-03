@@ -2,6 +2,7 @@
 
 export(get_query)
 export(linkr)
+export(run_app)
 import(shiny)
 importFrom(magrittr,"%>%")
 importFrom(shiny,shinyApp)
