@@ -1182,5 +1182,8 @@ reload_elements_var <- function(page_id, id, con, long_var_filtered){
   r[[paste0("reload_home_", id)]] <- now()
   
   # Reload project subsets
-  if (sql_table == "subsets" && !is.na(m$selected_study)) m$subsets <- r$subsets_wide %>% dplyr::filter(study_id == m$selected_study)
+  if (sql_table == "subsets" && !is.na(m$selected_study)){
+    new_subsets <- r$subsets_wide %>% dplyr::filter(study_id == m$selected_study)
+    if (is.null(m$subsets) || !identical(sort(m$subsets$id), sort(new_subsets$id))) m$subsets <- new_subsets
+  } 
 }
