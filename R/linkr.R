@@ -86,7 +86,7 @@ run_app <- function(
   loading_options = list()
 ) {
   
-  app_version <- "0.3.1.9009"
+  app_version <- "0.3.1.9010"
   if ("event" %in% log_level) cat(paste0("[", now(), "] [EVENT] [page_id = linkr] init LinkR - v", app_version))
   
   # Loading options ----
