@@ -264,7 +264,7 @@ import_vocabulary_table <- function(table_name = character(), data = tibble::tib
     col_name <- names(data)[i]
     col_type <- types[[i]]
     
-    if (col_type == "c") data <- data %>% dplyr::mutate_at(col_name, as.character)
+    if (col_type %in% c("c", "D")) data <- data %>% dplyr::mutate_at(col_name, as.character)
     else if (col_type %in% c("i", "n")) data <- data %>% dplyr::mutate_at(col_name, as.numeric)
   }
   
