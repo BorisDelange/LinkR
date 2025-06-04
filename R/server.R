@@ -185,6 +185,12 @@ app_server <- function(){
       if (current_page == "/" && authentication) current_page <- "login"
       else if (current_page == "/" && !authentication) current_page <- "home"
       
+      # Redirect to project page from data page if no project is loaded
+      if (current_page == "data" && (length(m$selected_project) == 0 || is.na(m$selected_project))){
+        shiny.router::change_page("projects")
+        return()
+      }
+      
       r$current_page <- current_page
 
       if (current_page %not_in% get_pages()) return()
