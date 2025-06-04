@@ -1435,6 +1435,14 @@ mod_git_repos_server <- function(id){
           "plugins" = "plugin"
         )
         
+        page_id <- switch(
+          current_tab, 
+          "data_cleaning_scripts" = "data_cleaning",
+          "datasets" = "datasets",
+          "projects" = "projects",
+          "plugins" = "plugins"
+        )
+        
         tryCatch({
           
           git_element <- r$loaded_git_repo_elements %>% dplyr::filter(unique_id == input$selected_element)
@@ -1446,6 +1454,9 @@ mod_git_repos_server <- function(id){
             con = r$db, sql_table = sql_table, sql_category = sql_category, single_id = single_id,
             element = git_element, element_type = current_tab, temp_dir = git_element_folder
           )
+          
+          # Reload elements var
+          reload_elements_var(page_id = page_id, id = page_id, con = r$db, long_var_filtered = paste0("filtered_", page_id, "_long"))
         },
         error = function(e){
           show_message_bar(paste0("error_install_remote_git_", current_tab_single), "warning")
