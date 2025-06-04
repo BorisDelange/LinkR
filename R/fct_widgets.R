@@ -394,12 +394,12 @@ create_element_ui <- function(page_id, element_id, single_id, element_name, user
     "vocabulary" = "fa-language"
   )
   
+  short_description_limited <- short_description
+  
   max_length <- 75
-  if (nchar(short_description) > max_length) {
+  if (!is.na(short_description) && nchar(short_description) > max_length) {
     short_description_limited <- paste0(substr(short_description, 1, max_length - 3), "...")
     short_description_limited <- create_hover_card(ui = short_description_limited, text = short_description)
-  } else {
-    short_description_limited <- short_description
   }
   
   max_length <- 25

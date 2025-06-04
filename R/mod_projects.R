@@ -457,12 +457,9 @@ mod_projects_server <- function(id){
     
     # Update project creation dataset
     
-    # observe_event(r$datasets_wide, {
-    #   shiny.fluent::updateDropdown.shinyInput(session, "element_creation_dataset", options = convert_tibble_to_list(r$datasets_wide, key_col = "id", text_col = "name"), value = NULL)
-    # })
-    
     observe_event(r$datasets_wide, {
-      shiny.fluent::updateDropdown.shinyInput(session, "element_creation_dataset", options = convert_tibble_to_list(r$datasets_wide, key_col = "id", text_col = "name"), value = NULL)
+      dropdown_options <- convert_tibble_to_list(r$datasets_wide, key_col = "id", text_col = "name")
+      sapply(c("element_creation_dataset", "project_dataset"), function(field_name) shiny.fluent::updateDropdown.shinyInput(session, field_name, options = dropdown_options, value = NULL))
     })
     
     # --- --- --- --- ---
