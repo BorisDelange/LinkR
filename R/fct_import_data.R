@@ -212,7 +212,7 @@ import_dataset <- function(omop_version = "5.4", data_folder = character(), con,
   
   for (table in tables){
     if (table %in% tables_to_load){
-      d[[table]] <- dplyr::tbl(d$con, table)
+      d[[table]] <- dplyr::tbl(d$con, table) %>% dplyr::rename_with(tolower)
       loaded_tables <- c(loaded_tables, table)
     }
   }
