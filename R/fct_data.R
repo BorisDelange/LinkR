@@ -296,7 +296,7 @@ load_dataset <- function(dataset_id, selected_study){
 }
 
 #' @noRd
-load_dataset_concepts <- function(){
+load_dataset_concepts <- function(reload = FALSE){
   
   # Get variables from other environments
   for (obj_name in c("r", "d", "m")) assign(obj_name, get(obj_name, envir = parent.frame()))
@@ -310,7 +310,7 @@ load_dataset_concepts <- function(){
   
   # Reload concept Parquet files if don't exist
   
-  if (!file.exists(dataset_concept_filename) | !file.exists(dataset_drug_strength_filename)){
+  if (reload || !file.exists(dataset_concept_filename) || !file.exists(dataset_drug_strength_filename)){
   
     ## Select distinct concept IDs on dataset ----
     
@@ -404,6 +404,34 @@ load_dataset_concepts <- function(){
       if ("valid_start_date" %in% colnames(local_concepts[[table]])){
         local_concepts[[table]] <- local_concepts[[table]] %>% dplyr::mutate_at(c("valid_start_date", "valid_end_date"), as.Date)
         dataset_concepts[[table]] <- dataset_concepts[[table]] %>% dplyr::mutate_at(c("valid_start_date", "valid_end_date"), as.Date)
+      }
+      
+      # Ensure both dataframes have columns converted to the correct OMOP types (from get_omop_col_types) before bind_rows()
+      
+      col_types <- get_omop_col_types()[[table]]
+      col_letters <- strsplit(col_types, "")[[1]]
+      cols <- names(local_concepts[[table]])
+      
+      for (i in seq_along(cols)) {
+        col <- cols[i]
+        type <- col_letters[i]
+        
+        if (type == "i") {
+          local_concepts[[table]][[col]] <- as.integer(local_concepts[[table]][[col]])
+          dataset_concepts[[table]][[col]] <- as.integer(dataset_concepts[[table]][[col]])
+        } else if (type == "n") {
+          local_concepts[[table]][[col]] <- as.numeric(local_concepts[[table]][[col]])
+          dataset_concepts[[table]][[col]] <- as.numeric(dataset_concepts[[table]][[col]])
+        } else if (type == "c") {
+          local_concepts[[table]][[col]] <- as.character(local_concepts[[table]][[col]])
+          dataset_concepts[[table]][[col]] <- as.character(dataset_concepts[[table]][[col]])
+        } else if (type == "D") {
+          local_concepts[[table]][[col]] <- as.Date(local_concepts[[table]][[col]])
+          dataset_concepts[[table]][[col]] <- as.Date(dataset_concepts[[table]][[col]])
+        } else if (type == "T") {
+          local_concepts[[table]][[col]] <- as.POSIXct(local_concepts[[table]][[col]])
+          dataset_concepts[[table]][[col]] <- as.POSIXct(dataset_concepts[[table]][[col]])
+        }
       }
       
       combined <- local_concepts[[table]] %>% dplyr::bind_rows(dataset_concepts[[table]])

@@ -242,15 +242,9 @@ mod_concepts_server <- function(id){
       # Remove concept files
       # Also remove duckDB tables
       dataset_folder <- paste0(r$app_folder, "/datasets_files/", r$selected_dataset)
-      
-      for (table in c("concept", "concept_ancestor", "concept_relationship", "concept_synonym", "drug_strength", "vocabulary", "concept_class", "relationship", "domain", "dataset_concept", "dataset_drug_strength")){
-        if (r$dataset_data_source == "disk") DBI::dbExecute(d$con, paste0("DROP VIEW IF EXISTS ", table)) 
-        file_path <- file.path(dataset_folder, paste0(table, ".parquet"))
-        if (file.exists(file_path)) unlink(file_path)
-      }
 
       # Reload concepts count
-      tryCatch(load_dataset_concepts(), error = function(e){
+      tryCatch(load_dataset_concepts(reload = TRUE), error = function(e){
         cat(paste0("\n", now(), " - mod_concepts - error loading dataset concepts - error = ", toString(e)))
         show_message_bar("error_loading_dataset_concepts", "severeWarning")
       })
