@@ -1,0 +1,116 @@
+<?xml version="1.0"?>
+<datasets>
+  <dataset>
+    <app_version>0.3.1.9010</app_version>
+    <unique_id>44b60e04eae66bcd8fc86d3196c09db1620ceec65d759de6080cda702aa45b10</unique_id>
+    <version>0.0.1.9007</version>
+    <name_en>MIMIC-IV demo set</name_en>
+    <name_fr>MIMIC-IV set de d&#xE9;mo</name_fr>
+    <category_en></category_en>
+    <category_fr></category_fr>
+    <description_en>The &lt;a href="https://mimic.mit.edu/" target="_blank"&gt;MIMIC&lt;/a&gt; database, or Medical Information Mart for Intensive Care, is a North American database containing data from over &lt;strong&gt;50,000 patients&lt;/strong&gt; admitted to intensive care units. It is one of the most widely used critical care databases due to its free access.
+
+Despite its imperfect data quality, it provides a solid foundation for &lt;strong&gt;learning to handle&lt;/strong&gt; data from &lt;strong&gt;health data warehouses&lt;/strong&gt; (HDW).
+
+The database exists in several versions, with the most recent being MIMIC-IV.
+
+### Test Data (Public Access)
+
+The MIMIC database includes &lt;strong&gt;test datasets&lt;/strong&gt; for versions III and IV, containing anonymized data from 100 patients, which are publicly accessible.
+
+You can download the data here:
+
+- &lt;a href="https://physionet.org/content/mimiciii-demo/1.4/" target="_blank"&gt;MIMIC-III Test&lt;/a&gt;: data with the &lt;a href="https://mimic.mit.edu/docs/iii/tables/" target="_blank"&gt;MIMIC data schema&lt;/a&gt;
+- &lt;a href="https://physionet.org/content/mimic-iv-demo-omop/0.9/" target="_blank"&gt;MIMIC-IV OMOP Test&lt;/a&gt;: data with the &lt;a href="https://ohdsi.github.io/CommonDataModel/cdm54.html" target="_blank"&gt;OMOP data schema&lt;/a&gt;
+
+### Full Data Access
+
+To access the &lt;strong&gt;complete datasets&lt;/strong&gt;, certain steps need to be completed.
+
+Visit the &lt;a href="https://physionet.org/content/mimiciii/1.4/" target="_blank"&gt;MIMIC-III database page&lt;/a&gt;.
+
+At the bottom of the page, you&#x2019;ll see this alert:
+
+&lt;div style="background-color: #FBE1DE; padding: 10px; border-radius: 10px;" role="alert"&gt;
+  This is a restricted-access resource. To access the files, you must fulfill all of the following requirements:
+  &lt;ul&gt;
+    &lt;li&gt;be a &lt;a href="https://physionet.org/login/?next=/settings/credentialing/" target="_blank"&gt;credentialed user&lt;/a&gt;&lt;/li&gt;
+    &lt;li&gt;complete required training:&lt;/li&gt;
+        &lt;ul&gt;
+            &lt;li&gt;&lt;a href="https://physionet.org/login/?next=/content/mimiciii/view-required-training/1.4/#1" target="_blank"&gt;CITI Data or Specimens Only Research&lt;/a&gt;&lt;/li&gt;
+            You may submit your training &lt;a href="https://physionet.org/login/?next=/settings/training/" target="_blank"&gt;here&lt;/a&gt;.
+        &lt;/ul&gt;
+            &lt;li&gt;
+            &lt;a href="https://physionet.org/login/?next=/sign-dua/mimiciii/1.4/" target="_blank"&gt;sign the data use agreement&lt;/a&gt; for the project
+            &lt;/li&gt;
+  &lt;/ul&gt;
+&lt;/div&gt;
+
+You will need to start by registering on the &lt;a href="https://physionet.org/register/" target="_blank"&gt;physionet.org&lt;/a&gt; website.
+
+Then, you must submit an &lt;a href="https://physionet.org/settings/credentialing/" target="_blank"&gt;access request&lt;/a&gt; to Physionet, providing some information and the contact details of a supervisor or colleague, who will receive an email.
+
+Next, you must complete the CITI Course, a required training to access data hosted on Physionet. The steps are &lt;a href="https://physionet.org/about/citi-course/" target="_blank"&gt;detailed here&lt;/a&gt;.
+
+Once the CITI Course is completed, you can &lt;strong&gt;download the certificate&lt;/strong&gt; and &lt;a href="https://physionet.org/settings/training/" target="_blank"&gt;upload it here&lt;/a&gt; for validation by the Physionet team.
+
+The final step is to sign the &lt;a href="https://physionet.org/login/?next=/sign-dua/mimiciii/1.4/" target="_blank"&gt;data use agreement&lt;/a&gt;.
+</description_en>
+    <description_fr>La base de donn&#xE9;es &lt;a href="https://mimic.mit.edu/" target="_blank"&gt;MIMIC&lt;/a&gt;, pour Medical Information Mart for Intensive Care, est une base de donn&#xE9;es nord-am&#xE9;ricaine contenant des donn&#xE9;es de plus de &lt;strong&gt;50 000 patients&lt;/strong&gt; admis en r&#xE9;animation. Il s'agit de l'une des bases de donn&#xE9;es de r&#xE9;animation les plus utilis&#xE9;es, du fait de son acc&#xE8;s gratuit.
+
+Malgr&#xE9; des donn&#xE9;es d'une qualit&#xE9; imparfaite, elle constitue un bon socle pour &lt;strong&gt;apprendre &#xE0; manipuler&lt;/strong&gt; les donn&#xE9;es issues d'&lt;strong&gt;entrep&#xF4;ts de donn&#xE9;es de sant&#xE9;&lt;/strong&gt; (EDS).
+
+Elle existe en plusieurs versions, dont la plus r&#xE9;cente est la MIMIC-IV.
+
+### Donn&#xE9;es test (publiques)
+
+La base de donn&#xE9;es MIMIC comporte pour les versions III et IV des &lt;strong&gt;bases tests&lt;/strong&gt;, qui contiennent les donn&#xE9;es anonymis&#xE9;es de 100 patients et qui sont accessibles publiquement.
+
+Vous pouvez t&#xE9;l&#xE9;charger les donn&#xE9;es ici :
+
+- &lt;a href="https://physionet.org/content/mimiciii-demo/1.4/" target="_blank"&gt;MIMIC-III test&lt;/a&gt; : donn&#xE9;es avec le sch&#xE9;ma de donn&#xE9;es &lt;a href="https://mimic.mit.edu/docs/iii/tables/" target="_blank"&gt;MIMIC&lt;/a&gt;
+- &lt;a href="https://physionet.org/content/mimic-iv-demo-omop/0.9/" target="_blank"&gt;MIMIC-IV OMOP test&lt;/a&gt; : donn&#xE9;es avec le sch&#xE9;ma de donn&#xE9;es &lt;a href="https://ohdsi.github.io/CommonDataModel/cdm54.html" target="_blank"&gt;OMOP&lt;/a&gt;
+
+### Donn&#xE9;es compl&#xE8;tes
+
+Pour acc&#xE9;der aux &lt;strong&gt;bases de donn&#xE9;es compl&#xE8;tes&lt;/strong&gt;, il est n&#xE9;cessaire de valider quelques &#xE9;tapes.
+
+Rendez-vous sur la &lt;a href="https://physionet.org/content/mimiciii/1.4/" target="_blank"&gt;page de la base MIMIC-III&lt;/a&gt;.
+
+Vous verrez cet encadr&#xE9; tout en bas de la page :
+
+&lt;div style="background-color: #FBE1DE; padding: 10px; border-radius: 10px;" role="alert"&gt;
+  This is a restricted-access resource. To access the files, you must fulfill all of the following requirements:
+  &lt;ul&gt;
+    &lt;li&gt;be a &lt;a href="https://physionet.org/login/?next=/settings/credentialing/" target="_blank"&gt;credentialed user&lt;/a&gt;&lt;/li&gt;
+    &lt;li&gt;complete required training:&lt;/li&gt;
+        &lt;ul&gt;
+            &lt;li&gt;&lt;a href="https://physionet.org/login/?next=/content/mimiciii/view-required-training/1.4/#1" target="_blank"&gt;CITI Data or Specimens Only Research&lt;/a&gt;&lt;/li&gt;
+            You may submit your training &lt;a href="https://physionet.org/login/?next=/settings/training/" target="_blank"&gt;here&lt;/a&gt;.
+        &lt;/ul&gt;
+            &lt;li&gt;
+            &lt;a href="https://physionet.org/login/?next=/sign-dua/mimiciii/1.4/" target="_blank"&gt;sign the data use agreement&lt;/a&gt; for the project
+            &lt;/li&gt;
+  &lt;/ul&gt;
+&lt;/div&gt;
+
+Vous devez donc commencer par vous inscrire sur le site &lt;a href="https://physionet.org/register/" target="_blank"&gt;physionet.org&lt;/a&gt;.
+
+Vous devrez faire une &lt;a href="https://physionet.org/settings/credentialing/" target="_blank"&gt;demande d'acc&#xE8;s&lt;/a&gt; &#xE0; Physionet, en renseignant quelques informations et en donnant les coordonn&#xE9;es d'un superviseur ou d'un coll&#xE8;gue, &#xE0; qui un mail sera envoy&#xE9;.
+
+Vous devrez ensuite compl&#xE9;ter le CITI Course, il s'agit d'une formation n&#xE9;cessaire afin d'acc&#xE9;der aux donn&#xE9;es h&#xE9;berg&#xE9;es sur le site Physionet. Les diff&#xE9;rentes &#xE9;tapes sont &lt;a href="https://physionet.org/about/citi-course/" target="_blank"&gt;d&#xE9;taill&#xE9;es ici&lt;/a&gt;.
+
+Vous pourrez ensuite &lt;strong&gt;t&#xE9;l&#xE9;charger le certificat&lt;/strong&gt; une fois le CITI Course termin&#xE9;, vous pourrez le &lt;a href="https://physionet.org/settings/training/" target="_blank"&gt;d&#xE9;poser ici&lt;/a&gt; pour validation par l'&#xE9;quipe de Physionet.
+
+Il ne vous restera plus qu'&#xE0; signer le &lt;a href="https://physionet.org/login/?next=/sign-dua/mimiciii/1.4/" target="_blank"&gt;data use agreement&lt;/a&gt;.
+</description_fr>
+    <short_description_en>MIMIC-IV demo set containing 100 patients</short_description_en>
+    <short_description_fr>Set de d&#xE9;mo de la MIMIC-IV contenant 100 patients</short_description_fr>
+    <authors>
+      <author>Boris Delange</author>
+    </authors>
+    <creation_datetime>2024-08-06 16:30:16</creation_datetime>
+    <update_datetime>2025-06-09 23:09:49</update_datetime>
+    <omop_version>5.3</omop_version>
+  </dataset>
+</datasets>

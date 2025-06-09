@@ -1,0 +1,243 @@
+<?xml version="1.0"?>
+<plugins>
+  <plugin>
+    <app_version>0.3.1.9010</app_version>
+    <unique_id>064e0d7fcd993a7265fe696b948e22d4d0f531a520c5f086c911e06578ce170e</unique_id>
+    <version>0.0.1.9048</version>
+    <name_en>Continuous var. timeline</name_en>
+    <name_fr>Timeline var. continues</name_fr>
+    <category_en>NA</category_en>
+    <category_fr>NA</category_fr>
+    <description_en># 1) Introduction
+
+The "Continuous variables timeline" plugin allows you to display **continuous data** in the form of a **timeline**,
+such as **vital signs** or **laboratory data**, using `dygraphs` library.
+
+&lt;table align="center"&gt;&lt;tr&gt;&lt;td&gt;
+    &lt;img 
+        src="https://framagit.org/interhop/linkr/LinkR-content/-/raw/main/img/plugins/timeline_dygraphs/figure.gif"
+        alt="Dygraphs timeline",
+        width="750",
+        style="border: solid 1px #ccc; padding: 5px;"
+    /&gt;
+&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+
+# 2) Features
+
+## Figure settings
+
+&lt;table align="center"&gt;&lt;tr&gt;&lt;td&gt;
+    &lt;img 
+        src="https://framagit.org/interhop/linkr/LinkR-content/-/raw/main/img/plugins/timeline_dygraphs/en_figure_settings.png"
+        alt="Figure settings",
+        width="250",
+        style="border: solid 1px #ccc; padding: 5px;"
+    /&gt;
+&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+
+Here are the parameters you can adjust:
+
+- **Data to display**: choose whether you want to display patient data or visit data
+
+- **Concepts**: which concepts do you want to see on the figure?
+This list includes the concepts you selected when creating the widget.
+
+- **Synchronize timelines**: several plugins work with a timeline
+(the scroll bar below the timeline where you can choose the period to display).
+This feature allows you to synchronize the timelines of several widgets on the same tab.
+
+## Code
+
+&lt;table align="center"&gt;&lt;tr&gt;&lt;td&gt;
+    &lt;img 
+        src="https://framagit.org/interhop/linkr/LinkR-content/-/raw/main/img/plugins/timeline_dygraphs/figure_and_code.png"
+        alt="Figure and code",
+        width="750",
+        style="border: solid 1px #ccc; padding: 5px;"
+    /&gt;
+&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+
+As with **all plugins** on LinkR, the **low-code** interface allows you to generate code from the graphical interface.
+
+To do this, go to the "Figure settings" tab, and once you have chosen your parameters, click on "Display figure".
+
+This will:
+
+- **generate the code** corresponding to the chosen parameters
+- then **execute the code** and display the figure corresponding to the code
+
+You can then **modify the code** directly and save it.
+
+If you click on "Run code" from the tab with the code editor, it will display the figure corresponding to the code.
+
+However, if you are on the tab corresponding to the figure settings, it will erase the current code and replace it
+with the code corresponding to the current parameters.
+
+## Save files
+
+&lt;table align="center"&gt;&lt;tr&gt;&lt;td&gt;
+    &lt;img 
+        src="https://framagit.org/interhop/linkr/LinkR-content/-/raw/main/img/plugins/timeline_dygraphs/en_settings_files.png"
+        alt="Settings files",
+        width="280",
+        style="border: solid 1px #ccc; padding: 5px;"
+    /&gt;
+&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+
+You can **save** the figure parameters and code from the save files management page.
+
+To do this, click on the name of the selected file at the top of the widget ("Save File 1" in the screenshot above).
+You can then **add** or **delete** save files.
+
+Then return to the "Figure settings" or "Code" tabs and save your parameters and code.
+
+## General settings
+
+&lt;table align="center"&gt;&lt;tr&gt;&lt;td&gt;
+    &lt;img 
+        src="https://framagit.org/interhop/linkr/LinkR-content/-/raw/main/img/plugins/timeline_dygraphs/en_general_settings.png"
+        alt="General settings",
+        width="280",
+        style="border: solid 1px #ccc; padding: 5px;"
+    /&gt;
+&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+
+The general settings are divided into:
+
+- **Display Settings**
+
+    - **Show save file**: show or hide the name of the selected save file
+    - **Figure and settings/editor side by side**: do you want the figure to appear side by side
+    with the figure settings or the figure code? This avoids going back and forth between
+    the different tabs during the widget configuration phase.
+
+- **Code Execution**
+
+    - **Run code when loading a save file**: this allows the code to be executed when
+    the selected save file changes, which is useful when loading a project:
+    this allows all widgets with this option to be loaded
+    - **Run code when data is updated**: for this widget, this means that
+    the data is updated when you change patient or visit, depending on the value of the 
+    "Data to display" parameter</description_en>
+    <description_fr># 1) Introduction
+
+Le plugin "Timeline variables continues" permet d'afficher des **donn&#xE9;es continues** sous forme de **timeline**,
+tels que les **param&#xE8;tres vitaux** ou les donn&#xE9;es de **biologie**, &#xE0; l'aide de la librairie `dygraphs`.
+
+&lt;table align="center"&gt;&lt;tr&gt;&lt;td&gt;
+    &lt;img 
+        src="https://framagit.org/interhop/linkr/LinkR-content/-/raw/main/img/plugins/timeline_dygraphs/figure.gif"
+        alt="Dygraphs timeline",
+        width="750",
+        style="border: solid 1px #ccc; padding: 5px;"
+    /&gt;
+&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+
+# 2) Fonctionnalit&#xE9;s
+
+## Param&#xE8;tres de la figure
+
+&lt;table align="center"&gt;&lt;tr&gt;&lt;td&gt;
+    &lt;img 
+        src="https://framagit.org/interhop/linkr/LinkR-content/-/raw/main/img/plugins/timeline_dygraphs/fr_figure_settings.png"
+        alt="Figure settings",
+        width="250",
+        style="border: solid 1px #ccc; padding: 5px;"
+    /&gt;
+&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+
+Voici les param&#xE8;tres que vous pouvez r&#xE9;gler :
+
+- **Donn&#xE9;es &#xE0; afficher** : choisissez si vous voulez afficher les donn&#xE9;es du patient ou de son d&#xE9;jour
+
+- **Concepts** : quels concepts souhaitez-vous voir appara&#xEE;tre sur la figure ?
+Cette liste comprend les concepts que vous avez s&#xE9;lectionn&#xE9;s au moment de cr&#xE9;er le widget.
+
+- **Synchroniser les timelines** : plusieurs plugins fonctionnent avec une timeline
+(la barre de d&#xE9;filement en-dessous de la timeline o&#xF9; vous pouvez choisir la p&#xE9;riode &#xE0; afficher).
+Cette fonctionnalit&#xE9; vous permet de synchroniser les timelines de plusieurs widgets sur un m&#xEA;me onglet. 
+
+## Code
+
+&lt;table align="center"&gt;&lt;tr&gt;&lt;td&gt;
+    &lt;img 
+        src="https://framagit.org/interhop/linkr/LinkR-content/-/raw/main/img/plugins/timeline_dygraphs/figure_and_code.png"
+        alt="Figure and code",
+        width="750",
+        style="border: solid 1px #ccc; padding: 5px;"
+    /&gt;
+&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+
+Comme pour **tout plugin** sur LinkR, l'interface **low-code** permet de g&#xE9;n&#xE9;rer du code &#xE0; partir de l'interface graphique.
+
+Pour cela, rendez-vous sur l'onglet "Param&#xE8;tres de la figure", et une fois vos param&#xE8;tres choisis, cliquez sur "Afficher la figure".
+
+Cela va :
+
+- **g&#xE9;n&#xE9;rer le code** correspond aux param&#xE8;tres choisis
+- puis **ex&#xE9;cuter le code** et ainsi afficher la figure correspondant au code
+
+Vous pouvez alors **modifier le code** directementn et sauvegarder.
+
+Si vous cliquez sur "Ex&#xE9;cuter le code" depuis l'onglet avec l'&#xE9;diteur de code, cela va afficher la figure correspondant au code.
+
+En revanche, si vous &#xEA;tes sur l'onglet correspondant aux param&#xE8;tres de la figure, cela effacer le code actuel et le remplacer
+avec le code correspondant aux param&#xE8;tres actuels.
+
+## Fichiers de sauvegarde
+
+&lt;table align="center"&gt;&lt;tr&gt;&lt;td&gt;
+    &lt;img 
+        src="https://framagit.org/interhop/linkr/LinkR-content/-/raw/main/img/plugins/timeline_dygraphs/fr_settings_files.png"
+        alt="Settings files",
+        width="280",
+        style="border: solid 1px #ccc; padding: 5px;"
+    /&gt;
+&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+
+Vous pouvez **sauvegarder** les param&#xE8;tres de la figure et le code depuis la page de gestion des fichiers de sauvegarde.
+
+Pour ce faire, cliquez sur le nom du fichier s&#xE9;lectionn&#xE9; en haut du widget ("Fichier de sauvegarde 1" sur la capture d'&#xE9;cran ci-dessus).
+Vous pourrez ensuiter **ajouter** ou **supprimer** des fichiers de sauvegarde.
+
+Retournez ensuite sur les onglets "Param&#xE8;tres de la figure" ou "Code" et sauvegardez vos param&#xE8;tres et votre code.
+
+## Param&#xE8;tres g&#xE9;n&#xE9;raux
+
+&lt;table align="center"&gt;&lt;tr&gt;&lt;td&gt;
+    &lt;img 
+        src="https://framagit.org/interhop/linkr/LinkR-content/-/raw/main/img/plugins/timeline_dygraphs/fr_general_settings.png"
+        alt="General settings",
+        width="370",
+        style="border: solid 1px #ccc; padding: 5px;"
+    /&gt;
+&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+
+Les param&#xE8;tres g&#xE9;n&#xE9;raux sont divis&#xE9;s en :
+
+- **Param&#xE8;tres d'affichage**
+
+    - **Afficher le fichier de sauvegarde** : afficher ou masquer le nom du fichier de sauvegarde s&#xE9;lectionn&#xE9;
+    - **Figure et param&#xE8;tres/&#xE9;diteur c&#xF4;te &#xE0; c&#xF4;te** : souhaitez-vous que la figure apparaisse c&#xF4;te &#xE0; c&#xF4;te
+    avec les param&#xE8;tres de la figure ou le code de la figure ? Cela permet d'&#xE9;viter les allers-retours entre
+    les diff&#xE9;rents onglets durant la phase de param&#xE9;trage du widget.
+
+- **Ex&#xE9;cution du code**
+
+    - **Ex&#xE9;cuter le code au chargement d'un fichier de sauvegarde** : cela permet d'ex&#xE9;cuter le code lorsque
+    le fichier de sauvegarde s&#xE9;lectionn&#xE9; change, ce qui est utile au moment du chargement d'un projet :
+    cela permet de charger tous les widgets ayant cette option
+    - **Ex&#xE9;cuter le code lors de la mise &#xE0; jour des donn&#xE9;es** : dans le cadre de ce widget, cela signifie que
+    les donn&#xE9;es sont mises &#xE0; jour lorsque l'on change de patient ou de s&#xE9;jour, en fonction de la valeur du 
+    param&#xE8;tre "Donn&#xE9;es &#xE0; afficher"
+</description_fr>
+    <short_description_en>Allows displaying data as a timeline using the {dygraphs} library.</short_description_en>
+    <short_description_fr>Permet d'afficher des donn&#xE9;es sous forme de timeline avec la librairie {dygraphs}</short_description_fr>
+    <authors>
+      <author>Boris Delange</author>
+    </authors>
+    <creation_datetime>2024-08-28 22:19:16</creation_datetime>
+    <update_datetime>2025-06-02 18:21:50</update_datetime>
+    <type>1</type>
+  </plugin>
+</plugins>

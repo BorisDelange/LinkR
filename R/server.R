@@ -54,8 +54,8 @@ app_server <- function(){
       
       if ("event" %in% log_level) cat(paste0("\n[", now(), "] [EVENT] [page_id = server] event triggered by observer r$db"))
       
-      # Add default values in database, if it is empty
-      insert_default_data()
+      # Add default users
+      insert_default_users()
       
       # Connection with username
       if (!authentication){
@@ -136,6 +136,9 @@ app_server <- function(){
     observe_event(r$user_id, {
       if ("event" %in% log_level) cat(paste0("\n[", now(), "] [EVENT] [page_id = server] event triggered by r$user_id"))
       
+      # Get user accesses
+      user_accesses <- get_user_accesses()
+      
       if (log_target == "app"){
         
         # Create a log folder for this user if doesn't exist
@@ -166,6 +169,10 @@ app_server <- function(){
         unlink(sub_folder, recursive = TRUE, force = TRUE)
         if (!dir.exists(sub_folder)) dir.create(sub_folder)
       }
+      
+      # Insert default content (project and dataset)
+      insert_default_content()
+      
     }, once = TRUE)
     
     # Route pages ----
@@ -226,9 +233,7 @@ app_server <- function(){
       }
       
       # Get user accesses
-      user_access_id <- r$users %>% dplyr::filter(id == r$user_id) %>% dplyr::pull(user_access_id) 
-      sql <- glue::glue_sql("SELECT * FROM options WHERE category = 'users_accesses' AND link_id = {user_access_id} AND value_num = 1", .con = r$db)
-      user_accesses <- DBI::dbGetQuery(r$db, sql) %>% dplyr::pull(name)
+      user_accesses <- get_user_accesses()
       
       # Get user settings
       sql <- glue::glue_sql("SELECT name, value, value_num FROM options WHERE category = 'user_settings' AND link_id = {r$user_id}", .con = r$db)

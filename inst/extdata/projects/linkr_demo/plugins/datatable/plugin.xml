@@ -1,0 +1,23 @@
+<?xml version="1.0"?>
+<plugins>
+  <plugin>
+    <app_version>0.3.1.9010</app_version>
+    <unique_id>4ff3e282d486ffdbe7c5e652dc0bcaebd645f5857d55542b195183c269c4a919</unique_id>
+    <version>0.0.1.9025</version>
+    <name_en>Datatable</name_en>
+    <name_fr>Tableau de donn&#xE9;es</name_fr>
+    <category_en>NA</category_en>
+    <category_fr>NA</category_fr>
+    <description_en>NA</description_en>
+    <description_fr>NA</description_fr>
+    <short_description_en>Allows displaying data in table format</short_description_en>
+    <short_description_fr>Permet d'afficher des donne&#xE9;s sous forme de tableau</short_description_fr>
+    <authors>
+      <author>Zeynep Erdem</author>
+      <author>Boris Delange</author>
+    </authors>
+    <creation_datetime>2024-11-08 07:58:31</creation_datetime>
+    <update_datetime>2025-06-02 08:40:11</update_datetime>
+    <type>1</type>
+  </plugin>
+</plugins>

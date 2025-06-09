@@ -1,0 +1,27 @@
+id,widget_id,concept_id,concept_name,concept_display_name,domain_id,mapped_to_concept_id,merge_mapped_concepts,creator_id,datetime,deleted
+1,2,3027018,Heart rate,NA,Measurement,NA,0,NA,2025-02-10 19:15:41,0
+2,2,3027598,Mean blood pressure,NA,Measurement,NA,0,NA,2025-02-10 19:15:41,0
+3,2,3004249,Systolic blood pressure,NA,Measurement,NA,0,NA,2025-02-10 19:15:41,0
+4,2,3012888,Diastolic blood pressure,NA,Measurement,NA,0,NA,2025-02-10 19:15:41,0
+5,2,21492240,Diastolic blood pressure by Noninvasive,NA,Measurement,NA,0,NA,2025-02-10 19:15:41,0
+6,2,21492239,Systolic blood pressure by Noninvasive,NA,Measurement,NA,0,NA,2025-02-10 19:15:41,0
+7,2,21492241,Mean blood pressure by Noninvasive,NA,Measurement,NA,0,NA,2025-02-10 19:15:41,0
+8,3,1307046,metoprolol,NA,Drug,NA,0,NA,2025-02-10 19:35:58,0
+9,3,40167213,metoprolol tartrate 25 MG Oral Tablet,NA,Drug,NA,0,NA,2025-02-10 19:35:58,0
+10,3,40167196,5 ML metoprolol tartrate 1 MG/ML Injection,NA,Drug,NA,0,NA,2025-02-10 19:35:58,0
+11,3,40167218,metoprolol tartrate 50 MG Oral Tablet,NA,Drug,NA,0,NA,2025-02-10 19:35:58,0
+12,3,40166830,24 HR metoprolol succinate 50 MG Extended Release Oral Tablet,NA,Drug,NA,0,NA,2025-02-10 19:35:58,0
+13,3,40166825,24 HR metoprolol succinate 100 MG Extended Release Oral Tablet [Toprol],NA,Drug,NA,0,NA,2025-02-10 19:35:58,0
+14,3,35603226,2 ML furosemide 10 MG/ML Injection,NA,Drug,NA,0,NA,2025-02-10 19:35:58,0
+15,3,956874,furosemide,NA,Drug,NA,0,NA,2025-02-10 19:35:58,0
+16,3,35603227,4 ML furosemide 10 MG/ML Injection,NA,Drug,NA,0,NA,2025-02-10 19:35:58,0
+17,3,35603224,10 ML furosemide 10 MG/ML Injection,NA,Drug,NA,0,NA,2025-02-10 19:35:58,0
+18,3,19077546,furosemide 20 MG Oral Tablet,NA,Drug,NA,0,NA,2025-02-10 19:35:58,0
+19,3,957136,furosemide 40 MG Oral Tablet,NA,Drug,NA,0,NA,2025-02-10 19:35:58,0
+20,4,3027018,Heart rate,NA,Measurement,NA,0,NA,2025-02-11 08:58:55,0
+21,4,3027598,Mean blood pressure,NA,Measurement,NA,0,NA,2025-02-11 08:58:55,0
+22,4,3004249,Systolic blood pressure,NA,Measurement,NA,0,NA,2025-02-11 08:58:55,0
+23,4,3012888,Diastolic blood pressure,NA,Measurement,NA,0,NA,2025-02-11 08:58:55,0
+24,4,21492240,Diastolic blood pressure by Noninvasive,NA,Measurement,NA,0,NA,2025-02-11 08:58:55,0
+25,4,21492239,Systolic blood pressure by Noninvasive,NA,Measurement,NA,0,NA,2025-02-11 08:58:55,0
+26,4,21492241,Mean blood pressure by Noninvasive,NA,Measurement,NA,0,NA,2025-02-11 08:58:55,0

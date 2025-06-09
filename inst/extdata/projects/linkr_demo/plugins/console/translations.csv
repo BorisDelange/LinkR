@@ -1,0 +1,43 @@
+base,en,fr
+show_figure,Figure,Figure
+show_figure_settings,Set up the figure,Paramétrer la figure
+show_code_editor,Edit figure code,Editer le code de la figure
+show_general_settings,General settings,Paramètres généraux
+figure_and_settings_side_by_side,Figure and settings/editor side by side,Figure et paramètres/éditeur côte à côte
+display_figure,Display figure,Afficher la figure
+save_figure_settings_and_code,Save,Sauvegarder
+language,Language,Langage
+output,Output,Output
+r,R,R
+python,Python,Python
+figure,Figure,Figure
+console,Console,Console
+table,Table,Table
+datatable,DataTable,DataTable
+rmarkdown,RMarkdown,RMarkdown
+dygraphs,Dygraphs,Dygraphs
+plotly,Plotly,Plotly
+matplotlib,Matplotlib,Matplotlib
+parameters_not_saved,Parameters not saved,Paramètres non sauvegardés
+show_settings_file,Show settings file,Afficher le fichier de sauvegarde
+create_settings_file,Create a settings file,Créer un fichier de sauvegarde
+delete_settings_file_title,Delete a settings file,Supprimer un fichier de sauvegarde
+delete_settings_file_text,Confirm deletion of the settings file?,Confirmer la suppression du fichier de sauvegarde ?
+add,Add,Ajouter
+file_name,File name,Nom du fichier
+file,File,Fichier
+provide_valid_name,Provide valid name,Nom valide requis
+name_already_used,This name is already used,Ce nom est déjà utilisé
+delete,Delete,Supprimer
+dont_delete,Cancel,Annuler
+no_settings_file_selected,No settings file selected,Pas de fichier de sauvegarde sélectionné
+new_settings_file_added,New settings file added,Nouveau fichier de sauvegarde des paramètres ajouté
+settings_file_deleted,Settings file deleted,Fichier de sauvegarde des paramètres supprimé
+run_code_on_data_update,Run code on data update,Exécuter le code lors de la mise à jour des données
+save_general_settings,Save general settings,Sauvegarder les paramètres généraux
+display,Display,Affichage
+code_execution,Code execution,Exécution du code
+run_code_at_settings_file_load,Run code when a settings file is loaded,Exécuter le code au chargement d'un fichier de sauvegarde
+ui_html,UI (HTML),UI (HTML)
+console_forbidden_access,Unauthorized access to the console,Accès non autorisé à la console
+modif_saved,Updates saved,Modifications enregistrées

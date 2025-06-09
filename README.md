@@ -107,14 +107,23 @@ remotes::install_github('Appsilon/shiny.fluent', ref = 'dd1c956')
 To launch the Shiny app, run:
 
 ``` r
-linkr::linkr(language = "en")
+linkr::run_app(language = "en")
 ```
 
-See `?linkr::linkr` for more informations.
+See `?linkr::run_app` for more informations.
 
 Visit
 <a href="https://linkr.interhop.org/en/docs/installation/" target="_blank">our
 website</a> for further details.
+
+## Licensing of embedded dataset
+
+The dataset included in this package is a 10-patient subset derived from
+the MIMIC-IV OMOP demo dataset, available from
+[PhysioNet](https://physionet.org/content/mimic-iv-demo-omop/0.9/).  
+It is redistributed under the [Open Database License
+(ODbL)](https://opendatacommons.org/licenses/odbl/1-0/).  
+See the file `LICENSE-data` for details and proper attribution.
 
 ## Contributions
 

@@ -1,0 +1,38 @@
+This package includes the full 100-patient version of the MIMIC-IV Demo OMOP dataset, which was downloaded on 2025-06-09 from:
+
+https://physionet.org/content/mimic-iv-demo-omop/0.9/
+
+The original dataset was created through the work of the MIT Laboratory for Computational Physiology and members of the OHDSI community, who converted MIMIC-IV into the OMOP Common Data Model.
+
+The dataset is distributed under the **Open Database License (ODbL) v1.0**:  
+https://opendatacommons.org/licenses/odbl/1-0/
+
+You are free to share, modify, and use this dataset, provided you attribute the original source and distribute any derivative works under the same license (ODbL 1.0).
+
+---
+
+**Modifications applied to the original dataset in this package**:
+- The dataset contains all 100 patients from the original MIMIC-IV OMOP demo dataset.
+- Renumbered the following identifiers to improve clarity and usability:
+  - `person_id`
+  - `visit_occurrence_id`
+  - `visit_detail_id`
+
+These changes were made solely to facilitate data exploration and are not intended to alter the content or structure of the original dataset.
+
+---
+
+Additional reference: the same dataset is also available via the OHDSI EunomiaDatasets repository:  
+https://github.com/OHDSI/EunomiaDatasets/tree/main/datasets/MIMIC
+
+---
+
+**Citations**:
+
+- Kallfelz, M., Tsvetkova, A., Pollard, T., Kwong, M., Lipori, G., Huser, V., Osborn, J., Hao, S., & Williams, A. (2021). *MIMIC-IV demo data in the OMOP Common Data Model (version 0.9)*. PhysioNet. https://doi.org/10.13026/p1f5-7x35
+
+- Goldberger, A., Amaral, L., Glass, L., Hausdorff, J., Ivanov, P. C., Mark, R., ... & Stanley, H. E. (2000). *PhysioBank, PhysioToolkit, and PhysioNet: Components of a new research resource for complex physiologic signals*. Circulation [Online]. 101 (23), pp. e215–e220.
+
+---
+
+This package redistributes a derived version of the original dataset and is not affiliated with PhysioNet, MIT, or OHDSI.

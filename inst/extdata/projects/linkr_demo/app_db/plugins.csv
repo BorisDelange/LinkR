@@ -1,0 +1,6 @@
+id,name,tab_type_id,creation_datetime,update_datetime,deleted
+1,Timeline var. continues,1,2024-08-28 22:19:16,2025-06-02 18:21:50,0
+2,Traitements reçus,1,2024-11-13 07:56:14,2025-06-03 07:56:19,0
+3,Tableau de données,1,2024-11-08 07:58:31,2025-06-02 08:40:11,0
+4,Séjours hospitaliers,1,2024-10-30 08:00:05,2025-06-02 18:22:26,0
+5,Console,12,2024-07-07 13:21:53,2025-06-01 22:36:42,0

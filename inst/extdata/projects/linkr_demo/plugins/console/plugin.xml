@@ -1,0 +1,22 @@
+<?xml version="1.0"?>
+<plugins>
+  <plugin>
+    <app_version>0.3.1.9010</app_version>
+    <unique_id>d7662fb4dde4f229baff062dd673177ced4375168b5c9ef0782717d89769efb6</unique_id>
+    <version>0.0.1.9016</version>
+    <name_en>Console</name_en>
+    <name_fr>Console</name_fr>
+    <category_en>NA</category_en>
+    <category_fr>NA</category_fr>
+    <description_en>NA</description_en>
+    <description_fr>NA</description_fr>
+    <short_description_en>R and Python console, with choice of output (console, figure, datatable etc)</short_description_en>
+    <short_description_fr>Une console R et Python, avec choix de l'output (console, figure, datatable etc)</short_description_fr>
+    <authors>
+      <author>Boris Delange</author>
+    </authors>
+    <creation_datetime>2024-07-07 13:21:53</creation_datetime>
+    <update_datetime>2025-06-01 22:36:42</update_datetime>
+    <type>12</type>
+  </plugin>
+</plugins>

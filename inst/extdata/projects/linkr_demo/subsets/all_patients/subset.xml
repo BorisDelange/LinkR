@@ -1,0 +1,19 @@
+<?xml version="1.0"?>
+<subsets>
+  <subset>
+    <app_version>0.3.1.9010</app_version>
+    <unique_id>7902efc34aac8b638b7fa9bff39666a282b7a651a37ad911ecb64ce880ee4e29</unique_id>
+    <version>0.0.1.9000</version>
+    <name_en>All patients</name_en>
+    <name_fr>Tous les patients</name_fr>
+    <category_en>NA</category_en>
+    <category_fr>NA</category_fr>
+    <description_en>NA</description_en>
+    <description_fr>NA</description_fr>
+    <short_description_en>All patients</short_description_en>
+    <short_description_fr>Tous les patients</short_description_fr>
+    <authors>
+      <author>Jane Doe</author>
+    </authors>
+  </subset>
+</subsets>

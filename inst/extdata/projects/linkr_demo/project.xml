@@ -1,0 +1,21 @@
+<?xml version="1.0"?>
+<projects>
+  <project>
+    <app_version>0.3.1.9010</app_version>
+    <unique_id>e97b729287b72ac50edd1851668ae85b0ca0e773a59997c5c7cfbf0c4c8b4809</unique_id>
+    <version>0.0.1.9020</version>
+    <name_en>LinkR demo</name_en>
+    <name_fr>D&#xE9;mo LinkR</name_fr>
+    <category_en></category_en>
+    <category_fr></category_fr>
+    <description_en></description_en>
+    <description_fr></description_fr>
+    <short_description_en></short_description_en>
+    <short_description_fr></short_description_fr>
+    <authors>
+      <author>Boris Delange</author>
+    </authors>
+    <creation_datetime>2025-02-10 18:02:39</creation_datetime>
+    <update_datetime>2025-06-09 23:04:45</update_datetime>
+  </project>
+</projects>

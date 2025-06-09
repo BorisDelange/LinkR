@@ -1,0 +1,11 @@
+id,category,name,tab_id,plugin_id,display_order,creator_id,datetime,deleted
+1,patient_lvl,Stays,1,4,NA,NA,2025-02-10 18:09:21,0
+2,patient_lvl,Haemodynamics datatable,2,3,NA,NA,2025-02-10 19:15:41,0
+3,patient_lvl,Haemodynamics drugs,2,2,NA,NA,2025-02-10 19:35:58,0
+4,patient_lvl,Haemodynamics timeline,2,1,NA,NA,2025-02-11 08:58:55,0
+5,patient_lvl,Drugs,3,2,NA,NA,2025-02-12 12:35:17,0
+6,aggregated,Admissions histogram,4,5,NA,NA,2025-02-18 11:20:52,0
+7,aggregated,Number of patients,4,5,NA,NA,2025-02-18 12:12:37,0
+8,aggregated,Number of hospital admissions,4,5,NA,NA,2025-02-18 12:29:49,0
+9,aggregated,Death count,4,5,NA,NA,2025-02-18 13:51:40,0
+10,aggregated,Length of stay,4,5,NA,NA,2025-02-18 13:54:23,0

@@ -1,0 +1,527 @@
+id,category,link_id,name,value,value_num,creator_id,datetime,deleted
+1,plugin,4,users_allowed_read_group,everybody,1,1,2025-02-10 18:07:18,0
+2,plugin,4,version,0.0.1.9013,NA,1,2025-02-10 18:07:18,0
+3,plugin,4,unique_id,2419f5d6196aa95e69518bb96a8ffe49390352b4bee773263cbba34b84364253,NA,1,2025-02-10 18:07:18,0
+4,plugin,4,author,Boris Delange,NA,1,2025-02-10 18:07:18,0
+5,plugin,4,downloaded_from,NA,NA,1,2025-02-10 18:07:18,0
+6,plugin,4,downloaded_from_url,NA,NA,1,2025-02-10 18:07:18,0
+7,plugin,4,category_en,NA,NA,1,2025-02-10 18:07:18,0
+8,plugin,4,category_fr,NA,NA,1,2025-02-10 18:07:18,0
+9,plugin,4,name_en,Hospital stays,NA,1,2025-02-10 18:07:18,0
+10,plugin,4,name_fr,Séjours hospitaliers,NA,1,2025-02-10 18:07:18,0
+11,plugin,4,description_en,NA,NA,1,2025-02-10 18:07:18,0
+12,plugin,4,description_fr,NA,NA,1,2025-02-10 18:07:18,0
+13,plugin,4,short_description_en,Displays a patient's hospital stays,NA,1,2025-02-10 18:07:18,0
+14,plugin,4,short_description_fr,Affiche les différents séjours hospitaliers d'un patient,NA,1,2025-02-10 18:07:18,0
+15,plugin,5,users_allowed_read_group,everybody,1,1,2025-05-28 08:06:05,0
+16,plugin,5,version,0.0.1.9016,NA,1,2025-05-28 08:06:05,0
+17,plugin,5,unique_id,d7662fb4dde4f229baff062dd673177ced4375168b5c9ef0782717d89769efb6,NA,1,2025-05-28 08:06:05,0
+18,plugin,5,author,Boris Delange,NA,1,2025-05-28 08:06:05,0
+19,plugin,5,downloaded_from,NA,NA,1,2025-05-28 08:06:05,0
+20,plugin,5,downloaded_from_url,NA,NA,1,2025-05-28 08:06:05,0
+21,plugin,5,category_en,NA,NA,1,2025-05-28 08:06:05,0
+22,plugin,5,category_fr,NA,NA,1,2025-05-28 08:06:05,0
+23,plugin,5,name_en,Console,NA,1,2025-05-28 08:06:05,0
+24,plugin,5,name_fr,Console,NA,1,2025-05-28 08:06:05,0
+25,plugin,5,description_en,NA,NA,1,2025-05-28 08:06:05,0
+26,plugin,5,description_fr,NA,NA,1,2025-05-28 08:06:05,0
+27,plugin,5,short_description_en,"R and Python console, with choice of output (console, figure, datatable etc)",NA,1,2025-05-28 08:06:05,0
+28,plugin,5,short_description_fr,"Une console R et Python, avec choix de l'output (console, figure, datatable etc)",NA,1,2025-05-28 08:06:05,0
+29,plugin,2,users_allowed_read_group,everybody,1,1,2025-05-28 08:06:13,0
+30,plugin,2,version,0.0.1.9030,NA,1,2025-05-28 08:06:13,0
+31,plugin,2,unique_id,b3b98d5fbcc1c9e368614fb8e92c9c022f9ce10a59b8fa995dde3047245f063e,NA,1,2025-05-28 08:06:13,0
+32,plugin,2,author,Jean Cupe; Boris Delange,NA,1,2025-05-28 08:06:13,0
+33,plugin,2,downloaded_from,NA,NA,1,2025-05-28 08:06:13,0
+34,plugin,2,downloaded_from_url,NA,NA,1,2025-05-28 08:06:13,0
+35,plugin,2,category_en,NA,NA,1,2025-05-28 08:06:13,0
+36,plugin,2,category_fr,NA,NA,1,2025-05-28 08:06:13,0
+37,plugin,2,name_en,Drug exposure,NA,1,2025-05-28 08:06:13,0
+38,plugin,2,name_fr,Traitements reçus,NA,1,2025-05-28 08:06:13,0
+39,plugin,2,description_en,"# 1) Introduction
+
+The ""Drug exposure"" plugin allows you to display **medication administration data** in the form of a **timeline**.
+
+<table align=""center""><tr><td>
+    <img 
+        src=""https://framagit.org/interhop/linkr/LinkR-content/-/raw/main/img/plugins/drug_exposure/en_figure.gif""
+        alt=""Dygraphs timeline"",
+        width=""750"",
+        style=""border: solid 1px #ccc; padding: 5px;""
+    />
+</td></tr></table>
+
+# 2) Features
+
+## Figure settings
+
+<table align=""center""><tr><td>
+    <img 
+        src=""https://framagit.org/interhop/linkr/LinkR-content/-/raw/main/img/plugins/drug_exposure/en_figure_settings.png""
+        alt=""Figure settings"",
+        width=""400"",
+        style=""border: solid 1px #ccc; padding: 5px;""
+    />
+</td></tr></table>
+
+Here are the parameters you can adjust:
+
+- **Data to display**: choose whether you want to display patient data or stay data
+
+- **Concepts to display**:
+    - *All concepts*: if you want to display all medications received by the patient during the period
+    - *Concept classes*: if you want to display only one class of concepts. In this case, a dropdown menu allows you to choose which class(es) to display.
+    - *Selected concepts*: if you want to display only certain medications, which you will choose from the concepts dropdown menu
+
+- **Synchronize timelines**: several plugins work with a timeline (the scroll bar below the timeline where you can choose the period to display).
+This feature allows you to synchronize the timelines of several widgets on the same tab.
+
+## Code
+
+<table align=""center""><tr><td>
+    <img 
+        src=""https://framagit.org/interhop/linkr/LinkR-content/-/raw/main/img/plugins/drug_exposure/figure_and_code.png""
+        alt=""Figure and code"",
+        width=""750"",
+        style=""border: solid 1px #ccc; padding: 5px;""
+    />
+</td></tr></table>
+
+As with **all plugins** on LinkR, the **low-code** interface allows you to generate code from the graphical interface.
+
+To do this, go to the ""Figure settings"" tab, and once you have chosen your parameters, click on ""Display figure"".
+
+This will:
+
+- **generate the code** corresponding to the chosen parameters
+- then **execute the code** and display the figure corresponding to the code
+
+You can then **modify the code** directly and save it.
+
+If you click on ""Run code"" from the tab with the code editor, it will display the figure corresponding to the code.
+
+However, if you are on the tab corresponding to the figure settings, it will erase the current code and replace it
+with the code corresponding to the current parameters.
+
+## Save files
+
+<table align=""center""><tr><td>
+    <img 
+        src=""https://framagit.org/interhop/linkr/LinkR-content/-/raw/main/img/plugins/drug_exposure/en_settings_files.png""
+        alt=""Settings files"",
+        width=""280"",
+        style=""border: solid 1px #ccc; padding: 5px;""
+    />
+</td></tr></table>
+
+You can **save** the figure parameters and code from the save files management page.
+
+To do this, click on the name of the selected file at the top of the widget (""Save File 1"" in the screenshot above).
+You can then **add** or **delete** save files.
+
+Then return to the ""Figure settings"" or ""Code"" tabs and save your parameters and code.
+
+## General settings
+
+<table align=""center""><tr><td>
+    <img 
+        src=""https://framagit.org/interhop/linkr/LinkR-content/-/raw/main/img/plugins/drug_exposure/en_general_settings.png""
+        alt=""General settings"",
+        width=""260"",
+        style=""border: solid 1px #ccc; padding: 5px;""
+    />
+</td></tr></table>
+
+The general settings are divided into:
+
+- **Display Settings**
+
+    - **Show save file**: show or hide the name of the selected save file
+    - **Figure and settings/editor side by side**: do you want the figure to appear side by side
+    with the figure settings or the figure code? This avoids going back and forth between
+    the different tabs during the widget configuration phase.
+
+- **Code Execution**
+
+    - **Run code when loading a save file**: this allows the code to be executed when
+    the selected save file changes, which is useful when loading a project:
+    this allows all widgets with this option to be loaded
+    - **Run code when data is updated**: for this widget, this means that
+    the data is updated when you change patient or visit, depending on the value of the 
+    ""Data to display"" parameter",NA,1,2025-05-28 08:06:13,0
+40,plugin,2,description_fr,"# 1) Introduction
+
+Le plugin ""Prescriptions"" permet d'afficher des **données d'administrations médicamenteuses** sous forme de **timeline**.
+
+<table align=""center""><tr><td>
+    <img 
+        src=""https://framagit.org/interhop/linkr/LinkR-content/-/raw/main/img/plugins/drug_exposure/fr_figure.gif""
+        alt=""Drug exposure timeline"",
+        width=""750"",
+        style=""border: solid 1px #ccc; padding: 5px;""
+    />
+</td></tr></table>
+
+# 2) Fonctionnalités
+
+## Paramètres de la figure
+
+<table align=""center""><tr><td>
+    <img 
+        src=""https://framagit.org/interhop/linkr/LinkR-content/-/raw/main/img/plugins/drug_exposure/fr_figure_settings.png""
+        alt=""Figure settings"",
+        width=""400"",
+        style=""border: solid 1px #ccc; padding: 5px;""
+    />
+</td></tr></table>
+
+Voici les paramètres que vous pouvez régler :
+
+- **Données à afficher** : choisissez si vous voulez afficher les données du patient ou de son déjour
+
+- **Concepts à afficher** :
+    - *Tous les concepts* : si vous souhaitez afficher toutes les médicaments reçus par le patient durant la période
+    - *Classes concepts* : si vous souhaitez n'afficher qu'une classe de concepts. Dans ce cas, un menu déroulant vous permet de choisir quelle(s) classe(s) afficher.
+    - *Concepts sélectionnés* : si vous souhaitez afficher certains médicaments uniquement, que vous choisirez dans le menu déroulant des concepts
+
+- **Synchroniser les timelines** : plusieurs plugins fonctionnent avec une timeline (la barre de défilement en-dessous de la timeline où vous pouvez choisir la période à afficher).
+Cette fonctionnalité vous permet de synchroniser les timelines de plusieurs widgets sur un même onglet.
+
+## Code
+
+<table align=""center""><tr><td>
+    <img 
+        src=""https://framagit.org/interhop/linkr/LinkR-content/-/raw/main/img/plugins/drug_exposure/figure_and_code.png""
+        alt=""Figure and code"",
+        width=""750"",
+        style=""border: solid 1px #ccc; padding: 5px;""
+    />
+</td></tr></table>
+
+Comme pour **tout plugin** sur LinkR, l'interface **low-code** permet de générer du code à partir de l'interface graphique.
+
+Pour cela, rendez-vous sur l'onglet ""Paramètres de la figure"", et une fois vos paramètres choisis, cliquez sur ""Afficher la figure"".
+
+Cela va :
+
+- **générer le code** correspond aux paramètres choisis
+- puis **exécuter le code** et ainsi afficher la figure correspondant au code
+
+Vous pouvez alors **modifier le code** directementn et sauvegarder.
+
+Si vous cliquez sur ""Exécuter le code"" depuis l'onglet avec l'éditeur de code, cela va afficher la figure correspondant au code.
+
+En revanche, si vous êtes sur l'onglet correspondant aux paramètres de la figure, cela effacer le code actuel et le remplacer
+avec le code correspondant aux paramètres actuels.
+
+## Fichiers de sauvegarde
+
+<table align=""center""><tr><td>
+    <img 
+        src=""https://framagit.org/interhop/linkr/LinkR-content/-/raw/main/img/plugins/drug_exposure/fr_settings_files.png""
+        alt=""Settings files"",
+        width=""250"",
+        style=""border: solid 1px #ccc; padding: 5px;""
+    />
+</td></tr></table>
+
+Vous pouvez **sauvegarder** les paramètres de la figure et le code depuis la page de gestion des fichiers de sauvegarde.
+
+Pour ce faire, cliquez sur le nom du fichier sélectionné en haut du widget (""Fichier de sauvegarde 1"" sur la capture d'écran ci-dessus).
+Vous pourrez ensuiter **ajouter** ou **supprimer** des fichiers de sauvegarde.
+
+Retournez ensuite sur les onglets ""Paramètres de la figure"" ou ""Code"" et sauvegardez vos paramètres et votre code.
+
+## Paramètres généraux
+
+<table align=""center""><tr><td>
+    <img 
+        src=""https://framagit.org/interhop/linkr/LinkR-content/-/raw/main/img/plugins/drug_exposure/fr_general_settings.png""
+        alt=""General settings"",
+        width=""370"",
+        style=""border: solid 1px #ccc; padding: 5px;""
+    />
+</td></tr></table>
+
+Les paramètres généraux sont divisés en :
+
+- **Paramètres d'affichage**
+
+    - **Afficher le fichier de sauvegarde** : afficher ou masquer le nom du fichier de sauvegarde sélectionné
+    - **Figure et paramètres/éditeur côte à côte** : souhaitez-vous que la figure apparaisse côte à côte
+    avec les paramètres de la figure ou le code de la figure ? Cela permet d'éviter les allers-retours entre
+    les différents onglets durant la phase de paramétrage du widget.
+
+- **Exécution du code**
+
+    - **Exécuter le code au chargement d'un fichier de sauvegarde** : cela permet d'exécuter le code lorsque
+    le fichier de sauvegarde sélectionné change, ce qui est utile au moment du chargement d'un projet :
+    cela permet de charger tous les widgets ayant cette option
+    - **Exécuter le code lors de la mise à jour des données** : dans le cadre de ce widget, cela signifie que
+    les données sont mises à jour lorsque l'on change de patient ou de séjour, en fonction de la valeur du 
+    paramètre ""Données à afficher""
+",NA,1,2025-05-28 08:06:13,0
+41,plugin,2,short_description_en,Displays medication administrations as a timeline,NA,1,2025-05-28 08:06:13,0
+42,plugin,2,short_description_fr,Affiche les administrations médicamenteuses sous forme de timeline,NA,1,2025-05-28 08:06:13,0
+43,plugin,3,users_allowed_read_group,everybody,1,1,2025-05-28 08:06:22,0
+44,plugin,3,version,0.0.1.9025,NA,1,2025-05-28 08:06:22,0
+45,plugin,3,unique_id,4ff3e282d486ffdbe7c5e652dc0bcaebd645f5857d55542b195183c269c4a919,NA,1,2025-05-28 08:06:22,0
+46,plugin,3,author,Zeynep Erdem; Boris Delange,NA,1,2025-05-28 08:06:22,0
+47,plugin,3,downloaded_from,NA,NA,1,2025-05-28 08:06:22,0
+48,plugin,3,downloaded_from_url,NA,NA,1,2025-05-28 08:06:22,0
+49,plugin,3,category_en,NA,NA,1,2025-05-28 08:06:22,0
+50,plugin,3,category_fr,NA,NA,1,2025-05-28 08:06:22,0
+51,plugin,3,name_en,Datatable,NA,1,2025-05-28 08:06:22,0
+52,plugin,3,name_fr,Tableau de données,NA,1,2025-05-28 08:06:22,0
+53,plugin,3,description_en,NA,NA,1,2025-05-28 08:06:22,0
+54,plugin,3,description_fr,NA,NA,1,2025-05-28 08:06:22,0
+55,plugin,3,short_description_en,Allows displaying data in table format,NA,1,2025-05-28 08:06:22,0
+56,plugin,3,short_description_fr,Permet d'afficher des donneés sous forme de tableau,NA,1,2025-05-28 08:06:22,0
+57,plugin,1,users_allowed_read_group,everybody,1,1,2025-05-28 08:06:25,0
+58,plugin,1,version,0.0.1.9048,NA,1,2025-05-28 08:06:25,0
+59,plugin,1,unique_id,064e0d7fcd993a7265fe696b948e22d4d0f531a520c5f086c911e06578ce170e,NA,1,2025-05-28 08:06:25,0
+60,plugin,1,author,Boris Delange,NA,1,2025-05-28 08:06:25,0
+61,plugin,1,downloaded_from,NA,NA,1,2025-05-28 08:06:25,0
+62,plugin,1,downloaded_from_url,NA,NA,1,2025-05-28 08:06:25,0
+63,plugin,1,category_en,NA,NA,1,2025-05-28 08:06:25,0
+64,plugin,1,category_fr,NA,NA,1,2025-05-28 08:06:25,0
+65,plugin,1,name_en,Continuous var. timeline,NA,1,2025-05-28 08:06:25,0
+66,plugin,1,name_fr,Timeline var. continues,NA,1,2025-05-28 08:06:25,0
+67,plugin,1,description_en,"# 1) Introduction
+
+The ""Continuous variables timeline"" plugin allows you to display **continuous data** in the form of a **timeline**,
+such as **vital signs** or **laboratory data**, using `dygraphs` library.
+
+<table align=""center""><tr><td>
+    <img 
+        src=""https://framagit.org/interhop/linkr/LinkR-content/-/raw/main/img/plugins/timeline_dygraphs/figure.gif""
+        alt=""Dygraphs timeline"",
+        width=""750"",
+        style=""border: solid 1px #ccc; padding: 5px;""
+    />
+</td></tr></table>
+
+# 2) Features
+
+## Figure settings
+
+<table align=""center""><tr><td>
+    <img 
+        src=""https://framagit.org/interhop/linkr/LinkR-content/-/raw/main/img/plugins/timeline_dygraphs/en_figure_settings.png""
+        alt=""Figure settings"",
+        width=""250"",
+        style=""border: solid 1px #ccc; padding: 5px;""
+    />
+</td></tr></table>
+
+Here are the parameters you can adjust:
+
+- **Data to display**: choose whether you want to display patient data or visit data
+
+- **Concepts**: which concepts do you want to see on the figure?
+This list includes the concepts you selected when creating the widget.
+
+- **Synchronize timelines**: several plugins work with a timeline
+(the scroll bar below the timeline where you can choose the period to display).
+This feature allows you to synchronize the timelines of several widgets on the same tab.
+
+## Code
+
+<table align=""center""><tr><td>
+    <img 
+        src=""https://framagit.org/interhop/linkr/LinkR-content/-/raw/main/img/plugins/timeline_dygraphs/figure_and_code.png""
+        alt=""Figure and code"",
+        width=""750"",
+        style=""border: solid 1px #ccc; padding: 5px;""
+    />
+</td></tr></table>
+
+As with **all plugins** on LinkR, the **low-code** interface allows you to generate code from the graphical interface.
+
+To do this, go to the ""Figure settings"" tab, and once you have chosen your parameters, click on ""Display figure"".
+
+This will:
+
+- **generate the code** corresponding to the chosen parameters
+- then **execute the code** and display the figure corresponding to the code
+
+You can then **modify the code** directly and save it.
+
+If you click on ""Run code"" from the tab with the code editor, it will display the figure corresponding to the code.
+
+However, if you are on the tab corresponding to the figure settings, it will erase the current code and replace it
+with the code corresponding to the current parameters.
+
+## Save files
+
+<table align=""center""><tr><td>
+    <img 
+        src=""https://framagit.org/interhop/linkr/LinkR-content/-/raw/main/img/plugins/timeline_dygraphs/en_settings_files.png""
+        alt=""Settings files"",
+        width=""280"",
+        style=""border: solid 1px #ccc; padding: 5px;""
+    />
+</td></tr></table>
+
+You can **save** the figure parameters and code from the save files management page.
+
+To do this, click on the name of the selected file at the top of the widget (""Save File 1"" in the screenshot above).
+You can then **add** or **delete** save files.
+
+Then return to the ""Figure settings"" or ""Code"" tabs and save your parameters and code.
+
+## General settings
+
+<table align=""center""><tr><td>
+    <img 
+        src=""https://framagit.org/interhop/linkr/LinkR-content/-/raw/main/img/plugins/timeline_dygraphs/en_general_settings.png""
+        alt=""General settings"",
+        width=""280"",
+        style=""border: solid 1px #ccc; padding: 5px;""
+    />
+</td></tr></table>
+
+The general settings are divided into:
+
+- **Display Settings**
+
+    - **Show save file**: show or hide the name of the selected save file
+    - **Figure and settings/editor side by side**: do you want the figure to appear side by side
+    with the figure settings or the figure code? This avoids going back and forth between
+    the different tabs during the widget configuration phase.
+
+- **Code Execution**
+
+    - **Run code when loading a save file**: this allows the code to be executed when
+    the selected save file changes, which is useful when loading a project:
+    this allows all widgets with this option to be loaded
+    - **Run code when data is updated**: for this widget, this means that
+    the data is updated when you change patient or visit, depending on the value of the 
+    ""Data to display"" parameter",NA,1,2025-05-28 08:06:25,0
+68,plugin,1,description_fr,"# 1) Introduction
+
+Le plugin ""Timeline variables continues"" permet d'afficher des **données continues** sous forme de **timeline**,
+tels que les **paramètres vitaux** ou les données de **biologie**, à l'aide de la librairie `dygraphs`.
+
+<table align=""center""><tr><td>
+    <img 
+        src=""https://framagit.org/interhop/linkr/LinkR-content/-/raw/main/img/plugins/timeline_dygraphs/figure.gif""
+        alt=""Dygraphs timeline"",
+        width=""750"",
+        style=""border: solid 1px #ccc; padding: 5px;""
+    />
+</td></tr></table>
+
+# 2) Fonctionnalités
+
+## Paramètres de la figure
+
+<table align=""center""><tr><td>
+    <img 
+        src=""https://framagit.org/interhop/linkr/LinkR-content/-/raw/main/img/plugins/timeline_dygraphs/fr_figure_settings.png""
+        alt=""Figure settings"",
+        width=""250"",
+        style=""border: solid 1px #ccc; padding: 5px;""
+    />
+</td></tr></table>
+
+Voici les paramètres que vous pouvez régler :
+
+- **Données à afficher** : choisissez si vous voulez afficher les données du patient ou de son déjour
+
+- **Concepts** : quels concepts souhaitez-vous voir apparaître sur la figure ?
+Cette liste comprend les concepts que vous avez sélectionnés au moment de créer le widget.
+
+- **Synchroniser les timelines** : plusieurs plugins fonctionnent avec une timeline
+(la barre de défilement en-dessous de la timeline où vous pouvez choisir la période à afficher).
+Cette fonctionnalité vous permet de synchroniser les timelines de plusieurs widgets sur un même onglet. 
+
+## Code
+
+<table align=""center""><tr><td>
+    <img 
+        src=""https://framagit.org/interhop/linkr/LinkR-content/-/raw/main/img/plugins/timeline_dygraphs/figure_and_code.png""
+        alt=""Figure and code"",
+        width=""750"",
+        style=""border: solid 1px #ccc; padding: 5px;""
+    />
+</td></tr></table>
+
+Comme pour **tout plugin** sur LinkR, l'interface **low-code** permet de générer du code à partir de l'interface graphique.
+
+Pour cela, rendez-vous sur l'onglet ""Paramètres de la figure"", et une fois vos paramètres choisis, cliquez sur ""Afficher la figure"".
+
+Cela va :
+
+- **générer le code** correspond aux paramètres choisis
+- puis **exécuter le code** et ainsi afficher la figure correspondant au code
+
+Vous pouvez alors **modifier le code** directementn et sauvegarder.
+
+Si vous cliquez sur ""Exécuter le code"" depuis l'onglet avec l'éditeur de code, cela va afficher la figure correspondant au code.
+
+En revanche, si vous êtes sur l'onglet correspondant aux paramètres de la figure, cela effacer le code actuel et le remplacer
+avec le code correspondant aux paramètres actuels.
+
+## Fichiers de sauvegarde
+
+<table align=""center""><tr><td>
+    <img 
+        src=""https://framagit.org/interhop/linkr/LinkR-content/-/raw/main/img/plugins/timeline_dygraphs/fr_settings_files.png""
+        alt=""Settings files"",
+        width=""280"",
+        style=""border: solid 1px #ccc; padding: 5px;""
+    />
+</td></tr></table>
+
+Vous pouvez **sauvegarder** les paramètres de la figure et le code depuis la page de gestion des fichiers de sauvegarde.
+
+Pour ce faire, cliquez sur le nom du fichier sélectionné en haut du widget (""Fichier de sauvegarde 1"" sur la capture d'écran ci-dessus).
+Vous pourrez ensuiter **ajouter** ou **supprimer** des fichiers de sauvegarde.
+
+Retournez ensuite sur les onglets ""Paramètres de la figure"" ou ""Code"" et sauvegardez vos paramètres et votre code.
+
+## Paramètres généraux
+
+<table align=""center""><tr><td>
+    <img 
+        src=""https://framagit.org/interhop/linkr/LinkR-content/-/raw/main/img/plugins/timeline_dygraphs/fr_general_settings.png""
+        alt=""General settings"",
+        width=""370"",
+        style=""border: solid 1px #ccc; padding: 5px;""
+    />
+</td></tr></table>
+
+Les paramètres généraux sont divisés en :
+
+- **Paramètres d'affichage**
+
+    - **Afficher le fichier de sauvegarde** : afficher ou masquer le nom du fichier de sauvegarde sélectionné
+    - **Figure et paramètres/éditeur côte à côte** : souhaitez-vous que la figure apparaisse côte à côte
+    avec les paramètres de la figure ou le code de la figure ? Cela permet d'éviter les allers-retours entre
+    les différents onglets durant la phase de paramétrage du widget.
+
+- **Exécution du code**
+
+    - **Exécuter le code au chargement d'un fichier de sauvegarde** : cela permet d'exécuter le code lorsque
+    le fichier de sauvegarde sélectionné change, ce qui est utile au moment du chargement d'un projet :
+    cela permet de charger tous les widgets ayant cette option
+    - **Exécuter le code lors de la mise à jour des données** : dans le cadre de ce widget, cela signifie que
+    les données sont mises à jour lorsque l'on change de patient ou de séjour, en fonction de la valeur du 
+    paramètre ""Données à afficher""
+",NA,1,2025-05-28 08:06:25,0
+69,plugin,1,short_description_en,Allows displaying data as a timeline using the {dygraphs} library.,NA,1,2025-05-28 08:06:25,0
+70,plugin,1,short_description_fr,Permet d'afficher des données sous forme de timeline avec la librairie {dygraphs},NA,1,2025-05-28 08:06:25,0
+71,subset,1,users_allowed_read_group,people_picker,1,1,2025-02-10 18:02:39,0
+72,subset,1,version,0.0.1.9000,NA,1,2025-02-10 18:02:39,0
+73,subset,1,unique_id,7902efc34aac8b638b7fa9bff39666a282b7a651a37ad911ecb64ce880ee4e29,NA,1,2025-02-10 18:02:39,0
+74,subset,1,author,Jane Doe,NA,1,2025-02-10 18:02:39,0
+75,subset,1,downloaded_from,NA,NA,1,2025-02-10 18:02:39,0
+76,subset,1,downloaded_from_url,NA,NA,1,2025-02-10 18:02:39,0
+77,subset,1,category_en,NA,NA,1,2025-02-10 18:02:39,0
+78,subset,1,description_en,NA,NA,1,2025-02-10 18:02:39,0
+79,subset,1,name_en,All patients,NA,1,2025-02-10 18:02:39,0
+80,subset,1,category_fr,NA,NA,1,2025-02-10 18:02:39,0
+81,subset,1,description_fr,NA,NA,1,2025-02-10 18:02:39,0
+82,subset,1,name_fr,Tous les patients,NA,1,2025-02-10 18:02:39,0
+83,subset,1,short_description_en,All patients,NA,1,2025-06-04 19:14:14,0
+84,subset,1,short_description_fr,Tous les patients,NA,1,2025-06-04 19:14:14,0

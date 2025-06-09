@@ -720,13 +720,22 @@ get_plugin_buttons <- function(id, buttons, plugin_type, plugin_id){
 }
 
 #' @noRd
-import_element <- function(con, sql_table, sql_category, single_id, element, element_type, temp_dir, user_accesses){
+import_element <- function(con, sql_table, sql_category, single_id, element, element_type, temp_dir){
   
   # Get variables from other environments
-  for (obj_name in c("id", "r", "m", "input", "output", "user_accesses")) assign(obj_name, get(obj_name, envir = parent.frame()))
+  for (obj_name in c("id", "r", "m", "input", "output", "user_accesses")){
+    if (exists(obj_name, envir = parent.frame())){
+      assign(obj_name, get(obj_name, envir = parent.frame()))
+    }
+  }
   ns <- NS(id)
   i18n <- r$i18n
   language <- r$language
+  
+  # User ID is not defined for default data (in insert_default_data())
+  
+  user_id <- 1
+  if (length(r$user_id) > 0) user_id <- r$user_id
   
   # Delete old files and copy new files
   
@@ -782,7 +791,7 @@ import_element <- function(con, sql_table, sql_category, single_id, element, ele
     element %>%
     dplyr::transmute(
       id, name, dataset_id = NA_integer_, patient_lvl_tab_group_id = NA_integer_, aggregated_tab_group_id = NA_integer_,
-      creator_id = r$user_id, creation_datetime, update_datetime, deleted = FALSE
+      creator_id = user_id, creation_datetime, update_datetime, deleted = FALSE
     )
   
   DBI::dbAppendTable(con, sql_table, new_data)
@@ -792,7 +801,7 @@ import_element <- function(con, sql_table, sql_category, single_id, element, ele
   new_options <- tibble::tribble(
     ~name, ~value, ~value_num,
     "users_allowed_read_group", "everybody", 1,
-    "user_allowed_read", "", r$user_id,
+    "user_allowed_read", "", user_id,
     "version", element$version, NA_real_,
     "unique_id", element$unique_id, NA_real_,
     "author", element$authors, NA_real_,
@@ -813,7 +822,7 @@ import_element <- function(con, sql_table, sql_category, single_id, element, ele
   new_options <- 
     new_options %>%
     dplyr::mutate(id = get_last_row(con, "options") + dplyr::row_number(), category = sql_category, link_id = new_data$id, .before = "name") %>%
-    dplyr::mutate(creator_id = r$user_id, datetime = now(), deleted = FALSE)
+    dplyr::mutate(creator_id = user_id, datetime = now(), deleted = FALSE)
   
   DBI::dbAppendTable(con, "options", new_options)
   
@@ -822,7 +831,8 @@ import_element <- function(con, sql_table, sql_category, single_id, element, ele
   if (element_type == "projects"){
     
     update_plugins <- TRUE
-    if (length(input$import_project_plugins) > 0) update_plugins <- input$import_project_plugins
+    if (id == "projects" && length(input$import_project_plugins) > 0) update_plugins <- input$import_project_plugins
+    if (id == "server") update_plugins <- FALSE
     
     import_project(temp_dir = temp_dir, update_plugins = update_plugins, project_id = element$id, unique_id = element$unique_id)
   }
@@ -843,7 +853,11 @@ import_element <- function(con, sql_table, sql_category, single_id, element, ele
 import_project <- function(temp_dir, update_plugins, project_id, unique_id){
   
   # Get variables from other environments
-  for (obj_name in c("r", "m", "user_accesses")) assign(obj_name, get(obj_name, envir = parent.frame()))
+  for (obj_name in c("id", "r", "m", "user_accesses")){
+    if (exists(obj_name, envir = parent.frame())){
+      assign(obj_name, get(obj_name, envir = parent.frame()))
+    } 
+  }
   
   # Tables :
   # - tabs_groups
@@ -893,7 +907,7 @@ import_project <- function(temp_dir, update_plugins, project_id, unique_id){
   
   ## plugins
   
-  ### Reload r$plugins_wide & r$plugins_long
+  ### Reload r$plugins_wide & r$plugins_long (except for inser_default_data, with id = 'server')
   reload_elements_var(page_id = "plugins", id = "plugins", con = r$db, long_var_filtered = "filtered_plugins_long")
   
   data$plugins <- data$plugins %>% dplyr::mutate(new_id = id + last_row$plugins)

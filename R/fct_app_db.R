@@ -230,6 +230,16 @@ get_last_row <- function(con, table){
 }
 
 #' @noRd
+get_user_accesses <- function(){
+  
+  r <- get("r", envir = parent.frame())
+  
+  user_access_id <- r$users %>% dplyr::filter(id == r$user_id) %>% dplyr::pull(user_access_id) 
+  sql <- glue::glue_sql("SELECT * FROM options WHERE category = 'users_accesses' AND link_id = {user_access_id} AND value_num = 1", .con = r$db)
+  user_accesses <- DBI::dbGetQuery(r$db, sql) %>% dplyr::pull(name)
+}
+
+#' @noRd
 # get_remote_db <- function(){
 #   
 #   # Get variables from other environments

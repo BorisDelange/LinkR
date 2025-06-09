@@ -1,0 +1,5 @@
+id,category,name,description,tab_group_id,parent_tab_id,display_order,creator_id,datetime,deleted
+1,patient_lvl,Stays,NA,1,NA,1,NA,2025-02-10 18:09:01,0
+2,patient_lvl,Haemodynamics,NA,1,NA,2,NA,2025-02-10 18:09:06,0
+3,patient_lvl,Drugs,NA,1,NA,3,NA,2025-02-10 18:09:11,0
+4,aggregated,Overview,NA,2,NA,1,NA,2025-02-18 11:19:04,0
