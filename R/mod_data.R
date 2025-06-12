@@ -2824,7 +2824,7 @@ mod_data_server <- function(id){
               tryCatch(eval(parse(text = server_code), envir = new_env),
                 error = function(e){
                   r$widget_server_last_error <- e
-                  show_message_bar("error_run_plugin_server_code", "severeWarning")
+                  show_message_bar("error_run_plugin_server_code", "severeWarning", i18n = i18n)
                   cat(paste0("\n", now(), " - mod_data - error loading server code - widget_id = ", widget_id, " - ", toString(e)))
                 })
             }

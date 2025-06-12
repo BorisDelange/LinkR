@@ -178,7 +178,7 @@ error_loading_git_infos,Erreur lors du chargement des informations du dépôt Gi
 error_loading_git_readme,Erreur lors du chargement de la description du dépôt Git
 error_loading_git_repo,Erreur lors du chargement du dépôt Git
 error_run_plugin_ui_code,Erreur lors du chargement du code de l'UI du plugin
-error_run_plugin_server_code,Erreur lors du chargement du code server du plugin
+error_run_plugin_server_code,Erreur lors du chargement du code serveur du plugin
 error_transforming_cols,Erreur lors de la transformation des colonnes
 error_transforming_tibble,Erreur dans la conversion de la variable au format tibble
 everybody,Tout le monde
@@ -544,6 +544,8 @@ download_data_cleaning,Télécharger le script de data cleaning
 download,Télécharger
 hospital_stays,Séjours hospitaliers
 unit_stays,Passages en unités
+invalid_visit_occurrence_without_person,visit_occurrence_id fourni sans person_id correspondant
+invalid_visit_detail_without_visit_occurrence,visit_detail_id fourni sans visit_occurrence_id correspondant
 no_description_available,Pas de description disponible
 version,Version
 local_version,Version locale
@@ -576,3 +578,4 @@ user_added,Nouvel utilisateur ajouté
 an_error_occurred_see_log_for_details,Une erreur est survenue. Voir les logs pour les détails.
 an_error_occurred,Une erreur est survenue
 dataset_deleted,Set de données supprimé
+user_deleted,Utilisateur supprimé
