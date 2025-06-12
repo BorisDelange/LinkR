@@ -2003,6 +2003,7 @@ mod_data_server <- function(id){
       
       # Get widget informations and update fields
       widget <- r$data_widgets %>% dplyr::filter(id == input$edit_widget_id)
+      widget_concepts <- r$data_widgets_concepts %>% dplyr::filter(widget_id == input$edit_widget_id)
       
       ## Widget name
       
@@ -2033,7 +2034,7 @@ mod_data_server <- function(id){
       r$data_selected_concepts <- tibble::tibble()
       if (length(d$dataset_concept) > 0) r$data_selected_concepts <-
         d$dataset_concept %>%
-        dplyr::filter(concept_id %in% r$data_widgets_concepts$concept_id) %>%
+        dplyr::filter(concept_id %in% widget_concepts$concept_id) %>%
         dplyr::transmute(concept_id, concept_name, domain_id, vocabulary_id, mapped_to_concept_id = NA_integer_, merge_mapped_concepts = FALSE)
       
       selected_concepts_ui <- tagList()
@@ -2195,10 +2196,10 @@ mod_data_server <- function(id){
       
       # Run new UI and server code
       
-      if (plugin_id != old_plugin_id){
+      # if (plugin_id != old_plugin_id){
         load_tab_ui(category, tab_id, widget_id, action = "reload_widget")
         load_tab_server(tab_id, widget_id, "reload_widget")
-      }
+      # }
       
       # Reload selected concepts
       output$selected_concepts_list <- renderUI("")
