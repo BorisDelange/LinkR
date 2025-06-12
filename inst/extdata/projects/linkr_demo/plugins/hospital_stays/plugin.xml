@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <plugins>
   <plugin>
-    <app_version>0.3.1.9010</app_version>
+    <app_version>0.3.1.9011</app_version>
     <unique_id>2419f5d6196aa95e69518bb96a8ffe49390352b4bee773263cbba34b84364253</unique_id>
     <version>0.0.1.9013</version>
     <name_en>Hospital stays</name_en>

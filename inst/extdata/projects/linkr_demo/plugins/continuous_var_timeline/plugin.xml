@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <plugins>
   <plugin>
-    <app_version>0.3.1.9010</app_version>
+    <app_version>0.3.1.9011</app_version>
     <unique_id>064e0d7fcd993a7265fe696b948e22d4d0f531a520c5f086c911e06578ce170e</unique_id>
     <version>0.0.1.9048</version>
     <name_en>Continuous var. timeline</name_en>

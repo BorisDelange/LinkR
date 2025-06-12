@@ -12,7 +12,7 @@ mod_page_footer_ui <- function(id){
         tags$a("LinkR", href = paste0("https://linkr.interhop.org/", language, "/"), target = "_blank"), " | ",
         tags$a("InterHop", href = "https://interhop.org/", target = "_blank")
       ),
-      div("v0.3.1.9010"),
+      div("v0.3.1.9011"),
       class = "footer_content"
     )
   )

@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <plugins>
   <plugin>
-    <app_version>0.3.1.9010</app_version>
+    <app_version>0.3.1.9011</app_version>
     <unique_id>b3b98d5fbcc1c9e368614fb8e92c9c022f9ce10a59b8fa995dde3047245f063e</unique_id>
     <version>0.0.1.9030</version>
     <name_en>Drug exposure</name_en>
