@@ -79,7 +79,7 @@ run_app <- function(
   authentication = FALSE,
   username = "admin",
   local = FALSE,
-  log_level = c("event", "error"),
+  log_level = c("error"),
   log_target = "app",
   port = 3838,
   host = "0.0.0.0",
