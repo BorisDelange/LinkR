@@ -94,13 +94,13 @@ create_gridstack_instance <- function(tab_id){
 }
 
 #' @noRd
-create_widget <- function(widget_id, ui_code, w = 6, h = 20, x = 0, y = 0){
+create_widget <- function(widget_id, ui_code, w = 12, h = 20, x = 0, y = 0){
   
   # Get variables from other environments
   id <- get("id", envir = parent.frame())
   ns <- NS(id)
   
-  if (is.na(w) | w == 0) w <- 6
+  if (is.na(w) | w == 0) w <- 12
   if (is.na(h) | h == 0) h <- 20
   if (is.na(x)) x <- 0
   if (is.na(y)) y <- 0
