@@ -66,7 +66,7 @@ create_dataset,Créer un set de données
 create_git_repo,Ajouter un dépôt Git
 create_plugin,Créer un plugin
 create_project,Créer un projet
-create_subset,Créer un subset
+create_subset,Créer un groupe de patients
 create_user,Créer un nouvel utilisateur
 create_user_access,Créer un nouvel accès
 create_user_status,Créer un nouveau statut
@@ -116,7 +116,7 @@ delete_git_element_plugin_text,Supprimer ce plugin sur le Git ?
 delete_git_element_plugin_title,Supprimer un élément du Git
 delete_git_element_project_text,Supprimer ce projet sur le Git ?
 delete_git_element_project_title,Supprimer un élément du Git
-delete_git_element_subset_text,Supprimer ce subset sur le Git ?
+delete_git_element_subset_text,Supprimer ce groupe de patients sur le Git ?
 delete_git_element_subset_title,Supprimer un élément du Git
 delete_git_element_text,Supprimer cet élément du dépôt Git ?
 delete_git_element_title,Supprimer un élément du Git
@@ -128,8 +128,8 @@ delete_plugin_text,Confirmer la suppression de ce plugin ?
 delete_plugin_title,Supprimer un plugin
 delete_project_text,Confirmer la suppression de ce projet ?
 delete_project_title,Supprimer un projet
-delete_subset_text,Confirmer la suppression de ce subset ?
-delete_subset_title,Supprimer un subset
+delete_subset_text,Confirmer la suppression de ce groupe de patients ?
+delete_subset_title,Supprimer un groupe de patients
 delete_tab_text,Confirmer la suppression de cet onglet ?
 delete_tab_title,Suppression d'onglet
 delete_user,Supprimer l'utilisateur
@@ -192,7 +192,7 @@ export_project,Exporter un projet
 field_cant_be_empty,Ce champ ne doit pas être vide
 figure,Figure
 filter_data,Filtrer les données
-filter_subset_data,Filter les données du subset
+filter_subset_data,Filter les données du groupe de patients
 firstname,Prénom
 firstname_and_lastname_already_used,Cette identité est déjà utilisée
 french,Français
@@ -231,8 +231,8 @@ import_plugin_title,Importer un plugin
 import_project,Importer un projet
 import_project_text,Ce projet existe déjà. Confirmez-vous la suppression du projet existant ?
 import_project_title,Importer un projet
-import_subset_text,Ce subset existe déjà. Confirmez-vous la suppression du subset existant ?
-import_subset_title,Importer un subset
+import_subset_text,Ce groupe de patients existe déjà. Confirmez-vous la suppression du groupe de patients existant ?
+import_subset_title,Importer un groupe de patients
 import_vocabulary_text,Cette terminologie existe déjà. Confirmez-vous la suppression de la terminologie existante ?
 import_vocabulary_title,Importer une terminologie
 informations,Informations
@@ -278,14 +278,14 @@ no_elements_to_display,Pas d'élément à afficher
 no_data_cleaning_to_display,Pas de script de data cleaning à afficher
 no_dataset_to_display,Pas de set de données à afficher
 no_project_to_display,Pas de projet à afficher
-no_subset_to_display,Pas de subset à afficher
+no_subset_to_display,Pas de groupe de patients à afficher
 no_vocabulary_to_display,Pas de terminologie à afficher
 no_plugin_to_display,Pas de plugin à afficher
 no_internet_access,Pas d'accès à internet
-no_person_in_subset,Aucun patient dans le subset
+no_person_in_subset,Aucun patient
 no_results_found,Pas de résultats
 no_stay_available,Pas de séjour disponible
-no_subset_available,Pas de subset disponible
+no_subset_available,Pas de groupe de patients disponible
 no_tabs_to_display_click_add_tab,Ce projet ne contient pas d'onglets. Cliquez sur 'ajouter un onglet'.
 num_patients,Patients
 num_rows,Lignes
@@ -328,7 +328,7 @@ projects_import_user_access_description,Importer un projet
 projects_management_user_access_description,"Gérer les projets (ajouter, éditer et supprimer)"
 projects_see_all_data_user_access_description,Accès à tous les projets
 projects_share_user_access_description,Partager les projets (zip and Git)
-projects_subsets_management_user_access_description,"Gérer les subsets (ajouter, éditer et supprimer)"
+projects_subsets_management_user_access_description,"Gérer les groupes de patients (ajouter, éditer et supprimer)"
 projects_widget_text,"Les projets permettent de travailler de façon collaborative sur des données de santé au format OMOP, à l'aide d'une interface graphique modulable."
 projects_widgets_settings_user_access_description,Sauvegarder les paramètres des widgets (code et paramètres de la figure)
 provide_valid_api_key,Clef API valide requise
@@ -388,9 +388,9 @@ sql_lib,Librairie SQL
 standard_concept,Concept standard
 statistician,Statisticien
 stays,Séjours
-subset,Subset
+subset,Groupe de patients
 subset_all_patients,Tous les patients
-subsets,Subsets
+subsets,Groupes de patients
 success,Succès
 success_importing_concepts,Concepts importés avec succès
 success_update_remote_git_repo,Mise à jour du dépôt Git avec succès
@@ -419,7 +419,7 @@ update_git_element_plugin_text,Mettre à jour ce plugin sur le Git ? Ceci va sup
 update_git_element_plugin_title,Mise à jour d'un élément du Git
 update_git_element_project_text,Mettre à jour ce projet sur le Git ? Ceci va supprimer et remplacer l'ancien projet sur le dépôt Git distant.
 update_git_element_project_title,Mise à jour d'un élément du Git
-update_git_element_subset_text,Mettre à jour ce subset sur le Git ? Ceci va supprimer et remplacer l'ancien subset sur le dépôt Git distant.
+update_git_element_subset_text,Mettre à jour ce groupe de patients sur le Git ? Ceci va supprimer et remplacer l'ancien groupe de patients sur le dépôt Git distant.
 update_git_element_subset_title,Mise à jour d'un élément du Git
 update_git_element_vocabulary_text,Mettre à jour cette terminologie sur le Git ? Ceci va supprimer et remplacer l'ancienne terminologie sur le dépôt Git distant.
 update_git_element_vocabulary_title,Mise à jour d'un élément du Git
@@ -467,12 +467,12 @@ mean,Moyenne
 all_patients,Tous les patients
 start_date,Date de début
 end_date,Date de fin
-add_patients_subset_success,Patients ajoutés au subset avec succès
-remove_patients_subset_success,Patients retirés du subset avec succès
-no_patients_to_remove_from_subset,Pas de patients à retirer du subset
-no_patients_to_add_to_subset,Pas de patients à ajouter au subset
+add_patients_subset_success,Patients ajoutés au groupe de patients avec succès
+remove_patients_subset_success,Patients retirés du groupe avec succès
+no_patients_to_remove_from_subset,Pas de patients à retirer du groupe
+no_patients_to_add_to_subset,Pas de patients à ajouter au groupe
 add_concept_input,Action
-subset_added,Nouveau subset ajouté
+subset_added,Nouveau groupe de patients ajouté
 tab_deleted,Onglet supprimé
 widget_deleted,Widget supprimé
 plugin_no_selected_project,Chargez un projet afin que le code du plugin fonctionne
@@ -485,7 +485,7 @@ dataset_doesnt_exist_locally,Ce set de données n'existe pas sur votre instance 
 data_cleaning_doesnt_exist_locally,Ce script de data cleaning n'existe pas sur votre instance de LinkR
 project_doesnt_exist_locally,Ce projet n'existe pas sur votre instance de LinkR
 study_doesnt_exist_locally,Ce projet n'existe pas sur votre instance de LinkR
-subset_deleted,Subset supprimé
+subset_deleted,Groupe de patients supprimé
 user_settings,Réglages de l'utilisateur
 code_editor,Editeur de code
 ace_theme,Thème de l'éditeur
