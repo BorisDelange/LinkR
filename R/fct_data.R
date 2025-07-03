@@ -676,48 +676,59 @@ load_element_code <- function(unique_id){
 #' @noRd
 process_widget_code <- function(code, tab_id, widget_id, study_id, patient_id, plugin_folder) {
   
-  # Replace %import_script% tags
+  # Find all %import_script% tags using regex pattern
   import_scripts <- regmatches(code, gregexpr("%import_script\\(['\"](.*?)['\"]\\)%", code, perl = TRUE))[[1]]
   
+  # Process each import script tag found
   for (i in seq_along(import_scripts)){
+    # Extract the tag and filename
     tag <- import_scripts[i]
     file_name <- gsub("%import_script\\(['\"](.*?)['\"]\\)%", "\\1", tag)
     file_path <- paste0(plugin_folder, "/", file_name)
     file_ext <- sub(".*\\.", "", tolower(file_name))
     
+    # Check if the file exists
     if (file.exists(file_path)){
-      file_name <- file_name %>% gsub("\\.", "\\\\.", ., fixed = FALSE)
       
+      # Handle R files
       if (file_ext == "r"){
+        # Read file content and collapse lines with newlines
         file_code <- readLines(file_path, warn = FALSE) %>% paste(collapse = "\n")
         
+        # Replace import tags with file content using original filename
+        # Handle both single and double quote variants
         code <-
           code %>%
-          gsub(paste0("%import_script\\('", file_name, "'\\)%"), file_code, ., fixed = FALSE) %>%
-          gsub(paste0('%import_script\\("', file_name, '"\\)%'), file_code, ., fixed = FALSE)
+          gsub(paste0("%import_script('", file_name, "')%"), file_code, ., fixed = TRUE) %>%
+          gsub(paste0('%import_script("', file_name, '")%'), file_code, ., fixed = TRUE)
+        
       }
+      # Handle Python files
       else if (file_ext == "py"){
+        # Generate reticulate source command for Python files
         file_code <- paste0("reticulate::source_python('", file_path, "')")
         
+        # Replace import tags with reticulate command
         code <-
           code %>%
-          gsub(paste0("%import_script\\('", file_name, "'\\)%"), file_code, ., fixed = FALSE) %>%
-          gsub(paste0('%import_script\\("', file_name, '"\\)%'), file_code, ., fixed = FALSE)
+          gsub(paste0("%import_script('", file_name, "')%"), file_code, ., fixed = TRUE) %>%
+          gsub(paste0('%import_script("', file_name, '")%'), file_code, ., fixed = TRUE)
       }
     }
   }
   
-  # Replace tab & widget IDs
+  # Replace placeholder variables with actual values
   code <- gsub("%tab_id%", as.character(tab_id), code, fixed = TRUE)
   code <- gsub("%widget_id%", as.character(widget_id), code, fixed = TRUE)
   
-  # Replace study and patients IDS
+  # Replace study and patient ID placeholders
   code <- gsub("%study_id%", as.character(study_id), code, fixed = TRUE)
   code <- gsub("%patient_id%", as.character(patient_id), code, fixed = TRUE)
   
-  gsub("\r", "\n", code, fixed = TRUE)
+  # Normalize line endings by converting carriage returns to newlines
+  code <- gsub("\r", "\n", code, fixed = TRUE)
   
-  code
+  return(code)
 }
 
 #' @noRd
