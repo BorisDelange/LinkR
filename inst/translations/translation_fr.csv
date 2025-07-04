@@ -164,6 +164,7 @@ edit_a_tab,Editer un onglet
 edit_description,Modifier la description
 edit_informations,Editer les informations
 edit_page,Editer la page
+edit_page_mode,Mode édition
 edit_readme,Modifier le readme
 element_git_and_local_versions_are_the_same,Mêmes versions en local et sur le Git
 element_git_version_more_recent,Version sur le Git plus récente

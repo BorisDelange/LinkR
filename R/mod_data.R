@@ -1198,7 +1198,7 @@ mod_data_server <- function(id){
             
             i <- 1L
             
-            if (r$data_edit_page_activated) style <- "display: block;" else style <- "display: none;"
+            if (input$edit_page) style <- "display: block;" else style <- "display: none;"
             
             for (tab_sub_group in unique(all_tabs$tab_sub_group)){
               
@@ -2397,17 +2397,9 @@ mod_data_server <- function(id){
     # Edit page ----
     # --- --- --- --
     
-    r$data_edit_page_activated <- FALSE
-    
     observe_event(input$edit_page, {
       
-      if (r$data_edit_page_activated) r$data_edit_page_activated <- FALSE
-      else r$data_edit_page_activated <- TRUE
-    })
-    
-    observe_event(r$data_edit_page_activated, {
-      
-      if (r$data_edit_page_activated){
+      if (input$edit_page){
         
         # Enable gridstack edition if we are not in full screen mode
         sapply(gsub("gridstack_", "", r$data_grids, fixed = FALSE), function(tab_id){
@@ -2427,9 +2419,6 @@ mod_data_server <- function(id){
         
         # Show edit and delete widget buttons
         sapply(r$data_widgets$id, function(widget_id) shinyjs::show(paste0("data_widget_settings_buttons_", widget_id)))
-        
-        # Update edit page button
-        shiny.fluent::updateDefaultButton.shinyInput(session, "edit_page", text = i18n$t("validate_updates"), iconProps = list(iconName = "Accept"))
       }
       else {
         
@@ -2474,12 +2463,6 @@ mod_data_server <- function(id){
         
         # Hide edit and delete widget buttons
         sapply(r$data_widgets$id, function(widget_id) shinyjs::hide(paste0("data_widget_settings_buttons_", widget_id)))
-        
-        # Update edit page button
-        shiny.fluent::updateDefaultButton.shinyInput(session, "edit_page", text = i18n$t("edit_page"), iconProps = list(iconName = "Edit"))
-        
-        # Hide resize button when sidenav is displayed or not
-        r$data_edit_page_activated <- FALSE
         
         # Prevent a bug with scroll into ace editor
         shinyjs::runjs("var event = new Event('resize'); window.dispatchEvent(event);")
@@ -2528,28 +2511,28 @@ mod_data_server <- function(id){
     # Show / hide widgets buttons ----
     # --- --- --- --- --- --- --- -- -
     
-    r$data_show_widgets_buttons <- TRUE
-    
-    observe_event(input$show_hide_widgets_buttons, {
-      
-      # Hide all data widgets buttons
-      if (r$data_show_widgets_buttons){
-        r$data_show_widgets_buttons <- FALSE
-        shiny.fluent::updateDefaultButton.shinyInput(session, "show_hide_widgets_buttons", text = i18n$t("show_widgets_buttons"), iconProps = list(iconName = "RedEye"))
-        shinyjs::runjs("$('.data_widget_top_icons').hide()");
-        shinyjs::runjs("$('.data_widget_settings_code_panel').css('height', '100%');")
-        shinyjs::runjs("var event = new Event('resize'); window.dispatchEvent(event);")
-      }
-      
-      # Show all data widgets buttons
-      else {
-        r$data_show_widgets_buttons <- TRUE
-        shiny.fluent::updateDefaultButton.shinyInput(session, "show_hide_widgets_buttons", text = i18n$t("hide_widgets_buttons"), iconProps = list(iconName = "Hide"))
-        shinyjs::runjs("$('.data_widget_top_icons').show()");
-        shinyjs::runjs("$('.data_widget_settings_code_panel').css('height', 'calc(100% - 34px)');")
-        shinyjs::runjs("var event = new Event('resize'); window.dispatchEvent(event);")
-      }
-    })
+    # r$data_show_widgets_buttons <- TRUE
+    # 
+    # observe_event(input$show_hide_widgets_buttons, {
+    #   
+    #   # Hide all data widgets buttons
+    #   if (r$data_show_widgets_buttons){
+    #     r$data_show_widgets_buttons <- FALSE
+    #     shiny.fluent::updateDefaultButton.shinyInput(session, "show_hide_widgets_buttons", text = i18n$t("show_widgets_buttons"), iconProps = list(iconName = "RedEye"))
+    #     shinyjs::runjs("$('.data_widget_top_icons').hide()");
+    #     shinyjs::runjs("$('.data_widget_settings_code_panel').css('height', '100%');")
+    #     shinyjs::runjs("var event = new Event('resize'); window.dispatchEvent(event);")
+    #   }
+    #   
+    #   # Show all data widgets buttons
+    #   else {
+    #     r$data_show_widgets_buttons <- TRUE
+    #     shiny.fluent::updateDefaultButton.shinyInput(session, "show_hide_widgets_buttons", text = i18n$t("hide_widgets_buttons"), iconProps = list(iconName = "Hide"))
+    #     shinyjs::runjs("$('.data_widget_top_icons').show()");
+    #     shinyjs::runjs("$('.data_widget_settings_code_panel').css('height', 'calc(100% - 34px)');")
+    #     shinyjs::runjs("var event = new Event('resize'); window.dispatchEvent(event);")
+    #   }
+    # })
     
     # |-------------------------------- -----
     
@@ -2719,7 +2702,7 @@ mod_data_server <- function(id){
           
           output[[paste0("ui_", widget_id)]] <- renderUI(ui_code)
           
-          if (action %in% c("add_tab", "load_tabs", "add_widget")) output[[paste0("edit_buttons_", widget_id)]] <- renderUI(get_widget_edit_buttons(widget_id, show_edit_buttons = r$data_edit_page_activated))
+          if (action %in% c("add_tab", "load_tabs", "add_widget")) output[[paste0("edit_buttons_", widget_id)]] <- renderUI(get_widget_edit_buttons(widget_id, show_edit_buttons = input$edit_page))
         })
       }
     }

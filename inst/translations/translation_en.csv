@@ -164,6 +164,7 @@ edit_a_tab,Edit a tab
 edit_description,Edit description
 edit_informations,Edit informations
 edit_page,Edit page
+edit_page_mode,Edit mode
 edit_readme,Edit readme
 element_git_and_local_versions_are_the_same,Local and remote Git versions are the same
 element_git_version_more_recent,Remote Git version is newer

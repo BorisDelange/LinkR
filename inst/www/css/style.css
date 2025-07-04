@@ -467,11 +467,11 @@ a.no-hover-effect:hover {
 .csv_file, .db_backup_file { background-color: #FF8C00; }
 .zip_file { background-color: #606060; }
 
-.drug_domain_id { background-color: #5D3FD3; }
-.condition_domain_id { background-color: #1E4D8B; }
-.procedure_domain_id { background-color: #228B22; }
-.measurement_domain_id { background-color: #8B0000; }
-.observation_domain_id { background-color: #FF8C00; }
+.drug_domain_id { background-color: #F8766D; }
+.condition_domain_id { background-color: #FF8C42; }
+.procedure_domain_id { background-color: #00BA38; }
+.measurement_domain_id { background-color: #619CFF; }
+.observation_domain_id { background-color: #C77CFF; }
 .default_domain_id { background-color: #606060; }
 
 /* ---------------- */

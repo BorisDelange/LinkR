@@ -272,8 +272,12 @@ mod_page_sidenav_ui <- function(id){
               div(shiny.fluent::PrimaryButton.shinyInput(ns("add_widget"), i18n$t("widget"), iconProps = list(iconName = "Add"), style = "width: 100%;"),  style = "width: 50%;"),
               style = "display: flex; gap: 10px;"
             ),
-            shiny.fluent::DefaultButton.shinyInput(ns("edit_page"), i18n$t("edit_page"), iconProps = list(iconName = "Edit"), style = "width: 100%; margin-top: 5px;"),
-            shiny.fluent::DefaultButton.shinyInput(ns("show_hide_widgets_buttons"), i18n$t("hide_widgets_buttons"), iconProps = list(iconName = "Hide"), style = "width: 100%; margin-top: 5px;")
+            div(
+              shiny.fluent::Toggle.shinyInput(ns("edit_page"), label = i18n$t("edit_page_mode")),
+              style = "margin-top: 15px;"
+            )
+            # shiny.fluent::DefaultButton.shinyInput(ns("edit_page"), i18n$t("edit_page"), iconProps = list(iconName = "Edit"), style = "width: 100%; margin-top: 5px;")#,
+            # shiny.fluent::DefaultButton.shinyInput(ns("show_hide_widgets_buttons"), i18n$t("hide_widgets_buttons"), iconProps = list(iconName = "Hide"), style = "width: 100%; margin-top: 5px;")
           )
         ), br(),
         div(
