@@ -580,3 +580,12 @@ an_error_occurred_see_log_for_details,An error occurred. See logs for details.
 an_error_occurred,An error occurred
 dataset_deleted,Dataset deleted
 user_deleted,User deleted
+choose_a_name,Choose a name
+give_explicit_name_widget,Give an explicit name to your widget.
+example_widget_names,"Ex: 'Hemodynamic Timeline', 'Laboratory Results'."
+choose_concepts_to_display,Choose concepts to display
+select_medical_data_to_visualize,Select medical data to visualize.
+example_medical_concepts,"Ex: Heart rate, Blood pressure, Temperature."
+choose_visualization_type,Choose visualization type
+select_how_to_display_data,Select how to display this data.
+example_visualization_types,"Ex: Timeline for temporal evolution, Table for detailed values."

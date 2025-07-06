@@ -86,81 +86,123 @@ mod_data_ui <- function(id){
     )
   )
   
-  # Add a widget modal ----
+  # Add or edit a widget modal ----
   
-  add_widget_modal <- shinyjs::hidden(
-    div(
-      id = ns("add_widget_modal"),
+  # Create widget modal UI (add or edit)
+  create_widget_modal <- function(modal_type = c("add", "edit")) {
+    modal_type <- match.arg(modal_type)
+    
+    # Define modal-specific elements
+    if (modal_type == "add") {
+      modal_id <- ns("add_widget_modal")
+      close_button_id <- ns("close_add_widget_modal")
+      title <- i18n$t("add_a_widget")
+      name_input_id <- ns("widget_creation_name")
+      concepts_output_id <- ns("add_widget_selected_concepts")
+      plugin_output_id <- ns("add_widget_selected_plugin")
+      save_button_id <- ns("widget_creation_save")
+      save_button_text <- i18n$t("add")
+    } else {
+      modal_id <- ns("edit_widget_modal")
+      close_button_id <- ns("close_edit_widget_modal")
+      title <- i18n$t("edit_a_widget")
+      name_input_id <- ns("widget_edition_name")
+      concepts_output_id <- ns("edit_widget_selected_concepts")
+      plugin_output_id <- ns("edit_widget_selected_plugin")
+      save_button_id <- ns("widget_edition_save")
+      save_button_text <- i18n$t("save")
+    }
+    
+    # Build modal structure
+    shinyjs::hidden(
       div(
-        div(
-          tags$h1(i18n$t("add_a_widget")),
-          shiny.fluent::IconButton.shinyInput(ns("close_add_widget_modal"), iconProps = list(iconName = "ChromeClose")),
-          class = "modal_head small_close_button"
-        ),
+        id = modal_id,
         div(
           div(
-            div(shiny.fluent::TextField.shinyInput(ns("widget_creation_name"), label = i18n$t("name")), style = "width: 280px; height: 80px;"),
+            tags$h1(title),
+            shiny.fluent::IconButton.shinyInput(close_button_id, iconProps = list(iconName = "ChromeClose")),
+            class = "modal_head small_close_button"
+          ),
+          div(
+            
+            # Steps container
             div(
-              uiOutput(ns("add_widget_selected_plugin"), style = "margin-top: 20px;"),
-              onclick = paste0("Shiny.setInputValue('", id, "-open_select_a_plugin_modal', Math.random());")
-            )
+              style = "display: flex; flex-direction: column; gap: 15px;",
+              
+              # Step 1: Widget name
+              div(
+                style = "display: flex; align-items: flex-start; gap: 15px; margin-top: 15px;",
+                div("1", class = "widget_step_number"),
+                div(
+                  style = "flex: 1; min-width: 0;",
+                  tags$h3(i18n$t("choose_a_name"), style = "font-size: 16px; font-weight: 600; color: #333; margin: 0 0 5px 0;"),
+                  tags$p(i18n$t("give_explicit_name_widget"), " ", tags$em(i18n$t("example_widget_names"), style = "color: #888;"), style = "font-size: 13px; color: #555; margin: 0 0 10px 0; line-height: 1.3;"),
+                  div(
+                    shiny.fluent::TextField.shinyInput(name_input_id),
+                    style = "width: 100%; max-width: 400px;"
+                  )
+                )
+              ),
+              
+              # Step separator
+              div(style = "height: 1px; background-color: #e0e0e0; margin: 10px 0;"),
+              
+              # Step 2: Concepts selection
+              div(
+                style = "display: flex; align-items: flex-start; gap: 15px;",
+                div("2", class = "widget_step_number"),
+                div(
+                  style = "flex: 1; min-width: 0;",
+                  tags$h3(i18n$t("choose_concepts_to_display"), style = "font-size: 16px; font-weight: 600; color: #333; margin: 0 0 5px 0;"),
+                  tags$p(i18n$t("select_medical_data_to_visualize"), " ", tags$em(i18n$t("example_medical_concepts"), style = "color: #888;"), style = "font-size: 13px; color: #555; margin: 0 0 10px 0; line-height: 1.3;"),
+                  div(
+                    style = "width: 100%;",
+                    div(
+                      style = "width: 100%; margin-top: 20px;",
+                      uiOutput(concepts_output_id, class = "selected_concepts_ui", style = "margin-right: 10px;"),
+                      onclick = paste0("Shiny.setInputValue('", id, "-open_select_concepts_modal', Math.random());")
+                    )
+                  )
+                )
+              ),
+              
+              # Step separator
+              div(style = "height: 1px; background-color: #e0e0e0; margin: 10px 0;"),
+              
+              # Step 3: Plugin selection
+              div(
+                style = "display: flex; align-items: flex-start; gap: 15px;",
+                div("3", class = "widget_step_number"),
+                div(
+                  style = "flex: 1; min-width: 0;",
+                  tags$h3(i18n$t("choose_visualization_type"), style = "font-size: 16px; font-weight: 600; color: #333; margin: 0 0 5px 0;"),
+                  tags$p(i18n$t("select_how_to_display_data"), " ", tags$em(i18n$t("example_visualization_types"), style = "color: #888;"), style = "font-size: 13px; color: #555; margin: 0 0 10px 0; line-height: 1.3;"),
+                  div(
+                    style = "width: 100%; max-width: 400px;",
+                    div(
+                      style = "width: 100%; margin-top: 20px;",
+                      uiOutput(plugin_output_id),
+                      onclick = paste0("Shiny.setInputValue('", id, "-open_select_a_plugin_modal', Math.random());")
+                    )
+                  )
+                )
+              )
+            ),
+            
+            class = "modal_body",
+            style = "display: flex; flex-direction: column; gap: 0; height: calc(100% - 70px); overflow-y: auto;"
           ),
           div(
-            class = "selected_concepts_widget",
-            uiOutput(ns("add_widget_selected_concepts"), class = "selected_concepts_ui"),
-            onclick = paste0("Shiny.setInputValue('", id, "-open_select_concepts_modal', Math.random());"),
-            style = "display: inherit; margin-top: 20px; overflow: auto;"
+            shiny.fluent::PrimaryButton.shinyInput(save_button_id, save_button_text),
+            style = "display: flex; justify-content: flex-end;"
           ),
-          class = "modal_body",
-          style = "display: flex; gap: 10px; padding-right: 10px; height: calc(100% - 70px);"
+          class = "modal_content create_widget_modal_content"
         ),
-        div(
-          shiny.fluent::PrimaryButton.shinyInput(ns("widget_creation_save"), i18n$t("add")),
-          style = "display: flex; justify-content: flex-end; margin-right: 10px;"
-        ),
-        class = "modal_content create_widget_modal_content"
-      ),
-      class = "modal"
+        class = "modal"
+      )
     )
-  )
-  
-  # Edit a widget modal ----
-  
-  edit_widget_modal <- shinyjs::hidden(
-    div(
-      id = ns("edit_widget_modal"),
-      div(
-        div(
-          tags$h1(i18n$t("edit_a_widget")),
-          shiny.fluent::IconButton.shinyInput(ns("close_edit_widget_modal"), iconProps = list(iconName = "ChromeClose")),
-          class = "modal_head small_close_button"
-        ),
-        div(
-          div(
-            div(shiny.fluent::TextField.shinyInput(ns("widget_edition_name"), label = i18n$t("name")), style = "width: 280px; height: 80px;"),
-            div(
-              uiOutput(ns("edit_widget_selected_plugin"), style = "margin-top: 20px;"),
-              onclick = paste0("Shiny.setInputValue('", id, "-open_select_a_plugin_modal', Math.random());")
-            )
-          ),
-          div(
-            class = "selected_concepts_widget",
-            uiOutput(ns("edit_widget_selected_concepts"), class = "selected_concepts_ui"),
-            onclick = paste0("Shiny.setInputValue('", id, "-open_select_concepts_modal', Math.random());"),
-            style = "display: inherit; margin-top: 20px; overflow: auto;"
-          ),
-          class = "modal_body",
-          style = "display: flex; gap: 10px; padding-right: 10px; height: calc(100% - 70px);"
-        ),
-        div(
-          shiny.fluent::PrimaryButton.shinyInput(ns("widget_edition_save"), i18n$t("save")),
-          style = "display: flex; justify-content: flex-end; margin-right: 10px;"
-        ),
-        class = "modal_content create_widget_modal_content"
-      ),
-      class = "modal"
-    )
-  )
+  }
+
   
   # Delete a widget modal ----
   
@@ -241,8 +283,8 @@ mod_data_ui <- function(id){
     add_tab_modal,
     edit_tab_modal,
     delete_tab_modal,
-    add_widget_modal,
-    edit_widget_modal,
+    create_widget_modal("add"),
+    create_widget_modal("edit"),
     delete_wigdet_modal,
     select_a_plugin_modal,
     plugin_description_modal,
@@ -1973,12 +2015,10 @@ mod_data_server <- function(id){
         # Reset selected plugin and selected concepts
         shinyjs::runjs(update_selected_concepts_css$add)
         output$add_widget_selected_concepts <- renderUI(default_selected_concepts_ui)
+        output$selected_concepts_list <- renderUI("")
         
         output$add_widget_selected_plugin <- renderUI(default_selected_plugin_ui)
         shinyjs::runjs(paste0("Shiny.setInputValue('", id, "-selected_element', null);"))
-        
-        output$add_widget_selected_concepts <- renderUI(default_selected_concepts_ui)
-        output$selected_concepts_list <- renderUI("")
         
         ## Load front-end & back-end ----
         
@@ -2082,7 +2122,7 @@ mod_data_server <- function(id){
       }
       else {
         shinyjs::runjs(update_selected_concepts_css$edit)
-        selected_concepts_ui <- div(i18n$t("select_concepts"), class = "default_content_widget")
+        selected_concepts_ui <- default_selected_concepts_ui
       }
       
       output$edit_widget_selected_concepts <- renderUI(selected_concepts_ui)
@@ -2100,7 +2140,7 @@ mod_data_server <- function(id){
       
       # Reload selected concepts
       output$selected_concepts_list <- renderUI("")
-      output$add_widget_selected_concepts <- renderUI(renderUI(default_selected_concepts_ui))
+      output$add_widget_selected_concepts <- renderUI(default_selected_concepts_ui)
       
       r$data_selected_concepts <- tibble::tibble(
         concept_id = integer(), concept_name = character(), domain_id = character(), vocabulary_id = character(),
@@ -2205,7 +2245,7 @@ mod_data_server <- function(id){
       
       # Reload selected concepts
       output$selected_concepts_list <- renderUI("")
-      output$add_widget_selected_concepts <- renderUI(renderUI(default_selected_concepts_ui))
+      output$add_widget_selected_concepts <- renderUI(default_selected_concepts_ui)
       
       r$data_selected_concepts <- tibble::tibble(
         concept_id = integer(), concept_name = character(), domain_id = character(), vocabulary_id = character(),

@@ -580,3 +580,12 @@ an_error_occurred_see_log_for_details,Une erreur est survenue. Voir les logs pou
 an_error_occurred,Une erreur est survenue
 dataset_deleted,Set de données supprimé
 user_deleted,Utilisateur supprimé
+choose_a_name,Choisir un nom
+give_explicit_name_widget,Donnez un nom explicite à votre widget.
+example_widget_names,"Ex: 'Timeline hémodynamique', 'Résultats de biologie'."
+choose_concepts_to_display,Choisir les concepts à afficher
+select_medical_data_to_visualize,Sélectionnez les données médicales à visualiser.
+example_medical_concepts,"Ex: Fréquence cardiaque, Pression artérielle, Température."
+choose_visualization_type,Choisir le type de visualisation
+select_how_to_display_data,Sélectionnez comment afficher ces données.
+example_visualization_types,"Ex: Timeline pour l'évolution temporelle, Tableau pour les valeurs détaillées."
