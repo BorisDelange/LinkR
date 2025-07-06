@@ -19,7 +19,7 @@ mod_users_ui <- function(id){
             div(
               tags$h1(i18n$t(paste0("create_", modal))),
               shiny.fluent::IconButton.shinyInput(ns(paste0("close_create_", modal, "_modal")), iconProps = list(iconName = "ChromeClose")),
-              class = "create_element_modal_head small_close_button"
+              class = "modal_head small_close_button"
             ),
             div(
               div(
@@ -28,12 +28,13 @@ mod_users_ui <- function(id){
               ),
               div(
                 shiny.fluent::PrimaryButton.shinyInput(ns(paste0("add_", modal)), i18n$t("add")),
-                class = "create_element_modal_buttons"
+                class = "modal_buttons"
               ),
             ),
-            class = "create_user_status_modal_content"
+            class = "modal_content",
+            style = " width: 600px; padding-bottom: 50px;"
           ),
-          class = "create_element_modal"
+          class = "modal"
         )
       )
     
@@ -46,11 +47,11 @@ mod_users_ui <- function(id){
             div(
               shiny.fluent::DefaultButton.shinyInput(ns(paste0("close_", modal, "_deletion_modal")), i18n$t("dont_delete")),
               div(shiny.fluent::PrimaryButton.shinyInput(ns(paste0("confirm_", modal, "_deletion")), i18n$t("delete")), class = "delete_button"),
-              class = "delete_modal_buttons"
+              class = "modal_buttons"
             ),
-            class = "delete_modal_content"
+            class = "modal_content delete_modal_content"
           ),
-          class = "delete_modal"
+          class = "modal"
         )
       )
   }
@@ -246,7 +247,7 @@ mod_users_ui <- function(id){
           div(
             tags$h1(i18n$t("create_user")),
             shiny.fluent::IconButton.shinyInput(ns("close_create_user_modal"), iconProps = list(iconName = "ChromeClose")),
-            class = "create_element_modal_head small_close_button"
+            class = "modal_head small_close_button"
           ),
           div(
             div(
@@ -265,12 +266,13 @@ mod_users_ui <- function(id){
             ),
             div(
               shiny.fluent::PrimaryButton.shinyInput(ns("add_user"), i18n$t("add")),
-              class = "create_element_modal_buttons"
+              class = "modal_buttons"
             ),
           ),
-          class = "create_user_modal_content"
+          class = "modal_content",
+          style = "width: 600px; padding-bottom: 30px;"
         ),
-        class = "create_element_modal"
+        class = "modal"
       )
     ),
     
@@ -283,19 +285,20 @@ mod_users_ui <- function(id){
           div(
             tags$h1(i18n$t("change_password")),
             shiny.fluent::IconButton.shinyInput(ns("close_edit_user_password_modal"), iconProps = list(iconName = "ChromeClose")),
-            class = "change_password_modal_head small_close_button"
+            class = "modal_head small_close_button"
           ),
           div(
             div(shiny.fluent::TextField.shinyInput(ns("new_password_1"), label = i18n$t("new_password"), type = "password", canRevealPassword = TRUE), style = "width: 200px;"),
             div(shiny.fluent::TextField.shinyInput(ns("new_password_2"), label = i18n$t("repeat_new_password"), type = "password", canRevealPassword = TRUE), style = "width: 200px;"),
             div(
               shiny.fluent::PrimaryButton.shinyInput(ns("confirm_password_update"), i18n$t("confirm")),
-              class = "change_password_modal_buttons"
+              class = "modal_buttons"
             ),
           ),
-          class = "change_password_modal_content"
+          class = "modal_content",
+          style = "width: 500px; height: 200px;"
         ),
-        class = "change_password_modal"
+        class = "modal"
       )
     ),
     

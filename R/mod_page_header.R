@@ -140,12 +140,13 @@ mod_page_header_ui <- function(id){
             div(
               tags$h1(i18n$t("help")),
               shiny.fluent::IconButton.shinyInput(ns("close_help_modal"), iconProps = list(iconName = "ChromeClose")),
-              class = "help_modal_head small_close_button"
+              class = "modal_head small_close_button"
             ),
             htmlTemplate(system.file("html_pages", paste0(language, "_help.html"), package = "linkr")),
-            class = "help_modal_content"
+            class = "modal_content",
+            style = " width: 75%; height: 380px;"
           ),
-          class = "help_modal"
+          class = "modal"
         )
       )
     )

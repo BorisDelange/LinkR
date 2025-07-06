@@ -44,11 +44,11 @@ mod_widgets_ui <- function(id){
             div(
               shiny.fluent::DefaultButton.shinyInput(ns("close_element_deletion_modal"), i18n$t("dont_delete")),
               div(shiny.fluent::PrimaryButton.shinyInput(ns("confirm_element_deletion"), i18n$t("delete")), class = "delete_button"),
-              class = "delete_modal_buttons"
+              class = "modal_buttons"
             ),
-            class = "delete_modal_content"
+            class = "modal_content delete_modal_content"
           ),
-          class = "delete_modal"
+          class = "modal"
         )
       ),
       
@@ -62,11 +62,12 @@ mod_widgets_ui <- function(id){
             div(
               shiny.fluent::DefaultButton.shinyInput(ns("close_element_import_modal"), i18n$t("dont_import")),
               div(shiny.fluent::PrimaryButton.shinyInput(ns("confirm_element_import_1"), i18n$t("import"))),
-              class = "import_modal_buttons"
+              class = "modal_buttons"
             ),
-            class = "import_modal_content"
+            class = "modal_content",
+            style = "width: 400px; height: 110px;"
           ),
-          class = "import_modal"
+          class = "modal"
         )
       ),
       
@@ -103,11 +104,12 @@ mod_widgets_ui <- function(id){
                   class = "delete_button"
                 )
               ),
-              class = "update_or_delete_git_element_modal_buttons"
+              class = "modal_buttons"
             ),
-            class = "update_or_delete_git_element_modal_content"
+            class = "modal_content",
+            style = "width: 600px; height: 250px;"
           ),
-          class = "update_or_delete_git_element_modal"
+          class = "modal"
         )
       )
   )

@@ -64,11 +64,11 @@ mod_project_files_ui <- function(id){
           div(
             shiny.fluent::DefaultButton.shinyInput(ns("close_file_deletion_modal"), i18n$t("dont_delete")),
             div(shiny.fluent::PrimaryButton.shinyInput(ns("confirm_file_deletion"), i18n$t("delete")), class = "delete_button"),
-            class = "delete_modal_buttons"
+            class = "modal_buttons"
           ),
-          class = "delete_modal_content"
+          class = "modal_content delete_modal_content"
         ),
-        class = "delete_modal"
+        class = "modal"
       )
     )
   )

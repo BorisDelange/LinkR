@@ -69,11 +69,12 @@ mod_concepts_ui <- function(id){
           div(
             shiny.fluent::DefaultButton.shinyInput(ns("close_reload_concepts_count_modal"), i18n$t("dont_reload")),
             div(shiny.fluent::PrimaryButton.shinyInput(ns("confirm_reload_concepts_count"), i18n$t("reload"))),
-            class = "reload_concepts_count_modal_buttons"
+            class = "modal_buttons"
           ),
-          class = "reload_concepts_count_modal_content"
+          class = "modal_content",
+          style = "width: 400px; height: 150px;"
         ),
-        class = "reload_concepts_count_modal"
+        class = "modal"
       )
     )
   )

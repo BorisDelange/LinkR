@@ -16,7 +16,7 @@ mod_select_concepts_ui <- function(id){
           div(
             tags$h1(i18n$t("select_concepts")),
             shiny.fluent::IconButton.shinyInput(ns("close_select_concepts_modal_1"), iconProps = list(iconName = "ChromeClose")),
-            class = "select_concepts_modal_head small_close_button"
+            class = "modal_head small_close_button"
           ),
           div(
             div(
@@ -62,9 +62,10 @@ mod_select_concepts_ui <- function(id){
             shiny.fluent::PrimaryButton.shinyInput(ns("close_select_concepts_modal_2"), i18n$t("confirm")),
             style = "display: flex; justify-content: flex-end; margin-right: 10px;"
           ),
-          class = "select_concepts_modal_content"
+          class = "modal_content",
+          style = "width: 80%; height: 80%;"
         ),
-        class = "select_concepts_modal"
+        class = "modal"
       )
     )
   )

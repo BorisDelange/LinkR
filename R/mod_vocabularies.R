@@ -155,18 +155,19 @@ mod_vocabularies_ui <- function(id){
           div(
             tags$h1(i18n$t("create_vocabulary")),
             shiny.fluent::IconButton.shinyInput(ns("close_create_element_modal"), iconProps = list(iconName = "ChromeClose")),
-            class = "create_element_modal_head small_close_button"
+            class = "modal_head small_close_button"
           ),
           div(
             div(shiny.fluent::TextField.shinyInput(ns("element_creation_name"), label = i18n$t("name")), style = "width: 200px;"),
             div(
               shiny.fluent::PrimaryButton.shinyInput(ns("add_element"), i18n$t("add")),
-              class = "create_element_modal_buttons"
+              class = "modal_buttons"
             ),
           ),
-          class = "create_vocabulary_modal_content"
+          class = "modal_content",
+          style = "width: 400px; padding-bottom: 30px;"
         ),
-        class = "create_element_modal"
+        class = "modal"
       )
     ),
     
@@ -179,7 +180,7 @@ mod_vocabularies_ui <- function(id){
           div(
             tags$h1(i18n$t("import_concepts_title")),
             shiny.fluent::IconButton.shinyInput(ns("close_import_concepts_modal_1"), iconProps = list(iconName = "ChromeClose")),
-            class = "import_concepts_modal_head small_close_button"
+            class = "modal_head small_close_button"
           ),
           div(
             div(
@@ -189,7 +190,7 @@ mod_vocabularies_ui <- function(id){
               div(
                 shinyjs::hidden(div(id = ns("import_files_div"), shiny.fluent::PrimaryButton.shinyInput(ns("import_files"), i18n$t("import")))),
                 div(id = ns("close_import_concepts_modal_2_div"), shiny.fluent::DefaultButton.shinyInput(ns("close_import_concepts_modal_2"), i18n$t("close"))),
-                class = "import_concepts_modal_buttons"
+                class = "modal_buttons"
               ),
               style = "width: 50%; overflow: auto;"
             ),
@@ -199,9 +200,10 @@ mod_vocabularies_ui <- function(id){
             ),
             style = "display: flex; gap: 10px;"
           ),
-          class = "import_concepts_modal_content"
+          class = "modal_content",
+          style = "width: 60%; height: 360px;"
         ),
-        class = "import_concepts_modal"
+        class = "modal"
       )
     )
   )

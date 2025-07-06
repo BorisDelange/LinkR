@@ -16,7 +16,7 @@ mod_data_ui <- function(id){
         div(
           tags$h1(i18n$t("add_a_tab")),
           shiny.fluent::IconButton.shinyInput(ns("close_add_tab_modal"), iconProps = list(iconName = "ChromeClose")),
-          class = "create_element_modal_head small_close_button"
+          class = "modal_head small_close_button"
         ),
         div(
           shinyjs::hidden(
@@ -30,15 +30,15 @@ mod_data_ui <- function(id){
             )
           ),
           div(shiny.fluent::TextField.shinyInput(ns("tab_name"), label = i18n$t("name")), style = "width: 200px;"),
-          class = "create_element_modal_body"
+          class = "modal_body"
         ),
         div(
           shiny.fluent::PrimaryButton.shinyInput(ns("add_tab_button"), i18n$t("add")),
-          class = "create_element_modal_buttons"
+          class = "modal_buttons"
         ),
-        class = "create_tab_modal_content"
+        class = "modal_content create_tab_modal_content"
       ),
-      class = "create_element_modal"
+      class = "modal"
     )
   )
   
@@ -51,20 +51,20 @@ mod_data_ui <- function(id){
         div(
           tags$h1(i18n$t("edit_a_tab")),
           shiny.fluent::IconButton.shinyInput(ns("close_edit_tab_modal"), iconProps = list(iconName = "ChromeClose")),
-          class = "create_element_modal_head small_close_button"
+          class = "modal_head small_close_button"
         ),
         div(
           div(shiny.fluent::TextField.shinyInput(ns("edit_tab_name"), label = i18n$t("name")), style = "width: 200px;"),
-          class = "create_element_modal_body"
+          class = "modal_body"
         ),
         div(
           div(shiny.fluent::PrimaryButton.shinyInput(ns("delete_tab_button"), i18n$t("delete")), class = "delete_button"),
           shiny.fluent::PrimaryButton.shinyInput(ns("save_tab_button"), i18n$t("save")),
-          class = "create_element_modal_buttons"
+          class = "modal_buttons"
         ),
-        class = "create_tab_modal_content"
+        class = "modal_content create_tab_modal_content"
       ),
-      class = "create_element_modal"
+      class = "modal"
     )
   )
   
@@ -78,11 +78,11 @@ mod_data_ui <- function(id){
         div(
           shiny.fluent::DefaultButton.shinyInput(ns("close_tab_deletion_modal"), i18n$t("dont_delete")),
           div(shiny.fluent::PrimaryButton.shinyInput(ns("confirm_tab_deletion"), i18n$t("delete")), class = "delete_button"),
-          class = "delete_modal_buttons"
+          class = "modal_buttons"
         ),
-        class = "delete_modal_content"
+        class = "model_content delete_modal_content"
       ),
-      class = "delete_modal"
+      class = "modal"
     )
   )
   
@@ -95,7 +95,7 @@ mod_data_ui <- function(id){
         div(
           tags$h1(i18n$t("add_a_widget")),
           shiny.fluent::IconButton.shinyInput(ns("close_add_widget_modal"), iconProps = list(iconName = "ChromeClose")),
-          class = "create_element_modal_head small_close_button"
+          class = "modal_head small_close_button"
         ),
         div(
           div(
@@ -111,16 +111,16 @@ mod_data_ui <- function(id){
             onclick = paste0("Shiny.setInputValue('", id, "-open_select_concepts_modal', Math.random());"),
             style = "display: inherit; margin-top: 20px; overflow: auto;"
           ),
-          class = "create_element_modal_body",
+          class = "modal_body",
           style = "display: flex; gap: 10px; padding-right: 10px; height: calc(100% - 70px);"
         ),
         div(
           shiny.fluent::PrimaryButton.shinyInput(ns("widget_creation_save"), i18n$t("add")),
           style = "display: flex; justify-content: flex-end; margin-right: 10px;"
         ),
-        class = "create_widget_modal_content"
+        class = "modal_content create_widget_modal_content"
       ),
-      class = "create_element_modal"
+      class = "modal"
     )
   )
   
@@ -133,7 +133,7 @@ mod_data_ui <- function(id){
         div(
           tags$h1(i18n$t("edit_a_widget")),
           shiny.fluent::IconButton.shinyInput(ns("close_edit_widget_modal"), iconProps = list(iconName = "ChromeClose")),
-          class = "create_element_modal_head small_close_button"
+          class = "modal_head small_close_button"
         ),
         div(
           div(
@@ -149,16 +149,16 @@ mod_data_ui <- function(id){
             onclick = paste0("Shiny.setInputValue('", id, "-open_select_concepts_modal', Math.random());"),
             style = "display: inherit; margin-top: 20px; overflow: auto;"
           ),
-          class = "create_element_modal_body",
+          class = "modal_body",
           style = "display: flex; gap: 10px; padding-right: 10px; height: calc(100% - 70px);"
         ),
         div(
           shiny.fluent::PrimaryButton.shinyInput(ns("widget_edition_save"), i18n$t("save")),
           style = "display: flex; justify-content: flex-end; margin-right: 10px;"
         ),
-        class = "create_widget_modal_content"
+        class = "modal_content create_widget_modal_content"
       ),
-      class = "create_element_modal"
+      class = "modal"
     )
   )
   
@@ -172,11 +172,11 @@ mod_data_ui <- function(id){
         div(
           shiny.fluent::DefaultButton.shinyInput(ns("close_widget_deletion_modal"), i18n$t("dont_delete")),
           div(shiny.fluent::PrimaryButton.shinyInput(ns("confirm_widget_deletion"), i18n$t("delete")), class = "delete_button"),
-          class = "delete_modal_buttons"
+          class = "modal_buttons"
         ),
-        class = "delete_modal_content"
+        class = "modal_content delete_modal_content"
       ),
-      class = "delete_modal"
+      class = "modal"
     )
   )
   
@@ -189,13 +189,14 @@ mod_data_ui <- function(id){
         div(
           tags$h1(i18n$t("select_a_plugin")),
           shiny.fluent::IconButton.shinyInput(ns("close_select_a_plugin_modal"), iconProps = list(iconName = "ChromeClose")),
-          class = "select_a_plugin_modal_head small_close_button"
+          class = "modal_head small_close_button"
         ),
         div(shiny.fluent::SearchBox.shinyInput(ns("search_plugin")), style = "width:280px;"),
         div(uiOutput(ns("plugins_widgets")), style = "margin-top: 15px;"),
-        class = "select_a_plugin_modal_content"
+        class = "modal_content",
+        style = "width: 80%; height: 80%; overflow-y: auto;"
       ),
-      class = "select_a_plugin_modal"
+      class = "modal"
     )
   )
   
@@ -208,12 +209,13 @@ mod_data_ui <- function(id){
         div(
           uiOutput(ns("plugin_description_title")),
           shiny.fluent::IconButton.shinyInput(ns("close_plugin_description_modal"), iconProps = list(iconName = "ChromeClose")),
-          class = "plugin_description_modal_head small_close_button"
+          class = "modal_head small_close_button"
         ),
         uiOutput(ns("plugin_description")),
-        class = "plugin_description_modal_content"
+        class = "modal_content",
+        style = "width: 50%; height: 80%; overflow-y: auto;"
       ),
-      class = "plugin_description_modal"
+      class = "modal"
     )
   )
   

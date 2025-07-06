@@ -295,9 +295,7 @@ a.no-hover-effect:hover {
 /* MODALS          */
 /* --------------- */
 
-.delete_modal, .create_element_modal, .import_modal, .load_status_modal, .select_concepts_modal, .select_a_plugin_modal,
-.import_concepts_modal, .update_or_delete_git_element_modal, .reload_concepts_count_modal, .create_git_repo_modal,
-.push_git_modal, .help_modal, .plugin_description_modal, .change_password_modal {
+.modal {
   display: flex;
   align-items: center;
   justify-content: center;
@@ -310,11 +308,18 @@ a.no-hover-effect:hover {
   z-index: 1000;
 }
 
-.delete_modal_content, .create_tab_modal_content, .import_modal_content, .create_widget_modal_content, .load_status_modal_content, .create_plugin_modal_content, .create_project_modal_content, .create_dataset_modal_content, .create_subset_modal_content,
-.create_vocabulary_modal_content, .create_data_cleaning_modal_content, .select_concepts_modal_content, .select_a_plugin_modal_content,
-.import_concepts_modal_content, .update_or_delete_git_element_modal_content, .reload_concepts_count_modal_content,
-.create_git_repo_modal_content, .push_git_modal_content, .create_user_modal_content, .create_user_status_modal_content,
-.create_user_access_modal_content, .help_modal_content, .plugin_description_modal_content, .change_password_modal_content {
+.modal_head {
+  display: flex;
+  justify-content: space-between;
+}
+
+.modal_body {
+  font-size: 12px;
+  height: calc(100% - 70px);
+  overflow-y: auto;
+}
+
+.modal_content {
   background: #fff;
   padding: 5px;
   position: relative;
@@ -323,14 +328,18 @@ a.no-hover-effect:hover {
   padding-left: 15px;
 }
 
-.change_password_modal_content {
-  width: 500px;
-  height: 200px;
+.modal_content h1 {
+  font-size: 14px;
 }
 
-.help_modal_content {
-  width: 75%;
-  height: 380px;
+.modal_buttons, .datasets_share_buttons, .git_element_details_git_buttons,
+.export_db_buttons, .import_db_buttons, .data_cleaning_share_buttons, .projects_share_buttons,
+.git_repo_infos_buttons {
+  position: absolute;
+  right: 8px;
+  bottom: 8px;
+  display: flex;
+  gap: 5px;
 }
 
 .help-widgets-container {
@@ -340,114 +349,19 @@ a.no-hover-effect:hover {
   padding: 10px 0;
 }
 
-.delete_modal_content, .import_modal_content {
-  width: 400px;
-  height: 110px;
-}
-
-.update_or_delete_git_element_modal_content {
-  width: 600px;
-  height: 250px;
-}
-
-.push_git_modal_content {
-  width: 600px;
-  height: 200px;
-}
-
-.delete_modal_content h1, .create_element_modal h1, .import_modal_content h1, .load_status_modal h1, .select_concepts_modal h1, .select_a_plugin_modal h1, .import_concepts_modal_content h1, .update_or_delete_git_element_modal_content h1, .create_user_modal_content h1, 
-.reload_concepts_count_modal_content h1, .create_git_repo_modal h1, .push_git_modal_content h1, .create_user_status_modal_content h1,
-.create_user_access_modal_content h1, .help_modal_content h1, .plugin_description_modal_content h1, .change_password_modal_content h1 {
-  font-size: 14px;
-}
-
-.delete_modal_content p {
-  font-size: 12px;
-}
-
-.delete_modal_buttons, .import_modal_buttons, .create_element_modal_buttons, .select_concepts_modal_buttons, .import_concepts_modal_buttons,
-.datasets_share_buttons, .update_or_delete_git_element_modal_buttons, .reload_concepts_count_modal_buttons, .git_element_details_git_buttons,
-.export_db_buttons, .import_db_buttons, .data_cleaning_share_buttons, .projects_share_buttons, .create_git_repo_modal_buttons,
-.git_repo_infos_modal_buttons, .push_git_modal_buttons, .help_modal, .change_password_modal_buttons {
-  position: absolute;
-  right: 8px;
-  bottom: 8px;
-  display: flex;
-  gap: 5px;
-}
-
 .create_tab_modal_content {
   width: 400px;
   padding-bottom: 30px;
-}
-
-.create_git_repo_modal_content, .create_user_modal_content {
-  width: 600px;
-  padding-bottom: 30px;
-}
-
-.create_user_status_modal_content, .create_user_access_modal_content {
-  width: 600px;
-  padding-bottom: 50px;
 }
 
 .create_widget_modal_content {
   width: 60%;
   height: 280px;
 }
-.reload_concepts_count_modal_content {
+
+.delete_modal_content {
   width: 400px;
-  height: 150px;
-}
-
-.import_concepts_modal_content {
-  width: 60%;
-  height: 360px;
-}
-
-.select_concepts_modal_content {
-  width: 80%;
-  height: 80%;
-}
-
-.create_element_modal_head, .select_concepts_modal_head, .select_a_plugin_modal_head, .import_concepts_modal_head,
-.create_git_repo_modal_head, .help_modal_head, .plugin_description_modal_head, .change_password_modal_head {
-  display: flex;
-  justify-content: space-between;
-}
-
-.create_element_modal_body, .select_concepts_modal_body {
-  font-size: 12px;
-  height: calc(100% - 70px);
-  overflow-y: auto;
-}
-
-.load_status_modal_content {
-  width: 600px;
-  min-height: 200px;
-}
-
-.create_plugin_modal_content {
-  width: 500px;
-  padding-bottom: 50px;
-}
-
-.create_project_modal_content, .create_dataset_modal_content, .create_subset_modal_content, .create_vocabulary_modal_content,
-.create_data_cleaning_modal_content {
-  width: 400px;
-  padding-bottom: 30px;
-}
-
-.select_a_plugin_modal_content {
-  width: 80%;
-  height: 80%;
-  overflow-y: auto;
-}
-
-.plugin_description_modal_content {
-  width: 50%;
-  height: 80%;
-  overflow-y: auto;
+  height: 110px;
 }
 
 .selected_concept, .selected_file {
@@ -464,8 +378,16 @@ a.no-hover-effect:hover {
   text-overflow: ellipsis;
 }
 
+/* ---------------- */
+/* FILES.           */
+/* ---------------- */
+
 .csv_file, .db_backup_file { background-color: #FF8C00; }
 .zip_file { background-color: #606060; }
+
+/* ---------------- */
+/* CONCEPTS         */
+/* ---------------- */
 
 .drug_domain_id { background-color: #F8766D; }
 .condition_domain_id { background-color: #FF8C42; }

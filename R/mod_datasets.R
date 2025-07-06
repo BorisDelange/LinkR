@@ -277,18 +277,19 @@ mod_datasets_ui <- function(id){
           div(
             tags$h1(i18n$t("create_dataset")),
             shiny.fluent::IconButton.shinyInput(ns("close_create_element_modal"), iconProps = list(iconName = "ChromeClose")),
-            class = "create_element_modal_head small_close_button"
+            class = "modal_head small_close_button"
           ),
           div(
             div(shiny.fluent::TextField.shinyInput(ns("element_creation_name"), label = i18n$t("name")), style = "width: 200px;"),
             div(
               shiny.fluent::PrimaryButton.shinyInput(ns("add_element"), i18n$t("add")),
-              class = "create_element_modal_buttons"
+              class = "modal_buttons"
             ),
           ),
-          class = "create_dataset_modal_content"
+          class = "modal_content",
+          style = "width: 400px; padding-bottom: 30px;"
         ),
-        class = "create_element_modal"
+        class = "modal"
       )
     )
   )

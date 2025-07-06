@@ -239,7 +239,7 @@ mod_git_repos_ui <- function(id){
           div(
             tags$h1(i18n$t("create_git_repo")),
             shiny.fluent::IconButton.shinyInput(ns("close_create_git_repo_modal"), iconProps = list(iconName = "ChromeClose")),
-            class = "create_git_repo_modal_head small_close_button"
+            class = "modal_head small_close_button"
           ),
           div(
             div(shiny.fluent::TextField.shinyInput(ns("git_repo_creation_name"), label = i18n$t("name")), style = "width: 200px;"),
@@ -247,12 +247,13 @@ mod_git_repos_ui <- function(id){
             div(shiny.fluent::TextField.shinyInput(ns("git_repo_creation_raw_files_url_address"), label = i18n$t("raw_files_url_address")), style = "width: 400px;"),
             div(
               shiny.fluent::PrimaryButton.shinyInput(ns("add_git_repo"), i18n$t("add")),
-              class = "create_git_repo_modal_buttons"
+              class = "modal_buttons"
             ),
           ),
-          class = "create_git_repo_modal_content"
+          class = "modal_content",
+          style = "width: 600px; padding-bottom: 30px;"
         ),
-        class = "create_git_repo_modal"
+        class = "modal"
       )
     ),
     
@@ -265,11 +266,11 @@ mod_git_repos_ui <- function(id){
           div(
             shiny.fluent::DefaultButton.shinyInput(ns("close_git_repo_deletion_modal"), i18n$t("dont_delete")),
             div(shiny.fluent::PrimaryButton.shinyInput(ns("confirm_git_repo_deletion"), i18n$t("delete")), class = "delete_button"),
-            class = "delete_modal_buttons"
+            class = "modal_buttons"
           ),
-          class = "delete_modal_content"
+          class = "modal_content delete_modal_content"
         ),
-        class = "delete_modal"
+        class = "modal"
       )
     ),
     
@@ -282,11 +283,11 @@ mod_git_repos_ui <- function(id){
           div(
             shiny.fluent::DefaultButton.shinyInput(ns("close_git_element_deletion_modal"), i18n$t("dont_delete")),
             div(shiny.fluent::PrimaryButton.shinyInput(ns("confirm_git_element_deletion"), i18n$t("delete")), class = "delete_button"),
-            class = "delete_modal_buttons"
+            class = "modal_buttons"
           ),
-          class = "delete_modal_content"
+          class = "modal_content delete_modal_content"
         ),
-        class = "delete_modal"
+        class = "modal"
       )
     ),
     
@@ -301,11 +302,12 @@ mod_git_repos_ui <- function(id){
           div(
             shiny.fluent::DefaultButton.shinyInput(ns("close_push_git_modal"), i18n$t("cancel")),
             shiny.fluent::PrimaryButton.shinyInput(ns("confirm_push_git_update"), i18n$t("update")),
-            class = "push_git_modal_buttons"
+            class = "modal_buttons"
           ),
-          class = "push_git_modal_content"
+          class = "modal_content",
+          style = "width: 600px; height: 200px;"
         ),
-        class = "push_git_modal"
+        class = "modal"
       )
     ),
     
@@ -318,11 +320,12 @@ mod_git_repos_ui <- function(id){
           div(
             shiny.fluent::DefaultButton.shinyInput(ns("close_project_plugins_import_modal"), i18n$t("dont_update")),
             div(shiny.fluent::PrimaryButton.shinyInput(ns("confirm_project_plugins_import"), i18n$t("update"))),
-            class = "import_modal_buttons"
+            class = "modal_buttons"
           ),
-          class = "import_modal_content"
+          class = "modal_content",
+          style = "width: 400px; height: 110px;"
         ),
-        class = "import_modal"
+        class = "modal"
       )
     )
   )
@@ -1535,7 +1538,7 @@ mod_git_repos_server <- function(id){
           id = ns(paste0("show_content_", git_source, "_div")),
           add_git_repo_button,
           shiny.fluent::PrimaryButton.shinyInput(ns(paste0("show_content_", git_source)), i18n$t("show_content"), iconProps = list(iconName = "Play")),
-          class = "git_repo_infos_modal_buttons",
+          class = "git_repo_infos_buttons",
           style = "display: flex; gap: 5px;"
         )
       )

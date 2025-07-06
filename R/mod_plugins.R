@@ -271,7 +271,7 @@ mod_plugins_ui <- function(id){
           div(
             tags$h1(i18n$t("create_plugin")),
             shiny.fluent::IconButton.shinyInput(ns("close_create_element_modal"), iconProps = list(iconName = "ChromeClose")),
-            class = "create_element_modal_head small_close_button"
+            class = "modal_head small_close_button"
           ),
           div(
             div(
@@ -295,12 +295,13 @@ mod_plugins_ui <- function(id){
             ),
             div(
               shiny.fluent::PrimaryButton.shinyInput(ns("add_element"), i18n$t("add")),
-              class = "create_element_modal_buttons"
+              class = "modal_buttons"
             ),
           ),
-          class = "create_plugin_modal_content"
+          class = "modal_content",
+          style = "width: 500px; padding-bottom: 50px;"
         ),
-        class = "create_element_modal"
+        class = "modal"
       )
     ),
     
@@ -314,11 +315,11 @@ mod_plugins_ui <- function(id){
           div(
             shiny.fluent::DefaultButton.shinyInput(ns("close_plugin_deletion_modal"), i18n$t("dont_delete")),
             div(shiny.fluent::PrimaryButton.shinyInput(ns("confirm_plugin_deletion"), i18n$t("delete")), class = "delete_button"),
-            class = "delete_modal_buttons"
+            class = "modal_buttons"
           ),
-          class = "delete_modal_content"
+          class = "modal_content delete_modal_content"
         ),
-        class = "delete_modal"
+        class = "modal"
       )
     ),
     
@@ -332,11 +333,11 @@ mod_plugins_ui <- function(id){
           div(
             shiny.fluent::DefaultButton.shinyInput(ns("close_file_deletion_modal"), i18n$t("dont_delete")),
             div(shiny.fluent::PrimaryButton.shinyInput(ns("confirm_file_deletion"), i18n$t("delete")), class = "delete_button"),
-            class = "delete_modal_buttons"
+            class = "modal_buttons"
           ),
-          class = "delete_modal_content"
+          class = "modal_content delete_modal_content"
         ),
-        class = "delete_modal"
+        class = "modal"
       )
     ),
     

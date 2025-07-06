@@ -143,7 +143,7 @@ mod_user_settings_ui <- function(id){
           div(
             tags$h1(i18n$t("change_password")),
             shiny.fluent::IconButton.shinyInput(ns("close_change_password_modal"), iconProps = list(iconName = "ChromeClose")),
-            class = "change_password_modal_head small_close_button"
+            class = "modal_head small_close_button"
           ),
           div(
             div(shiny.fluent::TextField.shinyInput(ns("current_password"), label = i18n$t("current_password"), type = "password", canRevealPassword = TRUE), style = "width: 200px;"),
@@ -154,12 +154,13 @@ mod_user_settings_ui <- function(id){
             ),
             div(
               shiny.fluent::PrimaryButton.shinyInput(ns("confirm_password_update"), i18n$t("confirm")),
-              class = "change_password_modal_buttons"
+              class = "modal_buttons"
             ),
           ),
-          class = "change_password_modal_content"
+          class = "modal_content",
+          style = "width: 500px; height: 200px;"
         ),
-        class = "change_password_modal"
+        class = "modal"
       )
     )
   )
