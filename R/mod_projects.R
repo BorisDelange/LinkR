@@ -105,6 +105,43 @@ mod_projects_ui <- function(id){
               )
             ),
             div(
+              h1(i18n$t("explore_data")),
+              div(
+                div(
+                  div(
+                    tags$i(class = "fas fa-user-md", style = "font-size: 2rem; color: white; margin-bottom: 12px;")
+                  ),
+                  tags$h3(i18n$t("patient_lvl_data"), style = "font-size: 16px; font-weight: 600; color: white; margin: 0 0 8px 0;"),
+                  tags$p(i18n$t("projects_patient_lvl_data_explanation"), style = "color: white; font-size: 12px; line-height: 1.4;"),
+                  class = "data_page_widget",
+                  style = "background: #0EA5E9;",
+                  onclick = paste0("window.location.href='", shiny.router::route_link("data?type=patient_lvl"), "';")
+                ),
+                div(
+                  div(
+                    tags$i(class = "fas fa-chart-column", style = "font-size: 2rem; color: white; margin-bottom: 12px;")
+                  ),
+                  tags$h3(i18n$t("aggregated_data"), style = "font-size: 16px; font-weight: 600; color: white; margin: 0 0 8px 0;"),
+                  tags$p(i18n$t("projects_aggregated_data_explanation"), style = "color: white; font-size: 12px; line-height: 1.4;"),
+                  class = "data_page_widget",
+                  style = " background: #3B82F6;",
+                  onclick = paste0("window.location.href='", shiny.router::route_link("data?type=aggregated"), "';")
+                ),
+                div(
+                  div(
+                    tags$i(class = "fas fa-list-ul", style = "font-size: 2rem; color: white; margin-bottom: 12px;")
+                  ),
+                  tags$h3(i18n$t("concepts"), style = "font-size: 16px; font-weight: 600; color: white; margin: 0 0 8px 0;"),
+                  tags$p(i18n$t("projects_concepts_explanation"), style = "color: white; font-size: 12px; line-height: 1.4;"),
+                  class = "data_page_widget",
+                  style = "background: #1E40AF;",
+                  onclick = paste0("window.location.href='", shiny.router::route_link("concepts"), "';")
+                ),
+                style = "display: flex; gap: 12px; align-items: center; justify-content: space-between; height: calc(100% - 40px); padding: 0 25px;"
+              ),
+              class = "widget", style = "height: 50%;"
+            ),
+            div(
               id = ns("summary_informations_div"),
               shinyjs::hidden(
                 div(
@@ -159,31 +196,8 @@ mod_projects_ui <- function(id){
                 id = ns("summary_view_informations_div"),
                 h1(i18n$t("informations")),
                 uiOutput(ns("summary_informations_ui")),
-                div(
-                  div(
-                    div(shiny.fluent::Icon(iconName = "Contact"), style = "font-size: 4vh; height: 100%; display: flex; align-items: center; justify-content: center;"),
-                    tags$h1(i18n$t("patient_lvl_data")),
-                    tags$p(i18n$t("patient_lvl_data_explanation"), style = "color: grey;"),
-                    class = "data_page_widget",
-                    onclick = paste0("window.location.href='", shiny.router::route_link("data?type=patient_lvl"), "';")
-                  ),
-                  div(
-                    div(shiny.fluent::Icon(iconName = "People"), style = "font-size: 4vh; height: 100%; display: flex; align-items: center; justify-content: center;"),
-                    tags$h1(i18n$t("aggregated_data")),
-                    tags$p(i18n$t("aggregated_data_explanation"), style = "color: grey;"),
-                    class = "data_page_widget",
-                    onclick = paste0("window.location.href='", shiny.router::route_link("data?type=aggregated"), "';")
-                  ),
-                  class = "projects_summary_data_pages_widgets",
-                  style = "padding-top: 30px;"
-                ),
                 style = "height: calc(100% - 10px);"
               ),
-              class = "widget", style = "height: 50%;"
-            ),
-            div(
-              h1(i18n$t("data")),
-              dataset_details("summary"),
               class = "widget", style = "height: 50%;"
             ),
             class = "projects_summary_left"

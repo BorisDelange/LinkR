@@ -13,7 +13,8 @@ age,Age
 age_at_first_hospit,Age at first hospitalization
 age_class,Age class
 aggregated_data,Aggregated data
-aggregated_data_explanation,Analyze data on a group of patients
+projects_aggregated_data_explanation,"Analyze the data on a group of patients using visualizations, statistics, and predictive models"
+projects_concepts_explanation,Explore the medical concepts in the dataset
 aggregated_plugin,Aggregated data plugin
 all_vocabularies,All vocabularies
 api_key,API key
@@ -300,7 +301,7 @@ output,Output
 password,Password
 patient_level_data,Patient-level data
 patient_lvl_data,Patient-level data
-patient_lvl_data_explanation,Explore patient-by-patient data
+projects_patient_lvl_data_explanation,"Explore the data patient by patient, recreating the equivalent of a clinical record"
 patient_lvl_or_aggregated_data,Patient-level or aggregated data
 patient_lvl_or_aggregated_plugin,Patient-level or aggregated data plugin
 patient_lvl_plugin,Patient-level data plugin
@@ -594,3 +595,4 @@ widget_modal_choose_concepts_examples,"Ex: Heart rate, Blood pressure, Temperatu
 tab_modal_description,Tabs allow users to **organize widgets** across multiple **pages**.
 give_add_tab_name_explanation,Give a name to the tab. It can be modified later.
 give_edit_tab_name_explanation,Edit the tab name
+explore_data,Explore data

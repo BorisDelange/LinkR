@@ -13,7 +13,8 @@ age,Age
 age_at_first_hospit,Age à la première hospitalisation
 age_class,Classe d'âge
 aggregated_data,Données agrégées
-aggregated_data_explanation,Analysez les données sur un groupe de patients
+projects_aggregated_data_explanation,"Analysez les données sur un groupe de patients, à l'aide de visualisations, de statistiques et de modèles prédictifs"
+projects_concepts_explanation,Explorez les concepts médicaux du set de données
 aggregated_plugin,Plugin de données agrégées
 all_vocabularies,Toutes les terminologies
 api_key,Clef API
@@ -300,7 +301,7 @@ output,Output
 password,Mot de passe
 patient_level_data,Données individuelles
 patient_lvl_data,Données individuelles
-patient_lvl_data_explanation,Explorez les données patient par patient
+projects_patient_lvl_data_explanation,"Explorez les données patient par patient, en recréant l'équivalent d'un dossier clinique"
 patient_lvl_or_aggregated_data,Données individuelles ou agrégées
 patient_lvl_or_aggregated_plugin,Plugin de données individuelles ou agrégées
 patient_lvl_plugin,Plugin de données individuelles
@@ -594,3 +595,4 @@ widget_modal_choose_concepts_examples,"Ex: Fréquence cardiaque, Pression artér
 tab_modal_description,"Les onglets permettent d'**organiser les widgets** en plusieurs **pages**."
 tab_modal_add_name_explanation,Donnez un nom à l'onglet. Il pourra être modifié plus tard.
 tab_modal_edit_name_explanation,Modifiez le nom de l'onglet.
+explore_data,Explorez les données

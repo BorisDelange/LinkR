@@ -637,7 +637,7 @@ a.no-hover-effect:hover {
   box-sizing: border-box;
 }
 
-.dataset_details_widget, .data_page_widget {
+.dataset_details_widget {
   width: 300px;
   height: 150px;
   box-shadow: 0 2px 4px 0 rgba(0, 0, 0, 0.2), 0 3px 10px 0 rgba(0, 0, 0, 0.19);
@@ -652,9 +652,32 @@ a.no-hover-effect:hover {
   transition: transform 0.3s ease, box-shadow 0.3s ease;
 }
 
-.dataset_details_widget:hover, .data_page_widget:hover {
+.dataset_details_widget:hover {
   box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.2);
   transform: translateY(-5px);
+}
+
+.data_page_widget {
+  flex: 1;
+  height: 140px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
+  margin: 5px;
+  padding: 18px 15px;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  align-items: center;
+  position: relative;
+  cursor: pointer;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  text-align: center;
+  overflow: hidden;
+  border-radius: 10px;
+}
+
+.data_page_widget:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
 }
 
 .dataset_details_widget {
@@ -722,15 +745,6 @@ a.no-hover-effect:hover {
 
 .dataset_details_table td.numeric {
   text-align: right;
-}
-
-.data_page_widget {
-  text-align: center;
-  overflow: hidden;
-  padding: 10px;
-  width: 30%;
-  max-width: 240px;
-  max-height: 130px;
 }
 
 .selected_concepts_widget {
