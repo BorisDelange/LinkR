@@ -22,25 +22,7 @@ mod_login_ui <- function(id){
       class = "widget"
     ),
     style = "width: 100%; display: flex; align-items: center; justify-content: center; margin-top: -100px;",
-    
-    # Trigger login button when user presses Enter in username or password fields
-    tags$script(HTML(sprintf("
-      $(document).ready(function() {
-        setTimeout(function() {
-          $('#%s-username, #%s-password').on('keypress', function(e) {
-            if (e.which == 13) {
-              Shiny.setInputValue('%s-username', $('#%s-username').val());
-              Shiny.setInputValue('%s-password', $('#%s-password').val());
-              
-              setTimeout(function() {
-                $('#%s-login').click();
-              }, 50);
-              return false;
-            }
-          });
-        }, 500);
-      });
-    ", id, id, id, id, id, id, id)))
+    bind_enter_key_to_button(input_id = c(ns("username"), ns("password")), button_id = ns("login"))
   )
 }
 

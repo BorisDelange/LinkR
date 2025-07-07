@@ -71,7 +71,7 @@ mod_data_ui <- function(id){
             div(
               style = "margin-top: 15px;",
               tags$p(i18n$t(paste0("tab_modal_", modal_type, "_name_explanation")), style = "font-size: 13px; color: #555; margin: 0 0 10px 0; line-height: 1.3;"),
-              div(shiny.fluent::TextField.shinyInput(name_input_id), style = "width: 300px;"),
+              div(shiny.fluent::TextField.shinyInput(name_input_id), style = "width: 300px;")
             ),
             
             class = "modal_body"
@@ -86,7 +86,8 @@ mod_data_ui <- function(id){
           class = "modal_content",
           style = "width: 50%; max-height: 90%; padding-bottom: 30px;"
         ),
-        class = "modal"
+        class = "modal",
+        bind_enter_key_to_button(input_id = name_input_id, button_id = save_button_id),
       )
     )
   }
@@ -234,7 +235,8 @@ mod_data_ui <- function(id){
           class = "modal_content",
           style = " width: 70%; max-height: 90%;"
         ),
-        class = "modal"
+        class = "modal",
+        bind_enter_key_to_button(input_id = name_input_id, button_id = save_button_id),
       )
     )
   }

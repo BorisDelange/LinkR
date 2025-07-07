@@ -1,3 +1,36 @@
+#' @noRd
+bind_enter_key_to_button <- function(input_id, button_id) {
+  
+  bindings <- sapply(input_id, function(id) {
+    paste0("
+        $('#", id, "').on('keypress', function(e) {
+          if (e.which === 13) {
+            console.log('ENTER on:', '", id, "', 'Value:', $(this).val());
+            e.preventDefault();
+            
+            // Force sync with blur/focus trick
+            ", paste0("$('#", input_id, "').blur().focus().trigger('change').trigger('input');", collapse = "\n            "), "
+            
+            // Longer delay for sync
+            setTimeout(function() {
+              console.log('Clicking after forced sync');
+              $('#", button_id, "').click();
+            }, 250);
+          }
+        });")
+  }, USE.NAMES = FALSE)
+  
+  all_bindings <- paste(bindings, collapse = "\n")
+  
+  tags$script(HTML(paste0("
+    $(document).ready(function() {
+      setTimeout(function() {
+        ", all_bindings, "
+      }, 500);
+    });
+  ")))
+}
+
 #' Format datetime
 #' 
 #' @description Format datetime depending on the selected language
