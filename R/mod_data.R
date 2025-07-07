@@ -7,66 +7,89 @@ mod_data_ui <- function(id){
   ns <- NS(id)
   result <- ""
   
-  # Add a tab modal ----
+  # Add or edit a tab modal ----
   
-  add_tab_modal <- shinyjs::hidden(
-    div(
-      id = ns("add_tab_modal"),
+  create_tab_modal <- function(modal_type = c("add", "edit")) {
+    modal_type <- match.arg(modal_type)
+    
+    # Define modal-specific elements
+    if (modal_type == "add") {
+      modal_id <- ns("add_tab_modal")
+      close_button_id <- ns("close_add_tab_modal")
+      title <- i18n$t("add_a_tab")
+      name_input_id <- ns("tab_name")
+      save_button_id <- ns("add_tab_button")
+      save_button_text <- i18n$t("add")
+      show_delete_button <- FALSE
+    } else {
+      modal_id <- ns("edit_tab_modal")
+      close_button_id <- ns("close_edit_tab_modal")
+      title <- i18n$t("edit_a_tab")
+      name_input_id <- ns("edit_tab_name")
+      save_button_id <- ns("save_tab_button")
+      save_button_text <- i18n$t("save")
+      show_delete_button <- TRUE
+    }
+    
+    # Build modal structure
+    shinyjs::hidden(
       div(
+        id = modal_id,
         div(
-          tags$h1(i18n$t("add_a_tab")),
-          shiny.fluent::IconButton.shinyInput(ns("close_add_tab_modal"), iconProps = list(iconName = "ChromeClose")),
-          class = "modal_head small_close_button"
-        ),
-        div(
-          shinyjs::hidden(
-            shiny.fluent::ChoiceGroup.shinyInput(
-              ns("add_tab_type"), value = "same_level", 
-              options = list(
-                list(key = "same_level", text = i18n$t("same_level_current_tab")),
-                list(key = "level_under", text = i18n$t("level_under"))
-              ),
-              className = "inline_choicegroup"
-            )
+          div(
+            tags$h1(title),
+            shiny.fluent::IconButton.shinyInput(close_button_id, iconProps = list(iconName = "ChromeClose")),
+            class = "modal_head small_close_button"
           ),
-          div(shiny.fluent::TextField.shinyInput(ns("tab_name"), label = i18n$t("name")), style = "width: 200px;"),
-          class = "modal_body"
+          div(
+            
+            # Tab description
+            div(
+              style = "margin: 15px 0 20px 0; padding: 15px; background-color: #f8f9fa; border-radius: 5px; border-left: 4px solid #0078d4;",
+              HTML(paste0(
+                "<p style='margin: 0; font-size: 14px; color: #333; line-height: 1.4;'>",
+                gsub("\\*\\*(.*?)\\*\\*", "<strong>\\1</strong>", i18n$t("tab_modal_description")),
+                "</p>"
+              ))
+            ),
+            
+            # Hidden choice group for add modal (kept for compatibility)
+            if (modal_type == "add") {
+              shinyjs::hidden(
+                shiny.fluent::ChoiceGroup.shinyInput(
+                  ns("add_tab_type"), value = "same_level", 
+                  options = list(
+                    list(key = "same_level", text = i18n$t("same_level_current_tab")),
+                    list(key = "level_under", text = i18n$t("level_under"))
+                  ),
+                  className = "inline_choicegroup"
+                )
+              )
+            },
+            
+            # Name input with explanation
+            div(
+              style = "margin-top: 15px;",
+              tags$p(i18n$t(paste0("tab_modal_", modal_type, "_name_explanation")), style = "font-size: 13px; color: #555; margin: 0 0 10px 0; line-height: 1.3;"),
+              div(shiny.fluent::TextField.shinyInput(name_input_id), style = "width: 300px;"),
+            ),
+            
+            class = "modal_body"
+          ),
+          div(
+            if (show_delete_button) {
+              div(shiny.fluent::PrimaryButton.shinyInput(ns("delete_tab_button"), i18n$t("delete")), class = "delete_button")
+            },
+            shiny.fluent::PrimaryButton.shinyInput(save_button_id, save_button_text),
+            class = "modal_buttons"
+          ),
+          class = "modal_content",
+          style = "width: 50%; max-height: 90%; padding-bottom: 30px;"
         ),
-        div(
-          shiny.fluent::PrimaryButton.shinyInput(ns("add_tab_button"), i18n$t("add")),
-          class = "modal_buttons"
-        ),
-        class = "modal_content create_tab_modal_content"
-      ),
-      class = "modal"
+        class = "modal"
+      )
     )
-  )
-  
-  # Edit a tab modal ----
-  
-  edit_tab_modal <- shinyjs::hidden(
-    div(
-      id = ns("edit_tab_modal"),
-      div(
-        div(
-          tags$h1(i18n$t("edit_a_tab")),
-          shiny.fluent::IconButton.shinyInput(ns("close_edit_tab_modal"), iconProps = list(iconName = "ChromeClose")),
-          class = "modal_head small_close_button"
-        ),
-        div(
-          div(shiny.fluent::TextField.shinyInput(ns("edit_tab_name"), label = i18n$t("name")), style = "width: 200px;"),
-          class = "modal_body"
-        ),
-        div(
-          div(shiny.fluent::PrimaryButton.shinyInput(ns("delete_tab_button"), i18n$t("delete")), class = "delete_button"),
-          shiny.fluent::PrimaryButton.shinyInput(ns("save_tab_button"), i18n$t("save")),
-          class = "modal_buttons"
-        ),
-        class = "modal_content create_tab_modal_content"
-      ),
-      class = "modal"
-    )
-  )
+  }
   
   # Delete a tab modal ----
   
@@ -80,7 +103,7 @@ mod_data_ui <- function(id){
           div(shiny.fluent::PrimaryButton.shinyInput(ns("confirm_tab_deletion"), i18n$t("delete")), class = "delete_button"),
           class = "modal_buttons"
         ),
-        class = "model_content delete_modal_content"
+        class = "modal_content delete_modal_content"
       ),
       class = "modal"
     )
@@ -88,7 +111,6 @@ mod_data_ui <- function(id){
   
   # Add or edit a widget modal ----
   
-  # Create widget modal UI (add or edit)
   create_widget_modal <- function(modal_type = c("add", "edit")) {
     modal_type <- match.arg(modal_type)
     
@@ -125,6 +147,16 @@ mod_data_ui <- function(id){
           ),
           div(
             
+            # Widget description
+            div(
+              style = "margin: 10px 0 5px 0; padding: 15px; background-color: #f8f9fa; border-radius: 5px; border-left: 4px solid #0078d4;",
+              HTML(paste0(
+                "<p style='margin: 0; font-size: 14px; color: #333; line-height: 1.4;'>",
+                gsub("\\*\\*(.*?)\\*\\*", "<strong>\\1</strong>", i18n$t("widget_modal_description")),
+                "</p>"
+              ))
+            ),
+            
             # Steps container
             div(
               style = "display: flex; flex-direction: column; gap: 15px;",
@@ -135,8 +167,9 @@ mod_data_ui <- function(id){
                 div("1", class = "widget_step_number"),
                 div(
                   style = "flex: 1; min-width: 0;",
-                  tags$h3(i18n$t("choose_a_name"), style = "font-size: 16px; font-weight: 600; color: #333; margin: 0 0 5px 0;"),
-                  tags$p(i18n$t("give_explicit_name_widget"), " ", tags$em(i18n$t("example_widget_names"), style = "color: #888;"), style = "font-size: 13px; color: #555; margin: 0 0 10px 0; line-height: 1.3;"),
+                  tags$h3(i18n$t("widget_modal_choose_name"), style = "font-size: 16px; font-weight: 600; color: #333; margin: 0 0 5px 0;"),
+                  tags$p(i18n$t("widget_modal_choose_name_explanation"), style = "font-size: 13px; color: #555; margin: 0 0 5px 0; line-height: 1.3;"),
+                  tags$p(i18n$t("widget_modal_choose_name_examples"), style = "font-size: 13px; color: #888; margin: 0 0 10px 0; font-style: italic;"),
                   div(
                     shiny.fluent::TextField.shinyInput(name_input_id),
                     style = "width: 100%; max-width: 400px;"
@@ -147,20 +180,21 @@ mod_data_ui <- function(id){
               # Step separator
               div(style = "height: 1px; background-color: #e0e0e0; margin: 10px 0;"),
               
-              # Step 2: Concepts selection
+              # Step 2: Plugin selection
               div(
                 style = "display: flex; align-items: flex-start; gap: 15px;",
                 div("2", class = "widget_step_number"),
                 div(
                   style = "flex: 1; min-width: 0;",
-                  tags$h3(i18n$t("choose_concepts_to_display"), style = "font-size: 16px; font-weight: 600; color: #333; margin: 0 0 5px 0;"),
-                  tags$p(i18n$t("select_medical_data_to_visualize"), " ", tags$em(i18n$t("example_medical_concepts"), style = "color: #888;"), style = "font-size: 13px; color: #555; margin: 0 0 10px 0; line-height: 1.3;"),
+                  tags$h3(i18n$t("widget_modal_choose_plugin"), style = "font-size: 16px; font-weight: 600; color: #333; margin: 0 0 5px 0;"),
+                  tags$p(i18n$t("widget_modal_choose_plugin_explanation"), style = "font-size: 13px; color: #555; margin: 0 0 5px 0; line-height: 1.3;"),
+                  tags$p(i18n$t("widget_modal_choose_plugin_examples"), style = "font-size: 13px; color: #888; margin: 0 0 10px 0; font-style: italic;"),
                   div(
-                    style = "width: 100%;",
+                    style = "width: 100%; max-width: 400px;",
                     div(
                       style = "width: 100%; margin-top: 20px;",
-                      uiOutput(concepts_output_id, class = "selected_concepts_ui", style = "margin-right: 10px;"),
-                      onclick = paste0("Shiny.setInputValue('", id, "-open_select_concepts_modal', Math.random());")
+                      uiOutput(plugin_output_id),
+                      onclick = paste0("Shiny.setInputValue('", id, "-open_select_a_plugin_modal', Math.random());")
                     )
                   )
                 )
@@ -169,20 +203,21 @@ mod_data_ui <- function(id){
               # Step separator
               div(style = "height: 1px; background-color: #e0e0e0; margin: 10px 0;"),
               
-              # Step 3: Plugin selection
+              # Step 3: Concepts selection (optional)
               div(
                 style = "display: flex; align-items: flex-start; gap: 15px;",
                 div("3", class = "widget_step_number"),
                 div(
                   style = "flex: 1; min-width: 0;",
-                  tags$h3(i18n$t("choose_visualization_type"), style = "font-size: 16px; font-weight: 600; color: #333; margin: 0 0 5px 0;"),
-                  tags$p(i18n$t("select_how_to_display_data"), " ", tags$em(i18n$t("example_visualization_types"), style = "color: #888;"), style = "font-size: 13px; color: #555; margin: 0 0 10px 0; line-height: 1.3;"),
+                  tags$h3(i18n$t("widget_modal_choose_concepts"), " ", tags$span(paste0("(", i18n$t("optional"), ")"), style = "font-weight: 400; color: #888;"), style = "font-size: 16px; font-weight: 600; color: #333; margin: 0 0 5px 0;"),
+                  tags$p(i18n$t("widget_modal_choose_concepts_explanation"), style = "font-size: 13px; color: #555; margin: 0 0 5px 0; line-height: 1.3;"),
+                  tags$p(i18n$t("widget_modal_choose_concepts_examples"), style = "font-size: 13px; color: #888; margin: 0 0 10px 0; font-style: italic;"),
                   div(
-                    style = "width: 100%; max-width: 400px;",
+                    style = "width: 100%;",
                     div(
                       style = "width: 100%; margin-top: 20px;",
-                      uiOutput(plugin_output_id),
-                      onclick = paste0("Shiny.setInputValue('", id, "-open_select_a_plugin_modal', Math.random());")
+                      uiOutput(concepts_output_id, class = "selected_concepts_ui", style = "margin-right: 5px;"),
+                      onclick = paste0("Shiny.setInputValue('", id, "-open_select_concepts_modal', Math.random());")
                     )
                   )
                 )
@@ -194,15 +229,15 @@ mod_data_ui <- function(id){
           ),
           div(
             shiny.fluent::PrimaryButton.shinyInput(save_button_id, save_button_text),
-            style = "display: flex; justify-content: flex-end;"
+            style = "display: flex; justify-content: flex-end; margin: 10px 5px 5px 0;"
           ),
-          class = "modal_content create_widget_modal_content"
+          class = "modal_content",
+          style = " width: 70%; max-height: 90%;"
         ),
         class = "modal"
       )
     )
   }
-
   
   # Delete a widget modal ----
   
@@ -280,8 +315,8 @@ mod_data_ui <- function(id){
   
   div(
     class = "main",
-    add_tab_modal,
-    edit_tab_modal,
+    create_tab_modal("add"),
+    create_tab_modal("edit"),
     delete_tab_modal,
     create_widget_modal("add"),
     create_widget_modal("edit"),

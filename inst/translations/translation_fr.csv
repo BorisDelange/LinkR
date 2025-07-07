@@ -580,12 +580,17 @@ an_error_occurred_see_log_for_details,Une erreur est survenue. Voir les logs pou
 an_error_occurred,Une erreur est survenue
 dataset_deleted,Set de données supprimé
 user_deleted,Utilisateur supprimé
-choose_a_name,Choisir un nom
-give_explicit_name_widget,Donnez un nom explicite à votre widget.
-example_widget_names,"Ex: 'Timeline hémodynamique', 'Résultats de biologie'."
-choose_concepts_to_display,Choisir les concepts à afficher
-select_medical_data_to_visualize,Sélectionnez les données médicales à visualiser.
-example_medical_concepts,"Ex: Fréquence cardiaque, Pression artérielle, Température."
-choose_visualization_type,Choisir le type de visualisation
-select_how_to_display_data,Sélectionnez comment afficher ces données.
-example_visualization_types,"Ex: Timeline pour l'évolution temporelle, Tableau pour les valeurs détaillées."
+widget_modal_description,"Les widgets permettent de **visualiser** ou d'**analyser** les données à l'aide d'une **interface graphique**."
+widget_modal_choose_name,Choisir un nom
+widget_modal_choose_name_explanation,Donnez un nom explicite à votre widget.
+widget_modal_choose_name_examples,"Ex: 'Timeline hémodynamique', 'Résultats de biologie'."
+widget_modal_choose_plugin,Choisir le plugin
+widget_modal_choose_plugin_explanation,Sélectionnez un plugin. Les plugins sont des scripts qui ajoutent des fonctionnalités spécifiques à l'application.
+widget_modal_choose_plugin_examples,"Ex: Timeline pour visualiser des variables continues, plugin pour entraîner des modèles de machine learning."
+widget_modal_choose_concepts,Choisir les concepts à afficher
+optional,optionnel
+widget_modal_choose_concepts_explanation,Sélectionnez les concepts médicaux à visualiser (certains plugins n'en ont pas besoin).
+widget_modal_choose_concepts_examples,"Ex: Fréquence cardiaque, Pression artérielle, Température."
+tab_modal_description,"Les onglets permettent d'**organiser les widgets** en plusieurs **pages**."
+tab_modal_add_name_explanation,Donnez un nom à l'onglet. Il pourra être modifié plus tard.
+tab_modal_edit_name_explanation,Modifiez le nom de l'onglet.

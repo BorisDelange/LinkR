@@ -580,12 +580,17 @@ an_error_occurred_see_log_for_details,An error occurred. See logs for details.
 an_error_occurred,An error occurred
 dataset_deleted,Dataset deleted
 user_deleted,User deleted
-choose_a_name,Choose a name
-give_explicit_name_widget,Give an explicit name to your widget.
-example_widget_names,"Ex: 'Hemodynamic Timeline', 'Laboratory Results'."
-choose_concepts_to_display,Choose concepts to display
-select_medical_data_to_visualize,Select medical data to visualize.
-example_medical_concepts,"Ex: Heart rate, Blood pressure, Temperature."
-choose_visualization_type,Choose visualization type
-select_how_to_display_data,Select how to display this data.
-example_visualization_types,"Ex: Timeline for temporal evolution, Table for detailed values."
+widget_modal_description,"Widgets allow you to **visualize** or **analyze** data through a **graphical interface**."
+widget_modal_choose_name,Choose a name
+widget_modal_choose_name_explanation,Give an explicit name to your widget.
+widget_modal_choose_name_examples,"Ex: 'Hemodynamic Timeline', 'Laboratory Results'."
+widget_modal_choose_plugin,Choose plugin
+widget_modal_choose_plugin_explanation,Select a plugin. Plugins are scripts that add specific functionalities to the application.
+widget_modal_choose_plugin_examples,"Ex: Timeline to visualize continuous variables, plugin to train machine learning models."
+widget_modal_choose_concepts,Choose concepts to display
+optional,optional
+widget_modal_choose_concepts_explanation,Select medical concepts to visualize (some plugins don't need any).
+widget_modal_choose_concepts_examples,"Ex: Heart rate, Blood pressure, Temperature."
+tab_modal_description,Tabs allow users to **organize widgets** across multiple **pages**.
+give_add_tab_name_explanation,Give a name to the tab. It can be modified later.
+give_edit_tab_name_explanation,Edit the tab name

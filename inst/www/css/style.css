@@ -349,16 +349,6 @@ a.no-hover-effect:hover {
   padding: 10px 0;
 }
 
-.create_tab_modal_content {
-  width: 400px;
-  padding-bottom: 30px;
-}
-
-.create_widget_modal_content {
-  width: 70%;
-  max-height: 90%;
-}
-
 .delete_modal_content {
   width: 400px;
   height: 110px;
