@@ -42,8 +42,8 @@ mod_widgets_ui <- function(id){
           div(
             tags$h1(i18n$t(paste0("delete_", single_id, "_title"))), tags$p(i18n$t(paste0("delete_", single_id, "_text"))),
             div(
-              shiny.fluent::DefaultButton.shinyInput(ns("close_element_deletion_modal"), i18n$t("dont_delete")),
-              div(shiny.fluent::PrimaryButton.shinyInput(ns("confirm_element_deletion"), i18n$t("delete")), class = "delete_button"),
+              shiny.fluent::DefaultButton.shinyInput(ns("close_element_deletion_modal"), i18n$t("dont_delete"), iconProps = list(iconName = "Cancel")),
+              div(shiny.fluent::PrimaryButton.shinyInput(ns("confirm_element_deletion"), i18n$t("delete"), iconProps = list(iconName = "Delete")), class = "delete_button"),
               class = "modal_buttons"
             ),
             class = "modal_content delete_modal_content"
@@ -827,7 +827,7 @@ mod_widgets_server <- function(id, all_divs){
       }
       
       sapply(c("summary_view_informations_div", "edit_summary_div"), shinyjs::hide)
-      sapply(c("summary_edit_informations_div", "save_summary_div", "edit_description_button"), shinyjs::show)
+      sapply(c("summary_edit_informations_div", "save_and_cancel_summary_div", "edit_summary_buttons"), shinyjs::show)
     })
     
     ## Reload informations UI ----
@@ -926,8 +926,11 @@ mod_widgets_server <- function(id, all_divs){
     
     observe_event(input$edit_description, {
       
-      sapply(c("edit_description_button", "summary_informations_div"), shinyjs::hide)
-      sapply(c("save_and_cancel_description_buttons", "edit_description_div"), shinyjs::show)
+      elements_to_hide <- c("edit_description_button", "summary_informations_div")
+      if (id == "projects") elements_to_hide <- c(elements_to_hide, "explore_data_div")
+      
+      sapply(elements_to_hide, shinyjs::hide)
+      shinyjs::show("edit_description_div")
     })
     
     ## Run description code ----
@@ -953,8 +956,11 @@ mod_widgets_server <- function(id, all_divs){
       
       shinyjs::runjs(paste0("Shiny.setInputValue('", id, "-save_description_trigger', Math.random());"))
       
-      sapply(c("save_and_cancel_description_buttons", "edit_description_div"), shinyjs::hide)
-      sapply(c("edit_description_button", "summary_informations_div"), shinyjs::show)
+      elements_to_show <- c("edit_description_button", "summary_informations_div")
+      if (id == "projects") elements_to_show <- c(elements_to_show, "explore_data_div")
+      
+      shinyjs::hide("edit_description_div")
+      sapply(elements_to_show, shinyjs::show)
     })
     
     observe_event(input$save_description_trigger, {
@@ -984,8 +990,11 @@ mod_widgets_server <- function(id, all_divs){
     
     observe_event(input$cancel_description, {
       
-      sapply(c("save_and_cancel_description_buttons", "edit_description_div"), shinyjs::hide)
-      sapply(c("edit_description_button", "summary_informations_div"), shinyjs::show)
+      elements_to_show <- c("edit_description_button", "summary_informations_div")
+      if (id == "projects") elements_to_show <- c(elements_to_show, "explore_data_div")
+      
+      shinyjs::hide("edit_description_div")
+      sapply(elements_to_show, shinyjs::show)
       
       # Reset description editor with last value
       element_long <- r[[long_var]] %>% dplyr::filter(id == input$selected_element) 
@@ -1141,7 +1150,7 @@ mod_widgets_server <- function(id, all_divs){
       shinyjs::runjs(paste0("Shiny.setInputValue('", id, "-reload_informations_ui', Math.random());"))
       
       # Hide edit description buttons
-      sapply(c("save_and_cancel_description_buttons", "edit_description_div"), shinyjs::hide)
+      shinyjs::hide("edit_description_div")
       sapply(c("edit_description_button", "summary_informations_div"), shinyjs::show)
       
       # Reload description depending on app language
@@ -1155,7 +1164,16 @@ mod_widgets_server <- function(id, all_divs){
       }
       
       # Close edition mode
-      sapply(c("summary_edit_informations_div", "save_summary_div", "edit_description_button"), shinyjs::hide)
+      sapply(c("summary_edit_informations_div", "save_and_cancel_summary_div", "edit_summary_buttons"), shinyjs::hide)
+      sapply(c("summary_view_informations_div", "edit_summary_div"), shinyjs::show)
+    })
+    
+    ## Cancel summary updates ----
+    
+    observe_event(input$cancel_summary_updates, {
+      
+      # Close edition mode
+      sapply(c("summary_edit_informations_div", "save_and_cancel_summary_div", "edit_summary_buttons"), shinyjs::hide)
       sapply(c("summary_view_informations_div", "edit_summary_div"), shinyjs::show)
     })
     

@@ -43,10 +43,6 @@ mod_data_cleaning_ui <- function(id){
                 id = ns("edit_description_div"),
                 tags$h1(i18n$t("edit_description")),
                 div(
-                  create_hover_card(ui = shiny.fluent::IconButton.shinyInput(ns("run_description_code"), iconProps = list(iconName = "Play")), text = i18n$t("run_code")),
-                  class = "small_icon_button top-right-button"
-                ),
-                div(
                   shinyAce::aceEditor(
                     ns("description_code"), mode = "markdown",
                     hotkeys = list(
@@ -55,13 +51,30 @@ mod_data_cleaning_ui <- function(id){
                     ),
                     autoScrollEditorIntoView = TRUE, height = "100%", debounce = 100, fontSize = 11, showPrintMargin = FALSE
                   ),
-                  style = "width: 100%; height: calc(100% - 45px); display: flex; flex-direction: column;"
+                  style = "width: 100%; height: calc(100% - 70px);"
+                ),
+                div(
+                  shiny.fluent::DefaultButton.shinyInput(ns("cancel_description"), i18n$t("cancel"), iconProps = list(iconName = "Cancel")),
+                  div(shiny.fluent::PrimaryButton.shinyInput(ns("run_description_code"), i18n$t("run_code"), iconProps = list(iconName = "Play")), class = "green_button"),
+                  shiny.fluent::PrimaryButton.shinyInput(ns("save_description"), i18n$t("save"), iconProps = list(iconName = "Save")),
+                  style = "display: flex; gap: 5px;",
+                  class = "bottom-right-button"
                 ),
                 class = "widget", style = "height: 100%;"
               )
             ),
             div(
               id = ns("summary_informations_div"),
+              div(
+                create_hover_card(
+                  ui = shiny.fluent::IconButton.shinyInput(
+                    ns("edit_summary_bis"), iconProps = list(iconName = "Edit"),
+                    onClick = htmlwidgets::JS(paste0("item => { document.getElementById('", ns("edit_summary"), "').click(); }"))
+                  ),
+                  text = i18n$t("edit")
+                ),
+                class = "small_icon_button top-right-button"
+              ),
               shinyjs::hidden(
                 div(
                   id = ns("summary_edit_informations_div"),
@@ -116,6 +129,28 @@ mod_data_cleaning_ui <- function(id){
                 h1(i18n$t("informations")),
                 uiOutput(ns("summary_informations_ui"))
               ),
+              shinyjs::hidden(
+                div(
+                  id = ns("edit_summary_buttons"),
+                  shiny.fluent::DefaultButton.shinyInput(
+                    ns("cancel_summary_updates_bis"), i18n$t("cancel"), iconProps = list(iconName = "Cancel"),
+                    onClick = htmlwidgets::JS(paste0("item => { document.getElementById('", ns("cancel_summary_updates"), "').click(); }"))
+                  ),
+                  div(
+                    shiny.fluent::PrimaryButton.shinyInput(
+                      ns("delete_element_bis"), i18n$t("delete"), iconProps = list(iconName = "Delete"),
+                      onClick = htmlwidgets::JS(paste0("item => { document.getElementById('", ns("delete_element"), "').click(); }"))
+                    ), 
+                    class = "delete_button"
+                  ),
+                  shiny.fluent::PrimaryButton.shinyInput(
+                    ns("save_summary_bis"), i18n$t("save"), iconProps = list(iconName = "Save"),
+                    onClick = htmlwidgets::JS(paste0("item => { document.getElementById('", ns("save_summary"), "').click(); }"))
+                  ),
+                  style = "display: flex; gap: 5px;",
+                  class = "bottom-right-button"
+                )
+              ),
               class = "widget", style = "min-height: 50%;"
             ),
             class = "data_cleaning_summary_left"
@@ -125,11 +160,9 @@ mod_data_cleaning_ui <- function(id){
               div(
                 h1(i18n$t("description")),
                 div(
-                  shinyjs::hidden(
-                    div(
-                      id = ns("edit_description_button"),
-                      create_hover_card(ui = shiny.fluent::IconButton.shinyInput(ns("edit_description"), iconProps = list(iconName = "Edit")), text = i18n$t("edit_description"))
-                    )
+                  div(
+                    id = ns("edit_description_button"),
+                    create_hover_card(ui = shiny.fluent::IconButton.shinyInput(ns("edit_description"), iconProps = list(iconName = "Edit")), text = i18n$t("edit_description"))
                   ),
                   shinyjs::hidden(
                     div(

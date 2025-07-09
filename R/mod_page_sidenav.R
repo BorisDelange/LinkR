@@ -54,8 +54,9 @@ mod_page_sidenav_ui <- function(id){
       ),
       shinyjs::hidden(
         div(
-          id = ns("save_summary_div"),
+          id = ns("save_and_cancel_summary_div"),
           create_hover_card(ui = shiny.fluent::IconButton.shinyInput(ns("save_summary"), iconProps = list(iconName = "Accept")), text = i18n$t("save")),
+          create_hover_card(ui = shiny.fluent::IconButton.shinyInput(ns("cancel_summary_updates"), iconProps = list(iconName = "Cancel")), text = i18n$t("cancel")),
           class = "reduced_sidenav_buttons"
         )
       ),
@@ -80,7 +81,6 @@ mod_page_sidenav_ui <- function(id){
         ),
         text = i18n$t(paste0("create_", type))
       ),
-      # create_hover_card(ui = div(shiny.fluent::IconButton.shinyInput(ns("reload_elements_var"), iconProps = list(iconName = "SyncOccurence"))), text = i18n$t("reload_list")),
       create_hover_card(
         ui = shinyjs::hidden(
           div(
@@ -657,19 +657,6 @@ mod_page_sidenav_ui <- function(id){
           div(
             id = ns("summary_reduced_sidenav"),
             edit_summary_buttons()
-          )
-        ),
-        shinyjs::hidden(
-          div(
-            id = ns("dataset_reduced_sidenav"),
-            # div(
-            #   create_hover_card(ui = shiny.fluent::IconButton.shinyInput(ns("save_dataset"), iconProps = list(iconName = "Save")), text = i18n$t("save")),
-            #   class = "reduced_sidenav_buttons"
-            # ),
-            # div(
-            #   create_hover_card(ui = shiny.fluent::IconButton.shinyInput(ns("reload_dataset"), iconProps = list(iconName = "Play")), text = i18n$t("reload_dataset")),
-            #   class = "reduced_sidenav_buttons"
-            # )
           )
         ),
         shinyjs::hidden(

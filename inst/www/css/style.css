@@ -866,6 +866,12 @@ a.no-hover-effect:hover {
   top: 5px;
 }
 
+.bottom-right-button {
+  position: absolute;
+  right: 5px;
+  bottom: 5px;
+}
+
 .delete_button .ms-Button {
   background-color: #f44336;
   border: #f44336;
@@ -874,6 +880,15 @@ a.no-hover-effect:hover {
 .delete_button .ms-Button:hover {
   background-color: #cd2d22;
   border: #cd2d22;
+}
+
+.green_button .ms-Button {
+  background-color: #4CAF50;
+  border: #4CAF50;
+}
+.green_button .ms-Button:hover {
+  background-color: #45a049;
+  border: #45a049;
 }
 
 .pivot {
